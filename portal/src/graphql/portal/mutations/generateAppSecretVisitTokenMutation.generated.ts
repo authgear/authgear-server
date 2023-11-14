@@ -4,7 +4,7 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type GenerateAppSecretVisitTokenMutationMutationVariables = Types.Exact<{
-  appID: Types.Scalars['ID'];
+  appID: Types.Scalars['ID']['input'];
   secrets: Array<Types.AppSecretKey> | Types.AppSecretKey;
 }>;
 

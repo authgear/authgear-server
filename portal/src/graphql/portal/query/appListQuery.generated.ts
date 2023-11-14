@@ -41,6 +41,11 @@ export function useAppListQueryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptio
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<AppListQueryQuery, AppListQueryQueryVariables>(AppListQueryDocument, options);
         }
+export function useAppListQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<AppListQueryQuery, AppListQueryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<AppListQueryQuery, AppListQueryQueryVariables>(AppListQueryDocument, options);
+        }
 export type AppListQueryQueryHookResult = ReturnType<typeof useAppListQueryQuery>;
 export type AppListQueryLazyQueryHookResult = ReturnType<typeof useAppListQueryLazyQuery>;
+export type AppListQuerySuspenseQueryHookResult = ReturnType<typeof useAppListQuerySuspenseQuery>;
 export type AppListQueryQueryResult = Apollo.QueryResult<AppListQueryQuery, AppListQueryQueryVariables>;

@@ -4,8 +4,8 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type ReconcileCheckoutSessionMutationMutationVariables = Types.Exact<{
-  appID: Types.Scalars['ID'];
-  checkoutSessionID: Types.Scalars['String'];
+  appID: Types.Scalars['ID']['input'];
+  checkoutSessionID: Types.Scalars['String']['input'];
 }>;
 
 

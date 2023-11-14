@@ -6,9 +6,9 @@ const defaultOptions = {} as const;
 export type UsersListFragment = { __typename?: 'UserConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'UserEdge', cursor: string, node?: { __typename?: 'User', id: string, createdAt: any, lastLoginAt?: any | null, isAnonymous: boolean, isDisabled: boolean, disableReason?: string | null, isDeactivated: boolean, deleteAt?: any | null, isAnonymized: boolean, anonymizeAt?: any | null, standardAttributes: any, formattedName?: string | null, endUserAccountID?: string | null } | null } | null> | null };
 
 export type UsersListQueryQueryVariables = Types.Exact<{
-  searchKeyword: Types.Scalars['String'];
-  pageSize: Types.Scalars['Int'];
-  cursor?: Types.InputMaybe<Types.Scalars['String']>;
+  searchKeyword: Types.Scalars['String']['input'];
+  pageSize: Types.Scalars['Int']['input'];
+  cursor?: Types.InputMaybe<Types.Scalars['String']['input']>;
   sortBy?: Types.InputMaybe<Types.UserSortBy>;
   sortDirection?: Types.InputMaybe<Types.SortDirection>;
 }>;
@@ -81,6 +81,11 @@ export function useUsersListQueryLazyQuery(baseOptions?: Apollo.LazyQueryHookOpt
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<UsersListQueryQuery, UsersListQueryQueryVariables>(UsersListQueryDocument, options);
         }
+export function useUsersListQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<UsersListQueryQuery, UsersListQueryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<UsersListQueryQuery, UsersListQueryQueryVariables>(UsersListQueryDocument, options);
+        }
 export type UsersListQueryQueryHookResult = ReturnType<typeof useUsersListQueryQuery>;
 export type UsersListQueryLazyQueryHookResult = ReturnType<typeof useUsersListQueryLazyQuery>;
+export type UsersListQuerySuspenseQueryHookResult = ReturnType<typeof useUsersListQuerySuspenseQuery>;
 export type UsersListQueryQueryResult = Apollo.QueryResult<UsersListQueryQuery, UsersListQueryQueryVariables>;

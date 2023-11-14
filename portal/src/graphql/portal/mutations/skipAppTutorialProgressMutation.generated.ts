@@ -4,8 +4,8 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type SkipAppTutorialProgressMutationMutationVariables = Types.Exact<{
-  appID: Types.Scalars['String'];
-  progress: Types.Scalars['String'];
+  appID: Types.Scalars['String']['input'];
+  progress: Types.Scalars['String']['input'];
 }>;
 
 

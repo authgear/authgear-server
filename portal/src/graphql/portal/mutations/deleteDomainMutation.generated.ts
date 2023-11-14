@@ -4,8 +4,8 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type DeleteDomainMutationMutationVariables = Types.Exact<{
-  appID: Types.Scalars['ID'];
-  domainID: Types.Scalars['String'];
+  appID: Types.Scalars['ID']['input'];
+  domainID: Types.Scalars['String']['input'];
 }>;
 
 

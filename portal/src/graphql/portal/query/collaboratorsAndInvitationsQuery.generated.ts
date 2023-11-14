@@ -4,7 +4,7 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type CollaboratorsAndInvitationsQueryQueryVariables = Types.Exact<{
-  appID: Types.Scalars['ID'];
+  appID: Types.Scalars['ID']['input'];
 }>;
 
 
@@ -65,6 +65,11 @@ export function useCollaboratorsAndInvitationsQueryLazyQuery(baseOptions?: Apoll
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<CollaboratorsAndInvitationsQueryQuery, CollaboratorsAndInvitationsQueryQueryVariables>(CollaboratorsAndInvitationsQueryDocument, options);
         }
+export function useCollaboratorsAndInvitationsQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CollaboratorsAndInvitationsQueryQuery, CollaboratorsAndInvitationsQueryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CollaboratorsAndInvitationsQueryQuery, CollaboratorsAndInvitationsQueryQueryVariables>(CollaboratorsAndInvitationsQueryDocument, options);
+        }
 export type CollaboratorsAndInvitationsQueryQueryHookResult = ReturnType<typeof useCollaboratorsAndInvitationsQueryQuery>;
 export type CollaboratorsAndInvitationsQueryLazyQueryHookResult = ReturnType<typeof useCollaboratorsAndInvitationsQueryLazyQuery>;
+export type CollaboratorsAndInvitationsQuerySuspenseQueryHookResult = ReturnType<typeof useCollaboratorsAndInvitationsQuerySuspenseQuery>;
 export type CollaboratorsAndInvitationsQueryQueryResult = Apollo.QueryResult<CollaboratorsAndInvitationsQueryQuery, CollaboratorsAndInvitationsQueryQueryVariables>;

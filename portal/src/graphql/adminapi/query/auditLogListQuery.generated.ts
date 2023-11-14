@@ -8,12 +8,12 @@ export type AuditLogEdgesNodeFragment = { __typename?: 'AuditLog', id: string, c
 export type AuditLogListFragment = { __typename?: 'AuditLogConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'AuditLogEdge', node?: { __typename?: 'AuditLog', id: string, createdAt: any, activityType: Types.AuditLogActivityType, data?: any | null, user?: { __typename?: 'User', id: string } | null } | null } | null> | null };
 
 export type AuditLogListQueryQueryVariables = Types.Exact<{
-  pageSize: Types.Scalars['Int'];
-  cursor?: Types.InputMaybe<Types.Scalars['String']>;
+  pageSize: Types.Scalars['Int']['input'];
+  cursor?: Types.InputMaybe<Types.Scalars['String']['input']>;
   activityTypes?: Types.InputMaybe<Array<Types.AuditLogActivityType> | Types.AuditLogActivityType>;
-  userIDs?: Types.InputMaybe<Array<Types.Scalars['ID']> | Types.Scalars['ID']>;
-  rangeFrom?: Types.InputMaybe<Types.Scalars['DateTime']>;
-  rangeTo?: Types.InputMaybe<Types.Scalars['DateTime']>;
+  userIDs?: Types.InputMaybe<Array<Types.Scalars['ID']['input']> | Types.Scalars['ID']['input']>;
+  rangeFrom?: Types.InputMaybe<Types.Scalars['DateTime']['input']>;
+  rangeTo?: Types.InputMaybe<Types.Scalars['DateTime']['input']>;
   sortDirection?: Types.InputMaybe<Types.SortDirection>;
 }>;
 
@@ -87,6 +87,11 @@ export function useAuditLogListQueryLazyQuery(baseOptions?: Apollo.LazyQueryHook
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<AuditLogListQueryQuery, AuditLogListQueryQueryVariables>(AuditLogListQueryDocument, options);
         }
+export function useAuditLogListQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<AuditLogListQueryQuery, AuditLogListQueryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<AuditLogListQueryQuery, AuditLogListQueryQueryVariables>(AuditLogListQueryDocument, options);
+        }
 export type AuditLogListQueryQueryHookResult = ReturnType<typeof useAuditLogListQueryQuery>;
 export type AuditLogListQueryLazyQueryHookResult = ReturnType<typeof useAuditLogListQueryLazyQuery>;
+export type AuditLogListQuerySuspenseQueryHookResult = ReturnType<typeof useAuditLogListQuerySuspenseQuery>;
 export type AuditLogListQueryQueryResult = Apollo.QueryResult<AuditLogListQueryQuery, AuditLogListQueryQueryVariables>;

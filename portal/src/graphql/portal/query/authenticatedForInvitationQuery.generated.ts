@@ -4,7 +4,7 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type AuthenticatedForInvitationQueryQueryVariables = Types.Exact<{
-  code: Types.Scalars['String'];
+  code: Types.Scalars['String']['input'];
 }>;
 
 
@@ -47,6 +47,11 @@ export function useAuthenticatedForInvitationQueryLazyQuery(baseOptions?: Apollo
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<AuthenticatedForInvitationQueryQuery, AuthenticatedForInvitationQueryQueryVariables>(AuthenticatedForInvitationQueryDocument, options);
         }
+export function useAuthenticatedForInvitationQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<AuthenticatedForInvitationQueryQuery, AuthenticatedForInvitationQueryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<AuthenticatedForInvitationQueryQuery, AuthenticatedForInvitationQueryQueryVariables>(AuthenticatedForInvitationQueryDocument, options);
+        }
 export type AuthenticatedForInvitationQueryQueryHookResult = ReturnType<typeof useAuthenticatedForInvitationQueryQuery>;
 export type AuthenticatedForInvitationQueryLazyQueryHookResult = ReturnType<typeof useAuthenticatedForInvitationQueryLazyQuery>;
+export type AuthenticatedForInvitationQuerySuspenseQueryHookResult = ReturnType<typeof useAuthenticatedForInvitationQuerySuspenseQuery>;
 export type AuthenticatedForInvitationQueryQueryResult = Apollo.QueryResult<AuthenticatedForInvitationQueryQuery, AuthenticatedForInvitationQueryQueryVariables>;

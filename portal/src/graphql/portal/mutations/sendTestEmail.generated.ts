@@ -4,12 +4,12 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type SendTestEmailMutationMutationVariables = Types.Exact<{
-  appID: Types.Scalars['ID'];
-  smtpHost: Types.Scalars['String'];
-  smtpPort: Types.Scalars['Int'];
-  smtpUsername: Types.Scalars['String'];
-  smtpPassword: Types.Scalars['String'];
-  to: Types.Scalars['String'];
+  appID: Types.Scalars['ID']['input'];
+  smtpHost: Types.Scalars['String']['input'];
+  smtpPort: Types.Scalars['Int']['input'];
+  smtpUsername: Types.Scalars['String']['input'];
+  smtpPassword: Types.Scalars['String']['input'];
+  to: Types.Scalars['String']['input'];
 }>;
 
 
