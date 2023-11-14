@@ -32,7 +32,10 @@ const packageJSON = JSON.parse(
 
 const deps = [];
 for (const key of Object.keys(packageJSON["dependencies"])) {
-  deps.push(key);
+  // Ignore cldr-json as they are not really a module.
+  if (!key.startsWith("cldr-")) {
+    deps.push(key);
+  }
 }
 deps.sort();
 
