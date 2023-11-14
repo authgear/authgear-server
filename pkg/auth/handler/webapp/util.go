@@ -1,11 +1,8 @@
 package webapp
 
 import (
-	"image"
 	"net/url"
 
-	"github.com/boombuler/barcode"
-	"github.com/boombuler/barcode/qr"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -99,22 +96,6 @@ func (p *FormPrefiller) Prefill(form url.Values) {
 			}
 		}
 	}
-}
-
-func createQRCodeImage(content string, width int, height int, level qr.ErrorCorrectionLevel) (image.Image, error) {
-	b, err := qr.Encode(content, level, qr.Auto)
-
-	if err != nil {
-		return nil, err
-	}
-
-	b, err = barcode.Scale(b, width, height)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return b, nil
 }
 
 func findLoginIDInPreviousInput(s *webapp.Session, xStep string) (string, bool) {

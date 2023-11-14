@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	coreimage "github.com/authgear/authgear-server/pkg/util/image"
@@ -50,7 +51,7 @@ func (h *WechatAuthHandler) GetData(r *http.Request, w http.ResponseWriter, sess
 		return nil, apierrors.NewInvalid("missing authorization url")
 	}
 
-	img, err := createQRCodeImage(authURL, 512, 512, qr.M)
+	img, err := web.CreateQRCodeImage(authURL, 512, 512, qr.M)
 	if err != nil {
 		return nil, err
 	}
