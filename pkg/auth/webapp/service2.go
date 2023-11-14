@@ -182,7 +182,7 @@ func (s *Service2) PostWithInput(
 	})
 }
 
-// nolint: gocyclo,gocognit
+// nolint: gocognit
 func (s *Service2) doPost(
 	session *Session,
 	inputFn func() (interface{}, error),
@@ -564,7 +564,6 @@ func (s *Service2) deriveFinishRedirectURI(session *Session, graph *interaction.
 	return
 }
 
-// nolint:gocyclo
 func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 	switch currentNode := graph.CurrentNode().(type) {
 	case *nodes.NodeUseIdentityOAuthProvider:

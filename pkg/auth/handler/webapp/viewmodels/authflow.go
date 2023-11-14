@@ -49,7 +49,7 @@ type AuthflowViewModeler struct {
 	LoginID        *config.LoginIDConfig
 }
 
-// nolint: gocyclo,gocognit
+// nolint: gocognit
 func (m *AuthflowViewModeler) NewWithAuthflow(f *authflow.FlowResponse, r *http.Request) AuthflowViewModel {
 	options := webapp.GetIdentificationOptions(f)
 

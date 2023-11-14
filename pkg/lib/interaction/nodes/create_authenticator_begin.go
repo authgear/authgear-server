@@ -299,7 +299,7 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 	return edges, nil
 }
 
-// nolint: gocyclo,gocognit
+// nolint: gocognit
 func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Edge) {
 	// Determine whether we need to create secondary authenticator.
 
