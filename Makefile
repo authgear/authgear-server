@@ -39,7 +39,7 @@ test:
 
 .PHONY: lint
 lint:
-	golangci-lint run ./cmd/... ./pkg/... --timeout 7m --max-issues-per-linter 0
+	golangci-lint run ./cmd/... ./pkg/... --timeout 7m
 	go run ./devtools/translationlinter
 	-go run ./devtools/importlinter api api >.make-lint-expect 2>&1
 	-go run ./devtools/importlinter lib api util >> .make-lint-expect 2>&1
