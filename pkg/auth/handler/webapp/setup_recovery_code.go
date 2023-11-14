@@ -2,11 +2,11 @@ package webapp
 
 import (
 	"fmt"
-	"mime"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -15,11 +15,6 @@ import (
 var TemplateWebSetupRecoveryCodeHTML = template.RegisterHTML(
 	"web/setup_recovery_code.html",
 	components...,
-)
-
-var TemplateWebDownloadRecoveryCodeTXT = template.RegisterPlainText(
-	"web/download_recovery_code.txt",
-	plainTextComponents...,
 )
 
 func ConfigureSetupRecoveryCodeRoute(route httproute.Route) httproute.Route {
@@ -49,7 +44,7 @@ func (h *SetupRecoveryCodeHandler) MakeViewModel(graph *interaction.Graph) Setup
 	}
 
 	recoveryCodes := node.GetRecoveryCodes()
-	recoveryCodes = formatRecoveryCodes(recoveryCodes)
+	recoveryCodes = secretcode.RecoveryCode.FormatCodes(recoveryCodes)
 
 	return SetupRecoveryCodeViewModel{
 		RecoveryCodes: recoveryCodes,
@@ -100,7 +95,7 @@ func (h *SetupRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 			return err
 		}
 
-		setRecoveryCodeAttachmentHeaders(w)
+		web.SetRecoveryCodeAttachmentHeaders(w)
 		h.Renderer.Render(w, r, TemplateWebDownloadRecoveryCodeTXT, data)
 		return nil
 	})
@@ -117,20 +112,4 @@ func (h *SetupRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		result.WriteResponse(w, r)
 		return nil
 	})
-}
-
-func formatRecoveryCodes(recoveryCodes []string) []string {
-	out := make([]string, len(recoveryCodes))
-	for i, code := range recoveryCodes {
-		out[i] = secretcode.RecoveryCode.FormatForHuman(code)
-	}
-	return out
-}
-
-func setRecoveryCodeAttachmentHeaders(w http.ResponseWriter) {
-	// No need to use FormatMediaType because the value is constant.
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.Header().Set("Content-Disposition", mime.FormatMediaType("attachment", map[string]string{
-		"filename": "recovery-codes.txt",
-	}))
 }

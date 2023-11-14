@@ -48,3 +48,11 @@ func (t RecoveryCodeType) CheckFormat(value interface{}) error {
 
 	return nil
 }
+
+func (t RecoveryCodeType) FormatCodes(recoveryCodes []string) []string {
+	out := make([]string, len(recoveryCodes))
+	for i, code := range recoveryCodes {
+		out[i] = t.FormatForHuman(code)
+	}
+	return out
+}

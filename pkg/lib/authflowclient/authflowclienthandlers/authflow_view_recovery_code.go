@@ -6,7 +6,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authflowclient"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/secretcode"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -44,7 +46,7 @@ func (h *AuthflowViewRecoveryCodeHandler) GetData(w http.ResponseWriter, r *http
 	}
 
 	screenViewModel := AuthflowViewRecoveryCodeViewModel{
-		RecoveryCodes: formatRecoveryCodes(screenData.RecoveryCodes),
+		RecoveryCodes: secretcode.RecoveryCode.FormatCodes(screenData.RecoveryCodes),
 	}
 	viewmodels.Embed(data, screenViewModel)
 
@@ -68,7 +70,7 @@ func (h *AuthflowViewRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *ht
 			return err
 		}
 
-		setRecoveryCodeAttachmentHeaders(w)
+		web.SetRecoveryCodeAttachmentHeaders(w)
 		h.Renderer.Render(w, r, TemplateWebDownloadRecoveryCodeTXT, data)
 		return nil
 	})

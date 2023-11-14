@@ -6,4 +6,4 @@ import (
 
 var components = web.ComponentsHTML
 
-var plainTextComponents = web.ComponentsPlainText
+var TemplateWebDownloadRecoveryCodeTXT = web.TemplateWebDownloadRecoveryCodeTXT
