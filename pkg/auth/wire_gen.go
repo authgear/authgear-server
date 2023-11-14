@@ -20,6 +20,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authflowclient"
+	"github.com/authgear/authgear-server/pkg/lib/authflowclient/authflowclienthandlers"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	passkey3 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
@@ -9907,7 +9908,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authflowControllerLogger := webapp.NewAuthflowControllerLogger(factory)
+	authflowControllerLogger := authflowclienthandlers.NewAuthflowControllerLogger(factory)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -9945,7 +9946,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
-	authflowController := &webapp.AuthflowController{
+	authflowController := &authflowclienthandlers.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
 		ErrorCookie:             errorCookie,
@@ -61883,7 +61884,7 @@ func newAPIAuthenticationFlowV1WebsocketHandler(p *deps.RequestProvider) http.Ha
 func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authflowControllerLogger := webapp.NewAuthflowControllerLogger(factory)
+	authflowControllerLogger := authflowclienthandlers.NewAuthflowControllerLogger(factory)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -61921,7 +61922,7 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
-	authflowController := &webapp.AuthflowController{
+	authflowController := &authflowclienthandlers.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
 		ErrorCookie:             errorCookie,
@@ -62014,7 +62015,7 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 	tutorialCookie := &httputil.TutorialCookie{
 		Cookies: cookieManager,
 	}
-	authflowLoginHandler := &webapp.AuthflowLoginHandler{
+	authflowLoginHandler := &authflowclienthandlers.AuthflowLoginHandler{
 		Controller:        authflowController,
 		BaseViewModel:     baseViewModeler,
 		AuthflowViewModel: authflowViewModeler,
@@ -62030,7 +62031,7 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authflowControllerLogger := webapp.NewAuthflowControllerLogger(factory)
+	authflowControllerLogger := authflowclienthandlers.NewAuthflowControllerLogger(factory)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -62068,7 +62069,7 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
-	authflowController := &webapp.AuthflowController{
+	authflowController := &authflowclienthandlers.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
 		ErrorCookie:             errorCookie,
@@ -62161,7 +62162,7 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 	tutorialCookie := &httputil.TutorialCookie{
 		Cookies: cookieManager,
 	}
-	authflowSignupHandler := &webapp.AuthflowSignupHandler{
+	authflowSignupHandler := &authflowclienthandlers.AuthflowSignupHandler{
 		Controller:        authflowController,
 		BaseViewModel:     baseViewModeler,
 		AuthflowViewModel: authflowViewModeler,
@@ -62176,7 +62177,7 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authflowControllerLogger := webapp.NewAuthflowControllerLogger(factory)
+	authflowControllerLogger := authflowclienthandlers.NewAuthflowControllerLogger(factory)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -62214,7 +62215,7 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
-	authflowController := &webapp.AuthflowController{
+	authflowController := &authflowclienthandlers.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
 		ErrorCookie:             errorCookie,
@@ -62292,7 +62293,7 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
-	authflowPromoteHandler := &webapp.AuthflowPromoteHandler{
+	authflowPromoteHandler := &authflowclienthandlers.AuthflowPromoteHandler{
 		Controller:        authflowController,
 		BaseViewModel:     baseViewModeler,
 		AuthflowViewModel: authflowViewModeler,
@@ -62305,7 +62306,7 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authflowControllerLogger := webapp.NewAuthflowControllerLogger(factory)
+	authflowControllerLogger := authflowclienthandlers.NewAuthflowControllerLogger(factory)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -62343,7 +62344,7 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
-	authflowController := &webapp.AuthflowController{
+	authflowController := &authflowclienthandlers.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
 		ErrorCookie:             errorCookie,
@@ -62415,7 +62416,7 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
-	authflowEnterPasswordHandler := &webapp.AuthflowEnterPasswordHandler{
+	authflowEnterPasswordHandler := &authflowclienthandlers.AuthflowEnterPasswordHandler{
 		Controller:    authflowController,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -62426,7 +62427,7 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authflowControllerLogger := webapp.NewAuthflowControllerLogger(factory)
+	authflowControllerLogger := authflowclienthandlers.NewAuthflowControllerLogger(factory)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -62464,7 +62465,7 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
-	authflowController := &webapp.AuthflowController{
+	authflowController := &authflowclienthandlers.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
 		ErrorCookie:             errorCookie,
@@ -62536,7 +62537,7 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
-	authflowEnterOOBOTPHandler := &webapp.AuthflowEnterOOBOTPHandler{
+	authflowEnterOOBOTPHandler := &authflowclienthandlers.AuthflowEnterOOBOTPHandler{
 		Controller:    authflowController,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -62549,7 +62550,7 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authflowControllerLogger := webapp.NewAuthflowControllerLogger(factory)
+	authflowControllerLogger := authflowclienthandlers.NewAuthflowControllerLogger(factory)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -62587,7 +62588,7 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
-	authflowController := &webapp.AuthflowController{
+	authflowController := &authflowclienthandlers.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
 		ErrorCookie:             errorCookie,
@@ -62659,7 +62660,7 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
-	authflowCreatePasswordHandler := &webapp.AuthflowCreatePasswordHandler{
+	authflowCreatePasswordHandler := &authflowclienthandlers.AuthflowCreatePasswordHandler{
 		Controller:    authflowController,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -62670,7 +62671,7 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authflowControllerLogger := webapp.NewAuthflowControllerLogger(factory)
+	authflowControllerLogger := authflowclienthandlers.NewAuthflowControllerLogger(factory)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -62708,7 +62709,7 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
-	authflowController := &webapp.AuthflowController{
+	authflowController := &authflowclienthandlers.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
 		ErrorCookie:             errorCookie,
@@ -62780,7 +62781,7 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
-	authflowEnterTOTPHandler := &webapp.AuthflowEnterTOTPHandler{
+	authflowEnterTOTPHandler := &authflowclienthandlers.AuthflowEnterTOTPHandler{
 		Controller:    authflowController,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -62791,7 +62792,7 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authflowControllerLogger := webapp.NewAuthflowControllerLogger(factory)
+	authflowControllerLogger := authflowclienthandlers.NewAuthflowControllerLogger(factory)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -62829,7 +62830,7 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
-	authflowController := &webapp.AuthflowController{
+	authflowController := &authflowclienthandlers.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
 		ErrorCookie:             errorCookie,
@@ -62901,7 +62902,7 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
-	authflowSetupTOTPHandler := &webapp.AuthflowSetupTOTPHandler{
+	authflowSetupTOTPHandler := &authflowclienthandlers.AuthflowSetupTOTPHandler{
 		Controller:    authflowController,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -62912,7 +62913,7 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authflowControllerLogger := webapp.NewAuthflowControllerLogger(factory)
+	authflowControllerLogger := authflowclienthandlers.NewAuthflowControllerLogger(factory)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -62950,7 +62951,7 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
-	authflowController := &webapp.AuthflowController{
+	authflowController := &authflowclienthandlers.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
 		ErrorCookie:             errorCookie,
@@ -63022,7 +63023,7 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
-	authflowViewRecoveryCodeHandler := &webapp.AuthflowViewRecoveryCodeHandler{
+	authflowViewRecoveryCodeHandler := &authflowclienthandlers.AuthflowViewRecoveryCodeHandler{
 		Controller:    authflowController,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -63033,7 +63034,7 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authflowControllerLogger := webapp.NewAuthflowControllerLogger(factory)
+	authflowControllerLogger := authflowclienthandlers.NewAuthflowControllerLogger(factory)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -63071,7 +63072,7 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
-	authflowController := &webapp.AuthflowController{
+	authflowController := &authflowclienthandlers.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
 		ErrorCookie:             errorCookie,
@@ -63143,7 +63144,7 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
-	authflowWhatsappOTPHandler := &webapp.AuthflowWhatsappOTPHandler{
+	authflowWhatsappOTPHandler := &authflowclienthandlers.AuthflowWhatsappOTPHandler{
 		Controller:    authflowController,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -63156,7 +63157,7 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authflowControllerLogger := webapp.NewAuthflowControllerLogger(factory)
+	authflowControllerLogger := authflowclienthandlers.NewAuthflowControllerLogger(factory)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -63194,7 +63195,7 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
-	authflowController := &webapp.AuthflowController{
+	authflowController := &authflowclienthandlers.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
 		ErrorCookie:             errorCookie,
@@ -63266,7 +63267,7 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
-	authflowOOBOTPLinkHandler := &webapp.AuthflowOOBOTPLinkHandler{
+	authflowOOBOTPLinkHandler := &authflowclienthandlers.AuthflowOOBOTPLinkHandler{
 		Controller:    authflowController,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -63279,7 +63280,7 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authflowControllerLogger := webapp.NewAuthflowControllerLogger(factory)
+	authflowControllerLogger := authflowclienthandlers.NewAuthflowControllerLogger(factory)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -63317,7 +63318,7 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
-	authflowController := &webapp.AuthflowController{
+	authflowController := &authflowclienthandlers.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
 		ErrorCookie:             errorCookie,
@@ -63389,7 +63390,7 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
-	authflowChangePasswordHandler := &webapp.AuthflowChangePasswordHandler{
+	authflowChangePasswordHandler := &authflowclienthandlers.AuthflowChangePasswordHandler{
 		Controller:    authflowController,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -63400,7 +63401,7 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authflowControllerLogger := webapp.NewAuthflowControllerLogger(factory)
+	authflowControllerLogger := authflowclienthandlers.NewAuthflowControllerLogger(factory)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -63438,7 +63439,7 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
-	authflowController := &webapp.AuthflowController{
+	authflowController := &authflowclienthandlers.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
 		ErrorCookie:             errorCookie,
@@ -63510,7 +63511,7 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
-	authflowUsePasskeyHandler := &webapp.AuthflowUsePasskeyHandler{
+	authflowUsePasskeyHandler := &authflowclienthandlers.AuthflowUsePasskeyHandler{
 		Controller:    authflowController,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -63521,7 +63522,7 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authflowControllerLogger := webapp.NewAuthflowControllerLogger(factory)
+	authflowControllerLogger := authflowclienthandlers.NewAuthflowControllerLogger(factory)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -63559,7 +63560,7 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
-	authflowController := &webapp.AuthflowController{
+	authflowController := &authflowclienthandlers.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
 		ErrorCookie:             errorCookie,
@@ -63631,7 +63632,7 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
-	authflowPromptCreatePasskeyHandler := &webapp.AuthflowPromptCreatePasskeyHandler{
+	authflowPromptCreatePasskeyHandler := &authflowclienthandlers.AuthflowPromptCreatePasskeyHandler{
 		Controller:    authflowController,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -63642,7 +63643,7 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authflowControllerLogger := webapp.NewAuthflowControllerLogger(factory)
+	authflowControllerLogger := authflowclienthandlers.NewAuthflowControllerLogger(factory)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -63680,7 +63681,7 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
-	authflowController := &webapp.AuthflowController{
+	authflowController := &authflowclienthandlers.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
 		ErrorCookie:             errorCookie,
@@ -63752,7 +63753,7 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
-	authflowEnterRecoveryCodeHandler := &webapp.AuthflowEnterRecoveryCodeHandler{
+	authflowEnterRecoveryCodeHandler := &authflowclienthandlers.AuthflowEnterRecoveryCodeHandler{
 		Controller:    authflowController,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -63763,7 +63764,7 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authflowControllerLogger := webapp.NewAuthflowControllerLogger(factory)
+	authflowControllerLogger := authflowclienthandlers.NewAuthflowControllerLogger(factory)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -63801,7 +63802,7 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
-	authflowController := &webapp.AuthflowController{
+	authflowController := &authflowclienthandlers.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
 		ErrorCookie:             errorCookie,
@@ -63873,7 +63874,7 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
-	authflowSetupOOBOTPHandler := &webapp.AuthflowSetupOOBOTPHandler{
+	authflowSetupOOBOTPHandler := &authflowclienthandlers.AuthflowSetupOOBOTPHandler{
 		Controller:    authflowController,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -63884,7 +63885,7 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authflowControllerLogger := webapp.NewAuthflowControllerLogger(factory)
+	authflowControllerLogger := authflowclienthandlers.NewAuthflowControllerLogger(factory)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -63922,7 +63923,7 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
-	authflowController := &webapp.AuthflowController{
+	authflowController := &authflowclienthandlers.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
 		ErrorCookie:             errorCookie,
@@ -63994,7 +63995,7 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
-	authflowTerminateOtherSessionsHandler := &webapp.AuthflowTerminateOtherSessionsHandler{
+	authflowTerminateOtherSessionsHandler := &authflowclienthandlers.AuthflowTerminateOtherSessionsHandler{
 		Controller:    authflowController,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -64005,7 +64006,7 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authflowControllerLogger := webapp.NewAuthflowControllerLogger(factory)
+	authflowControllerLogger := authflowclienthandlers.NewAuthflowControllerLogger(factory)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -64043,7 +64044,7 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
-	authflowController := &webapp.AuthflowController{
+	authflowController := &authflowclienthandlers.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
 		ErrorCookie:             errorCookie,
@@ -64115,7 +64116,7 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
-	authflowWechatHandler := &webapp.AuthflowWechatHandler{
+	authflowWechatHandler := &authflowclienthandlers.AuthflowWechatHandler{
 		Controller:    authflowController,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -64126,7 +64127,7 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authflowControllerLogger := webapp.NewAuthflowControllerLogger(factory)
+	authflowControllerLogger := authflowclienthandlers.NewAuthflowControllerLogger(factory)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -64164,7 +64165,7 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
-	authflowController := &webapp.AuthflowController{
+	authflowController := &authflowclienthandlers.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
 		ErrorCookie:             errorCookie,
@@ -64236,7 +64237,7 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
-	authflowForgotPasswordHandler := &webapp.AuthflowForgotPasswordHandler{
+	authflowForgotPasswordHandler := &authflowclienthandlers.AuthflowForgotPasswordHandler{
 		Controller:    authflowController,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -64247,7 +64248,7 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authflowControllerLogger := webapp.NewAuthflowControllerLogger(factory)
+	authflowControllerLogger := authflowclienthandlers.NewAuthflowControllerLogger(factory)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -64285,7 +64286,7 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
-	authflowController := &webapp.AuthflowController{
+	authflowController := &authflowclienthandlers.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
 		ErrorCookie:             errorCookie,
@@ -64357,7 +64358,7 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
-	authflowForgotPasswordSuccessHandler := &webapp.AuthflowForgotPasswordSuccessHandler{
+	authflowForgotPasswordSuccessHandler := &authflowclienthandlers.AuthflowForgotPasswordSuccessHandler{
 		Controller:    authflowController,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -65202,7 +65203,7 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authflowControllerLogger := webapp.NewAuthflowControllerLogger(factory)
+	authflowControllerLogger := authflowclienthandlers.NewAuthflowControllerLogger(factory)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -65240,7 +65241,7 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
-	authflowController := &webapp.AuthflowController{
+	authflowController := &authflowclienthandlers.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
 		ErrorCookie:             errorCookie,
@@ -65253,7 +65254,7 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:                uiConfig,
 		OAuthClientResolver:     resolver,
 	}
-	authflowReauthHandler := &webapp.AuthflowReauthHandler{
+	authflowReauthHandler := &authflowclienthandlers.AuthflowReauthHandler{
 		Controller: authflowController,
 	}
 	return authflowReauthHandler
@@ -65262,7 +65263,7 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authflowControllerLogger := webapp.NewAuthflowControllerLogger(factory)
+	authflowControllerLogger := authflowclienthandlers.NewAuthflowControllerLogger(factory)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -65300,7 +65301,7 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
-	authflowController := &webapp.AuthflowController{
+	authflowController := &authflowclienthandlers.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
 		ErrorCookie:             errorCookie,
@@ -65372,7 +65373,7 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
-	authflowResetPasswordHandler := &webapp.AuthflowResetPasswordHandler{
+	authflowResetPasswordHandler := &authflowclienthandlers.AuthflowResetPasswordHandler{
 		Controller:    authflowController,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -65383,7 +65384,7 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authflowControllerLogger := webapp.NewAuthflowControllerLogger(factory)
+	authflowControllerLogger := authflowclienthandlers.NewAuthflowControllerLogger(factory)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -65421,7 +65422,7 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
-	authflowController := &webapp.AuthflowController{
+	authflowController := &authflowclienthandlers.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
 		ErrorCookie:             errorCookie,
@@ -65493,7 +65494,7 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
-	authflowResetPasswordSuccessHandler := &webapp.AuthflowResetPasswordSuccessHandler{
+	authflowResetPasswordSuccessHandler := &authflowclienthandlers.AuthflowResetPasswordSuccessHandler{
 		Controller:    authflowController,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -65590,7 +65591,7 @@ func newWebAppAuthflowAccountStatusHandler(p *deps.RequestProvider) http.Handler
 	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
-	authflowAccountStatusHandler := &webapp.AuthflowAccountStatusHandler{
+	authflowAccountStatusHandler := &authflowclienthandlers.AuthflowAccountStatusHandler{
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 	}
@@ -65686,7 +65687,7 @@ func newWebAppAuthflowNoAuthenticatorHandler(p *deps.RequestProvider) http.Handl
 	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
-	authflowNoAuthenticatorHandler := &webapp.AuthflowNoAuthenticatorHandler{
+	authflowNoAuthenticatorHandler := &authflowclienthandlers.AuthflowNoAuthenticatorHandler{
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 	}
