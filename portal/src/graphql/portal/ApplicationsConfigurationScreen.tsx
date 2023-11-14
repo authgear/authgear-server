@@ -22,7 +22,7 @@ import { concatStyleSetsWithProps } from "@fluentui/merge-styles";
 import cn from "classnames";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import produce from "immer";
+import { produce } from "immer";
 
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";

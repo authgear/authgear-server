@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import produce from "immer";
+import { produce } from "immer";
 import cn from "classnames";
 import { Text } from "@fluentui/react";
 import FormContainer from "../../FormContainer";

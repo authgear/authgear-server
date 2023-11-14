@@ -12,7 +12,7 @@ import {
   useTheme,
   DialogFooter,
 } from "@fluentui/react";
-import produce from "immer";
+import { produce } from "immer";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import ScreenContent from "../../ScreenContent";
