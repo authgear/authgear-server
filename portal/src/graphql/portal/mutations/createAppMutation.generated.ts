@@ -4,7 +4,7 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type CreateAppMutationMutationVariables = Types.Exact<{
-  appID: Types.Scalars['String'];
+  appID: Types.Scalars['String']['input'];
 }>;
 
 

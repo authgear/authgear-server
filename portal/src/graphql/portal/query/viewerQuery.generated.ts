@@ -43,6 +43,11 @@ export function useViewerQueryLazyQuery(baseOptions?: Apollo.LazyQueryHookOption
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<ViewerQueryQuery, ViewerQueryQueryVariables>(ViewerQueryDocument, options);
         }
+export function useViewerQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ViewerQueryQuery, ViewerQueryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ViewerQueryQuery, ViewerQueryQueryVariables>(ViewerQueryDocument, options);
+        }
 export type ViewerQueryQueryHookResult = ReturnType<typeof useViewerQueryQuery>;
 export type ViewerQueryLazyQueryHookResult = ReturnType<typeof useViewerQueryLazyQuery>;
+export type ViewerQuerySuspenseQueryHookResult = ReturnType<typeof useViewerQuerySuspenseQuery>;
 export type ViewerQueryQueryResult = Apollo.QueryResult<ViewerQueryQuery, ViewerQueryQueryVariables>;

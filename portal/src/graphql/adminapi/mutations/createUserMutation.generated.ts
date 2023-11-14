@@ -5,7 +5,7 @@ import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type CreateUserMutationMutationVariables = Types.Exact<{
   identityDefinition: Types.IdentityDefinitionLoginId;
-  password?: Types.InputMaybe<Types.Scalars['String']>;
+  password?: Types.InputMaybe<Types.Scalars['String']['input']>;
 }>;
 
 

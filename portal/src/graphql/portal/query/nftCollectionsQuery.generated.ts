@@ -4,7 +4,7 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type NftCollectionsQueryQueryVariables = Types.Exact<{
-  appID: Types.Scalars['ID'];
+  appID: Types.Scalars['ID']['input'];
 }>;
 
 
@@ -55,6 +55,11 @@ export function useNftCollectionsQueryLazyQuery(baseOptions?: Apollo.LazyQueryHo
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<NftCollectionsQueryQuery, NftCollectionsQueryQueryVariables>(NftCollectionsQueryDocument, options);
         }
+export function useNftCollectionsQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<NftCollectionsQueryQuery, NftCollectionsQueryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<NftCollectionsQueryQuery, NftCollectionsQueryQueryVariables>(NftCollectionsQueryDocument, options);
+        }
 export type NftCollectionsQueryQueryHookResult = ReturnType<typeof useNftCollectionsQueryQuery>;
 export type NftCollectionsQueryLazyQueryHookResult = ReturnType<typeof useNftCollectionsQueryLazyQuery>;
+export type NftCollectionsQuerySuspenseQueryHookResult = ReturnType<typeof useNftCollectionsQuerySuspenseQuery>;
 export type NftCollectionsQueryQueryResult = Apollo.QueryResult<NftCollectionsQueryQuery, NftCollectionsQueryQueryVariables>;

@@ -4,8 +4,8 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type UpdateAppAndSecretConfigMutationMutationVariables = Types.Exact<{
-  appID: Types.Scalars['ID'];
-  appConfig: Types.Scalars['AppConfig'];
+  appID: Types.Scalars['ID']['input'];
+  appConfig: Types.Scalars['AppConfig']['input'];
   secretConfigUpdateInstructions?: Types.InputMaybe<Types.SecretConfigUpdateInstructionsInput>;
 }>;
 

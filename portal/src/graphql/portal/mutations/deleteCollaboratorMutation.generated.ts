@@ -4,7 +4,7 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type DeleteCollaboratorMutationMutationVariables = Types.Exact<{
-  collaboratorID: Types.Scalars['String'];
+  collaboratorID: Types.Scalars['String']['input'];
 }>;
 
 
