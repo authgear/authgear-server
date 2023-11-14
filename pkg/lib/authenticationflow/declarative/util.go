@@ -181,7 +181,7 @@ func flowRootObjectForAccountRecoveryFlow(deps *authflow.Dependencies, flowRefer
 	return root, nil
 }
 
-// nolint: gocyclo
+// nolint: gocyclo,gocognit
 func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, userID string, step *config.AuthenticationFlowLoginFlowStep) ([]AuthenticateOption, error) {
 	options := []AuthenticateOption{}
 
@@ -386,6 +386,7 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 	return options, nil
 }
 
+// nolint:gocognit
 func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, userID string, step *config.AuthenticationFlowReauthFlowStep) ([]AuthenticateOption, error) {
 	options := []AuthenticateOption{}
 

@@ -41,7 +41,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) IsDefaultAuthenticator() bool {
 	return false
 }
 
-// nolint: gocyclo
+// nolint: gocyclo,gocognit
 func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var target string
 	var channel model.AuthenticatorOOBChannel

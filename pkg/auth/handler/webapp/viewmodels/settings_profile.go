@@ -90,6 +90,7 @@ type SettingsProfileViewModeler struct {
 	Clock             clock.Clock
 }
 
+// nolint: gocognit
 func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileViewModel, error) {
 	var emails []string
 	var phoneNumbers []string

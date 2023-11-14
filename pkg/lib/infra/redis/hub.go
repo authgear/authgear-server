@@ -60,6 +60,8 @@ type PubSub struct {
 }
 
 // NewPubSub creates a running PubSub actor.
+//
+//nolint:gocognit
 func NewPubSub(logger *log.Logger, client *redis.Client, connKey string, supervisorMailbox chan interface{}) *PubSub {
 	ctx := context.Background()
 	redisPubSub := client.Subscribe(ctx)

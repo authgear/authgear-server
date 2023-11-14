@@ -48,6 +48,7 @@ var cmdInternalMigrateTOCPPFooter = &cobra.Command{
 	},
 }
 
+//nolint:gocognit
 func migrateTOCPPFooter(appID string, configSourceData map[string]string, dryRun bool) error {
 	encodedConfig := configSourceData["authgear.yaml"]
 	decodedConfig, err := base64.StdEncoding.DecodeString(encodedConfig)

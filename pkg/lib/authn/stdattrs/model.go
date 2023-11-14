@@ -55,22 +55,26 @@ func (t T) FormattedNames() string {
 
 	nickname, _ := t[Nickname].(string)
 
+	isNameEmpty := name == ""
+	isGmfEmpty := gmf == ""
+	isNicknameEmpty := nickname == ""
+
 	switch {
-	case name == "" && gmf == "" && nickname == "":
+	case isNameEmpty && isGmfEmpty && isNicknameEmpty:
 		return ""
-	case name == "" && gmf == "" && nickname != "":
+	case isNameEmpty && isGmfEmpty && !isNicknameEmpty:
 		return nickname
-	case name == "" && gmf != "" && nickname == "":
+	case isNameEmpty && !isGmfEmpty && isNicknameEmpty:
 		return gmf
-	case name == "" && gmf != "" && nickname != "":
+	case isNameEmpty && !isGmfEmpty && !isNicknameEmpty:
 		return fmt.Sprintf("%s (%s)", gmf, nickname)
-	case name != "" && gmf == "" && nickname == "":
+	case !isNameEmpty && isGmfEmpty && isNicknameEmpty:
 		return name
-	case name != "" && gmf == "" && nickname != "":
+	case !isNameEmpty && isGmfEmpty && !isNicknameEmpty:
 		return fmt.Sprintf("%s (%s)", name, nickname)
-	case name != "" && gmf != "" && nickname == "":
+	case !isNameEmpty && !isGmfEmpty && isNicknameEmpty:
 		return fmt.Sprintf("%s\n%s", name, gmf)
-	case name != "" && gmf != "" && nickname != "":
+	case !isNameEmpty && !isGmfEmpty && !isNicknameEmpty:
 		return fmt.Sprintf("%s (%s)\n%s", name, nickname, gmf)
 	}
 	return ""

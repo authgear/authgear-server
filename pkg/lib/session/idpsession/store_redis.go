@@ -169,6 +169,7 @@ func (s *StoreRedis) Delete(session *IDPSession) (err error) {
 	return
 }
 
+//nolint:gocognit
 func (s *StoreRedis) List(userID string) (sessions []*IDPSession, err error) {
 	ctx := context.Background()
 	now := s.Clock.NowUTC()
