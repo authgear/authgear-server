@@ -39,10 +39,6 @@ func ConfigureSignupRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/signup")
 }
 
-type MeterService interface {
-	TrackPageView(VisitorID string, pageType meter.PageType) error
-}
-
 type SignupViewModel struct {
 	LoginIDInputType string
 	LoginIDKey       string
