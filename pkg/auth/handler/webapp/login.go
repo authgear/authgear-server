@@ -48,10 +48,6 @@ func ConfigureLoginRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/login")
 }
 
-type ErrorCookie interface {
-	GetError(r *http.Request) (*webapp.ErrorState, bool)
-}
-
 type LoginViewModel struct {
 	AllowLoginOnly   bool
 	LoginIDInputType string
