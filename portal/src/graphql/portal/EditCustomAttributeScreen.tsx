@@ -1,7 +1,7 @@
 import React, { useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FormattedMessage } from "@oursky/react-messageformat";
-import produce from "immer";
+import { produce } from "immer";
 import ScreenContent from "../../ScreenContent";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import ShowError from "../../ShowError";
