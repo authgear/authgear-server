@@ -211,6 +211,7 @@ still exist.
 See [https://github.com/remix-run/react-router/commit/256cad70d3fd4500b1abcfea66f3ee622fb90874](https://github.com/remix-run/react-router/commit/256cad70d3fd4500b1abcfea66f3ee622fb90874)
 react-router-dom@6.4.0 removed the `block` function from NavigationContext.
 We have to remain on react-router-dom@6.3.0 until we find an alternative.
+As of react-router-dom@6.18.0, unstable_useBlocker and unstable_usePrompt are still marked as unstable.
 
 @tabler/icons@1.92.0 is the last version that can be built with our current setup.
 Newer version will cause our `npm run build` command to fail.
