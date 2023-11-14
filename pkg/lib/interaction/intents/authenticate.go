@@ -39,7 +39,7 @@ func (i *IntentAuthenticate) InstantiateRootNode(ctx *interaction.Context, graph
 	return edge.Instantiate(ctx, graph, i)
 }
 
-// nolint:gocyclo,gocognit
+// nolint: gocognit
 func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node interaction.Node) ([]interaction.Edge, error) {
 	ensureSession := func() ([]interaction.Edge, error) {
 		var reason session.CreateReason
