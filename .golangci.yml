@@ -1,7 +1,6 @@
 linters:
   disable-all: true
   enable:
-  - gocyclo
   - gosec
   - govet
   - ineffassign
