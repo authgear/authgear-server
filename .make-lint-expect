@@ -8,6 +8,35 @@ pkg/api/model/siwe.go cannot import github.com/authgear/authgear-server/pkg/util
 pkg/api/model/web3.go cannot import github.com/authgear/authgear-server/pkg/util/web3
 
 exit status 1
+pkg/lib/authflowclient/authflowclienthandlers/authflow_account_status.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_change_password.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_controller.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_controller_mock_test.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_controller_test.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_create_password.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_enter_oob_otp.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_enter_password.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_enter_recovery_code.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_enter_totp.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_forgot_password.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_forgot_password_success.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_login.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_no_authenticator.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_oob_otp_link.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_promote.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_prompt_create_passkey.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_reauth.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_reset_password.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_reset_password_success.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_setup_oob_otp.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_setup_totp.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_signup.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_terminate_other_sessions.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_use_passkey.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_view_recovery_code.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_wechat.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/authflow_whatsapp_otp.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/authflowclient/authflowclienthandlers/find_login_id_in_previous_input.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
 pkg/lib/deps/deps_common.go cannot import github.com/authgear/authgear-server/pkg/auth/handler/webapp
 pkg/lib/deps/middleware_request.go cannot import github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels
 

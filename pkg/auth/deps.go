@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authflowclient"
+	"github.com/authgear/authgear-server/pkg/lib/authflowclient/authflowclienthandlers"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
@@ -80,11 +81,13 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(webapp.OAuthClientResolver), new(*oauthclient.Resolver)),
 	wire.Bind(new(webapp.TutorialMiddlewareTutorialCookie), new(*httputil.TutorialCookie)),
 	wire.Bind(new(handlerwebapp.CookieManager), new(*httputil.CookieManager)),
-	wire.Bind(new(handlerwebapp.AuthflowControllerCookieManager), new(*httputil.CookieManager)),
+	wire.Bind(new(authflowclienthandlers.AuthflowControllerCookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(oauthhandler.CookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(oauth.AppSessionTokenServiceCookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(handlerwebapp.TutorialCookie), new(*httputil.TutorialCookie)),
 	wire.Bind(new(handlerwebapp.Renderer), new(*web.ResponseRenderer)),
+	wire.Bind(new(authflowclienthandlers.Renderer), new(*web.ResponseRenderer)),
+	wire.Bind(new(authflowclienthandlers.TutorialCookie), new(*httputil.TutorialCookie)),
 	wire.Bind(new(handlerapi.WorkflowNewCookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(handlerapi.WorkflowInputCookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(handlerapi.WorkflowGetCookieManager), new(*httputil.CookieManager)),
@@ -105,9 +108,9 @@ var DependencySet = wire.NewSet(
 		wire.Bind(new(oauth.EndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(oauth.BaseURLProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(handlerwebapp.SetupTOTPEndpointsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(handlerwebapp.AuthflowLoginEndpointsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(handlerwebapp.AuthflowSignupEndpointsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(handlerwebapp.AuthflowPromoteEndpointsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(authflowclienthandlers.AuthflowLoginEndpointsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(authflowclienthandlers.AuthflowSignupEndpointsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(authflowclienthandlers.AuthflowPromoteEndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(oidc.EndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(oidc.UIURLBuilderAuthUIEndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(oidc.BaseURLProvider), new(*endpoints.Endpoints)),
@@ -173,9 +176,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(viewmodelswebapp.WebappOAuthClientResolver), new(*oauthclient.Resolver)),
 
 	handlerwebapp.DependencySet,
-	wire.Bind(new(handlerwebapp.AuthflowControllerOAuthClientResolver), new(*oauthclient.Resolver)),
-	wire.Bind(new(handlerwebapp.AuthflowControllerSessionStore), new(*webapp.SessionStoreRedis)),
-	wire.Bind(new(handlerwebapp.AuthflowControllerAuthflowHTTPClient), new(*authflowclient.Client)),
 	wire.Bind(new(handlerwebapp.SettingsAuthenticatorService), new(*authenticatorservice.Service)),
 	wire.Bind(new(handlerwebapp.SettingsMFAService), new(*mfa.Service)),
 	wire.Bind(new(handlerwebapp.SettingsIdentityService), new(*identityservice.Service)),
@@ -209,6 +209,14 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.TesterAppSessionTokenService), new(*oauth.AppSessionTokenService)),
 	wire.Bind(new(handlerwebapp.TesterUserInfoProvider), new(*oidc.IDTokenIssuer)),
 	wire.Bind(new(handlerwebapp.TesterOfflineGrantStore), new(*oauthredis.Store)),
+
+	authflowclienthandlers.DependencySet,
+	wire.Bind(new(authflowclienthandlers.AuthflowControllerOAuthClientResolver), new(*oauthclient.Resolver)),
+	wire.Bind(new(authflowclienthandlers.AuthflowControllerSessionStore), new(*webapp.SessionStoreRedis)),
+	wire.Bind(new(authflowclienthandlers.AuthflowControllerAuthflowHTTPClient), new(*authflowclient.Client)),
+	wire.Bind(new(authflowclienthandlers.ErrorCookie), new(*web.ErrorCookie)),
+	wire.Bind(new(authflowclienthandlers.MeterService), new(*meter.Service)),
+	wire.Bind(new(authflowclienthandlers.FlashMessage), new(*httputil.FlashMessage)),
 
 	handlersiwe.DependencySet,
 	wire.Bind(new(handlersiwe.NonceHandlerJSONResponseWriter), new(*httputil.JSONResponseWriter)),

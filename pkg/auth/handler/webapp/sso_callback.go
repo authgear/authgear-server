@@ -3,6 +3,7 @@ package webapp
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/lib/authflowclient/authflowclienthandlers"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -13,7 +14,7 @@ func ConfigureSSOCallbackRoute(route httproute.Route) httproute.Route {
 }
 
 type SSOCallbackHandler struct {
-	AuthflowController *AuthflowController
+	AuthflowController *authflowclienthandlers.AuthflowController
 	ControllerFactory  ControllerFactory
 }
 
@@ -32,7 +33,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case state != "":
 		// authflow
-		h.AuthflowController.HandleOAuthCallback(w, r, AuthflowOAuthCallbackResponse{
+		h.AuthflowController.HandleOAuthCallback(w, r, authflowclienthandlers.AuthflowOAuthCallbackResponse{
 			State:            state,
 			Code:             code,
 			Error:            error_,
