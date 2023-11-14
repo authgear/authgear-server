@@ -40,6 +40,11 @@ export function useCheckFirstUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOpt
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<CheckFirstUserQuery, CheckFirstUserQueryVariables>(CheckFirstUserDocument, options);
         }
+export function useCheckFirstUserSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CheckFirstUserQuery, CheckFirstUserQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CheckFirstUserQuery, CheckFirstUserQueryVariables>(CheckFirstUserDocument, options);
+        }
 export type CheckFirstUserQueryHookResult = ReturnType<typeof useCheckFirstUserQuery>;
 export type CheckFirstUserLazyQueryHookResult = ReturnType<typeof useCheckFirstUserLazyQuery>;
+export type CheckFirstUserSuspenseQueryHookResult = ReturnType<typeof useCheckFirstUserSuspenseQuery>;
 export type CheckFirstUserQueryResult = Apollo.QueryResult<CheckFirstUserQuery, CheckFirstUserQueryVariables>;

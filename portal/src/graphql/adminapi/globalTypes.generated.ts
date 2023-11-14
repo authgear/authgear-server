@@ -3,51 +3,53 @@ export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
+export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
+export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-  ID: string;
-  String: string;
-  Boolean: boolean;
-  Int: number;
-  Float: number;
+  ID: { input: string; output: string; }
+  String: { input: string; output: string; }
+  Boolean: { input: boolean; output: boolean; }
+  Int: { input: number; output: number; }
+  Float: { input: number; output: number; }
   /** The `AuditLogData` scalar type represents the data of the audit log */
-  AuditLogData: GQL_AuditLogData;
+  AuditLogData: { input: GQL_AuditLogData; output: GQL_AuditLogData; }
   /** The `AuthenticatorClaims` scalar type represents a set of claims belonging to an authenticator */
-  AuthenticatorClaims: GQL_AuthenticatorClaims;
+  AuthenticatorClaims: { input: GQL_AuthenticatorClaims; output: GQL_AuthenticatorClaims; }
   /** The `DateTime` scalar type represents a DateTime. The DateTime is serialized as an RFC 3339 quoted string */
-  DateTime: GQL_DateTime;
+  DateTime: { input: GQL_DateTime; output: GQL_DateTime; }
   /** The `IdentityClaims` scalar type represents a set of claims belonging to an identity */
-  IdentityClaims: GQL_IdentityClaims;
+  IdentityClaims: { input: GQL_IdentityClaims; output: GQL_IdentityClaims; }
   /** The `UserCustomAttributes` scalar type represents the custom attributes of the user */
-  UserCustomAttributes: GQL_UserCustomAttributes;
+  UserCustomAttributes: { input: GQL_UserCustomAttributes; output: GQL_UserCustomAttributes; }
   /** The `UserStandardAttributes` scalar type represents the standard attributes of the user */
-  UserStandardAttributes: GQL_UserStandardAttributes;
+  UserStandardAttributes: { input: GQL_UserStandardAttributes; output: GQL_UserStandardAttributes; }
   /** The `Web3Claims` scalar type represents the scalar type of the user */
-  Web3Claims: GQL_Web3Claims;
+  Web3Claims: { input: GQL_Web3Claims; output: GQL_Web3Claims; }
 };
 
 export type AnonymizeUserInput = {
   /** Target user ID. */
-  userID: Scalars['ID'];
+  userID: Scalars['ID']['input'];
 };
 
 export type AnonymizeUserPayload = {
   __typename?: 'AnonymizeUserPayload';
-  anonymizedUserID: Scalars['ID'];
+  anonymizedUserID: Scalars['ID']['output'];
 };
 
 /** Audit log */
 export type AuditLog = Node & {
   __typename?: 'AuditLog';
   activityType: AuditLogActivityType;
-  clientID?: Maybe<Scalars['String']>;
-  createdAt: Scalars['DateTime'];
-  data?: Maybe<Scalars['AuditLogData']>;
+  clientID?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  data?: Maybe<Scalars['AuditLogData']['output']>;
   /** The ID of an object */
-  id: Scalars['ID'];
-  ipAddress?: Maybe<Scalars['String']>;
+  id: Scalars['ID']['output'];
+  ipAddress?: Maybe<Scalars['String']['output']>;
   user?: Maybe<User>;
-  userAgent?: Maybe<Scalars['String']>;
+  userAgent?: Maybe<Scalars['String']['output']>;
 };
 
 export enum AuditLogActivityType {
@@ -141,35 +143,35 @@ export type AuditLogConnection = {
   /** Information to aid in pagination. */
   pageInfo: PageInfo;
   /** Total number of nodes in the connection. */
-  totalCount?: Maybe<Scalars['Int']>;
+  totalCount?: Maybe<Scalars['Int']['output']>;
 };
 
 /** An edge in a connection */
 export type AuditLogEdge = {
   __typename?: 'AuditLogEdge';
   /**  cursor for use in pagination */
-  cursor: Scalars['String'];
+  cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node?: Maybe<AuditLog>;
 };
 
 export type Authenticator = Entity & Node & {
   __typename?: 'Authenticator';
-  claims: Scalars['AuthenticatorClaims'];
+  claims: Scalars['AuthenticatorClaims']['output'];
   /** The creation time of entity */
-  createdAt: Scalars['DateTime'];
+  createdAt: Scalars['DateTime']['output'];
   /** The ID of an object */
-  id: Scalars['ID'];
-  isDefault: Scalars['Boolean'];
+  id: Scalars['ID']['output'];
+  isDefault: Scalars['Boolean']['output'];
   kind: AuthenticatorKind;
   type: AuthenticatorType;
   /** The update time of entity */
-  updatedAt: Scalars['DateTime'];
+  updatedAt: Scalars['DateTime']['output'];
 };
 
 
 export type AuthenticatorClaimsArgs = {
-  names?: InputMaybe<Array<Scalars['String']>>;
+  names?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 /** A connection to a list of items. */
@@ -180,14 +182,14 @@ export type AuthenticatorConnection = {
   /** Information to aid in pagination. */
   pageInfo: PageInfo;
   /** Total number of nodes in the connection. */
-  totalCount?: Maybe<Scalars['Int']>;
+  totalCount?: Maybe<Scalars['Int']['output']>;
 };
 
 /** An edge in a connection */
 export type AuthenticatorEdge = {
   __typename?: 'AuthenticatorEdge';
   /**  cursor for use in pagination */
-  cursor: Scalars['String'];
+  cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node?: Maybe<Authenticator>;
 };
@@ -207,14 +209,14 @@ export enum AuthenticatorType {
 
 export type Authorization = Entity & Node & {
   __typename?: 'Authorization';
-  clientID: Scalars['String'];
+  clientID: Scalars['String']['output'];
   /** The creation time of entity */
-  createdAt: Scalars['DateTime'];
+  createdAt: Scalars['DateTime']['output'];
   /** The ID of an object */
-  id: Scalars['ID'];
-  scopes: Array<Scalars['String']>;
+  id: Scalars['ID']['output'];
+  scopes: Array<Scalars['String']['output']>;
   /** The update time of entity */
-  updatedAt: Scalars['DateTime'];
+  updatedAt: Scalars['DateTime']['output'];
 };
 
 /** A connection to a list of items. */
@@ -225,31 +227,31 @@ export type AuthorizationConnection = {
   /** Information to aid in pagination. */
   pageInfo: PageInfo;
   /** Total number of nodes in the connection. */
-  totalCount?: Maybe<Scalars['Int']>;
+  totalCount?: Maybe<Scalars['Int']['output']>;
 };
 
 /** An edge in a connection */
 export type AuthorizationEdge = {
   __typename?: 'AuthorizationEdge';
   /**  cursor for use in pagination */
-  cursor: Scalars['String'];
+  cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node?: Maybe<Authorization>;
 };
 
 export type Claim = {
   __typename?: 'Claim';
-  name: Scalars['String'];
-  value: Scalars['String'];
+  name: Scalars['String']['output'];
+  value: Scalars['String']['output'];
 };
 
 export type CreateIdentityInput = {
   /** Definition of the new identity. */
   definition: IdentityDefinition;
   /** Password for the user if required. */
-  password?: InputMaybe<Scalars['String']>;
+  password?: InputMaybe<Scalars['String']['input']>;
   /** Target user ID. */
-  userID: Scalars['ID'];
+  userID: Scalars['ID']['input'];
 };
 
 export type CreateIdentityPayload = {
@@ -260,22 +262,22 @@ export type CreateIdentityPayload = {
 
 export type CreateSessionInput = {
   /** Target client ID. */
-  clientID: Scalars['String'];
+  clientID: Scalars['String']['input'];
   /** Target user ID. */
-  userID: Scalars['ID'];
+  userID: Scalars['ID']['input'];
 };
 
 export type CreateSessionPayload = {
   __typename?: 'CreateSessionPayload';
-  accessToken: Scalars['String'];
-  refreshToken: Scalars['String'];
+  accessToken: Scalars['String']['output'];
+  refreshToken: Scalars['String']['output'];
 };
 
 export type CreateUserInput = {
   /** Definition of the identity of new user. */
   definition: IdentityDefinition;
   /** Password for the user if required. */
-  password?: InputMaybe<Scalars['String']>;
+  password?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CreateUserPayload = {
@@ -285,7 +287,7 @@ export type CreateUserPayload = {
 
 export type DeleteAuthenticatorInput = {
   /** Target authenticator ID. */
-  authenticatorID: Scalars['ID'];
+  authenticatorID: Scalars['ID']['input'];
 };
 
 export type DeleteAuthenticatorPayload = {
@@ -295,7 +297,7 @@ export type DeleteAuthenticatorPayload = {
 
 export type DeleteAuthorizationInput = {
   /** Target authorization ID. */
-  authorizationID: Scalars['ID'];
+  authorizationID: Scalars['ID']['input'];
 };
 
 export type DeleteAuthorizationPayload = {
@@ -305,7 +307,7 @@ export type DeleteAuthorizationPayload = {
 
 export type DeleteIdentityInput = {
   /** Target identity ID. */
-  identityID: Scalars['ID'];
+  identityID: Scalars['ID']['input'];
 };
 
 export type DeleteIdentityPayload = {
@@ -315,50 +317,50 @@ export type DeleteIdentityPayload = {
 
 export type DeleteUserInput = {
   /** Target user ID. */
-  userID: Scalars['ID'];
+  userID: Scalars['ID']['input'];
 };
 
 export type DeleteUserPayload = {
   __typename?: 'DeleteUserPayload';
-  deletedUserID: Scalars['ID'];
+  deletedUserID: Scalars['ID']['output'];
 };
 
 export type Entity = {
   /** The creation time of entity */
-  createdAt: Scalars['DateTime'];
+  createdAt: Scalars['DateTime']['output'];
   /** The ID of entity */
-  id: Scalars['ID'];
+  id: Scalars['ID']['output'];
   /** The update time of entity */
-  updatedAt: Scalars['DateTime'];
+  updatedAt: Scalars['DateTime']['output'];
 };
 
 export type GenerateOobotpCodeInput = {
   /** Purpose of the generated OTP code. */
   purpose?: InputMaybe<OtpPurpose>;
   /** Target user's email or phone number. */
-  target: Scalars['String'];
+  target: Scalars['String']['input'];
 };
 
 export type GenerateOobotpCodePayload = {
   __typename?: 'GenerateOOBOTPCodePayload';
-  code: Scalars['String'];
+  code: Scalars['String']['output'];
 };
 
 export type Identity = Entity & Node & {
   __typename?: 'Identity';
-  claims: Scalars['IdentityClaims'];
+  claims: Scalars['IdentityClaims']['output'];
   /** The creation time of entity */
-  createdAt: Scalars['DateTime'];
+  createdAt: Scalars['DateTime']['output'];
   /** The ID of an object */
-  id: Scalars['ID'];
+  id: Scalars['ID']['output'];
   type: IdentityType;
   /** The update time of entity */
-  updatedAt: Scalars['DateTime'];
+  updatedAt: Scalars['DateTime']['output'];
 };
 
 
 export type IdentityClaimsArgs = {
-  names?: InputMaybe<Array<Scalars['String']>>;
+  names?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 /** A connection to a list of items. */
@@ -369,7 +371,7 @@ export type IdentityConnection = {
   /** Information to aid in pagination. */
   pageInfo: PageInfo;
   /** Total number of nodes in the connection. */
-  totalCount?: Maybe<Scalars['Int']>;
+  totalCount?: Maybe<Scalars['Int']['output']>;
 };
 
 /** Definition of an identity. This is a union object, exactly one of the available fields must be present. */
@@ -380,16 +382,16 @@ export type IdentityDefinition = {
 
 export type IdentityDefinitionLoginId = {
   /** The login ID key. */
-  key: Scalars['String'];
+  key: Scalars['String']['input'];
   /** The login ID. */
-  value: Scalars['String'];
+  value: Scalars['String']['input'];
 };
 
 /** An edge in a connection */
 export type IdentityEdge = {
   __typename?: 'IdentityEdge';
   /**  cursor for use in pagination */
-  cursor: Scalars['String'];
+  cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node?: Maybe<Identity>;
 };
@@ -434,7 +436,7 @@ export type Mutation = {
   /** Schedule account deletion */
   scheduleAccountDeletion: ScheduleAccountDeletionPayload;
   /** Send a reset password message to user */
-  sendResetPasswordMessage?: Maybe<Scalars['Boolean']>;
+  sendResetPasswordMessage?: Maybe<Scalars['Boolean']['output']>;
   /** Set disabled status of user */
   setDisabledStatus: SetDisabledStatusPayload;
   /** Set verified status of a claim of user */
@@ -557,7 +559,7 @@ export type MutationUpdateUserArgs = {
 /** An object with an ID */
 export type Node = {
   /** The id of the object */
-  id: Scalars['ID'];
+  id: Scalars['ID']['output'];
 };
 
 export enum OtpPurpose {
@@ -569,13 +571,13 @@ export enum OtpPurpose {
 export type PageInfo = {
   __typename?: 'PageInfo';
   /** When paginating forwards, the cursor to continue. */
-  endCursor?: Maybe<Scalars['String']>;
+  endCursor?: Maybe<Scalars['String']['output']>;
   /** When paginating forwards, are there more items? */
-  hasNextPage: Scalars['Boolean'];
+  hasNextPage: Scalars['Boolean']['output'];
   /** When paginating backwards, are there more items? */
-  hasPreviousPage: Scalars['Boolean'];
+  hasPreviousPage: Scalars['Boolean']['output'];
   /** When paginating backwards, the cursor to continue. */
-  startCursor?: Maybe<Scalars['String']>;
+  startCursor?: Maybe<Scalars['String']['output']>;
 };
 
 export type Query = {
@@ -593,42 +595,42 @@ export type Query = {
 
 export type QueryAuditLogsArgs = {
   activityTypes?: InputMaybe<Array<AuditLogActivityType>>;
-  after?: InputMaybe<Scalars['String']>;
-  before?: InputMaybe<Scalars['String']>;
-  first?: InputMaybe<Scalars['Int']>;
-  last?: InputMaybe<Scalars['Int']>;
-  rangeFrom?: InputMaybe<Scalars['DateTime']>;
-  rangeTo?: InputMaybe<Scalars['DateTime']>;
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  rangeFrom?: InputMaybe<Scalars['DateTime']['input']>;
+  rangeTo?: InputMaybe<Scalars['DateTime']['input']>;
   sortDirection?: InputMaybe<SortDirection>;
-  userIDs?: InputMaybe<Array<Scalars['ID']>>;
+  userIDs?: InputMaybe<Array<Scalars['ID']['input']>>;
 };
 
 
 export type QueryNodeArgs = {
-  id: Scalars['ID'];
+  id: Scalars['ID']['input'];
 };
 
 
 export type QueryNodesArgs = {
-  ids: Array<Scalars['ID']>;
+  ids: Array<Scalars['ID']['input']>;
 };
 
 
 export type QueryUsersArgs = {
-  after?: InputMaybe<Scalars['String']>;
-  before?: InputMaybe<Scalars['String']>;
-  first?: InputMaybe<Scalars['Int']>;
-  last?: InputMaybe<Scalars['Int']>;
-  searchKeyword?: InputMaybe<Scalars['String']>;
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  searchKeyword?: InputMaybe<Scalars['String']['input']>;
   sortBy?: InputMaybe<UserSortBy>;
   sortDirection?: InputMaybe<SortDirection>;
 };
 
 export type ResetPasswordInput = {
   /** New password. */
-  password: Scalars['String'];
+  password: Scalars['String']['input'];
   /** Target user ID. */
-  userID: Scalars['ID'];
+  userID: Scalars['ID']['input'];
 };
 
 export type ResetPasswordPayload = {
@@ -638,7 +640,7 @@ export type ResetPasswordPayload = {
 
 export type RevokeAllSessionsInput = {
   /** Target user ID. */
-  userID: Scalars['ID'];
+  userID: Scalars['ID']['input'];
 };
 
 export type RevokeAllSessionsPayload = {
@@ -648,7 +650,7 @@ export type RevokeAllSessionsPayload = {
 
 export type RevokeSessionInput = {
   /** Target session ID. */
-  sessionID: Scalars['ID'];
+  sessionID: Scalars['ID']['input'];
 };
 
 export type RevokeSessionPayload = {
@@ -658,7 +660,7 @@ export type RevokeSessionPayload = {
 
 export type ScheduleAccountAnonymizationInput = {
   /** Target user ID. */
-  userID: Scalars['ID'];
+  userID: Scalars['ID']['input'];
 };
 
 export type ScheduleAccountAnonymizationPayload = {
@@ -668,7 +670,7 @@ export type ScheduleAccountAnonymizationPayload = {
 
 export type ScheduleAccountDeletionInput = {
   /** Target user ID. */
-  userID: Scalars['ID'];
+  userID: Scalars['ID']['input'];
 };
 
 export type ScheduleAccountDeletionPayload = {
@@ -678,25 +680,25 @@ export type ScheduleAccountDeletionPayload = {
 
 export type SendResetPasswordMessageInput = {
   /** Target login ID. */
-  loginID: Scalars['ID'];
+  loginID: Scalars['ID']['input'];
 };
 
 export type Session = Entity & Node & {
   __typename?: 'Session';
-  acr: Scalars['String'];
-  amr: Array<Scalars['String']>;
-  clientID?: Maybe<Scalars['String']>;
+  acr: Scalars['String']['output'];
+  amr: Array<Scalars['String']['output']>;
+  clientID?: Maybe<Scalars['String']['output']>;
   /** The creation time of entity */
-  createdAt: Scalars['DateTime'];
-  createdByIP: Scalars['String'];
-  displayName: Scalars['String'];
+  createdAt: Scalars['DateTime']['output'];
+  createdByIP: Scalars['String']['output'];
+  displayName: Scalars['String']['output'];
   /** The ID of an object */
-  id: Scalars['ID'];
-  lastAccessedAt: Scalars['DateTime'];
-  lastAccessedByIP: Scalars['String'];
+  id: Scalars['ID']['output'];
+  lastAccessedAt: Scalars['DateTime']['output'];
+  lastAccessedByIP: Scalars['String']['output'];
   type: SessionType;
   /** The update time of entity */
-  updatedAt: Scalars['DateTime'];
+  updatedAt: Scalars['DateTime']['output'];
 };
 
 /** A connection to a list of items. */
@@ -707,14 +709,14 @@ export type SessionConnection = {
   /** Information to aid in pagination. */
   pageInfo: PageInfo;
   /** Total number of nodes in the connection. */
-  totalCount?: Maybe<Scalars['Int']>;
+  totalCount?: Maybe<Scalars['Int']['output']>;
 };
 
 /** An edge in a connection */
 export type SessionEdge = {
   __typename?: 'SessionEdge';
   /**  cursor for use in pagination */
-  cursor: Scalars['String'];
+  cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node?: Maybe<Session>;
 };
@@ -726,11 +728,11 @@ export enum SessionType {
 
 export type SetDisabledStatusInput = {
   /** Indicate whether the target user is disabled. */
-  isDisabled: Scalars['Boolean'];
+  isDisabled: Scalars['Boolean']['input'];
   /** Indicate the disable reason; If not provided, the user will be disabled with no reason. */
-  reason?: InputMaybe<Scalars['String']>;
+  reason?: InputMaybe<Scalars['String']['input']>;
   /** Target user ID. */
-  userID: Scalars['ID'];
+  userID: Scalars['ID']['input'];
 };
 
 export type SetDisabledStatusPayload = {
@@ -740,13 +742,13 @@ export type SetDisabledStatusPayload = {
 
 export type SetVerifiedStatusInput = {
   /** Name of the claim to set verified status. */
-  claimName: Scalars['String'];
+  claimName: Scalars['String']['input'];
   /** Value of the claim. */
-  claimValue: Scalars['String'];
+  claimValue: Scalars['String']['input'];
   /** Indicate whether the target claim is verified. */
-  isVerified: Scalars['Boolean'];
+  isVerified: Scalars['Boolean']['input'];
   /** Target user ID. */
-  userID: Scalars['ID'];
+  userID: Scalars['ID']['input'];
 };
 
 export type SetVerifiedStatusPayload = {
@@ -761,7 +763,7 @@ export enum SortDirection {
 
 export type UnscheduleAccountAnonymizationInput = {
   /** Target user ID. */
-  userID: Scalars['ID'];
+  userID: Scalars['ID']['input'];
 };
 
 export type UnscheduleAccountAnonymizationPayload = {
@@ -771,7 +773,7 @@ export type UnscheduleAccountAnonymizationPayload = {
 
 export type UnscheduleAccountDeletionInput = {
   /** Target user ID. */
-  userID: Scalars['ID'];
+  userID: Scalars['ID']['input'];
 };
 
 export type UnscheduleAccountDeletionPayload = {
@@ -783,9 +785,9 @@ export type UpdateIdentityInput = {
   /** New definition of the identity. */
   definition: IdentityDefinition;
   /** Target identity ID. */
-  identityID: Scalars['ID'];
+  identityID: Scalars['ID']['input'];
   /** Target user ID. */
-  userID: Scalars['ID'];
+  userID: Scalars['ID']['input'];
 };
 
 export type UpdateIdentityPayload = {
@@ -796,11 +798,11 @@ export type UpdateIdentityPayload = {
 
 export type UpdateUserInput = {
   /** Whole custom attributes to be set on the user. */
-  customAttributes?: InputMaybe<Scalars['UserCustomAttributes']>;
+  customAttributes?: InputMaybe<Scalars['UserCustomAttributes']['input']>;
   /** Whole standard attributes to be set on the user. */
-  standardAttributes?: InputMaybe<Scalars['UserStandardAttributes']>;
+  standardAttributes?: InputMaybe<Scalars['UserStandardAttributes']['input']>;
   /** Target user ID. */
-  userID: Scalars['ID'];
+  userID: Scalars['ID']['input'];
 };
 
 export type UpdateUserPayload = {
@@ -812,7 +814,7 @@ export type UpdateUserPayload = {
 export type User = Entity & Node & {
   __typename?: 'User';
   /** The scheduled anonymization time of the user */
-  anonymizeAt?: Maybe<Scalars['DateTime']>;
+  anonymizeAt?: Maybe<Scalars['DateTime']['output']>;
   /** The list of authenticators */
   authenticators?: Maybe<AuthenticatorConnection>;
   /** The list of third party app authorizations */
@@ -820,31 +822,31 @@ export type User = Entity & Node & {
   /** The list of biometric registrations */
   biometricRegistrations: Array<Identity>;
   /** The creation time of entity */
-  createdAt: Scalars['DateTime'];
+  createdAt: Scalars['DateTime']['output'];
   /** The user's custom attributes */
-  customAttributes: Scalars['UserCustomAttributes'];
+  customAttributes: Scalars['UserCustomAttributes']['output'];
   /** The scheduled deletion time of the user */
-  deleteAt?: Maybe<Scalars['DateTime']>;
+  deleteAt?: Maybe<Scalars['DateTime']['output']>;
   /** The reason of disabled */
-  disableReason?: Maybe<Scalars['String']>;
+  disableReason?: Maybe<Scalars['String']['output']>;
   /** The end user account id constructed based on user's personal data. (e.g. email, phone...etc) */
-  endUserAccountID?: Maybe<Scalars['String']>;
+  endUserAccountID?: Maybe<Scalars['String']['output']>;
   /** The user's formatted name */
-  formattedName?: Maybe<Scalars['String']>;
+  formattedName?: Maybe<Scalars['String']['output']>;
   /** The ID of an object */
-  id: Scalars['ID'];
+  id: Scalars['ID']['output'];
   /** The list of identities */
   identities?: Maybe<IdentityConnection>;
   /** Indicates if the user is anonymized */
-  isAnonymized: Scalars['Boolean'];
+  isAnonymized: Scalars['Boolean']['output'];
   /** Indicates if the user is anonymous */
-  isAnonymous: Scalars['Boolean'];
+  isAnonymous: Scalars['Boolean']['output'];
   /** Indicates if the user is deactivated */
-  isDeactivated: Scalars['Boolean'];
+  isDeactivated: Scalars['Boolean']['output'];
   /** Indicates if the user is disabled */
-  isDisabled: Scalars['Boolean'];
+  isDisabled: Scalars['Boolean']['output'];
   /** The last login time of user */
-  lastLoginAt?: Maybe<Scalars['DateTime']>;
+  lastLoginAt?: Maybe<Scalars['DateTime']['output']>;
   /** The list of login ids */
   loginIDs: Array<Identity>;
   /** The list of oauth connections */
@@ -868,52 +870,52 @@ export type User = Entity & Node & {
   /** The list of first party app sessions */
   sessions?: Maybe<SessionConnection>;
   /** The user's standard attributes */
-  standardAttributes: Scalars['UserStandardAttributes'];
+  standardAttributes: Scalars['UserStandardAttributes']['output'];
   /** The update time of entity */
-  updatedAt: Scalars['DateTime'];
+  updatedAt: Scalars['DateTime']['output'];
   /** The list of user's verified claims */
   verifiedClaims: Array<Claim>;
   /** The web3 claims */
-  web3: Scalars['Web3Claims'];
+  web3: Scalars['Web3Claims']['output'];
 };
 
 
 /** Authgear user */
 export type UserAuthenticatorsArgs = {
-  after?: InputMaybe<Scalars['String']>;
+  after?: InputMaybe<Scalars['String']['input']>;
   authenticatorKind?: InputMaybe<AuthenticatorKind>;
   authenticatorType?: InputMaybe<AuthenticatorType>;
-  before?: InputMaybe<Scalars['String']>;
-  first?: InputMaybe<Scalars['Int']>;
-  last?: InputMaybe<Scalars['Int']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
 /** Authgear user */
 export type UserAuthorizationsArgs = {
-  after?: InputMaybe<Scalars['String']>;
-  before?: InputMaybe<Scalars['String']>;
-  first?: InputMaybe<Scalars['Int']>;
-  last?: InputMaybe<Scalars['Int']>;
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
 /** Authgear user */
 export type UserIdentitiesArgs = {
-  after?: InputMaybe<Scalars['String']>;
-  before?: InputMaybe<Scalars['String']>;
-  first?: InputMaybe<Scalars['Int']>;
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
   identityType?: InputMaybe<IdentityType>;
-  last?: InputMaybe<Scalars['Int']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
 /** Authgear user */
 export type UserSessionsArgs = {
-  after?: InputMaybe<Scalars['String']>;
-  before?: InputMaybe<Scalars['String']>;
-  first?: InputMaybe<Scalars['Int']>;
-  last?: InputMaybe<Scalars['Int']>;
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
 };
 
 /** A connection to a list of items. */
@@ -924,14 +926,14 @@ export type UserConnection = {
   /** Information to aid in pagination. */
   pageInfo: PageInfo;
   /** Total number of nodes in the connection. */
-  totalCount?: Maybe<Scalars['Int']>;
+  totalCount?: Maybe<Scalars['Int']['output']>;
 };
 
 /** An edge in a connection */
 export type UserEdge = {
   __typename?: 'UserEdge';
   /**  cursor for use in pagination */
-  cursor: Scalars['String'];
+  cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node?: Maybe<User>;
 };

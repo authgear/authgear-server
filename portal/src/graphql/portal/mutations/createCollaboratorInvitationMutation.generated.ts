@@ -4,8 +4,8 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type CreateCollaboratorInvitationMutationMutationVariables = Types.Exact<{
-  appID: Types.Scalars['ID'];
-  email: Types.Scalars['String'];
+  appID: Types.Scalars['ID']['input'];
+  email: Types.Scalars['String']['input'];
 }>;
 
 

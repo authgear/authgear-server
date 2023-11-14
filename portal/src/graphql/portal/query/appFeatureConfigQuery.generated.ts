@@ -6,7 +6,7 @@ const defaultOptions = {} as const;
 export type AppFeatureConfigFragment = { __typename?: 'App', id: string, effectiveFeatureConfig: any, planName: string };
 
 export type AppFeatureConfigQueryQueryVariables = Types.Exact<{
-  id: Types.Scalars['ID'];
+  id: Types.Scalars['ID']['input'];
 }>;
 
 
@@ -52,6 +52,11 @@ export function useAppFeatureConfigQueryLazyQuery(baseOptions?: Apollo.LazyQuery
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<AppFeatureConfigQueryQuery, AppFeatureConfigQueryQueryVariables>(AppFeatureConfigQueryDocument, options);
         }
+export function useAppFeatureConfigQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<AppFeatureConfigQueryQuery, AppFeatureConfigQueryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<AppFeatureConfigQueryQuery, AppFeatureConfigQueryQueryVariables>(AppFeatureConfigQueryDocument, options);
+        }
 export type AppFeatureConfigQueryQueryHookResult = ReturnType<typeof useAppFeatureConfigQueryQuery>;
 export type AppFeatureConfigQueryLazyQueryHookResult = ReturnType<typeof useAppFeatureConfigQueryLazyQuery>;
+export type AppFeatureConfigQuerySuspenseQueryHookResult = ReturnType<typeof useAppFeatureConfigQuerySuspenseQuery>;
 export type AppFeatureConfigQueryQueryResult = Apollo.QueryResult<AppFeatureConfigQueryQuery, AppFeatureConfigQueryQueryVariables>;

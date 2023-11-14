@@ -23,11 +23,11 @@
     "word-wrap": "@aashutoshrathi/word-wrap"
   },
   "devDependencies": {
-    "@graphql-codegen/cli": "2.13.7",
-    "@graphql-codegen/near-operation-file-preset": "2.4.3",
-    "@graphql-codegen/typescript": "2.8.0",
-    "@graphql-codegen/typescript-operations": "2.5.5",
-    "@graphql-codegen/typescript-react-apollo": "3.3.5",
+    "@graphql-codegen/cli": "5.0.0",
+    "@graphql-codegen/near-operation-file-preset": "3.0.0",
+    "@graphql-codegen/typescript": "4.0.1",
+    "@graphql-codegen/typescript-operations": "4.0.1",
+    "@graphql-codegen/typescript-react-apollo": "4.1.0",
     "@jest/globals": "29.7.0",
     "@oursky/eslint-plugin": "11.2.0",
     "@oursky/stylelint-oursky": "3.0.0",
