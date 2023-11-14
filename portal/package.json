@@ -45,7 +45,7 @@
     "graphql": "16.8.1",
     "jest": "29.7.0",
     "jest-environment-jsdom": "29.7.0",
-    "parcel": "2.7.0",
+    "parcel": "2.10.2",
     "parcel-resolver-authgear": "1.0.0",
     "prettier": "2.7.1",
     "stylelint": "14.11.0",
