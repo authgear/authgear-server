@@ -9,7 +9,7 @@ import (
 	reflect "reflect"
 
 	webapp "github.com/authgear/authgear-server/pkg/auth/webapp"
-	authflowclient "github.com/authgear/authgear-server/pkg/lib/authenticationflow/authflowclient"
+	authflowclient "github.com/authgear/authgear-server/pkg/lib/authflowclient"
 	config "github.com/authgear/authgear-server/pkg/lib/config"
 	httputil "github.com/authgear/authgear-server/pkg/util/httputil"
 	gomock "github.com/golang/mock/gomock"

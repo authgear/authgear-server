@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/authflowclient"
+	"github.com/authgear/authgear-server/pkg/lib/authflowclient"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
