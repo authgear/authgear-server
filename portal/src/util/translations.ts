@@ -1,5 +1,4 @@
 import { useCallback, useContext } from "react";
-import { getName } from "i18n-iso-countries";
 import { Context } from "@oursky/react-messageformat";
 
 export function useGetCountryName(): {
@@ -19,8 +18,7 @@ export function useGetCountryName(): {
 }
 
 export function getCountryName(code: string, locale: string): string {
-  // override library output here
-  return getName(code, locale);
+  return `${code} in ${locale}`;
 }
 
 export function useGetTelecomCountryName(): {
