@@ -5,12 +5,13 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/successpage"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type SuccessPageMiddleware struct {
 	Cookies     CookieManager
-	ErrorCookie *ErrorCookie
+	ErrorCookie *web.ErrorCookie
 }
 
 func (m *SuccessPageMiddleware) Pop(r *http.Request, rw http.ResponseWriter) string {

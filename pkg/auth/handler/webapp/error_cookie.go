@@ -3,9 +3,9 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 )
 
 type ErrorCookie interface {
-	GetError(r *http.Request) (*webapp.ErrorState, bool)
+	GetError(r *http.Request) (*web.ErrorState, bool)
 }

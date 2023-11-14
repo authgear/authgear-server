@@ -1,4 +1,4 @@
-package webapp
+package web
 
 import (
 	"encoding/base64"
@@ -7,6 +7,7 @@ import (
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 // ErrorQueryKey is "q_error" so that it is not persisent across pages.
@@ -17,9 +18,30 @@ type ErrorState struct {
 	Error *apierrors.APIError
 }
 
+type ErrorCookieDef struct {
+	Def *httputil.CookieDef
+}
+
+func NewErrorCookieDef() ErrorCookieDef {
+	def := &httputil.CookieDef{
+		NameSuffix:        "web_err",
+		Path:              "/",
+		AllowScriptAccess: false,
+		SameSite:          http.SameSiteLaxMode,
+		MaxAge:            nil, // Use HTTP session cookie; expires when browser closes
+	}
+	return ErrorCookieDef{Def: def}
+}
+
+type ErrorCookieCookieManager interface {
+	GetCookie(r *http.Request, def *httputil.CookieDef) (*http.Cookie, error)
+	ValueCookie(def *httputil.CookieDef, value string) *http.Cookie
+	ClearCookie(def *httputil.CookieDef) *http.Cookie
+}
+
 type ErrorCookie struct {
 	Cookie  ErrorCookieDef
-	Cookies CookieManager
+	Cookies ErrorCookieCookieManager
 }
 
 func (c *ErrorCookie) GetError(r *http.Request) (*ErrorState, bool) {
@@ -65,25 +87,24 @@ func (c *ErrorCookie) SetRecoverableError(r *http.Request, value *apierrors.APIE
 }
 
 // SetNonRecoverableError does NOT retain form.
-func (c *ErrorCookie) SetNonRecoverableError(result *Result, value *apierrors.APIError) error {
+func (c *ErrorCookie) SetNonRecoverableError(redirectURIString string, value *apierrors.APIError) (string, error) {
 	data, err := json.Marshal(&ErrorState{
 		Error: value,
 	})
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	queryValue := base64.RawURLEncoding.EncodeToString(data)
 
-	redirectURI, err := url.Parse(result.RedirectURI)
+	redirectURI, err := url.Parse(redirectURIString)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	q := redirectURI.Query()
 	q.Set(ErrorQueryKey, queryValue)
 	redirectURI.RawQuery = q.Encode()
 
-	result.RedirectURI = redirectURI.String()
-	return nil
+	return redirectURI.String(), nil
 }

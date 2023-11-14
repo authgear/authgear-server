@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -88,7 +89,7 @@ type AuthflowOAuthCallbackResponse struct {
 type AuthflowController struct {
 	Logger                  AuthflowControllerLogger
 	TesterEndpointsProvider tester.EndpointsProvider
-	ErrorCookie             *webapp.ErrorCookie
+	ErrorCookie             *web.ErrorCookie
 	TrustProxy              config.TrustProxy
 	Clock                   clock.Clock
 
@@ -712,15 +713,16 @@ func (c *AuthflowController) makeErrorResult(w http.ResponseWriter, r *http.Requ
 	}
 
 	nonRecoverable := func() *webapp.Result {
-		result := &webapp.Result{
-			RedirectURI:      u.String(),
-			NavigationAction: "replace",
-		}
-		err := c.ErrorCookie.SetNonRecoverableError(result, apierror)
+		redirectURI := u.String()
+		redirectURI, err = c.ErrorCookie.SetNonRecoverableError(redirectURI, apierror)
 		if err != nil {
 			panic(err)
 		}
 
+		result := &webapp.Result{
+			RedirectURI:      redirectURI,
+			NavigationAction: "replace",
+		}
 		return result
 	}
 

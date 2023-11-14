@@ -116,7 +116,7 @@ type StaticAssetResolver interface {
 }
 
 type ErrorCookie interface {
-	GetError(r *http.Request) (*webapp.ErrorState, bool)
+	GetError(r *http.Request) (*web.ErrorState, bool)
 	ResetRecoverableError() *http.Cookie
 }
 

@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -46,7 +47,7 @@ type SettingsProfileEditHandler struct {
 	Users                    SettingsProfileEditUserService
 	StdAttrs                 SettingsProfileEditStdAttrsService
 	CustomAttrs              SettingsProfileEditCustomAttrsService
-	ErrorCookie              *webapp.ErrorCookie
+	ErrorCookie              *web.ErrorCookie
 }
 
 func (h *SettingsProfileEditHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {

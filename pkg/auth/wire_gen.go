@@ -1162,8 +1162,8 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	uiFeatureConfig := featureConfig.UI
 	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
-	errorCookieDef := webapp2.NewErrorCookieDef()
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookieDef := web.NewErrorCookieDef()
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -6499,13 +6499,13 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -7363,13 +7363,13 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -8226,13 +8226,13 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -9077,13 +9077,13 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -9918,13 +9918,13 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -10774,13 +10774,13 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -11610,13 +11610,13 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -12450,13 +12450,13 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -13292,13 +13292,13 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -14132,13 +14132,13 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -14968,13 +14968,13 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -15808,13 +15808,13 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -16649,13 +16649,13 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -17489,13 +17489,13 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -18329,13 +18329,13 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -19171,13 +19171,13 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -20011,13 +20011,13 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -20851,13 +20851,13 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -21695,13 +21695,13 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -22536,13 +22536,13 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -23379,13 +23379,13 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -24264,10 +24264,10 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -25112,10 +25112,10 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -25925,13 +25925,13 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -26765,13 +26765,13 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -27601,13 +27601,13 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -28441,13 +28441,13 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -29277,13 +29277,13 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -30123,13 +30123,13 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -30959,13 +30959,13 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -31797,13 +31797,13 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -32633,13 +32633,13 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -33501,13 +33501,13 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -34348,13 +34348,13 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -35208,13 +35208,13 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -36052,13 +36052,13 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -36889,13 +36889,13 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -37734,13 +37734,13 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -38571,13 +38571,13 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -39408,13 +39408,13 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -40245,13 +40245,13 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -41083,13 +41083,13 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -41940,13 +41940,13 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -42777,13 +42777,13 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -43614,13 +43614,13 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -44451,13 +44451,13 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -45288,13 +45288,13 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -46132,13 +46132,13 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -46970,13 +46970,13 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -47806,13 +47806,13 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -48658,13 +48658,13 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -49494,13 +49494,13 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -50330,13 +50330,13 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -51183,13 +51183,13 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -51983,13 +51983,13 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -52783,13 +52783,13 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -53629,13 +53629,13 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -54466,13 +54466,13 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -55302,13 +55302,13 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -61894,13 +61894,13 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -62041,13 +62041,13 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -62187,13 +62187,13 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -62316,13 +62316,13 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -62437,13 +62437,13 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -62560,13 +62560,13 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -62681,13 +62681,13 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -62802,13 +62802,13 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -62923,13 +62923,13 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -63044,13 +63044,13 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -63167,13 +63167,13 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -63290,13 +63290,13 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -63411,13 +63411,13 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -63532,13 +63532,13 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -63653,13 +63653,13 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -63774,13 +63774,13 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -63895,13 +63895,13 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -64016,13 +64016,13 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -64137,13 +64137,13 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -64258,13 +64258,13 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -64384,13 +64384,13 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -65213,13 +65213,13 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -65273,13 +65273,13 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -65394,13 +65394,13 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -65534,10 +65534,10 @@ func newWebAppAuthflowAccountStatusHandler(p *deps.RequestProvider) http.Handler
 	forgotPasswordConfig := appConfig.ForgotPassword
 	authenticationConfig := appConfig.Authentication
 	googleTagManagerConfig := appConfig.GoogleTagManager
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -65630,10 +65630,10 @@ func newWebAppAuthflowNoAuthenticatorHandler(p *deps.RequestProvider) http.Handl
 	forgotPasswordConfig := appConfig.ForgotPassword
 	authenticationConfig := appConfig.Authentication
 	googleTagManagerConfig := appConfig.GoogleTagManager
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -65731,9 +65731,9 @@ func newRequestMiddleware(w http.ResponseWriter, r *http.Request, p *deps.RootPr
 	forgotPasswordConfig := ProvideForgotPasswordConfig()
 	authenticationConfig := ProvideAuthenticationConfig()
 	googleTagManagerConfig := ProvideGoogleTagManagerConfig()
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	cookieManager := ProvideCookieManager(r, trustProxy)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -65853,10 +65853,10 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	forgotPasswordConfig := appConfig.ForgotPassword
 	authenticationConfig := appConfig.Authentication
 	googleTagManagerConfig := appConfig.GoogleTagManager
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -66042,10 +66042,10 @@ func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	forgotPasswordConfig := appConfig.ForgotPassword
 	authenticationConfig := appConfig.Authentication
 	googleTagManagerConfig := appConfig.GoogleTagManager
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -66683,13 +66683,13 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookieDef := web.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -68568,8 +68568,8 @@ func newSuccessPageMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
-	errorCookie := &webapp2.ErrorCookie{
+	errorCookieDef := web.NewErrorCookieDef()
+	errorCookie := &web.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}

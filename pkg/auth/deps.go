@@ -162,7 +162,7 @@ var DependencySet = wire.NewSet(
 
 	viewmodelswebapp.DependencySet,
 	wire.Bind(new(viewmodelswebapp.StaticAssetResolver), new(*web.StaticAssetResolver)),
-	wire.Bind(new(viewmodelswebapp.ErrorCookie), new(*webapp.ErrorCookie)),
+	wire.Bind(new(viewmodelswebapp.ErrorCookie), new(*web.ErrorCookie)),
 	wire.Bind(new(viewmodelswebapp.TranslationService), new(*translation.Service)),
 	wire.Bind(new(viewmodelswebapp.FlashMessage), new(*httputil.FlashMessage)),
 	wire.Bind(new(viewmodelswebapp.SettingsIdentityService), new(*identityservice.Service)),
@@ -199,7 +199,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.SelectAccountIdentityService), new(*identityservice.Service)),
 	wire.Bind(new(handlerwebapp.SelectAccountUserService), new(*user.Queries)),
 	wire.Bind(new(handlerwebapp.MeterService), new(*meter.Service)),
-	wire.Bind(new(handlerwebapp.ErrorCookie), new(*webapp.ErrorCookie)),
+	wire.Bind(new(handlerwebapp.ErrorCookie), new(*web.ErrorCookie)),
 	wire.Bind(new(handlerwebapp.PasskeyCreationOptionsService), new(*featurepasskey.CreationOptionsService)),
 	wire.Bind(new(handlerwebapp.PasskeyRequestOptionsService), new(*featurepasskey.RequestOptionsService)),
 	wire.Bind(new(handlerwebapp.WorkflowWebsocketEventStore), new(*workflow.EventStoreImpl)),
@@ -297,9 +297,6 @@ var RequestMiddlewareDependencySet = wire.NewSet(
 	wire.Struct(new(viewmodelswebapp.BaseViewModeler), "*"),
 	wire.Struct(new(deps.RequestMiddleware), "*"),
 
-	webapp.NewErrorCookieDef,
-	wire.Struct(new(webapp.ErrorCookie), "*"),
-
 	wire.Bind(new(template.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(web.ResourceManager), new(*resource.Manager)),
 
@@ -309,8 +306,9 @@ var RequestMiddlewareDependencySet = wire.NewSet(
 
 	wire.Bind(new(viewmodelswebapp.TranslationService), new(*translation.Service)),
 
-	wire.Bind(new(viewmodelswebapp.ErrorCookie), new(*webapp.ErrorCookie)),
+	wire.Bind(new(viewmodelswebapp.ErrorCookie), new(*web.ErrorCookie)),
 
+	wire.Bind(new(web.ErrorCookieCookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(webapp.CookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(viewmodelswebapp.FlashMessage), new(*httputil.FlashMessage)),
 	wire.Bind(new(httputil.FlashMessageCookieManager), new(*httputil.CookieManager)),
