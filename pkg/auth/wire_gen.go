@@ -1189,7 +1189,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	consentHandler := &oauth.ConsentHandler{
@@ -6405,7 +6405,7 @@ func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	responseWriter := &webapp.ResponseWriter{
@@ -7286,7 +7286,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -8150,7 +8150,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -9013,7 +9013,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -9864,7 +9864,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -10726,7 +10726,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   resolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, handle)
@@ -11561,7 +11561,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -12397,7 +12397,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -13237,7 +13237,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -14079,7 +14079,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -14919,7 +14919,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -15755,7 +15755,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -16595,7 +16595,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -17436,7 +17436,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -18276,7 +18276,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -19116,7 +19116,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -19958,7 +19958,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -20798,7 +20798,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -21638,7 +21638,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -22482,7 +22482,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -23322,7 +23322,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -24166,7 +24166,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -25006,7 +25006,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, handle)
@@ -25854,7 +25854,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, handle)
@@ -26712,7 +26712,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -27552,7 +27552,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -28388,7 +28388,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -29228,7 +29228,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -30064,7 +30064,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -30910,7 +30910,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -31746,7 +31746,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -32584,7 +32584,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -33420,7 +33420,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -34288,7 +34288,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -35135,7 +35135,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -35995,7 +35995,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -36839,7 +36839,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -37676,7 +37676,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -38521,7 +38521,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -39358,7 +39358,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -40195,7 +40195,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -41032,7 +41032,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -41870,7 +41870,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -42727,7 +42727,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -43564,7 +43564,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -44401,7 +44401,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -45238,7 +45238,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -46075,7 +46075,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -46919,7 +46919,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -47757,7 +47757,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -48593,7 +48593,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -49445,7 +49445,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -50281,7 +50281,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -51117,7 +51117,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -53570,7 +53570,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -54416,7 +54416,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -55253,7 +55253,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -56089,7 +56089,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -61996,7 +61996,7 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		LoginID:        loginIDConfig,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	analyticredisHandle := appProvider.AnalyticRedis
@@ -62143,7 +62143,7 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		LoginID:        loginIDConfig,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	analyticredisHandle := appProvider.AnalyticRedis
@@ -62289,7 +62289,7 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		LoginID:        loginIDConfig,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowPromoteHandler := &webapp.AuthflowPromoteHandler{
@@ -62412,7 +62412,7 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   resolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowEnterPasswordHandler := &webapp.AuthflowEnterPasswordHandler{
@@ -62533,7 +62533,7 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   resolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowEnterOOBOTPHandler := &webapp.AuthflowEnterOOBOTPHandler{
@@ -62656,7 +62656,7 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   resolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowCreatePasswordHandler := &webapp.AuthflowCreatePasswordHandler{
@@ -62777,7 +62777,7 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   resolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowEnterTOTPHandler := &webapp.AuthflowEnterTOTPHandler{
@@ -62898,7 +62898,7 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   resolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowSetupTOTPHandler := &webapp.AuthflowSetupTOTPHandler{
@@ -63019,7 +63019,7 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   resolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowViewRecoveryCodeHandler := &webapp.AuthflowViewRecoveryCodeHandler{
@@ -63140,7 +63140,7 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   resolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowWhatsappOTPHandler := &webapp.AuthflowWhatsappOTPHandler{
@@ -63263,7 +63263,7 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   resolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowOOBOTPLinkHandler := &webapp.AuthflowOOBOTPLinkHandler{
@@ -63386,7 +63386,7 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   resolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowChangePasswordHandler := &webapp.AuthflowChangePasswordHandler{
@@ -63507,7 +63507,7 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   resolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowUsePasskeyHandler := &webapp.AuthflowUsePasskeyHandler{
@@ -63628,7 +63628,7 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   resolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowPromptCreatePasskeyHandler := &webapp.AuthflowPromptCreatePasskeyHandler{
@@ -63749,7 +63749,7 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   resolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowEnterRecoveryCodeHandler := &webapp.AuthflowEnterRecoveryCodeHandler{
@@ -63870,7 +63870,7 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   resolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowSetupOOBOTPHandler := &webapp.AuthflowSetupOOBOTPHandler{
@@ -63991,7 +63991,7 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   resolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowTerminateOtherSessionsHandler := &webapp.AuthflowTerminateOtherSessionsHandler{
@@ -64112,7 +64112,7 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   resolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowWechatHandler := &webapp.AuthflowWechatHandler{
@@ -64233,7 +64233,7 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   resolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowForgotPasswordHandler := &webapp.AuthflowForgotPasswordHandler{
@@ -64354,7 +64354,7 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   resolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowForgotPasswordSuccessHandler := &webapp.AuthflowForgotPasswordSuccessHandler{
@@ -65171,7 +65171,7 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
@@ -65369,7 +65369,7 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   resolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowResetPasswordHandler := &webapp.AuthflowResetPasswordHandler{
@@ -65490,7 +65490,7 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   resolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowResetPasswordSuccessHandler := &webapp.AuthflowResetPasswordSuccessHandler{
@@ -65587,7 +65587,7 @@ func newWebAppAuthflowAccountStatusHandler(p *deps.RequestProvider) http.Handler
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowAccountStatusHandler := &webapp.AuthflowAccountStatusHandler{
@@ -65683,7 +65683,7 @@ func newWebAppAuthflowNoAuthenticatorHandler(p *deps.RequestProvider) http.Handl
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowNoAuthenticatorHandler := &webapp.AuthflowNoAuthenticatorHandler{
@@ -65906,7 +65906,7 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	panicMiddleware := &webapp.PanicMiddleware{
@@ -66095,7 +66095,7 @@ func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	responseRenderer := &webapp.ResponseRenderer{
+	responseRenderer := &web.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	appHostSuffixes := environmentConfig.AppHostSuffixes
