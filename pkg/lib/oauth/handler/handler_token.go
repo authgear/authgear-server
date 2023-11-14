@@ -997,7 +997,7 @@ func (h *TokenHandler) issueOfflineGrant(
 	return offlineGrant, nil
 }
 
-// nolint: gocyclo,gocognit
+// nolint: gocognit
 func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	client *config.OAuthClientConfig,
 	code *oauth.CodeGrant,

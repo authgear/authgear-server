@@ -343,7 +343,7 @@ func (h *AuthorizationHandler) prepareConsentRequest(req *http.Request) (*consen
 	}, nil
 }
 
-// nolint: gocyclo,gocognit
+// nolint: gocognit
 func (h *AuthorizationHandler) doHandle(
 	redirectURI *url.URL,
 	client *config.OAuthClientConfig,

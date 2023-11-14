@@ -133,7 +133,6 @@ func (d AuthgearYAMLDescriptor) UpdateResource(ctx context.Context, _ []resource
 	}, nil
 }
 
-// nolint:gocyclo
 func (d AuthgearYAMLDescriptor) validate(original *config.AppConfig, incoming *config.AppConfig, fc *config.FeatureConfig) error {
 	validationCtx := &validation.Context{}
 

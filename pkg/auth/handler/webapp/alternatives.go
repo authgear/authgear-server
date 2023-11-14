@@ -24,7 +24,7 @@ type CreateAuthenticatorPhoneOTPNode interface {
 	GetSelectedPhoneNumberForPhoneOTP() string
 }
 
-// nolint: gocyclo,gocognit
+// nolint: gocognit
 func handleAlternativeSteps(ctrl *Controller) {
 	ctrl.PostAction("choose_step", func() (err error) {
 		session, err := ctrl.InteractionSession()
