@@ -4,8 +4,8 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type CreateCheckoutSessionMutationMutationVariables = Types.Exact<{
-  appID: Types.Scalars['ID'];
-  planName: Types.Scalars['String'];
+  appID: Types.Scalars['ID']['input'];
+  planName: Types.Scalars['String']['input'];
 }>;
 
 

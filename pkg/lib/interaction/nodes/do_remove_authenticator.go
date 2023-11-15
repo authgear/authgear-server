@@ -33,6 +33,7 @@ func (n *NodeDoRemoveAuthenticator) Prepare(ctx *interaction.Context, graph *int
 	return nil
 }
 
+// nolint:gocognit
 func (n *NodeDoRemoveAuthenticator) GetEffects() ([]interaction.Effect, error) {
 	return []interaction.Effect{
 		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {

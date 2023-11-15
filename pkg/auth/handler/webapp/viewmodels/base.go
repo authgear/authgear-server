@@ -153,6 +153,7 @@ func (m *BaseViewModeler) ViewModelForAuthFlow(r *http.Request, rw http.Response
 	return vm
 }
 
+// nolint: gocognit
 func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) BaseViewModel {
 	now := m.Clock.NowUTC().Unix()
 	uiParam := uiparam.GetUIParam(r.Context())

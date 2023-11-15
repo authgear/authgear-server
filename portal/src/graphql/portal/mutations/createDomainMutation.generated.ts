@@ -4,8 +4,8 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type CreateDomainMutationMutationVariables = Types.Exact<{
-  appID: Types.Scalars['ID'];
-  domain: Types.Scalars['String'];
+  appID: Types.Scalars['ID']['input'];
+  domain: Types.Scalars['String']['input'];
 }>;
 
 

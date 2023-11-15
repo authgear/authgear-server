@@ -69,11 +69,11 @@ func ApplyPageArgs(builder SelectBuilder, pageArgs graphqlutil.PageArgs) (out Se
 	}
 
 	switch {
-	case after == nil && before == nil && first == nil && last == nil:
+	case after == nil && before == nil && last == nil:
 		offset = 0
-	case after == nil && before == nil && first != nil && last == nil:
-		offset = 0
-		query = query.Limit(*first)
+		if first != nil {
+			query = query.Limit(*first)
+		}
 	case after != nil && before == nil && first != nil && last == nil:
 		offset = after.Offset + 1
 		query = query.Limit(*first).Offset(offset)

@@ -65,6 +65,7 @@ func (n *NodeAuthenticationBegin) GetAuthenticationStage() authn.AuthenticationS
 }
 
 // GetAuthenticationEdges implements AuthenticationBeginNode.
+// nolint:gocognit
 func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, error) {
 	var edges []interaction.Edge
 	var availableAuthenticators []*authenticator.Info

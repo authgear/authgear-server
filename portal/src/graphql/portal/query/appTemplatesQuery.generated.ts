@@ -4,8 +4,8 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type AppTemplatesQueryQueryVariables = Types.Exact<{
-  id: Types.Scalars['ID'];
-  paths: Array<Types.Scalars['String']> | Types.Scalars['String'];
+  id: Types.Scalars['ID']['input'];
+  paths: Array<Types.Scalars['String']['input']> | Types.Scalars['String']['input'];
 }>;
 
 
@@ -54,6 +54,11 @@ export function useAppTemplatesQueryLazyQuery(baseOptions?: Apollo.LazyQueryHook
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<AppTemplatesQueryQuery, AppTemplatesQueryQueryVariables>(AppTemplatesQueryDocument, options);
         }
+export function useAppTemplatesQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<AppTemplatesQueryQuery, AppTemplatesQueryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<AppTemplatesQueryQuery, AppTemplatesQueryQueryVariables>(AppTemplatesQueryDocument, options);
+        }
 export type AppTemplatesQueryQueryHookResult = ReturnType<typeof useAppTemplatesQueryQuery>;
 export type AppTemplatesQueryLazyQueryHookResult = ReturnType<typeof useAppTemplatesQueryLazyQuery>;
+export type AppTemplatesQuerySuspenseQueryHookResult = ReturnType<typeof useAppTemplatesQuerySuspenseQuery>;
 export type AppTemplatesQueryQueryResult = Apollo.QueryResult<AppTemplatesQueryQuery, AppTemplatesQueryQueryVariables>;

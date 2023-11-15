@@ -4,8 +4,8 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type UpdateIdentityMutationMutationVariables = Types.Exact<{
-  userID: Types.Scalars['ID'];
-  identityID: Types.Scalars['ID'];
+  userID: Types.Scalars['ID']['input'];
+  identityID: Types.Scalars['ID']['input'];
   definition: Types.IdentityDefinition;
 }>;
 

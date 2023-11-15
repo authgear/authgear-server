@@ -52,7 +52,7 @@ type AlternativeStepsViewModeler struct {
 	AuthenticationConfig *config.AuthenticationConfig
 }
 
-// nolint: gocyclo
+// nolint: gocognit
 func (a *AlternativeStepsViewModeler) AuthenticationAlternatives(graph *interaction.Graph, currentStepKind webapp.SessionStepKind) (*AlternativeStepsViewModel, error) {
 	m := &AlternativeStepsViewModel{}
 
@@ -214,7 +214,7 @@ func (a *AlternativeStepsViewModeler) AuthenticationAlternatives(graph *interact
 	return m, nil
 }
 
-// nolint: gocyclo
+// nolint: gocognit
 func (a *AlternativeStepsViewModeler) CreateAuthenticatorAlternatives(graph *interaction.Graph, currentStepKind webapp.SessionStepKind) (*AlternativeStepsViewModel, error) {
 	m := &AlternativeStepsViewModel{}
 

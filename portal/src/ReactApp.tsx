@@ -19,8 +19,6 @@ import { Helmet, HelmetProvider } from "react-helmet-async";
 import AppRoot from "./AppRoot";
 import MESSAGES from "./locale-data/en.json";
 import { client } from "./graphql/portal/apollo";
-import { registerLocale } from "i18n-iso-countries";
-import i18nISOCountriesEnLocale from "i18n-iso-countries/langs/en.json";
 import styles from "./ReactApp.module.css";
 import { SystemConfigContext } from "./context/SystemConfigContext";
 import {
@@ -123,8 +121,8 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
         <Route path="/project">
           <Route path=":appID">
             <Route
-              // @ts-expect-error
               index={true}
+              // @ts-expect-error
               path="*"
               element={
                 <Authenticated>
@@ -134,8 +132,8 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
             />
             <Route path="wizard">
               <Route
-                // @ts-expect-error
                 index={true}
+                // @ts-expect-error
                 path="*"
                 element={
                   <Authenticated>
@@ -285,9 +283,6 @@ const ReactApp: React.VFC = function ReactApp() {
     // Avoid rendering components from @fluentui/react, since themes are not loaded yet.
     return null;
   }
-
-  // register locale for country code translation
-  registerLocale(i18nISOCountriesEnLocale);
 
   return (
     <GTMProvider containerID={systemConfig.gtmContainerID}>

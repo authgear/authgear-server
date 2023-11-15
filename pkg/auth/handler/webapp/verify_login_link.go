@@ -80,6 +80,7 @@ func (h *VerifyLoginLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWri
 	return data, nil
 }
 
+//nolint:gocognit
 func (h *VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctrl, err := h.ControllerFactory.New(r, w)
 	if err != nil {

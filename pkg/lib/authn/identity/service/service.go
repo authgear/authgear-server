@@ -360,6 +360,8 @@ func (s *Service) SearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, 
 	return
 }
 
+// nolint:gocognit
+// This method is actually simple
 func (s *Service) ListByUserIDs(userIDs []string) (map[string][]*identity.Info, error) {
 	refs, err := s.Store.ListRefsByUsers(userIDs, nil)
 	if err != nil {
@@ -794,64 +796,81 @@ func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err e
 	for _, i := range s.Authentication.Identities {
 		switch i {
 		case model.IdentityTypeOAuth:
-			for _, providerConfig := range s.Identity.OAuth.Providers {
-				pc := providerConfig
-				if identity.IsOAuthSSOProviderTypeDisabled(pc.Type, s.IdentityFeatureConfig.OAuth.Providers) {
-					continue
-				}
-				configProviderID := pc.ProviderID()
-				candidate := identity.NewOAuthCandidate(&pc)
-				matched := false
-				for _, iden := range oauths {
-					if iden.ProviderID.Equal(&configProviderID) {
-						matched = true
-						candidate[identity.CandidateKeyIdentityID] = iden.ID
-						candidate[identity.CandidateKeyProviderSubjectID] = string(iden.ProviderSubjectID)
-						candidate[identity.CandidateKeyDisplayID] = iden.ToInfo().DisplayID()
-					}
-				}
-				canAppend := true
-				if *providerConfig.ModifyDisabled && !matched {
-					canAppend = false
-				}
-				if canAppend {
-					out = append(out, candidate)
-				}
-			}
+			out = append(out, s.listOAuthCandidates(oauths)...)
 		case model.IdentityTypeLoginID:
-			for _, loginIDKeyConfig := range s.Identity.LoginID.Keys {
-				lkc := loginIDKeyConfig
-				candidate := identity.NewLoginIDCandidate(&lkc)
-				matched := false
-				for _, iden := range loginIDs {
-					if loginIDKeyConfig.Key == iden.LoginIDKey {
-						matched = true
-						candidate[identity.CandidateKeyIdentityID] = iden.ID
-						candidate[identity.CandidateKeyLoginIDValue] = iden.LoginID
-						candidate[identity.CandidateKeyDisplayID] = iden.ToInfo().DisplayID()
-					}
-				}
-				canAppend := true
-				if *loginIDKeyConfig.ModifyDisabled && !matched {
-					canAppend = false
-				}
-				if canAppend {
-					out = append(out, candidate)
-				}
-			}
+			out = append(out, s.listLoginIDCandidates(loginIDs)...)
 		case model.IdentityTypeSIWE:
-
-			for _, iden := range siwes {
-				candidate := identity.NewSIWECandidate()
-				candidate[identity.CandidateKeyDisplayID] = iden.Address.String()
-				candidate[identity.CandidateKeyIdentityID] = iden.ID
-
-				out = append(out, candidate)
-
-			}
+			out = append(out, s.listSIWECandidates(siwes)...)
 		}
 
 	}
 
 	return
+}
+
+func (s *Service) listOAuthCandidates(oauths []*identity.OAuth) []identity.Candidate {
+	out := []identity.Candidate{}
+	for _, providerConfig := range s.Identity.OAuth.Providers {
+		pc := providerConfig
+		if identity.IsOAuthSSOProviderTypeDisabled(pc.Type, s.IdentityFeatureConfig.OAuth.Providers) {
+			continue
+		}
+		configProviderID := pc.ProviderID()
+		candidate := identity.NewOAuthCandidate(&pc)
+		matched := false
+		for _, iden := range oauths {
+			if iden.ProviderID.Equal(&configProviderID) {
+				matched = true
+				candidate[identity.CandidateKeyIdentityID] = iden.ID
+				candidate[identity.CandidateKeyProviderSubjectID] = string(iden.ProviderSubjectID)
+				candidate[identity.CandidateKeyDisplayID] = iden.ToInfo().DisplayID()
+			}
+		}
+		canAppend := true
+		if *providerConfig.ModifyDisabled && !matched {
+			canAppend = false
+		}
+		if canAppend {
+			out = append(out, candidate)
+		}
+	}
+	return out
+}
+
+func (s *Service) listLoginIDCandidates(loginIDs []*identity.LoginID) []identity.Candidate {
+	out := []identity.Candidate{}
+	for _, loginIDKeyConfig := range s.Identity.LoginID.Keys {
+		lkc := loginIDKeyConfig
+		candidate := identity.NewLoginIDCandidate(&lkc)
+		matched := false
+		for _, iden := range loginIDs {
+			if loginIDKeyConfig.Key == iden.LoginIDKey {
+				matched = true
+				candidate[identity.CandidateKeyIdentityID] = iden.ID
+				candidate[identity.CandidateKeyLoginIDValue] = iden.LoginID
+				candidate[identity.CandidateKeyDisplayID] = iden.ToInfo().DisplayID()
+			}
+		}
+		canAppend := true
+		if *loginIDKeyConfig.ModifyDisabled && !matched {
+			canAppend = false
+		}
+		if canAppend {
+			out = append(out, candidate)
+		}
+	}
+	return out
+}
+
+func (s *Service) listSIWECandidates(siwes []*identity.SIWE) []identity.Candidate {
+	out := []identity.Candidate{}
+	for _, iden := range siwes {
+		candidate := identity.NewSIWECandidate()
+		candidate[identity.CandidateKeyDisplayID] = iden.Address.String()
+		candidate[identity.CandidateKeyIdentityID] = iden.ID
+
+		out = append(out, candidate)
+
+	}
+	return out
 }

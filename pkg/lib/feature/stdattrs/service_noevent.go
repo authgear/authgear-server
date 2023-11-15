@@ -195,6 +195,8 @@ func (s *ServiceNoEvent) UpdateStandardAttributes(role accesscontrol.Role, userI
 }
 
 // Batch implementation of DeriveStandardAttributes
+// TODO: Write some tests and simplify the implementation
+// nolint:gocognit
 func (s *ServiceNoEvent) DeriveStandardAttributesForUsers(
 	role accesscontrol.Role,
 	userIDs []string,

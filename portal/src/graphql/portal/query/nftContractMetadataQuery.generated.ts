@@ -4,7 +4,7 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type NftContractMetadataQueryQueryVariables = Types.Exact<{
-  contractID: Types.Scalars['String'];
+  contractID: Types.Scalars['String']['input'];
 }>;
 
 
@@ -49,6 +49,11 @@ export function useNftContractMetadataQueryLazyQuery(baseOptions?: Apollo.LazyQu
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<NftContractMetadataQueryQuery, NftContractMetadataQueryQueryVariables>(NftContractMetadataQueryDocument, options);
         }
+export function useNftContractMetadataQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<NftContractMetadataQueryQuery, NftContractMetadataQueryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<NftContractMetadataQueryQuery, NftContractMetadataQueryQueryVariables>(NftContractMetadataQueryDocument, options);
+        }
 export type NftContractMetadataQueryQueryHookResult = ReturnType<typeof useNftContractMetadataQueryQuery>;
 export type NftContractMetadataQueryLazyQueryHookResult = ReturnType<typeof useNftContractMetadataQueryLazyQuery>;
+export type NftContractMetadataQuerySuspenseQueryHookResult = ReturnType<typeof useNftContractMetadataQuerySuspenseQuery>;
 export type NftContractMetadataQueryQueryResult = Apollo.QueryResult<NftContractMetadataQueryQuery, NftContractMetadataQueryQueryVariables>;

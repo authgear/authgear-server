@@ -137,52 +137,80 @@ func (c *SecretConfig) LookupDataWithIndex(key SecretKey) (int, SecretItemData, 
 	return -1, nil, false
 }
 
-func (c *SecretConfig) Validate(appConfig *AppConfig) error {
-	ctx := &validation.Context{}
-	require := func(key SecretKey, item string) {
-		if _, _, ok := c.Lookup(key); !ok {
-			ctx.EmitErrorMessage(fmt.Sprintf("%s (secret '%s') is required", item, key))
-		}
+func (c *SecretConfig) validateRequire(ctx *validation.Context, key SecretKey, item string) {
+	if _, _, ok := c.Lookup(key); !ok {
+		ctx.EmitErrorMessage(fmt.Sprintf("%s (secret '%s') is required", item, key))
 	}
+}
 
-	require(DatabaseCredentialsKey, "database credentials")
-	// AuditDatabaseCredentialsKey is not required
-	// ElasticsearchCredentialsKey is not required
-	require(RedisCredentialsKey, "redis credentials")
-	require(AdminAPIAuthKeyKey, "admin API auth key materials")
-
-	if len(appConfig.Identity.OAuth.Providers) > 0 {
-		require(OAuthSSOProviderCredentialsKey, "OAuth SSO provider client credentials")
-		secretIndex, data, _ := c.LookupDataWithIndex(OAuthSSOProviderCredentialsKey)
-		oauth, ok := data.(*OAuthSSOProviderCredentials)
-		if ok {
-			for _, p := range appConfig.Identity.OAuth.Providers {
-				var matchedItem *OAuthSSOProviderCredentialsItem = nil
-				var matchedItemIndex int = -1
-				for index := range oauth.Items {
-					item := oauth.Items[index]
-					if p.Alias == item.Alias {
-						matchedItem = &item
-						matchedItemIndex = index
-						break
-					}
+func (c *SecretConfig) validateOAuthProviders(ctx *validation.Context, appConfig *AppConfig) {
+	c.validateRequire(ctx, OAuthSSOProviderCredentialsKey, "OAuth SSO provider client credentials")
+	secretIndex, data, _ := c.LookupDataWithIndex(OAuthSSOProviderCredentialsKey)
+	oauth, ok := data.(*OAuthSSOProviderCredentials)
+	if ok {
+		for _, p := range appConfig.Identity.OAuth.Providers {
+			var matchedItem *OAuthSSOProviderCredentialsItem = nil
+			var matchedItemIndex int = -1
+			for index := range oauth.Items {
+				item := oauth.Items[index]
+				if p.Alias == item.Alias {
+					matchedItem = &item
+					matchedItemIndex = index
+					break
 				}
-				if matchedItem == nil {
-					ctx.EmitErrorMessage(fmt.Sprintf("OAuth SSO provider client credentials for '%s' is required", p.Alias))
-				} else {
-					if matchedItem.ClientSecret == "" {
-						ctx.Child("secrets", fmt.Sprintf("%d", secretIndex), "data", "items", fmt.Sprintf("%d", matchedItemIndex)).EmitError(
-							"required",
-							map[string]interface{}{
-								"expected": []string{"alias", "client_secret"},
-								"actual":   []string{"alias"},
-								"missing":  []string{"client_secret"},
-							},
-						)
-					}
+			}
+			if matchedItem == nil {
+				ctx.EmitErrorMessage(fmt.Sprintf("OAuth SSO provider client credentials for '%s' is required", p.Alias))
+			} else {
+				if matchedItem.ClientSecret == "" {
+					ctx.Child("secrets", fmt.Sprintf("%d", secretIndex), "data", "items", fmt.Sprintf("%d", matchedItemIndex)).EmitError(
+						"required",
+						map[string]interface{}{
+							"expected": []string{"alias", "client_secret"},
+							"actual":   []string{"alias"},
+							"missing":  []string{"client_secret"},
+						},
+					)
 				}
 			}
 		}
+	}
+}
+
+func (c *SecretConfig) validateConfidentialClients(ctx *validation.Context, confidentialClients []OAuthClientConfig) {
+	c.validateRequire(ctx, OAuthClientCredentialsKey, "OAuth client credentials")
+	_, data, _ := c.LookupDataWithIndex(OAuthClientCredentialsKey)
+	oauth, ok := data.(*OAuthClientCredentials)
+	if ok {
+		for _, c := range confidentialClients {
+			matched := false
+			for index := range oauth.Items {
+				item := oauth.Items[index]
+				if c.ClientID == item.ClientID {
+					matched = true
+					break
+				}
+			}
+			if !matched {
+				ctx.EmitErrorMessage(fmt.Sprintf("OAuth client credentials for '%s' is required", c.ClientID))
+			} else {
+				// keys are validated by the jsonschema
+			}
+		}
+	}
+}
+
+func (c *SecretConfig) Validate(appConfig *AppConfig) error {
+	ctx := &validation.Context{}
+
+	c.validateRequire(ctx, DatabaseCredentialsKey, "database credentials")
+	// AuditDatabaseCredentialsKey is not required
+	// ElasticsearchCredentialsKey is not required
+	c.validateRequire(ctx, RedisCredentialsKey, "redis credentials")
+	c.validateRequire(ctx, AdminAPIAuthKeyKey, "admin API auth key materials")
+
+	if len(appConfig.Identity.OAuth.Providers) > 0 {
+		c.validateOAuthProviders(ctx, appConfig)
 	}
 
 	confidentialClients := []OAuthClientConfig{}
@@ -193,32 +221,13 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 	}
 
 	if len(confidentialClients) > 0 {
-		require(OAuthClientCredentialsKey, "OAuth client credentials")
-		_, data, _ := c.LookupDataWithIndex(OAuthClientCredentialsKey)
-		oauth, ok := data.(*OAuthClientCredentials)
-		if ok {
-			for _, c := range confidentialClients {
-				matched := false
-				for index := range oauth.Items {
-					item := oauth.Items[index]
-					if c.ClientID == item.ClientID {
-						matched = true
-						break
-					}
-				}
-				if !matched {
-					ctx.EmitErrorMessage(fmt.Sprintf("OAuth client credentials for '%s' is required", c.ClientID))
-				} else {
-					// keys are validated by the jsonschema
-				}
-			}
-		}
+		c.validateConfidentialClients(ctx, confidentialClients)
 	}
 
-	require(OAuthKeyMaterialsKey, "OAuth key materials")
-	require(CSRFKeyMaterialsKey, "CSRF key materials")
+	c.validateRequire(ctx, OAuthKeyMaterialsKey, "OAuth key materials")
+	c.validateRequire(ctx, CSRFKeyMaterialsKey, "CSRF key materials")
 	if len(appConfig.Hook.BlockingHandlers) > 0 || len(appConfig.Hook.NonBlockingHandlers) > 0 {
-		require(WebhookKeyMaterialsKey, "web-hook signing key materials")
+		c.validateRequire(ctx, WebhookKeyMaterialsKey, "web-hook signing key materials")
 	}
 
 	return ctx.Error("invalid secrets")

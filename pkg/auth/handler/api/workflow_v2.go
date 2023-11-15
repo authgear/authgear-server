@@ -210,71 +210,33 @@ func (h *WorkflowV2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	switch request.Action {
 	case WorkflowV2ActionCreate:
-		output, err := h.create(w, r, request)
-		if err != nil {
-			h.JSON.WriteResponse(w, &api.Response{Error: err})
-			return
-		}
-
-		if len(request.BatchInput) > 0 {
-			workflowID := output.Workflow.WorkflowID
-			instanceID := output.Workflow.InstanceID
-			userAgentID := output.Session.UserAgentID
-
-			output, err = h.batchInput(w, r, workflowID, instanceID, userAgentID, request)
-			if err != nil {
-				apiResp, apiRespErr := h.prepareErrorResponse(workflowID, instanceID, userAgentID, err)
-				if apiRespErr != nil {
-					// failed to get the workflow when preparing the error response
-					h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})
-					return
-				}
-				h.JSON.WriteResponse(w, apiResp)
-				return
-			}
-		}
-
-		for _, c := range output.Cookies {
-			httputil.UpdateCookie(w, c)
-		}
-
-		result := WorkflowResponse{
-			Action:   output.Action,
-			Workflow: output.WorkflowOutput,
-		}
-		h.JSON.WriteResponse(w, &api.Response{Result: result})
+		h.handleActionCreate(w, r, request)
+		return
 	case WorkflowV2ActionInput:
-		workflowID := request.WorkflowID
-		instanceID := request.InstanceID
-		userAgentID := getOrCreateUserAgentID(h.Cookies, w, r)
-
-		output, err := h.input(w, r, workflowID, instanceID, userAgentID, request)
-		if err != nil {
-			apiResp, apiRespErr := h.prepareErrorResponse(workflowID, instanceID, userAgentID, err)
-			if apiRespErr != nil {
-				// failed to get the workflow when preparing the error response
-				h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})
-				return
-			}
-			h.JSON.WriteResponse(w, apiResp)
-			return
-		}
-
-		for _, c := range output.Cookies {
-			httputil.UpdateCookie(w, c)
-		}
-
-		result := WorkflowResponse{
-			Action:   output.Action,
-			Workflow: output.WorkflowOutput,
-		}
-		h.JSON.WriteResponse(w, &api.Response{Result: result})
+		h.handleActionInput(w, r, request)
+		return
 	case WorkflowV2ActionBatchInput:
-		workflowID := request.WorkflowID
-		instanceID := request.InstanceID
-		userAgentID := getOrCreateUserAgentID(h.Cookies, w, r)
+		h.handleActionBatchInput(w, r, request)
+		return
+	case WorkflowV2ActionGet:
+		h.handleActionGet(w, r, request)
+		return
+	}
+}
 
-		output, err := h.batchInput(w, r, workflowID, instanceID, userAgentID, request)
+func (h *WorkflowV2Handler) handleActionCreate(w http.ResponseWriter, r *http.Request, request WorkflowV2Request) {
+	output, err := h.create(w, r, request)
+	if err != nil {
+		h.JSON.WriteResponse(w, &api.Response{Error: err})
+		return
+	}
+
+	if len(request.BatchInput) > 0 {
+		workflowID := output.Workflow.WorkflowID
+		instanceID := output.Workflow.InstanceID
+		userAgentID := output.Session.UserAgentID
+
+		output, err = h.batchInput(w, r, workflowID, instanceID, userAgentID, request)
 		if err != nil {
 			apiResp, apiRespErr := h.prepareErrorResponse(workflowID, instanceID, userAgentID, err)
 			if apiRespErr != nil {
@@ -285,33 +247,91 @@ func (h *WorkflowV2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			h.JSON.WriteResponse(w, apiResp)
 			return
 		}
+	}
 
-		for _, c := range output.Cookies {
-			httputil.UpdateCookie(w, c)
-		}
+	for _, c := range output.Cookies {
+		httputil.UpdateCookie(w, c)
+	}
 
-		result := WorkflowResponse{
-			Action:   output.Action,
-			Workflow: output.WorkflowOutput,
-		}
-		h.JSON.WriteResponse(w, &api.Response{Result: result})
-	case WorkflowV2ActionGet:
-		workflowID := request.WorkflowID
-		instanceID := request.InstanceID
-		userAgentID := getOrCreateUserAgentID(h.Cookies, w, r)
+	result := WorkflowResponse{
+		Action:   output.Action,
+		Workflow: output.WorkflowOutput,
+	}
+	h.JSON.WriteResponse(w, &api.Response{Result: result})
+}
 
-		output, err := h.Workflows.Get(workflowID, instanceID, userAgentID)
-		if err != nil {
-			h.JSON.WriteResponse(w, &api.Response{Error: err})
+func (h *WorkflowV2Handler) handleActionInput(w http.ResponseWriter, r *http.Request, request WorkflowV2Request) {
+	workflowID := request.WorkflowID
+	instanceID := request.InstanceID
+	userAgentID := getOrCreateUserAgentID(h.Cookies, w, r)
+
+	output, err := h.input(w, r, workflowID, instanceID, userAgentID, request)
+	if err != nil {
+		apiResp, apiRespErr := h.prepareErrorResponse(workflowID, instanceID, userAgentID, err)
+		if apiRespErr != nil {
+			// failed to get the workflow when preparing the error response
+			h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})
 			return
 		}
-
-		result := WorkflowResponse{
-			Action:   output.Action,
-			Workflow: output.WorkflowOutput,
-		}
-		h.JSON.WriteResponse(w, &api.Response{Result: result})
+		h.JSON.WriteResponse(w, apiResp)
+		return
 	}
+
+	for _, c := range output.Cookies {
+		httputil.UpdateCookie(w, c)
+	}
+
+	result := WorkflowResponse{
+		Action:   output.Action,
+		Workflow: output.WorkflowOutput,
+	}
+	h.JSON.WriteResponse(w, &api.Response{Result: result})
+}
+
+func (h *WorkflowV2Handler) handleActionBatchInput(w http.ResponseWriter, r *http.Request, request WorkflowV2Request) {
+	workflowID := request.WorkflowID
+	instanceID := request.InstanceID
+	userAgentID := getOrCreateUserAgentID(h.Cookies, w, r)
+
+	output, err := h.batchInput(w, r, workflowID, instanceID, userAgentID, request)
+	if err != nil {
+		apiResp, apiRespErr := h.prepareErrorResponse(workflowID, instanceID, userAgentID, err)
+		if apiRespErr != nil {
+			// failed to get the workflow when preparing the error response
+			h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})
+			return
+		}
+		h.JSON.WriteResponse(w, apiResp)
+		return
+	}
+
+	for _, c := range output.Cookies {
+		httputil.UpdateCookie(w, c)
+	}
+
+	result := WorkflowResponse{
+		Action:   output.Action,
+		Workflow: output.WorkflowOutput,
+	}
+	h.JSON.WriteResponse(w, &api.Response{Result: result})
+}
+
+func (h *WorkflowV2Handler) handleActionGet(w http.ResponseWriter, r *http.Request, request WorkflowV2Request) {
+	workflowID := request.WorkflowID
+	instanceID := request.InstanceID
+	userAgentID := getOrCreateUserAgentID(h.Cookies, w, r)
+
+	output, err := h.Workflows.Get(workflowID, instanceID, userAgentID)
+	if err != nil {
+		h.JSON.WriteResponse(w, &api.Response{Error: err})
+		return
+	}
+
+	result := WorkflowResponse{
+		Action:   output.Action,
+		Workflow: output.WorkflowOutput,
+	}
+	h.JSON.WriteResponse(w, &api.Response{Result: result})
 }
 
 func (h *WorkflowV2Handler) create(w http.ResponseWriter, r *http.Request, request WorkflowV2Request) (*workflow.ServiceOutput, error) {

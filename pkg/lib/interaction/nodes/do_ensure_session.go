@@ -118,6 +118,7 @@ func (n *NodeDoEnsureSession) Prepare(ctx *interaction.Context, graph *interacti
 	return nil
 }
 
+// nolint:gocognit
 func (n *NodeDoEnsureSession) GetEffects() ([]interaction.Effect, error) {
 	return []interaction.Effect{
 		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
