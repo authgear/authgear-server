@@ -55,7 +55,7 @@ func (e *EdgeAuthenticationPasskey) Instantiate(ctx *interaction.Context, graph 
 
 	info, requireUpdate, err := ctx.Authenticators.VerifyOneWithSpec(
 		graph.MustGetUserID(),
-		model.AuthenticatorTypePassword,
+		model.AuthenticatorTypePasskey,
 		e.Authenticators, spec,
 		&facade.VerifyOptions{
 			AuthenticationDetails: facade.NewAuthenticationDetails(
