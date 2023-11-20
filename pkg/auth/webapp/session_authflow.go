@@ -684,7 +684,7 @@ func (s *AuthflowScreenWithFlowResponse) navigatePromote(r *http.Request, webSes
 	s.navigateSignupPromote(r, webSessionID, result, AuthflowRoutePromote)
 }
 
-// nolint: gocyclo
+// nolint: gocyclo,gocognit
 func (s *AuthflowScreenWithFlowResponse) navigateSignupPromote(r *http.Request, webSessionID string, result *Result, expectedPath string) {
 	switch s.StateTokenFlowResponse.Action.Type {
 	case authflowclient.FlowActionTypeIdentify:
