@@ -10,15 +10,15 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestIgnore(t *testing.T) {
-	Convey("Ignore", t, func() {
+func TestIgnoreEntry(t *testing.T) {
+	Convey("IgnoreEntry", t, func() {
 
 		Convey("Ignore entry with context.Canceled error", func() {
 			logger := logrus.New()
 			entry := logrus.NewEntry(logger)
 			entry = entry.WithError(context.Canceled)
 
-			So(Ignore(entry), ShouldBeTrue)
+			So(IgnoreEntry(entry), ShouldBeTrue)
 		})
 
 		Convey("Ignore entry with wrapped context.Canceled error", func() {
@@ -27,14 +27,14 @@ func TestIgnore(t *testing.T) {
 
 			entry = entry.WithError(fmt.Errorf("wrap: %w", context.Canceled))
 
-			So(Ignore(entry), ShouldBeTrue)
+			So(IgnoreEntry(entry), ShouldBeTrue)
 		})
 
 		Convey("Do not ignore any other entry", func() {
 			logger := logrus.New()
 			entry := logrus.NewEntry(logger)
 
-			So(Ignore(entry), ShouldBeFalse)
+			So(IgnoreEntry(entry), ShouldBeFalse)
 		})
 	})
 }

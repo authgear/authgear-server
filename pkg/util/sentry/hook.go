@@ -37,7 +37,7 @@ func (h *LogHook) Fire(entry *logrus.Entry) error {
 		return nil
 	}
 
-	if log.Ignore(entry) {
+	if log.IgnoreEntry(entry) {
 		return nil
 	}
 
