@@ -447,7 +447,7 @@ func (s *Service2) afterPost(
 	// Populate cookies.
 	if interactionErr != nil {
 		if !apierrors.IsAPIError(interactionErr) {
-			s.Logger.Errorf("interaction error: %v", interactionErr)
+			s.Logger.WithError(interactionErr).Error("interaction error")
 		}
 		errCookie, err := s.ErrorCookie.SetRecoverableError(s.Request, apierrors.AsAPIError(interactionErr))
 		if err != nil {
