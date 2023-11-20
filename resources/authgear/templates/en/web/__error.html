@@ -239,7 +239,7 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
       $info.expected_chain_id) }}
     </li>
     {{ else }}
-    <li>{{ .Error.message }}</li>
+    <li>{{ template "error-unknown" }}</li>
     {{ end }} {{ end }}
   </ul>
   <button
