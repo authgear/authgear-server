@@ -47,7 +47,8 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 		defer func() {
 			if e := recover(); e != nil {
 				err := panicutil.MakeError(e)
-				log.PanicValue(m.Logger.Logger, err)
+				m.Logger.WithError(err).Error("panic occurred")
+
 				apiError := apierrors.AsAPIError(err)
 
 				if !written {

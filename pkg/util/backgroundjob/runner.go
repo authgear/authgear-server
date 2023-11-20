@@ -85,7 +85,7 @@ func (r *Runner) runRunnable() {
 	defer func() {
 		if anyValue := recover(); anyValue != nil {
 			err := panicutil.MakeError(anyValue)
-			log.PanicValue(r.logger, err)
+			r.logger.WithError(err).Error("panic occurred")
 		}
 	}()
 
