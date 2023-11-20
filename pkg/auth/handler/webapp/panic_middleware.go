@@ -5,15 +5,11 @@ import (
 
 	"github.com/felixge/httpsnoop"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/panicutil"
-	"github.com/authgear/authgear-server/pkg/util/template"
-)
-
-var TemplateWebFatalErrorHTML = template.RegisterHTML(
-	"web/fatal_error.html",
-	components...,
 )
 
 type PanicMiddlewareLogger struct{ *log.Logger }
@@ -23,6 +19,7 @@ func NewPanicMiddlewareLogger(lf *log.Factory) PanicMiddlewareLogger {
 }
 
 type PanicMiddleware struct {
+	ErrorCookie   *webapp.ErrorCookie
 	Logger        PanicMiddlewareLogger
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
@@ -51,13 +48,16 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 			if e := recover(); e != nil {
 				err := panicutil.MakeError(e)
 				log.PanicValue(m.Logger.Logger, err)
+				apiError := apierrors.AsAPIError(err)
 
 				if !written {
-					data := make(map[string]interface{})
-					baseViewModel := m.BaseViewModel.ViewModel(r, w)
-					baseViewModel.SetError(err)
-					viewmodels.Embed(data, baseViewModel)
-					m.Renderer.RenderHTML(w, r, TemplateWebFatalErrorHTML, data)
+					result := &webapp.Result{
+						RedirectURI:      "/errors/error",
+						NavigationAction: "replace",
+					}
+					// This call cannot fail.
+					_ = m.ErrorCookie.SetNonRecoverableError(result, apiError)
+					result.WriteResponse(w, r)
 				}
 			}
 		}()

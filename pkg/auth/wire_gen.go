@@ -83249,20 +83249,27 @@ func newUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 }
 
 func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	errorCookieDef := webapp2.NewErrorCookieDef()
+	request := p.Request
 	appProvider := p.AppProvider
-	factory := appProvider.LoggerFactory
-	panicMiddlewareLogger := webapp.NewPanicMiddlewareLogger(factory)
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	errorCookie := &webapp2.ErrorCookie{
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
+	}
+	factory := appProvider.LoggerFactory
+	panicMiddlewareLogger := webapp.NewPanicMiddlewareLogger(factory)
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	featureConfig := config.FeatureConfig
 	uiFeatureConfig := featureConfig.UI
-	request := p.Request
 	contextContext := deps.ProvideRequestContext(request)
 	localizationConfig := appConfig.Localization
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
@@ -83283,13 +83290,6 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	forgotPasswordConfig := appConfig.ForgotPassword
 	authenticationConfig := appConfig.Authentication
 	googleTagManagerConfig := appConfig.GoogleTagManager
-	errorCookieDef := webapp2.NewErrorCookieDef()
-	httpConfig := appConfig.HTTP
-	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
-		Cookie:  errorCookieDef,
-		Cookies: cookieManager,
-	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
@@ -83340,6 +83340,7 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		TemplateEngine: engine,
 	}
 	panicMiddleware := &webapp.PanicMiddleware{
+		ErrorCookie:   errorCookie,
 		Logger:        panicMiddlewareLogger,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
