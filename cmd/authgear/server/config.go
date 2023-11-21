@@ -19,6 +19,10 @@ type Config struct {
 	// AdminListenAddr sets the listen address of the admin API server
 	AdminListenAddr string `envconfig:"ADMIN_LISTEN_ADDR" default:"0.0.0.0:3002"`
 
+	MainInteralListenAddr      string `envconfig:"MAIN_INTERNAL_LISTEN_ADDR" default:"0.0.0.0:13000"`
+	ResolverInternalListenAddr string `envconfig:"RESOLVER_INTERNAL_LISTEN_ADDR" default:"0.0.0.0:13001"`
+	AdminInternalListenAddr    string `envconfig:"ADMIN_INTERNAL_LISTEN_ADDR" default:"0.0.0.0:13002"`
+
 	// TLSCertFilePath sets the file path of TLS certificate.
 	// It is only used when development mode is enabled.
 	TLSCertFilePath string `envconfig:"TLS_CERT_FILE_PATH" default:"tls-cert.pem"`

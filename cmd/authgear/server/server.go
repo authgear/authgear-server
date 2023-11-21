@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/resolver"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/pprofutil"
 	"github.com/authgear/authgear-server/pkg/util/server"
 	"github.com/authgear/authgear-server/pkg/version"
 	"github.com/authgear/authgear-server/pkg/worker"
@@ -86,6 +87,17 @@ func (c *Controller) Start() {
 		}
 
 		specs = append(specs, spec)
+
+		// Set up internal server.
+		u, err = server.ParseListenAddress(cfg.MainInteralListenAddr)
+		if err != nil {
+			c.logger.WithError(err).Fatal("failed to parse main server internal listen address")
+		}
+		specs = append(specs, server.Spec{
+			Name:          "Main Internal Server",
+			ListenAddress: u.Host,
+			Handler:       pprofutil.NewServeMux(),
+		})
 	}
 
 	if c.ServeResolver {
@@ -98,6 +110,18 @@ func (c *Controller) Start() {
 			Name:          "Resolver Server",
 			ListenAddress: u.Host,
 			Handler:       resolver.NewRouter(p, configSrcController.GetConfigSource()),
+		})
+
+		// Set up internal server.
+		u, err = server.ParseListenAddress(cfg.ResolverInternalListenAddr)
+		if err != nil {
+			c.logger.WithError(err).Fatal("failed to parse resolver internal server listen address")
+		}
+
+		specs = append(specs, server.Spec{
+			Name:          "Resolver Internal Server",
+			ListenAddress: u.Host,
+			Handler:       pprofutil.NewServeMux(),
 		})
 	}
 
@@ -115,6 +139,17 @@ func (c *Controller) Start() {
 				configSrcController.GetConfigSource(),
 				cfg.AdminAPIAuth,
 			),
+		})
+
+		u, err = server.ParseListenAddress(cfg.AdminInternalListenAddr)
+		if err != nil {
+			c.logger.WithError(err).Fatal("failed to parse admin API internal server listen address")
+		}
+
+		specs = append(specs, server.Spec{
+			Name:          "Admin API Internal Server",
+			ListenAddress: u.Host,
+			Handler:       pprofutil.NewServeMux(),
 		})
 	}
 

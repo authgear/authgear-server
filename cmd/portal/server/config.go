@@ -14,7 +14,8 @@ import (
 
 type Config struct {
 	// ListenAddr sets the listen address of the portal server.
-	PortalListenAddr string `envconfig:"PORTAL_LISTEN_ADDR" default:"0.0.0.0:3003"`
+	PortalListenAddr         string `envconfig:"PORTAL_LISTEN_ADDR" default:"0.0.0.0:3003"`
+	PortalInternalListenAddr string `envconfig:"PORTAL_INTERNAL_LISTEN_ADDR" default:"0.0.0.0:13003"`
 	// ConfigSource configures the source of app configurations
 	ConfigSource *configsource.Config `envconfig:"CONFIG_SOURCE"`
 	// Authgear configures Authgear acting as authentication server for the portal.

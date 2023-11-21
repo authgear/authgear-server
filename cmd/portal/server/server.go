@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/pprofutil"
 	"github.com/authgear/authgear-server/pkg/util/server"
 	"github.com/authgear/authgear-server/pkg/version"
 )
@@ -70,6 +71,11 @@ func (c *Controller) Start() {
 		Name:          "portal server",
 		ListenAddress: cfg.PortalListenAddr,
 		Handler:       portal.NewRouter(p),
+	})
+	specs = append(specs, server.Spec{
+		Name:          "portal internal server",
+		ListenAddress: cfg.PortalInternalListenAddr,
+		Handler:       pprofutil.NewServeMux(),
 	})
 	server.Start(c.logger, specs)
 }
