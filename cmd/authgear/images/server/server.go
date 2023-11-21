@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/images"
 	"github.com/authgear/authgear-server/pkg/images/deps"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/pprofutil"
 	"github.com/authgear/authgear-server/pkg/util/server"
 	"github.com/authgear/authgear-server/pkg/util/vipsutil"
 	"github.com/authgear/authgear-server/pkg/version"
@@ -45,6 +46,11 @@ func (c *Controller) Start() {
 		Name:          "images server",
 		ListenAddress: cfg.ListenAddr,
 		Handler:       images.NewRouter(p, configSrcController.GetConfigSource()),
+	})
+	specs = append(specs, server.Spec{
+		Name:          "images internal server",
+		ListenAddress: cfg.InternalListenAddr,
+		Handler:       pprofutil.NewServeMux(),
 	})
 	server.Start(c.logger, specs)
 }
