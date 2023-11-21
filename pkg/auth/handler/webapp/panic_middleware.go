@@ -52,12 +52,18 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 				apiError := apierrors.AsAPIError(err)
 
 				if !written {
-					result := &webapp.Result{
-						RedirectURI:      "/errors/error",
-						NavigationAction: "replace",
+					cookie, cookieErr := m.ErrorCookie.SetRecoverableError(r, apiError)
+					if cookieErr != nil {
+						panic(cookieErr)
 					}
-					// This call cannot fail.
-					_ = m.ErrorCookie.SetNonRecoverableError(result, apiError)
+
+					result := &webapp.Result{
+						// Show the error in the original page.
+						// The panic may come from an I/O error, which could recover by retrying.
+						RedirectURI:      r.URL.String(),
+						NavigationAction: "replace",
+						Cookies:          []*http.Cookie{cookie},
+					}
 					result.WriteResponse(w, r)
 				}
 			}
