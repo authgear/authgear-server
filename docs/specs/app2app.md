@@ -162,6 +162,7 @@ The following methods will be added in android sdk to support the app2app flow:
   - This method should be called to trigger a new app2app authorization request through another client.
   - `App2AppAuthenticateOptions.authorizationEndpoint` should be an url of an applink pointing to another client which handles the app2app authentication request.
   - `App2AppAuthenticateOptions.redirectUri` should be an uri for the another client to return the authentication result. It must be an applink which opens the current app.
+  - `App2AppAuthenticateOptions.state`: Opaque value used to maintain state between the request and the callback. Same purpose as [state in oidc](https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest).
 - `parseApp2AppAuthenticationRequest(uri: Uri): App2AppAuthenticateRequest?`
   - Parse an url into an `App2AppAuthenticateRequest`, or `null` if the uri is not a valid app2app request.
 - `approveApp2AppAuthenticationRequest(request: App2AppAuthenticateRequest)`
@@ -258,6 +259,7 @@ The following methods will be added in android sdk to support the app2app flow:
   - This method should be called to trigger a new app2app authorization request through another client.
   - `App2AppAuthenticateOptions.authorizationEndpoint` should be an url of an universal link pointing to another client which handles the app2app authentication request.
   - `App2AppAuthenticateOptions.redirectUri` should be an uri for the another client to return the authentication result. It must be an universal link which opens the current app.
+  - `App2AppAuthenticateOptions.state`: Opaque value used to maintain state between the request and the callback. Same purpose as [state in oidc](https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest).
 - `parseApp2AppAuthenticationRequest(url: URL): App2AppAuthenticateRequest?`
   - Parse an url into an `App2AppAuthenticateRequest`, or `null` if the url is not a valid app2app request.
 - `approveApp2AppAuthenticationRequest(request: App2AppAuthenticateRequest)`
