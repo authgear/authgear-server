@@ -16,6 +16,8 @@ type Config struct {
 
 	// ListenAddr sets the listen address of the images server.
 	ListenAddr string `envconfig:"IMAGES_LISTEN_ADDR" default:"0.0.0.0:3004"`
+
+	InternalListenAddr string `envconfig:"IMAGES_INTERNAL_LISTEN_ADDR" default:"0.0.0.0:13004"`
 }
 
 func LoadConfigFromEnv() (*Config, error) {
