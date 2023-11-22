@@ -1,4 +1,4 @@
-package cmddatabase
+package util
 
 import (
 	"context"
@@ -18,6 +18,7 @@ type Restorer struct {
 	DatabaseSchema string
 	InputDir       string
 	AppIDs         []string
+	TableNames     []string
 
 	dbHandle    *db.HookHandle
 	sqlExecutor *db.SQLExecutor
@@ -31,6 +32,7 @@ func NewRestorer(
 	databaseSchema string,
 	inputDir string,
 	appIDs []string,
+	tableNames []string,
 ) *Restorer {
 	loggerFactory := log.NewFactory(
 		log.LevelDebug,
@@ -60,6 +62,7 @@ func NewRestorer(
 		DatabaseSchema: databaseSchema,
 		InputDir:       inputDir,
 		AppIDs:         appIDs,
+		TableNames:     tableNames,
 
 		dbHandle:    handle,
 		sqlExecutor: sqlExecutor,
@@ -76,7 +79,7 @@ func (r *Restorer) Restore() error {
 	r.logger.Info(fmt.Sprintf("Restoring from %s", inputPathAbs))
 
 	return r.dbHandle.WithTx(func() error {
-		for _, tableName := range tableNames {
+		for _, tableName := range r.TableNames {
 			inputFile := filepath.Join(inputPathAbs, fmt.Sprintf("%s.csv", tableName))
 			f, err := os.Open(inputFile)
 			if err != nil {

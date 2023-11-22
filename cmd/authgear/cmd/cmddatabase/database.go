@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	authgearcmd "github.com/authgear/authgear-server/cmd/authgear/cmd"
+	dbutil "github.com/authgear/authgear-server/pkg/lib/db/util"
 	"github.com/authgear/authgear-server/pkg/util/sqlmigrate"
 )
 
@@ -185,15 +186,16 @@ var cmdDump = &cobra.Command{
 		}
 
 		if len(args) == 0 {
-			os.Exit(0)
+			panic(fmt.Errorf("At least 1 app-id is needed."))
 		}
 
-		dumper := NewDumper(
+		dumper := dbutil.NewDumper(
 			cmd.Context(),
 			dbURL,
 			dbSchema,
 			outputDir,
 			args,
+			tableNames,
 		)
 
 		return dumper.Dump()
@@ -218,12 +220,13 @@ var cmdRestore = &cobra.Command{
 			return
 		}
 
-		restorer := NewRestorer(
+		restorer := dbutil.NewRestorer(
 			cmd.Context(),
 			dbURL,
 			dbSchema,
 			inputDir,
 			args,
+			tableNames,
 		)
 
 		return restorer.Restore()

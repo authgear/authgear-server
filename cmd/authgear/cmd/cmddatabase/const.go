@@ -21,5 +21,3 @@ var tableNames []string = []string{
 	"_auth_recovery_code",
 	"_auth_verified_claim",
 }
-
-const NULL = "NULL"

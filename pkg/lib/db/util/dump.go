@@ -1,4 +1,4 @@
-package cmddatabase
+package util
 
 import (
 	"context"
@@ -20,6 +20,7 @@ type Dumper struct {
 	DatabaseSchema string
 	OutputDir      string
 	AppIDs         []string
+	TableNames     []string
 
 	dbHandle    *db.HookHandle
 	sqlExecutor *db.SQLExecutor
@@ -33,6 +34,7 @@ func NewDumper(
 	databaseSchema string,
 	outputDir string,
 	appIDs []string,
+	tableNames []string,
 ) *Dumper {
 	loggerFactory := log.NewFactory(
 		log.LevelDebug,
@@ -62,6 +64,7 @@ func NewDumper(
 		DatabaseSchema: databaseSchema,
 		OutputDir:      outputDir,
 		AppIDs:         appIDs,
+		TableNames:     tableNames,
 
 		dbHandle:    handle,
 		sqlExecutor: sqlExecutor,
@@ -84,12 +87,13 @@ func (d *Dumper) Dump() error {
 	}
 
 	return d.dbHandle.ReadOnly(func() error {
-		for _, tableName := range tableNames {
+		for _, tableName := range d.TableNames {
+			filePath := filepath.Join(d.OutputDir, fmt.Sprintf("%s.csv", tableName))
+			d.logger.Info(fmt.Sprintf("Dumping %s to %s", tableName, filePath))
 			columns, rows, err := d.queryTable(tableName)
 			if err != nil {
 				return err
 			}
-			filePath := filepath.Join(d.OutputDir, fmt.Sprintf("%s.csv", tableName))
 			f, err := os.Create(filePath)
 			if err != nil {
 				panic(err)
