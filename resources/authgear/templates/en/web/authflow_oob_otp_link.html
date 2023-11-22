@@ -3,7 +3,7 @@
 {{ define "page-content" }}
 <div class="pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
 
-<div class="hidden" data-controller="authflow-websocket" data-authflow-websocket-url-value="{{ $.WebsocketURL }}"></div>
+<div class="hidden" data-controller="authflow-websocket authflow-polling" data-authflow-websocket-url-value="{{ $.WebsocketURL }}" data-authflow-polling-statetoken-value="{{ $.StateToken }}"></div>
 
 <h1 class="m-0 primary-txt text-center text-xl font-bold">
 {{- if eq $.FlowType "reauth" }}

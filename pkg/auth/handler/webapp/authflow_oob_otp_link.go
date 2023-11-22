@@ -26,6 +26,7 @@ func ConfigureAuthflowOOBOTPLinkRoute(route httproute.Route) httproute.Route {
 
 type AuthflowOOBOTPLinkViewModel struct {
 	WebsocketURL     htmltemplate.URL
+	StateToken       string
 	StateQuery       LoginLinkOTPPageQueryState
 	MaskedClaimValue string
 	ResendCooldown   int
@@ -47,6 +48,7 @@ func NewAuthflowOOBOTPLinkViewModel(s *webapp.Session, screen *webapp.AuthflowSc
 	return AuthflowOOBOTPLinkViewModel{
 		// nolint: gosec
 		WebsocketURL:     htmltemplate.URL(data.WebsocketURL),
+		StateToken:       screen.Screen.StateToken.StateToken,
 		StateQuery:       stateQuery,
 		MaskedClaimValue: maskedClaimValue,
 		ResendCooldown:   resendCooldown,
