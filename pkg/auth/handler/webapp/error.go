@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 func ConfigureErrorRoute(route httproute.Route) httproute.Route {
@@ -12,6 +13,11 @@ func ConfigureErrorRoute(route httproute.Route) httproute.Route {
 		WithMethods("OPTIONS", "GET").
 		WithPathPattern("/errors/error")
 }
+
+var TemplateWebFatalErrorHTML = template.RegisterHTML(
+	"web/fatal_error.html",
+	components...,
+)
 
 type ErrorHandler struct {
 	ControllerFactory ControllerFactory

@@ -52,7 +52,7 @@ func (h *WriterHook) Levels() []logrus.Level {
 }
 
 func (h *WriterHook) Fire(entry *logrus.Entry) error {
-	if Ignore(entry) {
+	if IgnoreEntry(entry) {
 		return nil
 	}
 
