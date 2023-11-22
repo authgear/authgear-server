@@ -15,6 +15,7 @@ import (
 func init() {
 	binder := authgearcmd.GetBinder()
 	cmdDatabase.AddCommand(cmdMigrate)
+	cmdDatabase.AddCommand(cmdDump)
 
 	cmdMigrate.AddCommand(cmdMigrateNew)
 	cmdMigrate.AddCommand(cmdMigrateUp)
@@ -25,6 +26,10 @@ func init() {
 		binder.BindString(cmd.Flags(), authgearcmd.ArgDatabaseURL)
 		binder.BindString(cmd.Flags(), authgearcmd.ArgDatabaseSchema)
 	}
+
+	binder.BindString(cmdDump.Flags(), authgearcmd.ArgDatabaseURL)
+	binder.BindString(cmdDump.Flags(), authgearcmd.ArgDatabaseSchema)
+	binder.BindString(cmdDump.Flags(), authgearcmd.ArgOutputFolder)
 
 	authgearcmd.Root.AddCommand(cmdDatabase)
 }
@@ -153,5 +158,39 @@ var cmdMigrateStatus = &cobra.Command{
 		}
 
 		return
+	},
+}
+
+var cmdDump = &cobra.Command{
+	Use:   "dump [app-id ...]",
+	Short: "Dump app database into csv files.",
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		binder := authgearcmd.GetBinder()
+		dbURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseURL)
+		if err != nil {
+			return
+		}
+		dbSchema, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseSchema)
+		if err != nil {
+			return
+		}
+		outputDir, err := binder.GetRequiredString(cmd, authgearcmd.ArgOutputFolder)
+		if err != nil {
+			return
+		}
+
+		if len(args) == 0 {
+			os.Exit(0)
+		}
+
+		dumper := NewDumper(
+			cmd.Context(),
+			dbURL,
+			dbSchema,
+			outputDir,
+			args,
+		)
+
+		return dumper.Dump()
 	},
 }
