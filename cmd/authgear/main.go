@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	_ "go.uber.org/automaxprocs"
 
 	"github.com/authgear/authgear-server/cmd/authgear/cmd"
 	_ "github.com/authgear/authgear-server/cmd/authgear/cmd/cmdaudit"

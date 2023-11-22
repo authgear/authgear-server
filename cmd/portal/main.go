@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	_ "go.uber.org/automaxprocs"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
 	"github.com/authgear/authgear-server/cmd/portal/cmd"
