@@ -37,6 +37,28 @@ func (s *Store) selectQuery() db.SelectBuilder {
 		Join(s.SQLBuilder.TableName("_auth_identity_login_id"), "l", "p.id = l.id")
 }
 
+func (s *Store) optimizedSelectQuery() db.SelectBuilder {
+	return s.SQLBuilder.
+		Select(
+			"l.id",
+		).
+		From(s.SQLBuilder.TableName("_auth_identity_login_id"), "l")
+}
+
+func (s *Store) optimizedScan(scn db.Scanner) (id string, err error) {
+	err = scn.Scan(
+		&id,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = identity.ErrIdentityNotFound
+		return
+	} else if err != nil {
+		return
+	}
+
+	return
+}
+
 func (s *Store) scan(scn db.Scanner) (*identity.LoginID, error) {
 	i := &identity.LoginID{}
 	var claims []byte
@@ -109,8 +131,7 @@ func (s *Store) List(userID string) ([]*identity.LoginID, error) {
 }
 
 func (s *Store) ListByClaim(name string, value string) ([]*identity.LoginID, error) {
-	q := s.selectQuery().
-		Where("(l.claims ->> ?) = ?", name, value)
+	q := s.optimizedSelectQuery().Where("(l.claims ->> ?) = ?", name, value)
 
 	rows, err := s.SQLExecutor.QueryWith(q)
 	if err != nil {
@@ -118,16 +139,16 @@ func (s *Store) ListByClaim(name string, value string) ([]*identity.LoginID, err
 	}
 	defer rows.Close()
 
-	var is []*identity.LoginID
+	var ids []string
 	for rows.Next() {
-		i, err := s.scan(rows)
+		id, err := s.optimizedScan(rows)
 		if err != nil {
 			return nil, err
 		}
-		is = append(is, i)
+		ids = append(ids, id)
 	}
 
-	return is, nil
+	return s.GetMany(ids)
 }
 
 func (s *Store) Get(userID, id string) (*identity.LoginID, error) {
@@ -140,8 +161,8 @@ func (s *Store) Get(userID, id string) (*identity.LoginID, error) {
 	return s.scan(rows)
 }
 
-func (s *Store) GetByLoginID(loginIDKey string, loginID string) (*identity.LoginID, error) {
-	q := s.selectQuery().Where(`l.login_id = ? AND l.login_id_key = ?`, loginID, loginIDKey)
+func (s *Store) getByID(id string) (*identity.LoginID, error) {
+	q := s.selectQuery().Where("p.id = ?", id)
 	rows, err := s.SQLExecutor.QueryRowWith(q)
 	if err != nil {
 		return nil, err
@@ -150,14 +171,36 @@ func (s *Store) GetByLoginID(loginIDKey string, loginID string) (*identity.Login
 	return s.scan(rows)
 }
 
-func (s *Store) GetByUniqueKey(uniqueKey string) (*identity.LoginID, error) {
-	q := s.selectQuery().Where(`l.unique_key = ?`, uniqueKey)
+func (s *Store) GetByLoginID(loginIDKey string, loginID string) (*identity.LoginID, error) {
+	q := s.optimizedSelectQuery().Where(`l.login_id = ? AND l.login_id_key = ?`, loginID, loginIDKey)
+
 	rows, err := s.SQLExecutor.QueryRowWith(q)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.scan(rows)
+	id, err := s.optimizedScan(rows)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.getByID(id)
+}
+
+func (s *Store) GetByUniqueKey(uniqueKey string) (*identity.LoginID, error) {
+	q := s.optimizedSelectQuery().Where(`l.unique_key = ?`, uniqueKey)
+
+	rows, err := s.SQLExecutor.QueryRowWith(q)
+	if err != nil {
+		return nil, err
+	}
+
+	id, err := s.optimizedScan(rows)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.getByID(id)
 }
 
 func (s *Store) Create(i *identity.LoginID) (err error) {
