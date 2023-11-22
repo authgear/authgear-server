@@ -16,6 +16,7 @@ func init() {
 	binder := authgearcmd.GetBinder()
 	cmdDatabase.AddCommand(cmdMigrate)
 	cmdDatabase.AddCommand(cmdDump)
+	cmdDatabase.AddCommand(cmdRestore)
 
 	cmdMigrate.AddCommand(cmdMigrateNew)
 	cmdMigrate.AddCommand(cmdMigrateUp)
@@ -30,6 +31,10 @@ func init() {
 	binder.BindString(cmdDump.Flags(), authgearcmd.ArgDatabaseURL)
 	binder.BindString(cmdDump.Flags(), authgearcmd.ArgDatabaseSchema)
 	binder.BindString(cmdDump.Flags(), authgearcmd.ArgOutputFolder)
+
+	binder.BindString(cmdRestore.Flags(), authgearcmd.ArgDatabaseURL)
+	binder.BindString(cmdRestore.Flags(), authgearcmd.ArgDatabaseSchema)
+	binder.BindString(cmdRestore.Flags(), authgearcmd.ArgInputFolder)
 
 	authgearcmd.Root.AddCommand(cmdDatabase)
 }
@@ -192,5 +197,35 @@ var cmdDump = &cobra.Command{
 		)
 
 		return dumper.Dump()
+	},
+}
+
+var cmdRestore = &cobra.Command{
+	Use:   "restore",
+	Short: "Restore csv files into database.",
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		binder := authgearcmd.GetBinder()
+		dbURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseURL)
+		if err != nil {
+			return
+		}
+		dbSchema, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseSchema)
+		if err != nil {
+			return
+		}
+		inputDir, err := binder.GetRequiredString(cmd, authgearcmd.ArgInputFolder)
+		if err != nil {
+			return
+		}
+
+		restorer := NewRestorer(
+			cmd.Context(),
+			dbURL,
+			dbSchema,
+			inputDir,
+			args,
+		)
+
+		return restorer.Restore()
 	},
 }
