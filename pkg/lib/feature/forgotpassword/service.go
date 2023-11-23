@@ -62,10 +62,18 @@ type Service struct {
 	OTPSender      OTPSender
 }
 
+type CodeKind string
+
+const (
+	CodeKindLink CodeKind = "CodeKindLink"
+	CodeKindOTP  CodeKind = "CodeKindOTP"
+)
+
 type CodeOptions struct {
 	AuthenticationFlowType        string
 	AuthenticationFlowName        string
 	AuthenticationFlowJSONPointer jsonpointer.T
+	Kind                          CodeKind
 }
 
 // SendCode uses loginID to look up Email Login IDs and Phone Number Login IDs.
@@ -121,6 +129,17 @@ func (s *Service) getPrimaryPasswordList(userID string) ([]*authenticator.Info, 
 	)
 }
 
+func (s *Service) getForgotPasswordOTP(channel model.AuthenticatorOOBChannel, codeKind CodeKind) (otp.Kind, otp.Form) {
+	switch codeKind {
+	case CodeKindOTP:
+		return otp.KindForgotPasswordOTP(s.Config, channel), otp.FormCode
+	case CodeKindLink:
+		fallthrough
+	default:
+		return otp.KindForgotPasswordLink(s.Config, channel), otp.FormLink
+	}
+}
+
 func (s *Service) sendEmail(email string, userID string, options *CodeOptions) error {
 	ais, err := s.getPrimaryPasswordList(userID)
 	if err != nil {
@@ -139,10 +158,12 @@ func (s *Service) sendEmail(email string, userID string, options *CodeOptions) e
 	}
 	defer msg.Close()
 
+	kind, form := s.getForgotPasswordOTP(model.AuthenticatorOOBChannelEmail, options.Kind)
+
 	code, err := s.OTPCodes.GenerateOTP(
-		otp.KindForgotPassword(s.Config, model.AuthenticatorOOBChannelEmail),
+		kind,
 		email,
-		otp.FormLink,
+		form,
 		&otp.GenerateOptions{
 			UserID:                        userID,
 			AuthenticationFlowType:        options.AuthenticationFlowType,
@@ -186,10 +207,12 @@ func (s *Service) sendSMS(phone string, userID string, options *CodeOptions) (er
 	}
 	defer msg.Close()
 
+	kind, form := s.getForgotPasswordOTP(model.AuthenticatorOOBChannelSMS, options.Kind)
+
 	code, err := s.OTPCodes.GenerateOTP(
-		otp.KindForgotPassword(s.Config, model.AuthenticatorOOBChannelSMS),
+		kind,
 		phone,
-		otp.FormLink,
+		form,
 		&otp.GenerateOptions{
 			UserID:                        userID,
 			AuthenticationFlowType:        options.AuthenticationFlowType,
@@ -225,7 +248,8 @@ func (s *Service) doVerifyCode(code string) (target string, state *otp.State, er
 	if strings.ContainsRune(target, '@') {
 		channel = model.AuthenticatorOOBChannelEmail
 	}
-	kind := otp.KindForgotPassword(s.Config, channel)
+
+	kind, _ := s.getForgotPasswordOTP(channel, CodeKindLink)
 
 	state, err = s.OTPCodes.InspectState(kind, target)
 	if errors.Is(err, otp.ErrConsumedCode) {
