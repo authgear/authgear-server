@@ -47,9 +47,9 @@ func (k kindForgotPassword) Purpose() Purpose {
 func (k kindForgotPassword) ValidPeriod() time.Duration {
 	switch k.form {
 	case FormLink:
-		return k.config.ForgotPassword.LinkValidPeriod.Duration()
+		return k.config.ForgotPassword.ValidPeriods.Link.Duration()
 	case FormCode:
-		return k.config.ForgotPassword.CodeValidPeriod.Duration()
+		return k.config.ForgotPassword.ValidPeriods.Code.Duration()
 	}
 	panic("unknown forgot password otp form")
 }
