@@ -18,7 +18,10 @@ type ForgotPasswordConfig struct {
 
 	// ResetCodeExpiry is deprecated
 	ResetCodeExpiry DurationSeconds `json:"reset_code_expiry_seconds,omitempty"`
-	CodeValidPeriod DurationString  `json:"code_valid_period,omitempty"`
+	// CodeValidPeriod is deprecated
+	CodeValidPeriod DurationString `json:"code_valid_period,omitempty"`
+	LinkValidPeriod DurationString `json:"link_valid_period,omitempty"`
+	OTPValidPeriod  DurationString `json:"otp_valid_period,omitempty"`
 
 	RateLimits *ForgotPasswordRateLimitsConfig `json:"rate_limits,omitempty"`
 }
@@ -35,6 +38,13 @@ func (c *ForgotPasswordConfig) SetDefaults() {
 	}
 	if c.CodeValidPeriod == "" {
 		c.CodeValidPeriod = DurationString(c.ResetCodeExpiry.Duration().String())
+	}
+	if c.LinkValidPeriod == "" {
+		c.LinkValidPeriod = c.CodeValidPeriod
+	}
+
+	if c.OTPValidPeriod == "" {
+		c.OTPValidPeriod = DurationString("300s")
 	}
 }
 
