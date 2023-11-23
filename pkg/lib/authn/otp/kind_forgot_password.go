@@ -22,20 +22,36 @@ const (
 type kindForgotPassword struct {
 	config  *config.AppConfig
 	channel model.AuthenticatorOOBChannel
+	form    Form
 }
 
-func KindForgotPassword(config *config.AppConfig, channel model.AuthenticatorOOBChannel) Kind {
-	return kindForgotPassword{config: config, channel: channel}
+func KindForgotPasswordLink(
+	config *config.AppConfig,
+	channel model.AuthenticatorOOBChannel) Kind {
+	return kindForgotPassword{config: config, channel: channel, form: FormLink}
 }
 
-var _ KindFactory = KindForgotPassword
+func KindForgotPasswordOTP(
+	config *config.AppConfig,
+	channel model.AuthenticatorOOBChannel) Kind {
+	return kindForgotPassword{config: config, channel: channel, form: FormCode}
+}
+
+var _ KindFactory = KindForgotPasswordLink
+var _ KindFactory = KindForgotPasswordOTP
 
 func (k kindForgotPassword) Purpose() Purpose {
 	return PurposeForgotPassword
 }
 
 func (k kindForgotPassword) ValidPeriod() time.Duration {
-	return k.config.ForgotPassword.LinkValidPeriod.Duration()
+	switch k.form {
+	case FormLink:
+		return k.config.ForgotPassword.LinkValidPeriod.Duration()
+	case FormCode:
+		return k.config.ForgotPassword.CodeValidPeriod.Duration()
+	}
+	panic("unknown forgot password otp form")
 }
 
 func (k kindForgotPassword) RateLimitTriggerPerIP(ip string) ratelimit.BucketSpec {
