@@ -1,5 +1,21 @@
 package config
 
+var _ = Schema.Add("ForgotPasswordValidPeriods", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"link": { "$ref": "#/$defs/DurationString" },
+		"code": { "$ref": "#/$defs/DurationString" }
+	}
+}
+`)
+
+type ForgotPasswordValidPeriods struct {
+	Link DurationString `json:"link,omitempty"`
+	Code DurationString `json:"code,omitempty"`
+}
+
 var _ = Schema.Add("ForgotPasswordConfig", `
 {
 	"type": "object",
@@ -8,6 +24,7 @@ var _ = Schema.Add("ForgotPasswordConfig", `
 		"enabled": { "type": "boolean" },
 		"reset_code_expiry_seconds": { "$ref": "#/$defs/DurationSeconds" },
 		"code_valid_period": { "$ref": "#/$defs/DurationString" },
+		"valid_periods": { "$ref": "#/$defs/ForgotPasswordValidPeriods" },
 		"rate_limits": { "$ref": "#/$defs/ForgotPasswordRateLimitsConfig" }
 	}
 }
@@ -18,10 +35,9 @@ type ForgotPasswordConfig struct {
 
 	// ResetCodeExpiry is deprecated
 	ResetCodeExpiry DurationSeconds `json:"reset_code_expiry_seconds,omitempty"`
-	// CodeValidPeriod is deprecated
-	CodeValidPeriod DurationString `json:"code_valid_period,omitempty"`
-	LinkValidPeriod DurationString `json:"link_valid_period,omitempty"`
-	OTPValidPeriod  DurationString `json:"otp_valid_period,omitempty"`
+	// CodeValidPeriod is deprecated, it refers to the link valid period
+	CodeValidPeriod DurationString              `json:"code_valid_period,omitempty"`
+	ValidPeriods    *ForgotPasswordValidPeriods `json:"valid_periods,omitempty"`
 
 	RateLimits *ForgotPasswordRateLimitsConfig `json:"rate_limits,omitempty"`
 }
@@ -39,12 +55,13 @@ func (c *ForgotPasswordConfig) SetDefaults() {
 	if c.CodeValidPeriod == "" {
 		c.CodeValidPeriod = DurationString(c.ResetCodeExpiry.Duration().String())
 	}
-	if c.LinkValidPeriod == "" {
-		c.LinkValidPeriod = c.CodeValidPeriod
+
+	if c.ValidPeriods.Link == "" {
+		c.ValidPeriods.Link = c.CodeValidPeriod
 	}
 
-	if c.OTPValidPeriod == "" {
-		c.OTPValidPeriod = DurationString("300s")
+	if c.ValidPeriods.Code == "" {
+		c.ValidPeriods.Code = DurationString("300s")
 	}
 }
 
