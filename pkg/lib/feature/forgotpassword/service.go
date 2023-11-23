@@ -147,10 +147,12 @@ func (s *Service) sendEmail(email string, userID string, options *CodeOptions) e
 	}
 	ctx := messageContext{HasPassword: len(ais) > 0}
 
+	otpKind, otpForm := s.getForgotPasswordOTP(model.AuthenticatorOOBChannelEmail, options.Kind)
+
 	msg, err := s.OTPSender.Prepare(
 		model.AuthenticatorOOBChannelEmail,
 		email,
-		otp.FormLink,
+		otpForm,
 		otp.MessageTypeForgotPassword,
 	)
 	if err != nil {
@@ -158,12 +160,10 @@ func (s *Service) sendEmail(email string, userID string, options *CodeOptions) e
 	}
 	defer msg.Close()
 
-	kind, form := s.getForgotPasswordOTP(model.AuthenticatorOOBChannelEmail, options.Kind)
-
 	code, err := s.OTPCodes.GenerateOTP(
-		kind,
+		otpKind,
 		email,
-		form,
+		otpForm,
 		&otp.GenerateOptions{
 			UserID:                        userID,
 			AuthenticationFlowType:        options.AuthenticationFlowType,
@@ -196,10 +196,12 @@ func (s *Service) sendSMS(phone string, userID string, options *CodeOptions) (er
 		return feature.ErrFeatureDisabledSendingSMS
 	}
 
+	otpKind, otpForm := s.getForgotPasswordOTP(model.AuthenticatorOOBChannelSMS, options.Kind)
+
 	msg, err := s.OTPSender.Prepare(
 		model.AuthenticatorOOBChannelSMS,
 		phone,
-		otp.FormLink,
+		otpForm,
 		otp.MessageTypeForgotPassword,
 	)
 	if err != nil {
@@ -207,12 +209,10 @@ func (s *Service) sendSMS(phone string, userID string, options *CodeOptions) (er
 	}
 	defer msg.Close()
 
-	kind, form := s.getForgotPasswordOTP(model.AuthenticatorOOBChannelSMS, options.Kind)
-
 	code, err := s.OTPCodes.GenerateOTP(
-		kind,
+		otpKind,
 		phone,
-		form,
+		otpForm,
 		&otp.GenerateOptions{
 			UserID:                        userID,
 			AuthenticationFlowType:        options.AuthenticationFlowType,

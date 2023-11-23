@@ -160,7 +160,11 @@ func (s *MessageSender) selectMessage(form Form, typ MessageType) (*translation.
 		}
 		msgType = nonblocking.MessageTypeAuthenticateSecondaryOOB
 	case MessageTypeForgotPassword:
-		spec = messageForgotPassword
+		if form == FormLink {
+			spec = messageForgotPasswordLink
+		} else {
+			spec = messageForgotPasswordOTP
+		}
 		msgType = nonblocking.MessageTypeForgotPassword
 	case MessageTypeWhatsappCode:
 		spec = messageWhatsappCode
