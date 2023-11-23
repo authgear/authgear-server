@@ -35,7 +35,7 @@ func (k kindForgotPassword) Purpose() Purpose {
 }
 
 func (k kindForgotPassword) ValidPeriod() time.Duration {
-	return k.config.ForgotPassword.CodeValidPeriod.Duration()
+	return k.config.ForgotPassword.LinkValidPeriod.Duration()
 }
 
 func (k kindForgotPassword) RateLimitTriggerPerIP(ip string) ratelimit.BucketSpec {
