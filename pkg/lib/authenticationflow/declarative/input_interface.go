@@ -26,10 +26,6 @@ type inputTakeAccountRecoveryDestinationOptionIndex interface {
 	GetAccountRecoveryDestinationOptionIndex() int
 }
 
-type inputTakeAccountRecoveryCode interface {
-	GetAccountRecoveryCode() string
-}
-
 type inputTakeAuthenticationMethod interface {
 	GetAuthenticationMethod() config.AuthenticationFlowAuthentication
 }
@@ -82,6 +78,12 @@ type inputNodeVerifyClaim interface {
 	IsCode() bool
 	IsResend() bool
 	IsCheck() bool
+	GetCode() string
+}
+
+type inputStepAccountRecoveryVerifyCode interface {
+	IsCode() bool
+	IsResend() bool
 	GetCode() string
 }
 
