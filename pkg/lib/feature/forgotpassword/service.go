@@ -65,8 +65,8 @@ type Service struct {
 type CodeKind string
 
 const (
-	CodeKindLink CodeKind = "CodeKindLink"
-	CodeKindOTP  CodeKind = "CodeKindOTP"
+	CodeKindLink      CodeKind = "CodeKindLink"
+	CodeKindShortCode CodeKind = "CodeKindShortCode"
 )
 
 type CodeOptions struct {
@@ -131,7 +131,7 @@ func (s *Service) getPrimaryPasswordList(userID string) ([]*authenticator.Info, 
 
 func (s *Service) getForgotPasswordOTP(channel model.AuthenticatorOOBChannel, codeKind CodeKind) (otp.Kind, otp.Form) {
 	switch codeKind {
-	case CodeKindOTP:
+	case CodeKindShortCode:
 		return otp.KindForgotPasswordOTP(s.Config, channel), otp.FormCode
 	case CodeKindLink:
 		fallthrough

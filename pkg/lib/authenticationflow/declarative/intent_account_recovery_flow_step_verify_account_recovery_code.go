@@ -2,12 +2,10 @@ package declarative
 
 import (
 	"context"
-	"errors"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 )
 
 func init() {
@@ -22,30 +20,6 @@ type IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode struct {
 }
 
 var _ authflow.TargetStep = &IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode{}
-
-func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) Instantiate(
-	ctx context.Context,
-	deps *authflow.Dependencies,
-	flows authflow.Flows,
-) error {
-	if i.isRestored() {
-		// We don't want to send the code again if this step was restored
-		return nil
-	}
-	milestone, ok := authflow.FindMilestone[MilestoneDoUseAccountRecoveryDestination](flows.Root)
-	if !ok {
-		return InvalidFlowConfig.New("IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode depends on MilestoneDoUseAccountRecoveryDestination")
-	}
-	err := deps.ForgotPassword.SendCode(milestone.MilestoneDoUseAccountRecoveryDestination(), &forgotpassword.CodeOptions{
-		AuthenticationFlowType:        string(i.FlowReference.Type),
-		AuthenticationFlowName:        i.FlowReference.Name,
-		AuthenticationFlowJSONPointer: i.JSONPointer,
-	})
-	if err != nil && !errors.Is(err, forgotpassword.ErrUserNotFound) {
-		return err
-	}
-	return nil
-}
 
 func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) GetName() string {
 	return i.StepName

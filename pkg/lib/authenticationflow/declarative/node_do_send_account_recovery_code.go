@@ -3,6 +3,7 @@ package declarative
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
@@ -29,10 +30,12 @@ func NewNodeDoSendAccountRecoveryCode(
 	if !ok {
 		return nil, InvalidFlowConfig.New("NodeDoSendAccountRecoveryCode depends on MilestoneDoUseAccountRecoveryDestination")
 	}
-	err := deps.ForgotPassword.SendCode(milestone.MilestoneDoUseAccountRecoveryDestination(), &forgotpassword.CodeOptions{
+	destination := milestone.MilestoneDoUseAccountRecoveryDestination()
+	err := deps.ForgotPassword.SendCode(destination.TargetLoginID, &forgotpassword.CodeOptions{
 		AuthenticationFlowType:        string(flowReference.Type),
 		AuthenticationFlowName:        flowReference.Name,
 		AuthenticationFlowJSONPointer: jSONPointer,
+		Kind:                          accountRecoveryOTPFormToForgotPasswordCodeKind(destination.OTPForm),
 	})
 	if err != nil && !errors.Is(err, forgotpassword.ErrUserNotFound) {
 		return nil, err
@@ -44,4 +47,14 @@ var _ authflow.NodeSimple = &NodeDoSendAccountRecoveryCode{}
 
 func (*NodeDoSendAccountRecoveryCode) Kind() string {
 	return "NodeDoSendAccountRecoveryCode"
+}
+
+func accountRecoveryOTPFormToForgotPasswordCodeKind(otpForm AccountRecoveryOTPForm) forgotpassword.CodeKind {
+	switch otpForm {
+	case AccountRecoveryOTPFormCode:
+		return forgotpassword.CodeKindShortCode
+	case AccountRecoveryOTPFormLink:
+		return forgotpassword.CodeKindLink
+	}
+	panic(fmt.Sprintf("account recovery: unknown otp form %s", otpForm))
 }
