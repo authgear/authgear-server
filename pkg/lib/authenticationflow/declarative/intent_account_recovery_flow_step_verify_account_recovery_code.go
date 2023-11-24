@@ -51,7 +51,7 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) CanReactTo(ctx 
 	case 0:
 		return nil, nil
 	case 1:
-		return &InputSchemaTakeAccountRecoveryCode{
+		return &InputSchemaStepAccountRecoveryVerifyCode{
 			JSONPointer: i.JSONPointer,
 		}, nil
 	}
@@ -66,31 +66,46 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) ReactTo(ctx con
 			// We don't want to send the code again if this step was restored
 			return authflow.NewNodeSimple(&NodeSentinel{}), nil
 		}
-		nextNode, err := NewNodeDoSendAccountRecoveryCode(ctx, deps, flows, i.FlowReference, i.JSONPointer, i.StartFrom)
+		nextNode, err := NewNodeDoSendAccountRecoveryCode(ctx, deps, flows, i.FlowReference, i.JSONPointer)
 		if err != nil {
 			return nil, err
 		}
 		return authflow.NewNodeSimple(nextNode), nil
 	case 1:
-		var inputTakeAccountRecoveryCode inputTakeAccountRecoveryCode
-		if authflow.AsInput(input, &inputTakeAccountRecoveryCode) {
-			code := inputTakeAccountRecoveryCode.GetAccountRecoveryCode()
-			milestone, ok := authflow.FindMilestone[MilestoneDoUseAccountRecoveryDestination](flows.Root)
-			if ok {
-				dest := milestone.MilestoneDoUseAccountRecoveryDestination()
-				_, err := deps.ResetPassword.VerifyCodeWithTarget(dest.TargetLoginID, code)
-				if err != nil {
-					return nil, err
+		var inputStepAccountRecoveryVerifyCode inputStepAccountRecoveryVerifyCode
+		if authflow.AsInput(input, &inputStepAccountRecoveryVerifyCode) {
+			if inputStepAccountRecoveryVerifyCode.IsCode() {
+				code := inputStepAccountRecoveryVerifyCode.GetCode()
+				milestone, ok := authflow.FindMilestone[MilestoneDoUseAccountRecoveryDestination](flows.Root)
+				if ok {
+					dest := milestone.MilestoneDoUseAccountRecoveryDestination()
+					_, err := deps.ResetPassword.VerifyCodeWithTarget(dest.TargetLoginID, code)
+					if err != nil {
+						return nil, err
+					}
+				} else {
+					// MilestoneDoUseAccountRecoveryDestination might not exist, because the flow is restored
+					_, err := deps.ResetPassword.VerifyCode(code)
+					if err != nil {
+						return nil, err
+					}
 				}
-			} else {
-				// MilestoneDoUseAccountRecoveryDestination might not exist, because the flow is restored
-				_, err := deps.ResetPassword.VerifyCode(code)
-				if err != nil {
-					return nil, err
+				return authflow.NewNodeSimple(&NodeUseAccountRecoveryCode{Code: code}), nil
+			}
+
+			if inputStepAccountRecoveryVerifyCode.IsResend() {
+				prevNode := flows.Nearest.Nodes[0].Simple
+				switch prevNode.(type) {
+				case *NodeDoSendAccountRecoveryCode:
+					err := prevNode.(*NodeDoSendAccountRecoveryCode).send(deps)
+					if err != nil {
+						return nil, err
+					}
+					return authflow.NewNodeSimple(prevNode), authflow.ErrUpdateNode
 				}
 			}
 
-			return authflow.NewNodeSimple(&NodeUseAccountRecoveryCode{Code: code}), nil
+			return nil, authflow.ErrIncompatibleInput
 		}
 
 	}
