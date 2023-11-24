@@ -64,10 +64,21 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) ReactTo(ctx con
 		var inputTakeAccountRecoveryCode inputTakeAccountRecoveryCode
 		if authflow.AsInput(input, &inputTakeAccountRecoveryCode) {
 			code := inputTakeAccountRecoveryCode.GetAccountRecoveryCode()
-			_, err := deps.ResetPassword.VerifyCode(code)
-			if err != nil {
-				return nil, err
+			milestone, ok := authflow.FindMilestone[MilestoneDoUseAccountRecoveryDestination](flows.Root)
+			if ok {
+				dest := milestone.MilestoneDoUseAccountRecoveryDestination()
+				_, err := deps.ResetPassword.VerifyCodeWithTarget(dest.TargetLoginID, code)
+				if err != nil {
+					return nil, err
+				}
+			} else {
+				// MilestoneDoUseAccountRecoveryDestination might not exist, because the flow is restored
+				_, err := deps.ResetPassword.VerifyCode(code)
+				if err != nil {
+					return nil, err
+				}
 			}
+
 			return authflow.NewNodeSimple(&NodeUseAccountRecoveryCode{Code: code}), nil
 		}
 
