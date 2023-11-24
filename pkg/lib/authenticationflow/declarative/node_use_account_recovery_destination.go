@@ -9,7 +9,7 @@ func init() {
 }
 
 type NodeUseAccountRecoveryDestination struct {
-	TargetLoginID string `json:"target_login_id,omitempty"`
+	Destination *AccountRecoveryDestinationOptionInternal `json:"destination,omitempty"`
 }
 
 var _ authflow.Milestone = &NodeUseAccountRecoveryDestination{}
@@ -22,6 +22,6 @@ func (*NodeUseAccountRecoveryDestination) Kind() string {
 }
 
 func (*NodeUseAccountRecoveryDestination) Milestone() {}
-func (n *NodeUseAccountRecoveryDestination) MilestoneDoUseAccountRecoveryDestination() string {
-	return n.TargetLoginID
+func (n *NodeUseAccountRecoveryDestination) MilestoneDoUseAccountRecoveryDestination() *AccountRecoveryDestinationOptionInternal {
+	return n.Destination
 }

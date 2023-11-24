@@ -98,7 +98,7 @@ func (i *IntentAccountRecoveryFlowStepSelectDestination) ReactTo(ctx context.Con
 			optionIdx := inputTakeAccountRecoveryDestinationOptionIndex.GetAccountRecoveryDestinationOptionIndex()
 			option := i.Options[optionIdx]
 			return authflow.NewNodeSimple(&NodeUseAccountRecoveryDestination{
-				TargetLoginID: option.TargetLoginID,
+				Destination: option,
 			}), nil
 		}
 	}
