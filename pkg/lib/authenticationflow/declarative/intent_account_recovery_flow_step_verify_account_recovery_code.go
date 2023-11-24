@@ -12,6 +12,16 @@ func init() {
 	authflow.RegisterIntent(&IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode{})
 }
 
+type IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData struct {
+	MaskedDisplayName string                 `json:"masked_display_name"`
+	Channel           AccountRecoveryChannel `json:"channel"`
+	OTPForm           AccountRecoveryOTPForm `json:"otp_form"`
+}
+
+var _ authflow.Data = IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData{}
+
+func (IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData) Data() {}
+
 type IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode struct {
 	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
 	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
@@ -20,6 +30,7 @@ type IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode struct {
 }
 
 var _ authflow.TargetStep = &IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode{}
+var _ authflow.DataOutputer = &IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode{}
 
 func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) GetName() string {
 	return i.StepName
@@ -89,4 +100,19 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) ReactTo(ctx con
 
 func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) isRestored() bool {
 	return isNodeRestored(i.JSONPointer, i.StartFrom)
+}
+
+func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
+	milestone, ok := authflow.FindMilestone[MilestoneDoUseAccountRecoveryDestination](flows.Root)
+	if ok {
+		dest := milestone.MilestoneDoUseAccountRecoveryDestination()
+		return &IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData{
+			MaskedDisplayName: dest.MaskedDisplayName,
+			Channel:           dest.Channel,
+			OTPForm:           dest.OTPForm,
+		}, nil
+	} else {
+		// MilestoneDoUseAccountRecoveryDestination might not exist, because the flow is restored
+		return nil, nil
+	}
 }
