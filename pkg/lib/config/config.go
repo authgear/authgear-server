@@ -337,5 +337,5 @@ func Parse(inputYAML []byte) (*AppConfig, error) {
 }
 
 func PopulateDefaultValues(config *AppConfig) {
-	setFieldDefaults(config)
+	SetFieldDefaults(config)
 }

@@ -238,7 +238,7 @@ func ProvideUIFeatureConfig() *config.UIFeatureConfig {
 
 func ProvideForgotPasswordConfig() *config.ForgotPasswordConfig {
 	c := &config.ForgotPasswordConfig{}
-	c.SetDefaults()
+	config.SetFieldDefaults(c)
 	return c
 }
 

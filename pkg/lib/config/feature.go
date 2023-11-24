@@ -72,17 +72,17 @@ func ParseFeatureConfig(inputYAML []byte) (*FeatureConfig, error) {
 		return nil, err
 	}
 
-	setFieldDefaults(&config)
+	SetFieldDefaults(&config)
 
 	return &config, nil
 }
 
 func NewEffectiveDefaultFeatureConfig() *FeatureConfig {
 	config := FeatureConfig{}
-	setFieldDefaults(&config)
+	SetFieldDefaults(&config)
 	return &config
 }
 
 func PopulateFeatureConfigDefaultValues(config *FeatureConfig) {
-	setFieldDefaults(config)
+	SetFieldDefaults(config)
 }
