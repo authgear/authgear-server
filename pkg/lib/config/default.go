@@ -8,7 +8,7 @@ type defaulter interface {
 	SetDefaults()
 }
 
-func setFieldDefaults(value interface{}) {
+func SetFieldDefaults(value interface{}) {
 	var set func(t reflect.Type, v reflect.Value)
 
 	set = func(t reflect.Type, v reflect.Value) {

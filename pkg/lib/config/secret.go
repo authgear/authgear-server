@@ -367,7 +367,7 @@ func (i *SecretItem) parse(ctx *validation.Context) {
 		return
 	}
 
-	setFieldDefaults(data)
+	SetFieldDefaults(data)
 
 	err = validation.ValidateValue(data)
 	if err != nil {
