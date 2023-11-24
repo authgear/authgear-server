@@ -63,11 +63,11 @@ var (
 
 	TemplateMessageForgotPasswordLinkSMSTXT    = template.RegisterPlainText("messages/forgot_password_sms.txt")
 	TemplateMessageForgotPasswordLinkEmailTXT  = template.RegisterPlainText("messages/forgot_password_email.txt")
-	TemplateMessageForgotPasswordEmailLinkHTML = template.RegisterHTML("messages/forgot_password_email.html")
+	TemplateMessageForgotPasswordLinkEmailHTML = template.RegisterHTML("messages/forgot_password_email.html")
 
-	TemplateMessageForgotPasswordOTPSMSTXT    = template.RegisterPlainText("messages/forgot_password_otp_sms.txt")
-	TemplateMessageForgotPasswordOTPEmailTXT  = template.RegisterPlainText("messages/forgot_password_otp_email.txt")
-	TemplateMessageForgotPasswordOTPEmailHTML = template.RegisterHTML("messages/forgot_password_otp_email.html")
+	TemplateMessageForgotPasswordOOBSMSTXT    = template.RegisterPlainText("messages/forgot_password_oob_sms.txt")
+	TemplateMessageForgotPasswordOOBEmailTXT  = template.RegisterPlainText("messages/forgot_password_oob_email.txt")
+	TemplateMessageForgotPasswordOOBEmailHTML = template.RegisterHTML("messages/forgot_password_oob_email.html")
 
 	TemplateWhatsappOTPCodeTXT = template.RegisterPlainText("messages/whatsapp_otp_code.txt")
 )
@@ -126,14 +126,14 @@ var (
 	messageForgotPasswordLink = &translation.MessageSpec{
 		Name:              "forgot-password",
 		TXTEmailTemplate:  TemplateMessageForgotPasswordLinkEmailTXT,
-		HTMLEmailTemplate: TemplateMessageForgotPasswordEmailLinkHTML,
+		HTMLEmailTemplate: TemplateMessageForgotPasswordLinkEmailHTML,
 		SMSTemplate:       TemplateMessageForgotPasswordLinkSMSTXT,
 	}
-	messageForgotPasswordOTP = &translation.MessageSpec{
-		Name:              "forgot-password-otp",
-		TXTEmailTemplate:  TemplateMessageForgotPasswordLinkEmailTXT,
-		HTMLEmailTemplate: TemplateMessageForgotPasswordEmailLinkHTML,
-		SMSTemplate:       TemplateMessageForgotPasswordLinkSMSTXT,
+	messageForgotPasswordOOB = &translation.MessageSpec{
+		Name:              "forgot-password-oob",
+		TXTEmailTemplate:  TemplateMessageForgotPasswordOOBEmailTXT,
+		HTMLEmailTemplate: TemplateMessageForgotPasswordOOBEmailHTML,
+		SMSTemplate:       TemplateMessageForgotPasswordOOBSMSTXT,
 	}
 	messageWhatsappCode = &translation.MessageSpec{
 		Name:             "whatsapp-code",
