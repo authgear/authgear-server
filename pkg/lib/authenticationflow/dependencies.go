@@ -98,6 +98,7 @@ type ResetPasswordService interface {
 	VerifyCode(code string) (state *otp.State, err error)
 	VerifyCodeWithTarget(target string, code string) (state *otp.State, err error)
 	ResetPassword(code string, newPassword string) error
+	ResetPasswordWithTarget(target string, code string, newPassword string) error
 }
 
 type RateLimiter interface {
