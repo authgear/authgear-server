@@ -234,15 +234,7 @@ func (s *Service) sendSMS(phone string, userID string, options *CodeOptions) (er
 	return
 }
 
-func (s *Service) doVerifyCode(code string) (target string, state *otp.State, err error) {
-	target, err = s.OTPCodes.LookupCode(otp.PurposeForgotPassword, code)
-	if apierrors.IsKind(err, otp.InvalidOTPCode) {
-		err = ErrInvalidCode
-		return
-	} else if err != nil {
-		return
-	}
-
+func (s *Service) doVerifyCodeWithTarget(target string, code string) (state *otp.State, err error) {
 	// TODO: more robust?
 	channel := model.AuthenticatorOOBChannelSMS
 	if strings.ContainsRune(target, '@') {
@@ -275,8 +267,35 @@ func (s *Service) doVerifyCode(code string) (target string, state *otp.State, er
 	} else if err != nil {
 		return
 	}
-
 	return
+}
+
+func (s *Service) doVerifyCode(code string) (target string, state *otp.State, err error) {
+	target, err = s.OTPCodes.LookupCode(otp.PurposeForgotPassword, code)
+	if apierrors.IsKind(err, otp.InvalidOTPCode) {
+		err = ErrInvalidCode
+		return
+	} else if err != nil {
+		return
+	}
+
+	state, err = s.doVerifyCodeWithTarget(target, code)
+	if err != nil {
+		return
+	}
+	return target, state, err
+}
+
+func (s *Service) VerifyCodeWithTarget(target string, code string) (state *otp.State, err error) {
+	if !*s.Config.ForgotPassword.Enabled {
+		return nil, ErrFeatureDisabled
+	}
+	state, err = s.doVerifyCodeWithTarget(target, code)
+	if err != nil {
+		return nil, err
+	}
+
+	return state, nil
 }
 
 func (s *Service) VerifyCode(code string) (state *otp.State, err error) {
