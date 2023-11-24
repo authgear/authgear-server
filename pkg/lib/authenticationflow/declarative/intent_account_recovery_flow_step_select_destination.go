@@ -8,6 +8,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/util/phone"
@@ -26,9 +27,9 @@ var _ authflow.Data = IntentAccountRecoveryFlowStepSelectDestinationData{}
 func (IntentAccountRecoveryFlowStepSelectDestinationData) Data() {}
 
 type IntentAccountRecoveryFlowStepSelectDestination struct {
-	JSONPointer jsonpointer.T                              `json:"json_pointer,omitempty"`
-	StepName    string                                     `json:"step_name,omitempty"`
-	Options     []AccountRecoveryDestinationOptionInternal `json:"options"`
+	JSONPointer jsonpointer.T                               `json:"json_pointer,omitempty"`
+	StepName    string                                      `json:"step_name,omitempty"`
+	Options     []*AccountRecoveryDestinationOptionInternal `json:"options"`
 }
 
 var _ authflow.TargetStep = &IntentAccountRecoveryFlowStepSelectDestination{}
@@ -61,71 +62,13 @@ func NewIntentAccountRecoveryFlowStepSelectDestination(
 	iden := milestone.MilestoneDoUseAccountRecoveryIdentity()
 	step := i.step(current)
 
-	optionsByUniqueKey := map[string]AccountRecoveryDestinationOptionInternal{}
-
-	// Always include the user inputted login id
-	switch iden.Identification {
-	case config.AuthenticationFlowAccountRecoveryIdentificationEmail:
-		optionsByUniqueKey[iden.IdentitySpec.LoginID.Value] = AccountRecoveryDestinationOptionInternal{
-			AccountRecoveryDestinationOption: AccountRecoveryDestinationOption{
-				MaskedDisplayName: mail.MaskAddress(iden.IdentitySpec.LoginID.Value),
-				Channel:           AccountRecoveryChannelEmail,
-			},
-			TargetLoginID: iden.IdentitySpec.LoginID.Value,
-		}
-	case config.AuthenticationFlowAccountRecoveryIdentificationPhone:
-		optionsByUniqueKey[iden.IdentitySpec.LoginID.Value] = AccountRecoveryDestinationOptionInternal{
-			AccountRecoveryDestinationOption: AccountRecoveryDestinationOption{
-				MaskedDisplayName: phone.Mask(iden.IdentitySpec.LoginID.Value),
-				Channel:           AccountRecoveryChannelSMS,
-			},
-			TargetLoginID: iden.IdentitySpec.LoginID.Value,
-		}
-	}
-
-	if iden.MaybeIdentity != nil && step.EnumerateDestinations {
-		userID := iden.MaybeIdentity.UserID
-		userIdens, err := deps.Identities.ListByUser(userID)
-		if err != nil {
-			return nil, err
-		}
-		for _, iden := range userIdens {
-			if iden.Type != model.IdentityTypeLoginID {
-				continue
-			}
-			switch iden.LoginID.LoginIDType {
-			case model.LoginIDKeyTypeEmail:
-				optionsByUniqueKey[iden.LoginID.LoginID] = AccountRecoveryDestinationOptionInternal{
-					AccountRecoveryDestinationOption: AccountRecoveryDestinationOption{
-						MaskedDisplayName: mail.MaskAddress(iden.LoginID.LoginID),
-						Channel:           AccountRecoveryChannelEmail,
-					},
-					TargetLoginID: iden.LoginID.LoginID,
-				}
-			case model.LoginIDKeyTypePhone:
-				optionsByUniqueKey[iden.LoginID.LoginID] = AccountRecoveryDestinationOptionInternal{
-					AccountRecoveryDestinationOption: AccountRecoveryDestinationOption{
-						MaskedDisplayName: phone.Mask(iden.LoginID.LoginID),
-						Channel:           AccountRecoveryChannelSMS,
-					},
-					TargetLoginID: iden.LoginID.LoginID,
-				}
-			}
-		}
-	}
-
-	options := []AccountRecoveryDestinationOptionInternal{}
-	idx := 0
-	for _, op := range optionsByUniqueKey {
-
-		options = append(options, AccountRecoveryDestinationOptionInternal{
-			AccountRecoveryDestinationOption: AccountRecoveryDestinationOption{
-				MaskedDisplayName: op.MaskedDisplayName,
-				Channel:           op.Channel,
-			},
-			TargetLoginID: op.TargetLoginID,
-		})
-		idx = idx + 1
+	options, err := deriveAccountRecoveryDestinationOptions(
+		step,
+		iden,
+		deps,
+	)
+	if err != nil {
+		return nil, err
 	}
 
 	i.Options = options
@@ -184,4 +127,111 @@ func (i *IntentAccountRecoveryFlowStepSelectDestination) getOptions() []AccountR
 		ops = append(ops, op.AccountRecoveryDestinationOption)
 	}
 	return ops
+}
+
+func deriveAccountRecoveryDestinationOptions(
+	step *config.AuthenticationFlowAccountRecoveryFlowStep,
+	iden AccountRecoveryIdentity,
+	deps *authflow.Dependencies,
+) ([]*AccountRecoveryDestinationOptionInternal, error) {
+	allowedChannels := step.AllowedChannels
+	if allowedChannels == nil || len(allowedChannels) == 0 {
+		allowedChannels = config.GetAllAccountRecoveryChannel()
+	}
+
+	options := []*AccountRecoveryDestinationOptionInternal{}
+
+	if iden.MaybeIdentity != nil && step.EnumerateDestinations {
+		userID := iden.MaybeIdentity.UserID
+		userIdens, err := deps.Identities.ListByUser(userID)
+		if err != nil {
+			return nil, err
+		}
+		for _, channel := range allowedChannels {
+			opts := enumerateAllowedAccountRecoveryDestinationOptions(channel, userIdens)
+			options = append(options, opts...)
+		}
+	} else {
+		for _, channel := range allowedChannels {
+			opts := deriveAllowedAccountRecoveryDestinationOptions(channel, iden)
+			options = append(options, opts...)
+		}
+	}
+	return options, nil
+}
+
+func deriveAllowedAccountRecoveryDestinationOptions(
+	allowedChannel *config.AccountRecoveryChannel,
+	iden AccountRecoveryIdentity,
+) []*AccountRecoveryDestinationOptionInternal {
+	switch allowedChannel.Channel {
+	case config.AccountRecoveryCodeChannelEmail:
+		if iden.Identification != config.AuthenticationFlowAccountRecoveryIdentificationEmail {
+			return []*AccountRecoveryDestinationOptionInternal{}
+		}
+		return []*AccountRecoveryDestinationOptionInternal{
+			{
+				AccountRecoveryDestinationOption: AccountRecoveryDestinationOption{
+					MaskedDisplayName: mail.MaskAddress(iden.IdentitySpec.LoginID.Value),
+					Channel:           AccountRecoveryChannelEmail,
+					OTPForm:           AccountRecoveryOTPForm(allowedChannel.OTPForm),
+				},
+				TargetLoginID: iden.IdentitySpec.LoginID.Value,
+			},
+		}
+	case config.AccountRecoveryCodeChannelSMS:
+		if iden.Identification != config.AuthenticationFlowAccountRecoveryIdentificationPhone {
+			return []*AccountRecoveryDestinationOptionInternal{}
+		}
+		return []*AccountRecoveryDestinationOptionInternal{
+			{
+				AccountRecoveryDestinationOption: AccountRecoveryDestinationOption{
+					MaskedDisplayName: phone.Mask(iden.IdentitySpec.LoginID.Value),
+					Channel:           AccountRecoveryChannelSMS,
+					OTPForm:           AccountRecoveryOTPForm(allowedChannel.OTPForm),
+				},
+				TargetLoginID: iden.IdentitySpec.LoginID.Value,
+			},
+		}
+	}
+	panic("account recovery: unknown allowed channel")
+}
+
+func enumerateAllowedAccountRecoveryDestinationOptions(
+	allowedChannel *config.AccountRecoveryChannel,
+	userIdens []*identity.Info,
+) []*AccountRecoveryDestinationOptionInternal {
+	options := []*AccountRecoveryDestinationOptionInternal{}
+	for _, iden := range userIdens {
+		if iden.Type != model.IdentityTypeLoginID {
+			continue
+		}
+		switch iden.LoginID.LoginIDType {
+		case model.LoginIDKeyTypeEmail:
+			if allowedChannel.Channel == config.AccountRecoveryCodeChannelEmail {
+				newOption := &AccountRecoveryDestinationOptionInternal{
+					AccountRecoveryDestinationOption: AccountRecoveryDestinationOption{
+						MaskedDisplayName: mail.MaskAddress(iden.LoginID.LoginID),
+						Channel:           AccountRecoveryChannelEmail,
+						OTPForm:           AccountRecoveryOTPForm(allowedChannel.OTPForm),
+					},
+					TargetLoginID: iden.LoginID.LoginID,
+				}
+				options = append(options, newOption)
+			}
+		case model.LoginIDKeyTypePhone:
+			if allowedChannel.Channel == config.AccountRecoveryCodeChannelSMS {
+				newOption := &AccountRecoveryDestinationOptionInternal{
+					AccountRecoveryDestinationOption: AccountRecoveryDestinationOption{
+						MaskedDisplayName: phone.Mask(iden.LoginID.LoginID),
+						Channel:           AccountRecoveryChannelSMS,
+						OTPForm:           AccountRecoveryOTPForm(allowedChannel.OTPForm),
+					},
+					TargetLoginID: iden.LoginID.LoginID,
+				}
+				options = append(options, newOption)
+			}
+		}
+	}
+	return options
 }

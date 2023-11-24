@@ -238,11 +238,11 @@ account_recovery_flows:
           enumerate_destinations: true
           allowed_channels:
             - channel: email
-              form: link
+              otp_form: link
             - channel: sms
-              form: otp
+              otp_form: code
             - channel: sms
-              form: link
+              otp_form: link
       - identification: phone
         on_failure: ignore
         steps:
@@ -250,9 +250,9 @@ account_recovery_flows:
           enumerate_destinations: true
           allowed_channels:
             - channel: sms
-              form: otp
+              otp_form: code
             - channel: sms
-              form: link
+              otp_form: link
     - type: verify_account_recovery_code
     - type: reset_password
 `)

@@ -618,7 +618,7 @@ var _ = Schema.Add("AccountRecoveryCodeChannel", `
 var _ = Schema.Add("AccountRecoveryCodeForm", `
 {
 	"type": "string",
-	"enum": ["link", "otp"]
+	"enum": ["link", "code"]
 }
 `)
 
@@ -1227,12 +1227,33 @@ type AccountRecoveryCodeForm string
 
 const (
 	AccountRecoveryCodeFormLink AccountRecoveryCodeForm = "link"
-	AccountRecoveryCodeFormOTP  AccountRecoveryCodeForm = "otp"
+	AccountRecoveryCodeFormCode AccountRecoveryCodeForm = "code"
 )
 
 type AccountRecoveryChannel struct {
 	Channel AccountRecoveryCodeChannel `json:"channel,omitempty"`
-	Form    AccountRecoveryCodeForm    `json:"form,omitempty"`
+	OTPForm AccountRecoveryCodeForm    `json:"otp_form,omitempty"`
+}
+
+func GetAllAccountRecoveryChannel() []*AccountRecoveryChannel {
+	return []*AccountRecoveryChannel{
+		{
+			Channel: AccountRecoveryCodeChannelEmail,
+			OTPForm: AccountRecoveryCodeFormLink,
+		},
+		{
+			Channel: AccountRecoveryCodeChannelEmail,
+			OTPForm: AccountRecoveryCodeFormCode,
+		},
+		{
+			Channel: AccountRecoveryCodeChannelSMS,
+			OTPForm: AccountRecoveryCodeFormCode,
+		},
+		{
+			Channel: AccountRecoveryCodeChannelSMS,
+			OTPForm: AccountRecoveryCodeFormLink,
+		},
+	}
 }
 
 type AuthenticationFlowAccountRecoveryFlowStep struct {
