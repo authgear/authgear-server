@@ -325,7 +325,25 @@ func (s *Service) ResetPassword(code string, newPassword string) error {
 		return err
 	}
 
-	err = s.SetPassword(state.UserID, newPassword)
+	return s.resetPassword(target, state, newPassword)
+}
+
+// ResetPasswordWithTarget is same as ResetPassword, except target is passed by caller.
+func (s *Service) ResetPasswordWithTarget(target string, code string, newPassword string) error {
+	if !*s.Config.ForgotPassword.Enabled {
+		return ErrFeatureDisabled
+	}
+
+	state, err := s.doVerifyCodeWithTarget(target, code)
+	if err != nil {
+		return err
+	}
+
+	return s.resetPassword(target, state, newPassword)
+}
+
+func (s *Service) resetPassword(target string, otpState *otp.State, newPassword string) error {
+	err := s.SetPassword(otpState.UserID, newPassword)
 	if err != nil {
 		return err
 	}

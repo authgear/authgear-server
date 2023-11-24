@@ -25,7 +25,14 @@ func (*NodeDoResetPassword) Kind() string {
 func (n *NodeDoResetPassword) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]authflow.Effect, error) {
 	return []authflow.Effect{
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
-			return deps.ResetPassword.ResetPassword(n.Code, n.NewPassword)
+			milestone, ok := authflow.FindMilestone[MilestoneDoUseAccountRecoveryDestination](flows.Root)
+			if ok {
+				dest := milestone.MilestoneDoUseAccountRecoveryDestination()
+				return deps.ResetPassword.ResetPasswordWithTarget(dest.TargetLoginID, n.Code, n.NewPassword)
+			} else {
+				// MilestoneDoUseAccountRecoveryDestination might not exist if the flow is restored
+				return deps.ResetPassword.ResetPassword(n.Code, n.NewPassword)
+			}
 		}),
 	}, nil
 }
