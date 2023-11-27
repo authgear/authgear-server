@@ -2,6 +2,7 @@ package declarative
 
 import (
 	"context"
+	"time"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
@@ -13,9 +14,12 @@ func init() {
 }
 
 type IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData struct {
-	MaskedDisplayName string                 `json:"masked_display_name"`
-	Channel           AccountRecoveryChannel `json:"channel"`
-	OTPForm           AccountRecoveryOTPForm `json:"otp_form"`
+	MaskedDisplayName              string                 `json:"masked_display_name"`
+	Channel                        AccountRecoveryChannel `json:"channel"`
+	OTPForm                        AccountRecoveryOTPForm `json:"otp_form"`
+	CodeLength                     int                    `json:"code_length,omitempty"`
+	CanResendAt                    time.Time              `json:"can_resend_at,omitempty"`
+	FailedAttemptRateLimitExceeded bool                   `json:"failed_attempt_rate_limit_exceeded"`
 }
 
 var _ authflow.Data = IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData{}
@@ -121,10 +125,18 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) OutputData(ctx 
 	milestone, ok := authflow.FindMilestone[MilestoneDoUseAccountRecoveryDestination](flows.Root)
 	if ok {
 		dest := milestone.MilestoneDoUseAccountRecoveryDestination()
+		state, err := deps.ForgotPassword.InspectState(dest.TargetLoginID)
+		if err != nil {
+			return nil, err
+		}
+		codeLength := deps.ForgotPassword.CodeLength(dest.TargetLoginID, accountRecoveryOTPFormToForgotPasswordCodeKind(dest.OTPForm))
 		return &IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData{
-			MaskedDisplayName: dest.MaskedDisplayName,
-			Channel:           dest.Channel,
-			OTPForm:           dest.OTPForm,
+			MaskedDisplayName:              dest.MaskedDisplayName,
+			Channel:                        dest.Channel,
+			OTPForm:                        dest.OTPForm,
+			CodeLength:                     codeLength,
+			CanResendAt:                    state.CanResendAt,
+			FailedAttemptRateLimitExceeded: state.TooManyAttempts,
 		}, nil
 	} else {
 		// MilestoneDoUseAccountRecoveryDestination might not exist, because the flow is restored

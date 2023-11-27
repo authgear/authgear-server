@@ -92,6 +92,8 @@ type VerificationService interface {
 
 type ForgotPasswordService interface {
 	SendCode(loginID string, options *forgotpassword.CodeOptions) error
+	CodeLength(target string, kind forgotpassword.CodeKind) int
+	InspectState(target string) (*otp.State, error)
 }
 
 type ResetPasswordService interface {

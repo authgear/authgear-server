@@ -49,20 +49,19 @@ func NewAuthflowForgotPasswordOTPViewModel(s *webapp.Session, screen *webapp.Aut
 	data := screen.StateTokenFlowResponse.Action.Data.(declarative.IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData)
 	channel := data.Channel
 	maskedClaimValue := data.MaskedDisplayName
-	// FIXME(tung): IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData is missing these data
-	// codeLength := data.CodeLength
-	// failedAttemptRateLimitExceeded := data.FailedAttemptRateLimitExceeded
-	// resendCooldown := int(data.CanResendAt.Sub(now).Seconds())
-	// if resendCooldown < 0 {
-	// 	resendCooldown = 0
-	// }
+	codeLength := data.CodeLength
+	failedAttemptRateLimitExceeded := data.FailedAttemptRateLimitExceeded
+	resendCooldown := int(data.CanResendAt.Sub(now).Seconds())
+	if resendCooldown < 0 {
+		resendCooldown = 0
+	}
 
 	return AuthflowForgotPasswordOTPViewModel{
-		Channel:          string(channel),
-		MaskedClaimValue: maskedClaimValue,
-		// CodeLength:                     codeLength,
-		// FailedAttemptRateLimitExceeded: failedAttemptRateLimitExceeded,
-		// ResendCooldown:                 resendCooldown,
+		Channel:                        string(channel),
+		MaskedClaimValue:               maskedClaimValue,
+		CodeLength:                     codeLength,
+		FailedAttemptRateLimitExceeded: failedAttemptRateLimitExceeded,
+		ResendCooldown:                 resendCooldown,
 	}
 }
 

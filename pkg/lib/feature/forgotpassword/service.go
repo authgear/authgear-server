@@ -234,12 +234,17 @@ func (s *Service) sendSMS(phone string, userID string, options *CodeOptions) (er
 	return
 }
 
-func (s *Service) doVerifyCodeWithTarget(target string, code string) (state *otp.State, err error) {
+func (s *Service) getChannel(target string) model.AuthenticatorOOBChannel {
 	// TODO: more robust?
 	channel := model.AuthenticatorOOBChannelSMS
 	if strings.ContainsRune(target, '@') {
 		channel = model.AuthenticatorOOBChannelEmail
 	}
+	return channel
+}
+
+func (s *Service) doVerifyCodeWithTarget(target string, code string) (state *otp.State, err error) {
+	channel := s.getChannel(target)
 
 	kind, _ := s.getForgotPasswordOTP(channel, CodeKindLink)
 
@@ -309,6 +314,17 @@ func (s *Service) VerifyCode(code string) (state *otp.State, err error) {
 	}
 
 	return state, nil
+}
+
+func (s *Service) CodeLength(target string, kind CodeKind) int {
+	_, form := s.getForgotPasswordOTP(s.getChannel(target), kind)
+	return form.CodeLength()
+}
+
+func (s *Service) InspectState(target string) (*otp.State, error) {
+	// CodeKind is not important here, because only purpose is used to inspect the state
+	kind, _ := s.getForgotPasswordOTP(s.getChannel(target), CodeKindLink)
+	return s.OTPCodes.InspectState(kind, target)
 }
 
 // ResetPassword consumes code and reset password to newPassword.
