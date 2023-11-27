@@ -28,7 +28,8 @@ const (
 	// nolint: gosec
 	AuthflowRouteUsePasskey = "/authflow/use_passkey"
 	// nolint: gosec
-	AuthflowRouteForgotPassword = "/authflow/forgot_password"
+	AuthflowRouteForgotPassword    = "/authflow/forgot_password"
+	AuthflowRouteForgotPasswordOTP = "/authflow/forgot_password/otp"
 	// nolint: gosec
 	AuthflowRouteForgotPasswordSuccess = "/authflow/forgot_password/success"
 	// nolint: gosec

@@ -891,7 +891,12 @@ func (s *AuthflowScreenWithFlowResponse) navigateAccountRecovery(r *http.Request
 	case config.AuthenticationFlowStepTypeIdentify:
 		navigate(AuthflowRouteForgotPassword)
 	case config.AuthenticationFlowStepTypeVerifyAccountRecoveryCode:
-		navigate(AuthflowRouteForgotPasswordSuccess)
+		data, ok := s.StateTokenFlowResponse.Action.Data.(declarative.IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData)
+		if ok && data.OTPForm == declarative.AccountRecoveryOTPFormCode {
+			navigate(AuthflowRouteForgotPasswordOTP)
+		} else {
+			navigate(AuthflowRouteForgotPasswordSuccess)
+		}
 	case config.AuthenticationFlowStepTypeResetPassword:
 		navigate(AuthflowRouteResetPassword)
 	default:
