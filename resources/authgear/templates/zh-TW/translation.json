@@ -279,6 +279,15 @@
   "forgot-password-success-description": "如我們能確認你輸入的資訊, 重設密碼之指示將會被發至 {target}，請按照指示重設你的帳戶密碼。",
   "login-button-label--forgot-password-success-page": "登入",
 
+  "forgot-password-otp-page-title--sms": "短訊一次性密碼",
+  "forgot-password-otp-page-title--email": "電郵一次性密碼",
+  "forgot-password-otp-description": "我們已發送一段 {length}位的一次性密碼到 {target}. 請輸入該一次性密碼後繼續下一步",
+  "forgot-password-otp-placeholder": "一次性密碼",
+  "forgot-password-otp-resend-button-hint": "未收到一次性密碼? ",
+  "forgot-password-otp-resend-button-rate-limited-hint": "您已超過輸入一次性密碼的最大嘗試次數。 請獲取一個新的一次性密碼。",
+  "forgot-password-otp-resend-button-label": "重發",
+  "forgot-password-otp-resend-button-label--unit": "重發 (%ds)",
+
   "tester-success-page-title": "登錄成功",
   "tester-success-page-description": "您已成功登錄。這是您的應用程序將收到的用戶個人資料：",
   "tester-button-label--settings-page": "查看預先構建的用戶設置頁面",

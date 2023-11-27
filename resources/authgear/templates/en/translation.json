@@ -279,6 +279,15 @@
   "forgot-password-success-description": "If you have an account, please follow the instruction sent to {target} to reset your password",
   "login-button-label--forgot-password-success-page": "Sign in",
 
+  "forgot-password-otp-page-title--sms": "SMS one-time password",
+  "forgot-password-otp-page-title--email": "Email one-time password",
+  "forgot-password-otp-description": "We have sent a {length}-character one-time password to {target}. Please enter the one-time password below to continue",
+  "forgot-password-otp-placeholder": "One-time password",
+  "forgot-password-otp-resend-button-hint": "Didn''t receive the one-time password? ",
+  "forgot-password-otp-resend-button-rate-limited-hint": "You have exceeded the maximum of attempts for entering the one-time password. Please get a new one-time password. ",
+  "forgot-password-otp-resend-button-label": "Resend",
+  "forgot-password-otp-resend-button-label--unit": "Resend (%ds)",
+
   "tester-success-page-title": "Login Success",
   "tester-success-page-description": "You have successfully logged in. This is the user profile your application will receive:",
   "tester-button-label--settings-page": "Check out the Pre-Built User Settings Page",
