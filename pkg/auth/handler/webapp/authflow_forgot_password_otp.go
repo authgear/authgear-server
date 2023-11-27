@@ -94,7 +94,7 @@ func (h *AuthflowForgotPasswordOTPHandler) ServeHTTP(w http.ResponseWriter, r *h
 			return err
 		}
 
-		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowEnterOOBOTPHTML, data)
+		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowForgotPasswordOTPHTML, data)
 		return nil
 	})
 	handlers.PostAction("resend", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {

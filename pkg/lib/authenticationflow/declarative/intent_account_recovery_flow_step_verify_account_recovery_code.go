@@ -130,7 +130,7 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) OutputData(ctx 
 			return nil, err
 		}
 		codeLength := deps.ForgotPassword.CodeLength(dest.TargetLoginID, accountRecoveryOTPFormToForgotPasswordCodeKind(dest.OTPForm))
-		return &IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData{
+		return IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData{
 			MaskedDisplayName:              dest.MaskedDisplayName,
 			Channel:                        dest.Channel,
 			OTPForm:                        dest.OTPForm,
