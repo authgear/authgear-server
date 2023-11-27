@@ -777,6 +777,13 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 	))
 }
 
+func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.AuthflowForgotPasswordOTPHandler)),
+	))
+}
+
 func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
