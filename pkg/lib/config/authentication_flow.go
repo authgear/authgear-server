@@ -600,10 +600,10 @@ var _ = Schema.Add("AuthenticationFlowAccountRecoveryFlowStep", `
 var _ = Schema.Add("AccountRecoveryChannel", `
 {
 	"type": "object",
-	"required": ["channel", "form"],
+	"required": ["channel", "otp_form"],
 	"properties": {
 		"channel": { "$ref": "#/$defs/AccountRecoveryCodeChannel" },
-		"form": { "$ref": "#/$defs/AccountRecoveryCodeForm" }
+		"otp_form": { "$ref": "#/$defs/AccountRecoveryCodeForm" }
 	}
 }
 `)
