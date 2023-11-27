@@ -97,7 +97,11 @@ func (s *Service) SendCode(loginID string, options *CodeOptions) error {
 
 	allIdentities := append(emailIdentities, phoneIdentities...)
 	if len(allIdentities) == 0 {
-		// FIXME: login ID existence rate limit
+		// We still generate a dummy otp so that rate limits and cooldowns are still applied
+		err = s.generateDummyOTP(loginID, options)
+		if err != nil {
+			return err
+		}
 		return ErrUserNotFound
 	}
 
@@ -138,6 +142,25 @@ func (s *Service) getForgotPasswordOTP(channel model.AuthenticatorOOBChannel, co
 	default:
 		return otp.KindForgotPasswordLink(s.Config, channel), otp.FormLink
 	}
+}
+
+func (s *Service) generateDummyOTP(target string, options *CodeOptions) error {
+	// Generate dummy otp for rate limiting
+	otpKind, otpForm := s.getForgotPasswordOTP(s.getChannel(target), options.Kind)
+	_, err := s.OTPCodes.GenerateOTP(
+		otpKind,
+		target,
+		otpForm,
+		&otp.GenerateOptions{
+			UserID:                        "",
+			AuthenticationFlowType:        options.AuthenticationFlowType,
+			AuthenticationFlowName:        options.AuthenticationFlowName,
+			AuthenticationFlowJSONPointer: options.AuthenticationFlowJSONPointer,
+		})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *Service) sendEmail(email string, userID string, options *CodeOptions) error {
