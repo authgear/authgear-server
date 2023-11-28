@@ -303,7 +303,7 @@
 
   "reset-password-success-page-title": "Password reset",
   "reset-password-success-description": "You have successfully reset your password. You can now sign in with it.",
-  "login-button-label--reset-password-success-page": "Back to sign in",
+  "login-button-label--reset-password-success-page": "Back to log in",
 
   "change-password-page-title": "Change password",
   "change-password-page-description": "Please enter your new password below.",
