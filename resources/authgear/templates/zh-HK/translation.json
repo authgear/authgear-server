@@ -277,7 +277,7 @@
   "forgot-password-send-button-label": "發送指示",
   "forgot-password-success-page-title": "已收到重設密碼之要求",
   "forgot-password-success-description": "如我們能確認你輸入的資訊, 重設密碼之指示將會被發至 {target}，請按照指示重設你的帳戶密碼。",
-  "login-button-label--forgot-password-success-page": "登入",
+  "login-button-label--forgot-password-success-page": "返回登入",
 
   "forgot-password-otp-page-title--sms": "短訊一次性密碼",
   "forgot-password-otp-page-title--email": "電郵一次性密碼",
@@ -298,6 +298,7 @@
 
   "reset-password-success-page-title": "成功重設密碼",
   "reset-password-success-description": "你已成功重設密碼，請以新密碼登入。",
+  "login-button-label--reset-password-success-page": "Back to 登入",
 
   "change-password-page-title": "更改密碼",
   "change-password-page-description": "請輸入新密碼",

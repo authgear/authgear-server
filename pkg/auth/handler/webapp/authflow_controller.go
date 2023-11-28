@@ -540,10 +540,21 @@ func (c *AuthflowController) AdvanceWithInput(r *http.Request, s *webapp.Session
 			return
 		}
 
-		// Forget the session.
-		result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(c.SessionCookie.Def))
-		// Reset visitor ID.
-		result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(webapp.VisitorIDCookieDef))
+		switch flowResponse2.Type {
+		case authflow.FlowTypeLogin:
+			fallthrough
+		case authflow.FlowTypePromote:
+			fallthrough
+		case authflow.FlowTypeSignup:
+			fallthrough
+		case authflow.FlowTypeReauth:
+			// Forget the session.
+			result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(c.SessionCookie.Def))
+			// Reset visitor ID.
+			result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(webapp.VisitorIDCookieDef))
+		default:
+			// Do nothing for other flows
+		}
 	} else {
 		now := c.Clock.NowUTC()
 		s.UpdatedAt = now

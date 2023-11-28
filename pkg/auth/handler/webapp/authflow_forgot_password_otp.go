@@ -120,7 +120,7 @@ func (h *AuthflowForgotPasswordOTPHandler) ServeHTTP(w http.ResponseWriter, r *h
 		code := r.Form.Get("x_code")
 
 		input := map[string]interface{}{
-			"code": code,
+			"account_recovery_code": code,
 		}
 
 		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
