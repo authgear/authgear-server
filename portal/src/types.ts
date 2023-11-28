@@ -418,7 +418,12 @@ export interface LocalizationConfig {
 // ForgotPasswordConfig
 export interface ForgotPasswordConfig {
   enabled?: boolean;
-  code_valid_period?: DurationString;
+  valid_periods?: ForgotPasswordValidPeriods;
+}
+
+export interface ForgotPasswordValidPeriods {
+  link?: DurationString;
+  code?: DurationString;
 }
 
 export const applicationTypes = [

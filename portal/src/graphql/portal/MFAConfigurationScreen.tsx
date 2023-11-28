@@ -69,7 +69,8 @@ interface ConfigFormState {
   primary: PrimaryAuthenticatorType[];
   secondary: AuthenticatorTypeFormState<SecondaryAuthenticatorType>[];
 
-  forgotPasswordCodeValidPeriodSeconds: number | undefined;
+  forgotPasswordLinkValidPeriodSeconds: number | undefined;
+  // forgotPasswordLinkValidPeriodSeconds: number | undefined;
   authenticatorPasswordConfig: AuthenticatorPasswordConfig;
 }
 
@@ -110,10 +111,10 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     }
   }
 
-  const forgotPasswordCodeValidPeriod =
-    config.forgot_password?.code_valid_period;
-  const forgotPasswordCodeValidPeriodSeconds = forgotPasswordCodeValidPeriod
-    ? parseDuration(forgotPasswordCodeValidPeriod)
+  const forgotPasswordLinkValidPeriod =
+    config.forgot_password?.valid_periods?.link;
+  const forgotPasswordLinkValidPeriodSeconds = forgotPasswordLinkValidPeriod
+    ? parseDuration(forgotPasswordLinkValidPeriod)
     : undefined;
 
   return {
@@ -146,7 +147,7 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
         ...config.authenticator?.password?.policy,
       },
     },
-    forgotPasswordCodeValidPeriodSeconds,
+    forgotPasswordLinkValidPeriodSeconds,
   };
 }
 
@@ -189,9 +190,10 @@ function constructConfig(
       policy: currentState.authenticatorPasswordConfig.policy,
     };
 
-    if (currentState.forgotPasswordCodeValidPeriodSeconds != null) {
-      config.forgot_password.code_valid_period = formatDuration(
-        currentState.forgotPasswordCodeValidPeriodSeconds,
+    if (currentState.forgotPasswordLinkValidPeriodSeconds != null) {
+      config.forgot_password.valid_periods ??= {};
+      config.forgot_password.valid_periods.link = formatDuration(
+        currentState.forgotPasswordLinkValidPeriodSeconds,
         "s"
       );
     }
@@ -253,7 +255,7 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
       primary,
       secondary,
       featureConfig,
-      forgotPasswordCodeValidPeriodSeconds,
+      forgotPasswordLinkValidPeriodSeconds,
       authenticatorPasswordConfig,
     } = state;
     const { renderToString } = useContext(Context);
@@ -437,8 +439,8 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
           {showPasswordSettings ? (
             <PasswordSettings
               className={styles.widget}
-              forgotPasswordCodeValidPeriodSeconds={
-                forgotPasswordCodeValidPeriodSeconds
+              forgotPasswordLinkValidPeriodSeconds={
+                forgotPasswordLinkValidPeriodSeconds
               }
               authenticatorPasswordConfig={authenticatorPasswordConfig}
               passwordPolicyFeatureConfig={

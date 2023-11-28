@@ -28,7 +28,7 @@ import {
 } from "../../util/input";
 
 export interface State {
-  forgotPasswordCodeValidPeriodSeconds: number | undefined;
+  forgotPasswordLinkValidPeriodSeconds: number | undefined;
   authenticatorPasswordConfig: AuthenticatorPasswordConfig;
   passwordPolicyFeatureConfig?: PasswordPolicyFeatureConfig;
 }
@@ -86,7 +86,7 @@ export default function PasswordSettings<T extends State>(
   const {
     className,
     authenticatorPasswordConfig,
-    forgotPasswordCodeValidPeriodSeconds,
+    forgotPasswordLinkValidPeriodSeconds,
     passwordPolicyFeatureConfig,
     setState,
   } = props;
@@ -118,15 +118,15 @@ export default function PasswordSettings<T extends State>(
     [setState]
   );
 
-  const onChangeCodeExpirySeconds = useCallback(
+  const onChangeLinkExpirySeconds = useCallback(
     (_e, value: string | undefined) => {
       if (value == null) {
         return;
       }
       setState((s) =>
         produce(s, (s) => {
-          s.forgotPasswordCodeValidPeriodSeconds = tryProduce(
-            s.forgotPasswordCodeValidPeriodSeconds,
+          s.forgotPasswordLinkValidPeriodSeconds = tryProduce(
+            s.forgotPasswordLinkValidPeriodSeconds,
             () => {
               const num = parseNumber(value);
               return num == null ? undefined : ensurePositiveNumber(num);
@@ -255,8 +255,8 @@ export default function PasswordSettings<T extends State>(
         label={renderToString(
           "ForgotPasswordConfigurationScreen.reset-code-valid-duration.label"
         )}
-        value={forgotPasswordCodeValidPeriodSeconds?.toFixed(0) ?? ""}
-        onChange={onChangeCodeExpirySeconds}
+        value={forgotPasswordLinkValidPeriodSeconds?.toFixed(0) ?? ""}
+        onChange={onChangeLinkExpirySeconds}
       />
       <HorizontalDivider />
       <WidgetSubtitle>
