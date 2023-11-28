@@ -9,12 +9,15 @@ import (
 	"github.com/spf13/cobra"
 
 	authgearcmd "github.com/authgear/authgear-server/cmd/authgear/cmd"
+	dbutil "github.com/authgear/authgear-server/pkg/lib/db/util"
 	"github.com/authgear/authgear-server/pkg/util/sqlmigrate"
 )
 
 func init() {
 	binder := authgearcmd.GetBinder()
 	cmdDatabase.AddCommand(cmdMigrate)
+	cmdDatabase.AddCommand(cmdDump)
+	cmdDatabase.AddCommand(cmdRestore)
 
 	cmdMigrate.AddCommand(cmdMigrateNew)
 	cmdMigrate.AddCommand(cmdMigrateUp)
@@ -25,6 +28,14 @@ func init() {
 		binder.BindString(cmd.Flags(), authgearcmd.ArgDatabaseURL)
 		binder.BindString(cmd.Flags(), authgearcmd.ArgDatabaseSchema)
 	}
+
+	binder.BindString(cmdDump.Flags(), authgearcmd.ArgDatabaseURL)
+	binder.BindString(cmdDump.Flags(), authgearcmd.ArgDatabaseSchema)
+	binder.BindString(cmdDump.Flags(), authgearcmd.ArgOutputFolder)
+
+	binder.BindString(cmdRestore.Flags(), authgearcmd.ArgDatabaseURL)
+	binder.BindString(cmdRestore.Flags(), authgearcmd.ArgDatabaseSchema)
+	binder.BindString(cmdRestore.Flags(), authgearcmd.ArgInputFolder)
 
 	authgearcmd.Root.AddCommand(cmdDatabase)
 }
@@ -153,5 +164,71 @@ var cmdMigrateStatus = &cobra.Command{
 		}
 
 		return
+	},
+}
+
+var cmdDump = &cobra.Command{
+	Use:   "dump [app-id ...]",
+	Short: "Dump app database into csv files.",
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		binder := authgearcmd.GetBinder()
+		dbURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseURL)
+		if err != nil {
+			return
+		}
+		dbSchema, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseSchema)
+		if err != nil {
+			return
+		}
+		outputDir, err := binder.GetRequiredString(cmd, authgearcmd.ArgOutputFolder)
+		if err != nil {
+			return
+		}
+
+		if len(args) == 0 {
+			panic(fmt.Errorf("At least 1 app-id is needed."))
+		}
+
+		dumper := dbutil.NewDumper(
+			cmd.Context(),
+			dbURL,
+			dbSchema,
+			outputDir,
+			args,
+			tableNames,
+		)
+
+		return dumper.Dump()
+	},
+}
+
+var cmdRestore = &cobra.Command{
+	Use:   "restore",
+	Short: "Restore csv files into database.",
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		binder := authgearcmd.GetBinder()
+		dbURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseURL)
+		if err != nil {
+			return
+		}
+		dbSchema, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseSchema)
+		if err != nil {
+			return
+		}
+		inputDir, err := binder.GetRequiredString(cmd, authgearcmd.ArgInputFolder)
+		if err != nil {
+			return
+		}
+
+		restorer := dbutil.NewRestorer(
+			cmd.Context(),
+			dbURL,
+			dbSchema,
+			inputDir,
+			args,
+			tableNames,
+		)
+
+		return restorer.Restore()
 	},
 }

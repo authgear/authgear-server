@@ -43,3 +43,10 @@ var ArgOutputFolder = &cobraviper.StringArgument{
 	Short:        "o",
 	Usage:        "Path to output folder",
 }
+
+var ArgInputFolder = &cobraviper.StringArgument{
+	ArgumentName: "input-folder",
+	EnvName:      "INPUT_FOLDER",
+	Short:        "i",
+	Usage:        "Path to input folder",
+}
