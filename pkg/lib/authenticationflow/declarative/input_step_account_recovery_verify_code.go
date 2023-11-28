@@ -29,9 +29,9 @@ func (i *InputSchemaStepAccountRecoveryVerifyCode) SchemaBuilder() validation.Sc
 	oneOf := []validation.SchemaBuilder{resend}
 
 	code := validation.SchemaBuilder{}.
-		Required("code")
+		Required("account_recovery_code")
 	code.Properties().Property(
-		"code", validation.SchemaBuilder{}.Type(validation.TypeString),
+		"account_recovery_code", validation.SchemaBuilder{}.Type(validation.TypeString),
 	)
 
 	oneOf = append(oneOf, code)
@@ -49,10 +49,10 @@ func (i *InputSchemaStepAccountRecoveryVerifyCode) MakeInput(rawMessage json.Raw
 }
 
 type InputStepAccountRecoveryVerifyCode struct {
-	Code               string `json:"code,omitempty"`
-	Resend             bool   `json:"resend,omitempty"`
-	Check              bool   `json:"check,omitempty"`
-	RequestDeviceToken bool   `json:"request_device_token,omitempty"`
+	AccountRecoveryCode string `json:"account_recovery_code,omitempty"`
+	Resend              bool   `json:"resend,omitempty"`
+	Check               bool   `json:"check,omitempty"`
+	RequestDeviceToken  bool   `json:"request_device_token,omitempty"`
 }
 
 var _ authflow.Input = &InputStepAccountRecoveryVerifyCode{}
@@ -61,11 +61,11 @@ var _ inputStepAccountRecoveryVerifyCode = &InputStepAccountRecoveryVerifyCode{}
 func (*InputStepAccountRecoveryVerifyCode) Input() {}
 
 func (i *InputStepAccountRecoveryVerifyCode) IsCode() bool {
-	return i.Code != ""
+	return i.AccountRecoveryCode != ""
 }
 
 func (i *InputStepAccountRecoveryVerifyCode) GetCode() string {
-	return i.Code
+	return i.AccountRecoveryCode
 }
 
 func (i *InputStepAccountRecoveryVerifyCode) IsResend() bool {
