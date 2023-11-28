@@ -18,7 +18,8 @@ var _ = Schema.Add("UIConfig", `
 		"implementation": {
 			"type": "string",
 			"enum": ["interaction", "authflow"]
-		}
+		},
+		"forgot_password": { "$ref": "#/$defs/UIForgotPasswordConfig" }
 	}
 }
 `)
@@ -38,6 +39,8 @@ type UIConfig struct {
 	SettingsDisabled       bool `json:"settings_disabled,omitempty"`
 	// Implementation is a temporary flag to switch between authflow and interaction.
 	Implementation UIImplementation `json:"implementation,omitempty"`
+	// ForgotPassword is the config for the default auth ui
+	ForgotPassword *UIForgotPasswordConfig `json:"forgot_password,omitempty"`
 }
 
 var _ = Schema.Add("PhoneInputConfig", `
@@ -73,3 +76,39 @@ const (
 	UIImplementationInteraction UIImplementation = "interaction"
 	UIImplementationAuthflow    UIImplementation = "authflow"
 )
+
+var _ = Schema.Add("UIForgotPasswordConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"phone": { "type": "array", "items": { "$ref": "#/$defs/AccountRecoveryChannel" } },
+		"email": { "type": "array", "items": { "$ref": "#/$defs/AccountRecoveryChannel" } }
+	}
+}
+`)
+
+type UIForgotPasswordConfig struct {
+	Phone []*AccountRecoveryChannel `json:"phone,omitempty"`
+	Email []*AccountRecoveryChannel `json:"email,omitempty"`
+}
+
+func (c *UIForgotPasswordConfig) SetDefaults() {
+	if c.Phone == nil {
+		c.Phone = []*AccountRecoveryChannel{
+			{
+				Channel: AccountRecoveryCodeChannelSMS,
+				OTPForm: AccountRecoveryCodeFormCode,
+			},
+		}
+	}
+
+	if c.Email == nil {
+		c.Email = []*AccountRecoveryChannel{
+			{
+				Channel: AccountRecoveryCodeChannelEmail,
+				OTPForm: AccountRecoveryCodeFormLink,
+			},
+		}
+	}
+}

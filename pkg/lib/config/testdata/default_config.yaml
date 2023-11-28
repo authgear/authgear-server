@@ -250,6 +250,13 @@ ui:
       - "ZA"
       - "ZM"
       - "ZW"
+  forgot_password:
+    phone:
+    - channel: sms
+      otp_form: code
+    email:
+    - channel: email
+      otp_form: link
 localization:
   fallback_language: en
   supported_languages: ["en"]
