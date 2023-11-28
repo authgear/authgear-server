@@ -550,7 +550,8 @@
   "PasswordPolicyConfigurationScreen.history-size.label": "No. of password history to keep",
   "PasswordPolicyConfigurationScreen.excluded-keywords.label": "Keywords to be excluded",
 
-  "ForgotPasswordConfigurationScreen.reset-code-valid-duration.label": "Reset code valid duration (seconds)",
+  "ForgotPasswordConfigurationScreen.reset-link-valid-duration.label": "Reset link valid duration (seconds)",
+  "ForgotPasswordConfigurationScreen.reset-code-valid-duration.label": "Reset OTP valid duration (seconds)",
 
   "ApplicationsConfigurationScreen.title": "Applications",
   "ApplicationsConfigurationScreen.description": "Configure applications to use this project for authentication.",

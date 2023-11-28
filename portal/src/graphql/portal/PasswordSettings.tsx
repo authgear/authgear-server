@@ -29,6 +29,7 @@ import {
 
 export interface State {
   forgotPasswordLinkValidPeriodSeconds: number | undefined;
+  forgotPasswordCodeValidPeriodSeconds: number | undefined;
   authenticatorPasswordConfig: AuthenticatorPasswordConfig;
   passwordPolicyFeatureConfig?: PasswordPolicyFeatureConfig;
 }
@@ -87,6 +88,7 @@ export default function PasswordSettings<T extends State>(
     className,
     authenticatorPasswordConfig,
     forgotPasswordLinkValidPeriodSeconds,
+    forgotPasswordCodeValidPeriodSeconds,
     passwordPolicyFeatureConfig,
     setState,
   } = props;
@@ -127,6 +129,26 @@ export default function PasswordSettings<T extends State>(
         produce(s, (s) => {
           s.forgotPasswordLinkValidPeriodSeconds = tryProduce(
             s.forgotPasswordLinkValidPeriodSeconds,
+            () => {
+              const num = parseNumber(value);
+              return num == null ? undefined : ensurePositiveNumber(num);
+            }
+          );
+        })
+      );
+    },
+    [setState]
+  );
+
+  const onChangeCodeExpirySeconds = useCallback(
+    (_e, value: string | undefined) => {
+      if (value == null) {
+        return;
+      }
+      setState((s) =>
+        produce(s, (s) => {
+          s.forgotPasswordCodeValidPeriodSeconds = tryProduce(
+            s.forgotPasswordCodeValidPeriodSeconds,
             () => {
               const num = parseNumber(value);
               return num == null ? undefined : ensurePositiveNumber(num);
@@ -253,10 +275,18 @@ export default function PasswordSettings<T extends State>(
       <TextField
         type="text"
         label={renderToString(
-          "ForgotPasswordConfigurationScreen.reset-code-valid-duration.label"
+          "ForgotPasswordConfigurationScreen.reset-link-valid-duration.label"
         )}
         value={forgotPasswordLinkValidPeriodSeconds?.toFixed(0) ?? ""}
         onChange={onChangeLinkExpirySeconds}
+      />
+      <TextField
+        type="text"
+        label={renderToString(
+          "ForgotPasswordConfigurationScreen.reset-code-valid-duration.label"
+        )}
+        value={forgotPasswordCodeValidPeriodSeconds?.toFixed(0) ?? ""}
+        onChange={onChangeCodeExpirySeconds}
       />
       <HorizontalDivider />
       <WidgetSubtitle>

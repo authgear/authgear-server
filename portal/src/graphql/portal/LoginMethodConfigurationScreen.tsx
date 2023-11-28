@@ -441,7 +441,9 @@ function controlListSwap<T>(
 //       code_valid_period: 5m
 // forgot_password:
 //   # 1
-//   code_valid_period: 20m
+//   valid_periods:
+//     link: 20m
+//     code: 5m
 // messaging:
 //   rate_limits:
 //     # 6
@@ -481,6 +483,7 @@ interface ConfigFormState {
 
   // 1
   forgotPasswordLinkValidPeriodSeconds: number | undefined;
+  forgotPasswordCodeValidPeriodSeconds: number | undefined;
   // 3
   sixDigitOTPValidPeriodSeconds: number | undefined;
   // 4.1
@@ -883,6 +886,9 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
   const forgotPasswordLinkValidPeriodSeconds = parseOptionalDuration(
     config.forgot_password?.valid_periods?.link
   );
+  const forgotPasswordCodeValidPeriodSeconds = parseOptionalDuration(
+    config.forgot_password?.valid_periods?.code
+  );
 
   const sixDigitOTPValidPeriodSecondsCandidates = [
     parseOptionalDuration(
@@ -1011,6 +1017,7 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
       },
     },
     forgotPasswordLinkValidPeriodSeconds,
+    forgotPasswordCodeValidPeriodSeconds,
     passkeyChecked: passkeyIndex != null && passkeyIndex >= 0,
     lockout: {
       isEnabled: isLockoutEnabled,
@@ -1169,6 +1176,13 @@ function constructConfig(
       config.forgot_password.valid_periods ??= {};
       config.forgot_password.valid_periods.link = formatDuration(
         currentState.forgotPasswordLinkValidPeriodSeconds,
+        "s"
+      );
+    }
+    if (currentState.forgotPasswordCodeValidPeriodSeconds != null) {
+      config.forgot_password.valid_periods ??= {};
+      config.forgot_password.valid_periods.code = formatDuration(
+        currentState.forgotPasswordCodeValidPeriodSeconds,
         "s"
       );
     }
@@ -2926,6 +2940,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       authenticatorOOBSMSConfig,
       authenticatorPasswordConfig,
       forgotPasswordLinkValidPeriodSeconds,
+      forgotPasswordCodeValidPeriodSeconds,
       passkeyChecked,
 
       verificationClaims,
@@ -3224,6 +3239,9 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
                 <PasswordSettings
                   forgotPasswordLinkValidPeriodSeconds={
                     forgotPasswordLinkValidPeriodSeconds
+                  }
+                  forgotPasswordCodeValidPeriodSeconds={
+                    forgotPasswordCodeValidPeriodSeconds
                   }
                   authenticatorPasswordConfig={authenticatorPasswordConfig}
                   passwordPolicyFeatureConfig={passwordPolicyFeatureConfig}
