@@ -71,10 +71,12 @@ func NewAuthFlowForgotPasswordViewModel(
 	loginIDDisabled := !phoneLoginIDEnabled && !emailLoginIDEnabled
 
 	otpForm := ""
-	data2, ok := selectDestinationScreen.StateTokenFlowResponse.Action.
-		Data.(declarative.IntentAccountRecoveryFlowStepSelectDestinationData)
-	if ok && len(data2.Options) > 0 {
-		otpForm = string(data2.Options[0].OTPForm)
+	if selectDestinationScreen != nil {
+		data2, ok := selectDestinationScreen.StateTokenFlowResponse.Action.
+			Data.(declarative.IntentAccountRecoveryFlowStepSelectDestinationData)
+		if ok && len(data2.Options) > 0 {
+			otpForm = string(data2.Options[0].OTPForm)
+		}
 	}
 
 	return AuthFlowForgotPasswordViewModel{
