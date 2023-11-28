@@ -52,19 +52,22 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 				apiError := apierrors.AsAPIError(err)
 
 				if !written {
+					// Render the HTML directly and DO NOT redirect.
+					// If we redirect to the original URL, then GET request will result in infinite redirect.
+					// See https://github.com/authgear/authgear-server/issues/3509
+
 					cookie, cookieErr := m.ErrorCookie.SetRecoverableError(r, apiError)
 					if cookieErr != nil {
 						panic(cookieErr)
 					}
 
-					result := &webapp.Result{
-						// Show the error in the original page.
-						// The panic may come from an I/O error, which could recover by retrying.
-						RedirectURI:      r.URL.String(),
-						NavigationAction: "replace",
-						Cookies:          []*http.Cookie{cookie},
-					}
-					result.WriteResponse(w, r)
+					r.AddCookie(cookie)
+
+					data := make(map[string]interface{})
+					baseViewModel := m.BaseViewModel.ViewModel(r, w)
+					viewmodels.Embed(data, baseViewModel)
+
+					m.Renderer.RenderHTML(w, r, TemplateWebFatalErrorHTML, data)
 				}
 			}
 		}()
