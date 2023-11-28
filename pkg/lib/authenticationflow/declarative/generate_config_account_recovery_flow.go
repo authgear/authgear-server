@@ -25,12 +25,24 @@ func GenerateAccountRecoveryFlowConfig(cfg *config.AppConfig) *config.Authentica
 		oneOfs = append(oneOfs, &config.AuthenticationFlowAccountRecoveryFlowOneOf{
 			Identification: config.AuthenticationFlowAccountRecoveryIdentificationEmail,
 			OnFailure:      config.AuthenticationFlowAccountRecoveryIdentificationOnFailureIgnore,
+			Steps: []*config.AuthenticationFlowAccountRecoveryFlowStep{
+				{
+					Type:            config.AuthenticationFlowAccountRecoveryFlowTypeSelectDestination,
+					AllowedChannels: cfg.UI.ForgotPassword.Email,
+				},
+			},
 		})
 	}
 	if hasPhone {
 		oneOfs = append(oneOfs, &config.AuthenticationFlowAccountRecoveryFlowOneOf{
 			Identification: config.AuthenticationFlowAccountRecoveryIdentificationPhone,
 			OnFailure:      config.AuthenticationFlowAccountRecoveryIdentificationOnFailureIgnore,
+			Steps: []*config.AuthenticationFlowAccountRecoveryFlowStep{
+				{
+					Type:            config.AuthenticationFlowAccountRecoveryFlowTypeSelectDestination,
+					AllowedChannels: cfg.UI.ForgotPassword.Phone,
+				},
+			},
 		})
 	}
 
@@ -40,9 +52,6 @@ func GenerateAccountRecoveryFlowConfig(cfg *config.AppConfig) *config.Authentica
 			{
 				Type:  config.AuthenticationFlowAccountRecoveryFlowTypeIdentify,
 				OneOf: oneOfs,
-			},
-			{
-				Type: config.AuthenticationFlowAccountRecoveryFlowTypeSelectDestination,
 			},
 			{
 				Type: config.AuthenticationFlowAccountRecoveryFlowTypeVerifyAccountRecoveryCode,
