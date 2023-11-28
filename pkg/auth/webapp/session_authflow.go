@@ -279,11 +279,11 @@ func newAuthflowScreenAccountRecovery(flowResponse *authflow.FlowResponse, previ
 
 	switch config.AuthenticationFlowStepType(flowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
-		// identify contains branches.
-		screen.BranchStateToken = state
+		// identify contains branches, but it is not important.
+		break
 	case config.AuthenticationFlowStepTypeSelectDestination:
-		// select_destination contains branches.
-		screen.BranchStateToken = state
+		// select_destination contains branches, but it is not important.
+		break
 	case config.AuthenticationFlowStepTypeVerifyAccountRecoveryCode:
 		// verify_account_recovery_code contains NO branches.
 		break
@@ -894,6 +894,8 @@ func (s *AuthflowScreenWithFlowResponse) navigateAccountRecovery(r *http.Request
 	}
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
+		navigate(AuthflowRouteForgotPassword, &url.Values{})
+	case config.AuthenticationFlowStepTypeSelectDestination:
 		navigate(AuthflowRouteForgotPassword, &url.Values{})
 	case config.AuthenticationFlowStepTypeVerifyAccountRecoveryCode:
 		data, ok := s.StateTokenFlowResponse.Action.Data.(declarative.IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData)

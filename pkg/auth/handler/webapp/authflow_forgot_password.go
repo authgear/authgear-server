@@ -41,13 +41,17 @@ type AuthFlowForgotPasswordViewModel struct {
 	PhoneLoginIDEnabled bool
 	EmailLoginIDEnabled bool
 	LoginIDDisabled     bool
+	OTPForm             string
 }
 
-func NewAuthFlowForgotPasswordViewModel(r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse) AuthFlowForgotPasswordViewModel {
+func NewAuthFlowForgotPasswordViewModel(
+	r *http.Request,
+	initialScreen *webapp.AuthflowScreenWithFlowResponse,
+	selectDestinationScreen *webapp.AuthflowScreenWithFlowResponse) AuthFlowForgotPasswordViewModel {
 	loginIDInputType := r.Form.Get("q_login_id_input_type")
 	loginID := r.Form.Get("q_login_id")
 
-	data, ok := screen.StateTokenFlowResponse.Action.Data.(declarative.IntentAccountRecoveryFlowStepIdentifyData)
+	data, ok := initialScreen.StateTokenFlowResponse.Action.Data.(declarative.IntentAccountRecoveryFlowStepIdentifyData)
 	if !ok {
 		panic("authflow webapp: unexpected data")
 	}
@@ -66,12 +70,20 @@ func NewAuthFlowForgotPasswordViewModel(r *http.Request, screen *webapp.Authflow
 
 	loginIDDisabled := !phoneLoginIDEnabled && !emailLoginIDEnabled
 
+	otpForm := ""
+	data2, ok := selectDestinationScreen.StateTokenFlowResponse.Action.
+		Data.(declarative.IntentAccountRecoveryFlowStepSelectDestinationData)
+	if ok && len(data2.Options) > 0 {
+		otpForm = string(data2.Options[0].OTPForm)
+	}
+
 	return AuthFlowForgotPasswordViewModel{
 		LoginIDInputType:    loginIDInputType,
 		LoginID:             loginID,
 		PhoneLoginIDEnabled: phoneLoginIDEnabled,
 		EmailLoginIDEnabled: emailLoginIDEnabled,
 		LoginIDDisabled:     loginIDDisabled,
+		OTPForm:             otpForm,
 	}
 }
 
@@ -81,13 +93,18 @@ type AuthflowForgotPasswordHandler struct {
 	Renderer      Renderer
 }
 
-func (h *AuthflowForgotPasswordHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
+func (h *AuthflowForgotPasswordHandler) GetData(
+	w http.ResponseWriter,
+	r *http.Request,
+	s *webapp.Session,
+	initialScreen *webapp.AuthflowScreenWithFlowResponse,
+	selectDestinationScreen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	screenViewModel := NewAuthFlowForgotPasswordViewModel(r, screen)
+	screenViewModel := NewAuthFlowForgotPasswordViewModel(r, initialScreen, selectDestinationScreen)
 	viewmodels.Embed(data, screenViewModel)
 
 	return data, nil
@@ -96,9 +113,27 @@ func (h *AuthflowForgotPasswordHandler) GetData(w http.ResponseWriter, r *http.R
 func (h *AuthflowForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	flowName := "default"
 	var handlers AuthflowControllerHandlers
-	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 
-		data, err := h.GetData(w, r, s, screen)
+	handlers.Get(func(s *webapp.Session, screen1 *webapp.AuthflowScreenWithFlowResponse) error {
+
+		var screen2 *webapp.AuthflowScreenWithFlowResponse
+
+		identification := r.Form.Get("q_login_id_input_type")
+		loginID := r.Form.Get("q_login_id")
+
+		if identification != "" && loginID != "" {
+			var err error
+			// Advance one step to get the options
+			_, screen2, err = h.Controller.AdvanceWithInput(r, s, screen1, map[string]interface{}{
+				"identification": identification,
+				"login_id":       loginID,
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		data, err := h.GetData(w, r, s, screen1, screen2)
 		if err != nil {
 			return err
 		}
@@ -106,6 +141,7 @@ func (h *AuthflowForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http
 		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowForgotPasswordHTML, data)
 		return nil
 	})
+
 	handlers.PostAction("", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		err := AuthflowForgotPasswordSchema.Validator().ValidateValue(FormToJSON(r.Form))
 		if err != nil {
@@ -115,7 +151,7 @@ func (h *AuthflowForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http
 		loginID := r.Form.Get("x_login_id")
 		identification := r.Form.Get("x_login_id_type")
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, map[string]interface{}{
+		result, _, err := h.Controller.AdvanceWithInput(r, s, screen, map[string]interface{}{
 			"identification": identification,
 			"login_id":       loginID,
 			"index":          0,

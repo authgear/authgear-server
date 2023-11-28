@@ -126,7 +126,7 @@ func (h *AuthflowEnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.
 			"request_device_token": requestDeviceToken,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, _, err := h.Controller.AdvanceWithInput(r, s, screen, input)
 		if err != nil {
 			return err
 		}

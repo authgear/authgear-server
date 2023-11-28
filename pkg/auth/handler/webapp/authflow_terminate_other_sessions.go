@@ -51,7 +51,7 @@ func (h *AuthflowTerminateOtherSessionsHandler) ServeHTTP(w http.ResponseWriter,
 			"confirm_terminate_other_sessions": true,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, _, err := h.Controller.AdvanceWithInput(r, s, screen, input)
 		if err != nil {
 			return err
 		}
