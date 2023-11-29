@@ -2,8 +2,10 @@ package config
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 var _ = Schema.Add("AuthenticationFlowConfig", `
@@ -611,7 +613,7 @@ var _ = Schema.Add("AccountRecoveryChannel", `
 var _ = Schema.Add("AccountRecoveryCodeChannel", `
 {
 	"type": "string",
-	"enum": ["sms", "email"]
+	"enum": ["sms", "email", "whatsapp"]
 }
 `)
 
@@ -810,6 +812,12 @@ type AuthenticationFlowConfig struct {
 	SignupLoginFlows     []*AuthenticationFlowSignupLoginFlow     `json:"signup_login_flows,omitempty"`
 	ReauthFlows          []*AuthenticationFlowReauthFlow          `json:"reauth_flows,omitempty"`
 	AccountRecoveryFlows []*AuthenticationFlowAccountRecoveryFlow `json:"account_recovery_flows,omitempty"`
+}
+
+func (c *AuthenticationFlowConfig) Validate(ctx *validation.Context) {
+	for i, f := range c.AccountRecoveryFlows {
+		f.Validate(ctx.Child("account_recovery_flows", strconv.Itoa(i)))
+	}
 }
 
 type AuthenticationFlowSignupFlow struct {
@@ -1216,11 +1224,18 @@ func (f *AuthenticationFlowAccountRecoveryFlow) GetSteps() []AuthenticationFlowO
 	return out
 }
 
+func (c *AuthenticationFlowAccountRecoveryFlow) Validate(ctx *validation.Context) {
+	for stepIndex, s := range c.Steps {
+		s.Validate(ctx.Child("steps", strconv.Itoa(stepIndex)))
+	}
+}
+
 type AccountRecoveryCodeChannel string
 
 const (
-	AccountRecoveryCodeChannelSMS   AccountRecoveryCodeChannel = "sms"
-	AccountRecoveryCodeChannelEmail AccountRecoveryCodeChannel = "email"
+	AccountRecoveryCodeChannelSMS      AccountRecoveryCodeChannel = "sms"
+	AccountRecoveryCodeChannelEmail    AccountRecoveryCodeChannel = "email"
+	AccountRecoveryCodeChannelWhatsapp AccountRecoveryCodeChannel = "whatsapp"
 )
 
 type AccountRecoveryCodeForm string
@@ -1233,6 +1248,15 @@ const (
 type AccountRecoveryChannel struct {
 	Channel AccountRecoveryCodeChannel `json:"channel,omitempty"`
 	OTPForm AccountRecoveryCodeForm    `json:"otp_form,omitempty"`
+}
+
+func (c *AccountRecoveryChannel) IsValid() bool {
+	for _, validChannel := range GetAllAccountRecoveryChannel() {
+		if validChannel.Channel == c.Channel && validChannel.OTPForm == c.OTPForm {
+			return true
+		}
+	}
+	return false
 }
 
 func GetAllAccountRecoveryChannel() []*AccountRecoveryChannel {
@@ -1252,6 +1276,10 @@ func GetAllAccountRecoveryChannel() []*AccountRecoveryChannel {
 		{
 			Channel: AccountRecoveryCodeChannelSMS,
 			OTPForm: AccountRecoveryCodeFormLink,
+		},
+		{
+			Channel: AccountRecoveryCodeChannelWhatsapp,
+			OTPForm: AccountRecoveryCodeFormCode,
 		},
 	}
 }
@@ -1286,6 +1314,27 @@ func (s *AuthenticationFlowAccountRecoveryFlowStep) GetOneOf() []AuthenticationF
 	default:
 		return nil
 	}
+}
+
+func (s *AuthenticationFlowAccountRecoveryFlowStep) Validate(ctx *validation.Context) {
+	switch s.Type {
+	case AuthenticationFlowAccountRecoveryFlowTypeSelectDestination:
+		for channelIndex, channel := range s.AllowedChannels {
+			if !channel.IsValid() {
+				ctx.Child("allowed_channels", strconv.Itoa(channelIndex)).EmitErrorMessage("unsupported channel")
+			}
+		}
+	case AuthenticationFlowAccountRecoveryFlowTypeIdentify:
+		for oneOfIdx, o := range s.GetOneOf() {
+			one := o.(*AuthenticationFlowAccountRecoveryFlowOneOf)
+			steps := one.GetSteps()
+			for stepIdx, st := range steps {
+				step := st.(*AuthenticationFlowAccountRecoveryFlowStep)
+				step.Validate(ctx.Child("one_of", strconv.Itoa(oneOfIdx), "steps", strconv.Itoa(stepIdx)))
+			}
+		}
+	}
+
 }
 
 type AuthenticationFlowAccountRecoveryFlowType string
