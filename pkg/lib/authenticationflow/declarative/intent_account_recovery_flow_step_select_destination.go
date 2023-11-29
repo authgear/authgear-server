@@ -193,6 +193,20 @@ func deriveAllowedAccountRecoveryDestinationOptions(
 				TargetLoginID: iden.IdentitySpec.LoginID.Value,
 			},
 		}
+	case config.AccountRecoveryCodeChannelWhatsapp:
+		if iden.Identification != config.AuthenticationFlowAccountRecoveryIdentificationPhone {
+			return []*AccountRecoveryDestinationOptionInternal{}
+		}
+		return []*AccountRecoveryDestinationOptionInternal{
+			{
+				AccountRecoveryDestinationOption: AccountRecoveryDestinationOption{
+					MaskedDisplayName: phone.Mask(iden.IdentitySpec.LoginID.Value),
+					Channel:           AccountRecoveryChannelWhatsapp,
+					OTPForm:           AccountRecoveryOTPForm(allowedChannel.OTPForm),
+				},
+				TargetLoginID: iden.IdentitySpec.LoginID.Value,
+			},
+		}
 	}
 	panic("account recovery: unknown allowed channel")
 }
@@ -225,6 +239,17 @@ func enumerateAllowedAccountRecoveryDestinationOptions(
 					AccountRecoveryDestinationOption: AccountRecoveryDestinationOption{
 						MaskedDisplayName: phone.Mask(iden.LoginID.LoginID),
 						Channel:           AccountRecoveryChannelSMS,
+						OTPForm:           AccountRecoveryOTPForm(allowedChannel.OTPForm),
+					},
+					TargetLoginID: iden.LoginID.LoginID,
+				}
+				options = append(options, newOption)
+			}
+			if allowedChannel.Channel == config.AccountRecoveryCodeChannelWhatsapp {
+				newOption := &AccountRecoveryDestinationOptionInternal{
+					AccountRecoveryDestinationOption: AccountRecoveryDestinationOption{
+						MaskedDisplayName: phone.Mask(iden.LoginID.LoginID),
+						Channel:           AccountRecoveryChannelWhatsapp,
 						OTPForm:           AccountRecoveryOTPForm(allowedChannel.OTPForm),
 					},
 					TargetLoginID: iden.LoginID.LoginID,

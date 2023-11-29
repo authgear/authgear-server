@@ -62,6 +62,7 @@ func (n *NodeDoSendAccountRecoveryCode) send(
 		AuthenticationFlowName:        n.FlowReference.Name,
 		AuthenticationFlowJSONPointer: n.ParentJSONPointer,
 		Kind:                          accountRecoveryOTPFormToForgotPasswordCodeKind(n.Destination.OTPForm),
+		PhoneChannel:                  accountRecoveryChannelToForgotPasswordPhoneChannel(n.Destination.Channel),
 	})
 	if err != nil && !errors.Is(err, forgotpassword.ErrUserNotFound) {
 		return err
@@ -77,4 +78,15 @@ func accountRecoveryOTPFormToForgotPasswordCodeKind(otpForm AccountRecoveryOTPFo
 		return forgotpassword.CodeKindLink
 	}
 	panic(fmt.Sprintf("account recovery: unknown otp form %s", otpForm))
+}
+
+func accountRecoveryChannelToForgotPasswordPhoneChannel(c AccountRecoveryChannel) forgotpassword.PhoneCodeChannel {
+	switch c {
+	case AccountRecoveryChannelWhatsapp:
+		return forgotpassword.PhoneCodeChannelWhatsapp
+	case AccountRecoveryChannelSMS:
+		return forgotpassword.PhoneCodeChannelSMS
+	default:
+		return forgotpassword.PhoneCodeChannelDefault
+	}
 }

@@ -12,8 +12,9 @@ type AccountRecoveryIdentificationOption struct {
 type AccountRecoveryChannel string
 
 const (
-	AccountRecoveryChannelEmail AccountRecoveryChannel = "email"
-	AccountRecoveryChannelSMS   AccountRecoveryChannel = "sms"
+	AccountRecoveryChannelEmail    AccountRecoveryChannel = AccountRecoveryChannel(config.AccountRecoveryCodeChannelEmail)
+	AccountRecoveryChannelSMS      AccountRecoveryChannel = AccountRecoveryChannel(config.AccountRecoveryCodeChannelSMS)
+	AccountRecoveryChannelWhatsapp AccountRecoveryChannel = AccountRecoveryChannel(config.AccountRecoveryCodeChannelWhatsapp)
 )
 
 type AccountRecoveryOTPForm string

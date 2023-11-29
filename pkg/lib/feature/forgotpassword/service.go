@@ -69,11 +69,21 @@ const (
 	CodeKindShortCode CodeKind = "CodeKindShortCode"
 )
 
+type PhoneCodeChannel string
+
+const (
+	PhoneCodeChannelDefault  PhoneCodeChannel = ""
+	PhoneCodeChannelWhatsapp PhoneCodeChannel = "whatsapp"
+	PhoneCodeChannelSMS      PhoneCodeChannel = "sms"
+)
+
 type CodeOptions struct {
 	AuthenticationFlowType        string
 	AuthenticationFlowName        string
 	AuthenticationFlowJSONPointer jsonpointer.T
 	Kind                          CodeKind
+	// PhoneChannel is only relevant if the target is a phone number
+	PhoneChannel PhoneCodeChannel
 }
 
 // SendCode uses loginID to look up Email Login IDs and Phone Number Login IDs.
@@ -116,7 +126,7 @@ func (s *Service) SendCode(loginID string, options *CodeOptions) error {
 	for _, info := range phoneIdentities {
 		standardClaims := info.IdentityAwareStandardClaims()
 		phone := standardClaims[model.ClaimPhoneNumber]
-		if err := s.sendSMS(phone, info.UserID, options); err != nil {
+		if err := s.sendToPhone(phone, info.UserID, options); err != nil {
 			return err
 		}
 	}
@@ -208,7 +218,7 @@ func (s *Service) sendEmail(email string, userID string, options *CodeOptions) e
 	return nil
 }
 
-func (s *Service) sendSMS(phone string, userID string, options *CodeOptions) (err error) {
+func (s *Service) sendToPhone(phone string, userID string, options *CodeOptions) (err error) {
 	ais, err := s.getPrimaryPasswordList(userID)
 	if err != nil {
 		return err
@@ -219,13 +229,27 @@ func (s *Service) sendSMS(phone string, userID string, options *CodeOptions) (er
 		return feature.ErrFeatureDisabledSendingSMS
 	}
 
-	otpKind, otpForm := s.getForgotPasswordOTP(model.AuthenticatorOOBChannelSMS, options.Kind)
+	var otpChannel model.AuthenticatorOOBChannel
+	var msgType otp.MessageType
+
+	switch options.PhoneChannel {
+	case PhoneCodeChannelWhatsapp:
+		msgType = otp.MessageTypeWhatsappCode
+		otpChannel = model.AuthenticatorOOBChannelWhatsapp
+	case PhoneCodeChannelSMS:
+		fallthrough
+	default:
+		msgType = otp.MessageTypeForgotPassword
+		otpChannel = model.AuthenticatorOOBChannelSMS
+	}
+
+	otpKind, otpForm := s.getForgotPasswordOTP(otpChannel, options.Kind)
 
 	msg, err := s.OTPSender.Prepare(
-		model.AuthenticatorOOBChannelSMS,
+		otpChannel,
 		phone,
 		otpForm,
-		otp.MessageTypeForgotPassword,
+		msgType,
 	)
 	if err != nil {
 		return err
