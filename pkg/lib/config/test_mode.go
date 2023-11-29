@@ -1,5 +1,7 @@
 package config
 
+import "regexp"
+
 var _ = Schema.Add("TestModeConfig", `
 {
 	"type": "object",
@@ -45,4 +47,8 @@ var _ = Schema.Add("TestModeOOBOTPRule", `
 type TestModeOOBOTPRule struct {
 	Regex     string `json:"regex,omitempty"`
 	FixedCode string `json:"fixed_code,omitempty"`
+}
+
+func (r *TestModeOOBOTPRule) GetRegex() *regexp.Regexp {
+	return regexp.MustCompile(r.Regex)
 }

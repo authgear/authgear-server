@@ -388,6 +388,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -408,6 +409,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -913,6 +915,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -933,6 +936,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -1531,6 +1535,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -1551,6 +1556,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -2357,6 +2363,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -2377,6 +2384,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -2830,6 +2838,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -2850,6 +2859,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -3204,6 +3214,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -3224,6 +3235,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -3653,6 +3665,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -3673,6 +3686,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -4207,6 +4221,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -4227,6 +4242,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -5078,6 +5094,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -5098,6 +5115,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -5871,6 +5889,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -5891,6 +5910,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -6754,6 +6774,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -6774,6 +6795,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -7618,6 +7640,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -7638,6 +7661,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -8481,6 +8505,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -8501,6 +8526,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -9332,6 +9358,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -9352,6 +9379,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -10178,6 +10206,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -10198,6 +10227,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -11139,6 +11169,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -11159,6 +11190,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -11975,6 +12007,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -11995,6 +12028,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -12815,6 +12849,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -12835,6 +12870,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -13657,6 +13693,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -13677,6 +13714,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -14497,6 +14535,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -14517,6 +14556,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -15333,6 +15373,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -15353,6 +15394,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -16173,6 +16215,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -16193,6 +16236,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -17014,6 +17058,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -17034,6 +17079,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -17854,6 +17900,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -17874,6 +17921,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -18694,6 +18742,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -18714,6 +18763,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -19536,6 +19586,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -19556,6 +19607,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -20376,6 +20428,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -20396,6 +20449,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -21216,6 +21270,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -21236,6 +21291,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -22060,6 +22116,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -22080,6 +22137,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -22900,6 +22958,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -22920,6 +22979,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -23744,6 +23804,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -23764,6 +23825,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -24316,6 +24378,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	config := appContext.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
+	testModeConfig := appConfig.TestMode
 	featureConfig := config.FeatureConfig
 	testModeFeatureConfig := featureConfig.TestMode
 	request := p.Request
@@ -24355,6 +24418,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -25160,6 +25224,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	config := appContext.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
+	testModeConfig := appConfig.TestMode
 	featureConfig := config.FeatureConfig
 	testModeFeatureConfig := featureConfig.TestMode
 	request := p.Request
@@ -25199,6 +25264,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -26290,6 +26356,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -26310,6 +26377,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -27130,6 +27198,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -27150,6 +27219,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -27966,6 +28036,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -27986,6 +28057,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -28806,6 +28878,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -28826,6 +28899,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -29642,6 +29716,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -29662,6 +29737,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -30488,6 +30564,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -30508,6 +30585,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -31324,6 +31402,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -31344,6 +31423,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -32162,6 +32242,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -32182,6 +32263,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -32998,6 +33080,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -33018,6 +33101,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -33866,6 +33950,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -33886,6 +33971,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -34713,6 +34799,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -34733,6 +34820,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -35573,6 +35661,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -35593,6 +35682,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -36417,6 +36507,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -36437,6 +36528,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -37254,6 +37346,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -37274,6 +37367,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -38099,6 +38193,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -38119,6 +38214,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -38936,6 +39032,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -38956,6 +39053,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -39773,6 +39871,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -39793,6 +39892,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -40610,6 +40710,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -40630,6 +40731,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -41448,6 +41550,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -41468,6 +41571,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -42305,6 +42409,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -42325,6 +42430,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -43142,6 +43248,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -43162,6 +43269,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -43979,6 +44087,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -43999,6 +44108,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -44816,6 +44926,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -44836,6 +44947,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -45653,6 +45765,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -45673,6 +45786,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -46497,6 +46611,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -46517,6 +46632,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -47335,6 +47451,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -47355,6 +47472,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -48171,6 +48289,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -48191,6 +48310,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -49023,6 +49143,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -49043,6 +49164,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -49859,6 +49981,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -49879,6 +50002,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -50695,6 +50819,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -50715,6 +50840,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -51549,6 +51675,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -51569,6 +51696,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -52349,6 +52477,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -52369,6 +52498,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -53148,6 +53278,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -53168,6 +53299,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -53994,6 +54126,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -54014,6 +54147,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -54831,6 +54965,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -54851,6 +54986,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -55667,6 +55803,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -55687,6 +55824,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -56591,6 +56729,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -56611,6 +56750,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -57374,6 +57514,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -57394,6 +57535,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -58152,6 +58294,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -58172,6 +58315,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -58967,6 +59111,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -58987,6 +59132,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -59752,6 +59898,7 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -59772,6 +59919,7 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -60579,6 +60727,7 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -60599,6 +60748,7 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -61397,6 +61547,7 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -61417,6 +61568,7 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -62264,6 +62416,7 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -62284,6 +62437,7 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -63161,6 +63315,7 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -63181,6 +63336,7 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -64057,6 +64213,7 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -64077,6 +64234,7 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -64936,6 +65094,7 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -64956,6 +65115,7 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -65809,6 +65969,7 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -65829,6 +65990,7 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -66684,6 +66846,7 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -66704,6 +66867,7 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -67557,6 +67721,7 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -67577,6 +67742,7 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -68430,6 +68596,7 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -68450,6 +68617,7 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -69303,6 +69471,7 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -69323,6 +69492,7 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -70176,6 +70346,7 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -70196,6 +70367,7 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -71051,6 +71223,7 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -71071,6 +71244,7 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -71926,6 +72100,7 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -71946,6 +72121,7 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -72799,6 +72975,7 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -72819,6 +72996,7 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -73672,6 +73850,7 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -73692,6 +73871,7 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -74545,6 +74725,7 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -74565,6 +74746,7 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -75418,6 +75600,7 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -75438,6 +75621,7 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -76291,6 +76475,7 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -76311,6 +76496,7 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -77164,6 +77350,7 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -77184,6 +77371,7 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -78037,6 +78225,7 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -78057,6 +78246,7 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -78910,6 +79100,7 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -78930,6 +79121,7 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -79783,6 +79975,7 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -79803,6 +79996,7 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -80617,6 +80811,7 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -80637,6 +80832,7 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -81460,6 +81656,7 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -81480,6 +81677,7 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -82333,6 +82531,7 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -82353,6 +82552,7 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -83854,6 +84054,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -83874,6 +84075,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -84371,6 +84573,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -84391,6 +84594,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -85169,6 +85373,7 @@ func newWebAppUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -85189,6 +85394,7 @@ func newWebAppUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -85667,6 +85873,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -85687,6 +85894,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,

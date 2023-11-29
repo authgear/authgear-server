@@ -418,6 +418,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -438,6 +439,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	otpService := &otp.Service{
 		Clock:                 clock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
@@ -928,6 +930,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -948,6 +951,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,

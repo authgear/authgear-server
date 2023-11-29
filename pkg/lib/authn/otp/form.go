@@ -31,17 +31,31 @@ func (f Form) CodeLength() int {
 	return f.codeType().Length()
 }
 
-func (f Form) GenerateCode(cfg *config.TestModeFeatureConfig, userID string) string {
+func (f Form) GenerateCode(cfg *config.TestModeConfig, featureCfg *config.TestModeFeatureConfig, target string, userID string) string {
 	codeType := f.codeType()
 	switch c := codeType.(type) {
 	case secretcode.OOBOTPSecretCodeType:
 		if cfg.FixedOOBOTP.Enabled {
-			return c.GenerateFixed(cfg.FixedOOBOTP.Code)
-		} else {
-			return c.Generate()
+			for _, r := range cfg.FixedOOBOTP.Rules {
+				reg := r.GetRegex()
+				if reg.Match([]byte(target)) {
+					fixedOTP := r.FixedCode
+					if fixedOTP == "" {
+						fixedOTP = featureCfg.FixedOOBOTP.Code
+					}
+					if fixedOTP == "" {
+						fixedOTP = c.Generate()
+					}
+					return c.GenerateFixed(fixedOTP)
+				}
+			}
 		}
+		if featureCfg.FixedOOBOTP.Enabled {
+			return c.GenerateFixed(featureCfg.FixedOOBOTP.Code)
+		}
+		return c.Generate()
 	case secretcode.LinkOTPSecretCodeType:
-		if cfg.DeterministicLinkOTP.Enabled {
+		if featureCfg.DeterministicLinkOTP.Enabled {
 			return c.GenerateDeterministic(userID)
 		} else {
 			return c.Generate()

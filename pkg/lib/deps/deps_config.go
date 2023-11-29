@@ -32,6 +32,7 @@ var ConfigDeps = wire.NewSet(
 		"GoogleTagManager",
 		"AccountMigration",
 		"Captcha",
+		"TestMode",
 	),
 	wire.FieldsOf(new(*config.AuthenticationConfig),
 		"Lockout",
