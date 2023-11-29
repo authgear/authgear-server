@@ -303,7 +303,7 @@
 
   "reset-password-success-page-title": "成功重設密碼",
   "reset-password-success-description": "你已成功重設密碼，請以新密碼登入。",
-  "login-button-label--reset-password-success-page": "Back to 登入",
+  "login-button-label--reset-password-success-page": "返回登入",
 
   "change-password-page-title": "更改密碼",
   "change-password-page-description": "請輸入新密碼",
