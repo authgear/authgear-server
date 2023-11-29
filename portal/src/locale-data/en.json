@@ -550,8 +550,13 @@
   "PasswordPolicyConfigurationScreen.history-size.label": "No. of password history to keep",
   "PasswordPolicyConfigurationScreen.excluded-keywords.label": "Keywords to be excluded",
 
-  "ForgotPasswordConfigurationScreen.reset-link-valid-duration.label": "Reset link valid duration (seconds)",
-  "ForgotPasswordConfigurationScreen.reset-code-valid-duration.label": "Reset OTP valid duration (seconds)",
+  "PasswordSettings.reset-link-valid-duration.label": "Reset link valid duration (seconds)",
+  "PasswordSettings.reset-code-valid-duration.label": "Reset OTP valid duration (seconds)",
+  "PasswordSettings.resetPasswordWithEmail.label": "Reset password with email by:",
+  "PasswordSettings.resetPasswordWithPhone.label": "Reset password with phone by:",
+  "PasswordSettings.resetPasswordWithEmail.options.link": "Link",
+  "PasswordSettings.resetPasswordWithEmail.options.code": "Code",
+  "PasswordSettings.resetPasswordWithPhone.options.sms": "SMS",
 
   "ApplicationsConfigurationScreen.title": "Applications",
   "ApplicationsConfigurationScreen.description": "Configure applications to use this project for authentication.",

@@ -84,7 +84,13 @@ import FormTextField from "../../FormTextField";
 import Toggle from "../../Toggle";
 import LabelWithTooltip from "../../LabelWithTooltip";
 import PhoneInputListWidget from "./PhoneInputListWidget";
-import PasswordSettings from "./PasswordSettings";
+import PasswordSettings, {
+  ResetPasswordWithEmailMethod,
+  ResetPasswordWithPhoneMethod,
+  getResetPasswordWithEmailMethod,
+  getResetPasswordWithPhoneMethod,
+  setUIForgotPasswordConfig,
+} from "./PasswordSettings";
 import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
 import BlueMessageBar from "../../BlueMessageBar";
 import { useTagPickerWithNewTags } from "../../hook/useInput";
@@ -497,6 +503,9 @@ interface ConfigFormState {
   smsDailySendLimit: number | undefined;
   // 7
   emailVerificationDailyLimit: number | undefined;
+
+  resetPasswordWithEmailBy: ResetPasswordWithEmailMethod;
+  resetPasswordWithPhoneBy: ResetPasswordWithPhoneMethod;
 }
 
 interface FeatureConfigFormState {
@@ -1063,6 +1072,8 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     anyOTPRevokeFailedAttempts,
     smsDailySendLimit,
     emailVerificationDailyLimit,
+    resetPasswordWithEmailBy: getResetPasswordWithEmailMethod(config),
+    resetPasswordWithPhoneBy: getResetPasswordWithPhoneMethod(config),
   };
   correctInitialFormState(state);
   return state;
@@ -1186,6 +1197,8 @@ function constructConfig(
         "s"
       );
     }
+
+    setUIForgotPasswordConfig(config, currentState);
 
     const isEmailOTPLink =
       currentState.authenticatorOOBEmailConfig.email_otp_mode === "login_link";
@@ -2941,6 +2954,8 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       authenticatorPasswordConfig,
       forgotPasswordLinkValidPeriodSeconds,
       forgotPasswordCodeValidPeriodSeconds,
+      resetPasswordWithEmailBy,
+      resetPasswordWithPhoneBy,
       passkeyChecked,
 
       verificationClaims,
@@ -3243,6 +3258,8 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
                   forgotPasswordCodeValidPeriodSeconds={
                     forgotPasswordCodeValidPeriodSeconds
                   }
+                  resetPasswordWithEmailBy={resetPasswordWithEmailBy}
+                  resetPasswordWithPhoneBy={resetPasswordWithPhoneBy}
                   authenticatorPasswordConfig={authenticatorPasswordConfig}
                   passwordPolicyFeatureConfig={passwordPolicyFeatureConfig}
                   setState={setState}

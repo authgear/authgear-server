@@ -1,6 +1,12 @@
 import React, { useMemo, useContext, useCallback, ReactElement } from "react";
 import { produce } from "immer";
-import { Checkbox, Dropdown, Label } from "@fluentui/react";
+import {
+  Checkbox,
+  Dropdown,
+  IDropdownOption,
+  IDropdownProps,
+  Label,
+} from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import {
   AuthenticatorPasswordConfig,
@@ -8,6 +14,9 @@ import {
   PasswordPolicyConfig,
   isPasswordPolicyGuessableLevel,
   passwordPolicyGuessableLevels,
+  PortalAPIAppConfig,
+  AccountRecoveryCodeForm,
+  AccountRecoveryCodeChannel,
 } from "../../types";
 import Widget from "../../Widget";
 import WidgetTitle from "../../WidgetTitle";
@@ -27,9 +36,82 @@ import {
   tryProduce,
 } from "../../util/input";
 
+export enum ResetPasswordWithEmailMethod {
+  Link = "link",
+  Code = "code",
+}
+
+export enum ResetPasswordWithPhoneMethod {
+  SMS = "sms",
+}
+
+export function getResetPasswordWithEmailMethod(
+  config: PortalAPIAppConfig
+): ResetPasswordWithEmailMethod {
+  const channels = config.ui?.forgot_password?.email;
+  if (
+    channels != null &&
+    channels.length > 0 &&
+    channels[0].otp_form === AccountRecoveryCodeForm.Code
+  ) {
+    return ResetPasswordWithEmailMethod.Code;
+  }
+  return ResetPasswordWithEmailMethod.Link;
+}
+
+export function getResetPasswordWithPhoneMethod(
+  _config: PortalAPIAppConfig
+): ResetPasswordWithPhoneMethod {
+  // Always sms at the moment, whatsapp will be added later
+  return ResetPasswordWithPhoneMethod.SMS;
+}
+
+export function setUIForgotPasswordConfig(
+  config: PortalAPIAppConfig,
+  options: {
+    resetPasswordWithEmailBy: ResetPasswordWithEmailMethod;
+    resetPasswordWithPhoneBy: ResetPasswordWithPhoneMethod;
+  }
+): void {
+  const { resetPasswordWithEmailBy, resetPasswordWithPhoneBy } = options;
+  config.ui ??= {};
+  config.ui.forgot_password ??= {};
+  switch (resetPasswordWithEmailBy) {
+    case ResetPasswordWithEmailMethod.Code:
+      config.ui.forgot_password.email = [
+        {
+          channel: AccountRecoveryCodeChannel.Email,
+          otp_form: AccountRecoveryCodeForm.Code,
+        },
+      ];
+      break;
+    case ResetPasswordWithEmailMethod.Link:
+      config.ui.forgot_password.email = [
+        {
+          channel: AccountRecoveryCodeChannel.Email,
+          otp_form: AccountRecoveryCodeForm.Link,
+        },
+      ];
+      break;
+  }
+
+  switch (resetPasswordWithPhoneBy) {
+    case ResetPasswordWithPhoneMethod.SMS:
+      config.ui.forgot_password.phone = [
+        {
+          channel: AccountRecoveryCodeChannel.SMS,
+          otp_form: AccountRecoveryCodeForm.Code,
+        },
+      ];
+      break;
+  }
+}
+
 export interface State {
   forgotPasswordLinkValidPeriodSeconds: number | undefined;
   forgotPasswordCodeValidPeriodSeconds: number | undefined;
+  resetPasswordWithEmailBy: ResetPasswordWithEmailMethod;
+  resetPasswordWithPhoneBy: ResetPasswordWithPhoneMethod;
   authenticatorPasswordConfig: AuthenticatorPasswordConfig;
   passwordPolicyFeatureConfig?: PasswordPolicyFeatureConfig;
 }
@@ -37,6 +119,86 @@ export interface State {
 export interface PasswordSettingsProps<T extends State> extends State {
   className?: string;
   setState: (fn: (state: T) => T) => void;
+}
+
+function useResetPasswordWithEmailDropdown<T extends State>(
+  setState: PasswordSettingsProps<T>["setState"]
+): {
+  options: IDropdownOption<ResetPasswordWithEmailMethod>[];
+  onChange: IDropdownProps["onChange"];
+} {
+  const { renderToString } = useContext(Context);
+  const options: IDropdownOption<State["resetPasswordWithEmailBy"]>[] = useMemo(
+    () => [
+      {
+        key: "link",
+        text: renderToString(
+          "PasswordSettings.resetPasswordWithEmail.options.link"
+        ),
+      },
+      {
+        key: "code",
+        text: renderToString(
+          "PasswordSettings.resetPasswordWithEmail.options.code"
+        ),
+      },
+    ],
+    [renderToString]
+  );
+
+  const onChange = useCallback(
+    (_: unknown, option?: IDropdownOption<ResetPasswordWithEmailMethod>) => {
+      const key = option?.key as ResetPasswordWithEmailMethod;
+      setState((prev) =>
+        produce(prev, (prev) => {
+          prev.resetPasswordWithEmailBy = key;
+        })
+      );
+    },
+    [setState]
+  );
+
+  return {
+    options,
+    onChange,
+  };
+}
+
+function useResetPasswordWithPhoneDropdown<T extends State>(
+  setState: PasswordSettingsProps<T>["setState"]
+): {
+  options: IDropdownOption<ResetPasswordWithPhoneMethod>[];
+  onChange: IDropdownProps["onChange"];
+} {
+  const { renderToString } = useContext(Context);
+  const options: IDropdownOption<ResetPasswordWithPhoneMethod>[] = useMemo(
+    () => [
+      {
+        key: "sms",
+        text: renderToString(
+          "PasswordSettings.resetPasswordWithPhone.options.sms"
+        ),
+      },
+    ],
+    [renderToString]
+  );
+
+  const onChange = useCallback(
+    (_: unknown, option?: IDropdownOption<ResetPasswordWithPhoneMethod>) => {
+      const key = option?.key as ResetPasswordWithPhoneMethod;
+      setState((prev) =>
+        produce(prev, (prev) => {
+          prev.resetPasswordWithPhoneBy = key;
+        })
+      );
+    },
+    [setState]
+  );
+
+  return {
+    options,
+    onChange,
+  };
 }
 
 function usePasswordNumberOnChange<T extends State>(
@@ -89,6 +251,8 @@ export default function PasswordSettings<T extends State>(
     authenticatorPasswordConfig,
     forgotPasswordLinkValidPeriodSeconds,
     forgotPasswordCodeValidPeriodSeconds,
+    resetPasswordWithEmailBy,
+    resetPasswordWithPhoneBy,
     passwordPolicyFeatureConfig,
     setState,
   } = props;
@@ -256,6 +420,11 @@ export default function PasswordSettings<T extends State>(
     onAdd: onAddExcludedKeywords,
   } = useTagPickerWithNewTags(valueForExcludedKeywords, updateExcludedKeywords);
 
+  const resetPasswordWithEmailDropdown =
+    useResetPasswordWithEmailDropdown(setState);
+  const resetPasswordWithPhoneDropdown =
+    useResetPasswordWithPhoneDropdown(setState);
+
   return (
     <Widget className={className}>
       <WidgetTitle>
@@ -275,7 +444,7 @@ export default function PasswordSettings<T extends State>(
       <TextField
         type="text"
         label={renderToString(
-          "ForgotPasswordConfigurationScreen.reset-link-valid-duration.label"
+          "PasswordSettings.reset-link-valid-duration.label"
         )}
         value={forgotPasswordLinkValidPeriodSeconds?.toFixed(0) ?? ""}
         onChange={onChangeLinkExpirySeconds}
@@ -283,10 +452,22 @@ export default function PasswordSettings<T extends State>(
       <TextField
         type="text"
         label={renderToString(
-          "ForgotPasswordConfigurationScreen.reset-code-valid-duration.label"
+          "PasswordSettings.reset-code-valid-duration.label"
         )}
         value={forgotPasswordCodeValidPeriodSeconds?.toFixed(0) ?? ""}
         onChange={onChangeCodeExpirySeconds}
+      />
+      <Dropdown
+        label={renderToString("PasswordSettings.resetPasswordWithEmail.label")}
+        options={resetPasswordWithEmailDropdown.options}
+        selectedKey={resetPasswordWithEmailBy}
+        onChange={resetPasswordWithEmailDropdown.onChange}
+      />
+      <Dropdown
+        label={renderToString("PasswordSettings.resetPasswordWithPhone.label")}
+        options={resetPasswordWithPhoneDropdown.options}
+        selectedKey={resetPasswordWithPhoneBy}
+        onChange={resetPasswordWithPhoneDropdown.onChange}
       />
       <HorizontalDivider />
       <WidgetSubtitle>
