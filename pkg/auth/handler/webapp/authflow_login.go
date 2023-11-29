@@ -155,7 +155,7 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			"login_id":       loginID,
 		}
 
-		result, _, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
 		if err != nil {
 			return err
 		}
@@ -178,7 +178,7 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			"assertion_response": assertionResponseJSON,
 		}
 
-		result, _, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
 		if err != nil {
 			return err
 		}

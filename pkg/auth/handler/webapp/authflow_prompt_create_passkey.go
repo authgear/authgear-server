@@ -69,7 +69,7 @@ func (h *AuthflowPromptCreatePasskeyHandler) ServeHTTP(w http.ResponseWriter, r 
 			"skip": true,
 		}
 
-		result, _, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
 		if err != nil {
 			return err
 		}
@@ -90,7 +90,7 @@ func (h *AuthflowPromptCreatePasskeyHandler) ServeHTTP(w http.ResponseWriter, r 
 			"creation_response": creationResponseJSON,
 		}
 
-		result, _, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
 		if err != nil {
 			return err
 		}

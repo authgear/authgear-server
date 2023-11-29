@@ -199,7 +199,7 @@ func (c *AuthflowController) HandleOAuthCallback(w http.ResponseWriter, r *http.
 		input["error_description"] = callbackResponse.ErrorDescription
 		input["error_uri"] = callbackResponse.ErrorURI
 	}
-	result, _, err := c.AdvanceWithInput(r, s, screen, input)
+	result, err := c.AdvanceWithInput(r, s, screen, input)
 	if err != nil {
 		u, parseURLErr := url.Parse(state.ErrorRedirectURI)
 		if parseURLErr != nil {
@@ -436,7 +436,7 @@ func (c *AuthflowController) ReplaceScreen(r *http.Request, s *webapp.Session, f
 		return
 	}
 
-	result, _, err = c.AdvanceWithInput(r, s, screen, input)
+	result, err = c.AdvanceWithInput(r, s, screen, input)
 	if err != nil {
 		return nil, err
 	}
@@ -510,7 +510,7 @@ func (c *AuthflowController) AdvanceWithInput(
 	s *webapp.Session,
 	screen0 *webapp.AuthflowScreenWithFlowResponse,
 	input map[string]interface{},
-) (result *webapp.Result, screen2 *webapp.AuthflowScreenWithFlowResponse, err error) {
+) (result *webapp.Result, err error) {
 	result = &webapp.Result{}
 
 	output1, err := c.feedInput(screen0.Screen.StateToken.StateToken, input)

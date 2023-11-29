@@ -108,7 +108,7 @@ func (h *AuthflowSetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 			"target":         target,
 		}
 
-		result, _, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
 		if err != nil {
 			return err
 		}

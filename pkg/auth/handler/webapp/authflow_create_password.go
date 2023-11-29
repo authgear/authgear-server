@@ -113,7 +113,7 @@ func (h *AuthflowCreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http
 			"new_password":   newPlainPassword,
 		}
 
-		result, _, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
 		if err != nil {
 			return err
 		}
