@@ -139,5 +139,5 @@ func (h *AuthflowSignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	h.Controller.HandleStartOfFlow(w, r, opts, authflow.FlowReference{
 		Type: authflow.FlowTypeSignup,
 		Name: flowName,
-	}, &handlers)
+	}, &handlers, nil)
 }

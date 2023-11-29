@@ -117,7 +117,13 @@ type AuthflowController struct {
 	OAuthClientResolver AuthflowControllerOAuthClientResolver
 }
 
-func (c *AuthflowController) HandleStartOfFlow(w http.ResponseWriter, r *http.Request, opts webapp.SessionOptions, flowReference authflow.FlowReference, handlers *AuthflowControllerHandlers) {
+func (c *AuthflowController) HandleStartOfFlow(
+	w http.ResponseWriter,
+	r *http.Request,
+	opts webapp.SessionOptions,
+	flowReference authflow.FlowReference,
+	handlers *AuthflowControllerHandlers,
+	input interface{}) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -135,10 +141,10 @@ func (c *AuthflowController) HandleStartOfFlow(w http.ResponseWriter, r *http.Re
 		handler.ServeHTTP(w, r)
 	}
 
-	screen, err := c.getScreen(s, GetXStepFromQuery(r))
+	screen, err := c.GetScreen(s, GetXStepFromQuery(r))
 	if err != nil {
 		if errors.Is(err, authflow.ErrFlowNotFound) {
-			screen, err := c.createScreen(r, s, flowReference)
+			screen, err := c.createScreen(r, s, flowReference, input)
 			if err != nil {
 				c.Logger.WithError(err).Errorf("failed to create screen")
 				c.renderError(w, r, err)
@@ -183,7 +189,7 @@ func (c *AuthflowController) HandleOAuthCallback(w http.ResponseWriter, r *http.
 		return
 	}
 
-	screen, err := c.getScreen(s, state.XStep)
+	screen, err := c.GetScreen(s, state.XStep)
 	if err != nil {
 		c.Logger.WithError(err).Errorf("failed to get screen")
 		c.renderError(w, r, err)
@@ -283,7 +289,7 @@ func (c *AuthflowController) HandleStep(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	screen, err := c.getScreen(s, GetXStepFromQuery(r))
+	screen, err := c.GetScreen(s, GetXStepFromQuery(r))
 	if err != nil {
 		c.Logger.WithError(err).Errorf("failed to get screen")
 		c.renderError(w, r, err)
@@ -345,7 +351,7 @@ func (c *AuthflowController) getOrCreateWebSession(w http.ResponseWriter, r *htt
 	return s, nil
 }
 
-func (c *AuthflowController) getScreen(s *webapp.Session, xStep string) (*webapp.AuthflowScreenWithFlowResponse, error) {
+func (c *AuthflowController) GetScreen(s *webapp.Session, xStep string) (*webapp.AuthflowScreenWithFlowResponse, error) {
 	if s.Authflow == nil {
 		return nil, authflow.ErrFlowNotFound
 	}
@@ -491,16 +497,32 @@ func (c *AuthflowController) createScreenWithOutput(
 	return screen, nil
 }
 
-func (c *AuthflowController) createScreen(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference) (screen *webapp.AuthflowScreenWithFlowResponse, err error) {
-	output, err := c.createAuthflow(r, s, flowReference)
+func (c *AuthflowController) createScreen(
+	r *http.Request,
+	s *webapp.Session,
+	flowReference authflow.FlowReference,
+	input interface{}) (screen *webapp.AuthflowScreenWithFlowResponse, err error) {
+	output1, err := c.createAuthflow(r, s, flowReference)
 	if err != nil {
 		return
 	}
 
-	screen, err = c.createScreenWithOutput(r, s, output)
+	screen, err = c.createScreenWithOutput(r, s, output1)
 	if err != nil {
 		return
 	}
+
+	if input != nil {
+		output2, err := c.feedInput(output1.Flow.StateToken, input)
+		if err != nil {
+			return nil, err
+		}
+		screen, err = c.createScreenWithOutput(r, s, output2)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return
 }
 
@@ -764,7 +786,7 @@ func (c *AuthflowController) makeHTTPHandler(s *webapp.Session, screen *webapp.A
 
 func (c *AuthflowController) takeBranch(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 	xStepAtBranch := screen.Screen.BranchStateToken.XStep
-	screen, err := c.getScreen(s, xStepAtBranch)
+	screen, err := c.GetScreen(s, xStepAtBranch)
 	if err != nil {
 		return err
 	}

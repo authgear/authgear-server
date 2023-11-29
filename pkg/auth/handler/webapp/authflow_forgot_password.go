@@ -116,26 +116,25 @@ func (h *AuthflowForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http
 	flowName := "default"
 	var handlers AuthflowControllerHandlers
 
-	handlers.Get(func(s *webapp.Session, screen1 *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 
-		var screen2 *webapp.AuthflowScreenWithFlowResponse
+		var screenIdentify *webapp.AuthflowScreenWithFlowResponse
+		var screenSelectDestination *webapp.AuthflowScreenWithFlowResponse
 
-		identification := r.Form.Get("q_login_id_input_type")
-		loginID := r.Form.Get("q_login_id")
-
-		if identification != "" && loginID != "" {
+		// screen can be identity or select_destination according to the query
+		switch config.AuthenticationFlowStepType(screen.StateTokenFlowResponse.Action.Type) {
+		case config.AuthenticationFlowStepTypeIdentify:
+			screenIdentify = screen
+		case config.AuthenticationFlowStepTypeSelectDestination:
+			screenSelectDestination = screen
 			var err error
-			// Advance one step to get the options
-			_, screen2, err = h.Controller.AdvanceWithInput(r, s, screen1, map[string]interface{}{
-				"identification": identification,
-				"login_id":       loginID,
-			})
+			screenIdentify, err = h.Controller.GetScreen(s, screen.Screen.PreviousXStep)
 			if err != nil {
 				return err
 			}
 		}
 
-		data, err := h.GetData(w, r, s, screen1, screen2)
+		data, err := h.GetData(w, r, s, screenIdentify, screenSelectDestination)
 		if err != nil {
 			return err
 		}
@@ -153,7 +152,7 @@ func (h *AuthflowForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http
 		loginID := r.Form.Get("x_login_id")
 		identification := r.Form.Get("x_login_id_type")
 
-		result, _, err := h.Controller.AdvanceWithInput(r, s, screen, map[string]interface{}{
+		result, err := h.Controller.AdvanceWithInput(r, s, screen, map[string]interface{}{
 			"identification": identification,
 			"login_id":       loginID,
 			"index":          0,
@@ -167,8 +166,20 @@ func (h *AuthflowForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http
 		return nil
 	})
 
+	identification := r.Form.Get("q_login_id_input_type")
+	loginID := r.Form.Get("q_login_id")
+
+	var input interface{} = nil
+
+	if identification != "" && loginID != "" {
+		input = map[string]interface{}{
+			"identification": identification,
+			"login_id":       loginID,
+		}
+	}
+
 	h.Controller.HandleStartOfFlow(w, r, webapp.SessionOptions{}, authflow.FlowReference{
 		Type: authflow.FlowTypeAccountRecovery,
 		Name: flowName,
-	}, &handlers)
+	}, &handlers, input)
 }
