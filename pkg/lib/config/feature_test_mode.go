@@ -95,3 +95,9 @@ type TestModeEmailFeatureConfig struct {
 type TestModeWhatsappFeatureConfig struct {
 	Suppressed bool `json:"suppressed"`
 }
+
+type TestModeSMSSuppressed bool
+
+type TestModeWhatsappSuppressed bool
+
+type TestModeEmailSuppressed bool

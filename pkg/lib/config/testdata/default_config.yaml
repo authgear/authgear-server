@@ -637,4 +637,7 @@ account_migration:
   hook:
     timeout: 5
 captcha: {}
+test_mode:
+  oob_otp:
+    enabled: false
 authentication_flow: {}

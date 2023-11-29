@@ -7,6 +7,7 @@ import (
 	"net/mail"
 	"net/url"
 	"path"
+	"regexp"
 	"strings"
 	"time"
 
@@ -46,6 +47,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["x_web3_network_id"] = FormatNetworkID{}
 	jsonschemaformat.DefaultChecker["x_duration_string"] = FormatDurationString{}
 	jsonschemaformat.DefaultChecker["x_base64_url"] = FormatBase64URL{}
+	jsonschemaformat.DefaultChecker["x_re2_regex"] = FormatRe2Regex{}
 }
 
 // FormatPhone checks if input is a phone number in E.164 format.
@@ -493,6 +495,22 @@ func (FormatBase64URL) CheckFormat(value interface{}) error {
 	}
 
 	_, err := base64.RawURLEncoding.Strict().DecodeString(str)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+type FormatRe2Regex struct{}
+
+func (FormatRe2Regex) CheckFormat(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+
+	_, err := regexp.Compile(str)
+
 	if err != nil {
 		return err
 	}
