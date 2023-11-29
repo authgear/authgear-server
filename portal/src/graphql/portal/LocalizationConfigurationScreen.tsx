@@ -22,9 +22,12 @@ import {
   RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML,
   RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TXT,
   RESOURCE_AUTHENTICATE_PRIMARY_OOB_SMS_TXT,
-  RESOURCE_FORGOT_PASSWORD_EMAIL_HTML,
-  RESOURCE_FORGOT_PASSWORD_EMAIL_TXT,
-  RESOURCE_FORGOT_PASSWORD_SMS_TXT,
+  RESOURCE_FORGOT_PASSWORD_EMAIL_CODE_HTML,
+  RESOURCE_FORGOT_PASSWORD_EMAIL_CODE_TXT,
+  RESOURCE_FORGOT_PASSWORD_EMAIL_LINK_HTML,
+  RESOURCE_FORGOT_PASSWORD_EMAIL_LINK_TXT,
+  RESOURCE_FORGOT_PASSWORD_SMS_CODE_TXT,
+  RESOURCE_FORGOT_PASSWORD_SMS_LINK_TXT,
   RESOURCE_SETUP_PRIMARY_LOGIN_LINK_HTML,
   RESOURCE_SETUP_PRIMARY_LOGIN_LINK_TXT,
   RESOURCE_SETUP_PRIMARY_OOB_EMAIL_HTML,
@@ -36,7 +39,8 @@ import {
   RESOURCE_VERIFICATION_SMS_TXT,
   TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_PRIMARY_LOGIN_LINK_SUBJECT,
   TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_PRIMARY_OOB_SUBJECT,
-  TRANSLATION_JSON_KEY_EMAIL_FORGOT_PASSWORD_SUBJECT,
+  TRANSLATION_JSON_KEY_EMAIL_FORGOT_PASSWORD_CODE_SUBJECT,
+  TRANSLATION_JSON_KEY_EMAIL_FORGOT_PASSWORD_LINK_SUBJECT,
   TRANSLATION_JSON_KEY_EMAIL_SETUP_PRIMARY_LOGIN_LINK_SUBJECT,
   TRANSLATION_JSON_KEY_EMAIL_SETUP_PRIMARY_OOB_SUBJECT,
   TRANSLATION_JSON_KEY_EMAIL_VERIFICATION_SUBJECT,
@@ -134,16 +138,18 @@ interface ResourcesConfigurationContentProps {
   verificationEnabled: boolean;
 }
 
-const PIVOT_KEY_FORGOT_PASSWORD = "forgot_password";
+const PIVOT_KEY_FORGOT_PASSWORD_LINK = "forgot_password_link";
+const PIVOT_KEY_FORGOT_PASSWORD_CODE = "forgot_password_code";
 const PIVOT_KEY_VERIFICATION = "verification";
 const PIVOT_KEY_PASSWORDLESS_VIA_EMAIL = "passwordless_via_email";
 const PIVOT_KEY_PASSWORDLESS_VIA_SMS = "passwordless_via_sms";
 const PIVOT_KEY_TRANSLATION_JSON = "translation.json";
 
-const PIVOT_KEY_DEFAULT = PIVOT_KEY_FORGOT_PASSWORD;
+const PIVOT_KEY_DEFAULT = PIVOT_KEY_FORGOT_PASSWORD_LINK;
 
 const ALL_PIVOT_KEYS = [
-  PIVOT_KEY_FORGOT_PASSWORD,
+  PIVOT_KEY_FORGOT_PASSWORD_LINK,
+  PIVOT_KEY_FORGOT_PASSWORD_CODE,
   PIVOT_KEY_VERIFICATION,
   PIVOT_KEY_PASSWORDLESS_VIA_EMAIL,
   PIVOT_KEY_PASSWORDLESS_VIA_SMS,
@@ -426,7 +432,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
       },
     ];
 
-    const sectionsForgotPassword: EditTemplatesWidgetSection[] = [
+    const sectionsForgotPasswordLink: EditTemplatesWidgetSection[] = [
       {
         key: "email",
         title: <FormattedMessage id="EditTemplatesWidget.email" />,
@@ -436,10 +442,10 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             title: <FormattedMessage id="EditTemplatesWidget.email-subject" />,
             language: "plaintext",
             value: getTranslationValue(
-              TRANSLATION_JSON_KEY_EMAIL_FORGOT_PASSWORD_SUBJECT
+              TRANSLATION_JSON_KEY_EMAIL_FORGOT_PASSWORD_LINK_SUBJECT
             ),
             onChange: getTranslationOnChange(
-              TRANSLATION_JSON_KEY_EMAIL_FORGOT_PASSWORD_SUBJECT
+              TRANSLATION_JSON_KEY_EMAIL_FORGOT_PASSWORD_LINK_SUBJECT
             ),
             editor: "textfield",
           },
@@ -447,8 +453,8 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             key: "html-email",
             title: <FormattedMessage id="EditTemplatesWidget.html-email" />,
             language: "html",
-            value: getValue(RESOURCE_FORGOT_PASSWORD_EMAIL_HTML),
-            onChange: getOnChange(RESOURCE_FORGOT_PASSWORD_EMAIL_HTML),
+            value: getValue(RESOURCE_FORGOT_PASSWORD_EMAIL_LINK_HTML),
+            onChange: getOnChange(RESOURCE_FORGOT_PASSWORD_EMAIL_LINK_HTML),
             editor: "code",
           },
           {
@@ -457,8 +463,8 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
               <FormattedMessage id="EditTemplatesWidget.plaintext-email" />
             ),
             language: "plaintext",
-            value: getValue(RESOURCE_FORGOT_PASSWORD_EMAIL_TXT),
-            onChange: getOnChange(RESOURCE_FORGOT_PASSWORD_EMAIL_TXT),
+            value: getValue(RESOURCE_FORGOT_PASSWORD_EMAIL_LINK_TXT),
+            onChange: getOnChange(RESOURCE_FORGOT_PASSWORD_EMAIL_LINK_TXT),
             editor: "code",
           },
         ],
@@ -471,8 +477,61 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             key: "sms",
             title: <FormattedMessage id="EditTemplatesWidget.sms-body" />,
             language: "plaintext",
-            value: getValue(RESOURCE_FORGOT_PASSWORD_SMS_TXT),
-            onChange: getOnChange(RESOURCE_FORGOT_PASSWORD_SMS_TXT),
+            value: getValue(RESOURCE_FORGOT_PASSWORD_SMS_LINK_TXT),
+            onChange: getOnChange(RESOURCE_FORGOT_PASSWORD_SMS_LINK_TXT),
+            editor: "code",
+          },
+        ],
+      },
+    ];
+
+    const sectionsForgotPasswordCode: EditTemplatesWidgetSection[] = [
+      {
+        key: "email",
+        title: <FormattedMessage id="EditTemplatesWidget.email" />,
+        items: [
+          {
+            key: "email-subject",
+            title: <FormattedMessage id="EditTemplatesWidget.email-subject" />,
+            language: "plaintext",
+            value: getTranslationValue(
+              TRANSLATION_JSON_KEY_EMAIL_FORGOT_PASSWORD_CODE_SUBJECT
+            ),
+            onChange: getTranslationOnChange(
+              TRANSLATION_JSON_KEY_EMAIL_FORGOT_PASSWORD_CODE_SUBJECT
+            ),
+            editor: "textfield",
+          },
+          {
+            key: "html-email",
+            title: <FormattedMessage id="EditTemplatesWidget.html-email" />,
+            language: "html",
+            value: getValue(RESOURCE_FORGOT_PASSWORD_EMAIL_CODE_HTML),
+            onChange: getOnChange(RESOURCE_FORGOT_PASSWORD_EMAIL_CODE_HTML),
+            editor: "code",
+          },
+          {
+            key: "plaintext-email",
+            title: (
+              <FormattedMessage id="EditTemplatesWidget.plaintext-email" />
+            ),
+            language: "plaintext",
+            value: getValue(RESOURCE_FORGOT_PASSWORD_EMAIL_CODE_TXT),
+            onChange: getOnChange(RESOURCE_FORGOT_PASSWORD_EMAIL_CODE_TXT),
+            editor: "code",
+          },
+        ],
+      },
+      {
+        key: "sms",
+        title: <FormattedMessage id="EditTemplatesWidget.sms" />,
+        items: [
+          {
+            key: "sms",
+            title: <FormattedMessage id="EditTemplatesWidget.sms-body" />,
+            language: "plaintext",
+            value: getValue(RESOURCE_FORGOT_PASSWORD_SMS_CODE_TXT),
+            onChange: getOnChange(RESOURCE_FORGOT_PASSWORD_SMS_CODE_TXT),
             editor: "code",
           },
         ],
@@ -706,11 +765,19 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
           >
             <PivotItem
               headerText={renderToString(
-                "LocalizationConfigurationScreen.forgot-password.title"
+                "LocalizationConfigurationScreen.forgot-password-link.title"
               )}
-              itemKey={PIVOT_KEY_FORGOT_PASSWORD}
+              itemKey={PIVOT_KEY_FORGOT_PASSWORD_LINK}
             >
-              <EditTemplatesWidget sections={sectionsForgotPassword} />
+              <EditTemplatesWidget sections={sectionsForgotPasswordLink} />
+            </PivotItem>
+            <PivotItem
+              headerText={renderToString(
+                "LocalizationConfigurationScreen.forgot-password-code.title"
+              )}
+              itemKey={PIVOT_KEY_FORGOT_PASSWORD_CODE}
+            >
+              <EditTemplatesWidget sections={sectionsForgotPasswordCode} />
             </PivotItem>
             {verificationEnabled ? (
               <PivotItem
