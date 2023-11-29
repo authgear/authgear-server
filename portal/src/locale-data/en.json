@@ -555,7 +555,7 @@
   "PasswordSettings.resetPasswordWithEmail.label": "Reset password with email by:",
   "PasswordSettings.resetPasswordWithPhone.label": "Reset password with phone by:",
   "PasswordSettings.resetPasswordWithEmail.options.link": "Link",
-  "PasswordSettings.resetPasswordWithEmail.options.code": "Code",
+  "PasswordSettings.resetPasswordWithEmail.options.code": "One-time password (OTP)",
   "PasswordSettings.resetPasswordWithPhone.options.sms": "SMS",
 
   "ApplicationsConfigurationScreen.title": "Applications",
