@@ -79100,6 +79100,7 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
@@ -79120,6 +79121,7 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,
