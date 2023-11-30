@@ -409,6 +409,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -429,6 +430,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,

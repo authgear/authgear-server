@@ -395,6 +395,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
@@ -415,6 +416,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 configAppID,
+		TestModeConfig:        testModeConfig,
 		TestModeFeatureConfig: testModeFeatureConfig,
 		RemoteIP:              remoteIP,
 		CodeStore:             codeStoreRedis,

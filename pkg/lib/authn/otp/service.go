@@ -63,6 +63,7 @@ type Service struct {
 	Clock clock.Clock
 
 	AppID                 config.AppID
+	TestModeConfig        *config.TestModeConfig
 	TestModeFeatureConfig *config.TestModeFeatureConfig
 	RemoteIP              httputil.RemoteIP
 	CodeStore             CodeStore
@@ -148,7 +149,7 @@ func (s *Service) GenerateOTP(kind Kind, target string, form Form, opts *Generat
 		Target:   target,
 		Purpose:  kind.Purpose(),
 		Form:     form,
-		Code:     form.GenerateCode(s.TestModeFeatureConfig, opts.UserID),
+		Code:     form.GenerateCode(s.TestModeConfig, s.TestModeFeatureConfig, target, opts.UserID),
 		ExpireAt: s.Clock.NowUTC().Add(kind.ValidPeriod()),
 
 		UserID:                                 opts.UserID,

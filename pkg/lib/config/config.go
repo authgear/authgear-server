@@ -46,6 +46,7 @@ var _ = Schema.Add("AppConfig", `
 		"google_tag_manager": { "$ref": "#/$defs/GoogleTagManagerConfig" },
 		"account_migration": { "$ref": "#/$defs/AccountMigrationConfig" },
 		"captcha": { "$ref": "#/$defs/CaptchaConfig" },
+		"test_mode": { "$ref": "#/$defs/TestModeConfig" },
 		"authentication_flow": { "$ref": "#/$defs/AuthenticationFlowConfig" }
 	},
 	"required": ["id", "http"]
@@ -83,6 +84,8 @@ type AppConfig struct {
 	AccountMigration *AccountMigrationConfig `json:"account_migration,omitempty"`
 
 	Captcha *CaptchaConfig `json:"captcha,omitempty"`
+
+	TestMode *TestModeConfig `json:"test_mode,omitempty"`
 
 	AuthenticationFlow *AuthenticationFlowConfig `json:"authentication_flow,omitempty"`
 }
