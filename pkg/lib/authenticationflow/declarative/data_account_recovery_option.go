@@ -1,8 +1,11 @@
 package declarative
 
 import (
+	"fmt"
+
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 )
 
 type AccountRecoveryIdentificationOption struct {
@@ -33,6 +36,29 @@ type AccountRecoveryDestinationOption struct {
 type AccountRecoveryDestinationOptionInternal struct {
 	AccountRecoveryDestinationOption
 	TargetLoginID string `json:"target_login_id"`
+}
+
+func (o *AccountRecoveryDestinationOptionInternal) ForgotPasswordCodeKind() forgotpassword.CodeKind {
+	switch o.OTPForm {
+	case AccountRecoveryOTPFormCode:
+		return forgotpassword.CodeKindShortCode
+	case AccountRecoveryOTPFormLink:
+		return forgotpassword.CodeKindLink
+	}
+	panic(fmt.Sprintf("account recovery: unknown otp form %s", o.OTPForm))
+}
+
+func (o *AccountRecoveryDestinationOptionInternal) ForgotPasswordCodeChannel() forgotpassword.CodeChannel {
+	switch o.Channel {
+	case AccountRecoveryChannelWhatsapp:
+		return forgotpassword.CodeChannelWhatsapp
+	case AccountRecoveryChannelSMS:
+		return forgotpassword.CodeChannelSMS
+	case AccountRecoveryChannelEmail:
+		return forgotpassword.CodeChannelEmail
+	default:
+		return forgotpassword.CodeChannelUnknown
+	}
 }
 
 type AccountRecoveryIdentity struct {

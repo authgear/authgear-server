@@ -92,15 +92,15 @@ type VerificationService interface {
 
 type ForgotPasswordService interface {
 	SendCode(loginID string, options *forgotpassword.CodeOptions) error
-	CodeLength(target string, kind forgotpassword.CodeKind) int
-	InspectState(target string) (*otp.State, error)
+	CodeLength(target string, channel forgotpassword.CodeChannel, kind forgotpassword.CodeKind) int
+	InspectState(target string, channel forgotpassword.CodeChannel, kind forgotpassword.CodeKind) (*otp.State, error)
 }
 
 type ResetPasswordService interface {
 	VerifyCode(code string) (state *otp.State, err error)
-	VerifyCodeWithTarget(target string, code string) (state *otp.State, err error)
+	VerifyCodeWithTarget(target string, code string, channel forgotpassword.CodeChannel, kind forgotpassword.CodeKind) (state *otp.State, err error)
 	ResetPassword(code string, newPassword string) error
-	ResetPasswordWithTarget(target string, code string, newPassword string) error
+	ResetPasswordWithTarget(target string, code string, newPassword string, channel forgotpassword.CodeChannel, kind forgotpassword.CodeKind) error
 }
 
 type RateLimiter interface {

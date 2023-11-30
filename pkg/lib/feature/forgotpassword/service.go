@@ -65,16 +65,18 @@ type Service struct {
 type CodeKind string
 
 const (
+	CodeKindUnknown   CodeKind = ""
 	CodeKindLink      CodeKind = "CodeKindLink"
 	CodeKindShortCode CodeKind = "CodeKindShortCode"
 )
 
-type PhoneCodeChannel string
+type CodeChannel string
 
 const (
-	PhoneCodeChannelDefault  PhoneCodeChannel = ""
-	PhoneCodeChannelWhatsapp PhoneCodeChannel = "whatsapp"
-	PhoneCodeChannelSMS      PhoneCodeChannel = "sms"
+	CodeChannelUnknown  CodeChannel = ""
+	CodeChannelEmail    CodeChannel = "email"
+	CodeChannelWhatsapp CodeChannel = "whatsapp"
+	CodeChannelSMS      CodeChannel = "sms"
 )
 
 type CodeOptions struct {
@@ -82,8 +84,7 @@ type CodeOptions struct {
 	AuthenticationFlowName        string
 	AuthenticationFlowJSONPointer jsonpointer.T
 	Kind                          CodeKind
-	// PhoneChannel is only relevant if the target is a phone number
-	PhoneChannel PhoneCodeChannel
+	Channel                       CodeChannel
 }
 
 // SendCode uses loginID to look up Email Login IDs and Phone Number Login IDs.
@@ -156,7 +157,7 @@ func (s *Service) getForgotPasswordOTP(channel model.AuthenticatorOOBChannel, co
 
 func (s *Service) generateDummyOTP(target string, options *CodeOptions) error {
 	// Generate dummy otp for rate limiting
-	otpKind, otpForm := s.getForgotPasswordOTP(s.getChannel(target), options.Kind)
+	otpKind, otpForm := s.getForgotPasswordOTP(s.getChannel(target, options.Channel), options.Kind)
 	_, err := s.OTPCodes.GenerateOTP(
 		otpKind,
 		target,
@@ -229,18 +230,16 @@ func (s *Service) sendToPhone(phone string, userID string, options *CodeOptions)
 		return feature.ErrFeatureDisabledSendingSMS
 	}
 
-	var otpChannel model.AuthenticatorOOBChannel
+	otpChannel := s.getChannel(phone, options.Channel)
 	var msgType otp.MessageType
 
-	switch options.PhoneChannel {
-	case PhoneCodeChannelWhatsapp:
+	switch options.Channel {
+	case CodeChannelWhatsapp:
 		msgType = otp.MessageTypeWhatsappCode
-		otpChannel = model.AuthenticatorOOBChannelWhatsapp
-	case PhoneCodeChannelSMS:
+	case CodeChannelSMS:
 		fallthrough
 	default:
 		msgType = otp.MessageTypeForgotPassword
-		otpChannel = model.AuthenticatorOOBChannelSMS
 	}
 
 	otpKind, otpForm := s.getForgotPasswordOTP(otpChannel, options.Kind)
@@ -281,19 +280,39 @@ func (s *Service) sendToPhone(phone string, userID string, options *CodeOptions)
 	return
 }
 
-func (s *Service) getChannel(target string) model.AuthenticatorOOBChannel {
-	// TODO: more robust?
-	channel := model.AuthenticatorOOBChannelSMS
-	if strings.ContainsRune(target, '@') {
-		channel = model.AuthenticatorOOBChannelEmail
+func (s *Service) getChannel(target string, codeChannel CodeChannel) model.AuthenticatorOOBChannel {
+	switch codeChannel {
+	case CodeChannelEmail:
+		return model.AuthenticatorOOBChannelEmail
+	case CodeChannelWhatsapp:
+		return model.AuthenticatorOOBChannelWhatsapp
+	case CodeChannelSMS:
+		return model.AuthenticatorOOBChannelSMS
+	default:
+		// The channel is unknown, guess a value according to target
+		isEmail := strings.ContainsRune(target, '@')
+
+		var channel model.AuthenticatorOOBChannel
+		if isEmail {
+			channel = model.AuthenticatorOOBChannelEmail
+		} else {
+			switch codeChannel {
+			case CodeChannelWhatsapp:
+				channel = model.AuthenticatorOOBChannelWhatsapp
+			case CodeChannelSMS:
+				fallthrough
+			default:
+				channel = model.AuthenticatorOOBChannelSMS
+			}
+		}
+		return channel
 	}
-	return channel
 }
 
-func (s *Service) doVerifyCodeWithTarget(target string, code string) (state *otp.State, err error) {
-	channel := s.getChannel(target)
+func (s *Service) doVerifyCodeWithTarget(target string, code string, codeChannel CodeChannel, codeKind CodeKind) (state *otp.State, err error) {
+	channel := s.getChannel(target, codeChannel)
 
-	kind, _ := s.getForgotPasswordOTP(channel, CodeKindLink)
+	kind, _ := s.getForgotPasswordOTP(channel, codeKind)
 
 	state, err = s.OTPCodes.InspectState(kind, target)
 	if errors.Is(err, otp.ErrConsumedCode) {
@@ -331,18 +350,18 @@ func (s *Service) doVerifyCode(code string) (target string, state *otp.State, er
 		return
 	}
 
-	state, err = s.doVerifyCodeWithTarget(target, code)
+	state, err = s.doVerifyCodeWithTarget(target, code, CodeChannelUnknown, CodeKindUnknown)
 	if err != nil {
 		return
 	}
 	return target, state, err
 }
 
-func (s *Service) VerifyCodeWithTarget(target string, code string) (state *otp.State, err error) {
+func (s *Service) VerifyCodeWithTarget(target string, code string, codeChannel CodeChannel, kind CodeKind) (state *otp.State, err error) {
 	if !*s.Config.ForgotPassword.Enabled {
 		return nil, ErrFeatureDisabled
 	}
-	state, err = s.doVerifyCodeWithTarget(target, code)
+	state, err = s.doVerifyCodeWithTarget(target, code, codeChannel, kind)
 	if err != nil {
 		return nil, err
 	}
@@ -363,15 +382,14 @@ func (s *Service) VerifyCode(code string) (state *otp.State, err error) {
 	return state, nil
 }
 
-func (s *Service) CodeLength(target string, kind CodeKind) int {
-	_, form := s.getForgotPasswordOTP(s.getChannel(target), kind)
+func (s *Service) CodeLength(target string, channel CodeChannel, kind CodeKind) int {
+	_, form := s.getForgotPasswordOTP(s.getChannel(target, channel), kind)
 	return form.CodeLength()
 }
 
-func (s *Service) InspectState(target string) (*otp.State, error) {
-	// CodeKind is not important here, because only purpose is used to inspect the state
-	kind, _ := s.getForgotPasswordOTP(s.getChannel(target), CodeKindLink)
-	return s.OTPCodes.InspectState(kind, target)
+func (s *Service) InspectState(target string, channel CodeChannel, kind CodeKind) (*otp.State, error) {
+	otpKind, _ := s.getForgotPasswordOTP(s.getChannel(target, channel), kind)
+	return s.OTPCodes.InspectState(otpKind, target)
 }
 
 // ResetPassword consumes code and reset password to newPassword.
@@ -388,24 +406,24 @@ func (s *Service) ResetPassword(code string, newPassword string) error {
 		return err
 	}
 
-	return s.resetPassword(target, state, newPassword)
+	return s.resetPassword(target, state, newPassword, CodeChannelUnknown)
 }
 
 // ResetPasswordWithTarget is same as ResetPassword, except target is passed by caller.
-func (s *Service) ResetPasswordWithTarget(target string, code string, newPassword string) error {
+func (s *Service) ResetPasswordWithTarget(target string, code string, newPassword string, channel CodeChannel, kind CodeKind) error {
 	if !*s.Config.ForgotPassword.Enabled {
 		return ErrFeatureDisabled
 	}
 
-	state, err := s.doVerifyCodeWithTarget(target, code)
+	state, err := s.doVerifyCodeWithTarget(target, code, channel, kind)
 	if err != nil {
 		return err
 	}
 
-	return s.resetPassword(target, state, newPassword)
+	return s.resetPassword(target, state, newPassword, channel)
 }
 
-func (s *Service) resetPassword(target string, otpState *otp.State, newPassword string) error {
+func (s *Service) resetPassword(target string, otpState *otp.State, newPassword string, channel CodeChannel) error {
 	err := s.SetPassword(otpState.UserID, newPassword)
 	if err != nil {
 		return err
