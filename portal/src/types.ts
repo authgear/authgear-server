@@ -423,6 +423,7 @@ export interface AccountRecoveryChannel {
 export enum AccountRecoveryCodeChannel {
   Email = "email",
   SMS = "sms",
+  Whatsapp = "whatsapp",
 }
 
 export enum AccountRecoveryCodeForm {
