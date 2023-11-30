@@ -257,7 +257,7 @@ func (c *AuthflowController) HandleResumeOfFlow(
 		return
 	}
 
-	screen, err := c.createScreenWithOutput(r, s, output)
+	screen, err := c.createScreenWithOutput(r, s, output, "")
 	if err != nil {
 		c.Logger.WithError(err).Errorf("failed to create screen")
 		handleError(err)
@@ -475,11 +475,11 @@ func (c *AuthflowController) createScreenWithOutput(
 	r *http.Request,
 	s *webapp.Session,
 	output *authflow.ServiceOutput,
+	prevXStep string,
 ) (*webapp.AuthflowScreenWithFlowResponse, error) {
 	flowResponse := output.ToFlowResponse()
-	emptyXStep := ""
 	var emptyInput map[string]interface{}
-	screen := webapp.NewAuthflowScreenWithFlowResponse(&flowResponse, emptyXStep, emptyInput)
+	screen := webapp.NewAuthflowScreenWithFlowResponse(&flowResponse, prevXStep, emptyInput)
 	s.RememberScreen(screen)
 
 	output, screen, err := c.takeBranchRecursively(s, screen)
@@ -507,7 +507,7 @@ func (c *AuthflowController) createScreen(
 		return
 	}
 
-	screen, err = c.createScreenWithOutput(r, s, output1)
+	screen, err = c.createScreenWithOutput(r, s, output1, "")
 	if err != nil {
 		return
 	}
@@ -517,7 +517,7 @@ func (c *AuthflowController) createScreen(
 		if err != nil {
 			return nil, err
 		}
-		screen, err = c.createScreenWithOutput(r, s, output2)
+		screen, err = c.createScreenWithOutput(r, s, output2, screen.Screen.StateToken.XStep)
 		if err != nil {
 			return nil, err
 		}

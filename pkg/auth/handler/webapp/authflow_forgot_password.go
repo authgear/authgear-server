@@ -166,8 +166,8 @@ func (h *AuthflowForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http
 		return nil
 	})
 
-	identification := r.Form.Get("q_login_id_input_type")
-	loginID := r.Form.Get("q_login_id")
+	identification := r.URL.Query().Get("q_login_id_input_type")
+	loginID := r.URL.Query().Get("q_login_id")
 
 	var input interface{} = nil
 
