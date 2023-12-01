@@ -1100,10 +1100,10 @@ function setEnable<T extends string>(
 }
 
 function constructConfig(
-  config: PortalAPIAppConfig,
+  _config: PortalAPIAppConfig,
   _initialState: ConfigFormState,
   currentState: ConfigFormState,
-  effectiveConfig: PortalAPIAppConfig
+  config: PortalAPIAppConfig
 ): PortalAPIAppConfig {
   // eslint-disable-next-line complexity
   return produce(config, (config) => {
@@ -1132,12 +1132,12 @@ function constructConfig(
     config.authentication.identities = controlListPreserve(
       (a, b) => a === b,
       currentState.identitiesControl,
-      effectiveConfig.authentication?.identities ?? []
+      config.authentication.identities ?? []
     );
     config.authentication.primary_authenticators = controlListPreserve(
       (a, b) => a === b,
       currentState.primaryAuthenticatorsControl,
-      effectiveConfig.authentication?.primary_authenticators ?? []
+      config.authentication.primary_authenticators ?? []
     );
     if (currentState.passkeyChecked) {
       config.authentication.primary_authenticators = setEnable(

@@ -182,10 +182,10 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
 }
 
 function constructConfig(
-  config: PortalAPIAppConfig,
+  _config: PortalAPIAppConfig,
   _initialState: ConfigFormState,
   currentState: ConfigFormState,
-  _effectiveConfig: PortalAPIAppConfig
+  config: PortalAPIAppConfig
 ): PortalAPIAppConfig {
   return produce(config, (config) => {
     function filterEnabled<T extends string>(
