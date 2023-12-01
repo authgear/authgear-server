@@ -1623,11 +1623,18 @@ When you are in this step of this flow, you will see a response like the followi
         "options": [
           {
             "masked_display_name": "+8529876****",
-            "channel": "sms"
+            "channel": "sms",
+            "otp_form": "code"
+          },
+          {
+            "masked_display_name": "+8529876****",
+            "channel": "whatsapp",
+            "otp_form": "code"
           },
           {
             "masked_display_name": "john****@example.com",
-            "channel": "email"
+            "channel": "email",
+            "otp_form": "link"
           }
         ]
       }
@@ -1636,7 +1643,13 @@ When you are in this step of this flow, you will see a response like the followi
 }
 ```
 
-It is asking where to deliver the account recovery code. You pass the following input:
+It is asking where to deliver the account recovery code.
+
+`otp_form` can be `code` or `link`. `code` is a 6-digit otp code, and `link` is a long code which is attached to a link.
+
+`channel` is the channel to receiving the account recovery code. Current supported channels are `sms`, `whatsapp` and `email`.
+
+You pass the following input to indicate your choice:
 
 ```json
 {
@@ -1644,7 +1657,7 @@ It is asking where to deliver the account recovery code. You pass the following 
 }
 ```
 
-`index` is the index of the option in `options` array. For `0`, it sends an sms with the account recovery code to `+8529876****`.
+`index` is the index of the option in `options` array. For `0`, it sends an sms with a 6-digit account recovery code to `+8529876****`.
 
 ## type: account_recovery; step.type: verify_account_recovery_code
 
@@ -1668,11 +1681,17 @@ In previous steps, you should have selected the destination to receive the accou
 
 ```jsonc
 {
-  "account_recovery_code": "M6CGA4WV6M9XTXNWFYFHRQDWF6VFR7K4" // Put your account recovery code here
+  "account_recovery_code": "123456" // Put your account recovery code here
 }
 ```
 
-Note that `state_token` can be omitted in this step. Using only the `account_recovery_code` is enough for proceeding to the next step:
+```jsonc
+{
+  "account_recovery_code": "M6CGA4WV6M9XTXNWFYFHRQDWF6VFR7K4" // OR the code in the link.
+}
+```
+
+Note that `state_token` can be omitted in this step, if and only if your selected destination have `otp_form=link`. Using only the `account_recovery_code` is enough for proceeding to the next step in this case:
 
 ```jsonc
 // POST /api/v1/authentication_flows/states/input
