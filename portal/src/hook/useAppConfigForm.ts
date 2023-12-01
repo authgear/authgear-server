@@ -47,28 +47,11 @@ export function useAppConfigForm<State>(
   const {
     appID,
     constructFormState,
-    constructConfig: propConstuctConfig,
+    constructConfig,
     constructInitialCurrentState,
     validate,
     initialCanSave,
   } = options;
-
-  const constructConfig = useMemo(() => {
-    return (
-      config: PortalAPIAppConfig,
-      initialState: State,
-      currentState: State,
-      effectiveConfig: PortalAPIAppConfig
-    ) => {
-      const newConfig = propConstuctConfig(
-        config,
-        initialState,
-        currentState,
-        effectiveConfig
-      );
-      return removeDepreatedFields(newConfig);
-    };
-  }, [propConstuctConfig]);
 
   const {
     loading: isLoading,
@@ -194,17 +177,4 @@ export function useAppConfigForm<State>(
     save,
     effectiveConfig,
   };
-}
-
-function removeDepreatedFields(config: PortalAPIAppConfig): PortalAPIAppConfig {
-  const forgot_password = config.forgot_password;
-  if (forgot_password != null) {
-    for (const deprecatedField of [
-      "reset_code_expiry_seconds",
-      "code_valid_period",
-    ]) {
-      (config.forgot_password as any)[deprecatedField] = undefined;
-    }
-  }
-  return config;
 }
