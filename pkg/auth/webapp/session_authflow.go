@@ -279,11 +279,11 @@ func newAuthflowScreenAccountRecovery(flowResponse *authflow.FlowResponse, previ
 
 	switch config.AuthenticationFlowStepType(flowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
-		// identify contains branches.
-		screen.BranchStateToken = state
+		// identify contains branches, but it is not important.
+		break
 	case config.AuthenticationFlowStepTypeSelectDestination:
-		// select_destination contains branches.
-		screen.BranchStateToken = state
+		// select_destination contains branches, but it is not important.
+		break
 	case config.AuthenticationFlowStepTypeVerifyAccountRecoveryCode:
 		// verify_account_recovery_code contains NO branches.
 		break
@@ -878,22 +878,34 @@ func (s *AuthflowScreenWithFlowResponse) navigateSignupLogin(r *http.Request, we
 }
 
 func (s *AuthflowScreenWithFlowResponse) navigateAccountRecovery(r *http.Request, webSessionID string, result *Result) {
-	navigate := func(path string) {
+	navigate := func(path string, query *url.Values) {
 		u := *r.URL
 		u.Path = path
 		q := u.Query()
 		q.Set(AuthflowQueryKey, s.Screen.StateToken.XStep)
+		for k, param := range *query {
+			for _, p := range param {
+				q.Add(k, p)
+			}
+		}
 		u.RawQuery = q.Encode()
 		result.NavigationAction = "replace"
 		result.RedirectURI = u.String()
 	}
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
-		navigate(AuthflowRouteForgotPassword)
+		navigate(AuthflowRouteForgotPassword, &url.Values{})
+	case config.AuthenticationFlowStepTypeSelectDestination:
+		navigate(AuthflowRouteForgotPassword, &url.Values{})
 	case config.AuthenticationFlowStepTypeVerifyAccountRecoveryCode:
-		navigate(AuthflowRouteForgotPasswordSuccess)
+		data, ok := s.StateTokenFlowResponse.Action.Data.(declarative.IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData)
+		if ok && data.OTPForm == declarative.AccountRecoveryOTPFormCode {
+			navigate(AuthflowRouteForgotPasswordOTP, &url.Values{"x_can_back_to_login": []string{"true"}})
+		} else {
+			navigate(AuthflowRouteForgotPasswordSuccess, &url.Values{"x_can_back_to_login": []string{"false"}})
+		}
 	case config.AuthenticationFlowStepTypeResetPassword:
-		navigate(AuthflowRouteResetPassword)
+		navigate(AuthflowRouteResetPassword, &url.Values{})
 	default:
 		panic(fmt.Errorf("unexpected action type: %v", s.StateTokenFlowResponse.Action.Type))
 	}

@@ -41,13 +41,17 @@ type AuthFlowForgotPasswordViewModel struct {
 	PhoneLoginIDEnabled bool
 	EmailLoginIDEnabled bool
 	LoginIDDisabled     bool
+	OTPForm             string
 }
 
-func NewAuthFlowForgotPasswordViewModel(r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse) AuthFlowForgotPasswordViewModel {
+func NewAuthFlowForgotPasswordViewModel(
+	r *http.Request,
+	initialScreen *webapp.AuthflowScreenWithFlowResponse,
+	selectDestinationScreen *webapp.AuthflowScreenWithFlowResponse) AuthFlowForgotPasswordViewModel {
 	loginIDInputType := r.Form.Get("q_login_id_input_type")
 	loginID := r.Form.Get("q_login_id")
 
-	data, ok := screen.StateTokenFlowResponse.Action.Data.(declarative.IntentAccountRecoveryFlowStepIdentifyData)
+	data, ok := initialScreen.StateTokenFlowResponse.Action.Data.(declarative.IntentAccountRecoveryFlowStepIdentifyData)
 	if !ok {
 		panic("authflow webapp: unexpected data")
 	}
@@ -66,12 +70,22 @@ func NewAuthFlowForgotPasswordViewModel(r *http.Request, screen *webapp.Authflow
 
 	loginIDDisabled := !phoneLoginIDEnabled && !emailLoginIDEnabled
 
+	otpForm := ""
+	if selectDestinationScreen != nil {
+		data2, ok := selectDestinationScreen.StateTokenFlowResponse.Action.
+			Data.(declarative.IntentAccountRecoveryFlowStepSelectDestinationData)
+		if ok && len(data2.Options) > 0 {
+			otpForm = string(data2.Options[0].OTPForm)
+		}
+	}
+
 	return AuthFlowForgotPasswordViewModel{
 		LoginIDInputType:    loginIDInputType,
 		LoginID:             loginID,
 		PhoneLoginIDEnabled: phoneLoginIDEnabled,
 		EmailLoginIDEnabled: emailLoginIDEnabled,
 		LoginIDDisabled:     loginIDDisabled,
+		OTPForm:             otpForm,
 	}
 }
 
@@ -81,13 +95,18 @@ type AuthflowForgotPasswordHandler struct {
 	Renderer      Renderer
 }
 
-func (h *AuthflowForgotPasswordHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
+func (h *AuthflowForgotPasswordHandler) GetData(
+	w http.ResponseWriter,
+	r *http.Request,
+	s *webapp.Session,
+	initialScreen *webapp.AuthflowScreenWithFlowResponse,
+	selectDestinationScreen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	screenViewModel := NewAuthFlowForgotPasswordViewModel(r, screen)
+	screenViewModel := NewAuthFlowForgotPasswordViewModel(r, initialScreen, selectDestinationScreen)
 	viewmodels.Embed(data, screenViewModel)
 
 	return data, nil
@@ -96,9 +115,26 @@ func (h *AuthflowForgotPasswordHandler) GetData(w http.ResponseWriter, r *http.R
 func (h *AuthflowForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	flowName := "default"
 	var handlers AuthflowControllerHandlers
+
 	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 
-		data, err := h.GetData(w, r, s, screen)
+		var screenIdentify *webapp.AuthflowScreenWithFlowResponse
+		var screenSelectDestination *webapp.AuthflowScreenWithFlowResponse
+
+		// screen can be identity or select_destination according to the query
+		switch config.AuthenticationFlowStepType(screen.StateTokenFlowResponse.Action.Type) {
+		case config.AuthenticationFlowStepTypeIdentify:
+			screenIdentify = screen
+		case config.AuthenticationFlowStepTypeSelectDestination:
+			screenSelectDestination = screen
+			var err error
+			screenIdentify, err = h.Controller.GetScreen(s, screen.Screen.PreviousXStep)
+			if err != nil {
+				return err
+			}
+		}
+
+		data, err := h.GetData(w, r, s, screenIdentify, screenSelectDestination)
 		if err != nil {
 			return err
 		}
@@ -106,6 +142,7 @@ func (h *AuthflowForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http
 		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowForgotPasswordHTML, data)
 		return nil
 	})
+
 	handlers.PostAction("", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		err := AuthflowForgotPasswordSchema.Validator().ValidateValue(FormToJSON(r.Form))
 		if err != nil {
@@ -129,8 +166,20 @@ func (h *AuthflowForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http
 		return nil
 	})
 
+	identification := r.URL.Query().Get("q_login_id_input_type")
+	loginID := r.URL.Query().Get("q_login_id")
+
+	var input interface{} = nil
+
+	if identification != "" && loginID != "" {
+		input = map[string]interface{}{
+			"identification": identification,
+			"login_id":       loginID,
+		}
+	}
+
 	h.Controller.HandleStartOfFlow(w, r, webapp.SessionOptions{}, authflow.FlowReference{
 		Type: authflow.FlowTypeAccountRecovery,
 		Name: flowName,
-	}, &handlers)
+	}, &handlers, input)
 }

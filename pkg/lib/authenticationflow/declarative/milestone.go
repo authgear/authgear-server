@@ -163,7 +163,7 @@ type MilestoneDoUseAccountRecoveryIdentificationMethod interface {
 
 type MilestoneDoUseAccountRecoveryDestination interface {
 	authflow.Milestone
-	MilestoneDoUseAccountRecoveryDestination() string
+	MilestoneDoUseAccountRecoveryDestination() *AccountRecoveryDestinationOptionInternal
 }
 
 type MilestoneAccountRecoveryCode interface {

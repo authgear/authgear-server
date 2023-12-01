@@ -229,7 +229,13 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 			u := r.URL
 			outQuery := webapp.PreserveQuery(u.Query())
 			for i := 0; i < len(pairs); i += 2 {
-				outQuery.Set(pairs[i], pairs[i+1])
+				key := pairs[i]
+				val := pairs[i+1]
+				if val != "" {
+					outQuery.Set(key, val)
+				} else {
+					outQuery.Del(key)
+				}
 			}
 			return webapp.MakeURL(u, path, outQuery).String()
 		},

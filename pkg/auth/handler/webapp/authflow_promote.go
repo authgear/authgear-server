@@ -121,5 +121,5 @@ func (h *AuthflowPromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	h.Controller.HandleStartOfFlow(w, r, opts, authflow.FlowReference{
 		Type: authflow.FlowTypePromote,
 		Name: flowName,
-	}, &handlers)
+	}, &handlers, nil)
 }

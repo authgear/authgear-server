@@ -123,7 +123,11 @@ func (h *AuthflowResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.
 	})
 
 	code := r.URL.Query().Get("code")
-	h.Controller.HandleResumeOfFlow(w, r, webapp.SessionOptions{}, &handlers, map[string]interface{}{
-		"account_recovery_code": code,
-	}, &errorHandler)
+	if code != "" {
+		h.Controller.HandleResumeOfFlow(w, r, webapp.SessionOptions{}, &handlers, map[string]interface{}{
+			"account_recovery_code": code,
+		}, &errorHandler)
+	} else {
+		h.Controller.HandleStep(w, r, &handlers)
+	}
 }

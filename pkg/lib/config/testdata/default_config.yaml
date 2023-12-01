@@ -250,6 +250,13 @@ ui:
       - "ZA"
       - "ZM"
       - "ZW"
+  forgot_password:
+    phone:
+    - channel: sms
+      otp_form: code
+    email:
+    - channel: email
+      otp_form: link
 localization:
   fallback_language: en
   supported_languages: ["en"]
@@ -580,6 +587,9 @@ forgot_password:
   enabled: true
   reset_code_expiry_seconds: 1200
   code_valid_period: 20m0s
+  valid_periods:
+    link: 20m0s
+    code: 300s
   rate_limits:
     email:
       trigger_per_ip: {}

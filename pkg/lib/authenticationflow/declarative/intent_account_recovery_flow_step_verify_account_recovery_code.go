@@ -2,17 +2,29 @@ package declarative
 
 import (
 	"context"
-	"errors"
+	"time"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 )
 
 func init() {
 	authflow.RegisterIntent(&IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode{})
 }
+
+type IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData struct {
+	MaskedDisplayName              string                 `json:"masked_display_name"`
+	Channel                        AccountRecoveryChannel `json:"channel"`
+	OTPForm                        AccountRecoveryOTPForm `json:"otp_form"`
+	CodeLength                     int                    `json:"code_length,omitempty"`
+	CanResendAt                    time.Time              `json:"can_resend_at,omitempty"`
+	FailedAttemptRateLimitExceeded bool                   `json:"failed_attempt_rate_limit_exceeded"`
+}
+
+var _ authflow.Data = IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData{}
+
+func (IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData) Data() {}
 
 type IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode struct {
 	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
@@ -22,30 +34,7 @@ type IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode struct {
 }
 
 var _ authflow.TargetStep = &IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode{}
-
-func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) Instantiate(
-	ctx context.Context,
-	deps *authflow.Dependencies,
-	flows authflow.Flows,
-) error {
-	if i.isRestored() {
-		// We don't want to send the code again if this step was restored
-		return nil
-	}
-	milestone, ok := authflow.FindMilestone[MilestoneDoUseAccountRecoveryDestination](flows.Root)
-	if !ok {
-		return InvalidFlowConfig.New("IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode depends on MilestoneDoUseAccountRecoveryDestination")
-	}
-	err := deps.ForgotPassword.SendCode(milestone.MilestoneDoUseAccountRecoveryDestination(), &forgotpassword.CodeOptions{
-		AuthenticationFlowType:        string(i.FlowReference.Type),
-		AuthenticationFlowName:        i.FlowReference.Name,
-		AuthenticationFlowJSONPointer: i.JSONPointer,
-	})
-	if err != nil && !errors.Is(err, forgotpassword.ErrUserNotFound) {
-		return err
-	}
-	return nil
-}
+var _ authflow.DataOutputer = &IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode{}
 
 func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) GetName() string {
 	return i.StepName
@@ -66,7 +55,7 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) CanReactTo(ctx 
 	case 0:
 		return nil, nil
 	case 1:
-		return &InputSchemaTakeAccountRecoveryCode{
+		return &InputSchemaStepAccountRecoveryVerifyCode{
 			JSONPointer: i.JSONPointer,
 		}, nil
 	}
@@ -81,20 +70,46 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) ReactTo(ctx con
 			// We don't want to send the code again if this step was restored
 			return authflow.NewNodeSimple(&NodeSentinel{}), nil
 		}
-		nextNode, err := NewNodeDoSendAccountRecoveryCode(ctx, deps, flows, i.FlowReference, i.JSONPointer, i.StartFrom)
+		nextNode, err := NewNodeDoSendAccountRecoveryCode(ctx, deps, flows, i.FlowReference, i.JSONPointer)
 		if err != nil {
 			return nil, err
 		}
 		return authflow.NewNodeSimple(nextNode), nil
 	case 1:
-		var inputTakeAccountRecoveryCode inputTakeAccountRecoveryCode
-		if authflow.AsInput(input, &inputTakeAccountRecoveryCode) {
-			code := inputTakeAccountRecoveryCode.GetAccountRecoveryCode()
-			_, err := deps.ResetPassword.VerifyCode(code)
-			if err != nil {
-				return nil, err
+		var inputStepAccountRecoveryVerifyCode inputStepAccountRecoveryVerifyCode
+		if authflow.AsInput(input, &inputStepAccountRecoveryVerifyCode) {
+			if inputStepAccountRecoveryVerifyCode.IsCode() {
+				code := inputStepAccountRecoveryVerifyCode.GetCode()
+				milestone, ok := authflow.FindMilestone[MilestoneDoUseAccountRecoveryDestination](flows.Root)
+				if ok {
+					dest := milestone.MilestoneDoUseAccountRecoveryDestination()
+					_, err := deps.ResetPassword.VerifyCodeWithTarget(dest.TargetLoginID, code)
+					if err != nil {
+						return nil, err
+					}
+				} else {
+					// MilestoneDoUseAccountRecoveryDestination might not exist, because the flow is restored
+					_, err := deps.ResetPassword.VerifyCode(code)
+					if err != nil {
+						return nil, err
+					}
+				}
+				return authflow.NewNodeSimple(&NodeUseAccountRecoveryCode{Code: code}), nil
 			}
-			return authflow.NewNodeSimple(&NodeUseAccountRecoveryCode{Code: code}), nil
+
+			if inputStepAccountRecoveryVerifyCode.IsResend() {
+				prevNode := flows.Nearest.Nodes[0].Simple
+				switch prevNode.(type) {
+				case *NodeDoSendAccountRecoveryCode:
+					err := prevNode.(*NodeDoSendAccountRecoveryCode).send(deps)
+					if err != nil {
+						return nil, err
+					}
+					return authflow.NewNodeSimple(prevNode), authflow.ErrUpdateNode
+				}
+			}
+
+			return nil, authflow.ErrIncompatibleInput
 		}
 
 	}
@@ -104,4 +119,27 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) ReactTo(ctx con
 
 func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) isRestored() bool {
 	return isNodeRestored(i.JSONPointer, i.StartFrom)
+}
+
+func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
+	milestone, ok := authflow.FindMilestone[MilestoneDoUseAccountRecoveryDestination](flows.Root)
+	if ok {
+		dest := milestone.MilestoneDoUseAccountRecoveryDestination()
+		state, err := deps.ForgotPassword.InspectState(dest.TargetLoginID)
+		if err != nil {
+			return nil, err
+		}
+		codeLength := deps.ForgotPassword.CodeLength(dest.TargetLoginID, accountRecoveryOTPFormToForgotPasswordCodeKind(dest.OTPForm))
+		return IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData{
+			MaskedDisplayName:              dest.MaskedDisplayName,
+			Channel:                        dest.Channel,
+			OTPForm:                        dest.OTPForm,
+			CodeLength:                     codeLength,
+			CanResendAt:                    state.CanResendAt,
+			FailedAttemptRateLimitExceeded: state.TooManyAttempts,
+		}, nil
+	} else {
+		// MilestoneDoUseAccountRecoveryDestination might not exist, because the flow is restored
+		return nil, nil
+	}
 }

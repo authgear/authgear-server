@@ -585,11 +585,40 @@ var _ = Schema.Add("AuthenticationFlowAccountRecoveryFlowStep", `
 				"properties": {
 					"enumerate_destinations": {
 						"type": "boolean"
+					},
+					"allowed_channels": {
+						"type": "array",
+						"items": { "$ref": "#/$defs/AccountRecoveryChannel" }
 					}
 				}
 			}
 		}
 	]
+}
+`)
+
+var _ = Schema.Add("AccountRecoveryChannel", `
+{
+	"type": "object",
+	"required": ["channel", "otp_form"],
+	"properties": {
+		"channel": { "$ref": "#/$defs/AccountRecoveryCodeChannel" },
+		"otp_form": { "$ref": "#/$defs/AccountRecoveryCodeForm" }
+	}
+}
+`)
+
+var _ = Schema.Add("AccountRecoveryCodeChannel", `
+{
+	"type": "string",
+	"enum": ["sms", "email"]
+}
+`)
+
+var _ = Schema.Add("AccountRecoveryCodeForm", `
+{
+	"type": "string",
+	"enum": ["link", "code"]
 }
 `)
 
@@ -1187,6 +1216,46 @@ func (f *AuthenticationFlowAccountRecoveryFlow) GetSteps() []AuthenticationFlowO
 	return out
 }
 
+type AccountRecoveryCodeChannel string
+
+const (
+	AccountRecoveryCodeChannelSMS   AccountRecoveryCodeChannel = "sms"
+	AccountRecoveryCodeChannelEmail AccountRecoveryCodeChannel = "email"
+)
+
+type AccountRecoveryCodeForm string
+
+const (
+	AccountRecoveryCodeFormLink AccountRecoveryCodeForm = "link"
+	AccountRecoveryCodeFormCode AccountRecoveryCodeForm = "code"
+)
+
+type AccountRecoveryChannel struct {
+	Channel AccountRecoveryCodeChannel `json:"channel,omitempty"`
+	OTPForm AccountRecoveryCodeForm    `json:"otp_form,omitempty"`
+}
+
+func GetAllAccountRecoveryChannel() []*AccountRecoveryChannel {
+	return []*AccountRecoveryChannel{
+		{
+			Channel: AccountRecoveryCodeChannelEmail,
+			OTPForm: AccountRecoveryCodeFormLink,
+		},
+		{
+			Channel: AccountRecoveryCodeChannelEmail,
+			OTPForm: AccountRecoveryCodeFormCode,
+		},
+		{
+			Channel: AccountRecoveryCodeChannelSMS,
+			OTPForm: AccountRecoveryCodeFormCode,
+		},
+		{
+			Channel: AccountRecoveryCodeChannelSMS,
+			OTPForm: AccountRecoveryCodeFormLink,
+		},
+	}
+}
+
 type AuthenticationFlowAccountRecoveryFlowStep struct {
 	Name string                                    `json:"name,omitempty"`
 	Type AuthenticationFlowAccountRecoveryFlowType `json:"type,omitempty"`
@@ -1194,6 +1263,8 @@ type AuthenticationFlowAccountRecoveryFlowStep struct {
 	OneOf []*AuthenticationFlowAccountRecoveryFlowOneOf `json:"one_of,omitempty"`
 	// EnumerateDestinations is specific to select_destination.
 	EnumerateDestinations bool `json:"enumerate_destinations,omitempty"`
+	// AllowedChannels is specific to select_destination.
+	AllowedChannels []*AccountRecoveryChannel `json:"allowed_channels,omitempty"`
 }
 
 var _ AuthenticationFlowObjectFlowStep = &AuthenticationFlowAccountRecoveryFlowStep{}

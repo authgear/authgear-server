@@ -85,7 +85,7 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 		Convey("return ErrFlowNotFound if session has no authflow", func() {
 			s := &webapp.Session{}
 
-			_, err := c.getScreen(s, "")
+			_, err := c.GetScreen(s, "")
 			So(err, ShouldBeError, authflow.ErrFlowNotFound)
 		})
 
@@ -116,7 +116,7 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 				},
 			}
 
-			_, err := c.getScreen(s, "")
+			_, err := c.GetScreen(s, "")
 			So(errors.Is(err, authflow.ErrFlowNotFound), ShouldBeTrue)
 		})
 
@@ -154,7 +154,7 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 				},
 			}, nil)
 
-			actual, err := c.getScreen(s, "step_1")
+			actual, err := c.GetScreen(s, "step_1")
 			So(err, ShouldBeNil)
 			So(actual, ShouldResemble, &webapp.AuthflowScreenWithFlowResponse{
 				Screen: screen1,
@@ -207,7 +207,7 @@ func TestAuthflowControllerCreateScreen(t *testing.T) {
 			screen, err := c.createScreen(r, s, authflow.FlowReference{
 				Type: authflow.FlowTypeLogin,
 				Name: "default",
-			})
+			}, nil)
 			So(err, ShouldBeNil)
 			So(screen, ShouldNotBeNil)
 			So(string(screen.BranchStateTokenFlowResponse.Type), ShouldEqual, "login")

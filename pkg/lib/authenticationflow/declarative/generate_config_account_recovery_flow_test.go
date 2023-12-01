@@ -50,9 +50,18 @@ steps:
   one_of:
   - identification: email
     on_failure: ignore
+    steps:
+      - type: select_destination
+        allowed_channels:
+          - channel: email
+            otp_form: link
   - identification: phone
     on_failure: ignore
-- type: select_destination
+    steps:
+      - type: select_destination
+        allowed_channels:
+          - channel: sms
+            otp_form: code
 - type: verify_account_recovery_code
 - type: reset_password
 `)
@@ -71,7 +80,11 @@ steps:
   one_of:
   - identification: phone
     on_failure: ignore
-- type: select_destination
+    steps:
+      - type: select_destination
+        allowed_channels:
+          - channel: sms
+            otp_form: code
 - type: verify_account_recovery_code
 - type: reset_password
 `)
@@ -90,9 +103,53 @@ steps:
   one_of:
   - identification: email
     on_failure: ignore
-- type: select_destination
+    steps:
+      - type: select_destination
+        allowed_channels:
+          - channel: email
+            otp_form: link
 - type: verify_account_recovery_code
 - type: reset_password
 `)
+
+		test(
+			`
+identity:
+  login_id:
+    keys:
+    - type: email
+    - type: phone
+ui:
+  forgot_password:
+    phone:
+      - channel: sms
+        otp_form: link
+    email:
+      - channel: email
+        otp_form: code
+`,
+			`
+name: default
+steps:
+- type: identify
+  one_of:
+  - identification: email
+    on_failure: ignore
+    steps:
+      - type: select_destination
+        allowed_channels:
+          - channel: email
+            otp_form: code
+  - identification: phone
+    on_failure: ignore
+    steps:
+      - type: select_destination
+        allowed_channels:
+          - channel: sms
+            otp_form: link
+- type: verify_account_recovery_code
+- type: reset_password
+`)
+
 	})
 }

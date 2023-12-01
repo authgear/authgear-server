@@ -16,9 +16,17 @@ const (
 	AccountRecoveryChannelSMS   AccountRecoveryChannel = "sms"
 )
 
+type AccountRecoveryOTPForm string
+
+const (
+	AccountRecoveryOTPFormLink AccountRecoveryOTPForm = AccountRecoveryOTPForm(config.AccountRecoveryCodeFormLink)
+	AccountRecoveryOTPFormCode AccountRecoveryOTPForm = AccountRecoveryOTPForm(config.AccountRecoveryCodeFormCode)
+)
+
 type AccountRecoveryDestinationOption struct {
 	MaskedDisplayName string                 `json:"masked_display_name"`
 	Channel           AccountRecoveryChannel `json:"channel"`
+	OTPForm           AccountRecoveryOTPForm `json:"otp_form"`
 }
 
 type AccountRecoveryDestinationOptionInternal struct {

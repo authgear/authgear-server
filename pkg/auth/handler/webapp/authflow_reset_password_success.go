@@ -26,11 +26,19 @@ type AuthflowResetPasswordSuccessHandler struct {
 	Renderer      Renderer
 }
 
+type AuthflowResetPasswordSuccessViewModel struct {
+	CanBackToSignIn bool
+}
+
 func (h *AuthflowResetPasswordSuccessHandler) GetData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
+	resetPasswordSuccessViewModel := &AuthflowResetPasswordSuccessViewModel{
+		CanBackToSignIn: r.URL.Query().Get("x_can_back_to_login") == "true",
+	}
 	viewmodels.Embed(data, baseViewModel)
+	viewmodels.Embed(data, resetPasswordSuccessViewModel)
 
 	return data, nil
 }
