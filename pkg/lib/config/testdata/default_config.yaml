@@ -650,4 +650,10 @@ captcha: {}
 test_mode:
   oob_otp:
     enabled: false
+  sms:
+    enabled: false
+  whatsapp:
+    enabled: false
+  email:
+    enabled: false
 authentication_flow: {}
