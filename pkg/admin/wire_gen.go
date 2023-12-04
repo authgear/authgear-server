@@ -804,7 +804,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Context:                    contextContext,
 		Logger:                     serviceLogger,
 		DevMode:                    devMode,
-		TestModeWhatsappSuppressed: testModeWhatsappSuppressed,
+		FeatureTestModeWhatsappSuppressed: testModeWhatsappSuppressed,
 		Config:                     whatsappConfig,
 		OnPremisesClient:           onPremisesClient,
 		TokenStore:                 tokenStore,

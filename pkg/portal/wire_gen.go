@@ -155,7 +155,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Logger:                  mailLogger,
 		DevMode:                 devMode,
 		GomailDialer:            dialer,
-		TestModeEmailSuppressed: testModeEmailSuppressed,
+		FeatureTestModeEmailSuppressed: testModeEmailSuppressed,
 	}
 	sendMessagesLogger := tasks.NewSendMessagesLogger(logFactory)
 	sendMessagesTask := &tasks.SendMessagesTask{
@@ -444,7 +444,7 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		Logger:                  logger,
 		DevMode:                 devMode,
 		GomailDialer:            dialer,
-		TestModeEmailSuppressed: testModeEmailSuppressed,
+		FeatureTestModeEmailSuppressed: testModeEmailSuppressed,
 	}
 	sendMessagesLogger := tasks.NewSendMessagesLogger(logFactory)
 	sendMessagesTask := &tasks.SendMessagesTask{

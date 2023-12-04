@@ -25,23 +25,27 @@ type Logger struct{ *log.Logger }
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("sms-client")} }
 
 type Client struct {
-	Logger                Logger
-	DevMode               config.DevMode
-	MessagingConfig       *config.MessagingConfig
-	TestModeSMSSuppressed config.TestModeSMSSuppressed
-	TwilioClient          *TwilioClient
-	NexmoClient           *NexmoClient
-	CustomClient          *CustomClient
+	Logger                       Logger
+	DevMode                      config.DevMode
+	MessagingConfig              *config.MessagingConfig
+	FeatureTestModeSMSSuppressed config.FeatureTestModeSMSSuppressed
+	TestModeSMSConfig            config.TestModeSMSConfig
+	TwilioClient                 *TwilioClient
+	NexmoClient                  *NexmoClient
+	CustomClient                 *CustomClient
 }
 
 func (c *Client) Send(opts SendOptions) error {
-	if c.TestModeSMSSuppressed {
-		c.Logger.
-			WithField("recipient", opts.To).
-			WithField("sender", opts.Sender).
-			WithField("body", opts.Body).
-			Warn("sending SMS is suppressed in test mode")
+	if c.FeatureTestModeSMSSuppressed {
+		c.testModeSend(opts)
 		return nil
+	}
+
+	if c.TestModeSMSConfig.Enabled {
+		if r, ok := c.TestModeSMSConfig.MatchTarget(opts.To); ok && r.Suppressed {
+			c.testModeSend(opts)
+			return nil
+		}
 	}
 
 	if c.DevMode {
@@ -91,4 +95,12 @@ func (c *Client) Send(opts SendOptions) error {
 	}
 
 	return client.Send(opts.Sender, opts.To, opts.Body)
+}
+
+func (c *Client) testModeSend(opts SendOptions) {
+	c.Logger.
+		WithField("recipient", opts.To).
+		WithField("sender", opts.Sender).
+		WithField("body", opts.Body).
+		Warn("sending SMS is suppressed in test mode")
 }

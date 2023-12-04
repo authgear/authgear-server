@@ -51,7 +51,7 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 		Logger:                  logger,
 		DevMode:                 devMode,
 		GomailDialer:            dialer,
-		TestModeEmailSuppressed: testModeEmailSuppressed,
+		FeatureTestModeEmailSuppressed: testModeEmailSuppressed,
 	}
 	smsLogger := sms.NewLogger(factory)
 	appConfig := config.AppConfig
@@ -90,7 +90,7 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 		Logger:                smsLogger,
 		DevMode:               devMode,
 		MessagingConfig:       messagingConfig,
-		TestModeSMSSuppressed: testModeSMSSuppressed,
+		FeatureTestModeSMSSuppressed: testModeSMSSuppressed,
 		TwilioClient:          twilioClient,
 		NexmoClient:           nexmoClient,
 		CustomClient:          customClient,
@@ -112,7 +112,7 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 		Context:                    context,
 		Logger:                     serviceLogger,
 		DevMode:                    devMode,
-		TestModeWhatsappSuppressed: testModeWhatsappSuppressed,
+		FeatureTestModeWhatsappSuppressed: testModeWhatsappSuppressed,
 		Config:                     whatsappConfig,
 		OnPremisesClient:           onPremisesClient,
 		TokenStore:                 tokenStore,
