@@ -29,7 +29,7 @@ type Sender struct {
 	DevMode                        config.DevMode
 	GomailDialer                   *gomail.Dialer
 	FeatureTestModeEmailSuppressed config.FeatureTestModeEmailSuppressed
-	TestModeEmailConfig            config.TestModeEmailConfig
+	TestModeEmailConfig            *config.TestModeEmailConfig
 }
 
 func NewGomailDialer(smtp *config.SMTPServerCredentials) *gomail.Dialer {

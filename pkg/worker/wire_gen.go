@@ -46,17 +46,21 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	dialer := mail.NewGomailDialer(smtpServerCredentials)
 	featureConfig := config.FeatureConfig
 	testModeFeatureConfig := featureConfig.TestMode
-	testModeEmailSuppressed := deps.ProvideTestModeEmailSuppressed(testModeFeatureConfig)
+	featureTestModeEmailSuppressed := deps.ProvideTestModeEmailSuppressed(testModeFeatureConfig)
+	appConfig := config.AppConfig
+	testModeConfig := appConfig.TestMode
+	testModeEmailConfig := testModeConfig.Email
 	sender := &mail.Sender{
-		Logger:                  logger,
-		DevMode:                 devMode,
-		GomailDialer:            dialer,
-		FeatureTestModeEmailSuppressed: testModeEmailSuppressed,
+		Logger:                         logger,
+		DevMode:                        devMode,
+		GomailDialer:                   dialer,
+		FeatureTestModeEmailSuppressed: featureTestModeEmailSuppressed,
+		TestModeEmailConfig:            testModeEmailConfig,
 	}
 	smsLogger := sms.NewLogger(factory)
-	appConfig := config.AppConfig
 	messagingConfig := appConfig.Messaging
-	testModeSMSSuppressed := deps.ProvideTestModeSMSSuppressed(testModeFeatureConfig)
+	featureTestModeSMSSuppressed := deps.ProvideTestModeSMSSuppressed(testModeFeatureConfig)
+	testModeSMSConfig := testModeConfig.SMS
 	twilioCredentials := deps.ProvideTwilioCredentials(secretConfig)
 	twilioClient := sms.NewTwilioClient(twilioCredentials)
 	nexmoCredentials := deps.ProvideNexmoCredentials(secretConfig)
@@ -87,16 +91,18 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	}
 	customClient := sms.NewCustomClient(customSMSProviderConfig, smsDenoHook, smsWebHook)
 	client := &sms.Client{
-		Logger:                smsLogger,
-		DevMode:               devMode,
-		MessagingConfig:       messagingConfig,
-		FeatureTestModeSMSSuppressed: testModeSMSSuppressed,
-		TwilioClient:          twilioClient,
-		NexmoClient:           nexmoClient,
-		CustomClient:          customClient,
+		Logger:                       smsLogger,
+		DevMode:                      devMode,
+		MessagingConfig:              messagingConfig,
+		FeatureTestModeSMSSuppressed: featureTestModeSMSSuppressed,
+		TestModeSMSConfig:            testModeSMSConfig,
+		TwilioClient:                 twilioClient,
+		NexmoClient:                  nexmoClient,
+		CustomClient:                 customClient,
 	}
 	serviceLogger := whatsapp.NewServiceLogger(factory)
-	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
+	featureTestModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
+	testModeWhatsappConfig := testModeConfig.Whatsapp
 	whatsappConfig := messagingConfig.Whatsapp
 	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
 	handle := appProvider.Redis
@@ -109,13 +115,14 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	}
 	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
 	service := &whatsapp.Service{
-		Context:                    context,
-		Logger:                     serviceLogger,
-		DevMode:                    devMode,
-		FeatureTestModeWhatsappSuppressed: testModeWhatsappSuppressed,
-		Config:                     whatsappConfig,
-		OnPremisesClient:           onPremisesClient,
-		TokenStore:                 tokenStore,
+		Context:                           context,
+		Logger:                            serviceLogger,
+		DevMode:                           devMode,
+		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
+		TestModeWhatsappConfig:            testModeWhatsappConfig,
+		Config:                            whatsappConfig,
+		OnPremisesClient:                  onPremisesClient,
+		TokenStore:                        tokenStore,
 	}
 	sendMessagesLogger := tasks.NewSendMessagesLogger(factory)
 	sendMessagesTask := &tasks.SendMessagesTask{

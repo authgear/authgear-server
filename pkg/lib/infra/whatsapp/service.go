@@ -23,7 +23,7 @@ type Service struct {
 	Logger                            ServiceLogger
 	DevMode                           config.DevMode
 	FeatureTestModeWhatsappSuppressed config.FeatureTestModeWhatsappSuppressed
-	TestModeWhatsappConfig            config.TestModeWhatsappConfig
+	TestModeWhatsappConfig            *config.TestModeWhatsappConfig
 	Config                            *config.WhatsappConfig
 	OnPremisesClient                  *OnPremisesClient
 	TokenStore                        *TokenStore

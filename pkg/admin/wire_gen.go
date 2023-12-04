@@ -791,7 +791,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	serviceLogger := whatsapp.NewServiceLogger(factory)
 	devMode := environmentConfig.DevMode
-	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
+	featureTestModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
+	testModeWhatsappConfig := testModeConfig.Whatsapp
 	whatsappConfig := messagingConfig.Whatsapp
 	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
 	tokenStore := &whatsapp.TokenStore{
@@ -801,13 +802,14 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
 	whatsappService := &whatsapp.Service{
-		Context:                    contextContext,
-		Logger:                     serviceLogger,
-		DevMode:                    devMode,
-		FeatureTestModeWhatsappSuppressed: testModeWhatsappSuppressed,
-		Config:                     whatsappConfig,
-		OnPremisesClient:           onPremisesClient,
-		TokenStore:                 tokenStore,
+		Context:                           contextContext,
+		Logger:                            serviceLogger,
+		DevMode:                           devMode,
+		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
+		TestModeWhatsappConfig:            testModeWhatsappConfig,
+		Config:                            whatsappConfig,
+		OnPremisesClient:                  onPremisesClient,
+		TokenStore:                        tokenStore,
 	}
 	sender := &messaging.Sender{
 		Limits:                 limits,

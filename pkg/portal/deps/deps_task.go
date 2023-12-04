@@ -24,8 +24,26 @@ func ProvideSMTPServerCredentials(c *portalconfig.SMTPConfig) *config.SMTPServer
 	}
 }
 
+func ProvideEmptyTestModeConfig() *config.TestModeConfig {
+	// We don't need test mode for portal
+	c := &config.TestModeConfig{}
+	config.SetFieldDefaults(c)
+	return c
+}
+
+var testModeConfigDependencySet = wire.NewSet(
+	ProvideEmptyTestModeConfig,
+	wire.FieldsOf(new(*config.TestModeConfig),
+		"FixedOOBOTP",
+		"SMS",
+		"Whatsapp",
+		"Email",
+	),
+)
+
 var TaskDependencySet = wire.NewSet(
 	ProvideSMTPServerCredentials,
+	testModeConfigDependencySet,
 
 	tasks.DependencySet,
 	mail.DependencySet,

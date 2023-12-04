@@ -29,7 +29,7 @@ type Client struct {
 	DevMode                      config.DevMode
 	MessagingConfig              *config.MessagingConfig
 	FeatureTestModeSMSSuppressed config.FeatureTestModeSMSSuppressed
-	TestModeSMSConfig            config.TestModeSMSConfig
+	TestModeSMSConfig            *config.TestModeSMSConfig
 	TwilioClient                 *TwilioClient
 	NexmoClient                  *NexmoClient
 	CustomClient                 *CustomClient
