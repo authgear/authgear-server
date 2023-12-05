@@ -562,11 +562,6 @@ func (c *AuthflowController) AdvanceWithInput(
 		result.NavigationAction = "redirect"
 		result.RedirectURI = c.deriveFinishRedirectURI(r, s, &flowResponse2)
 
-		err = c.Sessions.Delete(s.ID)
-		if err != nil {
-			return
-		}
-
 		switch flowResponse2.Type {
 		case authflow.FlowTypeLogin:
 			fallthrough
@@ -574,8 +569,14 @@ func (c *AuthflowController) AdvanceWithInput(
 			fallthrough
 		case authflow.FlowTypeSignup:
 			fallthrough
+		case authflow.FlowTypeSignupLogin:
+			fallthrough
 		case authflow.FlowTypeReauth:
 			// Forget the session.
+			err = c.Sessions.Delete(s.ID)
+			if err != nil {
+				return
+			}
 			result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(c.SessionCookie.Def))
 			// Reset visitor ID.
 			result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(webapp.VisitorIDCookieDef))
