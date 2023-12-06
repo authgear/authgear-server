@@ -19,13 +19,14 @@ func NewServiceLogger(lf *log.Factory) ServiceLogger {
 }
 
 type Service struct {
-	Context                    context.Context
-	Logger                     ServiceLogger
-	DevMode                    config.DevMode
-	TestModeWhatsappSuppressed config.TestModeWhatsappSuppressed
-	Config                     *config.WhatsappConfig
-	OnPremisesClient           *OnPremisesClient
-	TokenStore                 *TokenStore
+	Context                           context.Context
+	Logger                            ServiceLogger
+	DevMode                           config.DevMode
+	FeatureTestModeWhatsappSuppressed config.FeatureTestModeWhatsappSuppressed
+	TestModeWhatsappConfig            *config.TestModeWhatsappConfig
+	Config                            *config.WhatsappConfig
+	OnPremisesClient                  *OnPremisesClient
+	TokenStore                        *TokenStore
 }
 
 func (c *Service) logMessage(
@@ -121,10 +122,16 @@ func (s *Service) PrepareOTPTemplate(language string, text string, code string) 
 
 func (s *Service) SendTemplate(opts *SendTemplateOptions) error {
 
-	if s.TestModeWhatsappSuppressed {
-		s.logMessage(opts).
-			Warn("sending whatsapp is suppressed in test mode")
+	if s.FeatureTestModeWhatsappSuppressed {
+		s.testModeSendTemplate(opts)
 		return nil
+	}
+
+	if s.TestModeWhatsappConfig.Enabled {
+		if r, ok := s.TestModeWhatsappConfig.MatchTarget(opts.To); ok && r.Suppressed {
+			s.testModeSendTemplate(opts)
+			return nil
+		}
 	}
 
 	if s.DevMode {
@@ -147,4 +154,9 @@ func (s *Service) SendTemplate(opts *SendTemplateOptions) error {
 	default:
 		return fmt.Errorf("whatsapp: unknown api type")
 	}
+}
+
+func (s *Service) testModeSendTemplate(opts *SendTemplateOptions) {
+	s.logMessage(opts).
+		Warn("sending whatsapp is suppressed in test mode")
 }

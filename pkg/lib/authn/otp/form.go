@@ -36,6 +36,16 @@ func (f Form) GenerateCode(cfg *config.TestModeConfig, featureCfg *config.TestMo
 	switch c := codeType.(type) {
 	case secretcode.OOBOTPSecretCodeType:
 		if cfg.FixedOOBOTP.Enabled {
+			if r, ok := cfg.FixedOOBOTP.MatchTarget(target); ok {
+				fixedOTP := r.FixedCode
+				if fixedOTP == "" {
+					fixedOTP = featureCfg.FixedOOBOTP.Code
+				}
+				if fixedOTP == "" {
+					fixedOTP = c.Generate()
+				}
+				return c.GenerateFixed(fixedOTP)
+			}
 			for _, r := range cfg.FixedOOBOTP.Rules {
 				reg := r.GetRegex()
 				if reg.Match([]byte(target)) {

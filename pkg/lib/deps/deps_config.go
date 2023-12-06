@@ -70,6 +70,12 @@ var ConfigDeps = wire.NewSet(
 		"AdminAPI",
 		"TestMode",
 	),
+	wire.FieldsOf(new(*config.TestModeConfig),
+		"FixedOOBOTP",
+		"SMS",
+		"Whatsapp",
+		"Email",
+	),
 	ProvideDefaultLanguageTag,
 	ProvideSupportedLanguageTags,
 	ProvideTestModeEmailSuppressed,
@@ -86,16 +92,16 @@ func ProvideSupportedLanguageTags(c *config.Config) template.SupportedLanguageTa
 	return template.SupportedLanguageTags(c.AppConfig.Localization.SupportedLanguages)
 }
 
-func ProvideTestModeEmailSuppressed(c *config.TestModeFeatureConfig) config.TestModeEmailSuppressed {
-	return config.TestModeEmailSuppressed(c.Email.Suppressed)
+func ProvideTestModeEmailSuppressed(c *config.TestModeFeatureConfig) config.FeatureTestModeEmailSuppressed {
+	return config.FeatureTestModeEmailSuppressed(c.Email.Suppressed)
 }
 
-func ProvideTestModeSMSSuppressed(c *config.TestModeFeatureConfig) config.TestModeSMSSuppressed {
-	return config.TestModeSMSSuppressed(c.SMS.Suppressed)
+func ProvideTestModeSMSSuppressed(c *config.TestModeFeatureConfig) config.FeatureTestModeSMSSuppressed {
+	return config.FeatureTestModeSMSSuppressed(c.SMS.Suppressed)
 }
 
-func ProvideTestModeWhatsappSuppressed(c *config.TestModeFeatureConfig) config.TestModeWhatsappSuppressed {
-	return config.TestModeWhatsappSuppressed(c.Whatsapp.Suppressed)
+func ProvideTestModeWhatsappSuppressed(c *config.TestModeFeatureConfig) config.FeatureTestModeWhatsappSuppressed {
+	return config.FeatureTestModeWhatsappSuppressed(c.Whatsapp.Suppressed)
 }
 
 var secretDeps = wire.NewSet(
