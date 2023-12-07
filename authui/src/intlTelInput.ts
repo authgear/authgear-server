@@ -44,7 +44,7 @@ export class IntlTelInputController extends Controller {
 
     // If it is a valid number, then getNumber() returns a E.164 number already.
     // Otherwise we build a value that is a prefix of a E164 number.
-    const isValid = instance.isValidNumber();
+    const isValid = instance.isPossibleNumber();
     if (isValid) {
       const s = instance.getNumber();
       if (typeof s === "string") {
