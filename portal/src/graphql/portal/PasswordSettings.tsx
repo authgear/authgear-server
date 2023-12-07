@@ -452,16 +452,20 @@ export default function PasswordSettings<T extends State>(
       <WidgetTitle>
         <FormattedMessage id="LoginMethodConfigurationScreen.password.title" />
       </WidgetTitle>
-      <WidgetDescription>
-        <FormattedMessage id="LoginMethodConfigurationScreen.password.description" />
-      </WidgetDescription>
-      <Toggle
-        checked={authenticatorPasswordConfig.force_change}
-        inlineLabel={true}
-        label={
-          <FormattedMessage id="PasswordPolicyConfigurationScreen.force-change.label" />
-        }
-        onChange={onChangeForceChange}
+      <WidgetSubtitle>
+        <FormattedMessage id="LoginMethodConfigurationScreen.password.resetPassword.title" />
+      </WidgetSubtitle>
+      <Dropdown
+        label={renderToString("PasswordSettings.resetPasswordWithEmail.label")}
+        options={resetPasswordWithEmailDropdown.options}
+        selectedKey={resetPasswordWithEmailBy}
+        onChange={resetPasswordWithEmailDropdown.onChange}
+      />
+      <Dropdown
+        label={renderToString("PasswordSettings.resetPasswordWithPhone.label")}
+        options={resetPasswordWithPhoneDropdown.options}
+        selectedKey={resetPasswordWithPhoneBy}
+        onChange={resetPasswordWithPhoneDropdown.onChange}
       />
       <TextField
         type="text"
@@ -479,22 +483,21 @@ export default function PasswordSettings<T extends State>(
         value={forgotPasswordCodeValidPeriodSeconds?.toFixed(0) ?? ""}
         onChange={onChangeCodeExpirySeconds}
       />
-      <Dropdown
-        label={renderToString("PasswordSettings.resetPasswordWithEmail.label")}
-        options={resetPasswordWithEmailDropdown.options}
-        selectedKey={resetPasswordWithEmailBy}
-        onChange={resetPasswordWithEmailDropdown.onChange}
-      />
-      <Dropdown
-        label={renderToString("PasswordSettings.resetPasswordWithPhone.label")}
-        options={resetPasswordWithPhoneDropdown.options}
-        selectedKey={resetPasswordWithPhoneBy}
-        onChange={resetPasswordWithPhoneDropdown.onChange}
-      />
       <HorizontalDivider />
       <WidgetSubtitle>
-        <FormattedMessage id="LoginMethodConfigurationScreen.password.basic" />
+        <FormattedMessage id="LoginMethodConfigurationScreen.password.requirements" />
       </WidgetSubtitle>
+      <WidgetDescription>
+        <FormattedMessage id="LoginMethodConfigurationScreen.password.description" />
+      </WidgetDescription>
+      <Toggle
+        checked={authenticatorPasswordConfig.force_change}
+        inlineLabel={true}
+        label={
+          <FormattedMessage id="PasswordPolicyConfigurationScreen.force-change.label" />
+        }
+        onChange={onChangeForceChange}
+      />
       <TextField
         type="text"
         label={renderToString(
@@ -540,7 +543,7 @@ export default function PasswordSettings<T extends State>(
       />
       <HorizontalDivider />
       <WidgetSubtitle>
-        <FormattedMessage id="LoginMethodConfigurationScreen.password.advanced" />
+        <FormattedMessage id="LoginMethodConfigurationScreen.password.requirements.advanced" />
       </WidgetSubtitle>
       {anyAdvancedPolicyDisabled ? (
         <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
