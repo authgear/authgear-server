@@ -2,13 +2,16 @@ package webapp
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -157,8 +160,35 @@ func (h *AuthflowForgotPasswordOTPHandler) ServeHTTP(w http.ResponseWriter, r *h
 		result.WriteResponse(w, r)
 		return nil
 	})
+	handlers.PostAction("select_channel", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+		xIndex, err := strconv.Atoi(r.Form.Get("x_index"))
+		if err != nil {
+			return err
+		}
+
+		input := map[string]interface{}{
+			"index": xIndex,
+		}
+
+		// prevScreen should be select_destination
+		prevScreen, err := h.Controller.GetScreen(s, screen.Screen.PreviousXStep)
+		if err != nil {
+			return err
+		}
+		if string(prevScreen.StateTokenFlowResponse.Action.Type) != string(config.AuthenticationFlowStepTypeSelectDestination) {
+			return fmt.Errorf("authflow webapp: unexpected previous step")
+		}
+
+		result, err := h.Controller.AdvanceWithInput(r, s, prevScreen, input)
+		if err != nil {
+			return err
+		}
+
+		result.WriteResponse(w, r)
+		return nil
+	})
 	handlers.PostAction("submit", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		err := AuthflowEnterOOBOTPSchema.Validator().ValidateValue(FormToJSON(r.Form))
+		err := AuthflowForgotPasswordOTPSchema.Validator().ValidateValue(FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}
