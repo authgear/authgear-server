@@ -1,11 +1,13 @@
 package webapp
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -42,15 +44,25 @@ func ConfigureAuthflowForgotPasswordOTPRoute(route httproute.Route) httproute.Ro
 		WithPathPattern(webapp.AuthflowRouteForgotPasswordOTP)
 }
 
+type AuthflowForgotPasswordOTPAlternativeChannel struct {
+	Index   int
+	Channel declarative.AccountRecoveryChannel
+}
+
 type AuthflowForgotPasswordOTPViewModel struct {
 	Channel                        declarative.AccountRecoveryChannel
 	MaskedClaimValue               string
 	CodeLength                     int
 	FailedAttemptRateLimitExceeded bool
 	ResendCooldown                 int
+	AlternativeChannels            []AuthflowForgotPasswordOTPAlternativeChannel
 }
 
-func NewAuthflowForgotPasswordOTPViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, now time.Time) AuthflowForgotPasswordOTPViewModel {
+func NewAuthflowForgotPasswordOTPViewModel(
+	c *AuthflowController,
+	s *webapp.Session,
+	screen *webapp.AuthflowScreenWithFlowResponse,
+	now time.Time) (*AuthflowForgotPasswordOTPViewModel, error) {
 	data := screen.StateTokenFlowResponse.Action.Data.(declarative.IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData)
 	channel := data.Channel
 	maskedClaimValue := data.MaskedDisplayName
@@ -61,13 +73,43 @@ func NewAuthflowForgotPasswordOTPViewModel(s *webapp.Session, screen *webapp.Aut
 		resendCooldown = 0
 	}
 
-	return AuthflowForgotPasswordOTPViewModel{
+	vm := &AuthflowForgotPasswordOTPViewModel{
 		Channel:                        channel,
 		MaskedClaimValue:               maskedClaimValue,
 		CodeLength:                     codeLength,
 		FailedAttemptRateLimitExceeded: failedAttemptRateLimitExceeded,
 		ResendCooldown:                 resendCooldown,
 	}
+
+	prevScreen, err := c.GetScreen(s, screen.Screen.PreviousXStep)
+	if err != nil && !errors.Is(err, authflow.ErrFlowNotFound) {
+		return nil, err
+	}
+	if errors.Is(err, authflow.ErrFlowNotFound) {
+		return vm, nil
+	}
+	d := prevScreen.StateTokenFlowResponse.Action.
+		Data.(declarative.IntentAccountRecoveryFlowStepSelectDestinationData)
+
+	var alternativeChannels []AuthflowForgotPasswordOTPAlternativeChannel
+	for idx, o := range d.Options {
+		if o.Channel == channel {
+			continue
+		}
+		if o.MaskedDisplayName != maskedClaimValue {
+			continue
+		}
+		if o.OTPForm != declarative.AccountRecoveryOTPFormCode {
+			continue
+		}
+		alternativeChannels = append(alternativeChannels, AuthflowForgotPasswordOTPAlternativeChannel{
+			Channel: o.Channel,
+			Index:   idx,
+		})
+	}
+	vm.AlternativeChannels = alternativeChannels
+
+	return vm, nil
 }
 
 type AuthflowForgotPasswordOTPHandler struct {
@@ -87,7 +129,10 @@ func (h *AuthflowForgotPasswordOTPHandler) ServeHTTP(w http.ResponseWriter, r *h
 		baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 		viewmodels.Embed(data, baseViewModel)
 
-		screenViewModel := NewAuthflowForgotPasswordOTPViewModel(s, screen, now)
+		screenViewModel, err := NewAuthflowForgotPasswordOTPViewModel(h.Controller, s, screen, now)
+		if err != nil {
+			return err
+		}
 		viewmodels.Embed(data, screenViewModel)
 
 		if screenViewModel.Channel == declarative.AccountRecoveryChannelWhatsapp {
