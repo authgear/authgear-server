@@ -17,6 +17,7 @@ import {
   PortalAPIAppConfig,
   AccountRecoveryCodeForm,
   AccountRecoveryCodeChannel,
+  AccountRecoveryChannel,
 } from "../../types";
 import Widget from "../../Widget";
 import WidgetTitle from "../../WidgetTitle";
@@ -44,6 +45,7 @@ export enum ResetPasswordWithEmailMethod {
 export enum ResetPasswordWithPhoneMethod {
   SMS = "sms",
   Whatsapp = "whatsapp",
+  WhatsappOrSMS = "whatsapp_or_sms",
 }
 
 export function getResetPasswordWithEmailMethod(
@@ -60,17 +62,55 @@ export function getResetPasswordWithEmailMethod(
   return ResetPasswordWithEmailMethod.Link;
 }
 
+function compareAccountRecoveryChannels(
+  channels1: AccountRecoveryChannel[],
+  channels2: AccountRecoveryChannel[]
+): boolean {
+  if (channels1.length !== channels2.length) {
+    return false;
+  }
+  for (const [idx, c1] of channels1.entries()) {
+    const c2 = channels2[idx];
+    if (c1.channel !== c2.channel || c1.otp_form !== c2.otp_form) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export function getResetPasswordWithPhoneMethod(
   config: PortalAPIAppConfig
 ): ResetPasswordWithPhoneMethod {
   const channels = config.ui?.forgot_password?.phone;
+  if (channels == null) {
+    return ResetPasswordWithPhoneMethod.SMS;
+  }
   if (
-    channels != null &&
-    channels.length > 0 &&
-    channels[0].channel === AccountRecoveryCodeChannel.Whatsapp
+    compareAccountRecoveryChannels(channels, [
+      {
+        channel: AccountRecoveryCodeChannel.Whatsapp,
+        otp_form: AccountRecoveryCodeForm.Code,
+      },
+      {
+        channel: AccountRecoveryCodeChannel.SMS,
+        otp_form: AccountRecoveryCodeForm.Code,
+      },
+    ])
+  ) {
+    return ResetPasswordWithPhoneMethod.WhatsappOrSMS;
+  }
+
+  if (
+    compareAccountRecoveryChannels(channels, [
+      {
+        channel: AccountRecoveryCodeChannel.Whatsapp,
+        otp_form: AccountRecoveryCodeForm.Code,
+      },
+    ])
   ) {
     return ResetPasswordWithPhoneMethod.Whatsapp;
   }
+
   return ResetPasswordWithPhoneMethod.SMS;
 }
 
@@ -116,6 +156,18 @@ export function setUIForgotPasswordConfig(
       config.ui.forgot_password.phone = [
         {
           channel: AccountRecoveryCodeChannel.Whatsapp,
+          otp_form: AccountRecoveryCodeForm.Code,
+        },
+      ];
+      break;
+    case ResetPasswordWithPhoneMethod.WhatsappOrSMS:
+      config.ui.forgot_password.phone = [
+        {
+          channel: AccountRecoveryCodeChannel.Whatsapp,
+          otp_form: AccountRecoveryCodeForm.Code,
+        },
+        {
+          channel: AccountRecoveryCodeChannel.SMS,
           otp_form: AccountRecoveryCodeForm.Code,
         },
       ];
@@ -201,6 +253,12 @@ function useResetPasswordWithPhoneDropdown<T extends State>(
         key: ResetPasswordWithPhoneMethod.Whatsapp,
         text: renderToString(
           "PasswordSettings.resetPasswordWithPhone.options.whatsapp"
+        ),
+      },
+      {
+        key: ResetPasswordWithPhoneMethod.WhatsappOrSMS,
+        text: renderToString(
+          "PasswordSettings.resetPasswordWithPhone.options.whatsappOrSMS"
         ),
       },
     ],
