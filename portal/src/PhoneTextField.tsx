@@ -73,7 +73,7 @@ export default class PhoneTextField extends React.Component<PhoneTextFieldProps>
 
   emitOnChange(): void {
     if (this.instance != null && this.inputRef.current != null) {
-      const isValid = this.instance.isValidNumber();
+      const isValid = this.instance.isPossibleNumber();
       if (isValid) {
         const valid = this.instance.getNumber();
         if (valid != null) {
