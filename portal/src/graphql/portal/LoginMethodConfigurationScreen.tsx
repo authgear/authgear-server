@@ -2990,7 +2990,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       loginMethodFromFormState(state)
     );
 
-    const showEmailSettings = useMemo(
+    const isLoginIDEmailEnabled = useMemo(
       () =>
         identitiesControl.find((a) => a.value === "login_id")?.isChecked ===
           true &&
@@ -2998,7 +2998,8 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
           ?.isChecked === true,
       [identitiesControl, loginIDKeyConfigsControl]
     );
-    const showPhoneSettings = useMemo(
+    const showEmailSettings = isLoginIDEmailEnabled;
+    const isLoginIDPhoneEnabled = useMemo(
       () =>
         identitiesControl.find((a) => a.value === "login_id")?.isChecked ===
           true &&
@@ -3006,6 +3007,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
           ?.isChecked === true,
       [identitiesControl, loginIDKeyConfigsControl]
     );
+    const showPhoneSettings = isLoginIDPhoneEnabled;
     const showUsernameSettings = useMemo(
       () =>
         identitiesControl.find((a) => a.value === "login_id")?.isChecked ===
@@ -3262,6 +3264,8 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
                   resetPasswordWithPhoneBy={resetPasswordWithPhoneBy}
                   authenticatorPasswordConfig={authenticatorPasswordConfig}
                   passwordPolicyFeatureConfig={passwordPolicyFeatureConfig}
+                  isLoginIDEmailEnabled={isLoginIDEmailEnabled}
+                  isLoginIDPhoneEnabled={isLoginIDPhoneEnabled}
                   setState={setState}
                 />
               </PivotItem>

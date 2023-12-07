@@ -134,6 +134,8 @@ export interface State {
 
 export interface PasswordSettingsProps<T extends State> extends State {
   className?: string;
+  isLoginIDEmailEnabled: boolean;
+  isLoginIDPhoneEnabled: boolean;
   setState: (fn: (state: T) => T) => void;
 }
 
@@ -276,6 +278,8 @@ export default function PasswordSettings<T extends State>(
     resetPasswordWithEmailBy,
     resetPasswordWithPhoneBy,
     passwordPolicyFeatureConfig,
+    isLoginIDEmailEnabled,
+    isLoginIDPhoneEnabled,
     setState,
   } = props;
 
@@ -460,12 +464,14 @@ export default function PasswordSettings<T extends State>(
         options={resetPasswordWithEmailDropdown.options}
         selectedKey={resetPasswordWithEmailBy}
         onChange={resetPasswordWithEmailDropdown.onChange}
+        disabled={!isLoginIDEmailEnabled}
       />
       <Dropdown
         label={renderToString("PasswordSettings.resetPasswordWithPhone.label")}
         options={resetPasswordWithPhoneDropdown.options}
         selectedKey={resetPasswordWithPhoneBy}
         onChange={resetPasswordWithPhoneDropdown.onChange}
+        disabled={!isLoginIDPhoneEnabled}
       />
       <TextField
         type="text"
@@ -474,6 +480,7 @@ export default function PasswordSettings<T extends State>(
         )}
         value={forgotPasswordLinkValidPeriodSeconds?.toFixed(0) ?? ""}
         onChange={onChangeLinkExpirySeconds}
+        disabled={!isLoginIDEmailEnabled}
       />
       <TextField
         type="text"
@@ -482,6 +489,7 @@ export default function PasswordSettings<T extends State>(
         )}
         value={forgotPasswordCodeValidPeriodSeconds?.toFixed(0) ?? ""}
         onChange={onChangeCodeExpirySeconds}
+        disabled={!(isLoginIDEmailEnabled || isLoginIDPhoneEnabled)}
       />
       <HorizontalDivider />
       <WidgetSubtitle>
