@@ -62,23 +62,36 @@ type AuthFlowForgotPasswordViewModel struct {
 	OTPForm             string
 }
 
+func forgotPasswordGetInitialLoginIDInputType(data declarative.IntentAccountRecoveryFlowStepIdentifyData) ForgotPasswordLoginIDInputType {
+	if len(data.Options) < 1 {
+		return ForgotPasswordLoginIDInputTypeEmail
+	}
+	switch data.Options[0].Identification {
+	case config.AuthenticationFlowAccountRecoveryIdentificationEmail:
+		return ForgotPasswordLoginIDInputTypeEmail
+	case config.AuthenticationFlowAccountRecoveryIdentificationPhone:
+		return ForgotPasswordLoginIDInputTypePhone
+	}
+	return ForgotPasswordLoginIDInputTypeEmail
+}
+
 func NewAuthFlowForgotPasswordViewModel(
 	r *http.Request,
 	initialScreen *webapp.AuthflowScreenWithFlowResponse,
 	selectDestinationScreen *webapp.AuthflowScreenWithFlowResponse) AuthFlowForgotPasswordViewModel {
 
-	loginIDInputType := ForgotPasswordLoginIDInputTypeEmail
+	data, ok := initialScreen.StateTokenFlowResponse.Action.Data.(declarative.IntentAccountRecoveryFlowStepIdentifyData)
+	if !ok {
+		panic("authflow webapp: unexpected data")
+	}
+
+	loginIDInputType := forgotPasswordGetInitialLoginIDInputType(data)
 	qLoginIDInputType := ForgotPasswordLoginIDInputType(r.Form.Get("q_login_id_input_type"))
 	if qLoginIDInputType.IsValid() {
 		loginIDInputType = qLoginIDInputType
 	}
 
 	loginID := r.Form.Get("q_login_id")
-
-	data, ok := initialScreen.StateTokenFlowResponse.Action.Data.(declarative.IntentAccountRecoveryFlowStepIdentifyData)
-	if !ok {
-		panic("authflow webapp: unexpected data")
-	}
 
 	phoneLoginIDEnabled := false
 	emailLoginIDEnabled := false
