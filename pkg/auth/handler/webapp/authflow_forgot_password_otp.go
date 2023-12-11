@@ -13,8 +13,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-var TemplateWebAuthflowForgotPasswordOTPHTML = template.RegisterHTML(
-	"web/authflow_forgot_password_otp.html",
+var TemplateWebAuthflowForgotPasswordGenericOTPHTML = template.RegisterHTML(
+	"web/authflow_forgot_password_generic_otp.html",
+	components...,
+)
+
+var TemplateWebAuthflowForgotPasswordWhatsappOTPHTML = template.RegisterHTML(
+	"web/authflow_forgot_password_whatsapp_otp.html",
 	components...,
 )
 
@@ -38,7 +43,7 @@ func ConfigureAuthflowForgotPasswordOTPRoute(route httproute.Route) httproute.Ro
 }
 
 type AuthflowForgotPasswordOTPViewModel struct {
-	Channel                        string
+	Channel                        declarative.AccountRecoveryChannel
 	MaskedClaimValue               string
 	CodeLength                     int
 	FailedAttemptRateLimitExceeded bool
@@ -57,7 +62,7 @@ func NewAuthflowForgotPasswordOTPViewModel(s *webapp.Session, screen *webapp.Aut
 	}
 
 	return AuthflowForgotPasswordOTPViewModel{
-		Channel:                        string(channel),
+		Channel:                        channel,
 		MaskedClaimValue:               maskedClaimValue,
 		CodeLength:                     codeLength,
 		FailedAttemptRateLimitExceeded: failedAttemptRateLimitExceeded,
@@ -73,28 +78,24 @@ type AuthflowForgotPasswordOTPHandler struct {
 	Clock         clock.Clock
 }
 
-func (h *AuthflowForgotPasswordOTPHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
-	now := h.Clock.NowUTC()
-	data := make(map[string]interface{})
-
-	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
-	viewmodels.Embed(data, baseViewModel)
-
-	screenViewModel := NewAuthflowForgotPasswordOTPViewModel(s, screen, now)
-	viewmodels.Embed(data, screenViewModel)
-
-	return data, nil
-}
-
 func (h *AuthflowForgotPasswordOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers AuthflowControllerHandlers
 	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		data, err := h.GetData(w, r, s, screen)
-		if err != nil {
-			return err
-		}
+		now := h.Clock.NowUTC()
+		data := make(map[string]interface{})
 
-		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowForgotPasswordOTPHTML, data)
+		baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
+		viewmodels.Embed(data, baseViewModel)
+
+		screenViewModel := NewAuthflowForgotPasswordOTPViewModel(s, screen, now)
+		viewmodels.Embed(data, screenViewModel)
+
+		if screenViewModel.Channel == declarative.AccountRecoveryChannelWhatsapp {
+			h.Renderer.RenderHTML(w, r, TemplateWebAuthflowForgotPasswordWhatsappOTPHTML, data)
+		} else {
+
+			h.Renderer.RenderHTML(w, r, TemplateWebAuthflowForgotPasswordGenericOTPHTML, data)
+		}
 		return nil
 	})
 	handlers.PostAction("resend", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {

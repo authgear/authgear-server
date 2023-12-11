@@ -294,6 +294,14 @@
   "forgot-password-otp-resend-button-label": "Resend",
   "forgot-password-otp-resend-button-label--unit": "Resend (%ds)",
 
+  "forgot-password-whatsapp-otp-page-title": "WhatsApp Verification",
+  "forgot-password-whatsapp-otp-description": "We have sent a {length}-character one-time password to {target}. Please enter the one-time password below to continue",
+  "forgot-password-whatsapp-otp-placeholder": "One-time password",
+  "forgot-password-whatsapp-otp-resend-button-hint": "Didn''t receive the one-time password? ",
+  "forgot-password-whatsapp-otp-resend-button-rate-limited-hint": "You have exceeded the maximum of attempts for entering the one-time password. Please get a new one-time password. ",
+  "forgot-password-whatsapp-otp-resend-button-label": "Resend",
+  "forgot-password-whatsapp-otp-resend-button-label--unit": "Resend (%ds)",
+
   "tester-success-page-title": "Login Success",
   "tester-success-page-description": "You have successfully logged in. This is the user profile your application will receive:",
   "tester-button-label--settings-page": "Check out the Pre-Built User Settings Page",

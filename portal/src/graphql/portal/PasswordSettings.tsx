@@ -43,6 +43,7 @@ export enum ResetPasswordWithEmailMethod {
 
 export enum ResetPasswordWithPhoneMethod {
   SMS = "sms",
+  Whatsapp = "whatsapp",
 }
 
 export function getResetPasswordWithEmailMethod(
@@ -60,9 +61,16 @@ export function getResetPasswordWithEmailMethod(
 }
 
 export function getResetPasswordWithPhoneMethod(
-  _config: PortalAPIAppConfig
+  config: PortalAPIAppConfig
 ): ResetPasswordWithPhoneMethod {
-  // Always sms at the moment, whatsapp will be added later
+  const channels = config.ui?.forgot_password?.phone;
+  if (
+    channels != null &&
+    channels.length > 0 &&
+    channels[0].channel === AccountRecoveryCodeChannel.Whatsapp
+  ) {
+    return ResetPasswordWithPhoneMethod.Whatsapp;
+  }
   return ResetPasswordWithPhoneMethod.SMS;
 }
 
@@ -104,6 +112,14 @@ export function setUIForgotPasswordConfig(
         },
       ];
       break;
+    case ResetPasswordWithPhoneMethod.Whatsapp:
+      config.ui.forgot_password.phone = [
+        {
+          channel: AccountRecoveryCodeChannel.Whatsapp,
+          otp_form: AccountRecoveryCodeForm.Code,
+        },
+      ];
+      break;
   }
 }
 
@@ -128,16 +144,16 @@ function useResetPasswordWithEmailDropdown<T extends State>(
   onChange: IDropdownProps["onChange"];
 } {
   const { renderToString } = useContext(Context);
-  const options: IDropdownOption<State["resetPasswordWithEmailBy"]>[] = useMemo(
+  const options: IDropdownOption<ResetPasswordWithEmailMethod>[] = useMemo(
     () => [
       {
-        key: "link",
+        key: ResetPasswordWithEmailMethod.Link,
         text: renderToString(
           "PasswordSettings.resetPasswordWithEmail.options.link"
         ),
       },
       {
-        key: "code",
+        key: ResetPasswordWithEmailMethod.Code,
         text: renderToString(
           "PasswordSettings.resetPasswordWithEmail.options.code"
         ),
@@ -174,9 +190,15 @@ function useResetPasswordWithPhoneDropdown<T extends State>(
   const options: IDropdownOption<ResetPasswordWithPhoneMethod>[] = useMemo(
     () => [
       {
-        key: "sms",
+        key: ResetPasswordWithPhoneMethod.SMS,
         text: renderToString(
           "PasswordSettings.resetPasswordWithPhone.options.sms"
+        ),
+      },
+      {
+        key: ResetPasswordWithPhoneMethod.Whatsapp,
+        text: renderToString(
+          "PasswordSettings.resetPasswordWithPhone.options.whatsapp"
         ),
       },
     ],

@@ -557,6 +557,7 @@
   "PasswordSettings.resetPasswordWithEmail.options.link": "Link",
   "PasswordSettings.resetPasswordWithEmail.options.code": "One-time password (OTP)",
   "PasswordSettings.resetPasswordWithPhone.options.sms": "SMS",
+  "PasswordSettings.resetPasswordWithPhone.options.whatsapp": "Whatsapp",
 
   "ApplicationsConfigurationScreen.title": "Applications",
   "ApplicationsConfigurationScreen.description": "Configure applications to use this project for authentication.",

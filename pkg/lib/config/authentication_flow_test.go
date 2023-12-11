@@ -253,6 +253,8 @@ account_recovery_flows:
               otp_form: code
             - channel: sms
               otp_form: link
+            - channel: whatsapp
+              otp_form: code
     - type: verify_account_recovery_code
     - type: reset_password
 `)

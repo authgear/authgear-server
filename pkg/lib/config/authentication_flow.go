@@ -597,31 +597,6 @@ var _ = Schema.Add("AuthenticationFlowAccountRecoveryFlowStep", `
 }
 `)
 
-var _ = Schema.Add("AccountRecoveryChannel", `
-{
-	"type": "object",
-	"required": ["channel", "otp_form"],
-	"properties": {
-		"channel": { "$ref": "#/$defs/AccountRecoveryCodeChannel" },
-		"otp_form": { "$ref": "#/$defs/AccountRecoveryCodeForm" }
-	}
-}
-`)
-
-var _ = Schema.Add("AccountRecoveryCodeChannel", `
-{
-	"type": "string",
-	"enum": ["sms", "email"]
-}
-`)
-
-var _ = Schema.Add("AccountRecoveryCodeForm", `
-{
-	"type": "string",
-	"enum": ["link", "code"]
-}
-`)
-
 var _ = Schema.Add("AuthenticationFlowAccountRecoveryFlowOneOf", `
 {
 	"type": "object",
@@ -1219,8 +1194,9 @@ func (f *AuthenticationFlowAccountRecoveryFlow) GetSteps() []AuthenticationFlowO
 type AccountRecoveryCodeChannel string
 
 const (
-	AccountRecoveryCodeChannelSMS   AccountRecoveryCodeChannel = "sms"
-	AccountRecoveryCodeChannelEmail AccountRecoveryCodeChannel = "email"
+	AccountRecoveryCodeChannelSMS      AccountRecoveryCodeChannel = "sms"
+	AccountRecoveryCodeChannelEmail    AccountRecoveryCodeChannel = "email"
+	AccountRecoveryCodeChannelWhatsapp AccountRecoveryCodeChannel = "whatsapp"
 )
 
 type AccountRecoveryCodeForm string
@@ -1252,6 +1228,10 @@ func GetAllAccountRecoveryChannel() []*AccountRecoveryChannel {
 		{
 			Channel: AccountRecoveryCodeChannelSMS,
 			OTPForm: AccountRecoveryCodeFormLink,
+		},
+		{
+			Channel: AccountRecoveryCodeChannelWhatsapp,
+			OTPForm: AccountRecoveryCodeFormCode,
 		},
 	}
 }
@@ -1337,3 +1317,35 @@ const (
 	AuthenticationFlowAccountRecoveryIdentificationOnFailureError  = AuthenticationFlowAccountRecoveryIdentificationOnFailure("error")
 	AuthenticationFlowAccountRecoveryIdentificationOnFailureIgnore = AuthenticationFlowAccountRecoveryIdentificationOnFailure("ignore")
 )
+
+func init() {
+	accountRecoveryChannelsOneOf := ""
+	addAccountRecoveryChannel := func(channel AccountRecoveryCodeChannel, otpForm AccountRecoveryCodeForm) {
+		newChannel := fmt.Sprintf(`
+		{
+			"properties": {
+				"channel": { "const": "%s" },
+				"otp_form": { "const": "%s" }
+			},
+			"required": ["channel", "otp_form"]
+		}`, channel, otpForm)
+		if accountRecoveryChannelsOneOf == "" {
+			accountRecoveryChannelsOneOf = newChannel
+		} else {
+			accountRecoveryChannelsOneOf = fmt.Sprintf(`
+		%s,
+		%s`, accountRecoveryChannelsOneOf, newChannel)
+		}
+	}
+	for _, c := range GetAllAccountRecoveryChannel() {
+		addAccountRecoveryChannel(c.Channel, c.OTPForm)
+	}
+	schema := fmt.Sprintf(`
+	{
+		"type": "object",
+		"oneOf": [
+%s
+		]
+	}`, accountRecoveryChannelsOneOf)
+	var _ = Schema.Add("AccountRecoveryChannel", schema)
+}
