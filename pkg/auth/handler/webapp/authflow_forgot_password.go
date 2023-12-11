@@ -189,11 +189,30 @@ func (h *AuthflowForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http
 		loginID := r.Form.Get("x_login_id")
 		identification := r.Form.Get("x_login_id_type")
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, map[string]interface{}{
-			"identification": identification,
-			"login_id":       loginID,
-			"index":          0,
-		})
+		inputs := []map[string]interface{}{}
+
+		// screen can be identity or select_destination according to the query
+		switch config.AuthenticationFlowStepType(screen.StateTokenFlowResponse.Action.Type) {
+		case config.AuthenticationFlowStepTypeIdentify:
+			// We need data of both steps, so they must be two inputs
+			inputs = []map[string]interface{}{
+				{
+					"identification": identification,
+					"login_id":       loginID,
+				},
+				{
+					"index": 0,
+				},
+			}
+		case config.AuthenticationFlowStepTypeSelectDestination:
+			inputs = []map[string]interface{}{
+				{
+					"index": 0,
+				},
+			}
+		}
+
+		result, err := h.Controller.AdvanceWithInputs(r, s, screen, inputs)
 
 		if err != nil {
 			return err

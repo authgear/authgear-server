@@ -526,75 +526,97 @@ func (c *AuthflowController) createScreen(
 	return
 }
 
-// AdvanceWithInput is for feeding an input that would advance the flow.
+// AdvanceWithInputs is for feeding multiple inputs that would advance the flow.
+func (c *AuthflowController) AdvanceWithInputs(
+	r *http.Request,
+	s *webapp.Session,
+	screen0 *webapp.AuthflowScreenWithFlowResponse,
+	inputs []map[string]interface{},
+) (*webapp.Result, error) {
+	result := &webapp.Result{}
+
+	prevXStep := screen0.Screen.StateToken.XStep
+	currentScreen := screen0
+
+	for _, input := range inputs {
+		output1, err := c.feedInput(currentScreen.Screen.StateToken.StateToken, input)
+		if err != nil {
+			return nil, err
+		}
+
+		result.Cookies = append(result.Cookies, output1.Cookies...)
+		flowResponse1 := output1.ToFlowResponse()
+
+		screen1 := webapp.NewAuthflowScreenWithFlowResponse(&flowResponse1, prevXStep, input)
+		s.RememberScreen(screen1)
+		currentScreen = screen1
+
+		output2, screen2, err := c.takeBranchRecursively(s, screen1)
+		if err != nil {
+			return nil, err
+		}
+		currentScreen = screen2
+
+		if output2 != nil {
+			result.Cookies = append(result.Cookies, output2.Cookies...)
+		}
+		prevXStep = screen2.Screen.StateToken.XStep
+
+		flowResponse2 := *screen2.StateTokenFlowResponse
+
+		if flowResponse2.Action.Type == authflow.FlowActionTypeFinished {
+			result.RemoveQueries = setutil.Set[string]{
+				"x_step": struct{}{},
+			}
+			result.NavigationAction = "redirect"
+			result.RedirectURI = c.deriveFinishRedirectURI(r, s, &flowResponse2)
+
+			switch flowResponse2.Type {
+			case authflow.FlowTypeLogin:
+				fallthrough
+			case authflow.FlowTypePromote:
+				fallthrough
+			case authflow.FlowTypeSignup:
+				fallthrough
+			case authflow.FlowTypeSignupLogin:
+				fallthrough
+			case authflow.FlowTypeReauth:
+				// Forget the session.
+				err = c.Sessions.Delete(s.ID)
+				if err != nil {
+					return nil, err
+				}
+				result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(c.SessionCookie.Def))
+				// Reset visitor ID.
+				result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(webapp.VisitorIDCookieDef))
+			default:
+				// Do nothing for other flows
+			}
+			// Ignore remaining inputs
+			return result, nil
+		} else {
+			now := c.Clock.NowUTC()
+			s.UpdatedAt = now
+			err = c.Sessions.Update(s)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	currentScreen.Navigate(r, s.ID, result)
+
+	return result, nil
+}
+
+// AdvanceWithInput is same as AdvanceWithInputs but only allow one input.
 func (c *AuthflowController) AdvanceWithInput(
 	r *http.Request,
 	s *webapp.Session,
 	screen0 *webapp.AuthflowScreenWithFlowResponse,
 	input map[string]interface{},
 ) (result *webapp.Result, err error) {
-	result = &webapp.Result{}
-
-	output1, err := c.feedInput(screen0.Screen.StateToken.StateToken, input)
-	if err != nil {
-		return
-	}
-
-	result.Cookies = append(result.Cookies, output1.Cookies...)
-	flowResponse1 := output1.ToFlowResponse()
-
-	screen1 := webapp.NewAuthflowScreenWithFlowResponse(&flowResponse1, screen0.Screen.StateToken.XStep, input)
-	s.RememberScreen(screen1)
-
-	output2, screen2, err := c.takeBranchRecursively(s, screen1)
-	if err != nil {
-		return
-	}
-	if output2 != nil {
-		result.Cookies = append(result.Cookies, output2.Cookies...)
-	}
-	flowResponse2 := *screen2.StateTokenFlowResponse
-
-	if flowResponse2.Action.Type == authflow.FlowActionTypeFinished {
-		result.RemoveQueries = setutil.Set[string]{
-			"x_step": struct{}{},
-		}
-		result.NavigationAction = "redirect"
-		result.RedirectURI = c.deriveFinishRedirectURI(r, s, &flowResponse2)
-
-		switch flowResponse2.Type {
-		case authflow.FlowTypeLogin:
-			fallthrough
-		case authflow.FlowTypePromote:
-			fallthrough
-		case authflow.FlowTypeSignup:
-			fallthrough
-		case authflow.FlowTypeSignupLogin:
-			fallthrough
-		case authflow.FlowTypeReauth:
-			// Forget the session.
-			err = c.Sessions.Delete(s.ID)
-			if err != nil {
-				return
-			}
-			result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(c.SessionCookie.Def))
-			// Reset visitor ID.
-			result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(webapp.VisitorIDCookieDef))
-		default:
-			// Do nothing for other flows
-		}
-	} else {
-		now := c.Clock.NowUTC()
-		s.UpdatedAt = now
-		err = c.Sessions.Update(s)
-		if err != nil {
-			return
-		}
-
-		screen2.Navigate(r, s.ID, result)
-	}
-
-	return
+	return c.AdvanceWithInputs(r, s, screen0, []map[string]interface{}{input})
 }
 
 // UpdateWithInput is for feeding an input that would just update the current node.

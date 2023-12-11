@@ -280,10 +280,13 @@ function UnreasonableWarning(props: UnreasonableWarningProps) {
 
 interface MFAConfigurationContentProps {
   form: FormModel;
+  isLoginIDPhoneEnabled: boolean;
+  isLoginIDEmailEnabled: boolean;
 }
 
 const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
   function MFAConfigurationContent(props) {
+    const { isLoginIDEmailEnabled, isLoginIDPhoneEnabled } = props;
     const { state, setState } = props.form;
     const {
       mfaMode,
@@ -493,6 +496,8 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
               passwordPolicyFeatureConfig={
                 featureConfig?.authenticator?.password?.policy
               }
+              isLoginIDPhoneEnabled={isLoginIDPhoneEnabled}
+              isLoginIDEmailEnabled={isLoginIDEmailEnabled}
               setState={setState}
             />
           ) : null}
@@ -545,6 +550,22 @@ const MFAConfigurationScreen: React.VFC = function MFAConfigurationScreen() {
     constructConfig,
   });
 
+  const isLoginIDEmailEnabled = useMemo(() => {
+    return (
+      configForm.effectiveConfig.identity?.login_id?.keys?.find(
+        (k) => k.type === "email"
+      ) != null
+    );
+  }, [configForm.effectiveConfig.identity?.login_id?.keys]);
+
+  const isLoginIDPhoneEnabled = useMemo(() => {
+    return (
+      configForm.effectiveConfig.identity?.login_id?.keys?.find(
+        (k) => k.type === "phone"
+      ) != null
+    );
+  }, [configForm.effectiveConfig.identity?.login_id?.keys]);
+
   const state = useMemo<FormState>(() => {
     return {
       featureConfig: featureConfig.effectiveFeatureConfig,
@@ -585,7 +606,11 @@ const MFAConfigurationScreen: React.VFC = function MFAConfigurationScreen() {
 
   return (
     <FormContainer form={form}>
-      <MFAConfigurationContent form={form} />
+      <MFAConfigurationContent
+        form={form}
+        isLoginIDEmailEnabled={isLoginIDEmailEnabled}
+        isLoginIDPhoneEnabled={isLoginIDPhoneEnabled}
+      />
     </FormContainer>
   );
 };

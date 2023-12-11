@@ -302,6 +302,9 @@
   "forgot-password-whatsapp-otp-resend-button-label": "Resend",
   "forgot-password-whatsapp-otp-resend-button-label--unit": "Resend (%ds)",
 
+  "forgot-password-alternatives--whatsapp-otp": "Send one-time password via WhatsApp instead",
+  "forgot-password-alternatives--sms-otp": "Send one-time password via SMS instead",
+
   "tester-success-page-title": "Login Success",
   "tester-success-page-description": "You have successfully logged in. This is the user profile your application will receive:",
   "tester-button-label--settings-page": "Check out the Pre-Built User Settings Page",

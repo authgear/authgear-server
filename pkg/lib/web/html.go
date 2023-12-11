@@ -24,6 +24,7 @@ var TemplateWebPasswordStrengthMeterHTML = template.RegisterHTML("web/__password
 var TemplateWebTutorialHTML = template.RegisterHTML("web/__tutorial.html")
 var TemplateWebTermsOfServiceAndPrivacyPolicyFooterHTML = template.RegisterHTML("web/__toc_pp_footer.html")
 var TemplateWebAuthflowBranchHTML = template.RegisterHTML("web/__authflow_branch.html")
+var TemplateWebAuthflowForgotPasswordAlternativesHTML = template.RegisterHTML("web/__authflow_forgot_password_alternatives.html")
 
 var ComponentsHTML = []*template.HTML{
 	TemplateWebHTMLHeadHTML,
@@ -46,4 +47,5 @@ var ComponentsHTML = []*template.HTML{
 	TemplateWebTutorialHTML,
 	TemplateWebTermsOfServiceAndPrivacyPolicyFooterHTML,
 	TemplateWebAuthflowBranchHTML,
+	TemplateWebAuthflowForgotPasswordAlternativesHTML,
 }

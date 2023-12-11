@@ -17,6 +17,7 @@ import {
   PortalAPIAppConfig,
   AccountRecoveryCodeForm,
   AccountRecoveryCodeChannel,
+  AccountRecoveryChannel,
 } from "../../types";
 import Widget from "../../Widget";
 import WidgetTitle from "../../WidgetTitle";
@@ -44,6 +45,7 @@ export enum ResetPasswordWithEmailMethod {
 export enum ResetPasswordWithPhoneMethod {
   SMS = "sms",
   Whatsapp = "whatsapp",
+  WhatsappOrSMS = "whatsapp_or_sms",
 }
 
 export function getResetPasswordWithEmailMethod(
@@ -60,17 +62,55 @@ export function getResetPasswordWithEmailMethod(
   return ResetPasswordWithEmailMethod.Link;
 }
 
+function compareAccountRecoveryChannels(
+  channels1: AccountRecoveryChannel[],
+  channels2: AccountRecoveryChannel[]
+): boolean {
+  if (channels1.length !== channels2.length) {
+    return false;
+  }
+  for (const [idx, c1] of channels1.entries()) {
+    const c2 = channels2[idx];
+    if (c1.channel !== c2.channel || c1.otp_form !== c2.otp_form) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export function getResetPasswordWithPhoneMethod(
   config: PortalAPIAppConfig
 ): ResetPasswordWithPhoneMethod {
   const channels = config.ui?.forgot_password?.phone;
+  if (channels == null) {
+    return ResetPasswordWithPhoneMethod.SMS;
+  }
   if (
-    channels != null &&
-    channels.length > 0 &&
-    channels[0].channel === AccountRecoveryCodeChannel.Whatsapp
+    compareAccountRecoveryChannels(channels, [
+      {
+        channel: AccountRecoveryCodeChannel.Whatsapp,
+        otp_form: AccountRecoveryCodeForm.Code,
+      },
+      {
+        channel: AccountRecoveryCodeChannel.SMS,
+        otp_form: AccountRecoveryCodeForm.Code,
+      },
+    ])
+  ) {
+    return ResetPasswordWithPhoneMethod.WhatsappOrSMS;
+  }
+
+  if (
+    compareAccountRecoveryChannels(channels, [
+      {
+        channel: AccountRecoveryCodeChannel.Whatsapp,
+        otp_form: AccountRecoveryCodeForm.Code,
+      },
+    ])
   ) {
     return ResetPasswordWithPhoneMethod.Whatsapp;
   }
+
   return ResetPasswordWithPhoneMethod.SMS;
 }
 
@@ -120,6 +160,18 @@ export function setUIForgotPasswordConfig(
         },
       ];
       break;
+    case ResetPasswordWithPhoneMethod.WhatsappOrSMS:
+      config.ui.forgot_password.phone = [
+        {
+          channel: AccountRecoveryCodeChannel.Whatsapp,
+          otp_form: AccountRecoveryCodeForm.Code,
+        },
+        {
+          channel: AccountRecoveryCodeChannel.SMS,
+          otp_form: AccountRecoveryCodeForm.Code,
+        },
+      ];
+      break;
   }
 }
 
@@ -134,6 +186,8 @@ export interface State {
 
 export interface PasswordSettingsProps<T extends State> extends State {
   className?: string;
+  isLoginIDEmailEnabled: boolean;
+  isLoginIDPhoneEnabled: boolean;
   setState: (fn: (state: T) => T) => void;
 }
 
@@ -199,6 +253,12 @@ function useResetPasswordWithPhoneDropdown<T extends State>(
         key: ResetPasswordWithPhoneMethod.Whatsapp,
         text: renderToString(
           "PasswordSettings.resetPasswordWithPhone.options.whatsapp"
+        ),
+      },
+      {
+        key: ResetPasswordWithPhoneMethod.WhatsappOrSMS,
+        text: renderToString(
+          "PasswordSettings.resetPasswordWithPhone.options.whatsappOrSMS"
         ),
       },
     ],
@@ -276,6 +336,8 @@ export default function PasswordSettings<T extends State>(
     resetPasswordWithEmailBy,
     resetPasswordWithPhoneBy,
     passwordPolicyFeatureConfig,
+    isLoginIDEmailEnabled,
+    isLoginIDPhoneEnabled,
     setState,
   } = props;
 
@@ -452,6 +514,45 @@ export default function PasswordSettings<T extends State>(
       <WidgetTitle>
         <FormattedMessage id="LoginMethodConfigurationScreen.password.title" />
       </WidgetTitle>
+      <WidgetSubtitle>
+        <FormattedMessage id="LoginMethodConfigurationScreen.password.resetPassword.title" />
+      </WidgetSubtitle>
+      <Dropdown
+        label={renderToString("PasswordSettings.resetPasswordWithEmail.label")}
+        options={resetPasswordWithEmailDropdown.options}
+        selectedKey={resetPasswordWithEmailBy}
+        onChange={resetPasswordWithEmailDropdown.onChange}
+        disabled={!isLoginIDEmailEnabled}
+      />
+      <Dropdown
+        label={renderToString("PasswordSettings.resetPasswordWithPhone.label")}
+        options={resetPasswordWithPhoneDropdown.options}
+        selectedKey={resetPasswordWithPhoneBy}
+        onChange={resetPasswordWithPhoneDropdown.onChange}
+        disabled={!isLoginIDPhoneEnabled}
+      />
+      <TextField
+        type="text"
+        label={renderToString(
+          "PasswordSettings.reset-link-valid-duration.label"
+        )}
+        value={forgotPasswordLinkValidPeriodSeconds?.toFixed(0) ?? ""}
+        onChange={onChangeLinkExpirySeconds}
+        disabled={!isLoginIDEmailEnabled}
+      />
+      <TextField
+        type="text"
+        label={renderToString(
+          "PasswordSettings.reset-code-valid-duration.label"
+        )}
+        value={forgotPasswordCodeValidPeriodSeconds?.toFixed(0) ?? ""}
+        onChange={onChangeCodeExpirySeconds}
+        disabled={!(isLoginIDEmailEnabled || isLoginIDPhoneEnabled)}
+      />
+      <HorizontalDivider />
+      <WidgetSubtitle>
+        <FormattedMessage id="LoginMethodConfigurationScreen.password.requirements" />
+      </WidgetSubtitle>
       <WidgetDescription>
         <FormattedMessage id="LoginMethodConfigurationScreen.password.description" />
       </WidgetDescription>
@@ -463,38 +564,6 @@ export default function PasswordSettings<T extends State>(
         }
         onChange={onChangeForceChange}
       />
-      <TextField
-        type="text"
-        label={renderToString(
-          "PasswordSettings.reset-link-valid-duration.label"
-        )}
-        value={forgotPasswordLinkValidPeriodSeconds?.toFixed(0) ?? ""}
-        onChange={onChangeLinkExpirySeconds}
-      />
-      <TextField
-        type="text"
-        label={renderToString(
-          "PasswordSettings.reset-code-valid-duration.label"
-        )}
-        value={forgotPasswordCodeValidPeriodSeconds?.toFixed(0) ?? ""}
-        onChange={onChangeCodeExpirySeconds}
-      />
-      <Dropdown
-        label={renderToString("PasswordSettings.resetPasswordWithEmail.label")}
-        options={resetPasswordWithEmailDropdown.options}
-        selectedKey={resetPasswordWithEmailBy}
-        onChange={resetPasswordWithEmailDropdown.onChange}
-      />
-      <Dropdown
-        label={renderToString("PasswordSettings.resetPasswordWithPhone.label")}
-        options={resetPasswordWithPhoneDropdown.options}
-        selectedKey={resetPasswordWithPhoneBy}
-        onChange={resetPasswordWithPhoneDropdown.onChange}
-      />
-      <HorizontalDivider />
-      <WidgetSubtitle>
-        <FormattedMessage id="LoginMethodConfigurationScreen.password.basic" />
-      </WidgetSubtitle>
       <TextField
         type="text"
         label={renderToString(
@@ -540,7 +609,7 @@ export default function PasswordSettings<T extends State>(
       />
       <HorizontalDivider />
       <WidgetSubtitle>
-        <FormattedMessage id="LoginMethodConfigurationScreen.password.advanced" />
+        <FormattedMessage id="LoginMethodConfigurationScreen.password.requirements.advanced" />
       </WidgetSubtitle>
       {anyAdvancedPolicyDisabled ? (
         <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />

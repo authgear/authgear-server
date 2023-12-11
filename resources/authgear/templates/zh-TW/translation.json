@@ -302,6 +302,9 @@
   "forgot-password-whatsapp-otp-resend-button-label": "重發",
   "forgot-password-whatsapp-otp-resend-button-label--unit": "重發 (%ds)",
 
+  "forgot-password-alternatives--whatsapp-otp": "改為以WhatsApp發送一次性密碼",
+  "forgot-password-alternatives--sms-otp": "改為以短訊發送一次性密碼",
+
   "tester-success-page-title": "登錄成功",
   "tester-success-page-description": "您已成功登錄。這是您的應用程序將收到的用戶個人資料：",
   "tester-button-label--settings-page": "查看預先構建的用戶設置頁面",
