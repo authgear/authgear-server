@@ -585,8 +585,6 @@ account_anonymization:
   grace_period_days: 30
 forgot_password:
   enabled: true
-  reset_code_expiry_seconds: 1200
-  code_valid_period: 20m0s
   valid_periods:
     link: 20m0s
     code: 300s

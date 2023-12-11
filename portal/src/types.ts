@@ -407,6 +407,27 @@ export interface UIConfig {
   default_client_uri?: string;
   default_redirect_uri?: string;
   default_post_logout_redirect_uri?: string;
+  forgot_password?: UIForgotPasswordConfig;
+}
+
+export interface UIForgotPasswordConfig {
+  phone?: AccountRecoveryChannel[];
+  email?: AccountRecoveryChannel[];
+}
+
+export interface AccountRecoveryChannel {
+  channel: AccountRecoveryCodeChannel;
+  otp_form: AccountRecoveryCodeForm;
+}
+
+export enum AccountRecoveryCodeChannel {
+  Email = "email",
+  SMS = "sms",
+}
+
+export enum AccountRecoveryCodeForm {
+  Link = "link",
+  Code = "code",
 }
 
 // LocalizationConfig
@@ -418,7 +439,12 @@ export interface LocalizationConfig {
 // ForgotPasswordConfig
 export interface ForgotPasswordConfig {
   enabled?: boolean;
-  code_valid_period?: DurationString;
+  valid_periods?: ForgotPasswordValidPeriods;
+}
+
+export interface ForgotPasswordValidPeriods {
+  link?: DurationString;
+  code?: DurationString;
 }
 
 export const applicationTypes = [

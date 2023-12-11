@@ -33,11 +33,9 @@ var _ = Schema.Add("ForgotPasswordConfig", `
 type ForgotPasswordConfig struct {
 	Enabled *bool `json:"enabled,omitempty"`
 
-	// ResetCodeExpiry is deprecated
-	ResetCodeExpiry DurationSeconds `json:"reset_code_expiry_seconds,omitempty"`
-	// CodeValidPeriod is deprecated, it refers to the link valid period
-	CodeValidPeriod DurationString              `json:"code_valid_period,omitempty"`
-	ValidPeriods    *ForgotPasswordValidPeriods `json:"valid_periods,omitempty"`
+	Deprecated_ResetCodeExpiry DurationSeconds             `json:"reset_code_expiry_seconds,omitempty"`
+	Deprecated_CodeValidPeriod DurationString              `json:"code_valid_period,omitempty"`
+	ValidPeriods               *ForgotPasswordValidPeriods `json:"valid_periods,omitempty"`
 
 	RateLimits *ForgotPasswordRateLimitsConfig `json:"rate_limits,omitempty"`
 }
@@ -47,22 +45,27 @@ func (c *ForgotPasswordConfig) SetDefaults() {
 		c.Enabled = newBool(true)
 	}
 
-	if c.ResetCodeExpiry == 0 {
+	if c.Deprecated_ResetCodeExpiry == 0 {
 		// https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html#step-3-send-a-token-over-a-side-channel
 		// OWASP suggests the lifetime is no more than 20 minutes
-		c.ResetCodeExpiry = DurationSeconds(1200)
+		c.Deprecated_ResetCodeExpiry = DurationSeconds(1200)
 	}
-	if c.CodeValidPeriod == "" {
-		c.CodeValidPeriod = DurationString(c.ResetCodeExpiry.Duration().String())
+	if c.Deprecated_CodeValidPeriod == "" {
+		c.Deprecated_CodeValidPeriod = DurationString(c.Deprecated_ResetCodeExpiry.Duration().String())
 	}
 
 	if c.ValidPeriods.Link == "" {
-		c.ValidPeriods.Link = c.CodeValidPeriod
+		c.ValidPeriods.Link = c.Deprecated_CodeValidPeriod
 	}
 
 	if c.ValidPeriods.Code == "" {
 		c.ValidPeriods.Code = DurationString("300s")
 	}
+
+	// See https://github.com/authgear/authgear-server/issues/3524
+	// Remove deprecated fields
+	c.Deprecated_ResetCodeExpiry = 0
+	c.Deprecated_CodeValidPeriod = ""
 }
 
 var _ = Schema.Add("ForgotPasswordRateLimitsConfig", `

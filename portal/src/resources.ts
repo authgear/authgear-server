@@ -86,20 +86,39 @@ export const RESOURCE_AUTHENTICATE_PRIMARY_LOGIN_LINK_TXT: ResourceDefinition =
     fallback: FALLBACK_EFFECTIVE_DATA,
   };
 
-export const RESOURCE_FORGOT_PASSWORD_EMAIL_HTML: ResourceDefinition = {
+export const RESOURCE_FORGOT_PASSWORD_EMAIL_LINK_HTML: ResourceDefinition = {
   resourcePath: resourcePath`templates/${"locale"}/messages/forgot_password_email.html`,
   type: "text",
   extensions: [],
   fallback: FALLBACK_EFFECTIVE_DATA,
 };
-export const RESOURCE_FORGOT_PASSWORD_EMAIL_TXT: ResourceDefinition = {
+export const RESOURCE_FORGOT_PASSWORD_EMAIL_LINK_TXT: ResourceDefinition = {
   resourcePath: resourcePath`templates/${"locale"}/messages/forgot_password_email.txt`,
   type: "text",
   extensions: [],
   fallback: FALLBACK_EFFECTIVE_DATA,
 };
-export const RESOURCE_FORGOT_PASSWORD_SMS_TXT: ResourceDefinition = {
+export const RESOURCE_FORGOT_PASSWORD_SMS_LINK_TXT: ResourceDefinition = {
   resourcePath: resourcePath`templates/${"locale"}/messages/forgot_password_sms.txt`,
+  type: "text",
+  extensions: [],
+  fallback: FALLBACK_EFFECTIVE_DATA,
+};
+
+export const RESOURCE_FORGOT_PASSWORD_EMAIL_CODE_HTML: ResourceDefinition = {
+  resourcePath: resourcePath`templates/${"locale"}/messages/forgot_password_oob_email.html`,
+  type: "text",
+  extensions: [],
+  fallback: FALLBACK_EFFECTIVE_DATA,
+};
+export const RESOURCE_FORGOT_PASSWORD_EMAIL_CODE_TXT: ResourceDefinition = {
+  resourcePath: resourcePath`templates/${"locale"}/messages/forgot_password_oob_email.txt`,
+  type: "text",
+  extensions: [],
+  fallback: FALLBACK_EFFECTIVE_DATA,
+};
+export const RESOURCE_FORGOT_PASSWORD_SMS_CODE_TXT: ResourceDefinition = {
+  resourcePath: resourcePath`templates/${"locale"}/messages/forgot_password_oob_sms.txt`,
   type: "text",
   extensions: [],
   fallback: FALLBACK_EFFECTIVE_DATA,
@@ -162,9 +181,13 @@ export const ALL_LANGUAGES_TEMPLATES = [
   RESOURCE_AUTHENTICATE_PRIMARY_LOGIN_LINK_HTML,
   RESOURCE_AUTHENTICATE_PRIMARY_LOGIN_LINK_TXT,
 
-  RESOURCE_FORGOT_PASSWORD_EMAIL_HTML,
-  RESOURCE_FORGOT_PASSWORD_EMAIL_TXT,
-  RESOURCE_FORGOT_PASSWORD_SMS_TXT,
+  RESOURCE_FORGOT_PASSWORD_EMAIL_LINK_HTML,
+  RESOURCE_FORGOT_PASSWORD_EMAIL_LINK_TXT,
+  RESOURCE_FORGOT_PASSWORD_SMS_LINK_TXT,
+
+  RESOURCE_FORGOT_PASSWORD_EMAIL_CODE_HTML,
+  RESOURCE_FORGOT_PASSWORD_EMAIL_CODE_TXT,
+  RESOURCE_FORGOT_PASSWORD_SMS_CODE_TXT,
 
   RESOURCE_VERIFICATION_EMAIL_HTML,
   RESOURCE_VERIFICATION_EMAIL_TXT,
@@ -206,8 +229,10 @@ export const RESOURCE_USERNAME_EXCLUDED_KEYWORDS_TXT: ResourceDefinition = {
   optional: true,
 };
 
-export const TRANSLATION_JSON_KEY_EMAIL_FORGOT_PASSWORD_SUBJECT =
+export const TRANSLATION_JSON_KEY_EMAIL_FORGOT_PASSWORD_LINK_SUBJECT =
   "email.forgot-password.subject";
+export const TRANSLATION_JSON_KEY_EMAIL_FORGOT_PASSWORD_CODE_SUBJECT =
+  "email.forgot-password-oob.subject";
 export const TRANSLATION_JSON_KEY_EMAIL_VERIFICATION_SUBJECT =
   "email.verification.subject";
 export const TRANSLATION_JSON_KEY_EMAIL_SETUP_PRIMARY_OOB_SUBJECT =

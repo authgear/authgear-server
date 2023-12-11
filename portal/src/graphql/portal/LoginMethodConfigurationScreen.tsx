@@ -84,7 +84,13 @@ import FormTextField from "../../FormTextField";
 import Toggle from "../../Toggle";
 import LabelWithTooltip from "../../LabelWithTooltip";
 import PhoneInputListWidget from "./PhoneInputListWidget";
-import PasswordSettings from "./PasswordSettings";
+import PasswordSettings, {
+  ResetPasswordWithEmailMethod,
+  ResetPasswordWithPhoneMethod,
+  getResetPasswordWithEmailMethod,
+  getResetPasswordWithPhoneMethod,
+  setUIForgotPasswordConfig,
+} from "./PasswordSettings";
 import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
 import BlueMessageBar from "../../BlueMessageBar";
 import { useTagPickerWithNewTags } from "../../hook/useInput";
@@ -441,7 +447,9 @@ function controlListSwap<T>(
 //       code_valid_period: 5m
 // forgot_password:
 //   # 1
-//   code_valid_period: 20m
+//   valid_periods:
+//     link: 20m
+//     code: 5m
 // messaging:
 //   rate_limits:
 //     # 6
@@ -480,6 +488,7 @@ interface ConfigFormState {
   verificationCriteria?: VerificationCriteria;
 
   // 1
+  forgotPasswordLinkValidPeriodSeconds: number | undefined;
   forgotPasswordCodeValidPeriodSeconds: number | undefined;
   // 3
   sixDigitOTPValidPeriodSeconds: number | undefined;
@@ -494,6 +503,9 @@ interface ConfigFormState {
   smsDailySendLimit: number | undefined;
   // 7
   emailVerificationDailyLimit: number | undefined;
+
+  resetPasswordWithEmailBy: ResetPasswordWithEmailMethod;
+  resetPasswordWithPhoneBy: ResetPasswordWithPhoneMethod;
 }
 
 interface FeatureConfigFormState {
@@ -880,8 +892,11 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
   const passkeyIndex =
     config.authentication?.primary_authenticators?.indexOf("passkey");
 
+  const forgotPasswordLinkValidPeriodSeconds = parseOptionalDuration(
+    config.forgot_password?.valid_periods?.link
+  );
   const forgotPasswordCodeValidPeriodSeconds = parseOptionalDuration(
-    config.forgot_password?.code_valid_period
+    config.forgot_password?.valid_periods?.code
   );
 
   const sixDigitOTPValidPeriodSecondsCandidates = [
@@ -1010,6 +1025,7 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
         ...config.authenticator?.password?.policy,
       },
     },
+    forgotPasswordLinkValidPeriodSeconds,
     forgotPasswordCodeValidPeriodSeconds,
     passkeyChecked: passkeyIndex != null && passkeyIndex >= 0,
     lockout: {
@@ -1056,6 +1072,8 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     anyOTPRevokeFailedAttempts,
     smsDailySendLimit,
     emailVerificationDailyLimit,
+    resetPasswordWithEmailBy: getResetPasswordWithEmailMethod(config),
+    resetPasswordWithPhoneBy: getResetPasswordWithPhoneMethod(config),
   };
   correctInitialFormState(state);
   return state;
@@ -1082,10 +1100,10 @@ function setEnable<T extends string>(
 }
 
 function constructConfig(
-  config: PortalAPIAppConfig,
+  _config: PortalAPIAppConfig,
   _initialState: ConfigFormState,
   currentState: ConfigFormState,
-  effectiveConfig: PortalAPIAppConfig
+  config: PortalAPIAppConfig
 ): PortalAPIAppConfig {
   // eslint-disable-next-line complexity
   return produce(config, (config) => {
@@ -1114,12 +1132,12 @@ function constructConfig(
     config.authentication.identities = controlListPreserve(
       (a, b) => a === b,
       currentState.identitiesControl,
-      effectiveConfig.authentication?.identities ?? []
+      config.authentication.identities ?? []
     );
     config.authentication.primary_authenticators = controlListPreserve(
       (a, b) => a === b,
       currentState.primaryAuthenticatorsControl,
-      effectiveConfig.authentication?.primary_authenticators ?? []
+      config.authentication.primary_authenticators ?? []
     );
     if (currentState.passkeyChecked) {
       config.authentication.primary_authenticators = setEnable(
@@ -1165,12 +1183,22 @@ function constructConfig(
       policy: currentState.authenticatorPasswordConfig.policy,
     };
 
+    if (currentState.forgotPasswordLinkValidPeriodSeconds != null) {
+      config.forgot_password.valid_periods ??= {};
+      config.forgot_password.valid_periods.link = formatDuration(
+        currentState.forgotPasswordLinkValidPeriodSeconds,
+        "s"
+      );
+    }
     if (currentState.forgotPasswordCodeValidPeriodSeconds != null) {
-      config.forgot_password.code_valid_period = formatDuration(
+      config.forgot_password.valid_periods ??= {};
+      config.forgot_password.valid_periods.code = formatDuration(
         currentState.forgotPasswordCodeValidPeriodSeconds,
         "s"
       );
     }
+
+    setUIForgotPasswordConfig(config, currentState);
 
     const isEmailOTPLink =
       currentState.authenticatorOOBEmailConfig.email_otp_mode === "login_link";
@@ -2924,7 +2952,10 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       authenticatorOOBEmailConfig,
       authenticatorOOBSMSConfig,
       authenticatorPasswordConfig,
+      forgotPasswordLinkValidPeriodSeconds,
       forgotPasswordCodeValidPeriodSeconds,
+      resetPasswordWithEmailBy,
+      resetPasswordWithPhoneBy,
       passkeyChecked,
 
       verificationClaims,
@@ -3221,9 +3252,14 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
                 itemKey="password"
               >
                 <PasswordSettings
+                  forgotPasswordLinkValidPeriodSeconds={
+                    forgotPasswordLinkValidPeriodSeconds
+                  }
                   forgotPasswordCodeValidPeriodSeconds={
                     forgotPasswordCodeValidPeriodSeconds
                   }
+                  resetPasswordWithEmailBy={resetPasswordWithEmailBy}
+                  resetPasswordWithPhoneBy={resetPasswordWithPhoneBy}
                   authenticatorPasswordConfig={authenticatorPasswordConfig}
                   passwordPolicyFeatureConfig={passwordPolicyFeatureConfig}
                   setState={setState}
