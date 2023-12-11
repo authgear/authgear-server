@@ -97,26 +97,7 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) ReactTo(ctx con
 		if authflow.AsInput(input, &inputStepAccountRecoveryVerifyCode) {
 			if inputStepAccountRecoveryVerifyCode.IsCode() {
 				code := inputStepAccountRecoveryVerifyCode.GetCode()
-				milestone, ok := authflow.FindMilestone[MilestoneDoUseAccountRecoveryDestination](flows.Root)
-				if ok {
-					dest := milestone.MilestoneDoUseAccountRecoveryDestination()
-					_, err := deps.ResetPassword.VerifyCodeWithTarget(
-						dest.TargetLoginID,
-						code,
-						dest.ForgotPasswordCodeChannel(),
-						dest.ForgotPasswordCodeKind(),
-					)
-					if err != nil {
-						return nil, err
-					}
-				} else {
-					// MilestoneDoUseAccountRecoveryDestination might not exist, because the flow is restored
-					_, err := deps.ResetPassword.VerifyCode(code)
-					if err != nil {
-						return nil, err
-					}
-				}
-				return authflow.NewNodeSimple(&NodeUseAccountRecoveryCode{Code: code}), nil
+				return i.verifyCode(deps, flows, code)
 			}
 
 			if inputStepAccountRecoveryVerifyCode.IsResend() {
@@ -137,6 +118,33 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) ReactTo(ctx con
 	}
 
 	return nil, authflow.ErrIncompatibleInput
+}
+
+func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) verifyCode(
+	deps *authflow.Dependencies,
+	flows authflow.Flows,
+	code string,
+) (*authflow.Node, error) {
+	milestone, ok := authflow.FindMilestone[MilestoneDoUseAccountRecoveryDestination](flows.Root)
+	if ok {
+		dest := milestone.MilestoneDoUseAccountRecoveryDestination()
+		_, err := deps.ResetPassword.VerifyCodeWithTarget(
+			dest.TargetLoginID,
+			code,
+			dest.ForgotPasswordCodeChannel(),
+			dest.ForgotPasswordCodeKind(),
+		)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		// MilestoneDoUseAccountRecoveryDestination might not exist, because the flow is restored
+		_, err := deps.ResetPassword.VerifyCode(code)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return authflow.NewNodeSimple(&NodeUseAccountRecoveryCode{Code: code}), nil
 }
 
 func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) isRestored() bool {
