@@ -89,6 +89,7 @@ Authentication Flow API always returns a JSON response of the same shape.
   - `signup`: The flow to sign up as a new user.
   - `login`: The flow to sign in as a new user.
   - `signup_login`: This flow will either become `signup` or `login` depending on the input. If the end-user enters an existing login ID, then the flow will becomes `login`, otherwise, it is `signup`.
+  - `account_recovery`: The flow to recover an account. Currently it can request a reset password link / reset password code to reset primary password.
 - `name`: The name of the authentication flow. See [Create an authentication flow](#create-an-authentication-flow)
 - `action`: An object containing information about the current action.
   - `action.type`: The type of step. See [Reference on input and output](#reference-on-input-and-output)
