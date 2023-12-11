@@ -75,7 +75,7 @@
     "history": "5.3.0",
     "i18n-iso-countries": "7.5.0",
     "immer": "9.0.16",
-    "intl-tel-input": "17.0.19",
+    "intl-tel-input": "https://github.com/authgear/intl-tel-input/tarball/d8a0b82f22366b6caea0e9ffebc7e20e6b1dd145",
     "js-yaml": "4.1.0",
     "luxon": "3.2.1",
     "monaco-editor": "0.34.1",

@@ -17,6 +17,7 @@ declare interface IntlTelInputInstance {
   getSelectedCountryData(): IntlTelInputCountryData;
   getValidationError(): number | undefined | null;
   isValidNumber(): boolean;
+  isPossibleNumber(): boolean;
 
   destroy(): void;
   setCountry(alpha2: IntlTelInputAlpha2): void;
