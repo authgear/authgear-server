@@ -2,10 +2,8 @@ package config
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 var _ = Schema.Add("AuthenticationFlowConfig", `
@@ -599,31 +597,6 @@ var _ = Schema.Add("AuthenticationFlowAccountRecoveryFlowStep", `
 }
 `)
 
-var _ = Schema.Add("AccountRecoveryChannel", `
-{
-	"type": "object",
-	"required": ["channel", "otp_form"],
-	"properties": {
-		"channel": { "$ref": "#/$defs/AccountRecoveryCodeChannel" },
-		"otp_form": { "$ref": "#/$defs/AccountRecoveryCodeForm" }
-	}
-}
-`)
-
-var _ = Schema.Add("AccountRecoveryCodeChannel", `
-{
-	"type": "string",
-	"enum": ["sms", "email", "whatsapp"]
-}
-`)
-
-var _ = Schema.Add("AccountRecoveryCodeForm", `
-{
-	"type": "string",
-	"enum": ["link", "code"]
-}
-`)
-
 var _ = Schema.Add("AuthenticationFlowAccountRecoveryFlowOneOf", `
 {
 	"type": "object",
@@ -812,12 +785,6 @@ type AuthenticationFlowConfig struct {
 	SignupLoginFlows     []*AuthenticationFlowSignupLoginFlow     `json:"signup_login_flows,omitempty"`
 	ReauthFlows          []*AuthenticationFlowReauthFlow          `json:"reauth_flows,omitempty"`
 	AccountRecoveryFlows []*AuthenticationFlowAccountRecoveryFlow `json:"account_recovery_flows,omitempty"`
-}
-
-func (c *AuthenticationFlowConfig) Validate(ctx *validation.Context) {
-	for i, f := range c.AccountRecoveryFlows {
-		f.Validate(ctx.Child("account_recovery_flows", strconv.Itoa(i)))
-	}
 }
 
 type AuthenticationFlowSignupFlow struct {
@@ -1224,12 +1191,6 @@ func (f *AuthenticationFlowAccountRecoveryFlow) GetSteps() []AuthenticationFlowO
 	return out
 }
 
-func (c *AuthenticationFlowAccountRecoveryFlow) Validate(ctx *validation.Context) {
-	for stepIndex, s := range c.Steps {
-		s.Validate(ctx.Child("steps", strconv.Itoa(stepIndex)))
-	}
-}
-
 type AccountRecoveryCodeChannel string
 
 const (
@@ -1248,15 +1209,6 @@ const (
 type AccountRecoveryChannel struct {
 	Channel AccountRecoveryCodeChannel `json:"channel,omitempty"`
 	OTPForm AccountRecoveryCodeForm    `json:"otp_form,omitempty"`
-}
-
-func (c *AccountRecoveryChannel) IsValid() bool {
-	for _, validChannel := range GetAllAccountRecoveryChannel() {
-		if validChannel.Channel == c.Channel && validChannel.OTPForm == c.OTPForm {
-			return true
-		}
-	}
-	return false
 }
 
 func GetAllAccountRecoveryChannel() []*AccountRecoveryChannel {
@@ -1316,27 +1268,6 @@ func (s *AuthenticationFlowAccountRecoveryFlowStep) GetOneOf() []AuthenticationF
 	}
 }
 
-func (s *AuthenticationFlowAccountRecoveryFlowStep) Validate(ctx *validation.Context) {
-	switch s.Type {
-	case AuthenticationFlowAccountRecoveryFlowTypeSelectDestination:
-		for channelIndex, channel := range s.AllowedChannels {
-			if !channel.IsValid() {
-				ctx.Child("allowed_channels", strconv.Itoa(channelIndex)).EmitErrorMessage("unsupported channel")
-			}
-		}
-	case AuthenticationFlowAccountRecoveryFlowTypeIdentify:
-		for oneOfIdx, o := range s.GetOneOf() {
-			one := o.(*AuthenticationFlowAccountRecoveryFlowOneOf)
-			steps := one.GetSteps()
-			for stepIdx, st := range steps {
-				step := st.(*AuthenticationFlowAccountRecoveryFlowStep)
-				step.Validate(ctx.Child("one_of", strconv.Itoa(oneOfIdx), "steps", strconv.Itoa(stepIdx)))
-			}
-		}
-	}
-
-}
-
 type AuthenticationFlowAccountRecoveryFlowType string
 
 const (
@@ -1386,3 +1317,35 @@ const (
 	AuthenticationFlowAccountRecoveryIdentificationOnFailureError  = AuthenticationFlowAccountRecoveryIdentificationOnFailure("error")
 	AuthenticationFlowAccountRecoveryIdentificationOnFailureIgnore = AuthenticationFlowAccountRecoveryIdentificationOnFailure("ignore")
 )
+
+func init() {
+	accountRecoveryChannelsOneOf := ""
+	addAccountRecoveryChannel := func(channel AccountRecoveryCodeChannel, otpForm AccountRecoveryCodeForm) {
+		newChannel := fmt.Sprintf(`
+		{
+			"properties": {
+				"channel": { "const": "%s" },
+				"otp_form": { "const": "%s" }
+			},
+			"required": ["channel", "otp_form"]
+		}`, channel, otpForm)
+		if accountRecoveryChannelsOneOf == "" {
+			accountRecoveryChannelsOneOf = newChannel
+		} else {
+			accountRecoveryChannelsOneOf = fmt.Sprintf(`
+		%s,
+		%s`, accountRecoveryChannelsOneOf, newChannel)
+		}
+	}
+	for _, c := range GetAllAccountRecoveryChannel() {
+		addAccountRecoveryChannel(c.Channel, c.OTPForm)
+	}
+	schema := fmt.Sprintf(`
+	{
+		"type": "object",
+		"oneOf": [
+%s
+		]
+	}`, accountRecoveryChannelsOneOf)
+	var _ = Schema.Add("AccountRecoveryChannel", schema)
+}

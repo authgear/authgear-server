@@ -114,9 +114,6 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 
 	// Validation 8: validate lockout configs
 	c.validateLockout(ctx)
-
-	// Validation 9: validate authflow configs
-	c.validateAuthenticationFlow(ctx)
 }
 
 func (c *AppConfig) validateTokenLifetime(ctx *validation.Context) {
@@ -307,10 +304,6 @@ func (c *AppConfig) validateLockout(ctx *validation.Context) {
 			"actual":  minDuration.Seconds(),
 		})
 	}
-}
-
-func (c *AppConfig) validateAuthenticationFlow(ctx *validation.Context) {
-	c.AuthenticationFlow.Validate(ctx.Child("authentication_flow"))
 }
 
 func Parse(inputYAML []byte) (*AppConfig, error) {
