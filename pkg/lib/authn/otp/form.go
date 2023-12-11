@@ -46,19 +46,6 @@ func (f Form) GenerateCode(cfg *config.TestModeConfig, featureCfg *config.TestMo
 				}
 				return c.GenerateFixed(fixedOTP)
 			}
-			for _, r := range cfg.FixedOOBOTP.Rules {
-				reg := r.GetRegex()
-				if reg.Match([]byte(target)) {
-					fixedOTP := r.FixedCode
-					if fixedOTP == "" {
-						fixedOTP = featureCfg.FixedOOBOTP.Code
-					}
-					if fixedOTP == "" {
-						fixedOTP = c.Generate()
-					}
-					return c.GenerateFixed(fixedOTP)
-				}
-			}
 		}
 		if featureCfg.FixedOOBOTP.Enabled {
 			return c.GenerateFixed(featureCfg.FixedOOBOTP.Code)
