@@ -122,6 +122,7 @@ type TokenHandler struct {
 	UIInfoResolver      UIInfoResolver
 }
 
+// TODO: Write some tests
 func (h *TokenHandler) Handle(rw http.ResponseWriter, req *http.Request, r protocol.TokenRequest) httputil.Result {
 	client := resolveClient(h.ClientResolver, r)
 	if client == nil {
@@ -197,6 +198,7 @@ func (h *TokenHandler) doHandle(
 	}
 }
 
+// nolint:gocognit
 func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.OAuthClientConfig) error {
 	switch r.GrantType() {
 	case "authorization_code":
@@ -328,6 +330,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 	return tokenResultOK{Response: resp}, nil
 }
 
+// nolint:gocognit
 func (h *TokenHandler) IssueTokensForAuthorizationCode(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
@@ -994,7 +997,7 @@ func (h *TokenHandler) issueOfflineGrant(
 	return offlineGrant, nil
 }
 
-// nolint: gocyclo
+// nolint: gocognit
 func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	client *config.OAuthClientConfig,
 	code *oauth.CodeGrant,

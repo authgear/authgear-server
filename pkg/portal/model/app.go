@@ -67,6 +67,7 @@ type SecretConfig struct {
 	OAuthClientSecrets            []OAuthClientSecret            `json:"oauthClientSecrets,omitempty"`
 }
 
+//nolint:gocognit
 func NewSecretConfig(secretConfig *config.SecretConfig, unmaskedSecrets []config.SecretKey, now time.Time) (*SecretConfig, error) {
 	out := &SecretConfig{}
 	var unmaskedSecretsSet map[config.SecretKey]interface{} = map[config.SecretKey]interface{}{}

@@ -1,4 +1,4 @@
-// Type definition for intl-tel-input v17.0.15
+// Type definition for intl-tel-input v18.2.1
 
 declare type IntlTelInputAlpha2 = string;
 
@@ -39,7 +39,7 @@ declare interface IntlTelInputInitOptions {
   // Functionality
   utilsScript?: string;
   nationalMode?: boolean;
-  autoHideDialCode?: boolean;
+  autoInsertDialCode?: boolean;
   separateDialCode?: boolean;
   allowDropdown?: boolean;
   formatOnDisplay?: boolean;

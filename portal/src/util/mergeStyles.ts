@@ -6,12 +6,9 @@ import {
   IConcatenatedStyleSet,
 } from "@fluentui/merge-styles";
 
-export function useMergedStyles<
-  TStylesProps,
-  TStyleSet extends IStyleSet<TStyleSet>
->(
-  ...styless: (IStyleFunctionOrObject<TStylesProps, TStyleSet> | undefined)[]
-): IStyleFunctionOrObject<TStylesProps, TStyleSet> {
+export function useMergedStyles<TStylesProps, IStyleSet>(
+  ...styless: (IStyleFunctionOrObject<TStylesProps, IStyleSet> | undefined)[]
+): IStyleFunctionOrObject<TStylesProps, IStyleSet> {
   return useCallback(
     (props) => {
       return concatStyleSetsWithProps(props, ...styless);
@@ -21,12 +18,13 @@ export function useMergedStyles<
   );
 }
 
-export function useMergedStylesPlain<TStyleSet extends IStyleSet<TStyleSet>>(
-  ...styless: (TStyleSet | undefined)[]
-): IConcatenatedStyleSet<TStyleSet> {
+export function useMergedStylesPlain(
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+  ...styless: (IStyleSet | undefined)[]
+): IConcatenatedStyleSet<IStyleSet> {
   return useMemo(
     () => concatStyleSets(...styless),
     // eslint-disable-next-line
     [...styless]
-  ) as IConcatenatedStyleSet<TStyleSet>;
+  ) as IConcatenatedStyleSet<IStyleSet>;
 }

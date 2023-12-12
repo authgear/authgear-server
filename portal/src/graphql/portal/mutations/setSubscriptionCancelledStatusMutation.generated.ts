@@ -4,8 +4,8 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type SetSubscriptionCancelledStatusMutationMutationVariables = Types.Exact<{
-  appID: Types.Scalars['ID'];
-  cancelled: Types.Scalars['Boolean'];
+  appID: Types.Scalars['ID']['input'];
+  cancelled: Types.Scalars['Boolean']['input'];
 }>;
 
 

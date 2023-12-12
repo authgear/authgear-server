@@ -4,7 +4,7 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type DeleteIdentityMutationMutationVariables = Types.Exact<{
-  identityID: Types.Scalars['ID'];
+  identityID: Types.Scalars['ID']['input'];
 }>;
 
 

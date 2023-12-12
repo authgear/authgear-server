@@ -6,7 +6,7 @@ const defaultOptions = {} as const;
 export type ScreenNavFragment = { __typename?: 'App', id: string, effectiveFeatureConfig: any, planName: string, tutorialStatus: { __typename?: 'TutorialStatus', appID: string, data: any } };
 
 export type ScreenNavQueryQueryVariables = Types.Exact<{
-  id: Types.Scalars['ID'];
+  id: Types.Scalars['ID']['input'];
 }>;
 
 
@@ -56,6 +56,11 @@ export function useScreenNavQueryLazyQuery(baseOptions?: Apollo.LazyQueryHookOpt
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<ScreenNavQueryQuery, ScreenNavQueryQueryVariables>(ScreenNavQueryDocument, options);
         }
+export function useScreenNavQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ScreenNavQueryQuery, ScreenNavQueryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ScreenNavQueryQuery, ScreenNavQueryQueryVariables>(ScreenNavQueryDocument, options);
+        }
 export type ScreenNavQueryQueryHookResult = ReturnType<typeof useScreenNavQueryQuery>;
 export type ScreenNavQueryLazyQueryHookResult = ReturnType<typeof useScreenNavQueryLazyQuery>;
+export type ScreenNavQuerySuspenseQueryHookResult = ReturnType<typeof useScreenNavQuerySuspenseQuery>;
 export type ScreenNavQueryQueryResult = Apollo.QueryResult<ScreenNavQueryQuery, ScreenNavQueryQueryVariables>;

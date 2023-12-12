@@ -13,39 +13,49 @@ var graphiqlTemplate = htmltemplate.Must(htmltemplate.New("graphiql").Parse(`<!D
 	<title>{{ .Title }}</title>
 	<style>
 		body {
-			padding: 0;
+			height: 100%;
 			margin: 0;
-			min-height: 100vh;
+			width: 100%;
+			overflow: hidden;
 		}
-		#root {
+		#graphiql {
 			height: 100vh;
 		}
 	</style>
 	<script
 		crossorigin
-		src="https://unpkg.com/react@17.0.2/umd/react.production.min.js"
+		src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"
 	></script>
 	<script
 		crossorigin
-		src="https://unpkg.com/react-dom@17.0.2/umd/react-dom.production.min.js"
+		src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"
 	></script>
-	<link rel="stylesheet" href="https://unpkg.com/graphiql@2.4.4/graphiql.min.css" />
+	<script
+		crossorigin
+		src="https://unpkg.com/graphiql@3.0.9/graphiql.min.js"
+	></script>
+	<link rel="stylesheet" href="https://unpkg.com/graphiql@3.0.9/graphiql.min.css" />
+	<script
+		crossorigin
+		src="https://unpkg.com/@graphiql/plugin-explorer@1.0.2/dist/index.umd.js"
+	></script>
+	<link rel="stylesheet" href="https://unpkg.com/@graphiql/plugin-explorer@1.0.2/dist/style.css" />
 </head>
 <body>
-	<div id="root">Loading...</div>
-	<script
-		crossorigin
-		src="https://unpkg.com/graphiql@2.4.4/graphiql.min.js"
-	></script>
+	<div id="graphiql">Loading...</div>
 	<script>
-		ReactDOM.render(
+		const root = ReactDOM.createRoot(document.getElementById("graphiql"));
+		const fetcher = GraphiQL.createFetcher({
+			url: "",
+		});
+		const explorerPlugin = GraphiQLPluginExplorer.explorerPlugin();
+		root.render(
 			React.createElement(GraphiQL, {
-				fetcher: GraphiQL.createFetcher({
-					url: "",
-				}),
+				fetcher,
+				defaultEditorToolsVisibility: true,
+				plugins: [explorerPlugin],
 				query: (new URLSearchParams(window.location.search)).get("query") || "",
-			}),
-			document.getElementById("root"),
+			})
 		);
 	</script>
 </body>

@@ -20,7 +20,7 @@ jobs:
     - uses: ./.github/actions/libvips
     - uses: actions/setup-node@v3
       with:
-        node-version: "16.18.0"
+        node-version-file: "./.tool-versions"
     - run: npm ci
       working-directory: ./portal
     - run: npm run typecheck
@@ -73,12 +73,12 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: ./.github/actions/libvips
-    - uses: actions/setup-go@v3
+    - uses: actions/setup-go@v4
       with:
-        go-version: "1.20.4"
+        go-version-file: "./go.mod"
     - uses: actions/setup-node@v3
       with:
-        node-version: "16.18.0"
+        node-version-file: "./.tool-versions"
     - run: make vendor
     - run: make lint
       if: ${{ !cancelled() }}
@@ -114,12 +114,12 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: ./.github/actions/libvips
-    - uses: actions/setup-go@v3
+    - uses: actions/setup-go@v4
       with:
-        go-version: "1.20.4"
+        go-version-file: "./go.mod"
     - uses: actions/setup-node@v3
       with:
-        node-version: "16.18.0"
+        node-version-file: "./.tool-versions"
     - run: make vendor
     - run: make binary
     - uses: softprops/action-gh-release@v1

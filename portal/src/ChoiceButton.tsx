@@ -84,10 +84,10 @@ export default function ChoiceButton(props: ChoiceButtonProps): ReactElement {
   );
 
   return (
-    // @ts-expect-error
     <CompoundButton
       {...rest}
       toggle={true}
+      // @ts-expect-error
       styles={styles}
       onRenderIcon={IconComponent == null ? undefined : onRenderIcon}
     />

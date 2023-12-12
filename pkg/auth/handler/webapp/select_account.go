@@ -83,7 +83,7 @@ func (h *SelectAccountHandler) GetData(r *http.Request, rw http.ResponseWriter, 
 	return data, nil
 }
 
-// nolint: gocyclo
+// nolint: gocognit
 func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctrl, err := h.ControllerFactory.New(r, w)
 	if err != nil {

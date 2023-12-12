@@ -4,9 +4,9 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type UpdateAppTemplatesMutationMutationVariables = Types.Exact<{
-  appID: Types.Scalars['ID'];
+  appID: Types.Scalars['ID']['input'];
   updates: Array<Types.AppResourceUpdate> | Types.AppResourceUpdate;
-  paths: Array<Types.Scalars['String']> | Types.Scalars['String'];
+  paths: Array<Types.Scalars['String']['input']> | Types.Scalars['String']['input'];
 }>;
 
 

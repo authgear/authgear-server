@@ -4,10 +4,10 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type AnalyticChartsQueryQueryVariables = Types.Exact<{
-  appID: Types.Scalars['ID'];
+  appID: Types.Scalars['ID']['input'];
   periodical: Types.Periodical;
-  rangeFrom: Types.Scalars['Date'];
-  rangeTo: Types.Scalars['Date'];
+  rangeFrom: Types.Scalars['Date']['input'];
+  rangeTo: Types.Scalars['Date']['input'];
 }>;
 
 
@@ -73,6 +73,11 @@ export function useAnalyticChartsQueryLazyQuery(baseOptions?: Apollo.LazyQueryHo
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<AnalyticChartsQueryQuery, AnalyticChartsQueryQueryVariables>(AnalyticChartsQueryDocument, options);
         }
+export function useAnalyticChartsQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<AnalyticChartsQueryQuery, AnalyticChartsQueryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<AnalyticChartsQueryQuery, AnalyticChartsQueryQueryVariables>(AnalyticChartsQueryDocument, options);
+        }
 export type AnalyticChartsQueryQueryHookResult = ReturnType<typeof useAnalyticChartsQueryQuery>;
 export type AnalyticChartsQueryLazyQueryHookResult = ReturnType<typeof useAnalyticChartsQueryLazyQuery>;
+export type AnalyticChartsQuerySuspenseQueryHookResult = ReturnType<typeof useAnalyticChartsQuerySuspenseQuery>;
 export type AnalyticChartsQueryQueryResult = Apollo.QueryResult<AnalyticChartsQueryQuery, AnalyticChartsQueryQueryVariables>;
