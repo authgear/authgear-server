@@ -11,12 +11,15 @@ import (
 const PurposeForgotPassword Purpose = "forgot-password"
 
 const (
-	ForgotPasswordTriggerEmailPerIP  ratelimit.BucketName = "ForgotPasswordTriggerEmailPerIP"
-	ForgotPasswordTriggerSMSPerIP    ratelimit.BucketName = "ForgotPasswordTriggerSMSPerIP"
-	ForgotPasswordCooldownEmail      ratelimit.BucketName = "ForgotPasswordCooldownEmail"
-	ForgotPasswordCooldownSMS        ratelimit.BucketName = "ForgotPasswordCooldownSMS"
-	ForgotPasswordValidateEmailPerIP ratelimit.BucketName = "ForgotPasswordValidateEmailPerIP"
-	ForgotPasswordValidateSMSPerIP   ratelimit.BucketName = "ForgotPasswordValidateSMSPerIP"
+	ForgotPasswordTriggerEmailPerIP     ratelimit.BucketName = "ForgotPasswordTriggerEmailPerIP"
+	ForgotPasswordTriggerSMSPerIP       ratelimit.BucketName = "ForgotPasswordTriggerSMSPerIP"
+	ForgotPasswordTriggerWhatsappPerIP  ratelimit.BucketName = "ForgotPasswordTriggerWhatsappPerIP"
+	ForgotPasswordCooldownEmail         ratelimit.BucketName = "ForgotPasswordCooldownEmail"
+	ForgotPasswordCooldownSMS           ratelimit.BucketName = "ForgotPasswordCooldownSMS"
+	ForgotPasswordCooldownWhatsapp      ratelimit.BucketName = "ForgotPasswordCooldownWhatsapp"
+	ForgotPasswordValidateEmailPerIP    ratelimit.BucketName = "ForgotPasswordValidateEmailPerIP"
+	ForgotPasswordValidateSMSPerIP      ratelimit.BucketName = "ForgotPasswordValidateSMSPerIP"
+	ForgotPasswordValidateWhatsappPerIP ratelimit.BucketName = "ForgotPasswordValidateWhatsappPerIP"
 )
 
 type kindForgotPassword struct {
@@ -66,7 +69,7 @@ func (k kindForgotPassword) RateLimitTriggerPerIP(ip string) ratelimit.BucketSpe
 			k.channel,
 			ForgotPasswordTriggerEmailPerIP,
 			ForgotPasswordTriggerSMSPerIP,
-			ForgotPasswordTriggerSMSPerIP,
+			ForgotPasswordTriggerWhatsappPerIP,
 		),
 		ip,
 	)
@@ -82,7 +85,7 @@ func (k kindForgotPassword) RateLimitTriggerCooldown(target string) ratelimit.Bu
 			k.channel,
 			ForgotPasswordCooldownEmail,
 			ForgotPasswordCooldownSMS,
-			ForgotPasswordCooldownSMS,
+			ForgotPasswordCooldownWhatsapp,
 		),
 		selectByChannel(
 			k.channel,
@@ -106,7 +109,7 @@ func (k kindForgotPassword) RateLimitValidatePerIP(ip string) ratelimit.BucketSp
 			k.channel,
 			ForgotPasswordValidateEmailPerIP,
 			ForgotPasswordValidateSMSPerIP,
-			ForgotPasswordValidateSMSPerIP,
+			ForgotPasswordValidateWhatsappPerIP,
 		),
 		ip,
 	)
