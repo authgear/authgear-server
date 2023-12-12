@@ -106,7 +106,7 @@ function elementsTohtmlString(elements) {
       textArray.push(
         `<script ${stringifyHTMLAttributes(
           element.attributes
-        )} src="{{ call $.GeneratedStaticAssetURL "${
+        )} nonce="{{ $.CSPNonce }}" src="{{ call $.GeneratedStaticAssetURL "${
           element.name
         }" }}"></script>`
       );
