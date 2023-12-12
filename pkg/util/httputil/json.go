@@ -93,6 +93,6 @@ func (w *JSONResponseWriter) WriteResponse(rw http.ResponseWriter, resp *api.Res
 	}
 
 	if err != nil && err.Code >= 500 && err.Code < 600 {
-		w.Logger.WithError(err).Error("unexpected error occurred")
+		w.Logger.WithError(resp.Error).Error("unexpected error occurred")
 	}
 }
