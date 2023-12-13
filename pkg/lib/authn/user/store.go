@@ -221,7 +221,7 @@ func (s *Store) Count() (uint64, error) {
 func (s *Store) QueryPage(sortOption SortOption, pageArgs graphqlutil.PageArgs) ([]*User, uint64, error) {
 	query := s.selectQuery()
 
-	query = sortOption.Apply(query)
+	query = sortOption.Apply(query, "")
 
 	query, offset, err := db.ApplyPageArgs(query, pageArgs)
 	if err != nil {
