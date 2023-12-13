@@ -92,6 +92,7 @@ type VerificationService interface {
 
 type ForgotPasswordService interface {
 	SendCode(loginID string, options *forgotpassword.CodeOptions) error
+	IsRateLimitError(err error, target string, channel forgotpassword.CodeChannel, kind forgotpassword.CodeKind) bool
 	CodeLength(target string, channel forgotpassword.CodeChannel, kind forgotpassword.CodeKind) int
 	InspectState(target string, channel forgotpassword.CodeChannel, kind forgotpassword.CodeKind) (*otp.State, error)
 }

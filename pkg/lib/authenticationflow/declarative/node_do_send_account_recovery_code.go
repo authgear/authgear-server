@@ -19,7 +19,7 @@ type NodeDoSendAccountRecoveryCode struct {
 	FlowReference     authflow.FlowReference     `json:"flow_reference,omitempty"`
 	TargetLoginID     string                     `json:"target_login_id,omitempty"`
 	CodeKind          forgotpassword.CodeKind    `json:"code_kind,omitempty"`
-	PhoneChannel      forgotpassword.CodeChannel `json:"phone_channel,omitempty"`
+	CodeChannel       forgotpassword.CodeChannel `json:"code_channel,omitempty"`
 }
 
 func NewNodeDoSendAccountRecoveryCode(
@@ -29,14 +29,14 @@ func NewNodeDoSendAccountRecoveryCode(
 	jsonPointer jsonpointer.T,
 	targetLoginID string,
 	codeKind forgotpassword.CodeKind,
-	phoneChannel forgotpassword.CodeChannel,
+	codeChannel forgotpassword.CodeChannel,
 ) *NodeDoSendAccountRecoveryCode {
 	node := &NodeDoSendAccountRecoveryCode{
 		ParentJSONPointer: jsonPointer,
 		FlowReference:     flowReference,
 		TargetLoginID:     targetLoginID,
 		CodeKind:          codeKind,
-		PhoneChannel:      phoneChannel,
+		CodeChannel:       codeChannel,
 	}
 
 	return node
@@ -56,9 +56,14 @@ func (n *NodeDoSendAccountRecoveryCode) Send(
 		AuthenticationFlowName:        n.FlowReference.Name,
 		AuthenticationFlowJSONPointer: n.ParentJSONPointer,
 		Kind:                          n.CodeKind,
-		Channel:                       n.PhoneChannel,
+		Channel:                       n.CodeChannel,
 	})
-	if err != nil && !errors.Is(err, forgotpassword.ErrUserNotFound) {
+
+	if deps.ForgotPassword.IsRateLimitError(err, n.TargetLoginID, n.CodeChannel, n.CodeKind) {
+		// Ignore trigger cooldown rate limit error; continue the flow
+	} else if errors.Is(err, forgotpassword.ErrUserNotFound) {
+		// Do not tell user the user doen't exist
+	} else if err != nil {
 		return err
 	}
 	return nil
