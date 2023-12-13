@@ -66,6 +66,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/search"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -532,6 +533,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Store:    readStore,
 	}
 	auditLogLoader := loader.NewAuditLogLoader(query, readHandle)
+	searchConfig := appConfig.Search
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
@@ -542,6 +544,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
+	}
+	searchService := &search.Service{
+		SearchConfig:         searchConfig,
+		ElasticsearchService: elasticsearchService,
 	}
 	rawCommands := &user.RawCommands{
 		Store: store,
@@ -921,7 +927,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Graph: interactionService,
 	}
 	facadeUserFacade := &facade2.UserFacade{
-		UserSearchService:  elasticsearchService,
+		UserSearchService:  searchService,
 		Users:              userFacade,
 		StandardAttributes: serviceNoEvent,
 		Interaction:        serviceInteractionService,

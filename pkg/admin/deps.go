@@ -16,7 +16,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
-	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	libfacade "github.com/authgear/authgear-server/pkg/lib/facade"
@@ -31,6 +30,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
+	"github.com/authgear/authgear-server/pkg/lib/search"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
@@ -54,7 +54,7 @@ var DependencySet = wire.NewSet(
 
 	facade.DependencySet,
 	wire.Bind(new(facade.UserService), new(*libfacade.UserFacade)),
-	wire.Bind(new(facade.UserSearchService), new(*libes.Service)),
+	wire.Bind(new(facade.UserSearchService), new(*search.Service)),
 	wire.Bind(new(facade.IdentityService), new(*identityservice.Service)),
 	wire.Bind(new(facade.AuthenticatorService), new(*authenticatorservice.Service)),
 	wire.Bind(new(facade.InteractionService), new(*service.InteractionService)),
