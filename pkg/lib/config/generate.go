@@ -62,13 +62,15 @@ func GenerateOAuthConfigFromOptions(opts *GenerateOAuthClientConfigOptions) (*OA
 }
 
 type GenerateSecretConfigOptions struct {
-	DatabaseURL         string
-	DatabaseSchema      string
-	ElasticsearchURL    string
-	RedisURL            string
-	AuditDatabaseURL    string
-	AuditDatabaseSchema string
-	AnalyticRedisURL    string
+	DatabaseURL          string
+	DatabaseSchema       string
+	ElasticsearchURL     string
+	RedisURL             string
+	AuditDatabaseURL     string
+	AuditDatabaseSchema  string
+	SearchDatabaseURL    string
+	SearchDatabaseSchema string
+	AnalyticRedisURL     string
 }
 
 func GenerateSecretConfigFromOptions(opts *GenerateSecretConfigOptions, createdAt time.Time, rng *mathrand.Rand) *SecretConfig {
@@ -89,6 +91,15 @@ func GenerateSecretConfigFromOptions(opts *GenerateSecretConfigOptions, createdA
 			Data: &AuditDatabaseCredentials{
 				DatabaseURL:    opts.AuditDatabaseURL,
 				DatabaseSchema: opts.AuditDatabaseSchema,
+			},
+		})
+	}
+	if opts.SearchDatabaseURL != "" {
+		items = append(items, SecretItem{
+			Key: SearchDatabaseCredentialsKey,
+			Data: &SearchDatabaseCredentials{
+				DatabaseURL:    opts.SearchDatabaseURL,
+				DatabaseSchema: opts.SearchDatabaseSchema,
 			},
 		})
 	}

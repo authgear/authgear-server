@@ -322,10 +322,11 @@ func (c *SecretConfig) GetCustomSMSProviderConfig() *CustomSMSProviderConfig {
 type SecretKey string
 
 const (
-	DatabaseCredentialsKey      SecretKey = "db"
-	AuditDatabaseCredentialsKey SecretKey = "audit.db"
-	ElasticsearchCredentialsKey SecretKey = "elasticsearch"
-	RedisCredentialsKey         SecretKey = "redis"
+	DatabaseCredentialsKey       SecretKey = "db"
+	AuditDatabaseCredentialsKey  SecretKey = "audit.db"
+	ElasticsearchCredentialsKey  SecretKey = "elasticsearch"
+	SearchDatabaseCredentialsKey SecretKey = "search.db"
+	RedisCredentialsKey          SecretKey = "redis"
 	// nolint: gosec
 	AnalyticRedisCredentialsKey SecretKey = "analytic.redis"
 	AdminAPIAuthKeyKey          SecretKey = "admin-api.auth"
