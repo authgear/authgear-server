@@ -52,6 +52,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/searchdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -67,6 +68,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/search"
+	"github.com/authgear/authgear-server/pkg/lib/search/pgsearch"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -545,9 +547,18 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:   loginidStore,
 		TaskQueue: queue,
 	}
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	sqlBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbHandle := appProvider.SearchDatabase
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchService := &pgsearch.Service{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: searchdbSQLExecutor,
+	}
 	searchService := &search.Service{
 		SearchConfig:         searchConfig,
 		ElasticsearchService: elasticsearchService,
+		PGSearchService:      pgsearchService,
 	}
 	rawCommands := &user.RawCommands{
 		Store: store,
@@ -555,8 +566,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
+	appdbSQLBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := event.NewStoreImpl(appdbSQLBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
 	}
