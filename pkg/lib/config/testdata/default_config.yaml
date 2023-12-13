@@ -292,6 +292,7 @@ messaging:
       enabled: true
       period: 24h
       burst: 50
+search: {}
 authentication:
   identities:
     - oauth
