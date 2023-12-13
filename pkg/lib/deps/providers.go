@@ -107,11 +107,15 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		cfg.SecretConfig.LookupData(config.DatabaseCredentialsKey).(*config.DatabaseCredentials),
 		loggerFactory,
 	)
+	var searchDatabaseCredentials *config.SearchDatabaseCredentials
+	if s := cfg.SecretConfig.LookupData(config.SearchDatabaseCredentialsKey); s != nil {
+		searchDatabaseCredentials = s.(*config.SearchDatabaseCredentials)
+	}
 	searchDatabase := searchdb.NewHandle(
 		ctx,
 		p.DatabasePool,
 		&p.EnvironmentConfig.DatabaseConfig,
-		cfg.SecretConfig.LookupData(config.SearchDatabaseCredentialsKey).(*config.SearchDatabaseCredentials),
+		searchDatabaseCredentials,
 		loggerFactory,
 	)
 	var auditDatabaseCredentials *config.AuditDatabaseCredentials
