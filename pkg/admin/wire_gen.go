@@ -552,15 +552,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Client:    client,
 		Reindexer: reindexer,
 	}
+	searchdbHandle := appProvider.SearchDatabase
 	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
 	sqlBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
-	searchdbHandle := appProvider.SearchDatabase
 	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, sqlBuilder, searchdbSQLExecutor)
 	pgsearchService := &pgsearch.Service{
-		AppID:       appID,
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: searchdbSQLExecutor,
-		Reindexer:   reindexer,
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
 	}
 	searchService := &search.Service{
 		SearchConfig:         searchConfig,

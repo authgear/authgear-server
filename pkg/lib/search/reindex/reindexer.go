@@ -28,6 +28,7 @@ type Reindexer struct {
 func (s *Reindexer) ReindexUser(impl config.SearchImplementation, userID string, isDelete bool) error {
 	if isDelete {
 		s.TaskQueue.Enqueue(&tasks.ReindexUserParam{
+			Implementation:  impl,
 			DeleteUserAppID: string(s.AppID),
 			DeleteUserID:    userID,
 		})
@@ -79,7 +80,8 @@ func (s *Reindexer) ReindexUser(impl config.SearchImplementation, userID string,
 	}
 
 	s.TaskQueue.Enqueue(&tasks.ReindexUserParam{
-		User: RawToSource(raw),
+		Implementation: impl,
+		User:           RawToSource(raw),
 	})
 
 	return nil

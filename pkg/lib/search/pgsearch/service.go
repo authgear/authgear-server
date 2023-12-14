@@ -3,70 +3,32 @@ package pgsearch
 import (
 	"fmt"
 
-	sq "github.com/Masterminds/squirrel"
-	"github.com/lib/pq"
-
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/searchdb"
 	"github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type Service struct {
-	AppID       config.AppID
-	SQLBuilder  *searchdb.SQLBuilder
-	SQLExecutor *searchdb.SQLExecutor
-	Reindexer   *reindex.Reindexer
+	AppID     config.AppID
+	Store     *Store
+	Reindexer *reindex.Reindexer
 }
 
 func (s *Service) QueryUser(
 	searchKeyword string,
 	sortOption user.SortOption,
 	pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, error) {
-	if s.SQLExecutor == nil {
+	if s.Store == nil {
 		return nil, fmt.Errorf("search database credential is not provided")
 	}
 	var refs []apimodel.PageItemRef
-	err := s.SQLExecutor.Database.ReadOnly(func() error {
-		q := s.searchQuery(searchKeyword)
-		q = sortOption.Apply(q, string(pageArgs.After))
-
-		if pageArgs.First != nil {
-			q = q.Limit(*pageArgs.First)
-		}
-
-		rows, err := s.SQLExecutor.QueryWith(q)
+	err := s.Store.Database.ReadOnly(func() error {
+		var err error
+		refs, err = s.Store.QueryUser(searchKeyword, sortOption, pageArgs)
 		if err != nil {
 			return err
-		}
-		defer rows.Close()
-
-		for rows.Next() {
-			var id string
-			var createdAt *string
-			var lastLoginAt *string
-			err := rows.Scan(&id, &createdAt, &lastLoginAt)
-			if err != nil {
-				return err
-			}
-			var cursor string
-			switch sortOption.GetSortBy() {
-			case user.SortByCreatedAt:
-				cursor = *createdAt
-			case user.SortByLastLoginAt:
-				cursor = *lastLoginAt
-			default:
-				panic("pgsearch: unknown user cursor column")
-
-			}
-			ref := apimodel.PageItemRef{
-				ID:     id,
-				Cursor: apimodel.PageCursor(cursor),
-			}
-			refs = append(refs, ref)
 		}
 		return nil
 	})
@@ -75,38 +37,6 @@ func (s *Service) QueryUser(
 	}
 
 	return refs, nil
-}
-
-func (s *Service) searchQuery(searchKeyword string) db.SelectBuilder {
-	appID := string(s.AppID)
-	searchKeywordArr := pq.Array([]string{searchKeyword})
-	q := s.SQLBuilder.WithAppID(appID).
-		Select(
-			"su.id",
-			"su.created_at",
-			"su.last_login_at",
-		).
-		From(s.SQLBuilder.TableName("_search_user"), "su").
-		Where(sq.And{
-			sq.Expr("su.app_ids @> ?", pq.Array([]string{appID})),
-			sq.Or{
-				sq.Expr("su.emails @> ?", searchKeywordArr),
-				sq.Expr("su.email_local_parts @> ?", searchKeywordArr),
-				sq.Expr("su.email_domains @> ?", searchKeywordArr),
-				sq.Expr("su.preferred_usernames @> ?", searchKeywordArr),
-				sq.Expr("su.phone_numbers @> ?", searchKeywordArr),
-				sq.Expr("su.phone_number_country_codes @> ?", searchKeywordArr),
-				sq.Expr("su.phone_number_national_numbers @> ?", searchKeywordArr),
-				sq.Expr("su.oauth_subject_ids @> ?", searchKeywordArr),
-				sq.Expr("su.gender @> ?", searchKeywordArr),
-				sq.Expr("su.zoneinfo @> ?", searchKeywordArr),
-				sq.Expr("su.locale @> ?", searchKeywordArr),
-				sq.Expr("su.postal_code @> ?", searchKeywordArr),
-				sq.Expr("su.country @> ?", searchKeywordArr),
-				sq.Expr("su.details_tsvector @@ websearch_to_tsquery(?)", searchKeyword),
-			},
-		})
-	return q
 }
 
 func (s *Service) ReindexUser(userID string, isDelete bool) (err error) {

@@ -10,8 +10,10 @@ import (
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/sirupsen/logrus"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
+	"github.com/authgear/authgear-server/pkg/lib/search/pgsearch"
 	"github.com/authgear/authgear-server/pkg/lib/tasks"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -27,18 +29,65 @@ func NewReindexUserLogger(lf *log.Factory) ReindexUserLogger {
 }
 
 type ReindexUserTask struct {
-	Client *elasticsearch.Client
-	Logger ReindexUserLogger
+	ElasticsearchClient *elasticsearch.Client
+	PGStore             *pgsearch.Store
+	Logger              ReindexUserLogger
 }
 
 func (t *ReindexUserTask) Run(ctx context.Context, param task.Param) (err error) {
-	if t.Client == nil {
-		t.Logger.Info("skip reindexing user")
-		return
-	}
-
 	taskParam := param.(*tasks.ReindexUserParam)
 
+	switch taskParam.Implementation {
+	case config.SearchImplementationElasticsearch:
+		return t.runElasticsearch(taskParam)
+	case config.SearchImplementationPostgresql:
+		return t.runPostgresql(taskParam)
+	}
+
+	return nil
+}
+
+func (t *ReindexUserTask) runPostgresql(taskParam *tasks.ReindexUserParam) (err error) {
+	if t.PGStore == nil {
+		t.Logger.Warn("search database credential not provided, skip reindexing user")
+		return nil
+	}
+	err = t.PGStore.Database.WithTx(func() error {
+		if taskParam.DeleteUserID != "" {
+			appID := taskParam.DeleteUserAppID
+			userID := taskParam.DeleteUserID
+
+			t.Logger.WithFields(logrus.Fields{
+				"app_id":  appID,
+				"user_id": userID,
+			}).Info("removing user from search database")
+
+			err := t.PGStore.DeleteUser(appID, userID)
+			if err != nil {
+				return err
+			}
+			return nil
+		} else {
+			user := taskParam.User
+			t.Logger.WithFields(logrus.Fields{
+				"app_id":  user.AppID,
+				"user_id": user.ID,
+			}).Info("reindexing user in search database")
+			err := t.PGStore.UpsertUser(user)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+	})
+	return
+}
+
+func (t *ReindexUserTask) runElasticsearch(taskParam *tasks.ReindexUserParam) (err error) {
+	if t.ElasticsearchClient == nil {
+		t.Logger.Warn("elasticsearch credential not provided, skip reindexing user")
+		return nil
+	}
 	if taskParam.DeleteUserID != "" {
 		appID := taskParam.DeleteUserAppID
 		userID := taskParam.DeleteUserID
@@ -52,7 +101,7 @@ func (t *ReindexUserTask) Run(ctx context.Context, param task.Param) (err error)
 
 		var res *esapi.Response
 
-		res, err = t.Client.Delete(libes.IndexNameUser, documentID)
+		res, err = t.ElasticsearchClient.Delete(libes.IndexNameUser, documentID)
 		if err != nil {
 			return
 		}
@@ -83,7 +132,7 @@ func (t *ReindexUserTask) Run(ctx context.Context, param task.Param) (err error)
 			return
 		}
 
-		res, err = t.Client.Index(libes.IndexNameUser, body, func(o *esapi.IndexRequest) {
+		res, err = t.ElasticsearchClient.Index(libes.IndexNameUser, body, func(o *esapi.IndexRequest) {
 			o.DocumentID = documentID
 		})
 		if err != nil {
