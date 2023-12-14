@@ -21,6 +21,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/searchdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/web"
@@ -107,6 +108,7 @@ var DependencySet = wire.NewSet(
 	appredis.NewHandle,
 	auditdb.NewReadHandle,
 	auditdb.NewWriteHandle,
+	searchdb.NewHandle,
 	NewNoopTaskQueue,
 	NewDummyHTTPRequest,
 	ProvideRemoteIP,
