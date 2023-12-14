@@ -58,6 +58,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/searchdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -75,6 +76,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/search/pgsearch"
 	"github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
@@ -1715,7 +1717,23 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -2549,7 +2567,23 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	manager2 := &session.Manager{
 		IDPSessions:         manager,
 		AccessTokenSessions: sessionManager,
@@ -3855,7 +3889,23 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	manager2 := &session.Manager{
 		IDPSessions:         manager,
 		AccessTokenSessions: sessionManager,
@@ -4415,7 +4465,23 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -5294,7 +5360,23 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -6095,7 +6177,23 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -7054,7 +7152,23 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -7926,7 +8040,23 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -8797,7 +8927,23 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -9656,7 +9802,23 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -10442,7 +10604,23 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -11479,7 +11657,23 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -12323,7 +12517,23 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -13171,7 +13381,23 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -14021,7 +14247,23 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -14869,7 +15111,23 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -15713,7 +15971,23 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -16561,7 +16835,23 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -17410,7 +17700,23 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -18258,7 +18564,23 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -19106,7 +19428,23 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -19956,7 +20294,23 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -20804,7 +21158,23 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -21652,7 +22022,23 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -22504,7 +22890,23 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -23352,7 +23754,23 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -24204,7 +24622,23 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -25052,7 +25486,23 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
 		AppID: appID,
@@ -25908,7 +26358,23 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
 		AppID: appID,
@@ -26774,7 +27240,23 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -27622,7 +28104,23 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -28466,7 +28964,23 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -29314,7 +29828,23 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -30158,7 +30688,23 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -31012,7 +31558,23 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -31856,7 +32418,23 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -32702,7 +33280,23 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -33546,7 +34140,23 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -34422,7 +35032,23 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -35277,7 +35903,23 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -36145,7 +36787,23 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -36997,7 +37655,23 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -37842,7 +38516,23 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -38695,7 +39385,23 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -39540,7 +40246,23 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -40385,7 +41107,23 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -41230,7 +41968,23 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -42076,7 +42830,23 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -42941,7 +43711,23 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -43786,7 +44572,23 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -44631,7 +45433,23 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -45476,7 +46294,23 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -46321,7 +47155,23 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -47173,7 +48023,23 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -48019,7 +48885,23 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -48863,7 +49745,23 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -49723,7 +50621,23 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -50567,7 +51481,23 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -51411,7 +52341,23 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -52273,7 +53219,23 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
 		AppID: appID,
@@ -53081,7 +54043,23 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
 		AppID: appID,
@@ -53888,7 +54866,23 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -54742,7 +55736,23 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -55587,7 +56597,23 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -56431,7 +57457,23 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -57295,7 +58337,23 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -58086,7 +59144,23 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -58872,7 +59946,23 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -59695,7 +60785,23 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -60488,7 +61594,23 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -61323,7 +62445,23 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -62149,7 +63287,23 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -63024,7 +64178,23 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -63929,7 +65099,23 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -64833,7 +66019,23 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -65720,7 +66922,23 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -66601,7 +67819,23 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -67484,7 +68718,23 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -68365,7 +69615,23 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -69246,7 +70512,23 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -70127,7 +71409,23 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -71008,7 +72306,23 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -71891,7 +73205,23 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -72774,7 +74104,23 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -73655,7 +75001,23 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -74536,7 +75898,23 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -75417,7 +76795,23 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -76298,7 +77692,23 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -77179,7 +78589,23 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -78060,7 +79486,23 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -78941,7 +80383,23 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -79822,7 +81280,23 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -80705,7 +82179,23 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -81654,7 +83144,23 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -82428,7 +83934,23 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -83279,7 +84801,23 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -84160,7 +85698,23 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -85698,7 +87252,23 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
 		Secrets:    oAuthKeyMaterials,
 		Clock:      clockClock,
@@ -86280,7 +87850,23 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
 		AppID: appID,
@@ -87518,7 +89104,23 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbHandle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     appID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
