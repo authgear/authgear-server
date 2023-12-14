@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
@@ -385,6 +386,11 @@ func (s *Service) VerifyCode(code string) (state *otp.State, err error) {
 func (s *Service) CodeLength(target string, channel CodeChannel, kind CodeKind) int {
 	_, form := s.getForgotPasswordOTP(s.getChannel(target, channel), kind)
 	return form.CodeLength()
+}
+
+func (s *Service) IsRateLimitError(err error, target string, channel CodeChannel, kind CodeKind) bool {
+	otpKind, _ := s.getForgotPasswordOTP(s.getChannel(target, channel), kind)
+	return ratelimit.IsRateLimitErrorWithBucketName(err, otpKind.RateLimitTriggerCooldown(target).Name)
 }
 
 func (s *Service) InspectState(target string, channel CodeChannel, kind CodeKind) (*otp.State, error) {
