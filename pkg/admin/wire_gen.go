@@ -69,6 +69,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/search"
 	"github.com/authgear/authgear-server/pkg/lib/search/pgsearch"
+	"github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -539,23 +540,27 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
-	elasticsearchService := &elasticsearch.Service{
+	reindexer := &reindex.Reindexer{
 		AppID:     appID,
-		Client:    client,
 		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
 	}
-	configAppID := &appConfig.ID
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Reindexer: reindexer,
+	}
 	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
 	sqlBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
 	searchdbHandle := appProvider.SearchDatabase
 	searchdbSQLExecutor := searchdb.NewSQLExecutor(contextContext, searchdbHandle)
 	pgsearchService := &pgsearch.Service{
-		AppID:       configAppID,
+		AppID:       appID,
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: searchdbSQLExecutor,
+		Reindexer:   reindexer,
 	}
 	searchService := &search.Service{
 		SearchConfig:         searchConfig,
@@ -623,10 +628,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	service5 := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
+		Reindexer: reindexer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,

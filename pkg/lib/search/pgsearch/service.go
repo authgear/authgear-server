@@ -11,13 +11,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/searchdb"
+	"github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type Service struct {
-	AppID       *config.AppID
+	AppID       config.AppID
 	SQLBuilder  *searchdb.SQLBuilder
 	SQLExecutor *searchdb.SQLExecutor
+	Reindexer   *reindex.Reindexer
 }
 
 func (s *Service) QueryUser(
@@ -76,7 +78,7 @@ func (s *Service) QueryUser(
 }
 
 func (s *Service) searchQuery(searchKeyword string) db.SelectBuilder {
-	appID := string(*s.AppID)
+	appID := string(s.AppID)
 	searchKeywordArr := pq.Array([]string{searchKeyword})
 	q := s.SQLBuilder.WithAppID(appID).
 		Select(
@@ -105,4 +107,8 @@ func (s *Service) searchQuery(searchKeyword string) db.SelectBuilder {
 			},
 		})
 	return q
+}
+
+func (s *Service) ReindexUser(userID string, isDelete bool) (err error) {
+	return s.Reindexer.ReindexUser(config.SearchImplementationPostgresql, userID, isDelete)
 }

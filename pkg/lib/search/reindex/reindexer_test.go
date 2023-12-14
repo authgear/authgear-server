@@ -1,4 +1,4 @@
-package elasticsearch
+package reindex
 
 import (
 	"encoding/json"
@@ -14,7 +14,7 @@ import (
 func TestRawToSource(t *testing.T) {
 	Convey("RawToSource", t, func() {
 		lastLoginAt := time.Date(2006, 1, 2, 3, 4, 5, 0, time.UTC)
-		raw := &model.ElasticsearchUserRaw{
+		raw := &model.SearchUserRaw{
 			ID:                "ID",
 			AppID:             "APP_ID",
 			CreatedAt:         time.Date(2006, 1, 2, 3, 4, 5, 0, time.UTC),

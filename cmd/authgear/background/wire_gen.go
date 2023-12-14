@@ -50,6 +50,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -557,13 +558,17 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	noopTaskQueue := NewNoopTaskQueue()
-	elasticsearchService := elasticsearch.Service{
+	reindexer := &reindex.Reindexer{
 		AppID:     configAppID,
-		Client:    client,
 		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: noopTaskQueue,
+	}
+	elasticsearchService := elasticsearch.Service{
+		AppID:     configAppID,
+		Client:    client,
+		Reindexer: reindexer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,

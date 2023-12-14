@@ -47,6 +47,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -589,13 +590,17 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
-	elasticsearchService := elasticsearch.Service{
+	reindexer := &reindex.Reindexer{
 		AppID:     appID,
-		Client:    client,
 		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
+	}
+	elasticsearchService := elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Reindexer: reindexer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
