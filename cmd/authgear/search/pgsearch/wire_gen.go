@@ -5,3 +5,56 @@
 // +build !wireinject
 
 package pgsearch
+
+import (
+	"context"
+	"github.com/authgear/authgear-server/cmd/authgear/search"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/util/clock"
+)
+
+// Injectors from wire.go:
+
+func NewReindexer(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, appID config.AppID) *Reindexer {
+	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
+	factory := NewLoggerFactory()
+	handle := appdb.NewHandle(ctx, pool, databaseEnvironmentConfig, databaseCredentials, factory)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	sqlExecutor := appdb.NewSQLExecutor(ctx, handle)
+	clock := _wireSystemClockValue
+	store := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clock,
+	}
+	identityConfig := NewEmptyIdentityConfig()
+	oauthStore := &oauth.Store{
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
+	}
+	loginidStore := &loginid.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	reindexer := &search.Reindexer{
+		Handle:  handle,
+		AppID:   appID,
+		Users:   store,
+		OAuth:   oauthStore,
+		LoginID: loginidStore,
+	}
+	pgsearchReindexer := &Reindexer{
+		Reindexer: reindexer,
+	}
+	return pgsearchReindexer
+}
+
+var (
+	_wireSystemClockValue = clock.NewSystemClock()
+)

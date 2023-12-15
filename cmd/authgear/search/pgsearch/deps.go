@@ -1,0 +1,48 @@
+package pgsearch
+
+import (
+	"github.com/google/wire"
+
+	"github.com/authgear/authgear-server/cmd/authgear/search"
+	identityloginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
+	identityoauth "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/log"
+)
+
+func NewLoggerFactory() *log.Factory {
+	return log.NewFactory(log.LevelInfo)
+}
+
+func NewGlobalDatabaseCredentials(dbCredentials *config.DatabaseCredentials) *config.GlobalDatabaseCredentialsEnvironmentConfig {
+	return &config.GlobalDatabaseCredentialsEnvironmentConfig{
+		DatabaseURL:    dbCredentials.DatabaseURL,
+		DatabaseSchema: dbCredentials.DatabaseSchema,
+	}
+}
+
+func NewEmptyIdentityConfig() *config.IdentityConfig {
+	return &config.IdentityConfig{
+		OAuth: &config.OAuthSSOConfig{},
+	}
+}
+
+var DependencySet = wire.NewSet(
+	search.DependencySet,
+	NewLoggerFactory,
+	config.NewDefaultDatabaseEnvironmentConfig,
+	NewGlobalDatabaseCredentials,
+	NewEmptyIdentityConfig,
+	globaldb.DependencySet,
+	appdb.NewHandle,
+	appdb.DependencySet,
+	clock.DependencySet,
+	wire.Struct(new(user.Store), "*"),
+	wire.Struct(new(identityoauth.Store), "*"),
+	wire.Struct(new(identityloginid.Store), "*"),
+	wire.Struct(new(Reindexer), "*"),
+)

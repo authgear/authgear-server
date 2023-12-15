@@ -27,6 +27,12 @@ func init() {
 		binder.BindString(cmd.Flags(), authgearcmd.ArgDatabaseSchema)
 	}
 
+	cmdSearch.AddCommand(cmdSearchReindex)
+	binder.BindString(cmdSearchReindex.Flags(), authgearcmd.ArgDatabaseURL)
+	binder.BindString(cmdSearchReindex.Flags(), authgearcmd.ArgDatabaseSchema)
+	binder.BindString(cmdSearchReindex.Flags(), authgearcmd.ArgSearchDatabaseURL)
+	binder.BindString(cmdSearchReindex.Flags(), authgearcmd.ArgSearchDatabaseSchema)
+
 	authgearcmd.Root.AddCommand(cmdSearch)
 }
 
