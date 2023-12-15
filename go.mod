@@ -84,6 +84,7 @@ require (
 	github.com/go-webauthn/webauthn v0.8.6
 	github.com/lestrrat-go/jwx/v2 v2.0.16
 	github.com/patrickmn/go-cache v2.1.0+incompatible
+	github.com/rivo/uniseg v0.4.4
 	github.com/spruceid/siwe-go v0.2.1
 	github.com/twilio/twilio-go v1.15.1
 	github.com/yudai/gojsondiff v1.0.0

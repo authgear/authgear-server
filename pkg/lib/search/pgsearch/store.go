@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -171,6 +172,8 @@ func (s *Store) UpsertUsers(users []*model.SearchUserSource) error {
 			"region":                            user.Region,
 		}
 
+		details = MapUnicodeSegmentation(details)
+
 		defailsBytes, err := json.Marshal(details)
 		if err != nil {
 			return err
@@ -229,6 +232,7 @@ func (s *Store) UpsertUsers(users []*model.SearchUserSource) error {
 
 func (s *Store) searchQuery(searchKeyword string) db.SelectBuilder {
 	appID := string(s.AppID)
+	unisegSearchKeyword := StringUnicodeSegmentation(searchKeyword)
 	searchKeywordArr := pq.Array([]string{searchKeyword})
 	q := s.SQLBuilder.WithAppID(appID).
 		Select(
@@ -253,7 +257,7 @@ func (s *Store) searchQuery(searchKeyword string) db.SelectBuilder {
 				sq.Expr("su.locale @> ?", searchKeywordArr),
 				sq.Expr("su.postal_code @> ?", searchKeywordArr),
 				sq.Expr("su.country @> ?", searchKeywordArr),
-				sq.Expr("su.details_tsvector @@ websearch_to_tsquery(?)", searchKeyword),
+				sq.Expr("su.details_tsvector @@ websearch_to_tsquery(?)", unisegSearchKeyword),
 			},
 		})
 	return q
