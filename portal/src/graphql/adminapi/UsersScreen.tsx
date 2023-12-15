@@ -167,7 +167,7 @@ const UsersScreen: React.VFC = function UsersScreen() {
   });
 
   const isTotalExceededLimit =
-    (data?.users?.totalCount ?? 0) > searchResultSize;
+    (data?.users?.edges?.length ?? 0) >= searchResultSize;
 
   const messageBar = useMemo(() => {
     if (error != null) {
