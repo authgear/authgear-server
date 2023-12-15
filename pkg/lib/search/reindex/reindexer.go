@@ -25,27 +25,19 @@ type Reindexer struct {
 	TaskQueue task.Queue
 }
 
-func (s *Reindexer) ReindexUser(impl config.SearchImplementation, userID string, isDelete bool) error {
-	if isDelete {
-		s.TaskQueue.Enqueue(&tasks.ReindexUserParam{
-			Implementation:  impl,
-			DeleteUserAppID: string(s.AppID),
-			DeleteUserID:    userID,
-		})
-		return nil
-	}
+func (s *Reindexer) MakeSearchUserSource(userID string) (*model.SearchUserSource, error) {
 
 	u, err := s.Users.Get(userID, accesscontrol.RoleGreatest)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	oauthIdentities, err := s.OAuth.List(u.ID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	loginIDIdentities, err := s.LoginID.List(u.ID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	raw := &model.SearchUserRaw{
@@ -79,9 +71,27 @@ func (s *Reindexer) ReindexUser(impl config.SearchImplementation, userID string,
 		}
 	}
 
+	return RawToSource(raw), nil
+}
+
+func (s *Reindexer) ReindexUser(impl config.SearchImplementation, userID string, isDelete bool) error {
+	if isDelete {
+		s.TaskQueue.Enqueue(&tasks.ReindexUserParam{
+			Implementation:  impl,
+			DeleteUserAppID: string(s.AppID),
+			DeleteUserID:    userID,
+		})
+		return nil
+	}
+
+	userSource, err := s.MakeSearchUserSource(userID)
+	if err != nil {
+		return err
+	}
+
 	s.TaskQueue.Enqueue(&tasks.ReindexUserParam{
 		Implementation: impl,
-		User:           RawToSource(raw),
+		User:           userSource,
 	})
 
 	return nil

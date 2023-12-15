@@ -3,6 +3,7 @@ package elasticsearch
 import (
 	"github.com/google/wire"
 
+	"github.com/authgear/authgear-server/cmd/authgear/search"
 	identityloginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	identityoauth "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -32,6 +33,7 @@ func NewEmptyIdentityConfig() *config.IdentityConfig {
 }
 
 var DependencySet = wire.NewSet(
+	search.DependencySet,
 	NewLoggerFactory,
 	config.NewDefaultDatabaseEnvironmentConfig,
 	NewGlobalDatabaseCredentials,

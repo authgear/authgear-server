@@ -10,6 +10,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/sirupsen/logrus"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
@@ -73,7 +74,7 @@ func (t *ReindexUserTask) runPostgresql(taskParam *tasks.ReindexUserParam) (err 
 				"app_id":  user.AppID,
 				"user_id": user.ID,
 			}).Info("reindexing user in search database")
-			err := t.PGStore.UpsertUser(user)
+			err := t.PGStore.UpsertUsers([]*model.SearchUserSource{user})
 			if err != nil {
 				return err
 			}
