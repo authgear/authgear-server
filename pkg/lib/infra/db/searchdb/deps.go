@@ -82,7 +82,7 @@ type Handle struct {
 
 func NewHandle(
 	ctx context.Context,
-	pool *db.Pool,
+	pool *Pool,
 	cfg *config.DatabaseEnvironmentConfig,
 	credentials *config.SearchDatabaseCredentials,
 	lf *log.Factory,
@@ -98,6 +98,16 @@ func NewHandle(
 		IdleConnectionTimeout: cfg.ConnMaxIdleTimeSeconds.Duration(),
 	}
 	return &Handle{
-		db.NewHookHandle(ctx, pool, opts, lf),
+		db.NewHookHandle(ctx, pool.Pool, opts, lf),
+	}
+}
+
+type Pool struct {
+	*db.Pool
+}
+
+func NewPool() *Pool {
+	return &Pool{
+		Pool: db.NewPool(),
 	}
 }

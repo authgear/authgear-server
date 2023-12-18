@@ -59,6 +59,7 @@ var cmdSearchReindex = &cobra.Command{
 		}
 
 		dbPool := db.NewPool()
+		searchDBPool := searchdb.NewPool()
 		loggerFactory := authgearlog.NewFactory(authgearlog.LevelInfo)
 
 		reindexApp := func(appID string) error {
@@ -66,7 +67,7 @@ var cmdSearchReindex = &cobra.Command{
 			ctx := context.Background()
 			searchdbHandle := searchdb.NewHandle(
 				ctx,
-				dbPool,
+				searchDBPool,
 				config.NewDefaultDatabaseEnvironmentConfig(),
 				searchDatabaseCredentials,
 				loggerFactory)

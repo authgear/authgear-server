@@ -578,8 +578,9 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Database: handle,
 	}
 	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbPool := p.SearchDatabasePool
 	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
-	searchdbHandle := searchdb.NewHandle(ctx, pool, databaseEnvironmentConfig, searchDatabaseCredentials, factory)
+	searchdbHandle := searchdb.NewHandle(ctx, searchdbPool, databaseEnvironmentConfig, searchDatabaseCredentials, factory)
 	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
 	searchdbSQLExecutor := searchdb.NewSQLExecutor(ctx, searchdbHandle)
 	pgsearchStore := pgsearch.NewStore(configAppID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)

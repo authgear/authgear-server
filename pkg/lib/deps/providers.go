@@ -30,6 +30,7 @@ type RootProvider struct {
 	LoggerFactory      *log.Factory
 	SentryHub          *getsentry.Hub
 	DatabasePool       *db.Pool
+	SearchDatabasePool *searchdb.Pool
 	RedisPool          *redis.Pool
 	RedisHub           *redis.Hub
 	TaskQueueFactory   TaskQueueFactory
@@ -63,6 +64,7 @@ func NewRootProvider(
 	)
 
 	dbPool := db.NewPool()
+	searchDBPool := searchdb.NewPool()
 	redisPool := redis.NewPool()
 	redisHub := redis.NewHub(redisPool, loggerFactory)
 
@@ -77,6 +79,7 @@ func NewRootProvider(
 		LoggerFactory:      loggerFactory,
 		SentryHub:          sentryHub,
 		DatabasePool:       dbPool,
+		SearchDatabasePool: searchDBPool,
 		RedisPool:          redisPool,
 		RedisHub:           redisHub,
 		TaskQueueFactory:   taskQueueFactory,
@@ -111,7 +114,7 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 	}
 	searchDatabase := searchdb.NewHandle(
 		ctx,
-		p.DatabasePool,
+		p.SearchDatabasePool,
 		&p.EnvironmentConfig.DatabaseConfig,
 		searchDatabaseCredentials,
 		loggerFactory,
@@ -264,6 +267,7 @@ type BackgroundProvider struct {
 	LoggerFactory      *log.Factory
 	SentryHub          *getsentry.Hub
 	DatabasePool       *db.Pool
+	SearchDatabasePool *searchdb.Pool
 	RedisPool          *redis.Pool
 	RedisHub           *redis.Hub
 	BaseResources      *resource.Manager
@@ -295,6 +299,7 @@ func NewBackgroundProvider(
 	)
 
 	dbPool := db.NewPool()
+	searchDBPool := searchdb.NewPool()
 	redisPool := redis.NewPool()
 	redisHub := redis.NewHub(redisPool, loggerFactory)
 
@@ -309,6 +314,7 @@ func NewBackgroundProvider(
 		LoggerFactory:      loggerFactory,
 		SentryHub:          sentryHub,
 		DatabasePool:       dbPool,
+		SearchDatabasePool: searchDBPool,
 		RedisPool:          redisPool,
 		RedisHub:           redisHub,
 		BaseResources: resource.NewManagerWithDir(
