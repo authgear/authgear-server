@@ -121,6 +121,8 @@ type AuthflowScreen struct {
 	TakenChannel model.AuthenticatorOOBChannel `json:"taken_channel,omitempty"`
 	// WechatCallbackData is only relevant for wechat login.
 	WechatCallbackData *AuthflowWechatCallbackData `json:"wechat_callback_data,omitempty"`
+	// Extra data to put with the screen
+	Extra map[string]interface{} `json:"extra,omitempty"`
 }
 
 func newAuthflowScreen(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreen {
@@ -349,7 +351,7 @@ type TakeBranchResultInputRetryHandler func(err error) (nextInput interface{})
 
 type TakeBranchResultInput struct {
 	Input                 interface{}
-	NewAuthflowScreenFull func(flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse
+	NewAuthflowScreenFull func(flowResponse *authflow.FlowResponse, retriedForError error) *AuthflowScreenWithFlowResponse
 	OnRetry               *TakeBranchResultInputRetryHandler
 }
 
@@ -404,7 +406,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 			}
 			return TakeBranchResultInput{
 				Input: input,
-				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse {
+				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse, retriedForError error) *AuthflowScreenWithFlowResponse {
 					var emptyChannel model.AuthenticatorOOBChannel
 					isContinuation := func(flowResponse *authflow.FlowResponse) bool {
 						return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator) &&
@@ -437,7 +439,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 			)
 			return TakeBranchResultInput{
 				Input: input,
-				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse {
+				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse, retriedForError error) *AuthflowScreenWithFlowResponse {
 					isContinuation := func(flowResponse *authflow.FlowResponse) bool {
 						return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator) &&
 							flowResponse.Action.Authentication == option.Authentication
@@ -447,7 +449,8 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 						takenChannel = d.Channel
 					}
 
-					return s.makeScreenForTakenBranch(flowResponse, input, &index, takenChannel, isContinuation)
+					screen := s.makeScreenForTakenBranch(flowResponse, input, &index, takenChannel, isContinuation)
+					return s.markWhatsappUnavailableIfNeeded(retriedForError, screen)
 				},
 				OnRetry: &onFailureHandler,
 			}
@@ -472,7 +475,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 		)
 		return TakeBranchResultInput{
 			Input: input,
-			NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse {
+			NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse, retriedForError error) *AuthflowScreenWithFlowResponse {
 				var nilIndex *int
 				isContinuation := func(flowResponse *authflow.FlowResponse) bool {
 					return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowSignupFlowStepTypeVerify)
@@ -481,7 +484,8 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 				if d, ok := flowResponse.Action.Data.(declarative.NodeVerifyClaimData); ok {
 					takenChannel = d.Channel
 				}
-				return s.makeScreenForTakenBranch(flowResponse, input, nilIndex, takenChannel, isContinuation)
+				screen := s.makeScreenForTakenBranch(flowResponse, input, nilIndex, takenChannel, isContinuation)
+				return s.markWhatsappUnavailableIfNeeded(retriedForError, screen)
 			},
 			OnRetry: &onFailureHandler,
 		}
@@ -538,7 +542,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(index int, channel mode
 
 			return TakeBranchResultInput{
 				Input: input,
-				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse {
+				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse, retriedForError error) *AuthflowScreenWithFlowResponse {
 					isContinuation := func(flowResponse *authflow.FlowResponse) bool {
 						return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowLoginFlowStepTypeAuthenticate) && flowResponse.Action.Authentication == option.Authentication
 					}
@@ -547,8 +551,8 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(index int, channel mode
 						takenChannel = d.Channel
 					}
 
-					return s.makeScreenForTakenBranch(flowResponse, input, &index, takenChannel, isContinuation)
-
+					screen := s.makeScreenForTakenBranch(flowResponse, input, &index, takenChannel, isContinuation)
+					return s.markWhatsappUnavailableIfNeeded(retriedForError, screen)
 				},
 				OnRetry: &onFailureHandler,
 			}
@@ -606,7 +610,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchReauth(index int, channel mod
 
 			return TakeBranchResultInput{
 				Input: input,
-				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse {
+				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse, retriedForError error) *AuthflowScreenWithFlowResponse {
 					isContinuation := func(flowResponse *authflow.FlowResponse) bool {
 						return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowStepTypeAuthenticate) && flowResponse.Action.Authentication == option.Authentication
 					}
@@ -615,8 +619,8 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchReauth(index int, channel mod
 						takenChannel = d.Channel
 					}
 
-					return s.makeScreenForTakenBranch(flowResponse, input, &index, takenChannel, isContinuation)
-
+					screen := s.makeScreenForTakenBranch(flowResponse, input, &index, takenChannel, isContinuation)
+					return s.markWhatsappUnavailableIfNeeded(retriedForError, screen)
 				},
 				OnRetry: &onFailureHandler,
 			}
@@ -1045,6 +1049,16 @@ func (s *AuthflowScreenWithFlowResponse) makeFallbackToSMSFromWhatsappRetryHandl
 		}
 		return inputFactory(channels[smsChannelIdx])
 	}
+}
+
+func (s *AuthflowScreenWithFlowResponse) markWhatsappUnavailableIfNeeded(err error, screen *AuthflowScreenWithFlowResponse) *AuthflowScreenWithFlowResponse {
+	if errors.Is(err, whatsapp.ErrInvalidUser) {
+		if screen.Screen.Extra == nil {
+			screen.Screen.Extra = map[string]interface{}{}
+		}
+		screen.Screen.Extra["is_whatsapp_unavailable"] = true
+	}
+	return screen
 }
 
 func DeriveAuthflowFinishPath(response *authflow.FlowResponse) string {

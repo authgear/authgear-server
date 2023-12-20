@@ -653,26 +653,27 @@ func (c *AuthflowController) handleTakeBranchResultInput(
 	s *webapp.Session,
 	screen *webapp.AuthflowScreenWithFlowResponse,
 	takeBranchResult webapp.TakeBranchResultInput,
-) (output *authflow.ServiceOutput, newScreen *webapp.AuthflowScreenWithFlowResponse, err error) {
-	output, err = c.feedInput(screen.Screen.StateToken.StateToken, takeBranchResult.Input)
+) (*authflow.ServiceOutput, *webapp.AuthflowScreenWithFlowResponse, error) {
+	output, err := c.feedInput(screen.Screen.StateToken.StateToken, takeBranchResult.Input)
 	if err != nil {
 		if takeBranchResult.OnRetry == nil {
-			return
+			return output, nil, err
 		}
 		retryInput := (*takeBranchResult.OnRetry)(err)
 		if retryInput == nil {
-			return
+			return output, nil, err
 		}
-		output, err = c.feedInput(screen.Screen.StateToken.StateToken, retryInput)
-		if err != nil {
-			return
+		var retryErr error
+		output, retryErr = c.feedInput(screen.Screen.StateToken.StateToken, retryInput)
+		if retryErr != nil {
+			return output, nil, retryErr
 		}
 	}
 
 	flowResponse := output.ToFlowResponse()
-	newScreen = takeBranchResult.NewAuthflowScreenFull(&flowResponse)
+	newScreen := takeBranchResult.NewAuthflowScreenFull(&flowResponse, err)
 	s.RememberScreen(newScreen)
-	return
+	return output, newScreen, nil
 }
 
 func (c *AuthflowController) takeBranchRecursively(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (output *authflow.ServiceOutput, newScreen *webapp.AuthflowScreenWithFlowResponse, err error) {

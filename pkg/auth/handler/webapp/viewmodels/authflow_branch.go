@@ -31,6 +31,10 @@ type AuthflowBranchViewModel struct {
 
 func NewAuthflowBranchViewModel(screen *webapp.AuthflowScreenWithFlowResponse) AuthflowBranchViewModel {
 	branchFlowResponse := screen.BranchStateTokenFlowResponse
+	isWhatsappDisabled := false
+	if isWhatsappUnavailable, ok := screen.Screen.Extra["is_whatsapp_unavailable"].(bool); ok {
+		isWhatsappDisabled = isWhatsappUnavailable
+	}
 
 	deviceTokenEnabled := false
 	var branches []AuthflowBranch
@@ -44,6 +48,17 @@ func NewAuthflowBranchViewModel(screen *webapp.AuthflowScreenWithFlowResponse) A
 		case declarative.IntentVerifyClaimData:
 			branches = newAuthflowBranchViewModelVerify(screen, branchData)
 		}
+	}
+
+	if isWhatsappDisabled {
+		var filteredBranches []AuthflowBranch
+		for _, branch := range branches {
+			if branch.Channel == model.AuthenticatorOOBChannelWhatsapp {
+				continue
+			}
+			filteredBranches = append(filteredBranches, branch)
+		}
+		branches = filteredBranches
 	}
 
 	return AuthflowBranchViewModel{
