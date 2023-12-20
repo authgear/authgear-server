@@ -862,6 +862,9 @@ func (c *AuthflowController) takeBranch(w http.ResponseWriter, r *http.Request, 
 	// This taken branch require an input to select.
 	case webapp.TakeBranchResultInput:
 		output, newScreen, err = c.handleTakeBranchResultInput(s, screen, takeBranchResult)
+		if err != nil {
+			return err
+		}
 	}
 
 	now := c.Clock.NowUTC()
