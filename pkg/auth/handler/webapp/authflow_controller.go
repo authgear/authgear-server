@@ -649,6 +649,32 @@ func (c *AuthflowController) UpdateWithInput(r *http.Request, s *webapp.Session,
 	return
 }
 
+func (c *AuthflowController) handleTakeBranchResultInput(
+	s *webapp.Session,
+	screen *webapp.AuthflowScreenWithFlowResponse,
+	takeBranchResult webapp.TakeBranchResultInput,
+) (output *authflow.ServiceOutput, newScreen *webapp.AuthflowScreenWithFlowResponse, err error) {
+	output, err = c.feedInput(screen.Screen.StateToken.StateToken, takeBranchResult.Input)
+	if err != nil {
+		if takeBranchResult.OnRetry == nil {
+			return
+		}
+		retryInput := (*takeBranchResult.OnRetry)(err)
+		if retryInput == nil {
+			return
+		}
+		output, err = c.feedInput(screen.Screen.StateToken.StateToken, retryInput)
+		if err != nil {
+			return
+		}
+	}
+
+	flowResponse := output.ToFlowResponse()
+	newScreen = takeBranchResult.NewAuthflowScreenFull(&flowResponse)
+	s.RememberScreen(newScreen)
+	return
+}
+
 func (c *AuthflowController) takeBranchRecursively(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (output *authflow.ServiceOutput, newScreen *webapp.AuthflowScreenWithFlowResponse, err error) {
 	for screen.HasBranchToTake() {
 		// Take the first branch, and first channel by default.
@@ -663,14 +689,7 @@ func (c *AuthflowController) takeBranchRecursively(s *webapp.Session, screen *we
 			screen = takeBranchResult.Screen
 		// This taken branch require an input to select.
 		case webapp.TakeBranchResultInput:
-			output, err = c.feedInput(screen.Screen.StateToken.StateToken, takeBranchResult.Input)
-			if err != nil {
-				return
-			}
-
-			flowResponse := output.ToFlowResponse()
-			screen = takeBranchResult.NewAuthflowScreenFull(&flowResponse)
-			s.RememberScreen(screen)
+			output, screen, err = c.handleTakeBranchResultInput(s, screen, takeBranchResult)
 		}
 	}
 
@@ -834,14 +853,7 @@ func (c *AuthflowController) takeBranch(w http.ResponseWriter, r *http.Request, 
 		newScreen = takeBranchResult.Screen
 	// This taken branch require an input to select.
 	case webapp.TakeBranchResultInput:
-		output, err = c.feedInput(screen.Screen.StateToken.StateToken, takeBranchResult.Input)
-		if err != nil {
-			return err
-		}
-
-		flowResponse := output.ToFlowResponse()
-		newScreen = takeBranchResult.NewAuthflowScreenFull(&flowResponse)
-		s.RememberScreen(newScreen)
+		output, newScreen, err = c.handleTakeBranchResultInput(s, screen, takeBranchResult)
 	}
 
 	now := c.Clock.NowUTC()
