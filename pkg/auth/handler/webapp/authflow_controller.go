@@ -698,6 +698,10 @@ func (c *AuthflowController) takeBranchRecursively(s *webapp.Session, screen *we
 	return
 }
 
+func (c *AuthflowController) FeedInputWithoutNavigate(stateToken string, input interface{}) (*authflow.ServiceOutput, error) {
+	return c.feedInput(stateToken, input)
+}
+
 func (c *AuthflowController) feedInput(stateToken string, input interface{}) (*authflow.ServiceOutput, error) {
 	rawMessageBytes, err := json.Marshal(input)
 	if err != nil {
