@@ -130,11 +130,28 @@ func (c *OnPremisesClient) sendTemplate(
 		return ErrUnauthorized
 	}
 
+	if resp.StatusCode == 400 {
+		return c.parseBadRequestError(resp)
+	}
+
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return fmt.Errorf("whatsapp: unexpected response status %d", resp.StatusCode)
 	}
 
 	return nil
+}
+
+func (c *OnPremisesClient) parseBadRequestError(resp *http.Response) error {
+	var errResp SendTemplateErrorResponse
+	if err := json.NewDecoder(resp.Body).Decode(&errResp); err == nil {
+		if errResp.Errors != nil && len(*errResp.Errors) > 0 {
+			switch (*errResp.Errors)[0].Code {
+			case 1013:
+				return ErrInvalidUser
+			}
+		}
+	}
+	return ErrBadRequest
 }
 
 func (c *OnPremisesClient) login() (*UserToken, error) {

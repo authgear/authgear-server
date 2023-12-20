@@ -130,3 +130,13 @@ func (j *LoginResponseUserExpiresTime) UnmarshalText(textb []byte) error {
 func (j LoginResponseUserExpiresTime) MarshalText() ([]byte, error) {
 	return []byte(time.Time(j).Format(LoginResponseUserExpiresTimeLayout)), nil
 }
+
+type SendTemplateErrorResponse struct {
+	Errors *[]SendTemplateError `json:"errors,omitempty"`
+}
+
+type SendTemplateError struct {
+	Code    int    `json:"code"`
+	Title   string `json:"title"`
+	Details string `json:"details"`
+}

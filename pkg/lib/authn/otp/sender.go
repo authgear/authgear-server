@@ -38,6 +38,7 @@ type Sender interface {
 type WhatsappService interface {
 	ResolveOTPTemplateLanguage() (string, error)
 	PrepareOTPTemplate(language string, text string, code string) (*whatsapp.PreparedOTPTemplate, error)
+	SendTemplate(opts *whatsapp.SendTemplateOptions) error
 }
 
 type PreparedMessage struct {
@@ -314,5 +315,5 @@ func (s *MessageSender) sendWhatsapp(msg *PreparedMessage, opts SendOptions) err
 	msg.whatsapp.Options.Components = prepared.Components
 	msg.whatsapp.Options.Namespace = prepared.Namespace
 
-	return msg.whatsapp.Send()
+	return msg.whatsapp.Send(s.WhatsappService)
 }
