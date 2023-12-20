@@ -194,7 +194,7 @@ func (h *AuthflowForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http
 
 		inputs := h.makeInputs(screen, identification, loginID, 0)
 
-		result, err := h.Controller.AdvanceWithInputs(r, s, screen, inputs)
+		result, err := h.Controller.AdvanceWithInputs(r, s, screen, inputs, nil)
 		if errors.Is(err, whatsapp.ErrInvalidUser) {
 			// The code failed to send because it is not a valid whatsapp user
 			// Try again with sms if possible
@@ -271,7 +271,9 @@ func (h *AuthflowForgotPasswordHandler) fallbackToSMS(
 	}
 
 	inputs := h.makeInputs(screen, identification, loginID, smsOptionIdx)
-	return h.Controller.AdvanceWithInputs(r, s, screen, inputs)
+	return h.Controller.AdvanceWithInputs(r, s, screen, inputs, map[string]interface{}{
+		"is_whatsapp_unavailable": true,
+	})
 }
 
 func (h *AuthflowForgotPasswordHandler) makeInputs(

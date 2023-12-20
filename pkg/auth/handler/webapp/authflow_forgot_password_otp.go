@@ -94,6 +94,11 @@ func NewAuthflowForgotPasswordOTPViewModel(
 	d := prevScreen.StateTokenFlowResponse.Action.
 		Data.(declarative.IntentAccountRecoveryFlowStepSelectDestinationData)
 
+	isWhatsappDisabled := false
+	if isWhatsappUnavailable, ok := screen.Screen.Extra["is_whatsapp_unavailable"].(bool); ok {
+		isWhatsappDisabled = isWhatsappUnavailable
+	}
+
 	var alternativeChannels []AuthflowForgotPasswordOTPAlternativeChannel
 	for idx, o := range d.Options {
 		if o.Channel == channel {
@@ -103,6 +108,9 @@ func NewAuthflowForgotPasswordOTPViewModel(
 			continue
 		}
 		if o.OTPForm != declarative.AccountRecoveryOTPFormCode {
+			continue
+		}
+		if isWhatsappDisabled && o.Channel == declarative.AccountRecoveryChannelWhatsapp {
 			continue
 		}
 		alternativeChannels = append(alternativeChannels, AuthflowForgotPasswordOTPAlternativeChannel{
