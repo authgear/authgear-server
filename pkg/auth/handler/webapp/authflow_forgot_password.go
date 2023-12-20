@@ -239,7 +239,6 @@ func (h *AuthflowForgotPasswordHandler) fallbackToSMS(
 	options := []declarative.AccountRecoveryDestinationOption{}
 	switch config.AuthenticationFlowStepType(screen.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
-		// We need data of both steps, so they must be two inputs
 		input := map[string]interface{}{
 			"identification": identification,
 			"login_id":       loginID,
