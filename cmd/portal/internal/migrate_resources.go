@@ -18,6 +18,7 @@ type MigrateResourcesOptions struct {
 	UpdateConfigSourceFunc func(appID string, configSourceData map[string]string, DryRun bool) error
 }
 
+// nolint: gocognit
 func MigrateResources(opt *MigrateResourcesOptions) {
 	db := openDB(opt.DatabaseURL, opt.DatabaseSchema)
 
