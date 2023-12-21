@@ -34,7 +34,7 @@ func WithUIImplementation(ctx context.Context, impl config.UIImplementation) con
 func GetUIImplementation(ctx context.Context) config.UIImplementation {
 	v, ok := ctx.Value(implementationSwitcherContextKey).(*implementationSwitcherContext)
 	if !ok {
-		return ""
+		return config.UIImplementationDefault
 	}
 	return v.UIImplementation
 }
@@ -53,9 +53,13 @@ type ImplementationSwitcherHandler struct {
 
 func (h *ImplementationSwitcherHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch GetUIImplementation(r.Context()) {
-	case config.UIImplementationAuthflow:
-		h.Authflow.ServeHTTP(w, r)
-	default:
+	case config.UIImplementationInteraction:
 		h.Interaction.ServeHTTP(w, r)
+	case config.UIImplementationDefault:
+		fallthrough
+	case config.UIImplementationAuthflow:
+		fallthrough
+	default:
+		h.Authflow.ServeHTTP(w, r)
 	}
 }
