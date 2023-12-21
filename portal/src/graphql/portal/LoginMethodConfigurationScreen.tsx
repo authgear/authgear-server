@@ -976,53 +976,83 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
       loginIDKeyConfigs
     ),
     loginIDEmailConfig: {
-      block_plus_sign: false,
-      case_sensitive: false,
-      ignore_dot_sign: false,
-      domain_blocklist_enabled: false,
-      domain_allowlist_enabled: false,
-      block_free_email_provider_domains: false,
-      ...config.identity?.login_id?.types?.email,
+      block_plus_sign:
+        config.identity?.login_id?.types?.email?.block_plus_sign ?? false,
+      case_sensitive:
+        config.identity?.login_id?.types?.email?.case_sensitive ?? false,
+      ignore_dot_sign:
+        config.identity?.login_id?.types?.email?.ignore_dot_sign ?? false,
+      domain_blocklist_enabled:
+        config.identity?.login_id?.types?.email?.domain_blocklist_enabled ??
+        false,
+      domain_allowlist_enabled:
+        config.identity?.login_id?.types?.email?.domain_allowlist_enabled ??
+        false,
+      block_free_email_provider_domains:
+        config.identity?.login_id?.types?.email
+          ?.block_free_email_provider_domains ?? false,
     },
     loginIDUsernameConfig: {
-      block_reserved_usernames: true,
-      exclude_keywords_enabled: false,
-      ascii_only: true,
-      case_sensitive: false,
-      ...config.identity?.login_id?.types?.username,
+      block_reserved_usernames:
+        config.identity?.login_id?.types?.username?.block_reserved_usernames ??
+        true,
+      exclude_keywords_enabled:
+        config.identity?.login_id?.types?.username?.exclude_keywords_enabled ??
+        false,
+      ascii_only:
+        config.identity?.login_id?.types?.username?.ascii_only ?? true,
+      case_sensitive:
+        config.identity?.login_id?.types?.username?.case_sensitive ?? false,
     },
     phoneInputConfig: {
-      allowlist: [],
-      pinned_list: [],
-      preselect_by_ip_disabled: false,
-      ...config.ui?.phone_input,
+      allowlist: config.ui?.phone_input?.allowlist ?? [],
+      pinned_list: config.ui?.phone_input?.pinned_list ?? [],
+      preselect_by_ip_disabled:
+        config.ui?.phone_input?.preselect_by_ip_disabled ?? false,
     },
     verificationClaims: {
-      ...config.verification?.claims,
+      email: {
+        enabled: config.verification?.claims?.email?.enabled,
+        required: config.verification?.claims?.email?.required,
+      },
+      phone_number: {
+        enabled: config.verification?.claims?.phone_number?.enabled,
+        required: config.verification?.claims?.phone_number?.required,
+      },
     },
     verificationCriteria: config.verification?.criteria,
     authenticatorOOBEmailConfig: {
       email_otp_mode: DEFAULT_EMAIL_OTP_MODE,
-      ...config.authenticator?.oob_otp?.email,
+      maximum: config.authenticator?.oob_otp?.email?.maximum,
+      code_valid_period:
+        config.authenticator?.oob_otp?.email?.code_valid_period,
     },
     authenticatorOOBSMSConfig: {
       phone_otp_mode: DEFAULT_PHONE_OTP_MODE,
-      ...config.authenticator?.oob_otp?.sms,
+      maximum: config.authenticator?.oob_otp?.sms?.maximum,
+      code_valid_period: config.authenticator?.oob_otp?.sms?.code_valid_period,
     },
     authenticatorPasswordConfig: {
-      ...config.authenticator?.password,
+      force_change: config.authenticator?.password?.force_change,
       policy: {
-        min_length: 8,
-        uppercase_required: false,
-        lowercase_required: false,
-        alphabet_required: false,
-        digit_required: false,
-        symbol_required: false,
-        minimum_guessable_level: 0 as const,
-        excluded_keywords: [],
-        history_size: 0,
-        history_days: 0,
-        ...config.authenticator?.password?.policy,
+        min_length: config.authenticator?.password?.policy?.min_length ?? 8,
+        uppercase_required:
+          config.authenticator?.password?.policy?.uppercase_required ?? false,
+        lowercase_required:
+          config.authenticator?.password?.policy?.lowercase_required ?? false,
+        alphabet_required:
+          config.authenticator?.password?.policy?.alphabet_required ?? false,
+        digit_required:
+          config.authenticator?.password?.policy?.digit_required ?? false,
+        symbol_required:
+          config.authenticator?.password?.policy?.symbol_required ?? false,
+        minimum_guessable_level:
+          config.authenticator?.password?.policy?.minimum_guessable_level ??
+          (0 as const),
+        excluded_keywords:
+          config.authenticator?.password?.policy?.excluded_keywords ?? [],
+        history_size: config.authenticator?.password?.policy?.history_size ?? 0,
+        history_days: config.authenticator?.password?.policy?.history_days ?? 0,
       },
     },
     forgotPasswordLinkValidPeriodSeconds,
@@ -1100,10 +1130,10 @@ function setEnable<T extends string>(
 }
 
 function constructConfig(
-  _config: PortalAPIAppConfig,
+  config: PortalAPIAppConfig,
   _initialState: ConfigFormState,
   currentState: ConfigFormState,
-  config: PortalAPIAppConfig
+  _effectiveConfig: PortalAPIAppConfig
 ): PortalAPIAppConfig {
   // eslint-disable-next-line complexity
   return produce(config, (config) => {
