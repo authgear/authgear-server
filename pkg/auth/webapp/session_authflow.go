@@ -13,7 +13,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/util/base32"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 )
@@ -1035,7 +1034,7 @@ func (s *AuthflowScreenWithFlowResponse) makeFallbackToSMSFromWhatsappRetryHandl
 	inputFactory func(channel model.AuthenticatorOOBChannel) map[string]interface{},
 	channels []model.AuthenticatorOOBChannel) TakeBranchResultInputRetryHandler {
 	return func(err error) interface{} {
-		if !errors.Is(err, whatsapp.ErrInvalidUser) {
+		if !errors.Is(err, otp.ErrInvalidWhatsappUser) {
 			return nil
 		}
 		smsChannelIdx := -1
@@ -1052,7 +1051,7 @@ func (s *AuthflowScreenWithFlowResponse) makeFallbackToSMSFromWhatsappRetryHandl
 }
 
 func (s *AuthflowScreenWithFlowResponse) markWhatsappUnavailableIfNeeded(err error, screen *AuthflowScreenWithFlowResponse) *AuthflowScreenWithFlowResponse {
-	if errors.Is(err, whatsapp.ErrInvalidUser) {
+	if errors.Is(err, otp.ErrInvalidWhatsappUser) {
 		if screen.Screen.Extra == nil {
 			screen.Screen.Extra = map[string]interface{}{}
 		}
