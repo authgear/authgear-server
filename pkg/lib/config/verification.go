@@ -33,21 +33,22 @@ type VerificationConfig struct {
 	Criteria   VerificationCriteria          `json:"criteria,omitempty"`
 	RateLimits *VerificationRateLimitsConfig `json:"rate_limits,omitempty"`
 
-	// CodeExpirySeconds is deprecated
-	CodeExpirySeconds DurationSeconds `json:"code_expiry_seconds,omitempty"`
-	CodeValidPeriod   DurationString  `json:"code_valid_period,omitempty"`
+	Deprecated_CodeExpirySeconds DurationSeconds `json:"code_expiry_seconds,omitempty"`
+	CodeValidPeriod              DurationString  `json:"code_valid_period,omitempty"`
 }
 
 func (c *VerificationConfig) SetDefaults() {
 	if c.Criteria == "" {
 		c.Criteria = VerificationCriteriaAny
 	}
-	if c.CodeExpirySeconds == 0 {
-		c.CodeExpirySeconds = DurationSeconds(3600)
+	if c.Deprecated_CodeExpirySeconds == 0 {
+		c.Deprecated_CodeExpirySeconds = DurationSeconds(3600)
 	}
 	if c.CodeValidPeriod == "" {
-		c.CodeValidPeriod = DurationString(c.CodeExpirySeconds.Duration().String())
+		c.CodeValidPeriod = DurationString(c.Deprecated_CodeExpirySeconds.Duration().String())
 	}
+
+	c.Deprecated_CodeExpirySeconds = 0
 }
 
 var _ = Schema.Add("VerificationClaimsConfig", `
