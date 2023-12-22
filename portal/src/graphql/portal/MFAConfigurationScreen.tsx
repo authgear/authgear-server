@@ -121,6 +121,7 @@ function constructForgotpasswordValidPeriods(config: PortalAPIAppConfig) {
   };
 }
 
+// eslint-disable-next-line complexity
 function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
   const secondary: AuthenticatorTypeFormState<SecondaryAuthenticatorType>[] = (
     config.authentication?.secondary_authenticators ?? []
@@ -159,19 +160,26 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     primary: config.authentication?.primary_authenticators ?? [],
     secondary,
     authenticatorPasswordConfig: {
-      ...config.authenticator?.password,
+      force_change: config.authenticator?.password?.force_change,
       policy: {
-        min_length: 8,
-        uppercase_required: false,
-        lowercase_required: false,
-        alphabet_required: false,
-        digit_required: false,
-        symbol_required: false,
-        minimum_guessable_level: 0 as const,
-        excluded_keywords: [],
-        history_size: 0,
-        history_days: 0,
-        ...config.authenticator?.password?.policy,
+        min_length: config.authenticator?.password?.policy?.min_length ?? 8,
+        uppercase_required:
+          config.authenticator?.password?.policy?.uppercase_required ?? false,
+        lowercase_required:
+          config.authenticator?.password?.policy?.lowercase_required ?? false,
+        alphabet_required:
+          config.authenticator?.password?.policy?.alphabet_required ?? false,
+        digit_required:
+          config.authenticator?.password?.policy?.digit_required ?? false,
+        symbol_required:
+          config.authenticator?.password?.policy?.symbol_required ?? false,
+        minimum_guessable_level:
+          config.authenticator?.password?.policy?.minimum_guessable_level ??
+          (0 as const),
+        excluded_keywords:
+          config.authenticator?.password?.policy?.excluded_keywords ?? [],
+        history_size: config.authenticator?.password?.policy?.history_size ?? 0,
+        history_days: config.authenticator?.password?.policy?.history_days ?? 0,
       },
     },
     forgotPasswordLinkValidPeriodSeconds,
@@ -182,10 +190,10 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
 }
 
 function constructConfig(
-  _config: PortalAPIAppConfig,
+  config: PortalAPIAppConfig,
   _initialState: ConfigFormState,
   currentState: ConfigFormState,
-  config: PortalAPIAppConfig
+  _effectiveConfig: PortalAPIAppConfig
 ): PortalAPIAppConfig {
   return produce(config, (config) => {
     function filterEnabled<T extends string>(

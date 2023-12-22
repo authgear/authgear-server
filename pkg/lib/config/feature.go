@@ -21,7 +21,6 @@ var _ = FeatureConfigSchema.Add("FeatureConfig", `
 		"hook": { "$ref": "#/$defs/HookFeatureConfig" },
 		"audit_log": { "$ref": "#/$defs/AuditLogFeatureConfig" },
 		"google_tag_manager": { "$ref": "#/$defs/GoogleTagManagerFeatureConfig" },
-		"rate_limit": { "$ref": "#/$defs/RateLimitFeatureConfig" },
 		"rate_limits": { "$ref": "#/$defs/RateLimitsFeatureConfig" },
 		"messaging": { "$ref": "#/$defs/MessagingFeatureConfig" },
 		"collaborator": { "$ref": "#/$defs/CollaboratorFeatureConfig" },
@@ -42,7 +41,6 @@ type FeatureConfig struct {
 	Hook             *HookFeatureConfig             `json:"hook,omitempty"`
 	AuditLog         *AuditLogFeatureConfig         `json:"audit_log,omitempty"`
 	GoogleTagManager *GoogleTagManagerFeatureConfig `json:"google_tag_manager,omitempty"`
-	RateLimit        *RateLimitFeatureConfig        `json:"rate_limit,omitempty"`
 	RateLimits       *RateLimitsFeatureConfig       `json:"rate_limits,omitempty"`
 	Messaging        *MessagingFeatureConfig        `json:"messaging,omitempty"`
 	Collaborator     *CollaboratorFeatureConfig     `json:"collaborator,omitempty"`

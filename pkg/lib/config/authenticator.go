@@ -31,15 +31,17 @@ var _ = Schema.Add("AuthenticatorPasswordConfig", `
 `)
 
 type AuthenticatorPasswordConfig struct {
-	Policy      *PasswordPolicyConfig    `json:"policy,omitempty"`
-	ForceChange *bool                    `json:"force_change,omitempty"`
-	Ratelimit   *PasswordRatelimitConfig `json:"ratelimit,omitempty"`
+	Policy               *PasswordPolicyConfig    `json:"policy,omitempty"`
+	ForceChange          *bool                    `json:"force_change,omitempty"`
+	Deprecated_Ratelimit *PasswordRatelimitConfig `json:"ratelimit,omitempty"`
 }
 
 func (c *AuthenticatorPasswordConfig) SetDefaults() {
 	if c.ForceChange == nil {
 		c.ForceChange = newBool(true)
 	}
+
+	c.Deprecated_Ratelimit = nil
 }
 
 var _ = Schema.Add("PasswordPolicyConfig", `

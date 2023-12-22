@@ -72,10 +72,10 @@ type AppConfig struct {
 	AccountDeletion      *AccountDeletionConfig      `json:"account_deletion,omitempty"`
 	AccountAnonymization *AccountAnonymizationConfig `json:"account_anonymization,omitempty"`
 
-	ForgotPassword *ForgotPasswordConfig `json:"forgot_password,omitempty"`
-	WelcomeMessage *WelcomeMessageConfig `json:"welcome_message,omitempty"`
-	Verification   *VerificationConfig   `json:"verification,omitempty"`
-	OTP            *OTPLegacyConfig      `json:"otp,omitempty"`
+	ForgotPassword            *ForgotPasswordConfig `json:"forgot_password,omitempty"`
+	Deprecated_WelcomeMessage *WelcomeMessageConfig `json:"welcome_message,omitempty"`
+	Verification              *VerificationConfig   `json:"verification,omitempty"`
+	Deprecated_OTP            *OTPLegacyConfig      `json:"otp,omitempty"`
 
 	Web3 *Web3Config `json:"web3,omitempty"`
 
@@ -88,6 +88,11 @@ type AppConfig struct {
 	TestMode *TestModeConfig `json:"test_mode,omitempty"`
 
 	AuthenticationFlow *AuthenticationFlowConfig `json:"authentication_flow,omitempty"`
+}
+
+func (c *AppConfig) SetDefaults() {
+	c.Deprecated_WelcomeMessage = nil
+	c.Deprecated_OTP = nil
 }
 
 func (c *AppConfig) Validate(ctx *validation.Context) {
