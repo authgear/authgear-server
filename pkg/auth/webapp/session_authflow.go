@@ -120,20 +120,6 @@ type AuthflowScreen struct {
 	TakenChannel model.AuthenticatorOOBChannel `json:"taken_channel,omitempty"`
 	// WechatCallbackData is only relevant for wechat login.
 	WechatCallbackData *AuthflowWechatCallbackData `json:"wechat_callback_data,omitempty"`
-	// Extra data to put with the screen
-	Extra map[string]interface{} `json:"extra,omitempty"`
-}
-
-func (s *AuthflowScreen) AddExtra(extra map[string]interface{}) {
-	if extra == nil {
-		return
-	}
-	if s.Extra == nil {
-		s.Extra = map[string]interface{}{}
-	}
-	for k, v := range extra {
-		s.Extra[k] = v
-	}
 }
 
 func newAuthflowScreen(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreen {
@@ -466,7 +452,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 					}
 
 					screen := s.makeScreenForTakenBranch(flowResponse, input, &index, takenChannel, isContinuation)
-					return s.markWhatsappUnavailableIfNeeded(retriedForError, screen)
+					return screen
 				},
 				OnRetry: &onFailureHandler,
 			}
@@ -502,7 +488,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 					takenChannel = d.Channel
 				}
 				screen := s.makeScreenForTakenBranch(flowResponse, input, nilIndex, takenChannel, isContinuation)
-				return s.markWhatsappUnavailableIfNeeded(retriedForError, screen)
+				return screen
 			},
 			OnRetry: &onFailureHandler,
 		}
@@ -570,7 +556,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(index int, channel mode
 					}
 
 					screen := s.makeScreenForTakenBranch(flowResponse, input, &index, takenChannel, isContinuation)
-					return s.markWhatsappUnavailableIfNeeded(retriedForError, screen)
+					return screen
 				},
 				OnRetry: &onFailureHandler,
 			}
@@ -639,7 +625,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchReauth(index int, channel mod
 					}
 
 					screen := s.makeScreenForTakenBranch(flowResponse, input, &index, takenChannel, isContinuation)
-					return s.markWhatsappUnavailableIfNeeded(retriedForError, screen)
+					return screen
 				},
 				OnRetry: &onFailureHandler,
 			}
@@ -1072,15 +1058,6 @@ func (s *AuthflowScreenWithFlowResponse) makeFallbackToSMSFromWhatsappRetryHandl
 		}
 		return inputFactory(channels[smsChannelIdx])
 	}
-}
-
-func (s *AuthflowScreenWithFlowResponse) markWhatsappUnavailableIfNeeded(err error, screen *AuthflowScreenWithFlowResponse) *AuthflowScreenWithFlowResponse {
-	if errors.Is(err, otp.ErrInvalidWhatsappUser) {
-		screen.Screen.AddExtra(map[string]interface{}{
-			"is_whatsapp_unavailable": true,
-		})
-	}
-	return screen
 }
 
 func DeriveAuthflowFinishPath(response *authflow.FlowResponse) string {

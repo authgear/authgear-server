@@ -532,7 +532,6 @@ func (c *AuthflowController) AdvanceWithInputs(
 	s *webapp.Session,
 	screen0 *webapp.AuthflowScreenWithFlowResponse,
 	inputs []map[string]interface{},
-	extra map[string]interface{}, // extra data saved together with the result screen
 ) (*webapp.Result, error) {
 	result := &webapp.Result{}
 
@@ -549,7 +548,6 @@ func (c *AuthflowController) AdvanceWithInputs(
 		flowResponse1 := output1.ToFlowResponse()
 
 		screen1 := webapp.NewAuthflowScreenWithFlowResponse(&flowResponse1, prevXStep, input)
-		screen1.Screen.AddExtra(extra)
 		s.RememberScreen(screen1)
 		currentScreen = screen1
 
@@ -558,7 +556,6 @@ func (c *AuthflowController) AdvanceWithInputs(
 			return nil, err
 		}
 		currentScreen = screen2
-		screen2.Screen.AddExtra(extra)
 
 		if output2 != nil {
 			result.Cookies = append(result.Cookies, output2.Cookies...)
@@ -619,7 +616,7 @@ func (c *AuthflowController) AdvanceWithInput(
 	screen0 *webapp.AuthflowScreenWithFlowResponse,
 	input map[string]interface{},
 ) (result *webapp.Result, err error) {
-	return c.AdvanceWithInputs(r, s, screen0, []map[string]interface{}{input}, nil)
+	return c.AdvanceWithInputs(r, s, screen0, []map[string]interface{}{input})
 }
 
 // UpdateWithInput is for feeding an input that would just update the current node.
