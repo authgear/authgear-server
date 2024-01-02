@@ -18,7 +18,7 @@ func NewLogger(lf *log.Factory) Logger {
 }
 
 type EventService interface {
-	DispatchEventOnCommit(payload event.Payload) error
+	DispatchEventImmediately(payload event.NonBlockingPayload) error
 }
 
 type Sender struct {
