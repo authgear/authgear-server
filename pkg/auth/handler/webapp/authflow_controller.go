@@ -549,7 +549,7 @@ func (c *AuthflowController) AdvanceWithInputs(
 		flowResponse1 := output1.ToFlowResponse()
 
 		screen1 := webapp.NewAuthflowScreenWithFlowResponse(&flowResponse1, prevXStep, input)
-		screen1.Screen.Extra = extra
+		screen1.Screen.AddExtra(extra)
 		s.RememberScreen(screen1)
 		currentScreen = screen1
 
@@ -558,7 +558,7 @@ func (c *AuthflowController) AdvanceWithInputs(
 			return nil, err
 		}
 		currentScreen = screen2
-		screen2.Screen.Extra = extra
+		screen2.Screen.AddExtra(extra)
 
 		if output2 != nil {
 			result.Cookies = append(result.Cookies, output2.Cookies...)

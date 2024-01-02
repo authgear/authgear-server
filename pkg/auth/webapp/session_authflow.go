@@ -124,6 +124,18 @@ type AuthflowScreen struct {
 	Extra map[string]interface{} `json:"extra,omitempty"`
 }
 
+func (s *AuthflowScreen) AddExtra(extra map[string]interface{}) {
+	if extra == nil {
+		return
+	}
+	if s.Extra == nil {
+		s.Extra = map[string]interface{}{}
+	}
+	for k, v := range extra {
+		s.Extra[k] = v
+	}
+}
+
 func newAuthflowScreen(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreen {
 	switch {
 	case flowResponse.Action.Type == authflow.FlowActionTypeFinished:
@@ -1052,10 +1064,9 @@ func (s *AuthflowScreenWithFlowResponse) makeFallbackToSMSFromWhatsappRetryHandl
 
 func (s *AuthflowScreenWithFlowResponse) markWhatsappUnavailableIfNeeded(err error, screen *AuthflowScreenWithFlowResponse) *AuthflowScreenWithFlowResponse {
 	if errors.Is(err, otp.ErrInvalidWhatsappUser) {
-		if screen.Screen.Extra == nil {
-			screen.Screen.Extra = map[string]interface{}{}
-		}
-		screen.Screen.Extra["is_whatsapp_unavailable"] = true
+		screen.Screen.AddExtra(map[string]interface{}{
+			"is_whatsapp_unavailable": true,
+		})
 	}
 	return screen
 }
