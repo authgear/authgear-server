@@ -58,8 +58,8 @@ type Service struct {
 	IsDispatchEventErr  bool                       `wire:"-"`
 }
 
-// DispatchEvent dispatches the event according to the tranaction lifecycle.
-func (s *Service) DispatchEvent(payload event.Payload) (err error) {
+// DispatchEventOnCommit dispatches the event according to the tranaction lifecycle.
+func (s *Service) DispatchEventOnCommit(payload event.Payload) (err error) {
 	defer func() {
 		if err != nil {
 			s.IsDispatchEventErr = true

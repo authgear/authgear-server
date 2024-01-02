@@ -130,7 +130,7 @@ func (i *IntentPromoteFlow) GetEffects(ctx context.Context, deps *authflow.Depen
 			}
 
 			isAdminAPI := false
-			err = deps.Events.DispatchEvent(&nonblocking.UserAnonymousPromotedEventPayload{
+			err = deps.Events.DispatchEventOnCommit(&nonblocking.UserAnonymousPromotedEventPayload{
 				AnonymousUserRef: anonUserRef,
 				UserRef:          anonUserRef,
 				Identities:       identityModels,

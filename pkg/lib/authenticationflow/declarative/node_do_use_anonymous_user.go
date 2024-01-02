@@ -91,7 +91,7 @@ func NewNodeDoUseAnonymousUser(ctx context.Context, deps *authflow.Dependencies)
 						ID: userID,
 					},
 				}
-				err = deps.Events.DispatchEvent(&nonblocking.AuthenticationFailedIdentityEventPayload{
+				err = deps.Events.DispatchEventOnCommit(&nonblocking.AuthenticationFailedIdentityEventPayload{
 					UserRef:      userRef,
 					IdentityType: string(model.IdentityTypeAnonymous),
 				})

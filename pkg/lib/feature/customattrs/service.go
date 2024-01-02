@@ -11,7 +11,7 @@ import (
 )
 
 type EventService interface {
-	DispatchEvent(payload event.Payload) error
+	DispatchEventOnCommit(payload event.Payload) error
 }
 
 type Service struct {
@@ -77,7 +77,7 @@ func (s *Service) dispatchEvents(role accesscontrol.Role, userID string) (err er
 	}
 
 	for _, eventPayload := range eventPayloads {
-		err = s.Events.DispatchEvent(eventPayload)
+		err = s.Events.DispatchEventOnCommit(eventPayload)
 		if err != nil {
 			return err
 		}

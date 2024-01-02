@@ -127,7 +127,7 @@ func (i *IntentLogin) GetEffects(ctx context.Context, deps *workflow.Dependencie
 					ID: i.userID(),
 				},
 			}
-			err := deps.Events.DispatchEvent(&nonblocking.UserAuthenticatedEventPayload{
+			err := deps.Events.DispatchEventOnCommit(&nonblocking.UserAuthenticatedEventPayload{
 				UserRef:  userRef,
 				Session:  *session.ToAPIModel(),
 				AdminAPI: false,

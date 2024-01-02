@@ -29,7 +29,7 @@ type BaseURLProvider interface {
 }
 
 type EventService interface {
-	DispatchEvent(payload event.Payload) error
+	DispatchEventOnCommit(payload event.Payload) error
 }
 
 type AccessTokenEncoding struct {
@@ -77,7 +77,7 @@ func (e *AccessTokenEncoding) EncodeAccessToken(client *config.OAuthClientConfig
 		},
 	}
 
-	err = e.Events.DispatchEvent(eventPayload)
+	err = e.Events.DispatchEventOnCommit(eventPayload)
 	if err != nil {
 		return "", err
 	}

@@ -24,7 +24,7 @@ import (
 )
 
 type EventService interface {
-	DispatchEvent(payload event.Payload) error
+	DispatchEventOnCommit(payload event.Payload) error
 	DispatchErrorEvent(payload event.NonBlockingPayload) error
 }
 
@@ -459,7 +459,7 @@ func (c *Coordinator) UserDelete(userID string, isScheduledDeletion bool) error 
 		return err
 	}
 
-	err = c.Events.DispatchEvent(&nonblocking.UserDeletedEventPayload{
+	err = c.Events.DispatchEventOnCommit(&nonblocking.UserDeletedEventPayload{
 		UserModel:           *userModel,
 		IsScheduledDeletion: isScheduledDeletion,
 	})
@@ -634,7 +634,7 @@ func (c *Coordinator) UserReenable(userID string) error {
 		},
 	}
 
-	err = c.Events.DispatchEvent(e)
+	err = c.Events.DispatchEventOnCommit(e)
 	if err != nil {
 		return err
 	}
@@ -671,7 +671,7 @@ func (c *Coordinator) UserDisable(userID string, reason *string) error {
 		},
 	}
 
-	err = c.Events.DispatchEvent(e)
+	err = c.Events.DispatchEventOnCommit(e)
 	if err != nil {
 		return err
 	}
@@ -734,7 +734,7 @@ func (c *Coordinator) userScheduleDeletion(userID string, byAdmin bool) error {
 	}
 
 	for _, e := range events {
-		err := c.Events.DispatchEvent(e)
+		err := c.Events.DispatchEventOnCommit(e)
 		if err != nil {
 			return err
 		}
@@ -768,7 +768,7 @@ func (c *Coordinator) UserUnscheduleDeletionByAdmin(userID string) error {
 		AdminAPI: true,
 	}
 
-	err = c.Events.DispatchEvent(e)
+	err = c.Events.DispatchEventOnCommit(e)
 	if err != nil {
 		return err
 	}
@@ -837,7 +837,7 @@ func (c *Coordinator) UserAnonymize(userID string, IsScheduledAnonymization bool
 		return err
 	}
 
-	err = c.Events.DispatchEvent(&nonblocking.UserAnonymizedEventPayload{
+	err = c.Events.DispatchEventOnCommit(&nonblocking.UserAnonymizedEventPayload{
 		UserModel:                *userModel,
 		IsScheduledAnonymization: IsScheduledAnonymization,
 	})
@@ -899,7 +899,7 @@ func (c *Coordinator) userScheduleAnonymization(userID string, byAdmin bool) err
 	}
 
 	for _, e := range events {
-		err := c.Events.DispatchEvent(e)
+		err := c.Events.DispatchEventOnCommit(e)
 		if err != nil {
 			return err
 		}
@@ -933,7 +933,7 @@ func (c *Coordinator) UserUnscheduleAnonymizationByAdmin(userID string) error {
 		AdminAPI: true,
 	}
 
-	err = c.Events.DispatchEvent(e)
+	err = c.Events.DispatchEventOnCommit(e)
 	if err != nil {
 		return err
 	}
@@ -986,7 +986,7 @@ func (c *Coordinator) MarkClaimVerifiedByAdmin(claim *verification.Claim) error 
 		claim.Name,
 		true,
 	); ok {
-		err = c.Events.DispatchEvent(e)
+		err = c.Events.DispatchEventOnCommit(e)
 		if err != nil {
 			return err
 		}
@@ -1027,7 +1027,7 @@ func (c *Coordinator) DeleteVerifiedClaimByAdmin(claim *verification.Claim) erro
 		claim.Name,
 		true,
 	); ok {
-		err = c.Events.DispatchEvent(e)
+		err = c.Events.DispatchEventOnCommit(e)
 		if err != nil {
 			return err
 		}

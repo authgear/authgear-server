@@ -21,7 +21,7 @@ type CustomAttributesService interface {
 }
 
 type EventService interface {
-	DispatchEvent(payload event.Payload) error
+	DispatchEventOnCommit(payload event.Payload) error
 }
 
 type UserProfileFacade struct {
@@ -92,7 +92,7 @@ func (f *UserProfileFacade) UpdateUserProfile(
 		}
 
 		for _, eventPayload := range eventPayloads {
-			err = f.Events.DispatchEvent(eventPayload)
+			err = f.Events.DispatchEventOnCommit(eventPayload)
 			if err != nil {
 				return
 			}
