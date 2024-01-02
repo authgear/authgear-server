@@ -684,7 +684,7 @@ func (c *AuthflowController) takeBranchRecursively(s *webapp.Session, screen *we
 		// Take the first branch, and first channel by default.
 		var zeroIndex int
 		var zeroChannel model.AuthenticatorOOBChannel
-		takeBranchResult := screen.TakeBranch(zeroIndex, zeroChannel)
+		takeBranchResult := screen.TakeBranch(zeroIndex, zeroChannel, &webapp.TakeBranchOptions{})
 
 		switch takeBranchResult := takeBranchResult.(type) {
 		// This taken branch does not require an input to select.
@@ -850,7 +850,9 @@ func (c *AuthflowController) takeBranch(w http.ResponseWriter, r *http.Request, 
 	}
 	channel := r.Form.Get("x_channel")
 
-	takeBranchResult := screen.TakeBranch(index, model.AuthenticatorOOBChannel(channel))
+	takeBranchResult := screen.TakeBranch(index, model.AuthenticatorOOBChannel(channel), &webapp.TakeBranchOptions{
+		DisableFallbackToSMS: true,
+	})
 
 	var output *authflow.ServiceOutput
 	var newScreen *webapp.AuthflowScreenWithFlowResponse
