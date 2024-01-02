@@ -5,5 +5,5 @@
   overflow: auto;
 
   /* Let body to scroll in mobile */
-  @apply mobile:overflow-visible mobile:flex-grow-only mobile:min-h-min;
+  @apply mobile:overflow-visible mobile:flex-1-0-auto mobile:min-h-min;
 }

@@ -5,7 +5,7 @@
   width: 100%;
 
   /* Let body to scroll in mobile */
-  @apply mobile:h-auto mobile:flex-grow-only;
+  @apply mobile:h-auto mobile:flex-1-0-auto;
 }
 
 .body {
@@ -17,7 +17,7 @@
   flex-direction: row;
 
   /* Let body to scroll in mobile */
-  @apply mobile:flex-grow-only mobile:min-h-min mobile:flex-col;
+  @apply mobile:flex-1-0-auto mobile:min-h-min mobile:flex-col;
 }
 
 .nav {
@@ -39,5 +39,5 @@
   flex-direction: column;
 
   /* Let body to scroll in mobile */
-  @apply mobile:flex-grow-only mobile:min-h-min;
+  @apply mobile:flex-1-0-auto mobile:min-h-min;
 }
