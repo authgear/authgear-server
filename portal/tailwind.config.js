@@ -10,6 +10,9 @@ module.exports = {
       tablet: { max: "1080px" },
     },
     extend: {
+      flex: {
+        "grow-only": "1 0 auto",
+      },
       colors: {
         grey: { white7: "#F4F4F4" },
         status: {
