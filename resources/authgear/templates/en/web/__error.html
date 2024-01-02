@@ -238,6 +238,8 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
       {{ template "error-invalid-web3-network" (dict "chainID"
       $info.expected_chain_id) }}
     </li>
+    {{ else if eq .Error.reason "InvalidWhatsappUser" }}
+    <li>{{ template "error-invalid-whatsapp-user" }}</li>
     {{ else }}
     <li>{{ template "error-unknown" }}</li>
     {{ end }} {{ end }}

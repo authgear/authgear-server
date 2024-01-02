@@ -82,6 +82,7 @@
   "error-scheduled-deletion-by-end-user": "You have deactivated your account and your account will be deleted on <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "error-account-locked--countdown": "Your account is locked out. Please try again after <span data-date=\"{rfc3339}\" data-date-type=\"luxon-relative-duration\">{datetime, time, long}</span>.",
   "error-account-locked": "Your account is locked out. Please try again.",
+  "error-invalid-whatsapp-user": "Failed to deliver WhatsApp message because the phone number is not a valid whatsapp user.",
 
   "error-network": "Your device is offline. Please check your network connection first.",
   "error-server": "Server encountered an internal error.",
