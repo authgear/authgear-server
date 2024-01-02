@@ -25,7 +25,7 @@ import (
 
 type EventService interface {
 	DispatchEventOnCommit(payload event.Payload) error
-	DispatchErrorEvent(payload event.NonBlockingPayload) error
+	DispatchEventImmediately(payload event.NonBlockingPayload) error
 }
 
 type IdentityService interface {
@@ -360,7 +360,7 @@ func (c *Coordinator) AuthenticatorVerifyWithSpec(info *authenticator.Info, spec
 func (c *Coordinator) dispatchAuthenticationFailedEvent(userID string,
 	stage authn.AuthenticationStage,
 	authenticationType authn.AuthenticationType) error {
-	return c.Events.DispatchErrorEvent(&nonblocking.AuthenticationFailedEventPayload{
+	return c.Events.DispatchEventImmediately(&nonblocking.AuthenticationFailedEventPayload{
 		UserRef: model.UserRef{
 			Meta: model.Meta{
 				ID: userID,

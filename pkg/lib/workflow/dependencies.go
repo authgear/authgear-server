@@ -88,7 +88,7 @@ type RateLimiter interface {
 
 type EventService interface {
 	DispatchEventOnCommit(payload event.Payload) error
-	DispatchErrorEvent(payload event.NonBlockingPayload) error
+	DispatchEventImmediately(payload event.NonBlockingPayload) error
 }
 
 type UserService interface {
