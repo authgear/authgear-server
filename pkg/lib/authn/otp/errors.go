@@ -12,7 +12,7 @@ var ErrCodeNotFound = InvalidOTPCode.NewWithCause("otp code is expired or invali
 var ErrInvalidCode = InvalidOTPCode.NewWithCause("invalid otp code", apierrors.StringCause("InvalidCode"))
 var ErrConsumedCode = InvalidOTPCode.NewWithCause("used otp code", apierrors.StringCause("UsedCode"))
 
-var ErrInvalidWhatsappUser = InvalidWhatsappUser.NewWithCause("invalid whatsapp user", apierrors.StringCause("InvalidWhatsappUser"))
+var ErrInvalidWhatsappUser = InvalidWhatsappUser.New("invalid whatsapp user")
 
 // FIXME: backward compat; should not use RateLimited
 var ErrTooManyAttempts = ratelimit.RateLimited.NewWithInfo("too many verify OTP attempts", apierrors.Details{
