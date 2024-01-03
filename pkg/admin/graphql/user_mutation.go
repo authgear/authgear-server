@@ -65,7 +65,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationCreateUserExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationCreateUserExecutedEventPayload{
 				UserRef: apimodel.UserRef{
 					Meta: apimodel.Meta{
 						ID: userID,
@@ -135,7 +135,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationResetPasswordExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationResetPasswordExecutedEventPayload{
 				UserRef: apimodel.UserRef{
 					Meta: apimodel.Meta{
 						ID: userID,
@@ -185,7 +185,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationSendResetPasswordMessageExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationSendResetPasswordMessageExecutedEventPayload{
 				LoginID: loginID,
 			})
 			if err != nil {
@@ -287,7 +287,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationGenerateOOBOTPCodeExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationGenerateOOBOTPCodeExecutedEventPayload{
 				Target:  target,
 				Purpose: string(purpose),
 			})
@@ -364,7 +364,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationSetVerifiedStatusExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationSetVerifiedStatusExecutedEventPayload{
 				ClaimName:  claimName,
 				ClaimValue: claimValue,
 				IsVerified: isVerified,
@@ -440,7 +440,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationSetDisabledStatusExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationSetDisabledStatusExecutedEventPayload{
 				UserRef: apimodel.UserRef{
 					Meta: apimodel.Meta{
 						ID: userID,
@@ -505,7 +505,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationScheduleAccountDeletionExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationScheduleAccountDeletionExecutedEventPayload{
 				UserRef: apimodel.UserRef{
 					Meta: apimodel.Meta{
 						ID: userID,
@@ -569,7 +569,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationUnscheduleAccountDeletionExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationUnscheduleAccountDeletionExecutedEventPayload{
 				UserRef: apimodel.UserRef{
 					Meta: apimodel.Meta{
 						ID: userID,
@@ -649,7 +649,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationUpdateUserExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationUpdateUserExecutedEventPayload{
 				UserRef: apimodel.UserRef{
 					Meta: apimodel.Meta{
 						ID: userID,
@@ -720,7 +720,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationDeleteUserExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationDeleteUserExecutedEventPayload{
 				UserModel: userModel,
 			})
 			if err != nil {
@@ -780,7 +780,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEvent(
+			err = gqlCtx.Events.DispatchEventOnCommit(
 				&nonblocking.AdminAPIMutationScheduleAccountAnonymizationExecutedEventPayload{
 					UserRef: apimodel.UserRef{
 						Meta: apimodel.Meta{
@@ -845,7 +845,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEvent(
+			err = gqlCtx.Events.DispatchEventOnCommit(
 				&nonblocking.AdminAPIMutationUnscheduleAccountAnonymizationExecutedEventPayload{
 					UserRef: apimodel.UserRef{
 						Meta: apimodel.Meta{
@@ -910,7 +910,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationAnonymizeUserExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationAnonymizeUserExecutedEventPayload{
 				UserRef: apimodel.UserRef{
 					Meta: apimodel.Meta{
 						ID: userID,

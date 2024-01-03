@@ -117,7 +117,7 @@ type ForgotPasswordService interface {
 }
 
 type EventService interface {
-	DispatchEvent(payload event.Payload) error
+	DispatchEventOnCommit(payload event.Payload) error
 }
 
 type Logger struct{ *log.Logger }

@@ -78,7 +78,7 @@ func (n *NodeEnsureRemoveAnonymousIdentity) GetEffects() ([]interaction.Effect, 
 				identityModels = append(identityModels, info.ToModel())
 			}
 
-			err := ctx.Events.DispatchEvent(&nonblocking.UserAnonymousPromotedEventPayload{
+			err := ctx.Events.DispatchEventOnCommit(&nonblocking.UserAnonymousPromotedEventPayload{
 				AnonymousUserRef: anonUserRef,
 				UserRef:          anonUserRef,
 				Identities:       identityModels,

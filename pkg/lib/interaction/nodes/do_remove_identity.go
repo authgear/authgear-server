@@ -82,7 +82,7 @@ func (n *NodeDoRemoveIdentity) GetEffects() ([]interaction.Effect, error) {
 			}
 
 			if e != nil {
-				err := ctx.Events.DispatchEvent(e)
+				err := ctx.Events.DispatchEventOnCommit(e)
 				if err != nil {
 					return err
 				}

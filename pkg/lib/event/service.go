@@ -58,8 +58,8 @@ type Service struct {
 	IsDispatchEventErr  bool                       `wire:"-"`
 }
 
-// DispatchEvent dispatches the event according to the tranaction lifecycle.
-func (s *Service) DispatchEvent(payload event.Payload) (err error) {
+// DispatchEventOnCommit dispatches the event according to the tranaction lifecycle.
+func (s *Service) DispatchEventOnCommit(payload event.Payload) (err error) {
 	defer func() {
 		if err != nil {
 			s.IsDispatchEventErr = true
@@ -103,8 +103,8 @@ func (s *Service) DispatchEvent(payload event.Payload) (err error) {
 	return
 }
 
-// DispatchErrorEvent dispatches the event immediately.
-func (s *Service) DispatchErrorEvent(payload event.NonBlockingPayload) (err error) {
+// DispatchEventImmediately dispatches the event immediately.
+func (s *Service) DispatchEventImmediately(payload event.NonBlockingPayload) (err error) {
 	// Resolve refs once here
 	// If the event is about entity deletion,
 	// then it is not possible to resolve the entity in DidRollbackTx.

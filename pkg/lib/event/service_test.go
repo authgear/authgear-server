@@ -63,10 +63,10 @@ func TestServiceDispatchEvent(t *testing.T) {
 			database.EXPECT().UseHook(service).Times(1)
 			sink.EXPECT().ReceiveBlockingEvent(gomock.Any()).Times(2).Return(nil)
 
-			err := service.DispatchEvent(payload)
+			err := service.DispatchEventOnCommit(payload)
 			So(err, ShouldBeNil)
 
-			err = service.DispatchEvent(payload)
+			err = service.DispatchEventOnCommit(payload)
 			So(err, ShouldBeNil)
 		})
 
@@ -94,7 +94,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 				},
 			}).Times(1).Return(nil)
 
-			err := service.DispatchEvent(payload)
+			err := service.DispatchEventOnCommit(payload)
 			So(err, ShouldBeNil)
 			So(service.NonBlockingPayloads, ShouldBeEmpty)
 		})
@@ -134,7 +134,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 				},
 			).Return(nil)
 
-			err := service.DispatchEvent(payload)
+			err := service.DispatchEventOnCommit(payload)
 			So(err, ShouldBeNil)
 		})
 
@@ -150,7 +150,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 			database.EXPECT().UseHook(service).AnyTimes()
 			sink.EXPECT().ReceiveBlockingEvent(gomock.Any()).Return(fmt.Errorf("e"))
 
-			err := service.DispatchEvent(payload)
+			err := service.DispatchEventOnCommit(payload)
 			So(err, ShouldBeError, "e")
 		})
 
@@ -164,7 +164,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 			}
 
 			database.EXPECT().UseHook(service).AnyTimes()
-			err := service.DispatchEvent(payload)
+			err := service.DispatchEventOnCommit(payload)
 			So(err, ShouldBeNil)
 			So(service.NonBlockingPayloads, ShouldResemble, []event.NonBlockingPayload{
 				payload,
@@ -231,10 +231,10 @@ func TestServiceDispatchEvent(t *testing.T) {
 			}).Return(fmt.Errorf("e"))
 			sink.EXPECT().ReceiveNonBlockingEvent(gomock.Any()).Times(0)
 
-			err := service.DispatchEvent(nonBlocking)
+			err := service.DispatchEventOnCommit(nonBlocking)
 			So(err, ShouldBeNil)
 
-			err = service.DispatchEvent(blocking)
+			err = service.DispatchEventOnCommit(blocking)
 			So(err, ShouldBeError, "e")
 
 			err = service.WillCommitTx()

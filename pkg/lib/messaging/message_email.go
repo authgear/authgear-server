@@ -17,7 +17,7 @@ type EmailMessage struct {
 }
 
 func (m *EmailMessage) Send() error {
-	err := m.events.DispatchEvent(&nonblocking.EmailSentEventPayload{
+	err := m.events.DispatchEventImmediately(&nonblocking.EmailSentEventPayload{
 		Sender:    m.Sender,
 		Recipient: m.Recipient,
 		Type:      m.Type,

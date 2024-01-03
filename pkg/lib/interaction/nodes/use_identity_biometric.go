@@ -84,7 +84,7 @@ func (e *EdgeUseIdentityBiometric) Instantiate(ctx *interaction.Context, graph *
 						ID: userID,
 					},
 				}
-				err = ctx.Events.DispatchEvent(&nonblocking.AuthenticationFailedIdentityEventPayload{
+				err = ctx.Events.DispatchEventOnCommit(&nonblocking.AuthenticationFailedIdentityEventPayload{
 					UserRef:      userRef,
 					IdentityType: string(model.IdentityTypeBiometric),
 				})

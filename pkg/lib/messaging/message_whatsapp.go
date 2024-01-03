@@ -21,7 +21,7 @@ type WhatsappSender interface {
 }
 
 func (m *WhatsappMessage) Send(sender WhatsappSender) error {
-	err := m.events.DispatchEvent(&nonblocking.WhatsappSentEventPayload{
+	err := m.events.DispatchEventImmediately(&nonblocking.WhatsappSentEventPayload{
 		Recipient:           m.Options.To,
 		Type:                m.Type,
 		IsNotCountedInUsage: m.IsNotCounted,
