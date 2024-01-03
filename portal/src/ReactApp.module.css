@@ -1,6 +1,7 @@
 .root {
   width: 100vw;
   height: 100vh;
+  @apply flex flex-col;
 
-  @apply mobile:h-auto mobile:w-auto mobile:min-h-screen;
+  @apply mobile:h-full mobile:w-auto mobile:min-h-min;
 }

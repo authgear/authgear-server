@@ -3,4 +3,7 @@
   min-width: 0;
   min-height: 0;
   overflow: auto;
+
+  /* Let body to scroll in mobile */
+  @apply mobile:overflow-visible mobile:flex-1-0-auto mobile:min-h-min;
 }

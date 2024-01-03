@@ -2,9 +2,10 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  width: 100vw;
+  width: 100%;
 
-  @apply mobile:h-full;
+  /* Let body to scroll in mobile */
+  @apply mobile:h-auto mobile:flex-1-0-auto;
 }
 
 .body {
@@ -14,6 +15,9 @@
 
   display: flex;
   flex-direction: row;
+
+  /* Let body to scroll in mobile */
+  @apply mobile:flex-1-0-auto mobile:min-h-min mobile:flex-col;
 }
 
 .nav {
@@ -33,4 +37,7 @@
 
   display: flex;
   flex-direction: column;
+
+  /* Let body to scroll in mobile */
+  @apply mobile:flex-1-0-auto mobile:min-h-min;
 }
