@@ -1,6 +1,7 @@
 package otp
 
 import (
+	"errors"
 	neturl "net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
@@ -38,6 +39,7 @@ type Sender interface {
 type WhatsappService interface {
 	ResolveOTPTemplateLanguage() (string, error)
 	PrepareOTPTemplate(language string, text string, code string) (*whatsapp.PreparedOTPTemplate, error)
+	SendTemplate(opts *whatsapp.SendTemplateOptions) error
 }
 
 type PreparedMessage struct {
@@ -314,5 +316,10 @@ func (s *MessageSender) sendWhatsapp(msg *PreparedMessage, opts SendOptions) err
 	msg.whatsapp.Options.Components = prepared.Components
 	msg.whatsapp.Options.Namespace = prepared.Namespace
 
-	return msg.whatsapp.Send()
+	err = msg.whatsapp.Send(s.WhatsappService)
+	if errors.Is(err, whatsapp.ErrInvalidUser) {
+		return ErrInvalidWhatsappUser
+	} else {
+		return err
+	}
 }

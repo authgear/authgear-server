@@ -3,6 +3,7 @@ package webapp
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -343,41 +344,48 @@ type TakeBranchResultSimple struct {
 
 func (TakeBranchResultSimple) takeBranchResult() {}
 
+type TakeBranchResultInputRetryHandler func(err error) (nextInput interface{})
+
 type TakeBranchResultInput struct {
 	Input                 interface{}
-	NewAuthflowScreenFull func(flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse
+	NewAuthflowScreenFull func(flowResponse *authflow.FlowResponse, retriedForError error) *AuthflowScreenWithFlowResponse
+	OnRetry               *TakeBranchResultInputRetryHandler
 }
 
 func (TakeBranchResultInput) takeBranchResult() {}
 
-func (s *AuthflowScreenWithFlowResponse) TakeBranch(index int, channel model.AuthenticatorOOBChannel) TakeBranchResult {
+type TakeBranchOptions struct {
+	DisableFallbackToSMS bool
+}
+
+func (s *AuthflowScreenWithFlowResponse) TakeBranch(index int, channel model.AuthenticatorOOBChannel, options *TakeBranchOptions) TakeBranchResult {
 	switch s.StateTokenFlowResponse.Type {
 	case authflow.FlowTypeSignup:
-		return s.takeBranchSignup(index, channel)
+		return s.takeBranchSignup(index, channel, options)
 	case authflow.FlowTypePromote:
-		return s.takeBranchPromote(index, channel)
+		return s.takeBranchPromote(index, channel, options)
 	case authflow.FlowTypeLogin:
-		return s.takeBranchLogin(index, channel)
+		return s.takeBranchLogin(index, channel, options)
 	case authflow.FlowTypeSignupLogin:
-		return s.takeBranchSignupLogin(index)
+		return s.takeBranchSignupLogin(index, options)
 	case authflow.FlowTypeReauth:
-		return s.takeBranchReauth(index, channel)
+		return s.takeBranchReauth(index, channel, options)
 	case authflow.FlowTypeAccountRecovery:
-		return s.takeBranchAccountRecovery(index)
+		return s.takeBranchAccountRecovery(index, options)
 	default:
 		panic(fmt.Errorf("unexpected flow type: %v", s.StateTokenFlowResponse.Type))
 	}
 }
 
-func (s *AuthflowScreenWithFlowResponse) takeBranchSignup(index int, channel model.AuthenticatorOOBChannel) TakeBranchResult {
-	return s.takeBranchSignupPromote(index, channel)
+func (s *AuthflowScreenWithFlowResponse) takeBranchSignup(index int, channel model.AuthenticatorOOBChannel, options *TakeBranchOptions) TakeBranchResult {
+	return s.takeBranchSignupPromote(index, channel, options)
 }
 
-func (s *AuthflowScreenWithFlowResponse) takeBranchPromote(index int, channel model.AuthenticatorOOBChannel) TakeBranchResult {
-	return s.takeBranchSignupPromote(index, channel)
+func (s *AuthflowScreenWithFlowResponse) takeBranchPromote(index int, channel model.AuthenticatorOOBChannel, options *TakeBranchOptions) TakeBranchResult {
+	return s.takeBranchSignupPromote(index, channel, options)
 }
 
-func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, channel model.AuthenticatorOOBChannel) TakeBranchResult {
+func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, channel model.AuthenticatorOOBChannel, options *TakeBranchOptions) TakeBranchResult {
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
 		// In identify, the user input actually takes the branch.
@@ -399,7 +407,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 			}
 			return TakeBranchResultInput{
 				Input: input,
-				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse {
+				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse, retriedForError error) *AuthflowScreenWithFlowResponse {
 					var emptyChannel model.AuthenticatorOOBChannel
 					isContinuation := func(flowResponse *authflow.FlowResponse) bool {
 						return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator) &&
@@ -419,20 +427,34 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 			if channel == "" {
 				channel = option.Channels[0]
 			}
-			input := map[string]interface{}{
-				"authentication": option.Authentication,
-				"channel":        channel,
+			inputFactory := func(c model.AuthenticatorOOBChannel) map[string]interface{} {
+				return map[string]interface{}{
+					"authentication": option.Authentication,
+					"channel":        c,
+				}
 			}
+			input := inputFactory(channel)
+			onFailureHandler := s.makeFallbackToSMSFromWhatsappRetryHandler(
+				inputFactory,
+				option.Channels,
+				options.DisableFallbackToSMS,
+			)
 			return TakeBranchResultInput{
 				Input: input,
-				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse {
+				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse, retriedForError error) *AuthflowScreenWithFlowResponse {
 					isContinuation := func(flowResponse *authflow.FlowResponse) bool {
 						return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator) &&
 							flowResponse.Action.Authentication == option.Authentication
 					}
+					takenChannel := channel
+					if d, ok := flowResponse.Action.Data.(declarative.NodeVerifyClaimData); ok {
+						takenChannel = d.Channel
+					}
 
-					return s.makeScreenForTakenBranch(flowResponse, input, &index, channel, isContinuation)
+					screen := s.makeScreenForTakenBranch(flowResponse, input, &index, takenChannel, isContinuation)
+					return screen
 				},
+				OnRetry: &onFailureHandler,
 			}
 		default:
 			panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
@@ -443,25 +465,39 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 		if channel == "" {
 			channel = data.Channels[0]
 		}
-		input := map[string]interface{}{
-			"channel": channel,
+		inputFactory := func(c model.AuthenticatorOOBChannel) map[string]interface{} {
+			return map[string]interface{}{
+				"channel": c,
+			}
 		}
+		input := inputFactory(channel)
+		onFailureHandler := s.makeFallbackToSMSFromWhatsappRetryHandler(
+			inputFactory,
+			data.Channels,
+			options.DisableFallbackToSMS,
+		)
 		return TakeBranchResultInput{
 			Input: input,
-			NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse {
+			NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse, retriedForError error) *AuthflowScreenWithFlowResponse {
 				var nilIndex *int
 				isContinuation := func(flowResponse *authflow.FlowResponse) bool {
 					return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowSignupFlowStepTypeVerify)
 				}
-				return s.makeScreenForTakenBranch(flowResponse, input, nilIndex, channel, isContinuation)
+				takenChannel := channel
+				if d, ok := flowResponse.Action.Data.(declarative.NodeVerifyClaimData); ok {
+					takenChannel = d.Channel
+				}
+				screen := s.makeScreenForTakenBranch(flowResponse, input, nilIndex, takenChannel, isContinuation)
+				return screen
 			},
+			OnRetry: &onFailureHandler,
 		}
 	default:
 		panic(fmt.Errorf("unexpected action type: %v", s.StateTokenFlowResponse.Action.Type))
 	}
 }
 
-func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(index int, channel model.AuthenticatorOOBChannel) TakeBranchResult {
+func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(index int, channel model.AuthenticatorOOBChannel, options *TakeBranchOptions) TakeBranchResult {
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
 		// In identify, the user input actually takes the branch.
@@ -493,22 +529,36 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(index int, channel mode
 			if channel == "" {
 				channel = option.Channels[0]
 			}
-			input := map[string]interface{}{
-				"authentication": option.Authentication,
-				"index":          index,
-				"channel":        channel,
+
+			inputFactory := func(c model.AuthenticatorOOBChannel) map[string]interface{} {
+				return map[string]interface{}{
+					"authentication": option.Authentication,
+					"index":          index,
+					"channel":        c,
+				}
 			}
+			input := inputFactory(channel)
+			onFailureHandler := s.makeFallbackToSMSFromWhatsappRetryHandler(
+				inputFactory,
+				option.Channels,
+				options.DisableFallbackToSMS,
+			)
 
 			return TakeBranchResultInput{
 				Input: input,
-				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse {
+				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse, retriedForError error) *AuthflowScreenWithFlowResponse {
 					isContinuation := func(flowResponse *authflow.FlowResponse) bool {
 						return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowLoginFlowStepTypeAuthenticate) && flowResponse.Action.Authentication == option.Authentication
 					}
+					takenChannel := channel
+					if d, ok := flowResponse.Action.Data.(declarative.NodeVerifyClaimData); ok {
+						takenChannel = d.Channel
+					}
 
-					return s.makeScreenForTakenBranch(flowResponse, input, &index, channel, isContinuation)
-
+					screen := s.makeScreenForTakenBranch(flowResponse, input, &index, takenChannel, isContinuation)
+					return screen
 				},
+				OnRetry: &onFailureHandler,
 			}
 		default:
 			panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
@@ -518,7 +568,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(index int, channel mode
 	}
 }
 
-func (s *AuthflowScreenWithFlowResponse) takeBranchReauth(index int, channel model.AuthenticatorOOBChannel) TakeBranchResult {
+func (s *AuthflowScreenWithFlowResponse) takeBranchReauth(index int, channel model.AuthenticatorOOBChannel, options *TakeBranchOptions) TakeBranchResult {
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
 		// In identify, id_token is used.
@@ -548,22 +598,36 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchReauth(index int, channel mod
 			if channel == "" {
 				channel = option.Channels[0]
 			}
-			input := map[string]interface{}{
-				"authentication": option.Authentication,
-				"index":          index,
-				"channel":        channel,
+
+			inputFactory := func(c model.AuthenticatorOOBChannel) map[string]interface{} {
+				return map[string]interface{}{
+					"authentication": option.Authentication,
+					"index":          index,
+					"channel":        c,
+				}
 			}
+			input := inputFactory(channel)
+			onFailureHandler := s.makeFallbackToSMSFromWhatsappRetryHandler(
+				inputFactory,
+				option.Channels,
+				options.DisableFallbackToSMS,
+			)
 
 			return TakeBranchResultInput{
 				Input: input,
-				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse {
+				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse, retriedForError error) *AuthflowScreenWithFlowResponse {
 					isContinuation := func(flowResponse *authflow.FlowResponse) bool {
 						return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowStepTypeAuthenticate) && flowResponse.Action.Authentication == option.Authentication
 					}
+					takenChannel := channel
+					if d, ok := flowResponse.Action.Data.(declarative.NodeVerifyClaimData); ok {
+						takenChannel = d.Channel
+					}
 
-					return s.makeScreenForTakenBranch(flowResponse, input, &index, channel, isContinuation)
-
+					screen := s.makeScreenForTakenBranch(flowResponse, input, &index, takenChannel, isContinuation)
+					return screen
 				},
+				OnRetry: &onFailureHandler,
 			}
 		default:
 			panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
@@ -573,7 +637,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchReauth(index int, channel mod
 	}
 }
 
-func (s *AuthflowScreenWithFlowResponse) takeBranchSignupLogin(index int) TakeBranchResult {
+func (s *AuthflowScreenWithFlowResponse) takeBranchSignupLogin(index int, options *TakeBranchOptions) TakeBranchResult {
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
 		// In identify, the user input actually takes the branch.
@@ -584,7 +648,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupLogin(index int) TakeBr
 	}
 }
 
-func (s *AuthflowScreenWithFlowResponse) takeBranchAccountRecovery(index int) TakeBranchResult {
+func (s *AuthflowScreenWithFlowResponse) takeBranchAccountRecovery(index int, options *TakeBranchOptions) TakeBranchResult {
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
 		// In identify, the user input actually takes the branch.
@@ -969,6 +1033,30 @@ func (s *AuthflowScreenWithFlowResponse) navigateStepIdentify(r *http.Request, w
 
 	default:
 		panic(fmt.Errorf("unexpected identification: %v", identification))
+	}
+}
+
+func (s *AuthflowScreenWithFlowResponse) makeFallbackToSMSFromWhatsappRetryHandler(
+	inputFactory func(channel model.AuthenticatorOOBChannel) map[string]interface{},
+	channels []model.AuthenticatorOOBChannel,
+	disableFallbackToSMS bool) TakeBranchResultInputRetryHandler {
+	return func(err error) interface{} {
+		if disableFallbackToSMS {
+			return nil
+		}
+		if !errors.Is(err, otp.ErrInvalidWhatsappUser) {
+			return nil
+		}
+		smsChannelIdx := -1
+		for idx, c := range channels {
+			if c == model.AuthenticatorOOBChannelSMS {
+				smsChannelIdx = idx
+			}
+		}
+		if smsChannelIdx == -1 {
+			return nil
+		}
+		return inputFactory(channels[smsChannelIdx])
 	}
 }
 

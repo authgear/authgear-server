@@ -1,12 +1,15 @@
 package webapp
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -189,32 +192,18 @@ func (h *AuthflowForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http
 		loginID := r.Form.Get("x_login_id")
 		identification := r.Form.Get("x_login_id_type")
 
-		inputs := []map[string]interface{}{}
-
-		// screen can be identity or select_destination according to the query
-		switch config.AuthenticationFlowStepType(screen.StateTokenFlowResponse.Action.Type) {
-		case config.AuthenticationFlowStepTypeIdentify:
-			// We need data of both steps, so they must be two inputs
-			inputs = []map[string]interface{}{
-				{
-					"identification": identification,
-					"login_id":       loginID,
-				},
-				{
-					"index": 0,
-				},
-			}
-		case config.AuthenticationFlowStepTypeSelectDestination:
-			inputs = []map[string]interface{}{
-				{
-					"index": 0,
-				},
-			}
-		}
+		inputs := h.makeInputs(screen, identification, loginID, 0)
 
 		result, err := h.Controller.AdvanceWithInputs(r, s, screen, inputs)
-
-		if err != nil {
+		if errors.Is(err, otp.ErrInvalidWhatsappUser) {
+			// The code failed to send because it is not a valid whatsapp user
+			// Try again with sms if possible
+			var fallbackErr error
+			result, fallbackErr = h.fallbackToSMS(r, s, screen, identification, loginID)
+			if fallbackErr != nil {
+				return fallbackErr
+			}
+		} else if err != nil {
 			return err
 		}
 
@@ -238,4 +227,76 @@ func (h *AuthflowForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http
 		Type: authflow.FlowTypeAccountRecovery,
 		Name: flowName,
 	}, &handlers, input)
+}
+
+func (h *AuthflowForgotPasswordHandler) fallbackToSMS(
+	r *http.Request,
+	s *webapp.Session,
+	screen *webapp.AuthflowScreenWithFlowResponse,
+	identification string,
+	loginID string,
+) (*webapp.Result, error) {
+	options := []declarative.AccountRecoveryDestinationOption{}
+	switch config.AuthenticationFlowStepType(screen.StateTokenFlowResponse.Action.Type) {
+	case config.AuthenticationFlowStepTypeIdentify:
+		input := map[string]interface{}{
+			"identification": identification,
+			"login_id":       loginID,
+		}
+		output, err := h.Controller.FeedInputWithoutNavigate(screen.StateTokenFlowResponse.StateToken, input)
+		if err != nil {
+			return nil, err
+		}
+		if data, ok := output.FlowAction.Data.(declarative.IntentAccountRecoveryFlowStepSelectDestinationData); ok {
+			options = data.Options
+		}
+
+	case config.AuthenticationFlowStepTypeSelectDestination:
+		if data, ok := screen.StateTokenFlowResponse.Action.Data.(declarative.IntentAccountRecoveryFlowStepSelectDestinationData); ok {
+			options = data.Options
+		}
+	}
+
+	smsOptionIdx := -1
+	for idx, option := range options {
+		if option.Channel == declarative.AccountRecoveryChannelSMS {
+			smsOptionIdx = idx
+			break
+		}
+	}
+	if smsOptionIdx == -1 {
+		// No sms option is available, failing
+		return nil, fmt.Errorf("webapp: whatsapp is unavailable and no sms option is available")
+	}
+
+	inputs := h.makeInputs(screen, identification, loginID, smsOptionIdx)
+	return h.Controller.AdvanceWithInputs(r, s, screen, inputs)
+}
+
+func (h *AuthflowForgotPasswordHandler) makeInputs(
+	screen *webapp.AuthflowScreenWithFlowResponse,
+	identification string,
+	loginID string,
+	optionIndex int) (inputs []map[string]interface{}) {
+	// screen can be identity or select_destination depends on the query
+	switch config.AuthenticationFlowStepType(screen.StateTokenFlowResponse.Action.Type) {
+	case config.AuthenticationFlowStepTypeIdentify:
+		// We need data of both steps, so they must be two inputs
+		inputs = []map[string]interface{}{
+			{
+				"identification": identification,
+				"login_id":       loginID,
+			},
+			{
+				"index": optionIndex,
+			},
+		}
+	case config.AuthenticationFlowStepTypeSelectDestination:
+		inputs = []map[string]interface{}{
+			{
+				"index": optionIndex,
+			},
+		}
+	}
+	return
 }

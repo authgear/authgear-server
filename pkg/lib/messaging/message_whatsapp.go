@@ -4,7 +4,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
-	"github.com/authgear/authgear-server/pkg/lib/tasks"
 )
 
 type WhatsappMessage struct {
@@ -17,7 +16,11 @@ type WhatsappMessage struct {
 	IsNotCounted bool
 }
 
-func (m *WhatsappMessage) Send() error {
+type WhatsappSender interface {
+	SendTemplate(opts *whatsapp.SendTemplateOptions) error
+}
+
+func (m *WhatsappMessage) Send(sender WhatsappSender) error {
 	err := m.events.DispatchEvent(&nonblocking.WhatsappSentEventPayload{
 		Recipient:           m.Options.To,
 		Type:                m.Type,
@@ -27,9 +30,12 @@ func (m *WhatsappMessage) Send() error {
 		return err
 	}
 
-	m.taskQueue.Enqueue(&tasks.SendMessagesParam{
-		WhatsappMessages: []whatsapp.SendTemplateOptions{m.Options},
-	})
+	// We call whatsapp api immediately to know if there is any error
+	err = sender.SendTemplate(&m.Options)
+	if err != nil {
+		return err
+	}
+
 	m.isSent = true
 
 	return nil
