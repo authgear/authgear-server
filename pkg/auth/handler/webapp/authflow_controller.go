@@ -691,6 +691,9 @@ func (c *AuthflowController) takeBranchRecursively(s *webapp.Session, screen *we
 		// This taken branch require an input to select.
 		case webapp.TakeBranchResultInput:
 			output, screen, err = c.handleTakeBranchResultInput(s, screen, takeBranchResult)
+			if err != nil {
+				return
+			}
 		}
 	}
 
