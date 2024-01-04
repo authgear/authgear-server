@@ -1022,13 +1022,17 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     },
     verificationCriteria: config.verification?.criteria,
     authenticatorOOBEmailConfig: {
-      email_otp_mode: DEFAULT_EMAIL_OTP_MODE,
+      email_otp_mode:
+        config.authenticator?.oob_otp?.email?.email_otp_mode ??
+        DEFAULT_EMAIL_OTP_MODE,
       maximum: config.authenticator?.oob_otp?.email?.maximum,
       code_valid_period:
         config.authenticator?.oob_otp?.email?.code_valid_period,
     },
     authenticatorOOBSMSConfig: {
-      phone_otp_mode: DEFAULT_PHONE_OTP_MODE,
+      phone_otp_mode:
+        config.authenticator?.oob_otp?.sms?.phone_otp_mode ??
+        DEFAULT_PHONE_OTP_MODE,
       maximum: config.authenticator?.oob_otp?.sms?.maximum,
       code_valid_period: config.authenticator?.oob_otp?.sms?.code_valid_period,
     },
