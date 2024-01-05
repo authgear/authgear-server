@@ -340,3 +340,8 @@ var AuthflowUIHandlerDependencySet = wire.NewSet(
 	wire.Struct(new(webapp.AuthflowNavigator), "*"),
 	wire.Bind(new(webapp.Navigator), new(*webapp.AuthflowNavigator)),
 )
+
+var AuthflowV2UIHandlerDependencySet = wire.NewSet(
+	wire.Struct(new(handlerwebappauthflowv2.AuthflowV2Navigator), "*"),
+	wire.Bind(new(webapp.Navigator), new(*handlerwebappauthflowv2.AuthflowV2Navigator)),
+)
