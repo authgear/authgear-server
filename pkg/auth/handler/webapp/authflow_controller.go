@@ -115,6 +115,8 @@ type AuthflowController struct {
 
 	UIConfig            *config.UIConfig
 	OAuthClientResolver AuthflowControllerOAuthClientResolver
+
+	Navigator webapp.Navigator
 }
 
 func (c *AuthflowController) HandleStartOfFlow(
@@ -586,7 +588,7 @@ func (c *AuthflowController) AdvanceWithInputs(
 		}
 	}
 
-	currentScreen.Navigate(r, s.ID, result)
+	currentScreen.Navigate(c.Navigator, r, s.ID, result)
 
 	return result, nil
 }
@@ -628,7 +630,7 @@ func (c *AuthflowController) UpdateWithInput(r *http.Request, s *webapp.Session,
 		result.Cookies = append(result.Cookies, output.Cookies...)
 	}
 
-	newScreen.Navigate(r, s.ID, result)
+	newScreen.Navigate(c.Navigator, r, s.ID, result)
 	return
 }
 
@@ -872,7 +874,7 @@ func (c *AuthflowController) takeBranch(w http.ResponseWriter, r *http.Request, 
 		return nil
 	}
 
-	newScreen.Navigate(r, s.ID, result)
+	newScreen.Navigate(c.Navigator, r, s.ID, result)
 	result.WriteResponse(w, r)
 	return nil
 }
@@ -940,7 +942,7 @@ func (c *AuthflowController) checkPath(w http.ResponseWriter, r *http.Request, s
 	// We derive the intended path of the screen,
 	// and check if the paths match.
 	result := &webapp.Result{}
-	screen.Navigate(r, s.ID, result)
+	screen.Navigate(c.Navigator, r, s.ID, result)
 	redirectURI := result.RedirectURI
 
 	if redirectURI == "" {

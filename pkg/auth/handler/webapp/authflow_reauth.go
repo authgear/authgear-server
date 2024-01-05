@@ -16,6 +16,8 @@ func ConfigureAuthflowReauthRoute(route httproute.Route) httproute.Route {
 
 type AuthflowReauthHandler struct {
 	Controller *AuthflowController
+
+	AuthflowNavigator webapp.Navigator
 }
 
 func (h *AuthflowReauthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -31,7 +33,7 @@ func (h *AuthflowReauthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		// So we need to redirect here.
 		// See https://github.com/authgear/authgear-server/issues/3470
 		result := &webapp.Result{}
-		screen.Navigate(r, s.ID, result)
+		screen.Navigate(h.AuthflowNavigator, r, s.ID, result)
 		result.WriteResponse(w, r)
 		return nil
 	})

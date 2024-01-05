@@ -335,3 +335,8 @@ func RequestMiddleware(p *deps.RootProvider, configSource *configsource.ConfigSo
 		})
 	})
 }
+
+var AuthflowUIHandlerDependencySet = wire.NewSet(
+	wire.Struct(new(webapp.AuthflowNavigator), "*"),
+	wire.Bind(new(webapp.Navigator), new(*webapp.AuthflowNavigator)),
+)
