@@ -64013,7 +64013,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 		AppID:   appID,
 	}
-	authflowNavigator := &webapp2.AuthflowNavigator{}
+	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
@@ -64028,7 +64028,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		UIInfoResolver:          uiInfoResolver,
 		UIConfig:                uiConfig,
 		OAuthClientResolver:     oauthclientResolver,
-		Navigator:               authflowNavigator,
+		Navigator:               authflowV2Navigator,
 	}
 	uiFeatureConfig := featureConfig.UI
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -67582,7 +67582,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		Redis:   handle,
 		AppID:   appID,
 	}
-	authflowNavigator := &webapp2.AuthflowNavigator{}
+	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
@@ -67597,7 +67597,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		UIInfoResolver:          uiInfoResolver,
 		UIConfig:                uiConfig,
 		OAuthClientResolver:     oauthclientResolver,
-		Navigator:               authflowNavigator,
+		Navigator:               authflowV2Navigator,
 	}
 	uiFeatureConfig := featureConfig.UI
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -69342,7 +69342,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Redis:   handle,
 		AppID:   appID,
 	}
-	authflowNavigator := &webapp2.AuthflowNavigator{}
+	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
@@ -69357,7 +69357,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		UIInfoResolver:          uiInfoResolver,
 		UIConfig:                uiConfig,
 		OAuthClientResolver:     oauthclientResolver,
-		Navigator:               authflowNavigator,
+		Navigator:               authflowV2Navigator,
 	}
 	uiFeatureConfig := featureConfig.UI
 	forgotPasswordConfig := appConfig.ForgotPassword

@@ -657,7 +657,7 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
-		AuthflowUIHandlerDependencySet,
+		AuthflowV2UIHandlerDependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2LoginHandler)),
 	))
 }
@@ -689,7 +689,7 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
-		AuthflowUIHandlerDependencySet,
+		AuthflowV2UIHandlerDependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2EnterPasswordHandler)),
 	))
 }
@@ -705,7 +705,7 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
-		AuthflowUIHandlerDependencySet,
+		AuthflowV2UIHandlerDependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2EnterOOBOTPHandler)),
 	))
 }

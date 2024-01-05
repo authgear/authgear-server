@@ -15,7 +15,7 @@ import (
 )
 
 var TemplateWebAuthflowEnterOOBOTPHTML = template.RegisterHTML(
-	"web/authflow_enter_oob_otp.html",
+	"web/authflowv2/enter_oob_otp.html",
 	handlerwebapp.Components...,
 )
 
@@ -35,7 +35,7 @@ var AuthflowEnterOOBOTPSchema = validation.NewSimpleSchema(`
 func ConfigureAuthflowV2EnterOOBOTPRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern(RouteEnterOOBOTP)
+		WithPathPattern(AuthflowV2RouteEnterOOBOTP)
 }
 
 type AuthflowEnterOOBOTPViewModel struct {
