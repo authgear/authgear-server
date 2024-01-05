@@ -11,7 +11,7 @@ import (
 
 var TemplateWebForgotPasswordSuccessHTML = template.RegisterHTML(
 	"web/forgot_password_success.html",
-	components...,
+	Components...,
 )
 
 func ConfigureForgotPasswordSuccessRoute(route httproute.Route) httproute.Route {

@@ -16,7 +16,7 @@ import (
 
 var TemplateWebAuthflowResetPasswordHTML = template.RegisterHTML(
 	"web/authflow_reset_password.html",
-	components...,
+	Components...,
 )
 
 var AuthflowResetPasswordSchema = validation.NewSimpleSchema(`

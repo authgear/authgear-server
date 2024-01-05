@@ -49,12 +49,15 @@ func (m *ImplementationSwitcherMiddleware) Handle(next http.Handler) http.Handle
 type ImplementationSwitcherHandler struct {
 	Interaction http.Handler
 	Authflow    http.Handler
+	AuthflowV2  http.Handler
 }
 
 func (h *ImplementationSwitcherHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch GetUIImplementation(r.Context()) {
 	case config.UIImplementationInteraction:
 		h.Interaction.ServeHTTP(w, r)
+	case config.UIImplementationAuthflowV2:
+		h.AuthflowV2.ServeHTTP(w, r)
 	case config.UIImplementationDefault:
 		fallthrough
 	case config.UIImplementationAuthflow:

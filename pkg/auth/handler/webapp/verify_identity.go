@@ -20,7 +20,7 @@ import (
 
 var TemplateWebVerifyIdentityHTML = template.RegisterHTML(
 	"web/verify_identity.html",
-	components...,
+	Components...,
 )
 
 var VerifyIdentitySchema = validation.NewSimpleSchema(`

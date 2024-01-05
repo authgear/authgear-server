@@ -17,7 +17,7 @@ import (
 
 var TemplateWebSettingsIdentityHTML = template.RegisterHTML(
 	"web/settings_identity.html",
-	components...,
+	Components...,
 )
 
 func ConfigureSettingsIdentityRoute(route httproute.Route) httproute.Route {

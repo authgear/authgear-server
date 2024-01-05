@@ -10,7 +10,7 @@ import (
 
 var TemplateWebFeatureDisabledHTML = template.RegisterHTML(
 	"web/error_feature_disabled.html",
-	components...,
+	Components...,
 )
 
 func ConfigureFeatureDisabledRoute(route httproute.Route) httproute.Route {

@@ -16,7 +16,7 @@ import (
 
 var TemplateWebAuthflowSetupTOTPHTML = template.RegisterHTML(
 	"web/authflow_setup_totp.html",
-	components...,
+	Components...,
 )
 
 var AuthflowSetupTOTPSchema = validation.NewSimpleSchema(`

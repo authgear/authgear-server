@@ -19,7 +19,7 @@ import (
 
 var TemplateWebVerifyLoginLinkOTPHTML = template.RegisterHTML(
 	"web/verify_login_link.html",
-	components...,
+	Components...,
 )
 
 var VerifyLoginLinkOTPSchema = validation.NewSimpleSchema(`

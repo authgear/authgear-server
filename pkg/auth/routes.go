@@ -255,6 +255,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandler.ConfigureAuthflowLoginRoute(webappRequireAuthEnabledAuthEntrypointRoute), &webapphandler.ImplementationSwitcherHandler{
 		Interaction: p.Handler(newWebAppLoginHandler),
 		Authflow:    p.Handler(newWebAppAuthflowLoginHandler),
+		AuthflowV2:  p.Handler(newWebAppAuthflowV2LoginHandler),
 	})
 	router.Add(webapphandler.ConfigureAuthflowSignupRoute(webappRequireAuthEnabledAuthEntrypointRoute), &webapphandler.ImplementationSwitcherHandler{
 		Interaction: p.Handler(newWebAppSignupHandler),

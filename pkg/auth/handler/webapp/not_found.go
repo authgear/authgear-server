@@ -9,7 +9,7 @@ import (
 
 var TemplateWebNotFoundHTML = template.RegisterHTML(
 	"web/not_found.html",
-	components...,
+	Components...,
 )
 
 type NotFoundHandler struct {

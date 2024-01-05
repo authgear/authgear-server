@@ -18,7 +18,7 @@ import (
 
 var TemplateWebAuthflowForgotPasswordHTML = template.RegisterHTML(
 	"web/authflow_forgot_password.html",
-	components...,
+	Components...,
 )
 
 var AuthflowForgotPasswordSchema = validation.NewSimpleSchema(`

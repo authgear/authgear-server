@@ -13,7 +13,7 @@ import (
 
 var TemplateWebAuthflowPromptCreatePasskeyHTML = template.RegisterHTML(
 	"web/authflow_prompt_create_passkey.html",
-	components...,
+	Components...,
 )
 
 func ConfigureAuthflowPromptCreatePasskeyRoute(route httproute.Route) httproute.Route {

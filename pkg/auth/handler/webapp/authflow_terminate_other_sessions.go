@@ -11,7 +11,7 @@ import (
 
 var TemplateWebAuthflowTerminateOtherSessionsHTML = template.RegisterHTML(
 	"web/authflow_terminate_other_sessions.html",
-	components...,
+	Components...,
 )
 
 func ConfigureAuthflowTerminateOtherSessionsRoute(route httproute.Route) httproute.Route {

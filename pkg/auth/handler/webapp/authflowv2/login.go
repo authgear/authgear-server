@@ -1,4 +1,4 @@
-package webapp
+package authflowv2
 
 import (
 	"encoding/json"
@@ -6,20 +6,20 @@ import (
 	"net/http"
 	"net/url"
 
+	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/meter"
-	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 var TemplateWebAuthflowLoginHTML = template.RegisterHTML(
-	"web/authflow_login.html",
-	Components...,
+	"web/authflowv2/login.html",
+	handlerwebapp.Components...,
 )
 
 var AuthflowLoginLoginIDSchema = validation.NewSimpleSchema(`
@@ -31,12 +31,6 @@ var AuthflowLoginLoginIDSchema = validation.NewSimpleSchema(`
 		"required": ["q_login_id"]
 	}
 `)
-
-func ConfigureAuthflowLoginRoute(route httproute.Route) httproute.Route {
-	return route.
-		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern(webapp.AuthflowRouteLogin)
-}
 
 type AuthflowLoginEndpointsProvider interface {
 	SSOCallbackURL(alias string) *url.URL
@@ -52,18 +46,18 @@ func NewAuthflowLoginViewModel(allowLoginOnly bool) AuthflowLoginViewModel {
 	}
 }
 
-type AuthflowLoginHandler struct {
-	Controller        *AuthflowController
+type AuthflowV2LoginHandler struct {
+	Controller        *handlerwebapp.AuthflowController
 	BaseViewModel     *viewmodels.BaseViewModeler
 	AuthflowViewModel *viewmodels.AuthflowViewModeler
-	Renderer          Renderer
-	MeterService      MeterService
-	TutorialCookie    TutorialCookie
-	ErrorCookie       ErrorCookie
+	Renderer          handlerwebapp.Renderer
+	MeterService      handlerwebapp.MeterService
+	TutorialCookie    handlerwebapp.TutorialCookie
+	ErrorCookie       handlerwebapp.ErrorCookie
 	Endpoints         AuthflowLoginEndpointsProvider
 }
 
-func (h *AuthflowLoginHandler) GetData(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse, allowLoginOnly bool) (map[string]interface{}, error) {
+func (h *AuthflowV2LoginHandler) GetData(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse, allowLoginOnly bool) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	if h.TutorialCookie.Pop(r, w, httputil.SignupLoginTutorialCookieName) {
@@ -76,7 +70,7 @@ func (h *AuthflowLoginHandler) GetData(w http.ResponseWriter, r *http.Request, s
 	return data, nil
 }
 
-func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	flowName := "default"
 	opts := webapp.SessionOptions{
 		RedirectURI: h.Controller.RedirectURI(r),
@@ -103,7 +97,7 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return nil
 	}
 
-	var handlers AuthflowControllerHandlers
+	var handlers handlerwebapp.AuthflowControllerHandlers
 	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		oauthProviderAlias := s.OAuthProviderAlias
 		allowLoginOnly := s.UserIDHint != ""
@@ -143,7 +137,7 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	})
 
 	handlers.PostAction("login_id", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		err := AuthflowLoginLoginIDSchema.Validator().ValidateValue(FormToJSON(r.Form))
+		err := AuthflowLoginLoginIDSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}

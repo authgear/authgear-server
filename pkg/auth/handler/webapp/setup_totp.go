@@ -21,7 +21,7 @@ import (
 
 var TemplateWebSetupTOTPHTML = template.RegisterHTML(
 	"web/setup_totp.html",
-	components...,
+	Components...,
 )
 
 var SetupTOTPSchema = validation.NewSimpleSchema(`

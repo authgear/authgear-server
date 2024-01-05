@@ -15,7 +15,7 @@ import (
 
 var TemplateWebAuthflowPromoteHTML = template.RegisterHTML(
 	"web/authflow_promote.html",
-	components...,
+	Components...,
 )
 
 var AuthflowPromoteLoginIDSchema = validation.NewSimpleSchema(`

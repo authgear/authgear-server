@@ -14,7 +14,7 @@ import (
 
 var TemplateWebSetupLoginLinkOTPHTML = template.RegisterHTML(
 	"web/setup_login_link_otp.html",
-	components...,
+	Components...,
 )
 
 var SetupLoginLinkOTPEmailSchema = validation.NewSimpleSchema(`
