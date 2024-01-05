@@ -126,7 +126,7 @@ func createQRCodeImage(content string, width int, height int, level qr.ErrorCorr
 	return b, nil
 }
 
-func findLoginIDInPreviousInput(s *webapp.Session, xStep string) (string, bool) {
+func FindLoginIDInPreviousInput(s *webapp.Session, xStep string) (string, bool) {
 	if s.Authflow == nil {
 		return "", false
 	}

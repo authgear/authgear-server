@@ -5,6 +5,7 @@ import (
 	oauthhandler "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	siwehandler "github.com/authgear/authgear-server/pkg/auth/handler/siwe"
 	webapphandler "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
+	webapphandlerauthflowv2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
@@ -260,17 +261,23 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandler.ConfigureAuthflowSignupRoute(webappRequireAuthEnabledAuthEntrypointRoute), &webapphandler.ImplementationSwitcherHandler{
 		Interaction: p.Handler(newWebAppSignupHandler),
 		Authflow:    p.Handler(newWebAppAuthflowSignupHandler),
+		// FIXME: Add AuthflowV2 handler
 	})
 	router.Add(webapphandler.ConfigureAuthflowPromoteRoute(webappPromoteRoute), &webapphandler.ImplementationSwitcherHandler{
 		Interaction: p.Handler(newWebAppPromoteHandler),
 		Authflow:    p.Handler(newWebAppAuthflowPromoteHandler),
+		// FIXME: Add AuthflowV2 handler
 	})
 	router.Add(webapphandler.ConfigureAuthflowReauthRoute(webappSelectAccountRoute), &webapphandler.ImplementationSwitcherHandler{
 		Interaction: p.Handler(newWebAppReauthHandler),
 		Authflow:    p.Handler(newWebAppAuthflowReauthHandler),
+		// FIXME: Add AuthflowV2 handler
 	})
 
 	router.Add(webapphandler.ConfigureSelectAccountRoute(webappSelectAccountRoute), p.Handler(newWebAppSelectAccountHandler))
+
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2EnterPasswordRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2EnterPasswordHandler))
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2EnterOOBOTPRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2EnterOOBOTPHandler))
 
 	router.Add(webapphandler.ConfigureAuthflowEnterPasswordRoute(webappPageRoute), p.Handler(newWebAppAuthflowEnterPasswordHandler))
 	router.Add(webapphandler.ConfigureAuthflowEnterOOBOTPRoute(webappPageRoute), p.Handler(newWebAppAuthflowEnterOOBOTPHandler))

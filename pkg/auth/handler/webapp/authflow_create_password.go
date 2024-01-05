@@ -61,7 +61,7 @@ func (h *AuthflowCreatePasswordHandler) GetData(w http.ResponseWriter, r *http.R
 
 	screenViewModel.AuthenticationStage = string(authenticationStage)
 
-	if loginID, ok := findLoginIDInPreviousInput(s, screen.Screen.StateToken.XStep); ok {
+	if loginID, ok := FindLoginIDInPreviousInput(s, screen.Screen.StateToken.XStep); ok {
 		screenViewModel.PasswordManagerUsername = loginID
 	}
 

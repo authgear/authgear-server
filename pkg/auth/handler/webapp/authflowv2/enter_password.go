@@ -1,8 +1,9 @@
-package webapp
+package authflowv2
 
 import (
 	"net/http"
 
+	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
@@ -13,8 +14,8 @@ import (
 )
 
 var TemplateWebAuthflowEnterPasswordHTML = template.RegisterHTML(
-	"web/authflow_enter_password.html",
-	Components...,
+	"web/authflowv2/enter_password.html",
+	handlerwebapp.Components...,
 )
 
 var AuthflowEnterPasswordSchema = validation.NewSimpleSchema(`
@@ -27,10 +28,10 @@ var AuthflowEnterPasswordSchema = validation.NewSimpleSchema(`
 	}
 `)
 
-func ConfigureAuthflowEnterPasswordRoute(route httproute.Route) httproute.Route {
+func ConfigureAuthflowV2EnterPasswordRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern(webapp.AuthflowRouteEnterPassword)
+		WithPathPattern(RouteEnterPassword)
 }
 
 type AuthflowEnterPasswordViewModel struct {
@@ -40,10 +41,10 @@ type AuthflowEnterPasswordViewModel struct {
 	ForgotPasswordLoginID   string
 }
 
-type AuthflowEnterPasswordHandler struct {
-	Controller    *AuthflowController
+type AuthflowV2EnterPasswordHandler struct {
+	Controller    *handlerwebapp.AuthflowController
 	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      Renderer
+	Renderer      handlerwebapp.Renderer
 }
 
 func NewAuthflowEnterPasswordViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) AuthflowEnterPasswordViewModel {
@@ -57,7 +58,7 @@ func NewAuthflowEnterPasswordViewModel(s *webapp.Session, screen *webapp.Authflo
 	passwordManagerUsername := ""
 	forgotPasswordInputType := ""
 	forgotPasswordLoginID := ""
-	if loginID, ok := FindLoginIDInPreviousInput(s, screen.Screen.StateToken.XStep); ok {
+	if loginID, ok := handlerwebapp.FindLoginIDInPreviousInput(s, screen.Screen.StateToken.XStep); ok {
 		passwordManagerUsername = loginID
 
 		phoneFormat := validation.FormatPhone{}
@@ -80,7 +81,7 @@ func NewAuthflowEnterPasswordViewModel(s *webapp.Session, screen *webapp.Authflo
 	}
 }
 
-func (h *AuthflowEnterPasswordHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
+func (h *AuthflowV2EnterPasswordHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
@@ -95,8 +96,8 @@ func (h *AuthflowEnterPasswordHandler) GetData(w http.ResponseWriter, r *http.Re
 	return data, nil
 }
 
-func (h *AuthflowEnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var handlers AuthflowControllerHandlers
+func (h *AuthflowV2EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var handlers handlerwebapp.AuthflowControllerHandlers
 	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data, err := h.GetData(w, r, s, screen)
 		if err != nil {
@@ -107,7 +108,7 @@ func (h *AuthflowEnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		return nil
 	})
 	handlers.PostAction("", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		err := AuthflowEnterPasswordSchema.Validator().ValidateValue(FormToJSON(r.Form))
+		err := AuthflowEnterPasswordSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}
