@@ -31,7 +31,7 @@ var AuthflowEnterPasswordSchema = validation.NewSimpleSchema(`
 func ConfigureAuthflowV2EnterPasswordRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern(RouteEnterPassword)
+		WithPathPattern(AuthflowV2RouteEnterPassword)
 }
 
 type AuthflowEnterPasswordViewModel struct {
