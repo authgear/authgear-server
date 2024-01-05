@@ -11,7 +11,7 @@ import (
 
 var TemplateWebAuthflowAccountStatusHTML = template.RegisterHTML(
 	"web/authflow_account_status.html",
-	components...,
+	Components...,
 )
 
 func ConfigureAuthflowAccountStatusRoute(route httproute.Route) httproute.Route {

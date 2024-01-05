@@ -13,7 +13,7 @@ import (
 
 var TemplateWebEnterRecoveryCodeHTML = template.RegisterHTML(
 	"web/enter_recovery_code.html",
-	components...,
+	Components...,
 )
 
 var EnterRecoveryCodeSchema = validation.NewSimpleSchema(`

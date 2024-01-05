@@ -18,7 +18,7 @@ import (
 
 var TemplateWebSelectAccountHTML = template.RegisterHTML(
 	"web/select_account.html",
-	components...,
+	Components...,
 )
 
 func ConfigureSelectAccountRoute(route httproute.Route) httproute.Route {

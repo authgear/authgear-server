@@ -17,7 +17,7 @@ import (
 
 var TemplateWebSettingsTOTPHTML = template.RegisterHTML(
 	"web/settings_totp.html",
-	components...,
+	Components...,
 )
 
 func ConfigureSettingsTOTPRoute(route httproute.Route) httproute.Route {

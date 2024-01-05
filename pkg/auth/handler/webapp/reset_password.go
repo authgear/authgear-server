@@ -17,7 +17,7 @@ import (
 
 var TemplateWebResetPasswordHTML = template.RegisterHTML(
 	"web/reset_password.html",
-	components...,
+	Components...,
 )
 
 var ResetPasswordSchema = validation.NewSimpleSchema(`

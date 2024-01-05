@@ -14,7 +14,7 @@ import (
 
 var TemplateWebEnterPasswordHTML = template.RegisterHTML(
 	"web/enter_password.html",
-	components...,
+	Components...,
 )
 
 var EnterPasswordSchema = validation.NewSimpleSchema(`

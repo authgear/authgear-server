@@ -17,7 +17,7 @@ var _ = Schema.Add("UIConfig", `
 		"settings_disabled": { "type": "boolean" },
 		"implementation": {
 			"type": "string",
-			"enum": ["interaction", "authflow"]
+			"enum": ["interaction", "authflow", "authflowv2"]
 		},
 		"forgot_password": { "$ref": "#/$defs/UIForgotPasswordConfig" }
 	}
@@ -75,6 +75,7 @@ const (
 	UIImplementationDefault     UIImplementation = ""
 	UIImplementationInteraction UIImplementation = "interaction"
 	UIImplementationAuthflow    UIImplementation = "authflow"
+	UIImplementationAuthflowV2  UIImplementation = "authflowv2"
 )
 
 var _ = Schema.Add("UIForgotPasswordConfig", `

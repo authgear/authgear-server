@@ -12,7 +12,7 @@ import (
 
 var TemplateWebSettingsDeleteAccountSuccessHTML = template.RegisterHTML(
 	"web/settings_delete_account_success.html",
-	components...,
+	Components...,
 )
 
 func ConfigureSettingsDeleteAccountSuccessRoute(route httproute.Route) httproute.Route {

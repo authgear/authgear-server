@@ -13,7 +13,7 @@ import (
 
 var TemplateWebSetupWhatsappOTPHTML = template.RegisterHTML(
 	"web/setup_whatsapp_otp.html",
-	components...,
+	Components...,
 )
 
 var SetupWhatsappOTPSchema = validation.NewSimpleSchema(`
