@@ -6,5 +6,5 @@ import (
 
 var TemplateWebConsentHTML = template.RegisterHTML(
 	"web/consent.html",
-	components...,
+	Components...,
 )

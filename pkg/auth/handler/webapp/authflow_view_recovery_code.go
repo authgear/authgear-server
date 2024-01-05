@@ -12,7 +12,7 @@ import (
 
 var TemplateWebAuthflowViewRecoveryCodeHTML = template.RegisterHTML(
 	"web/authflow_view_recovery_code.html",
-	components...,
+	Components...,
 )
 
 func ConfigureAuthflowViewRecoveryCodeRoute(route httproute.Route) httproute.Route {

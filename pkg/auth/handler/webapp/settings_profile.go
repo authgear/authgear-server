@@ -11,7 +11,7 @@ import (
 
 var TemplateWebSettingsProfileHTML = template.RegisterHTML(
 	"web/settings_profile.html",
-	components...,
+	Components...,
 )
 
 func ConfigureSettingsProfileRoute(route httproute.Route) httproute.Route {

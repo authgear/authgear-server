@@ -13,7 +13,7 @@ import (
 
 var TemplateWebAuthflowEnterTOTPHTML = template.RegisterHTML(
 	"web/authflow_enter_totp.html",
-	components...,
+	Components...,
 )
 
 var AuthflowEnterTOTPSchema = validation.NewSimpleSchema(`

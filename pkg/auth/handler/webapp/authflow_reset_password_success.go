@@ -11,7 +11,7 @@ import (
 
 var TemplateWebAuthflowResetPasswordSuccessHTML = template.RegisterHTML(
 	"web/authflow_reset_password_success.html",
-	components...,
+	Components...,
 )
 
 func ConfigureAuthflowResetPasswordSuccessRoute(route httproute.Route) httproute.Route {

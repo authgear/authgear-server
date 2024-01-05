@@ -16,7 +16,7 @@ func ConfigureErrorRoute(route httproute.Route) httproute.Route {
 
 var TemplateWebFatalErrorHTML = template.RegisterHTML(
 	"web/fatal_error.html",
-	components...,
+	Components...,
 )
 
 type ErrorHandler struct {

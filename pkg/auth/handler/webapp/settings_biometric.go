@@ -17,7 +17,7 @@ import (
 
 var TemplateWebSettingsBiometricHTML = template.RegisterHTML(
 	"web/settings_biometric.html",
-	components...,
+	Components...,
 )
 
 func ConfigureSettingsBiometricRoute(route httproute.Route) httproute.Route {

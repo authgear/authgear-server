@@ -18,7 +18,7 @@ import (
 
 var TemplateWebLoginHTML = template.RegisterHTML(
 	"web/login.html",
-	components...,
+	Components...,
 )
 
 var LoginWithLoginIDSchema = validation.NewSimpleSchema(`

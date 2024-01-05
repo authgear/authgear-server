@@ -11,7 +11,7 @@ import (
 
 var TemplateWebAuthflowForgotPasswordSuccessHTML = template.RegisterHTML(
 	"web/authflow_forgot_password_success.html",
-	components...,
+	Components...,
 )
 
 func ConfigureAuthflowForgotPasswordSuccessRoute(route httproute.Route) httproute.Route {

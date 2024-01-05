@@ -23,7 +23,7 @@ import (
 
 var TemplateWebTesterHTML = template.RegisterHTML(
 	"web/tester.html",
-	components...,
+	Components...,
 )
 
 func ConfigureTesterRoute(route httproute.Route) httproute.Route {
