@@ -67,4 +67,10 @@
     --letter-spacing-label-large: 0.00625rem;
     --font-weight-label-large: 600;
   }
+
+  /* Alignment */
+  :root {
+    --alignment-branding: center;
+    --alignment-content: center;
+  }
 }

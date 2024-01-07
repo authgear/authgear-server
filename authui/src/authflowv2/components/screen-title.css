@@ -17,5 +17,6 @@
       --screen-title-font-weight,
       var(--font-weight-headline-medium)
     );
+    text-align: var(--screen-title-text-align, var(--alignment-content));
   }
 }
