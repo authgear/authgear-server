@@ -1,0 +1,21 @@
+@layer components {
+  .screen-title {
+    font-family: var(
+      --screen-title-font-family,
+      var(--font-family-headline-medium)
+    );
+    font-size: var(--screen-title-font-size, var(--font-size-headline-medium));
+    line-height: var(
+      --screen-title-line-height,
+      var(--line-height-headline-medium)
+    );
+    letter-spacing: var(
+      --screen-title-letter-spacing,
+      var(--letter-spacing-headline-medium)
+    );
+    font-weight: var(
+      --screen-title-font-weight,
+      var(--font-weight-headline-medium)
+    );
+  }
+}
