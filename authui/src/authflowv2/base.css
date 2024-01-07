@@ -1,0 +1,35 @@
+@layer base {
+  html,
+  body {
+    @apply m-0 p-0 h-full min-h-min flex flex-col;
+  }
+
+  /* Colors */
+  :root {
+    --c-white: #ffffff;
+    --c-black: #000000;
+    --c-success: #11c624;
+    --c-error: #ff295b;
+    --c-warning: #f39d17;
+
+    /* primary */
+    --c-primary-base: #176df3;
+    --c-primary-100: #e2e7fe;
+    --c-primary-200: #adbdfd;
+    --c-primary-300: #7295fc;
+    --c-primary-400: #176df3;
+    --c-primary-500: #0d4cae;
+    --c-primary-600: #052e6f;
+    --c-primary-700: #011234;
+
+    /* grey */
+    --c-grey-base: #73747b;
+    --c-grey-100: #e7e7e9;
+    --c-grey-200: #bfbfc3;
+    --c-grey-300: #98999e;
+    --c-grey-400: #73747b;
+    --c-grey-500: #505157;
+    --c-grey-600: #303135;
+    --c-grey-700: #131315;
+  }
+}
