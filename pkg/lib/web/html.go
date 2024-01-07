@@ -26,6 +26,10 @@ var TemplateWebTermsOfServiceAndPrivacyPolicyFooterHTML = template.RegisterHTML(
 var TemplateWebAuthflowBranchHTML = template.RegisterHTML("web/__authflow_branch.html")
 var TemplateWebAuthflowForgotPasswordAlternativesHTML = template.RegisterHTML("web/__authflow_forgot_password_alternatives.html")
 
+var TemplateWebAuthflowV2HTMLHeadHTML = template.RegisterHTML("web/authflowv2/__html_head.html")
+var TemplateWebAuthflowV2GeneratedAssetHTML = template.RegisterHTML("web/authflowv2/__generated_asset.html")
+var TemplateWebAuthflowV2PageFrameHTML = template.RegisterHTML("web/authflowv2/__page_frame.html")
+
 var ComponentsHTML = []*template.HTML{
 	TemplateWebHTMLHeadHTML,
 	TemplateWebGeneratedAssetHTML,
@@ -48,4 +52,8 @@ var ComponentsHTML = []*template.HTML{
 	TemplateWebTermsOfServiceAndPrivacyPolicyFooterHTML,
 	TemplateWebAuthflowBranchHTML,
 	TemplateWebAuthflowForgotPasswordAlternativesHTML,
+
+	TemplateWebAuthflowV2HTMLHeadHTML,
+	TemplateWebAuthflowV2GeneratedAssetHTML,
+	TemplateWebAuthflowV2PageFrameHTML,
 }
