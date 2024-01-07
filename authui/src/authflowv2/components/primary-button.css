@@ -1,0 +1,48 @@
+@layer components {
+  .primary-btn {
+    @apply h-14 text-center;
+    background-color: var(--primary-btn-bg-color, var(--c-primary-base));
+    color: var(--primary-btn-text-color, var(--c-white));
+    border-radius: var(
+      --primary-btn-border-radius,
+      var(--border-radius-rounded-square)
+    );
+    font-family: var(--primary-btn-font-family, var(--font-family-label-large));
+    font-size: var(--primary-btn-font-size, var(--font-size-label-large));
+    line-height: var(--primary-btn-line-height, var(--line-height-label-large));
+    letter-spacing: var(
+      --primary-btn-letter-spacing,
+      var(--letter-spacing-label-large)
+    );
+    font-weight: var(--primary-btn-font-weight, var(--font-weight-label-large));
+    @apply ring-inset	
+      ring-[length:var(--primary-btn-ring-width)] 
+      ring-[color:var(--primary-btn-ring-color)];
+
+    &:hover {
+      background-color: var(--primary-btn-bg-color-hover, var(--c-primary-500));
+      @apply ring-inset
+        ring-[length:var(--primary-btn-ring-width-hover)]
+        ring-[color:var(--primary-btn-ring-color-hover)];
+    }
+
+    &:active {
+      background-color: var(
+        --primary-btn-bg-color-active,
+        var(--c-primary-500)
+      );
+      @apply ring-inset
+        ring-[length:var(--primary-btn-ring-width-active)]
+        ring-[color:var(--primary-btn-ring-color-active)];
+    }
+
+    &:disabled {
+      background-color: var(--primary-btn-bg-color-disabled, var(--c-grey-200));
+      /* FIXME(tung): It is grey-600 with opacity in figma, confirm with designer */
+      color: var(--primary-btn-text-color-disabled, var(--c-grey-400));
+      @apply ring-inset
+        ring-[length:var(--primary-btn-ring-width-disabled)]
+        ring-[color:var(--primary-btn-ring-color-disabled)];
+    }
+  }
+}
