@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
@@ -60,7 +61,7 @@ const (
 type AuthflowV2Navigator struct {
 }
 
-var _ webapp.Navigator = &AuthflowV2Navigator{}
+var _ handlerwebapp.AuthflowNavigator = &AuthflowV2Navigator{}
 
 func (n *AuthflowV2Navigator) Navigate(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
 	if s.HasBranchToTake() {

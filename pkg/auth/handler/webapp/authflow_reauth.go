@@ -17,7 +17,7 @@ func ConfigureAuthflowReauthRoute(route httproute.Route) httproute.Route {
 type AuthflowReauthHandler struct {
 	Controller *AuthflowController
 
-	AuthflowNavigator webapp.Navigator
+	AuthflowNavigator AuthflowNavigator
 }
 
 func (h *AuthflowReauthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
