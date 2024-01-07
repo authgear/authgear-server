@@ -1,7 +1,14 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
 @layer base {
   html,
   body {
     @apply m-0 p-0 h-full min-h-min flex flex-col;
+    /* Reference font size */
+    font-size: 16px;
+    font-family: "Inter", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   /* Colors */
@@ -31,5 +38,21 @@
     --c-grey-500: #505157;
     --c-grey-600: #303135;
     --c-grey-700: #131315;
+  }
+
+  /* Border Radius */
+  :root {
+    --border-radius-full: 9999px;
+    --border-radius-sqaure: 0px;
+    --border-radius-rounded-square: 14px;
+  }
+
+  /* Typography */
+  :root {
+    --font-family-label-large: inherit;
+    --font-size-label-large: 16px;
+    --line-height-label-large: 24px;
+    --letter-spacing-label-large: 0.1px;
+    --font-weight-label-large: 600;
   }
 }
