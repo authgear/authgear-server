@@ -78,6 +78,10 @@ type AuthflowControllerOAuthClientResolver interface {
 	ResolveClient(clientID string) *config.OAuthClientConfig
 }
 
+type AuthflowNavigator interface {
+	Navigate(screen *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result)
+}
+
 type AuthflowControllerLogger struct{ *log.Logger }
 
 func NewAuthflowControllerLogger(lf *log.Factory) AuthflowControllerLogger {
@@ -116,7 +120,7 @@ type AuthflowController struct {
 	UIConfig            *config.UIConfig
 	OAuthClientResolver AuthflowControllerOAuthClientResolver
 
-	Navigator webapp.Navigator
+	Navigator AuthflowNavigator
 }
 
 func (c *AuthflowController) HandleStartOfFlow(
