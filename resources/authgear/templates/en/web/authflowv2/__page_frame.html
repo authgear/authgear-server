@@ -1,0 +1,37 @@
+{{ define "authflowv2/__page_frame.html" }}
+<!DOCTYPE html>
+
+<html
+	lang="{{ $.ResolvedLanguageTag }}"
+	data-controller="format-date-relative"
+	data-dark-theme-enabled="{{ $.DarkThemeEnabled }}">
+{{ template "authflowv2/__html_head.html" . }}
+
+{{ $lockedUntil := "" }}
+{{ if and (.Error) (eq .Error.reason "AccountLockout") }}
+	{{ $lockedUntil = (rfc3339 (ensureTime .Error.info.until)) }}
+{{ end }}
+
+<body
+	data-controller="prevent-double-tap xhr-submit-form lockout"
+	data-action="dblclick->prevent-double-tap#action"
+	data-lockout-format-date-relative-outlet="[data-controller='format-date-relative']"
+	data-lockout-lock-until-value="{{ $lockedUntil }}"
+	data-lockout-action-button-selector-value="[data-action-button]">
+
+<!-- Google Tag Manager (noscript) -->
+{{ if $.GoogleTagManagerContainerID }}
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ $.GoogleTagManagerContainerID }}"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+{{ end }}
+<!-- End Google Tag Manager (noscript) -->
+
+<div id="loading-progress-bar"></div>
+{{ template "__tutorial.html" . }}
+<!-- TODO(tung): Extract this part to another overridable template -->
+<div class="flex flex-col">
+	{{ template "page-content" . }}
+</div>
+</body>
+</html>
+{{ end }}
