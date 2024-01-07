@@ -59,8 +59,6 @@ const (
 type AuthflowNavigator struct {
 }
 
-var _ Navigator = &AuthflowNavigator{}
-
 func (n *AuthflowNavigator) Navigate(s *AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *Result) {
 	if s.HasBranchToTake() {
 		panic(fmt.Errorf("expected screen to have its branches taken"))

@@ -338,10 +338,10 @@ func RequestMiddleware(p *deps.RootProvider, configSource *configsource.ConfigSo
 
 var AuthflowUIHandlerDependencySet = wire.NewSet(
 	wire.Struct(new(webapp.AuthflowNavigator), "*"),
-	wire.Bind(new(webapp.Navigator), new(*webapp.AuthflowNavigator)),
+	wire.Bind(new(handlerwebapp.AuthflowNavigator), new(*webapp.AuthflowNavigator)),
 )
 
 var AuthflowV2UIHandlerDependencySet = wire.NewSet(
 	wire.Struct(new(handlerwebappauthflowv2.AuthflowV2Navigator), "*"),
-	wire.Bind(new(webapp.Navigator), new(*handlerwebappauthflowv2.AuthflowV2Navigator)),
+	wire.Bind(new(handlerwebapp.AuthflowNavigator), new(*handlerwebappauthflowv2.AuthflowV2Navigator)),
 )

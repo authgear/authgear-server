@@ -345,3 +345,38 @@ func (mr *MockAuthflowControllerOAuthClientResolverMockRecorder) ResolveClient(c
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveClient", reflect.TypeOf((*MockAuthflowControllerOAuthClientResolver)(nil).ResolveClient), clientID)
 }
+
+// MockAuthflowNavigator is a mock of AuthflowNavigator interface.
+type MockAuthflowNavigator struct {
+	ctrl     *gomock.Controller
+	recorder *MockAuthflowNavigatorMockRecorder
+}
+
+// MockAuthflowNavigatorMockRecorder is the mock recorder for MockAuthflowNavigator.
+type MockAuthflowNavigatorMockRecorder struct {
+	mock *MockAuthflowNavigator
+}
+
+// NewMockAuthflowNavigator creates a new mock instance.
+func NewMockAuthflowNavigator(ctrl *gomock.Controller) *MockAuthflowNavigator {
+	mock := &MockAuthflowNavigator{ctrl: ctrl}
+	mock.recorder = &MockAuthflowNavigatorMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAuthflowNavigator) EXPECT() *MockAuthflowNavigatorMockRecorder {
+	return m.recorder
+}
+
+// Navigate mocks base method.
+func (m *MockAuthflowNavigator) Navigate(screen *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Navigate", screen, r, webSessionID, result)
+}
+
+// Navigate indicates an expected call of Navigate.
+func (mr *MockAuthflowNavigatorMockRecorder) Navigate(screen, r, webSessionID, result interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Navigate", reflect.TypeOf((*MockAuthflowNavigator)(nil).Navigate), screen, r, webSessionID, result)
+}
