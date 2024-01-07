@@ -9,6 +9,9 @@ import {
   RetainFormInputController,
   XHRSubmitFormController,
 } from "./form";
+import { PreventDoubleTapController } from "./preventDoubleTap";
+import { LockoutController } from "./lockout";
+import { FormatDateRelativeController } from "./date";
 
 axios.defaults.withCredentials = true;
 
@@ -31,3 +34,9 @@ Stimulus.register("xhr-submit-form", XHRSubmitFormController);
 Stimulus.register("restore-form", RestoreFormController);
 Stimulus.register("retain-form-form", RetainFormFormController);
 Stimulus.register("retain-form-input", RetainFormInputController);
+
+Stimulus.register("prevent-double-tap", PreventDoubleTapController);
+
+Stimulus.register("lockout", LockoutController);
+
+Stimulus.register("format-date-relative", FormatDateRelativeController);
