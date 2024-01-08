@@ -1,34 +1,34 @@
 @layer components {
   :root {
-    --primary-btn-bg-color: var(--c-primary-base);
-    --primary-btn-text-color: var(--c-white);
+    --primary-btn-bg-color: var(--color-primary-base);
+    --primary-btn-text-color: var(--color-white);
     --primary-btn-border-radius: var(--border-radius-rounded-square);
-    --primary-btn-font-family: var(--font-family-label-large);
-    --primary-btn-font-size: var(--font-size-label-large);
-    --primary-btn-line-height: var(--line-height-label-large);
-    --primary-btn-letter-spacing: var(--letter-spacing-label-large);
-    --primary-btn-font-weight: var(--font-weight-label-large);
+    --primary-btn-font-family: var(--typography-label-large__font-family);
+    --primary-btn-font-size: var(--typography-label-large__font-size);
+    --primary-btn-line-height: var(--typography-label-large__line-height);
+    --primary-btn-letter-spacing: var(--typography-label-large__letter-spacing);
+    --primary-btn-font-weight: var(--typography-label-large__font-weight);
     --primary-btn-ring-width: 0px;
     --primary-btn-ring-color: transparent;
-    --primary-btn-py: var(--primary-btn-font-size);
+    --primary-btn-py: 1em;
 
     --primary-btn-px: calc(
       (var(--primary-btn-py) * 2 + var(--primary-btn-line-height)) / 2
     ); /* = Height / 2 */
 
-    --primary-btn-bg-color-hover: var(--c-primary-500);
+    --primary-btn-bg-color-hover: var(--color-primary-500);
     --primary-btn-text-color-hover: var(--primary-btn-text-color);
     --primary-btn-ring-width-hover: var(--primary-btn-ring-width);
     --primary-btn-ring-color-hover: var(--primary-btn-ring-color);
 
-    --primary-btn-bg-color-active: var(--c-primary-500);
+    --primary-btn-bg-color-active: var(--color-primary-500);
     --primary-btn-text-color-active: var(--primary-btn-text-color);
     --primary-btn-ring-width-active: var(--primary-btn-ring-width);
     --primary-btn-ring-color-active: var(--primary-btn-ring-color);
 
-    --primary-btn-bg-color-disabled: var(--c-grey-200);
+    --primary-btn-bg-color-disabled: var(--color-grey-200);
     /* FIXME(tung): It is grey-600 with opacity in figma, confirm with designer */
-    --primary-btn-text-color-disabled: var(--c-grey-400);
+    --primary-btn-text-color-disabled: var(--color-grey-400);
     --primary-btn-ring-width-disabled: var(--primary-btn-ring-width);
     --primary-btn-ring-color-disabled: var(--primary-btn-ring-color);
   }

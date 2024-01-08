@@ -12,6 +12,7 @@ import {
 import { PreventDoubleTapController } from "./preventDoubleTap";
 import { LockoutController } from "./lockout";
 import { FormatDateRelativeController } from "./date";
+import { injectCSSAttrs } from "./cssattrs";
 
 axios.defaults.withCredentials = true;
 
@@ -40,3 +41,5 @@ Stimulus.register("prevent-double-tap", PreventDoubleTapController);
 Stimulus.register("lockout", LockoutController);
 
 Stimulus.register("format-date-relative", FormatDateRelativeController);
+
+injectCSSAttrs(document.documentElement);
