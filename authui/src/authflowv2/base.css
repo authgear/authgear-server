@@ -3,7 +3,7 @@
 @layer base {
   html,
   body {
-    @apply m-0 p-0 h-full min-h-min flex flex-col;
+    @apply h-full min-h-min flex flex-col;
     /* Reference font size */
     font-size: 16px;
     font-family: "Inter", sans-serif;
