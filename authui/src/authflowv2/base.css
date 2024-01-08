@@ -51,20 +51,20 @@
   :root {
     --font-family-headline-medium: inherit;
     --font-size-headline-medium: 1.75rem;
-    --line-height-headline-medium: 2.125rem;
+    --line-height-headline-medium: 2.125em;
     --letter-spacing-headline-medium: 0px;
     --font-weight-headline-medium: 700;
 
     --font-family-title-medium: inherit;
     --font-size-title-medium: 1rem;
-    --line-height-title-medium: 1.5rem;
-    --letter-spacing-title-medium: 0.009375rem;
+    --line-height-title-medium: 1.5em;
+    --letter-spacing-title-medium: 0.009375em;
     --font-weight-title-medium: 500;
 
     --font-family-label-large: inherit;
     --font-size-label-large: 1rem;
-    --line-height-label-large: 1.5rem;
-    --letter-spacing-label-large: 0.00625rem;
+    --line-height-label-large: 1.5em;
+    --letter-spacing-label-large: 0.00625em;
     --font-weight-label-large: 600;
   }
 
