@@ -261,7 +261,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandler.ConfigureAuthflowSignupRoute(webappRequireAuthEnabledAuthEntrypointRoute), &webapphandler.ImplementationSwitcherHandler{
 		Interaction: p.Handler(newWebAppSignupHandler),
 		Authflow:    p.Handler(newWebAppAuthflowSignupHandler),
-		// FIXME: Add AuthflowV2 handler
+		AuthflowV2:  p.Handler(newWebAppAuthflowV2SignupHandler),
 	})
 	router.Add(webapphandler.ConfigureAuthflowPromoteRoute(webappPromoteRoute), &webapphandler.ImplementationSwitcherHandler{
 		Interaction: p.Handler(newWebAppPromoteHandler),
