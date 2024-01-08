@@ -1,0 +1,65 @@
+@layer components {
+  :root {
+    --secondary-btn-bg-color: var(--color-white);
+    --secondary-btn-text-color: var(--color-grey-700);
+    --secondary-btn-border-radius: var(--border-radius-rounded-square);
+    --secondary-btn-font-family: var(--typography-label-large__font-family);
+    --secondary-btn-font-size: var(--typography-label-large__font-size);
+    --secondary-btn-line-height: var(--typography-label-large__line-height);
+    --secondary-btn-letter-spacing: var(
+      --typography-label-large__letter-spacing
+    );
+    --secondary-btn-font-weight: var(--typography-label-large__font-weight);
+    --secondary-btn-ring-width: var(--ring-width-1\.5);
+    --secondary-btn-ring-color: var(--color-grey-100);
+    --secondary-btn-py: var(--secondary-btn-font-size);
+
+    --secondary-btn-px: calc(
+      (var(--secondary-btn-py) * 2 + var(--secondary-btn-line-height)) / 2
+    ); /* = Height / 2 */
+
+    --secondary-btn-bg-color-hover: var(--color-grey-100);
+    --secondary-btn-text-color-hover: var(--secondary-btn-text-color);
+    --secondary-btn-ring-width-hover: var(--secondary-btn-ring-width);
+    --secondary-btn-ring-color-hover: var(--secondary-btn-ring-color);
+
+    --secondary-btn-bg-color-active: var(--color-grey-100);
+    --secondary-btn-text-color-active: var(--secondary-btn-text-color);
+    --secondary-btn-ring-width-active: var(--secondary-btn-ring-width);
+    --secondary-btn-ring-color-active: var(--secondary-btn-ring-color);
+  }
+
+  .secondary-btn {
+    @apply text-center;
+    @apply flex justify-center items-center;
+
+    background-color: var(--secondary-btn-bg-color);
+    color: var(--secondary-btn-text-color);
+    border-radius: var(--secondary-btn-border-radius);
+    font-family: var(--secondary-btn-font-family);
+    font-size: var(--secondary-btn-font-size);
+    line-height: var(--secondary-btn-line-height);
+    letter-spacing: var(--secondary-btn-letter-spacing);
+    font-weight: var(--secondary-btn-font-weight);
+    @apply ring-inset	
+      ring-[length:var(--secondary-btn-ring-width)]
+      ring-[color:var(--secondary-btn-ring-color)];
+    padding: var(--secondary-btn-py) var(--secondary-btn-px);
+
+    &:hover {
+      background-color: var(--secondary-btn-bg-color-hover);
+      color: var(--secondary-btn-text-color-hover);
+      @apply ring-inset
+        ring-[length:var(--secondary-btn-ring-width-hover)]
+        ring-[color:var(--secondary-btn-ring-color-hover)];
+    }
+
+    &:active {
+      background-color: var(--secondary-btn-bg-color-active);
+      color: var(--secondary-btn-text-color-active);
+      @apply ring-inset
+        ring-[length:var(--secondary-btn-ring-width-active)]
+        ring-[color:var(--secondary-btn-ring-color-active)];
+    }
+  }
+}
