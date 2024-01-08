@@ -1,11 +1,12 @@
 @layer components {
   :root {
-    --screen-title-font-family: var(--font-family-headline-medium);
-    --screen-title-font-size: var(--font-size-headline-medium);
-    --screen-title-line-height: var(--line-height-headline-medium);
-    --screen-title-letter-spacing: var(--letter-spacing-headline-medium);
-    --screen-title-font-weight: var(--font-weight-headline-medium);
-    --screen-title-text-align: var(--alignment-content);
+    --screen-title-font-family: var(--typography-headline-medium__font-family);
+    --screen-title-font-size: var(--typography-headline-medium__font-size);
+    --screen-title-line-height: var(--typography-headline-medium__line-height);
+    --screen-title-letter-spacing: var(
+      --typography-headline-medium__letter-spacing
+    );
+    --screen-title-font-weight: var(--typography-headline-medium__font-weight);
   }
   :root.dark {
     /* TODO(tung): Dark mode styles */
@@ -17,6 +18,17 @@
     line-height: var(--screen-title-line-height);
     letter-spacing: var(--screen-title-letter-spacing);
     font-weight: var(--screen-title-font-weight);
-    text-align: var(--screen-title-text-align);
+
+    :root[alignment-content="start"] & {
+      @apply text-start;
+    }
+
+    :root[alignment-content="center"] & {
+      @apply text-center;
+    }
+
+    :root[alignment-content="end"] & {
+      @apply text-end;
+    }
   }
 }
