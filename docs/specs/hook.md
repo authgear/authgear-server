@@ -117,7 +117,7 @@ Given the event
 }
 ```
 
-Hooks can mutate the standard attributes of the user with the following JSON document.
+Hooks can mutate the user with the following JSON document.
 
 ```json
 {
@@ -126,7 +126,9 @@ Hooks can mutate the standard attributes of the user with the following JSON doc
     "user": {
       "standard_attributes": {
         "name": "Jane"
-      }
+      },
+      "roles": ["store_manager", "salesperson"],
+      "groups": ["manager"]
     }
   }
 }
@@ -141,7 +143,7 @@ The payload will only be validated after traversing the Hooks chain.
 
 Mutations do NOT generate extra events to avoid infinite loop.
 
-Currently, only `standard_attributes`, `custom_attributes` and `roles` of the user object are mutable.
+Currently, only `standard_attributes`, `custom_attributes`, `roles` and `groups` of the user object are mutable.
 
 # Non-blocking Events
 

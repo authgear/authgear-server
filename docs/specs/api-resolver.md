@@ -43,6 +43,8 @@ The value `true` means the user is verified.
 
 A comma-separated list of the roles of the user.
 
+The order is unspecified.
+
 If the user does not have any roles, this header is absent.
 
 For example, `x-authgear-user-roles: stock.view,stock.edit`
