@@ -12,7 +12,7 @@ import (
 
 var TemplateWebPromptCreatePasskeyHTML = template.RegisterHTML(
 	"web/prompt_create_passkey.html",
-	components...,
+	Components...,
 )
 
 func ConfigurePromptCreatePasskeyRoute(route httproute.Route) httproute.Route {

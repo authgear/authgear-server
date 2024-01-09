@@ -12,7 +12,7 @@ import (
 
 var TemplateWebAuthflowEnterRecoveryCodeHTML = template.RegisterHTML(
 	"web/authflow_enter_recovery_code.html",
-	components...,
+	Components...,
 )
 
 var AuthflowEnterRecoveryCodeSchema = validation.NewSimpleSchema(`

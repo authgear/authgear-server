@@ -22,12 +22,12 @@ import (
 
 var TemplateWebSettingsHTML = template.RegisterHTML(
 	"web/settings.html",
-	components...,
+	Components...,
 )
 
 var TemplateWebSettingsAnonymousUserHTML = template.RegisterHTML(
 	"web/settings_anonymous_user.html",
-	components...,
+	Components...,
 )
 
 func ConfigureSettingsRoute(route httproute.Route) httproute.Route {

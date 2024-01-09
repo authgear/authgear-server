@@ -12,7 +12,7 @@ import (
 
 var TemplateWebMissingWeb3WalletHTML = template.RegisterHTML(
 	"web/missing_web3_wallet.html",
-	components...,
+	Components...,
 )
 
 func ConfigureMissingWeb3WalletRoute(route httproute.Route) httproute.Route {

@@ -13,7 +13,7 @@ import (
 
 var TemplateWebEnterTOTPHTML = template.RegisterHTML(
 	"web/enter_totp.html",
-	components...,
+	Components...,
 )
 
 var EnterTOTPSchema = validation.NewSimpleSchema(`

@@ -13,7 +13,7 @@ import (
 
 var TemplateWebAccountStatusHTML = template.RegisterHTML(
 	"web/account_status.html",
-	components...,
+	Components...,
 )
 
 func ConfigureAccountStatusRoute(route httproute.Route) httproute.Route {

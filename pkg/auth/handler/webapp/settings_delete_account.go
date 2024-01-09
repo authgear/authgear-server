@@ -17,7 +17,7 @@ import (
 
 var TemplateWebSettingsDeleteAccountHTML = template.RegisterHTML(
 	"web/settings_delete_account.html",
-	components...,
+	Components...,
 )
 
 func ConfigureSettingsDeleteAccountRoute(route httproute.Route) httproute.Route {

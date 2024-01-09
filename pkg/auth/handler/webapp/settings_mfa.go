@@ -16,7 +16,7 @@ import (
 
 var TemplateWebSettingsMFAHTML = template.RegisterHTML(
 	"web/settings_mfa.html",
-	components...,
+	Components...,
 )
 
 func ConfigureSettingsMFARoute(route httproute.Route) httproute.Route {

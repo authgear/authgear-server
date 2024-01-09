@@ -14,7 +14,7 @@ import (
 
 var TemplateWebAuthflowEnterPasswordHTML = template.RegisterHTML(
 	"web/authflow_enter_password.html",
-	components...,
+	Components...,
 )
 
 var AuthflowEnterPasswordSchema = validation.NewSimpleSchema(`
@@ -57,7 +57,7 @@ func NewAuthflowEnterPasswordViewModel(s *webapp.Session, screen *webapp.Authflo
 	passwordManagerUsername := ""
 	forgotPasswordInputType := ""
 	forgotPasswordLoginID := ""
-	if loginID, ok := findLoginIDInPreviousInput(s, screen.Screen.StateToken.XStep); ok {
+	if loginID, ok := FindLoginIDInPreviousInput(s, screen.Screen.StateToken.XStep); ok {
 		passwordManagerUsername = loginID
 
 		phoneFormat := validation.FormatPhone{}

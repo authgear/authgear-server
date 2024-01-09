@@ -19,7 +19,7 @@ import (
 
 var TemplateWebAuthflowLoginHTML = template.RegisterHTML(
 	"web/authflow_login.html",
-	components...,
+	Components...,
 )
 
 var AuthflowLoginLoginIDSchema = validation.NewSimpleSchema(`

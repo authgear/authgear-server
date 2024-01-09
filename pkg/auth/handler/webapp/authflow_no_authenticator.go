@@ -11,7 +11,7 @@ import (
 
 var TemplateWebAuthflowNoAuthenticatorHTML = template.RegisterHTML(
 	"web/authflow_no_authenticator.html",
-	components...,
+	Components...,
 )
 
 func ConfigureAuthflowNoAuthenticatorRoute(route httproute.Route) httproute.Route {

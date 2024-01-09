@@ -16,7 +16,7 @@ import (
 
 var TemplateWebPromoteHTML = template.RegisterHTML(
 	"web/promote.html",
-	components...,
+	Components...,
 )
 
 var PromoteWithLoginIDSchema = validation.NewSimpleSchema(`

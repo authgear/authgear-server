@@ -17,7 +17,7 @@ import (
 
 var TemplateWebWhatsappHTML = template.RegisterHTML(
 	"web/whatsapp_otp.html",
-	components...,
+	Components...,
 )
 
 func ConfigureWhatsappOTPRoute(route httproute.Route) httproute.Route {

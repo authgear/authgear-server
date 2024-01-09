@@ -15,7 +15,7 @@ import (
 
 var TemplateWebAuthflowEnterOOBOTPHTML = template.RegisterHTML(
 	"web/authflow_enter_oob_otp.html",
-	components...,
+	Components...,
 )
 
 var AuthflowEnterOOBOTPSchema = validation.NewSimpleSchema(`

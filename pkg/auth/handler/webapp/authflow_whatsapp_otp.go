@@ -15,7 +15,7 @@ import (
 
 var TemplateWebAuthflowWhatsappOTPHTML = template.RegisterHTML(
 	"web/authflow_whatsapp_otp.html",
-	components...,
+	Components...,
 )
 
 var AuthflowWhatsappOTPSchema = validation.NewSimpleSchema(`

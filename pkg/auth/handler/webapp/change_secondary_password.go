@@ -13,7 +13,7 @@ import (
 
 var TemplateWebChangeSecondaryPasswordHTML = template.RegisterHTML(
 	"web/change_secondary_password.html",
-	components...,
+	Components...,
 )
 
 var ForceChangeSecondaryPasswordSchema = validation.NewSimpleSchema(`

@@ -20,12 +20,12 @@ import (
 
 var TemplateWebAuthflowForgotPasswordGenericOTPHTML = template.RegisterHTML(
 	"web/authflow_forgot_password_generic_otp.html",
-	components...,
+	Components...,
 )
 
 var TemplateWebAuthflowForgotPasswordWhatsappOTPHTML = template.RegisterHTML(
 	"web/authflow_forgot_password_whatsapp_otp.html",
-	components...,
+	Components...,
 )
 
 var AuthflowForgotPasswordOTPSchema = validation.NewSimpleSchema(`
