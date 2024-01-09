@@ -1,36 +1,38 @@
 @layer components {
   :root {
-    --primary-btn-bg-color: var(--color-primary-base);
-    --primary-btn-text-color: var(--color-white);
-    --primary-btn-border-radius: var(--border-radius-rounded-square);
-    --primary-btn-font-family: var(--typography-label-large__font-family);
-    --primary-btn-font-size: var(--typography-label-large__font-size);
-    --primary-btn-line-height: var(--typography-label-large__line-height);
-    --primary-btn-letter-spacing: var(--typography-label-large__letter-spacing);
-    --primary-btn-font-weight: var(--typography-label-large__font-weight);
-    --primary-btn-ring-width: 0px;
-    --primary-btn-ring-color: transparent;
-    --primary-btn-py: 1em;
+    --primary-btn__bg-color: var(--color-primary-base);
+    --primary-btn__text-color: var(--color-white);
+    --primary-btn__border-radius: var(--border-radius-rounded-square);
+    --primary-btn__font-family: var(--typography-label-large__font-family);
+    --primary-btn__font-size: var(--typography-label-large__font-size);
+    --primary-btn__line-height: var(--typography-label-large__line-height);
+    --primary-btn__letter-spacing: var(
+      --typography-label-large__letter-spacing
+    );
+    --primary-btn__font-weight: var(--typography-label-large__font-weight);
+    --primary-btn__ring-width: 0px;
+    --primary-btn__ring-color: transparent;
+    --primary-btn__py: 1em;
 
-    --primary-btn-px: calc(
-      (var(--primary-btn-py) * 2 + var(--primary-btn-line-height)) / 2
+    --primary-btn__px: calc(
+      (var(--primary-btn__py) * 2 + var(--primary-btn__line-height)) / 2
     ); /* = Height / 2 */
 
-    --primary-btn-bg-color-hover: var(--color-primary-500);
-    --primary-btn-text-color-hover: var(--primary-btn-text-color);
-    --primary-btn-ring-width-hover: var(--primary-btn-ring-width);
-    --primary-btn-ring-color-hover: var(--primary-btn-ring-color);
+    --primary-btn__bg-color--hover: var(--color-primary-500);
+    --primary-btn__text-color--hover: var(--primary-btn__text-color);
+    --primary-btn__ring-width--hover: var(--primary-btn__ring-width);
+    --primary-btn__ring-color--hover: var(--primary-btn__ring-color);
 
-    --primary-btn-bg-color-active: var(--color-primary-500);
-    --primary-btn-text-color-active: var(--primary-btn-text-color);
-    --primary-btn-ring-width-active: var(--primary-btn-ring-width);
-    --primary-btn-ring-color-active: var(--primary-btn-ring-color);
+    --primary-btn__bg-color--active: var(--color-primary-500);
+    --primary-btn__text-color--active: var(--primary-btn__text-color);
+    --primary-btn__ring-width--active: var(--primary-btn__ring-width);
+    --primary-btn__ring-color--active: var(--primary-btn__ring-color);
 
-    --primary-btn-bg-color-disabled: var(--color-grey-200);
+    --primary-btn__bg-color--disabled: var(--color-grey-200);
     /* FIXME(tung): It is grey-600 with opacity in figma, confirm with designer */
-    --primary-btn-text-color-disabled: var(--color-grey-400);
-    --primary-btn-ring-width-disabled: var(--primary-btn-ring-width);
-    --primary-btn-ring-color-disabled: var(--primary-btn-ring-color);
+    --primary-btn__text-color--disabled: var(--color-grey-400);
+    --primary-btn__ring-width--disabled: var(--primary-btn__ring-width);
+    --primary-btn__ring-color--disabled: var(--primary-btn__ring-color);
   }
 
   :root.dark {
@@ -40,42 +42,42 @@
   .primary-btn {
     @apply text-center;
 
-    background-color: var(--primary-btn-bg-color);
-    color: var(--primary-btn-text-color);
-    border-radius: var(--primary-btn-border-radius);
-    font-family: var(--primary-btn-font-family);
-    font-size: var(--primary-btn-font-size);
-    line-height: var(--primary-btn-line-height);
-    letter-spacing: var(--primary-btn-letter-spacing);
-    font-weight: var(--primary-btn-font-weight);
+    background-color: var(--primary-btn__bg-color);
+    color: var(--primary-btn__text-color);
+    border-radius: var(--primary-btn__border-radius);
+    font-family: var(--primary-btn__font-family);
+    font-size: var(--primary-btn__font-size);
+    line-height: var(--primary-btn__line-height);
+    letter-spacing: var(--primary-btn__letter-spacing);
+    font-weight: var(--primary-btn__font-weight);
     @apply ring-inset	
-      ring-[length:var(--primary-btn-ring-width)]
-      ring-[color:var(--primary-btn-ring-color)];
-    padding: var(--primary-btn-py) var(--primary-btn-px);
+      ring-[length:var(--primary-btn__ring-width)]
+      ring-[color:var(--primary-btn__ring-color)];
+    padding: var(--primary-btn__py) var(--primary-btn__px);
 
     &:hover {
-      background-color: var(--primary-btn-bg-color-hover);
-      color: var(--primary-btn-text-color-hover);
+      background-color: var(--primary-btn__bg-color--hover);
+      color: var(--primary-btn__text-color--hover);
       @apply ring-inset
-        ring-[length:var(--primary-btn-ring-width-hover)]
-        ring-[color:var(--primary-btn-ring-color-hover)];
+        ring-[length:var(--primary-btn__ring-width--hover)]
+        ring-[color:var(--primary-btn__ring-color--hover)];
     }
 
     &:active {
-      background-color: var(--primary-btn-bg-color-active);
-      color: var(--primary-btn-text-color-active);
+      background-color: var(--primary-btn__bg-color--active);
+      color: var(--primary-btn__text-color--active);
       @apply ring-inset
-        ring-[length:var(--primary-btn-ring-width-active)]
-        ring-[color:var(--primary-btn-ring-color-active)];
+        ring-[length:var(--primary-btn__ring-width--active)]
+        ring-[color:var(--primary-btn__ring-color--active)];
     }
 
     &:disabled {
-      background-color: var(--primary-btn-bg-color-disabled);
+      background-color: var(--primary-btn__bg-color--disabled);
       /* FIXME(tung): It is grey-600 with opacity in figma, confirm with designer */
-      color: var(--primary-btn-text-color-disabled);
+      color: var(--primary-btn__text-color--disabled);
       @apply ring-inset
-        ring-[length:var(--primary-btn-ring-width-disabled)]
-        ring-[color:var(--primary-btn-ring-color-disabled)];
+        ring-[length:var(--primary-btn__ring-width--disabled)]
+        ring-[color:var(--primary-btn__ring-color--disabled)];
     }
   }
 }
