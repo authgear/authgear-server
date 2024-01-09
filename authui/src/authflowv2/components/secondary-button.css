@@ -10,7 +10,7 @@
       --typography-label-large__letter-spacing
     );
     --secondary-btn-font-weight: var(--typography-label-large__font-weight);
-    --secondary-btn-ring-width: var(--ring-width-1\.5);
+    --secondary-btn-ring-width: 1.5px;
     --secondary-btn-ring-color: var(--color-grey-100);
     --secondary-btn-py: var(--secondary-btn-font-size);
 
