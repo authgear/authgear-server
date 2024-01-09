@@ -74,13 +74,6 @@
     --typography-label-medium__font-weight: 600;
   }
 
-  /* Padding */
-  :root {
-    --padding-2\.5: 0.625rem;
-    --padding-3: 0.75rem;
-    --padding-6: 1.5rem;
-  }
-
   /* Alignment */
   :root {
     --alignment-logo: center; /* center / start / end / hidden */

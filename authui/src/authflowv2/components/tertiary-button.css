@@ -12,9 +12,13 @@
     --tertiary-btn-font-weight: var(--typography-label-medium__font-weight);
     --tertiary-btn-ring-width: 0px;
     --tertiary-btn-ring-color: transparent;
-    --tertiary-btn-py: var(--padding-2\.5);
+    --tertiary-btn-py: calc(
+      var(--tertiary-btn-font-size) * 10 / 14
+    ); /* y padding / font size ration = 10 / 14 */
 
-    --tertiary-btn-px: var(--padding-6);
+    --tertiary-btn-px: calc(
+      (var(--tertiary-btn-py) * 2 + var(--tertiary-btn-line-height)) / 2
+    ); /* = Height / 2 */
 
     --tertiary-btn-bg-color-hover: var(--color-black);
     --tertiary-btn-text-color-hover: var(--tertiary-btn-text-color);
