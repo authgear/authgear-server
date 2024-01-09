@@ -31,8 +31,7 @@
     --tertiary-btn__ring-color--active: var(--tertiary-btn__ring-color);
 
     --tertiary-btn__bg-color--disabled: var(--color-grey-200);
-    /* FIXME(tung): It is grey-600 with opacity in figma, confirm with designer */
-    --tertiary-btn__text-color--disabled: var(--color-grey-400);
+    --tertiary-btn__text-color--disabled: var(--color-grey-600);
     --tertiary-btn__ring-width--disabled: var(--tertiary-btn__ring-width);
     --tertiary-btn__ring-color--disabled: var(--tertiary-btn__ring-color);
   }
