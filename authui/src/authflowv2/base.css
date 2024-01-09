@@ -47,12 +47,6 @@
     --border-radius-rounded-square: 0.875em;
   }
 
-  /* Ring Width */
-  :root {
-    --ring-width-0: 0px;
-    --ring-width-1\.5: 1.5px;
-  }
-
   /* Typography */
   :root {
     --typography-headline-medium__font-family: inherit;
