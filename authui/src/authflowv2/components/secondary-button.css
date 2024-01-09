@@ -63,3 +63,11 @@
     }
   }
 }
+
+.secondary-btn__icon {
+  @apply w-6 h-6 bg-no-repeat bg-center;
+}
+
+.secondary-btn__icon.passkey-icon {
+  background-image: url(../img/icon-passkey.svg);
+}
