@@ -10,9 +10,13 @@
     --label-btn-font-weight: var(--typography-label-large__font-weight);
     --label-btn-ring-width: 0px;
     --label-btn-ring-color: transparent;
-    --label-btn-py: var(--padding-2\.5);
+    --label-btn-py: calc(
+      var(--label-btn-font-size) * 10 / 16
+    ); /* y padding / font size ration = 10 / 16 */
 
-    --label-btn-px: var(--padding-3);
+    --label-btn-px: calc(
+      (var(--label-btn-py) * 2 + var(--label-btn-line-height)) / 2
+    ); /* = Height / 2 */
 
     --label-btn-bg-color-hover: transparent;
     --label-btn-text-color-hover: var(--color-primary-500);
