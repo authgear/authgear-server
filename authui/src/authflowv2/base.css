@@ -1,0 +1,76 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+@layer base {
+  html,
+  body {
+    @apply h-full min-h-min flex flex-col;
+    /* Reference font size */
+    font-size: 16px;
+    font-family: "Inter", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Colors */
+  :root {
+    --color-white: #ffffff;
+    --color-black: #000000;
+    --color-success: #11c624;
+    --color-error: #ff295b;
+    --color-warning: #f39d17;
+
+    /* primary */
+    --color-primary-base: #176df3;
+    --color-primary-100: #e2e7fe;
+    --color-primary-200: #adbdfd;
+    --color-primary-300: #7295fc;
+    --color-primary-400: #176df3;
+    --color-primary-500: #0d4cae;
+    --color-primary-600: #052e6f;
+    --color-primary-700: #011234;
+
+    /* grey */
+    --color-grey-base: #73747b;
+    --color-grey-100: #e7e7e9;
+    --color-grey-200: #bfbfc3;
+    --color-grey-300: #98999e;
+    --color-grey-400: #73747b;
+    --color-grey-500: #505157;
+    --color-grey-600: #303135;
+    --color-grey-700: #131315;
+  }
+
+  /* Border Radius */
+  :root {
+    --border-radius-full: 9999px;
+    --border-radius-sqaure: 0px;
+    --border-radius-rounded-square: 0.875em;
+  }
+
+  /* Typography */
+  :root {
+    --typography-headline-medium__font-family: inherit;
+    --typography-headline-medium__font-size: 1.75rem;
+    --typography-headline-medium__line-height: 2.125em;
+    --typography-headline-medium__letter-spacing: 0px;
+    --typography-headline-medium__font-weight: 700;
+
+    --typography-title-medium__font-family: inherit;
+    --typography-title-medium__font-size: 1rem;
+    --typography-title-medium__line-height: 1.5em;
+    --typography-title-medium__letter-spacing: 0.009375em;
+    --typography-title-medium__font-weight: 500;
+
+    --typography-label-large__font-family: inherit;
+    --typography-label-large__font-size: 1rem;
+    --typography-label-large__line-height: 1.5em;
+    --typography-label-large__letter-spacing: 0.00625em;
+    --typography-label-large__font-weight: 600;
+  }
+
+  /* Alignment */
+  :root {
+    --alignment-logo: center; /* center / start / end / hidden */
+    --alignment-content: center; /* center / start / end */
+  }
+}

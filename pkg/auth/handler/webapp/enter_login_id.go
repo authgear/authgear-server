@@ -17,7 +17,7 @@ import (
 
 var TemplateWebEnterLoginIDHTML = template.RegisterHTML(
 	"web/enter_login_id.html",
-	components...,
+	Components...,
 )
 
 type EnterLoginIDViewModel struct {

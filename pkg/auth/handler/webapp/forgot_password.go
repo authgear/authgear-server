@@ -14,7 +14,7 @@ import (
 
 var TemplateWebForgotPasswordHTML = template.RegisterHTML(
 	"web/forgot_password.html",
-	components...,
+	Components...,
 )
 
 var ForgotPasswordSchema = validation.NewSimpleSchema(`

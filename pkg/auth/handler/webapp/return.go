@@ -10,7 +10,7 @@ import (
 
 var TemplateWebReturnHTML = template.RegisterHTML(
 	"web/return.html",
-	components...,
+	Components...,
 )
 
 func ConfigureReturnRoute(route httproute.Route) httproute.Route {

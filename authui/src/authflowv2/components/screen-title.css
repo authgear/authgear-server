@@ -1,0 +1,34 @@
+@layer components {
+  :root {
+    --screen-title__font-family: var(--typography-headline-medium__font-family);
+    --screen-title__font-size: var(--typography-headline-medium__font-size);
+    --screen-title__line-height: var(--typography-headline-medium__line-height);
+    --screen-title__letter-spacing: var(
+      --typography-headline-medium__letter-spacing
+    );
+    --screen-title__font-weight: var(--typography-headline-medium__font-weight);
+  }
+  :root.dark {
+    /* TODO(tung): Dark mode styles */
+  }
+
+  .screen-title {
+    font-family: var(--screen-title__font-family);
+    font-size: var(--screen-title__font-size);
+    line-height: var(--screen-title__line-height);
+    letter-spacing: var(--screen-title__letter-spacing);
+    font-weight: var(--screen-title__font-weight);
+
+    :root[alignment-content="start"] & {
+      @apply text-start;
+    }
+
+    :root[alignment-content="center"] & {
+      @apply text-center;
+    }
+
+    :root[alignment-content="end"] & {
+      @apply text-end;
+    }
+  }
+}

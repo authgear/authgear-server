@@ -22,7 +22,7 @@ import (
 
 var TemplateWebLoginLinkHTML = template.RegisterHTML(
 	"web/login_link_otp.html",
-	components...,
+	Components...,
 )
 
 func ConfigureLoginLinkOTPRoute(route httproute.Route) httproute.Route {

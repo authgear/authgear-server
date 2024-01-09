@@ -15,7 +15,7 @@ import (
 
 var TemplateWebLogoutHTML = template.RegisterHTML(
 	"web/logout.html",
-	components...,
+	Components...,
 )
 
 func ConfigureLogoutRoute(route httproute.Route) httproute.Route {

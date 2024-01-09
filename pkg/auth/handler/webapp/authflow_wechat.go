@@ -19,7 +19,7 @@ import (
 
 var TemplateWebAuthflowWechatHTML = template.RegisterHTML(
 	"web/authflow_wechat.html",
-	components...,
+	Components...,
 )
 
 func ConfigureAuthflowWechatRoute(route httproute.Route) httproute.Route {

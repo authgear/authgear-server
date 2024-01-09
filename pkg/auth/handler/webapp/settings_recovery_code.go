@@ -15,7 +15,7 @@ import (
 
 var TemplateWebSettingsRecoveryCodeHTML = template.RegisterHTML(
 	"web/settings_recovery_code.html",
-	components...,
+	Components...,
 )
 
 func ConfigureSettingsRecoveryCodeRoute(route httproute.Route) httproute.Route {

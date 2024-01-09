@@ -21,7 +21,7 @@ import (
 
 var TemplateWebEnterOOBOTPHTML = template.RegisterHTML(
 	"web/enter_oob_otp.html",
-	components...,
+	Components...,
 )
 
 var EnterOOBOTPSchema = validation.NewSimpleSchema(`

@@ -14,7 +14,7 @@ import (
 
 var TemplateWebSetupRecoveryCodeHTML = template.RegisterHTML(
 	"web/setup_recovery_code.html",
-	components...,
+	Components...,
 )
 
 var TemplateWebDownloadRecoveryCodeTXT = template.RegisterPlainText(

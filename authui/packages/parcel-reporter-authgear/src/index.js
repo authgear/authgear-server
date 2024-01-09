@@ -2,6 +2,11 @@ const { Reporter } = require("@parcel/plugin");
 const { parse } = require("node-html-parser");
 const path = require("path");
 
+const templateNameByAssetName = {
+  "build.html": "__generated_asset.html",
+  "build-authflowv2.html": "authflowv2/__generated_asset.html",
+};
+
 module.exports = new Reporter({
   async report({ event, options }) {
     if (event.type != "buildSuccess") {
@@ -9,12 +14,12 @@ module.exports = new Reporter({
     }
 
     const manifest = {};
-    const elements = [];
 
     const bundles = event.bundleGraph.getBundles();
     for (const bundle of bundles) {
       const assetName = bundle.displayName.replace(".[hash].", ".");
-      if (assetName === "build.html") {
+      if (Object.keys(templateNameByAssetName).includes(assetName)) {
+        const elements = [];
         const htmlFile = await options.outputFS.readFile(bundle.filePath);
         const htmlString = htmlFile.toString();
         const root = parse(htmlString);
@@ -43,6 +48,14 @@ module.exports = new Reporter({
             });
           }
         }
+
+        const templateName = templateNameByAssetName[assetName];
+        const targetHTMLPath = `../resources/authgear/templates/en/web/${templateName}`;
+        const tpl = `{{ define "${templateName}" }}
+${elementsTohtmlString(elements).join("\n")}
+{{ end }}`;
+        await options.outputFS.writeFile(targetHTMLPath, tpl);
+        console.log(`📄 Wrote bundle HTML to: ${targetHTMLPath}`);
       }
       manifest[assetName] = path.relative(
         bundle.target.distDir,
@@ -56,14 +69,6 @@ module.exports = new Reporter({
       JSON.stringify(manifest)
     );
     console.log(`📄 Wrote bundle manifest to: ${targetManifestPath}`);
-
-    const targetHTMLPath =
-      "../resources/authgear/templates/en/web/__generated_asset.html";
-    const tpl = `{{ define "__generated_asset.html" }}
-${elementsTohtmlString(elements).join("\n")}
-{{ end }}`;
-    await options.outputFS.writeFile(targetHTMLPath, tpl);
-    console.log(`📄 Wrote bundle HTML to: ${targetHTMLPath}`);
   },
 });
 

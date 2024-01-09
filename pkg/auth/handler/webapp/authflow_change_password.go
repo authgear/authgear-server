@@ -13,7 +13,7 @@ import (
 
 var TemplateWebAuthflowChangePasswordHTML = template.RegisterHTML(
 	"web/authflow_change_password.html",
-	components...,
+	Components...,
 )
 
 var AuthflowChangePasswordSchema = validation.NewSimpleSchema(`

@@ -16,7 +16,7 @@ import (
 
 var TemplateWebSetupOOBOTPHTML = template.RegisterHTML(
 	"web/setup_oob_otp.html",
-	components...,
+	Components...,
 )
 
 var SetupOOBOTPEmailSchema = validation.NewSimpleSchema(`
