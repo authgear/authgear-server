@@ -1,0 +1,80 @@
+@layer components {
+  :root {
+    --tertiary-btn-bg-color: var(--color-grey-700);
+    --tertiary-btn-text-color: var(--color-white);
+    --tertiary-btn-border-radius: var(--border-radius-full);
+    --tertiary-btn-font-family: var(--typography-label-medium__font-family);
+    --tertiary-btn-font-size: var(--typography-label-medium__font-size);
+    --tertiary-btn-line-height: var(--typography-label-medium__line-height);
+    --tertiary-btn-letter-spacing: var(
+      --typography-label-medium__letter-spacing
+    );
+    --tertiary-btn-font-weight: var(--typography-label-medium__font-weight);
+    --tertiary-btn-ring-width: 0px;
+    --tertiary-btn-ring-color: transparent;
+    --tertiary-btn-py: var(--padding-2\.5);
+
+    --tertiary-btn-px: var(--padding-6);
+
+    --tertiary-btn-bg-color-hover: var(--color-black);
+    --tertiary-btn-text-color-hover: var(--tertiary-btn-text-color);
+    --tertiary-btn-ring-width-hover: var(--tertiary-btn-ring-width);
+    --tertiary-btn-ring-color-hover: var(--tertiary-btn-ring-color);
+
+    --tertiary-btn-bg-color-active: var(--color-black);
+    --tertiary-btn-text-color-active: var(--tertiary-btn-text-color);
+    --tertiary-btn-ring-width-active: var(--tertiary-btn-ring-width);
+    --tertiary-btn-ring-color-active: var(--tertiary-btn-ring-color);
+
+    --tertiary-btn-bg-color-disabled: var(--color-grey-200);
+    /* FIXME(tung): It is grey-600 with opacity in figma, confirm with designer */
+    --tertiary-btn-text-color-disabled: var(--color-grey-400);
+    --tertiary-btn-ring-width-disabled: var(--tertiary-btn-ring-width);
+    --tertiary-btn-ring-color-disabled: var(--tertiary-btn-ring-color);
+  }
+
+  :root.dark {
+    /* TODO(tung): Dark mode styles */
+  }
+
+  .tertiary-btn {
+    @apply text-center;
+
+    background-color: var(--tertiary-btn-bg-color);
+    color: var(--tertiary-btn-text-color);
+    border-radius: var(--tertiary-btn-border-radius);
+    font-family: var(--tertiary-btn-font-family);
+    font-size: var(--tertiary-btn-font-size);
+    line-height: var(--tertiary-btn-line-height);
+    letter-spacing: var(--tertiary-btn-letter-spacing);
+    font-weight: var(--tertiary-btn-font-weight);
+    @apply ring-inset	
+      ring-[length:var(--tertiary-btn-ring-width)]
+      ring-[color:var(--tertiary-btn-ring-color)];
+    padding: var(--tertiary-btn-py) var(--tertiary-btn-px);
+
+    &:hover {
+      background-color: var(--tertiary-btn-bg-color-hover);
+      color: var(--tertiary-btn-text-color-hover);
+      @apply ring-inset
+        ring-[length:var(--tertiary-btn-ring-width-hover)]
+        ring-[color:var(--tertiary-btn-ring-color-hover)];
+    }
+
+    &:active {
+      background-color: var(--tertiary-btn-bg-color-active);
+      color: var(--tertiary-btn-text-color-active);
+      @apply ring-inset
+        ring-[length:var(--tertiary-btn-ring-width-active)]
+        ring-[color:var(--tertiary-btn-ring-color-active)];
+    }
+
+    &:disabled {
+      background-color: var(--tertiary-btn-bg-color-disabled);
+      color: var(--tertiary-btn-text-color-disabled);
+      @apply ring-inset
+        ring-[length:var(--tertiary-btn-ring-width-disabled)]
+        ring-[color:var(--tertiary-btn-ring-color-disabled)];
+    }
+  }
+}
