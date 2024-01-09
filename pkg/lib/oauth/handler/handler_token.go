@@ -1032,6 +1032,15 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 
 	info := code.AuthenticationInfo
 
+	var app2appDevicePublicKey jwk.Key = nil
+	if app2appDeviceKeyJWT != "" && client.App2appEnabled {
+		k, err := h.app2appGetDeviceKeyJWKVerified(app2appDeviceKeyJWT)
+		if err != nil {
+			return nil, err
+		}
+		app2appDevicePublicKey = k
+	}
+
 	// Update auth_time of the offline grant if possible.
 	if sid := code.IDTokenHintSID; sid != "" {
 		if typ, sessionID, ok := oidc.DecodeSID(sid); ok && typ == session.TypeOfflineGrant {
@@ -1046,12 +1055,8 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 					if err != nil {
 						return nil, err
 					}
-					if app2appDeviceKeyJWT != "" {
-						k, err := h.app2appGetDeviceKeyJWKVerified(app2appDeviceKeyJWT)
-						if err != nil {
-							return nil, err
-						}
-						_, err = h.app2appUpdateDeviceKeyIfNeeded(client, offlineGrant, k)
+					if app2appDevicePublicKey != nil {
+						_, err = h.app2appUpdateDeviceKeyIfNeeded(client, offlineGrant, app2appDevicePublicKey)
 						if err != nil {
 							return nil, err
 						}
@@ -1059,15 +1064,6 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 				}
 			}
 		}
-	}
-
-	var app2appDevicePublicKey jwk.Key = nil
-	if app2appDeviceKeyJWT != "" && client.App2appEnabled {
-		k, err := h.app2appGetDeviceKeyJWKVerified(app2appDeviceKeyJWT)
-		if err != nil {
-			return nil, err
-		}
-		app2appDevicePublicKey = k
 	}
 
 	resp := protocol.TokenResponse{}
