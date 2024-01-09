@@ -1,32 +1,32 @@
 @layer components {
   :root {
-    --screen-description-font-family: var(
+    --screen-description__font-family: var(
       --typography-title-medium__font-family
     );
-    --screen-description-font-size: var(--typography-title-medium__font-size);
-    --screen-description-line-height: var(
+    --screen-description__font-size: var(--typography-title-medium__font-size);
+    --screen-description__line-height: var(
       --typography-title-medium__line-height
     );
-    --screen-description-letter-spacing: var(
+    --screen-description__letter-spacing: var(
       --typography-title-medium__letter-spacing
     );
-    --screen-description-font-weight: var(
+    --screen-description__font-weight: var(
       --typography-title-medium__font-weight
     );
-    --screen-description-text-color: var(--color-grey-base);
+    --screen-description__text-color: var(--color-grey-base);
   }
   :root.dark {
     /* TODO(tung): Dark mode styles */
   }
 
   .screen-description {
-    font-family: var(--screen-description-font-family);
-    font-size: var(--screen-description-font-size);
-    line-height: var(--screen-description-line-height);
-    letter-spacing: var(--screen-description-letter-spacing);
-    font-weight: var(--screen-description-font-weight);
-    text-align: var(--screen-description-text-align);
-    color: var(--screen-description-text-color);
+    font-family: var(--screen-description__font-family);
+    font-size: var(--screen-description__font-size);
+    line-height: var(--screen-description__line-height);
+    letter-spacing: var(--screen-description__letter-spacing);
+    font-weight: var(--screen-description__font-weight);
+    text-align: var(--screen-description__text-align);
+    color: var(--screen-description__text-color);
 
     :root[alignment-content="start"] & {
       @apply text-start;
