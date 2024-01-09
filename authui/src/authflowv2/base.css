@@ -72,6 +72,18 @@
     --typography-label-large__line-height: 1.5em;
     --typography-label-large__letter-spacing: 0.00625em;
     --typography-label-large__font-weight: 600;
+
+    --typography-label-medium__font-family: inherit;
+    --typography-label-medium__font-size: 0.875rem;
+    --typography-label-medium__line-height: 1.25em;
+    --typography-label-medium__letter-spacing: 0.03125em;
+    --typography-label-medium__font-weight: 600;
+  }
+
+  /* Padding */
+  :root {
+    --padding-2\.5: 0.625rem;
+    --padding-6: 1.5rem;
   }
 
   /* Alignment */
