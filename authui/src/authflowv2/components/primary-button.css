@@ -51,24 +51,24 @@
     letter-spacing: var(--primary-btn__letter-spacing);
     font-weight: var(--primary-btn__font-weight);
     @apply ring-inset	
-      ring-[length:var(--primary-btn__ring-width)]
-      ring-[color:var(--primary-btn__ring-color)];
+      ring-[length:var(--primary-btn\_\_ring-width)]
+      ring-[color:var(--primary-btn\_\_ring-color)];
     padding: var(--primary-btn__py) var(--primary-btn__px);
 
     &:hover {
       background-color: var(--primary-btn__bg-color--hover);
       color: var(--primary-btn__text-color--hover);
       @apply ring-inset
-        ring-[length:var(--primary-btn__ring-width--hover)]
-        ring-[color:var(--primary-btn__ring-color--hover)];
+        ring-[length:var(--primary-btn\_\_ring-width--hover)]
+        ring-[color:var(--primary-btn\_\_ring-color--hover)];
     }
 
     &:active {
       background-color: var(--primary-btn__bg-color--active);
       color: var(--primary-btn__text-color--active);
       @apply ring-inset
-        ring-[length:var(--primary-btn__ring-width--active)]
-        ring-[color:var(--primary-btn__ring-color--active)];
+        ring-[length:var(--primary-btn\_\_ring-width--active)]
+        ring-[color:var(--primary-btn\_\_ring-color--active)];
     }
 
     &:disabled {
@@ -76,8 +76,8 @@
       /* FIXME(tung): It is grey-600 with opacity in figma, confirm with designer */
       color: var(--primary-btn__text-color--disabled);
       @apply ring-inset
-        ring-[length:var(--primary-btn__ring-width--disabled)]
-        ring-[color:var(--primary-btn__ring-color--disabled)];
+        ring-[length:var(--primary-btn\_\_ring-width--disabled)]
+        ring-[color:var(--primary-btn\_\_ring-color--disabled)];
     }
   }
 }
