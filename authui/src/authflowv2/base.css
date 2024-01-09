@@ -83,6 +83,7 @@
   /* Padding */
   :root {
     --padding-2\.5: 0.625rem;
+    --padding-3: 0.75rem;
     --padding-6: 1.5rem;
   }
 
