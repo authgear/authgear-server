@@ -2,7 +2,7 @@
   :root {
     --widget__bg-color: var(--color-white);
     --widget__width: 100%;
-    --widget__max-width: 480px;
+    --widget__max-width: 400px;
     --widget__border-radius: var(--border-radius-sqaure);
     --widget__box-shadow: none;
     --widget__border: none;
