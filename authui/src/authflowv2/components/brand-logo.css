@@ -1,0 +1,37 @@
+@layer components {
+  :root {
+    --brand-logo__height: 4rem;
+  }
+
+  .brand-logo__container {
+    @apply flex;
+
+    :root[alignment-logo="start"] & {
+      @apply justify-start;
+    }
+
+    :root[alignment-logo="center"] & {
+      @apply justify-center;
+    }
+
+    :root[alignment-logo="end"] & {
+      @apply justify-end;
+    }
+
+    :root[alignment-logo="hidden"] & {
+      @apply hidden;
+    }
+  }
+  .brand-logo {
+    height: var(--brand-logo__height);
+  }
+  .brand-logo.dark {
+    @apply hidden;
+  }
+  .dark .brand-logo.light {
+    @apply hidden;
+  }
+  .dark .brand-logo.dark {
+    display: initial;
+  }
+}
