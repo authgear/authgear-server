@@ -1,0 +1,43 @@
+@layer components {
+  :root {
+    /* FIXME(davis): Design use opacity on it which should be not necessary */
+    --divider__bg-color: var(--color-grey-200);
+    --divider__text-color: var(--color-grey-300);
+    --divider__font-family: var(--typography-body-large__font-family);
+    --divider__font-size: var(--typography-body-large__font-size);
+    --divider__line-height: var(--typography-body-large__line-height);
+    --divider__letter-spacing: var(--typography-body-large__letter-spacing);
+    --divider__font-weight: var(--typography-body-large__font-weight);
+    --divider__gap: 0 0.88em;
+  }
+
+  :root.dark {
+    /* TODO(davis): Dark mode styles */
+  }
+
+  .divider {
+    @apply flex items-center;
+
+    gap: var(--divider__gap);
+    color: var(--divider__text-color);
+    font-family: var(--divider__font-family);
+    font-size: var(--divider__font-size);
+    line-height: var(--divider__line-height);
+    letter-spacing: var(--divider__letter-spacing);
+    font-weight: var(--divider__font-weight);
+  }
+
+  .divider::before {
+    @apply flex-1 h-px;
+
+    content: "";
+    background: var(--divider__bg-color);
+  }
+
+  .divider::after {
+    @apply flex-1 h-px;
+
+    content: "";
+    background: var(--divider__bg-color);
+  }
+}
