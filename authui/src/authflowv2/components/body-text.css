@@ -1,0 +1,32 @@
+@layer components {
+  :root {
+    --body-text__text-color: var(--color-grey-base);
+    --body-text__link-color: var(--color-primary-base);
+    --body-text__font-family: var(--typography-body-small__font-family);
+    --body-text__font-size: var(--typography-body-small__font-size);
+    --body-text__line-height: var(--typography-body-small__line-height);
+    --body-text__letter-spacing: var(--typography-body-small__letter-spacing);
+    --body-text__font-weight: var(--typography-body-small__font-weight);
+  }
+
+  :root.dark {
+    /* TODO(davis): Dark mode styles */
+  }
+
+  .body-text {
+    color: var(--body-text__text-color);
+    font-family: var(--body-text__font-family);
+    font-size: var(--body-text__font-size);
+    line-height: var(--body-text__line-height);
+    letter-spacing: var(--body-text__letter-spacing);
+    font-weight: var(--body-text__font-weight);
+  }
+
+  .body-text a {
+    color: var(--body-text__link-color);
+  }
+
+  .body-text a:hover {
+    text-decoration: underline;
+  }
+}
