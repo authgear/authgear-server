@@ -16,6 +16,9 @@ module.exports = {
   darkMode: "class",
   theme: {
     extend: {
+      flex: {
+        "1-0-auto": "1 0 auto",
+      },
       spacing: {
         18: "4.5rem",
       },
