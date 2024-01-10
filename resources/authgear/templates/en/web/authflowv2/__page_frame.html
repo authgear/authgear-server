@@ -27,13 +27,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
 
 <div id="loading-progress-bar"></div>
-{{ template "__tutorial.html" . }}
-<!-- TODO(tung): Extract this part to another overridable template -->
-<div class="layout--default">
+{{ template "web/authflowv2/layout.html" . }}
+</body>
+</html>
+{{ end }}
+
+{{ define "widget" }}
 	<div class="widget">
 		{{ template "page-content" . }}
 	</div>
-</div>
-</body>
-</html>
 {{ end }}
