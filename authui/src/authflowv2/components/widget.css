@@ -3,12 +3,12 @@
     --widget__bg-color: var(--color-white);
     --widget__width: 100%;
     --widget__max-width: 400px;
-    --widget__border-radius: var(--border-radius-sqaure);
+    --widget__border-radius: 0px;
     --widget__box-shadow: none;
     --widget__border: none;
 
     @media (min-width: theme("screens.tablet")) {
-      --widget__border-radius: 0px;
+      --widget__border-radius: var(--border-radius-large);
       --widget__box-shadow: none;
       --widget__border: none;
     }
