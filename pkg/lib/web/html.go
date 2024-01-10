@@ -59,5 +59,5 @@ var ComponentsHTML = []*template.HTML{
 	TemplateWebAuthflowV2GeneratedAssetHTML,
 	TemplateWebAuthflowV2PageFrameHTML,
 	TemplateWebAuthflowV2HeaderHTML,
-  TemplateWebAuthflowV2DividerHTML,
+	TemplateWebAuthflowV2DividerHTML,
 }
