@@ -29,8 +29,7 @@
     --primary-btn__ring-color--active: var(--primary-btn__ring-color);
 
     --primary-btn__bg-color--disabled: var(--color-grey-200);
-    /* FIXME(tung): It is grey-600 with opacity in figma, confirm with designer */
-    --primary-btn__text-color--disabled: var(--color-grey-400);
+    --primary-btn__text-color--disabled: var(--color-grey-600);
     --primary-btn__ring-width--disabled: var(--primary-btn__ring-width);
     --primary-btn__ring-color--disabled: var(--primary-btn__ring-color);
   }
@@ -73,7 +72,6 @@
 
     &:disabled {
       background-color: var(--primary-btn__bg-color--disabled);
-      /* FIXME(tung): It is grey-600 with opacity in figma, confirm with designer */
       color: var(--primary-btn__text-color--disabled);
       @apply ring-inset
         ring-[length:var(--primary-btn\_\_ring-width--disabled)]
