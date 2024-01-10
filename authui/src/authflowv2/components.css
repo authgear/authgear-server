@@ -1,3 +1,5 @@
+@import "./components/layout.css";
+@import "./components/widget.css";
 @import "./components/screen-title.css";
 @import "./components/screen-description.css";
 @import "./components/primary-button.css";

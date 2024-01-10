@@ -1,0 +1,34 @@
+@layer components {
+  :root {
+    --widget__bg-color: var(--color-white);
+    --widget__width: 100%;
+    --widget__max-width: 480px;
+    --widget__border-radius: var(--border-radius-sqaure);
+    --widget__box-shadow: none;
+    --widget__border: none;
+
+    @media (min-width: theme("screens.tablet")) {
+      --widget__border-radius: 0px;
+      --widget__box-shadow: none;
+      --widget__border: none;
+    }
+  }
+
+  .widget {
+    width: var(--widget__width);
+    max-width: var(--widget__max-width);
+    border-radius: var(--widget__border-radius);
+    border: var(--widget__border);
+    box-shadow: var(--widget__box-shadow);
+    background-color: var(--widget__bg-color);
+    @apply block;
+
+    @apply px-6 py-8 flex-1-0-auto;
+  }
+
+  @media (min-width: theme("screens.tablet")) {
+    .widget {
+      @apply px-6 py-6 flex-none;
+    }
+  }
+}
