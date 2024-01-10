@@ -49,6 +49,7 @@
     --border-radius-full: 9999px;
     --border-radius-sqaure: 0px;
     --border-radius-rounded-square: 0.875em;
+    --border-radius-large: 1.25rem;
   }
 
   /* Typography */
