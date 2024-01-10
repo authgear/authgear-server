@@ -11,6 +11,10 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  button:disabled {
+    cursor: not-allowed;
+  }
+
   /* Colors */
   :root {
     --color-white: #ffffff;
