@@ -1,0 +1,40 @@
+{{ template "authflowv2/__page_frame.html" . }}
+{{ define "page-content" }}
+
+	{{ $has_oauth := false }}
+	{{ $has_login_id := false }}
+	{{ range $.IdentityCandidates }}
+		{{ if eq .type "oauth" }}
+		{{ $has_oauth = true }}
+		{{ end }}
+		{{ if eq .type "login_id" }}
+		{{ $has_login_id = true }}
+		{{ end }}
+	{{ end }}
+	{{ if $.PublicSignupDisabled }}
+  <!-- TODO(tung): Update this ui (https://github.com/authgear/authgear-server/issues/3596) -->
+	<div class="pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
+		<p class="primary-txt m-0 text-base">{{ template "public-signup-disabled-notice" }}</p>
+		<a class="as-btn not-a btn primary-btn my-5" href="{{ call $.MakeURL "/login" }} " data-turbo="false">{{ template "login-label" }}</a>
+		{{ template "__watermark.html" . }}
+	</div>
+	{{ else }}
+
+  <div class="space-y-4">
+    {{ template "authflowv2/__header.html" . }}
+    <h1 class="screen-title">
+      {{ if $.ClientName }}
+      {{ template "v2-sign-up.title" (dict "AppOrClientName" $.ClientName) }}
+      {{ else }}
+      {{ $appName := ($.Translations.RenderText "app.name" nil) }}
+      {{ template "v2-sign-up.title" (dict "AppOrClientName" $appName) }}
+      {{ end }}
+    </h1>
+    <h2 class="screen-description">
+      {{ template "v2-sign-up.subtitle" }}
+    </h2>
+  </div>
+	
+	{{ end }}
+
+{{ end }}
