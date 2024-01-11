@@ -103,4 +103,19 @@
   .body-text--md a:hover {
     text-decoration: underline;
   }
+
+  .body-text--sm,
+  .body-text--md {
+    :root[alignment-content="start"] & {
+      @apply text-start;
+    }
+
+    :root[alignment-content="center"] & {
+      @apply text-center;
+    }
+
+    :root[alignment-content="end"] & {
+      @apply text-end;
+    }
+  }
 }
