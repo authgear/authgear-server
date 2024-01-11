@@ -1,0 +1,34 @@
+@layer components {
+  :root {
+    --code-block__bg-color: var(--color-grey-100);
+    --code-block__border-radius: var(--border-radius-rounded-square);
+    --code-block__text-color: var(--color-grey-700);
+    --code-block__font-family: var(--typography-body-small__font-family);
+    --code-block__font-size: var(--typography-body-small__font-size);
+    --code-block__line-height: var(--typography-body-small__line-height);
+    --code-block__letter-spacing: var(--typography-body-small__letter-spacing);
+    --code-block__font-weight: var(--typography-body-small__font-weight);
+  }
+
+  :root.dark {
+    /* TODO(davis): Dark mode styles */
+  }
+
+  .code-block {
+    @apply flex flex-col justify-center items-center p-4;
+
+    border-radius: var(--code-block__border-radius);
+    background-color: var(--code-block__bg-color);
+  }
+
+  .code-block__text {
+    @apply whitespace-pre;
+
+    color: var(--code-block__text-color);
+    font-family: var(--code-block__font-family);
+    font-size: var(--code-block__font-size);
+    line-height: var(--code-block__line-height);
+    letter-spacing: var(--code-block__letter-spacing);
+    font-weight: var(--code-block__font-weight);
+  }
+}
