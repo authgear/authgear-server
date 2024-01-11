@@ -23,12 +23,12 @@
     background-color: var(--widget__bg-color);
     @apply block;
 
-    @apply px-6 py-8 flex-1-0-auto;
+    @apply px-6 py-8;
   }
 
   @media (min-width: theme("screens.tablet")) {
     .widget {
-      @apply px-6 py-6 flex-none;
+      @apply px-6 py-6;
     }
   }
 }
