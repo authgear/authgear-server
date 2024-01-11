@@ -17,7 +17,7 @@ import (
 )
 
 var TemplateWebAuthflowSignupHTML = template.RegisterHTML(
-	"web/authflow_signup.html",
+	"web/authflowv2/signup.html",
 	handlerwebapp.Components...,
 )
 

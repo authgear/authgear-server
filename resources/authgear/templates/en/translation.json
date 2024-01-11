@@ -916,5 +916,8 @@
   "language-zh-CN": "简体中文",
   "language-zh-HK": "繁體中文(香港)",
   "language-zh-TW": "繁體中文(台灣)",
-  "language-zu": "isiZulu"
+  "language-zu": "isiZulu",
+
+  "v2-sign-up.title": "Sign up for {AppOrClientName}",
+  "v2-sign-up.subtitle": "It''s free. No credit card needed."
 }
