@@ -24,8 +24,10 @@ var StaticAssetResources = map[string]resource.Descriptor{
 	"app-logo-dark": AppLogoDark,
 	"favicon":       Favicon,
 
-	"authgear-light-theme.css": AuthgearLightThemeCSS,
-	"authgear-dark-theme.css":  AuthgearDarkThemeCSS,
+	"authgear-light-theme.css":            AuthgearLightThemeCSS,
+	"authgear-dark-theme.css":             AuthgearDarkThemeCSS,
+	"authgear-authflowv2-light-theme.css": AuthgearAuthflowV2LightThemeCSS,
+	"authgear-authflowv2-dark-theme.css":  AuthgearAuthflowV2DarkThemeCSS,
 }
 
 type ResourceManager interface {
