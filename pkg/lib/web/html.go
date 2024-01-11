@@ -29,6 +29,7 @@ var TemplateWebAuthflowForgotPasswordAlternativesHTML = template.RegisterHTML("w
 var TemplateWebAuthflowV2HTMLHeadHTML = template.RegisterHTML("web/authflowv2/__html_head.html")
 var TemplateWebAuthflowV2GeneratedAssetHTML = template.RegisterHTML("web/authflowv2/__generated_asset.html")
 var TemplateWebAuthflowV2PageFrameHTML = template.RegisterHTML("web/authflowv2/__page_frame.html")
+var TemplateWebAuthflowV2HeaderHTML = template.RegisterHTML("web/authflowv2/__header.html")
 
 var ComponentsHTML = []*template.HTML{
 	TemplateWebHTMLHeadHTML,
@@ -56,4 +57,5 @@ var ComponentsHTML = []*template.HTML{
 	TemplateWebAuthflowV2HTMLHeadHTML,
 	TemplateWebAuthflowV2GeneratedAssetHTML,
 	TemplateWebAuthflowV2PageFrameHTML,
+	TemplateWebAuthflowV2HeaderHTML,
 }
