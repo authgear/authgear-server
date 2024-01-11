@@ -3,12 +3,18 @@
 
 	{{ $has_oauth := false }}
 	{{ $has_login_id := false }}
+	{{ $has_alternatives := false }}
 	{{ range $.IdentityCandidates }}
 		{{ if eq .type "oauth" }}
-		{{ $has_oauth = true }}
+      {{ $has_oauth = true }}
+      <!-- TODO(tung): Add SSO (https://github.com/authgear/authgear-server/issues/3593) -->
+      {{/* $has_alternatives = true */}}
 		{{ end }}
 		{{ if eq .type "login_id" }}
-		{{ $has_login_id = true }}
+		  {{ $has_login_id = true }}
+      {{ if not (eq .login_id_key $.LoginIDKey) }}
+		    {{ $has_alternatives = true }}
+      {{ end }}
 		{{ end }}
 	{{ end }}
 	{{ if $.PublicSignupDisabled }}
@@ -55,7 +61,7 @@
             autocomplete="tel-national"
             autocapitalize="none"
             name="q_login_id"
-            placeholder="{{ template "phone-number-placeholder" }}"
+            placeholder="{{ template "v2-placeholder.phone" }}"
             data-retain-form-form-target="input"
             data-retain-form-form-name-param="phone"
           >
@@ -69,7 +75,7 @@
             name="q_login_id"
             autocomplete="username"
             autocapitalize="none"
-            placeholder="{{ template "login-id-placeholder" (dict "variant" $.LoginIDKey) }}"
+            placeholder="{{ template "v2-placeholder.login-id" (dict "variant" $.LoginIDKey) }}"
             data-controller="retain-form-input"
             data-action="input->retain-form-input#input retain-form-input:input->retain-form-form#input"
             data-retain-form-form-target="input"
@@ -94,6 +100,37 @@
       {{ $loginHref := call $.MakeURL "/login" }}
       {{ template "v2-sign-up.switch-to-login" (dict "href" $loginHref )}}
     </p>
+
+    {{ if $has_alternatives }}
+      {{ template "authflowv2/__divider.html" (dict "Classname" "my-8")  }}
+      <section class="flex flex-col gap-4">
+        {{ range .IdentityCandidates }}
+          {{ if eq .type "login_id" }}{{ if not (eq .login_id_key $.LoginIDKey) }}
+            {{ if eq .login_id_key "email" }}
+              <a class="secondary-btn" data-turbo-action="replace"
+                href="{{ call $.MakeURL "" "q_login_id_key" .login_id_key "q_login_id_input_type" .login_id_input_type }}">
+                <i class="material-icons mr-2">mail</i>
+                {{ template "v2-sign-up.signup-with-email" }}
+              </a>
+            {{ end }}
+            {{ if eq .login_id_key "username" }}
+              <a class="secondary-btn" data-turbo-action="replace"
+                href="{{ call $.MakeURL "" "q_login_id_key" .login_id_key "q_login_id_input_type" .login_id_input_type }}">
+                <i class="material-icons mr-2">person</i>
+                {{ template "v2-sign-up.signup-with-username" }}
+              </a>
+            {{ end }}
+            {{ if eq .login_id_key "phone" }}
+              <a class="secondary-btn" data-turbo-action="replace"
+                href="{{ call $.MakeURL "" "q_login_id_key" .login_id_key "q_login_id_input_type" .login_id_input_type }}">
+                <i class="material-icons mr-2">smartphone</i>
+                {{ template "v2-sign-up.signup-with-phone" }}
+              </a>
+            {{ end }}
+          {{ end }}{{ end }}
+        {{ end }}
+      </section>
+    {{ end }}
 	{{ end }}
 
 {{ end }}
