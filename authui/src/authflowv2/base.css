@@ -97,7 +97,7 @@
     --typography-body-medium__font-family: inherit;
     --typography-body-medium__font-size: 0.875rem;
     --typography-body-medium__line-height: 1.42857142857em; /* 20 / 14 = 1.42857142857 */
-    --typography-body-medium__letter-spacing: 0.03571428571em; /* 0.5 / 14 = 0.03571428571 */
+    --typography-body-medium__letter-spacing: 0.01785714285em; /* 0.25 / 14 = 0.01785714285 */
     --typography-body-medium__font-weight: 500;
 
     --typography-body-large__font-family: inherit;
