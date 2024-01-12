@@ -471,6 +471,7 @@
   "phone-otp-verify-with-whatsapp-instead": "改為通過 WhatsApp 驗證",
 
   "setup-oob-otp-title--sms": "設置短訊雙重驗證",
+  "setup-oob-otp-title--whatsapp": "設置WhatsApp雙重驗證",
   "setup-oob-otp-title--email": "設置電郵雙重驗證",
 
   "setup-whatsapp-otp-title": "設置手機兩步驗證",

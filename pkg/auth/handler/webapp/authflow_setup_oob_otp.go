@@ -1,7 +1,6 @@
 package webapp
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -9,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
-	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -39,6 +37,7 @@ func ConfigureAuthflowSetupOOBOTPRoute(route httproute.Route) httproute.Route {
 
 type AuthflowSetupOOBOTPViewModel struct {
 	OOBAuthenticatorType model.AuthenticatorType
+	Channel              model.AuthenticatorOOBChannel
 }
 
 type AuthflowSetupOOBOTPHandler struct {
@@ -70,8 +69,10 @@ func (h *AuthflowSetupOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Requ
 	default:
 		panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
 	}
+	channel := screen.Screen.TakenChannel
 	screenViewModel := AuthflowSetupOOBOTPViewModel{
 		OOBAuthenticatorType: oobAuthenticatorType,
+		Channel:              channel,
 	}
 	viewmodels.Embed(data, screenViewModel)
 
@@ -119,17 +120,7 @@ func (h *AuthflowSetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, &AdvanceOptions{
 			InheritTakenBranchState: true,
 		})
-		if errors.Is(err, otp.ErrInvalidWhatsappUser) {
-			// The code failed to send because it is not a valid whatsapp user
-			// Try again with sms if possible
-			var fallbackErr error
-			result, fallbackErr = h.tryFallbackToSMS(r, s, screen, option.Channels, authentication, target)
-			if errors.Is(fallbackErr, ErrNoFallbackAvailable) {
-				return err
-			} else if fallbackErr != nil {
-				return fallbackErr
-			}
-		} else if err != nil {
+		if err != nil {
 			return err
 		}
 
@@ -137,35 +128,4 @@ func (h *AuthflowSetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		return nil
 	})
 	h.Controller.HandleStep(w, r, &handlers)
-}
-
-func (h *AuthflowSetupOOBOTPHandler) tryFallbackToSMS(
-	r *http.Request,
-	s *webapp.Session,
-	screen *webapp.AuthflowScreenWithFlowResponse,
-	channels []model.AuthenticatorOOBChannel,
-	authentication config.AuthenticationFlowAuthentication,
-	target string,
-) (*webapp.Result, error) {
-
-	smsOptionIdx := -1
-	for idx, c := range channels {
-		if c == model.AuthenticatorOOBChannelSMS {
-			smsOptionIdx = idx
-			break
-		}
-	}
-	if smsOptionIdx == -1 {
-		// No sms option is available, failing
-		return nil, ErrNoFallbackAvailable
-	}
-
-	input := map[string]interface{}{
-		"authentication": authentication,
-		"target":         target,
-		"channel":        channels[smsOptionIdx],
-	}
-	return h.Controller.AdvanceWithInput(r, s, screen, input, &AdvanceOptions{
-		InheritTakenBranchState: true,
-	})
 }
