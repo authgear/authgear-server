@@ -2,22 +2,18 @@
   :root {
     --otp-input__spacing: 21px;
 
-    --otp-input-digit__ring-color: var(--color-grey-200);
-    --otp-input-digit__ring-color--focus: var(--color-primary-base);
-    --otp-input-digit__ring-color--error: var(--color-error);
-    --otp-input-digit__ring-width: 1px;
-    --otp-input-digit__ring-width--focus: 1px;
-    --otp-input-digit__ring-width--error: 1px;
-    --otp-input-digit__border-radius: var(--border-radius-rounded-large);
-    --otp-input-digit__border-width: 1px;
-    --otp-input-digit__border-color: var(--color-grey-200);
-    --otp-input-digit__border-color--focus: var(--color-primary-base);
-    --otp-input-digit__border-color--error: var(--color-error);
-    --otp-input-digit__width: 2.5em;
-    --otp-input-digit__height: 2.75em;
+    --otp-input__digit-ring-color: var(--color-grey-200);
+    --otp-input__digit-ring-color--focus: var(--color-primary-base);
+    --otp-input__digit-ring-color--error: var(--color-error);
+    --otp-input__digit-ring-width: 1.5px;
+    --otp-input__digit-ring-width--focus: 1.5px;
+    --otp-input__digit-ring-width--error: 1.5px;
+    --otp-input__digit-border-radius: var(--border-radius-rounded-large);
+    --otp-input__digit-width: 2.5em;
+    --otp-input__digit-height: 2.75em;
 
-    --otp-input-digit__mask-color: var(--color-black);
-    --otp-input-digit__mask-size: 0.625rem;
+    --otp-input__digit-mask-color: var(--color-black);
+    --otp-input__digit-mask-size: 0.625rem;
 
     --otp-input-error-message__margin-top: 0.5rem;
     --otp-input-error-message__text-color: var(--color-error);
@@ -44,7 +40,7 @@
     @apply relative;
     @apply w-full;
 
-    height: var(--otp-input-digit\_\_height);
+    height: var(--otp-input\_\_digit-height);
 
     input {
       @apply w-full;
@@ -57,12 +53,9 @@
 
     &.otp-input--error {
       .otp-input__digit {
-        border: var(--otp-input-digit\_\_border-width) solid
-          var(--otp-input-digit\_\_border-color--error);
-
         @apply ring-inset
-          ring-[length:var(--otp-input-digit\_\_ring-width--error)]
-          ring-[color:var(--otp-input-digit\_\_ring-color--error)];
+          ring-[length:var(--otp-input\_\_digit-ring-width--error)]
+          ring-[color:var(--otp-input\_\_digit-ring-color--error)];
       }
     }
   }
@@ -82,15 +75,13 @@
     @apply items-center;
     @apply justify-center;
 
-    width: var(--otp-input-digit\_\_width);
-    height: var(--otp-input-digit\_\_height);
-    border-radius: var(--otp-input-digit\_\_border-radius);
-    border: var(--otp-input-digit\_\_border-width) solid
-      var(--otp-input-digit\_\_border-color);
+    width: var(--otp-input\_\_digit-width);
+    height: var(--otp-input\_\_digit-height);
+    border-radius: var(--otp-input\_\_digit-border-radius);
 
     @apply ring-inset
-      ring-[length:var(--otp-input-digit\_\_ring-width)]
-      ring-[color:var(--otp-input-digit\_\_ring-color)];
+      ring-[length:var(--otp-input\_\_digit-ring-width)]
+      ring-[color:var(--otp-input\_\_digit-ring-color)];
 
     &.otp-input__digit--masked {
       &::before {
@@ -101,19 +92,16 @@
         @apply -translate-x-1/2;
         @apply rounded-full;
 
-        width: var(--otp-input-digit\_\_mask-size);
-        height: var(--otp-input-digit\_\_mask-size);
-        background-color: var(--otp-input-digit\_\_mask-color);
+        width: var(--otp-input\_\_digit-mask-size);
+        height: var(--otp-input\_\_digit-mask-size);
+        background-color: var(--otp-input\_\_digit-mask-color);
       }
     }
 
     &.otp-input__digit--focus {
-      border: var(--otp-input-digit\_\_border-width) solid
-        var(--otp-input-digit\_\_border-color--focus);
-
       @apply ring-inset
-        ring-[length:var(--otp-input-digit\_\_ring-width--focus)]
-        ring-[color:var(--otp-input-digit\_\_ring-color--focus)];
+        ring-[length:var(--otp-input\_\_digit-ring-width--focus)]
+        ring-[color:var(--otp-input\_\_digit-ring-color--focus)];
     }
   }
 
