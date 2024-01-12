@@ -135,5 +135,33 @@ func (h *AuthflowV2EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		result.WriteResponse(w, r)
 		return nil
 	})
+	handlers.PostAction("resend", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+		input := map[string]interface{}{
+			"resend": true,
+		}
+
+		result, err := h.Controller.UpdateWithInput(r, s, screen, input)
+		if err != nil {
+			return err
+		}
+
+		// TODO(newman): Implement flash message
+		// h.FlashMessage.Flash(w, string(webapp.FlashMessageTypeResendCodeSuccess))
+		result.WriteResponse(w, r)
+		return nil
+	})
+
+	handlers.PostAction("submit", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+		input := map[string]interface{}{}
+
+		result, err := h.Controller.UpdateWithInput(r, s, screen, input)
+		if err != nil {
+			return err
+		}
+
+		result.WriteResponse(w, r)
+		return nil
+	})
+
 	h.Controller.HandleStep(w, r, &handlers)
 }
