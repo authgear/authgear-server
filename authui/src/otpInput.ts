@@ -18,7 +18,6 @@ export class OtpInputController extends Controller {
     this.inputTarget.addEventListener("paste", this.handlePaste);
     this.inputTarget.addEventListener("focus", this.handleFocus);
     this.inputTarget.addEventListener("blur", this.handleBlur);
-    this.inputTarget.addEventListener("keyup", this.handleKeyUp);
     this.inputTarget.addEventListener("selectionchange", this.handleSelect);
 
     // Set initial value and render
@@ -32,7 +31,6 @@ export class OtpInputController extends Controller {
     this.inputTarget.removeEventListener("paste", this.handlePaste);
     this.inputTarget.removeEventListener("focus", this.handleFocus);
     this.inputTarget.removeEventListener("blur", this.handleBlur);
-    this.inputTarget.removeEventListener("keyup", this.handleKeyUp);
     this.inputTarget.removeEventListener("selectionchange", this.handleSelect);
   }
 
@@ -75,13 +73,6 @@ export class OtpInputController extends Controller {
     this.render();
   };
 
-  handleKeyUp = (event: KeyboardEvent): void => {
-    if (event.key === "Backspace") {
-      event.preventDefault();
-      this._setValue("");
-    }
-  };
-
   isSpanSelected = (index: number): boolean => {
     const isFocused = this.inputTarget === document.activeElement;
     const caretStart = this.inputTarget.selectionStart || 0;
@@ -107,7 +98,6 @@ export class OtpInputController extends Controller {
         className += " otp-input__digit--masked";
       }
 
-      this.inputTarget.style.fontSize = `1px`;
       this.inputTarget.style.letterSpacing = `calc(${this.inputTarget.offsetWidth}px / ${this.maxLength})`;
 
       let span = this.spans[i];
