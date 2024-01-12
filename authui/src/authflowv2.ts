@@ -15,6 +15,7 @@ import { FormatDateRelativeController } from "./date";
 import { injectCSSAttrs } from "./cssattrs";
 import { ResendButtonController } from "./resendButton";
 import { OtpInputController } from "./otpInput";
+import { PasswordVisibilityToggleController } from "./passwordVisibility";
 
 axios.defaults.withCredentials = true;
 
@@ -43,6 +44,11 @@ Stimulus.register("prevent-double-tap", PreventDoubleTapController);
 Stimulus.register("lockout", LockoutController);
 
 Stimulus.register("format-date-relative", FormatDateRelativeController);
+Stimulus.register("format-date-relative", FormatDateRelativeController);
+Stimulus.register(
+  "password-visibility-toggle",
+  PasswordVisibilityToggleController
+);
 
 Stimulus.register("otp-input", OtpInputController);
 Stimulus.register("resend-button", ResendButtonController);
