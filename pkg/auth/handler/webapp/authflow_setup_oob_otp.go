@@ -100,12 +100,18 @@ func (h *AuthflowSetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData)
 		option := screenData.Options[index]
 		authentication := option.Authentication
+		channel := screen.Screen.TakenChannel
 
 		target := r.Form.Get("x_target")
+
+		if channel == "" {
+			channel = option.Channels[0]
+		}
 
 		input := map[string]interface{}{
 			"authentication": authentication,
 			"target":         target,
+			"channel":        channel,
 		}
 
 		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)

@@ -172,8 +172,11 @@ func newAuthflowScreenSignupPromote(flowResponse *authflow.FlowResponse, previou
 		// identify contains branches.
 		screen.BranchStateToken = state
 	case config.AuthenticationFlowStepTypeCreateAuthenticator:
-		// authentication contains branches.
-		screen.BranchStateToken = state
+		switch flowResponse.Action.Data.(type) {
+		case declarative.IntentSignupFlowStepCreateAuthenticatorData:
+			// create_authenticator contains branches in this step
+			screen.BranchStateToken = state
+		}
 	case config.AuthenticationFlowStepTypeVerify:
 		// verify MAY contain branches.
 		if _, ok := flowResponse.Action.Data.(declarative.IntentVerifyClaimData); ok {
@@ -390,7 +393,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 	case config.AuthenticationFlowStepTypeIdentify:
 		// In identify, the user input actually takes the branch.
 		// The branch taken here is unimportant.
-		return s.takeBranchResultSimple(index)
+		return s.takeBranchResultSimple(index, channel)
 	case config.AuthenticationFlowStepTypeCreateAuthenticator:
 		data := s.StateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData)
 		option := data.Options[index]
@@ -399,7 +402,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryPassword:
 			// Password branches can be taken by setting index.
-			return s.takeBranchResultSimple(index)
+			return s.takeBranchResultSimple(index, channel)
 		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 			// This branch requires input to take.
 			input := map[string]interface{}{
@@ -420,10 +423,6 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
-			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
-			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			if channel == "" {
 				channel = option.Channels[0]
 			}
@@ -456,6 +455,14 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 				},
 				OnRetry: &onFailureHandler,
 			}
+
+		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+			fallthrough
+		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+			if channel == "" {
+				channel = option.Channels[0]
+			}
+			return s.takeBranchResultSimple(index, channel)
 		default:
 			panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
 		}
@@ -502,7 +509,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(index int, channel mode
 	case config.AuthenticationFlowStepTypeIdentify:
 		// In identify, the user input actually takes the branch.
 		// The branch taken here is unimportant.
-		return s.takeBranchResultSimple(index)
+		return s.takeBranchResultSimple(index, channel)
 	case config.AuthenticationFlowStepTypeAuthenticate:
 		data := s.StateTokenFlowResponse.Action.Data.(declarative.StepAuthenticateData)
 		option := data.Options[index]
@@ -517,7 +524,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(index int, channel mode
 			fallthrough
 		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
 			// All these can take the branch simply by setting index.
-			return s.takeBranchResultSimple(index)
+			return s.takeBranchResultSimple(index, channel)
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
@@ -573,7 +580,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchReauth(index int, channel mod
 	case config.AuthenticationFlowStepTypeIdentify:
 		// In identify, id_token is used.
 		// The branch taken here is unimportant.
-		return s.takeBranchResultSimple(index)
+		return s.takeBranchResultSimple(index, channel)
 	case config.AuthenticationFlowStepTypeAuthenticate:
 		data := s.StateTokenFlowResponse.Action.Data.(declarative.StepAuthenticateData)
 		option := data.Options[index]
@@ -586,7 +593,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchReauth(index int, channel mod
 			fallthrough
 		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
 			// All these can take the branch simply by setting index.
-			return s.takeBranchResultSimple(index)
+			return s.takeBranchResultSimple(index, channel)
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
@@ -642,7 +649,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupLogin(index int, option
 	case config.AuthenticationFlowStepTypeIdentify:
 		// In identify, the user input actually takes the branch.
 		// The branch taken here is unimportant.
-		return s.takeBranchResultSimple(index)
+		return s.takeBranchResultSimple(index, "")
 	default:
 		panic(fmt.Errorf("unexpected action type: %v", s.StateTokenFlowResponse.Action.Type))
 	}
@@ -653,18 +660,19 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchAccountRecovery(index int, op
 	case config.AuthenticationFlowStepTypeIdentify:
 		// In identify, the user input actually takes the branch.
 		// The branch taken here is unimportant.
-		return s.takeBranchResultSimple(index)
+		return s.takeBranchResultSimple(index, "")
 	default:
 		panic(fmt.Errorf("unexpected action type: %v", s.StateTokenFlowResponse.Action.Type))
 	}
 }
 
-func (s *AuthflowScreenWithFlowResponse) takeBranchResultSimple(index int) TakeBranchResultSimple {
+func (s *AuthflowScreenWithFlowResponse) takeBranchResultSimple(index int, channel model.AuthenticatorOOBChannel) TakeBranchResultSimple {
 	xStep := s.Screen.StateToken.XStep
 	screen := NewAuthflowScreenWithFlowResponse(s.StateTokenFlowResponse, xStep, nil)
 	screen.Screen.BranchStateToken = s.Screen.StateToken
 	screen.BranchStateTokenFlowResponse = s.BranchStateTokenFlowResponse
 	screen.Screen.TakenBranchIndex = &index
+	screen.Screen.TakenChannel = channel
 	return TakeBranchResultSimple{
 		Screen: screen,
 	}
@@ -738,10 +746,16 @@ func (s *AuthflowScreenWithFlowResponse) navigateSignupPromote(r *http.Request, 
 	case config.AuthenticationFlowStepTypeIdentify:
 		s.navigateStepIdentify(r, webSessionID, result, expectedPath)
 	case config.AuthenticationFlowStepTypeCreateAuthenticator:
-		options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData).Options
-		index := *s.Screen.TakenBranchIndex
-		option := options[index]
-		switch option.Authentication {
+		// If the current step already tells the authentication, use it
+		authentication := s.StateTokenFlowResponse.Action.Authentication
+		if authentication == "" {
+			// Else, get it from the first option of the branch step
+			options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData).Options
+			index := *s.Screen.TakenBranchIndex
+			option := options[index]
+			authentication = option.Authentication
+		}
+		switch authentication {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryPassword:
@@ -771,10 +785,11 @@ func (s *AuthflowScreenWithFlowResponse) navigateSignupPromote(r *http.Request, 
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-			switch s.StateTokenFlowResponse.Action.Data.(type) {
+			data := s.StateTokenFlowResponse.Action.Data
+			switch data.(type) {
 			case declarative.NodeVerifyClaimData:
 				// 1. We do not need to enter the target.
-				channel := s.Screen.TakenChannel
+				channel := data.(declarative.NodeVerifyClaimData).Channel
 				switch channel {
 				case model.AuthenticatorOOBChannelSMS:
 					s.advance(AuthflowRouteEnterOOBOTP, result)
@@ -790,7 +805,7 @@ func (s *AuthflowScreenWithFlowResponse) navigateSignupPromote(r *http.Request, 
 				panic(fmt.Errorf("unexpected data: %T", s.StateTokenFlowResponse.Action.Data))
 			}
 		default:
-			panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
+			panic(fmt.Errorf("unexpected authentication: %v", s.StateTokenFlowResponse.Action.Authentication))
 		}
 	case config.AuthenticationFlowStepTypeVerify:
 		channel := s.Screen.TakenChannel
