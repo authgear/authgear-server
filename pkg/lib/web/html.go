@@ -33,6 +33,7 @@ var TemplateWebAuthflowV2GeneratedAssetHTML = template.RegisterHTML("web/authflo
 var TemplateWebAuthflowV2PageFrameHTML = template.RegisterHTML("web/authflowv2/__page_frame.html")
 var TemplateWebAuthflowV2HeaderHTML = template.RegisterHTML("web/authflowv2/__header.html")
 var TemplateWebAuthflowV2DividerHTML = template.RegisterHTML("web/authflowv2/__divider.html")
+var TemplateWebAuthflowV2AlertMessageHTML = template.RegisterHTML("web/authflowv2/__alert_message.html")
 
 var ComponentsHTML = []*template.HTML{
 	TemplateWebHTMLHeadHTML,
@@ -63,4 +64,5 @@ var ComponentsHTML = []*template.HTML{
 	TemplateWebAuthflowV2PageFrameHTML,
 	TemplateWebAuthflowV2HeaderHTML,
 	TemplateWebAuthflowV2DividerHTML,
+	TemplateWebAuthflowV2AlertMessageHTML,
 }
