@@ -1,0 +1,76 @@
+@layer components {
+  :root {
+    --inline-btn__bg-color: transparent;
+    --inline-btn__text-color: var(--color-primary-base);
+    --inline-btn__border-radius: 0px;
+    --inline-btn__font-family: var(--typography-label-medium__font-family);
+    --inline-btn__font-size: var(--typography-label-medium__font-size);
+    --inline-btn__line-height: var(--typography-label-medium__line-height);
+    --inline-btn__letter-spacing: var(
+      --typography-label-medium__letter-spacing
+    );
+    --inline-btn__font-weight: var(--typography-label-medium__font-weight);
+    --inline-btn__ring-width: 0px;
+    --inline-btn__ring-color: transparent;
+
+    --inline-btn__bg-color--hover: transparent;
+    --inline-btn__text-color--hover: var(--color-primary-500);
+    --inline-btn__ring-width--hover: var(--inline-btn__ring-width);
+    --inline-btn__ring-color--hover: var(--inline-btn__ring-color);
+
+    --inline-btn__bg-color--active: transparent;
+    --inline-btn__text-color--active: var(--color-primary-500);
+    --inline-btn__ring-width--active: var(--inline-btn__ring-width);
+    --inline-btn__ring-color--active: var(--inline-btn__ring-color);
+
+    --inline-btn__bg-color--disabled: transparent;
+    --inline-btn__text-color--disabled: var(--color-grey-300);
+    --inline-btn__ring-width--disabled: var(--inline-btn__ring-width);
+    --inline-btn__ring-color--disabled: var(--inline-btn__ring-color);
+  }
+
+  :root.dark {
+    /* TODO(newman): Dark mode styles */
+  }
+
+  .inline-btn {
+    @apply text-center;
+
+    background-color: var(--inline-btn__bg-color);
+    color: var(--inline-btn__text-color);
+    border-radius: var(--inline-btn__border-radius);
+    font-family: var(--inline-btn__font-family);
+    font-size: var(--inline-btn__font-size);
+    line-height: var(--inline-btn__line-height);
+    letter-spacing: var(--inline-btn__letter-spacing);
+    font-weight: var(--inline-btn__font-weight);
+    @apply ring-inset
+      ring-[length:var(--inline-btn\_\_ring-width)]
+      ring-[color:var(--inline-btn\_\_ring-color)];
+    padding: var(--inline-btn__py) var(--inline-btn__px);
+
+    &:hover {
+      background-color: var(--inline-btn__bg-color--hover);
+      color: var(--inline-btn__text-color--hover);
+      @apply ring-inset
+        ring-[length:var(--inline-btn\_\_ring-width--hover)]
+        ring-[color:var(--inline-btn\_\_ring-color--hover)];
+    }
+
+    &:active {
+      background-color: var(--inline-btn__bg-color--active);
+      color: var(--inline-btn__text-color--active);
+      @apply ring-inset
+        ring-[length:var(--inline-btn\_\_ring-width--active)]
+        ring-[color:var(--inline-btn\_\_ring-color--active)];
+    }
+
+    &:disabled {
+      background-color: var(--inline-btn__bg-color--disabled);
+      color: var(--inline-btn__text-color--disabled);
+      @apply ring-inset
+        ring-[length:var(--inline-btn\_\_ring-width--disabled)]
+        ring-[color:var(--inline-btn\_\_ring-color--disabled)];
+    }
+  }
+}
