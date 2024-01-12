@@ -1,11 +1,11 @@
 import { Controller } from "@hotwired/stimulus";
 
 export class OtpInputController extends Controller {
-  static targets = ["input", "submit", "textContainer"];
+  static targets = ["input", "submit", "digitsContainer"];
 
   declare readonly inputTarget: HTMLInputElement;
   declare readonly submitTarget: HTMLButtonElement;
-  declare readonly textContainerTarget: HTMLElement;
+  declare readonly digitsContainerTarget: HTMLElement;
 
   value: string = "";
   maxLength: number = 6;
@@ -42,7 +42,8 @@ export class OtpInputController extends Controller {
       .slice(0, this.maxLength);
     this.value = this.inputTarget.value;
 
-    if (this.value.length === this.maxLength) {
+    const reachedMaxDigits = this.value.length === this.maxLength;
+    if (reachedMaxDigits) {
       this.submitTarget.click();
     }
 
@@ -76,6 +77,7 @@ export class OtpInputController extends Controller {
 
   handleKeyUp = (event: KeyboardEvent): void => {
     if (event.key === "Backspace") {
+      event.preventDefault();
       this._setValue("");
     }
   };
@@ -89,17 +91,20 @@ export class OtpInputController extends Controller {
   };
 
   render = (): void => {
-    const textContainer = this.textContainerTarget;
+    const digitsContainer = this.digitsContainerTarget;
+    if (this.spans.length !== this.maxLength) {
+      digitsContainer.innerHTML = "";
+    }
 
     for (let i = 0; i < this.maxLength; i++) {
       let textContent = this.value.slice(i, i + 1) || "";
       let className = this.isSpanSelected(i)
-        ? "text-digit text-digit--focus"
-        : "text-digit";
+        ? "otp-input__digit otp-input__digit--focus"
+        : "otp-input__digit";
 
       if (this.masked && textContent !== "") {
         textContent = " ";
-        className += " text-digit--masked";
+        className += " otp-input__digit--masked";
       }
 
       this.inputTarget.style.fontSize = `1px`;
@@ -108,7 +113,7 @@ export class OtpInputController extends Controller {
       let span = this.spans[i];
       if (!span) {
         span = document.createElement("span");
-        textContainer.appendChild(span);
+        digitsContainer.appendChild(span);
         this.spans[i] = span;
       }
 

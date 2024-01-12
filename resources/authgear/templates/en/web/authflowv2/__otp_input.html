@@ -1,0 +1,73 @@
+<!-- Example usage:
+  {{ template "authflowv2/__otp_input.html"
+    (dict
+      "CSRFField" ($.CSRFField)
+      "CodeLength" 6
+      "ErrorMessage" "Invalid code"
+      "InputName" "x_code"
+      "SubmitButtonName" "x_action"
+      "SubmitButtonValue" "submit"
+      "ResendButtonName" "x_action"
+      "ResendButtonValue" "resend"
+      "ResendButtonLabel" "Resend code"
+      "ResendButtonLabelWithValue" "Resend code (%ds)"
+      "ResendButtonCooldown" 5
+      "SubmitEvent" "submit"
+      "ResendEvent" "resend"
+    )
+  }}
+-->
+
+{{ define "authflowv2/__otp_input.html" }}
+<div data-controller="otp-input">
+  <div class="otp-input {{ if $.ErrorMessage }}otp-input--error{{ end }}">
+    <input
+      type="text"
+      name="{{ or $.InputName "x_code" }}"
+      inputmode="numeric"
+      autocomplete="one-time-code"
+      pattern="\d{{ $.CodeLength }}"
+      maxlength="{{ $.CodeLength }}"
+      autofocus=""
+      required
+      data-otp-input-target="input"
+    />
+    <div data-otp-input-target="digitsContainer" class="otp-input__digits-container">
+      <div class="otp-input__digit"></div>
+    </div>
+  </div>
+  {{ if $.ErrorMessage }}
+  <p class="otp-input__error-message">
+    {{ $.ErrorMessage }}
+  </p>
+  {{ end }}
+  <form method="post" novalidate>
+    {{ $.CSRFField }}
+    <button
+      class="hidden"
+      type="submit"
+      name="{{ or $.SubmitButtonName "x_action" }}"
+      value="{{ or $.SubmitButtonValue "submit" }}"
+      data-otp-input-target="submit"
+      data-authgear-event="{{ $.SubmitEvent }}"
+    ></button>
+  </form>
+  <form method="post" novalidate>
+    {{ $.CSRFField }}
+    <button
+      id="resend-button"
+      class="otp-input__resend-btn inline-btn"
+      type="submit"
+      name="{{ or $.ResendButtonName "x_action" }}"
+      value="{{ or $.ResendButtonValue "resend" }}"
+      data-controller="resend-button"
+      data-resend-button-cooldown-value="{{ $.ResendButtonCooldown }}"
+      data-resend-button-label-value="{{ $.ResendButtonLabel }}"
+      data-resend-button-label-unit-value="{{ $.ResendButtonLabelWithValue }}"
+      data-authgear-event="{{ $.ResendEvent }}"
+    >
+      Resend code
+    </form>
+  </button>
+</div>
+{{ end }}
