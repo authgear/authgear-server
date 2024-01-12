@@ -2,7 +2,6 @@ package webapp
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -200,7 +199,9 @@ func (h *AuthflowForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http
 			// Try again with sms if possible
 			var fallbackErr error
 			result, fallbackErr = h.fallbackToSMS(r, s, screen, identification, loginID)
-			if fallbackErr != nil {
+			if errors.Is(fallbackErr, ErrNoFallbackAvailable) {
+				return err
+			} else if fallbackErr != nil {
 				return fallbackErr
 			}
 		} else if err != nil {
@@ -266,7 +267,7 @@ func (h *AuthflowForgotPasswordHandler) fallbackToSMS(
 	}
 	if smsOptionIdx == -1 {
 		// No sms option is available, failing
-		return nil, fmt.Errorf("webapp: whatsapp is unavailable and no sms option is available")
+		return nil, ErrNoFallbackAvailable
 	}
 
 	inputs := h.makeInputs(screen, identification, loginID, smsOptionIdx)
