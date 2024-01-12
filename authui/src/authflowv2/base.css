@@ -15,6 +15,10 @@
     cursor: not-allowed;
   }
 
+  *:focus {
+    @apply outline-none;
+  }
+
   /* Colors */
   :root {
     --color-white: #ffffff;
@@ -52,6 +56,12 @@
     --border-radius-large: 1.25rem;
   }
 
+  /* Border Width */
+  :root {
+    --border-width-regular: 1.5px;
+    --border-width-regular--active: 2px;
+  }
+
   /* Typography */
   :root {
     --typography-headline-medium__font-family: inherit;
@@ -75,7 +85,7 @@
     --typography-label-medium__font-family: inherit;
     --typography-label-medium__font-size: 0.875rem;
     --typography-label-medium__line-height: 1.42857142857em; /* 20 / 14 = 1.42857142857 */
-    --typography-label-medium__letter-spacing: 0.025em; /* 0.5 / 20 = 0.025 */
+    --typography-label-medium__letter-spacing: 0.03571428571em; /* 0.5 / 14 = 0.03571428571 */
     --typography-label-medium__font-weight: 600;
 
     --typography-body-small__font-family: inherit;
@@ -83,6 +93,12 @@
     --typography-body-small__line-height: 1.33333333333em; /* 16 / 12 = 1.33333333333 */
     --typography-body-small__letter-spacing: 0.03333333333em; /* 0.4 / 12 = 0.03333333333 */
     --typography-body-small__font-weight: 500;
+
+    --typography-body-medium__font-family: inherit;
+    --typography-body-medium__font-size: 0.875rem;
+    --typography-body-medium__line-height: 1.42857142857em; /* 20 / 14 = 1.42857142857 */
+    --typography-body-medium__letter-spacing: 0.03571428571em; /* 0.5 / 14 = 0.03571428571 */
+    --typography-body-medium__font-weight: 500;
 
     --typography-body-large__font-family: inherit;
     --typography-body-large__font-size: 1rem;
