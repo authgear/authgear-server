@@ -2,23 +2,24 @@
   :root {
     --otp-input__spacing: 21px;
 
-    --otp-input-text-digit__ring-color: var(--color-grey-200);
-    --otp-input-text-digit__ring-color--focus: var(--color-primary-base);
-    --otp-input-text-digit__ring-color--error: var(--color-error);
-    --otp-input-text-digit__ring-width: 1px;
-    --otp-input-text-digit__ring-width--focus: 1px;
-    --otp-input-text-digit__ring-width--error: 1px;
-    --otp-input-text-digit__border-radius: var(--border-radius-rounded-large);
-    --otp-input-text-digit__border-width: 1px;
-    --otp-input-text-digit__border-color: var(--color-grey-200);
-    --otp-input-text-digit__border-color--focus: var(--color-primary-base);
-    --otp-input-text-digit__border-color--error: var(--color-error);
-    --otp-input-text-digit__width: 2.5em;
-    --otp-input-text-digit__height: 2.75em;
+    --otp-input-digit__ring-color: var(--color-grey-200);
+    --otp-input-digit__ring-color--focus: var(--color-primary-base);
+    --otp-input-digit__ring-color--error: var(--color-error);
+    --otp-input-digit__ring-width: 1px;
+    --otp-input-digit__ring-width--focus: 1px;
+    --otp-input-digit__ring-width--error: 1px;
+    --otp-input-digit__border-radius: var(--border-radius-rounded-large);
+    --otp-input-digit__border-width: 1px;
+    --otp-input-digit__border-color: var(--color-grey-200);
+    --otp-input-digit__border-color--focus: var(--color-primary-base);
+    --otp-input-digit__border-color--error: var(--color-error);
+    --otp-input-digit__width: 2.5em;
+    --otp-input-digit__height: 2.75em;
 
-    --otp-input-text-digit__mask-color: var(--color-black);
-    --otp-input-text-digit__mask-size: 0.625rem;
+    --otp-input-digit__mask-color: var(--color-black);
+    --otp-input-digit__mask-size: 0.625rem;
 
+    --otp-input-error-message__margin-top: 0.5rem;
     --otp-input-error-message__text-color: var(--color-error);
     --otp-input-error-message__font-family: var(
       --typography-body-medium__font-family
@@ -35,12 +36,15 @@
     --otp-input-error-message__font-weight: var(
       --typography-body-medium__font-weight
     );
+
+    --otp-input-resend-button-margin-top: 0.5rem;
   }
 
   .otp-input {
     @apply relative;
     @apply w-full;
-    @apply h-full;
+
+    height: var(--otp-input-digit\_\_height);
 
     input {
       @apply w-full;
@@ -51,33 +55,44 @@
       @apply opacity-0;
     }
 
-    .text-container {
-      @apply absolute;
-      @apply inset-0;
-      @apply flex;
-      @apply items-stretch;
-      @apply space-x-[var(--otp-input\_\_spacing)];
-      @apply pointer-events-none;
+    &.otp-input--error {
+      .otp-input__digit {
+        border: var(--otp-input-digit\_\_border-width) solid
+          var(--otp-input-digit\_\_border-color--error);
+
+        @apply ring-inset
+          ring-[length:var(--otp-input-digit\_\_ring-width--error)]
+          ring-[color:var(--otp-input-digit\_\_ring-color--error)];
+      }
     }
+  }
 
-    .text-digit {
-      @apply relative;
-      @apply flex;
-      @apply items-center;
-      @apply justify-center;
+  .otp-input__digits-container {
+    @apply absolute;
+    @apply inset-0;
+    @apply flex;
+    @apply items-stretch;
+    @apply space-x-[var(--otp-input\_\_spacing)];
+    @apply pointer-events-none;
+  }
 
-      width: var(--otp-input-text-digit\_\_width);
-      height: var(--otp-input-text-digit\_\_height);
-      border-radius: var(--otp-input-text-digit\_\_border-radius);
-      border: var(--otp-input-text-digit\_\_border-width) solid
-        var(--otp-input-text-digit\_\_border-color);
+  .otp-input__digit {
+    @apply relative;
+    @apply flex;
+    @apply items-center;
+    @apply justify-center;
 
-      @apply ring-inset
-        ring-[length:var(--otp-input-text-digit\_\_ring-width)]
-        ring-[color:var(--otp-input-text-digit\_\_ring-color)];
-    }
+    width: var(--otp-input-digit\_\_width);
+    height: var(--otp-input-digit\_\_height);
+    border-radius: var(--otp-input-digit\_\_border-radius);
+    border: var(--otp-input-digit\_\_border-width) solid
+      var(--otp-input-digit\_\_border-color);
 
-    .text-digit--masked {
+    @apply ring-inset
+      ring-[length:var(--otp-input-digit\_\_ring-width)]
+      ring-[color:var(--otp-input-digit\_\_ring-color)];
+
+    &.otp-input__digit--masked {
       &::before {
         content: "";
         @apply absolute;
@@ -86,39 +101,33 @@
         @apply -translate-x-1/2;
         @apply rounded-full;
 
-        width: var(--otp-input-text-digit\_\_mask-size);
-        height: var(--otp-input-text-digit\_\_mask-size);
-        background-color: var(--otp-input-text-digit\_\_mask-color);
+        width: var(--otp-input-digit\_\_mask-size);
+        height: var(--otp-input-digit\_\_mask-size);
+        background-color: var(--otp-input-digit\_\_mask-color);
       }
     }
 
-    .text-digit--focus {
-      border: var(--otp-input-text-digit\_\_border-width) solid
-        var(--otp-input-text-digit\_\_border-color--focus);
+    &.otp-input__digit--focus {
+      border: var(--otp-input-digit\_\_border-width) solid
+        var(--otp-input-digit\_\_border-color--focus);
 
       @apply ring-inset
-        ring-[length:var(--otp-input-text-digit\_\_ring-width--focus)]
-        ring-[color:var(--otp-input-text-digit\_\_ring-color--focus)];
-    }
-
-    &.error {
-      .text-digit {
-        border: var(--otp-input-text-digit\_\_border-width) solid
-          var(--otp-input-text-digit\_\_border-color--error);
-
-        @apply ring-inset
-          ring-[length:var(--otp-input-text-digit\_\_ring-width--error)]
-          ring-[color:var(--otp-input-text-digit\_\_ring-color--error)];
-      }
+        ring-[length:var(--otp-input-digit\_\_ring-width--focus)]
+        ring-[color:var(--otp-input-digit\_\_ring-color--focus)];
     }
   }
 
   .otp-input__error-message {
+    margin-top: var(--otp-input-error-message__margin-top);
     color: var(--otp-input-error-message__text-color);
     font-family: var(--otp-input-error-message__font-family);
     font-size: var(--otp-input-error-message__font-size);
     line-height: var(--otp-input-error-message__line-height);
     letter-spacing: var(--otp-input-error-message__letter-spacing);
     font-weight: var(--otp-input-error-message__font-weight);
+  }
+
+  .otp-input__resend-btn {
+    margin-top: var(--otp-input-resend-button-margin-top);
   }
 }
