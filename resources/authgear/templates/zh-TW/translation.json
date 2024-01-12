@@ -152,7 +152,6 @@
   "sso-login-id-separator-both-present": "或",
 
   "or-label": "或",
-  "v2-or-label": "或",
 
   "phone-number-placeholder": "電話號碼",
   "login-id-placeholder": "{variant, select, email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}}",
@@ -927,6 +926,7 @@
   "v2-sign-up.signup-with-username": "使用用戶名繼續",
   "v2-sign-up.signup-with-phone": "使用電話繼續",
 
+  "v2-or-label": "或",
   "v2-placeholder.login-id": "{variant, select, email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}}",
   "v2-placeholder.phone": "電話號碼",
   "v2-button.continue": "繼續"
