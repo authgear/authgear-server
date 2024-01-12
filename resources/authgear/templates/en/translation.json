@@ -170,6 +170,9 @@
   "new-password-placeholder": "New password",
   "confirm-password-placeholder": "Re-type your new password",
   "forgot-password-button-label--enter-password-page": "Forgot Password?",
+  "v2-password-placeholder": "Current Password",
+  "v2-new-password-placeholder": "New Password",
+  "v2-confirm-password-placeholder": "Re-enter Password",
 
   "oob-otp-page-title--sms": "SMS one-time password",
   "oob-otp-page-title--email": "Email one-time password",
@@ -269,6 +272,10 @@
   "password-policy-password-strength-meter-3": "Fair",
   "password-policy-password-strength-meter-4": "Very unguessable",
   "password-policy-password-strength-meter-5": "Extremely unguessable",
+  "v2-password-policy-password-strength-meter-1": "Very Weak",
+  "v2-password-policy-password-strength-meter-2": "Weak",
+  "v2-password-policy-password-strength-meter-3": "Medium",
+  "v2-password-policy-password-strength-meter-4": "Strong",
 
   "forgot-password-page-title": "Forgot password",
   "email-placeholder": "Email address",
