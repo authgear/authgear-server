@@ -30,4 +30,8 @@
 
   /* Support for IE. */
   font-feature-settings: "liga";
+
+  &.material-icons--filled {
+    font-variation-settings: "FILL" 1;
+  }
 }
