@@ -51,7 +51,8 @@
   /* Border Radius */
   :root {
     --border-radius-full: 9999px;
-    --border-radius-square: 0px;
+    --border-radius-sqaure: 0px;
+    --border-radius-rounded-large: 0.75em;
     --border-radius-rounded-square: 0.875em;
     --border-radius-large: 1.25rem;
   }
