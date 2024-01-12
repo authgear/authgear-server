@@ -20,15 +20,14 @@
 <!-- Stale page is still available for navigating back -->
 <meta name="turbo-cache-control" content="no-preview">
 
-<!-- Our CSS have to override styles in __generated_asset.html -->
+<!-- Our CSS have to override styles in authflowv2/__generated_asset.html -->
 {{ template "authflowv2/__generated_asset.html" . }}
-<!-- TODO(tung): Use another name for the stylesheets -->
-{{ if call $.HasAppSpecificAsset "authgear-light-theme.css" }}
-<link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-light-theme.css" }}">
+{{ if call $.HasAppSpecificAsset "authgear-authflowv2-light-theme.css" }}
+<link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-authflowv2-light-theme.css" }}">
 {{ end }}
-{{ if call $.HasAppSpecificAsset "authgear-dark-theme.css" }}
+{{ if call $.HasAppSpecificAsset "authgear-authflowv2-dark-theme.css" }}
 {{ if $.DarkThemeEnabled }}
-<link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-dark-theme.css" }}">
+<link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-authflowv2-dark-theme.css" }}">
 {{ end }}
 {{ end }}
 

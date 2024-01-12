@@ -3,7 +3,7 @@
 @layer base {
   html,
   body {
-    @apply h-full min-h-min flex flex-col;
+    @apply h-full min-h-min flex flex-col flex-1-0-auto;
     /* Reference font size */
     font-size: 16px;
     font-family: "Inter", sans-serif;
@@ -47,8 +47,9 @@
   /* Border Radius */
   :root {
     --border-radius-full: 9999px;
-    --border-radius-sqaure: 0px;
+    --border-radius-square: 0px;
     --border-radius-rounded-square: 0.875em;
+    --border-radius-large: 1.25rem;
   }
 
   /* Typography */

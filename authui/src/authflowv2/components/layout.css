@@ -1,0 +1,20 @@
+@layer components {
+  .layout--default {
+    @apply flex flex-col flex-1-0-auto;
+    @apply items-center justify-start;
+  }
+
+  .layout--default .widget {
+    @apply flex-1-0-auto;
+  }
+
+  @media (min-width: theme("screens.tablet")) {
+    .layout--default {
+      @apply justify-center;
+    }
+
+    .layout--default .widget {
+      @apply flex-none;
+    }
+  }
+}
