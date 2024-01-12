@@ -152,7 +152,6 @@
   "sso-login-id-separator-both-present": "or",
 
   "or-label": "or",
-  "v2-or-label": "or",
 
   "phone-number-placeholder": "Phone number",
   "login-id-placeholder": "{variant, select, email {Email address} username {Username} other {Email address or username}}",
@@ -918,5 +917,17 @@
   "language-zh-CN": "简体中文",
   "language-zh-HK": "繁體中文(香港)",
   "language-zh-TW": "繁體中文(台灣)",
-  "language-zu": "isiZulu"
+  "language-zu": "isiZulu",
+
+  "v2-sign-up.title": "Sign up for {AppOrClientName}",
+  "v2-sign-up.subtitle": "It''s free. No credit card needed.",
+  "v2-sign-up.switch-to-login": "Already have an account? <a href=\"{href}\">Log in</a>",
+  "v2-sign-up.signup-with-email": "Continue with Email",
+  "v2-sign-up.signup-with-username": "Continue with Username",
+  "v2-sign-up.signup-with-phone": "Continue with Phone",
+
+  "v2-or-label": "or",
+  "v2-placeholder.login-id": "{variant, select, email {Email address} username {Username} other {Email address or username}}",
+  "v2-placeholder.phone": "Phone number",
+  "v2-button.continue": "Continue"
 }
