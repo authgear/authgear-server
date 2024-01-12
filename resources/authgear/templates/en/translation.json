@@ -152,7 +152,6 @@
   "sso-login-id-separator-both-present": "or",
 
   "or-label": "or",
-  "v2-or-label": "or",
 
   "phone-number-placeholder": "Phone number",
   "login-id-placeholder": "{variant, select, email {Email address} username {Username} other {Email address or username}}",
@@ -927,6 +926,7 @@
   "v2-sign-up.signup-with-username": "Continue with Username",
   "v2-sign-up.signup-with-phone": "Continue with Phone",
 
+  "v2-or-label": "or",
   "v2-placeholder.login-id": "{variant, select, email {Email address} username {Username} other {Email address or username}}",
   "v2-placeholder.phone": "Phone number",
   "v2-button.continue": "Continue"
