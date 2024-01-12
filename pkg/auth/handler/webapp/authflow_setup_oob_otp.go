@@ -116,7 +116,9 @@ func (h *AuthflowSetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 			"channel":        channel,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, &AdvanceOptions{
+			InheritTakenBranchState: true,
+		})
 		if errors.Is(err, otp.ErrInvalidWhatsappUser) {
 			// The code failed to send because it is not a valid whatsapp user
 			// Try again with sms if possible
@@ -163,5 +165,7 @@ func (h *AuthflowSetupOOBOTPHandler) tryFallbackToSMS(
 		"target":         target,
 		"channel":        channels[smsOptionIdx],
 	}
-	return h.Controller.AdvanceWithInput(r, s, screen, input)
+	return h.Controller.AdvanceWithInput(r, s, screen, input, &AdvanceOptions{
+		InheritTakenBranchState: true,
+	})
 }

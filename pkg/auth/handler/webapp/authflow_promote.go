@@ -86,7 +86,7 @@ func (h *AuthflowPromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 			"response_mode":  string(sso.ResponseModeFormPost),
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}
@@ -109,7 +109,7 @@ func (h *AuthflowPromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 			"login_id":       loginID,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}

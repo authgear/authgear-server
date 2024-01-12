@@ -99,7 +99,7 @@ func (h *AuthflowSetupTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 			"code": code,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}

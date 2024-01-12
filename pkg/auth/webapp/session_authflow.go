@@ -361,6 +361,15 @@ type TakeBranchOptions struct {
 	DisableFallbackToSMS bool
 }
 
+func (s *AuthflowScreenWithFlowResponse) InheritTakenBranchState(from *AuthflowScreenWithFlowResponse) {
+	if from.BranchStateTokenFlowResponse != nil {
+		s.BranchStateTokenFlowResponse = from.BranchStateTokenFlowResponse
+		s.Screen.BranchStateToken = from.Screen.BranchStateToken
+		s.Screen.TakenBranchIndex = from.Screen.TakenBranchIndex
+		s.Screen.TakenChannel = from.Screen.TakenChannel
+	}
+}
+
 func (s *AuthflowScreenWithFlowResponse) TakeBranch(index int, channel model.AuthenticatorOOBChannel, options *TakeBranchOptions) TakeBranchResult {
 	switch s.StateTokenFlowResponse.Type {
 	case authflow.FlowTypeSignup:
