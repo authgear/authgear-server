@@ -1,0 +1,124 @@
+@layer components {
+  :root {
+    --otp-input__spacing: 21px;
+
+    --otp-input-text-digit__ring-color: var(--color-grey-200);
+    --otp-input-text-digit__ring-color--focus: var(--color-primary-base);
+    --otp-input-text-digit__ring-color--error: var(--color-error);
+    --otp-input-text-digit__ring-width: 1px;
+    --otp-input-text-digit__ring-width--focus: 1px;
+    --otp-input-text-digit__ring-width--error: 1px;
+    --otp-input-text-digit__border-radius: var(--border-radius-rounded-large);
+    --otp-input-text-digit__border-width: 1px;
+    --otp-input-text-digit__border-color: var(--color-grey-200);
+    --otp-input-text-digit__border-color--focus: var(--color-primary-base);
+    --otp-input-text-digit__border-color--error: var(--color-error);
+    --otp-input-text-digit__width: 2.5em;
+    --otp-input-text-digit__height: 2.75em;
+
+    --otp-input-text-digit__mask-color: var(--color-black);
+    --otp-input-text-digit__mask-size: 0.625rem;
+
+    --otp-input-error-message__text-color: var(--color-error);
+    --otp-input-error-message__font-family: var(
+      --typography-body-medium__font-family
+    );
+    --otp-input-error-message__font-size: var(
+      --typography-body-medium__font-size
+    );
+    --otp-input-error-message__line-height: var(
+      --typography-body-medium__line-height
+    );
+    --otp-input-error-message__letter-spacing: var(
+      --typography-body-medium__letter-spacing
+    );
+    --otp-input-error-message__font-weight: var(
+      --typography-body-medium__font-weight
+    );
+  }
+
+  .otp-input {
+    @apply relative;
+    @apply w-full;
+    @apply h-full;
+
+    input {
+      @apply w-full;
+      @apply h-full;
+      @apply outline-none;
+      @apply selection:bg-white/0;
+      @apply caret-white/0;
+      @apply opacity-0;
+    }
+
+    .text-container {
+      @apply absolute;
+      @apply inset-0;
+      @apply flex;
+      @apply items-stretch;
+      @apply space-x-[var(--otp-input\_\_spacing)];
+      @apply pointer-events-none;
+    }
+
+    .text-digit {
+      @apply relative;
+      @apply flex;
+      @apply items-center;
+      @apply justify-center;
+
+      width: var(--otp-input-text-digit\_\_width);
+      height: var(--otp-input-text-digit\_\_height);
+      border-radius: var(--otp-input-text-digit\_\_border-radius);
+      border: var(--otp-input-text-digit\_\_border-width) solid
+        var(--otp-input-text-digit\_\_border-color);
+
+      @apply ring-inset
+        ring-[length:var(--otp-input-text-digit\_\_ring-width)]
+        ring-[color:var(--otp-input-text-digit\_\_ring-color)];
+    }
+
+    .text-digit--masked {
+      &::before {
+        content: "";
+        @apply absolute;
+        @apply left-1/2;
+        @apply transform;
+        @apply -translate-x-1/2;
+        @apply rounded-full;
+
+        width: var(--otp-input-text-digit\_\_mask-size);
+        height: var(--otp-input-text-digit\_\_mask-size);
+        background-color: var(--otp-input-text-digit\_\_mask-color);
+      }
+    }
+
+    .text-digit--focus {
+      border: var(--otp-input-text-digit\_\_border-width) solid
+        var(--otp-input-text-digit\_\_border-color--focus);
+
+      @apply ring-inset
+        ring-[length:var(--otp-input-text-digit\_\_ring-width--focus)]
+        ring-[color:var(--otp-input-text-digit\_\_ring-color--focus)];
+    }
+
+    &.error {
+      .text-digit {
+        border: var(--otp-input-text-digit\_\_border-width) solid
+          var(--otp-input-text-digit\_\_border-color--error);
+
+        @apply ring-inset
+          ring-[length:var(--otp-input-text-digit\_\_ring-width--error)]
+          ring-[color:var(--otp-input-text-digit\_\_ring-color--error)];
+      }
+    }
+  }
+
+  .otp-input__error-message {
+    color: var(--otp-input-error-message__text-color);
+    font-family: var(--otp-input-error-message__font-family);
+    font-size: var(--otp-input-error-message__font-size);
+    line-height: var(--otp-input-error-message__line-height);
+    letter-spacing: var(--otp-input-error-message__letter-spacing);
+    font-weight: var(--otp-input-error-message__font-weight);
+  }
+}
