@@ -1,32 +1,121 @@
 @layer components {
   :root {
+    /* Colors */
     --body-text__text-color: var(--color-grey-base);
     --body-text__link-color: var(--color-primary-base);
-    --body-text__font-family: var(--typography-body-small__font-family);
-    --body-text__font-size: var(--typography-body-small__font-size);
-    --body-text__line-height: var(--typography-body-small__line-height);
-    --body-text__letter-spacing: var(--typography-body-small__letter-spacing);
-    --body-text__font-weight: var(--typography-body-small__font-weight);
+
+    /* sm */
+    --body-text__font-family--sm: var(--typography-body-small__font-family);
+    --body-text__font-size--sm: var(--typography-body-small__font-size);
+    --body-text__line-height--sm: var(--typography-body-small__line-height);
+    --body-text__letter-spacing--sm: var(
+      --typography-body-small__letter-spacing
+    );
+    --body-text__font-weight--sm: var(--typography-body-medium__font-weight);
+
+    /* sm link */
+    --body-text__font-family--link-sm: var(
+      --typography-body-small__font-family
+    );
+    --body-text__font-size--link-sm: var(--typography-body-small__font-size);
+    --body-text__line-height--link-sm: var(
+      --typography-body-small__line-height
+    );
+    --body-text__letter-spacing--link-sm: var(
+      --typography-body-small__letter-spacing
+    );
+    --body-text__font-weight--link-sm: var(
+      --typography-body-medium__font-weight
+    );
+
+    /* md */
+    --body-text__font-family--md: var(--typography-body-medium__font-family);
+    --body-text__font-size--md: var(--typography-body-medium__font-size);
+    --body-text__line-height--md: var(--typography-body-medium__line-height);
+    --body-text__letter-spacing--md: var(
+      --typography-body-medium__letter-spacing
+    );
+    --body-text__font-weight--md: var(--typography-body-medium__font-weight);
+
+    /* md link */
+    --body-text__font-family--link-md: var(
+      --typography-label-medium__font-family
+    );
+    --body-text__font-size--link-md: var(--typography-label-medium__font-size);
+    --body-text__line-height--link-md: var(
+      --typography-label-medium__line-height
+    );
+    --body-text__letter-spacing--link-md: var(
+      --typography-label-medium__letter-spacing
+    );
+    --body-text__font-weight--link-md: var(
+      --typography-label-medium__font-weight
+    );
   }
 
   :root.dark {
     /* TODO(davis): Dark mode styles */
   }
 
-  .body-text {
-    color: var(--body-text__text-color);
-    font-family: var(--body-text__font-family);
-    font-size: var(--body-text__font-size);
-    line-height: var(--body-text__line-height);
-    letter-spacing: var(--body-text__letter-spacing);
-    font-weight: var(--body-text__font-weight);
+  .body-text--sm {
+    font-family: var(--body-text__font-family--sm);
+    font-size: var(--body-text__font-size--sm);
+    line-height: var(--body-text__line-height--sm);
+    letter-spacing: var(--body-text__letter-spacing--sm);
+    font-weight: var(--body-text__font-weight--sm);
   }
 
-  .body-text a {
+  .body-text--sm a {
+    font-family: var(--body-text__font-family--link-sm);
+    font-size: var(--body-text__font-size--link-sm);
+    line-height: var(--body-text__line-height--link-sm);
+    letter-spacing: var(--body-text__letter-spacing--link-sm);
+    font-weight: var(--body-text__font-weight--link-sm);
+  }
+
+  .body-text--md {
+    font-family: var(--body-text__font-family--md);
+    font-size: var(--body-text__font-size--md);
+    line-height: var(--body-text__line-height--md);
+    letter-spacing: var(--body-text__letter-spacing--md);
+    font-weight: var(--body-text__font-weight--md);
+  }
+
+  .body-text--md a {
+    font-family: var(--body-text__font-family--link-md);
+    font-size: var(--body-text__font-size--link-md);
+    line-height: var(--body-text__line-height--link-md);
+    letter-spacing: var(--body-text__letter-spacing--link-md);
+    font-weight: var(--body-text__font-weight--link-md);
+  }
+
+  .body-text--sm,
+  .body-text--md {
+    color: var(--body-text__text-color);
+  }
+
+  .body-text--sm a,
+  .body-text--md a {
     color: var(--body-text__link-color);
   }
 
-  .body-text a:hover {
+  .body-text--sm a:hover,
+  .body-text--md a:hover {
     text-decoration: underline;
+  }
+
+  .body-text--sm,
+  .body-text--md {
+    :root[alignment-content="start"] & {
+      @apply text-start;
+    }
+
+    :root[alignment-content="center"] & {
+      @apply text-center;
+    }
+
+    :root[alignment-content="end"] & {
+      @apply text-end;
+    }
   }
 }
