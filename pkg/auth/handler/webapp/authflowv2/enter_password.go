@@ -135,6 +135,9 @@ func (h *AuthflowV2EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		result.WriteResponse(w, r)
 		return nil
 	})
+
+	// FIXME(newman): "resend" and "submit" are fake handlers for testing new components.
+	// Remove them when the new components are ready.
 	handlers.PostAction("resend", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		input := map[string]interface{}{
 			"resend": true,
