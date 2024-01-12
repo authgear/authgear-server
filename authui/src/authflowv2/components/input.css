@@ -30,6 +30,8 @@
     --input__error-message-font-weight: var(
       --typography-body-medium__font-weight
     );
+
+    --input__password-pr: 2.375em; /* 38 / 16 = 2.375 */
   }
 }
 
@@ -71,4 +73,8 @@
   line-height: var(--input__error-message-line-height);
   letter-spacing: var(--input__error-message-letter-spacing);
   font-weight: var(--input__error-message-font-weight);
+}
+
+.input.input__password {
+  @apply pr-[length:var(--input\_\_password-pr)];
 }
