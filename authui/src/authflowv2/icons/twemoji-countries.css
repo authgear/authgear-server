@@ -1,0 +1,35 @@
+@font-face {
+  font-family: "twemoji-countries";
+  unicode-range: U+1F1E6-1F1FF;
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src:
+    url("./icons/twemoji-countries.woff2") format("woff2"),
+    url("./icons/twemoji-countries.ttf") format("ttf");
+}
+
+.twemoji-countries {
+  font-family: "twemoji-countries";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 22px;
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+
+  /* Support for all WebKit browsers. */
+  -webkit-font-smoothing: antialiased;
+  /* Support for Safari and Chrome. */
+  text-rendering: optimizeLegibility;
+
+  /* Support for Firefox. */
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Support for IE. */
+  font-feature-settings: "liga";
+}

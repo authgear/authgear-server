@@ -1,0 +1,134 @@
+@layer components {
+  :root {
+    --phone-input__space-x: 0.5em;
+    --phone-input__text-color: var(--color-grey-700);
+    --phone-input__font-size: var(--typography-body-large__font-size);
+    --phone-input__line-height: var(--typography-body-large__line-height);
+    --phone-input__letter-spacing: var(--typography-body-large__letter-spacing);
+    --phone-input__font-weight: var(--typography-body-large__font-weight);
+    --phone-input__font-family: twemoji-countries, Inter;
+
+    --phone-input__trigger__ring-color: var(--color-grey-100);
+    --phone-input__trigger__ring-color--focus: var(--color-primary-base);
+    --phone-input__trigger__ring-color--error: var(--color-error);
+    --phone-input__trigger__ring-width: var(--border-width-regular);
+    --phone-input__trigger__ring-width--focus: var(
+      --border-width-regular--active
+    );
+    --phone-input__trigger__border-radius: calc(
+        var(--phone-input__font-size) * 14 / 16
+      )
+      /* 14 / 16 ratio to font size */;
+    --phone-input__trigger__py: 1em;
+    --phone-input__trigger__px: 1em;
+    --phone-input__trigger__height: 3.5rem;
+    --phone-input__trigger__width: 6em;
+
+    --phone-input__dropdown__width: 21.5625rem;
+    --phone-input__dropdown__border-radius: var(--border-radius-rounded-square);
+    --phone-input__dropdown__background-color: var(--color-white);
+    --phone-input__dropdown__shadow: 0px 9px 21px 0px rgba(0, 0, 0, 0.1),
+      0px 38px 38px 0px rgba(0, 0, 0, 0.09),
+      0px 85px 51px 0px rgba(0, 0, 0, 0.05),
+      0px 152px 61px 0px rgba(0, 0, 0, 0.01),
+      0px 237px 66px 0px rgba(0, 0, 0, 0);
+
+    --phone-input__options__space-y: 0.5em;
+
+    --phone-input__option__border-radius: calc(
+        var(--phone-input__font-size) * 0.75
+      )
+      /* 12 / 16 ratio to font size */;
+    --phone-input__option__background-color--active: var(--color-grey-100);
+
+    --phone-input__error-message-text-color: var(--color-error);
+    --phone-input__error-message-font-family: var(
+      --typography-body-medium__font-family
+    );
+    --phone-input__error-message-font-size: var(
+      --typography-body-medium__font-size
+    );
+    --phone-input__error-message-line-height: var(
+      --typography-body-medium__line-height
+    );
+    --phone-input__error-message-letter-spacing: var(
+      --typography-body-medium__letter-spacing
+    );
+    --phone-input__error-message-font-weight: var(
+      --typography-body-medium__font-weight
+    );
+  }
+
+  :root.dark {
+    /* TODO(newman): Dark mode */
+  }
+
+  .phone-input {
+    @apply flex;
+
+    font-family: var(--phone-input__font-family);
+    color: var(--phone-input__text-color);
+    font-size: var(--phone-input__font-size);
+    line-height: var(--phone-input__line-height);
+    letter-spacing: var(--phone-input__letter-spacing);
+    font-weight: var(--phone-input__font-weight);
+
+    @apply space-x-[var(--phone-input\_\_space-x)];
+  }
+
+  .phone-input__trigger {
+    height: var(--phone-input__trigger__height);
+    width: var(--phone-input__trigger__width);
+    padding: var(--phone-input__trigger__py) var(--phone-input__trigger__px);
+    border-radius: var(--phone-input__trigger__border-radius);
+    @apply ring-inset
+        ring-[length:var(--phone-input\_\_trigger\_\_ring-width)]
+        ring-[color:var(--phone-input\_\_trigger\_\_ring-color)];
+
+    &:focus {
+      @apply ring-inset
+        ring-[length:var(--phone-input\_\_trigger\_\_ring-width--focus)]
+        ring-[color:var(--phone-input\_\_trigger\_\_ring-color--focus)];
+    }
+  }
+
+  .phone-input__dropdown {
+    @apply absolute;
+    @apply flex;
+    @apply flex-col;
+
+    width: var(--phone-input__dropdown__width);
+    border-radius: var(--phone-input__dropdown__border-radius);
+    background-color: var(--phone-input__dropdown__background-color);
+    box-shadow: var(--phone-input__dropdown__shadow);
+  }
+
+  .phone-input__options {
+    @apply flex;
+    @apply flex-col;
+    @apply p-4;
+
+    max-height: 288px;
+    overflow-y: auto;
+
+    @apply space-y-[var(--phone-input\_\_options\_\_space-y)];
+  }
+
+  .phone-input__option {
+    @apply flex;
+    @apply flex-row;
+    @apply items-center;
+    @apply px-4;
+    @apply py-3;
+    @apply cursor-pointer;
+
+    border-radius: var(--phone-input__option__border-radius);
+    font-family: var(--phone-input__font-family);
+
+    &:hover,
+    &:focus,
+    &[aria-selected="true"] {
+      background-color: var(--phone-input__option__background-color--active);
+    }
+  }
+}
