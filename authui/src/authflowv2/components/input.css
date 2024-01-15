@@ -31,7 +31,7 @@
       --typography-body-medium__font-weight
     );
 
-    --input__password-pr: 2.375em; /* 38 / 16 = 2.375 */
+    --input__password-padding-end: 2.375em; /* 38 / 16 = 2.375 */
   }
 }
 
@@ -76,5 +76,5 @@
 }
 
 .input.input__password {
-  @apply pr-[length:var(--input\_\_password-pr)];
+  padding-inline-end: var(--input__password-padding-end);
 }
