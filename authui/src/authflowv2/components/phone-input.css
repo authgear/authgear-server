@@ -33,6 +33,9 @@
       0px 152px 61px 0px rgba(0, 0, 0, 0.01),
       0px 237px 66px 0px rgba(0, 0, 0, 0);
 
+    --phone-input__clear-icon__color: var(--color-grey-200);
+
+    --phone-input__options-height: 100%;
     --phone-input__options__space-y: 0.5em;
 
     --phone-input__option__border-radius: calc(
@@ -57,6 +60,10 @@
     --phone-input__error-message-font-weight: var(
       --typography-body-medium__font-weight
     );
+
+    @media (min-width: theme("screens.tablet")) {
+      --phone-input__options-height: 18em;
+    }
   }
 
   :root.dark {
@@ -101,6 +108,25 @@
     border-radius: var(--phone-input__dropdown__border-radius);
     background-color: var(--phone-input__dropdown__background-color);
     box-shadow: var(--phone-input__dropdown__shadow);
+
+    @media not all and (min-width: theme("screens.tablet")) {
+      position: fixed;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  .phone-input__search-container {
+    @apply relative;
+    @apply flex;
+    @apply flex-row;
+    @apply items-center;
+
+    @apply max-tablet:p-6 max-tablet:pb-2;
   }
 
   .phone-input__search {
@@ -108,8 +134,15 @@
     @apply flex;
     @apply flex-row;
     @apply items-center;
+    @apply w-full;
 
-    border-bottom: 1px solid var(--color-grey-100);
+    @apply max-tablet:rounded-xl;
+    border: 1px solid var(--color-grey-100);
+
+    @media (min-width: theme("screens.tablet")) {
+      border: none;
+      border-bottom: 1px solid var(--color-grey-100);
+    }
   }
 
   .phone-input__search-input {
@@ -132,11 +165,33 @@
     @apply items-center;
     @apply justify-center;
 
-    @apply inset-0;
-    @apply inset-x-4;
+    @apply top-1/2;
+    @apply transform;
+    @apply -translate-y-1/2;
+
+    @apply max-tablet:left-4 tablet:right-4;
     @apply pointer-events-none;
 
     width: 1.5em;
+  }
+
+  .phone-input__clear-icon {
+    @apply absolute;
+    @apply flex;
+
+    @apply top-1/2;
+    @apply transform;
+    @apply -translate-y-1/2;
+
+    @apply right-4 tablet:right-12;
+
+    width: 1.25em;
+    color: var(--phone-input__clear-icon__color);
+  }
+
+  .phone-input__close-icon {
+    @apply ml-4;
+    @apply tablet:hidden;
   }
 
   .phone-input__options {
@@ -144,7 +199,7 @@
     @apply flex-col;
     @apply p-4;
 
-    max-height: 288px;
+    height: var(--phone-input__options-height);
     overflow-y: auto;
 
     @apply space-y-[var(--phone-input\_\_options\_\_space-y)];

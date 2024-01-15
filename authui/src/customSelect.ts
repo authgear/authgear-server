@@ -1,5 +1,11 @@
 import { Controller } from "@hotwired/stimulus";
-import { autoPlacement, computePosition, flip, shift } from "@floating-ui/dom";
+import {
+  autoPlacement,
+  autoUpdate,
+  computePosition,
+  flip,
+  shift,
+} from "@floating-ui/dom";
 
 export interface SearchSelectOption {
   triggerLabel?: string;
@@ -11,6 +17,7 @@ export class CustomSelectController extends Controller {
   static targets = [
     "trigger",
     "dropdown",
+    "search",
     "options",
     "searchTemplate",
     "itemTemplate",
@@ -22,6 +29,7 @@ export class CustomSelectController extends Controller {
 
   declare readonly triggerTarget: HTMLButtonElement;
   declare readonly dropdownTarget: HTMLElement;
+  declare readonly searchTarget?: HTMLInputElement;
   declare readonly optionsTarget: HTMLElement;
   declare readonly searchTemplateTarget?: HTMLTemplateElement;
   declare readonly itemTemplateTarget: HTMLTemplateElement;
@@ -40,16 +48,15 @@ export class CustomSelectController extends Controller {
   keyword = "";
   selectedItemIndex: number = -1;
 
+  _computePositionCleanup = () => {};
+
   connect(): void {
     this.dropdownTarget.classList.add("hidden");
-    computePosition(this.triggerTarget, this.dropdownTarget, {
-      middleware: [flip(), shift(), autoPlacement({ alignment: "start" })],
-    }).then(({ x, y }) => {
-      Object.assign(this.dropdownTarget.style, {
-        left: `${x}px`,
-        top: `${y}px`,
-      });
-    });
+    this._computePositionCleanup = autoUpdate(
+      this.triggerTarget,
+      this.dropdownTarget,
+      this.updateDropdownPosition
+    );
 
     this.renderSearch();
     this.renderItems();
@@ -62,12 +69,23 @@ export class CustomSelectController extends Controller {
   }
 
   disconnect(): void {
+    this._computePositionCleanup();
+
     this.triggerTarget.addEventListener("keydown", this.handleKeyDown);
     this.dropdownTarget.removeEventListener("keydown", this.handleKeyDown);
     document.removeEventListener("click", this.handleClickOutside);
   }
 
-  optionsValueChanged() {}
+  updateDropdownPosition = () => {
+    computePosition(this.triggerTarget, this.dropdownTarget, {
+      middleware: [flip(), shift(), autoPlacement({ alignment: "start" })],
+    }).then(({ x, y }) => {
+      Object.assign(this.dropdownTarget.style, {
+        left: `${x}px`,
+        top: `${y}px`,
+      });
+    });
+  };
 
   close() {
     this.dropdownTarget.classList.add("hidden");
@@ -86,10 +104,15 @@ export class CustomSelectController extends Controller {
     }
   }
 
+  search(event: InputEvent) {
+    const searchInput = event.target as HTMLInputElement;
+    this.keyword = searchInput.value;
+    this.renderItems();
+  }
+
   clear() {
     const searchInput =
-      this.searchTemplateTarget?.querySelector<HTMLInputElement>("input");
-    console.log("clear", searchInput, this.searchTemplateTarget);
+      this.searchTarget?.querySelector<HTMLInputElement>("input");
     if (!searchInput) return;
 
     searchInput.value = "";
@@ -176,18 +199,7 @@ export class CustomSelectController extends Controller {
     }
 
     const template = this.searchTemplateTarget.content;
-
-    const clone = document.importNode(template, true);
-    const search = clone.querySelector("input");
-    search?.addEventListener("input", (event) => {
-      this.keyword = (event.target as HTMLInputElement).value;
-      this.renderItems();
-    });
-    const clear = clone.querySelector("button");
-    clear?.addEventListener("click", () => {
-      this.clear();
-    });
-    container.prepend(clone);
+    container.prepend(document.importNode(template, true));
   }
 
   renderItems() {
