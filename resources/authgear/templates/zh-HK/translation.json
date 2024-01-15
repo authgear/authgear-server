@@ -931,10 +931,10 @@
   "v2-placeholder.login-id": "{variant, select, email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}}",
   "v2-placeholder.phone": "電話號碼",
   "v2-button.continue": "繼續",
-  "v2-password-strength-meter-0": "無保護性",
-  "v2-password-strength-meter-1": "非常容易破解",
-  "v2-password-strength-meter-2": "容易破解",
-  "v2-password-strength-meter-3": "一般",
-  "v2-password-strength-meter-4": "不易破解",
-  "v2-password-strength-meter-5": "非常不易破解"
+  "v2-password-policy-password-strength-meter-0": "無保護性",
+  "v2-password-policy-password-strength-meter-1": "非常容易破解",
+  "v2-password-policy-password-strength-meter-2": "容易破解",
+  "v2-password-policy-password-strength-meter-3": "一般",
+  "v2-password-policy-password-strength-meter-4": "不易破解",
+  "v2-password-policy-password-strength-meter-5": "非常不易破解"
 }
