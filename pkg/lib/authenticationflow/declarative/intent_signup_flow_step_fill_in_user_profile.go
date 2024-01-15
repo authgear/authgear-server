@@ -36,9 +36,6 @@ func (i *IntentSignupFlowStepFillInUserProfile) CanReactTo(ctx context.Context, 
 		}
 
 		step := i.step(current)
-		if err != nil {
-			return nil, err
-		}
 		return &InputSchemaFillInUserProfile{
 			JSONPointer:      i.JSONPointer,
 			Attributes:       step.UserProfile,
@@ -57,9 +54,6 @@ func (i *IntentSignupFlowStepFillInUserProfile) ReactTo(ctx context.Context, dep
 		}
 
 		step := i.step(current)
-		if err != nil {
-			return nil, err
-		}
 
 		attributes := inputFillInUserProfile.GetAttributes()
 		allAbsent, err := i.validate(step, attributes)

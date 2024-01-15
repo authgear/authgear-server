@@ -95,17 +95,11 @@ func (i *IntentAccountRecoveryFlowSteps) ReactTo(ctx context.Context, deps *auth
 			FlowReference: i.FlowReference,
 			StartFrom:     i.StartFrom,
 		}
-		if err != nil {
-			return nil, err
-		}
 		return authflow.NewSubFlow(nextStep), nil
 	case config.AuthenticationFlowAccountRecoveryFlowTypeResetPassword:
 		nextStep := &IntentAccountRecoveryFlowStepResetPassword{
 			StepName:    step.Name,
 			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
-		}
-		if err != nil {
-			return nil, err
 		}
 		return authflow.NewSubFlow(nextStep), nil
 	}

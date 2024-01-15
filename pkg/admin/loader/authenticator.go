@@ -46,11 +46,7 @@ func (l *AuthenticatorLoader) LoadFunc(keys []interface{}) ([]interface{}, error
 	out := make([]interface{}, len(keys))
 	for i, key := range keys {
 		entity := entityMap[key.(string)]
-		if err != nil {
-			out[i] = nil
-		} else {
-			out[i] = entity
-		}
+		out[i] = entity
 	}
 	return out, nil
 }

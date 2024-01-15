@@ -80,7 +80,7 @@ func FindInputReactorForFlow(ctx context.Context, deps *Dependencies, flows Flow
 			return findInputReactorResult, nil
 		}
 		// Return non ErrEOF error.
-		if err != nil && !errors.Is(err, ErrEOF) {
+		if !errors.Is(err, ErrEOF) {
 			return nil, err
 		}
 		// err is ErrEOF, fallthrough

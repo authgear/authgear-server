@@ -299,7 +299,7 @@ func (s *Service) SearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, 
 	}
 
 	// Any error other than identity.ErrIdentityNotFound
-	if err != nil && !errors.Is(err, identity.ErrIdentityNotFound) {
+	if !errors.Is(err, identity.ErrIdentityNotFound) {
 		return
 	}
 

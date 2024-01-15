@@ -518,7 +518,7 @@ func (s *CollaboratorService) AcceptInvitation(code string) (*model.Collaborator
 		return nil, ErrCollaboratorDuplicate
 	}
 
-	if err != nil && !errors.Is(err, ErrCollaboratorNotFound) {
+	if !errors.Is(err, ErrCollaboratorNotFound) {
 		return nil, err
 	}
 
