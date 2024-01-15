@@ -15,4 +15,5 @@
 @import "./components/alert-message.css";
 @import "./components/otp-input.css";
 @import "./components/password-strength-meter.css";
+@import "./components/select.css";
 @import "./components/phone-input.css";
