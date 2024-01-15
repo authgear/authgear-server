@@ -72,5 +72,5 @@ var ComponentsHTML = []*template.HTML{
 	TemplateWebAuthflowV2OTPInputHTML,
 	TemplateWebAuthflowV2PasswordInputHTML,
 	TemplateWebAuthflowV2PasswordStrengthMeterHTML,
-  TemplateWebAuthflowV2PasswordFieldHTML,
+	TemplateWebAuthflowV2PasswordFieldHTML,
 }
