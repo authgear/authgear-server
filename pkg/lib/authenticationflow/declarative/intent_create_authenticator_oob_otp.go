@@ -6,8 +6,6 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -102,11 +100,11 @@ func (n *IntentCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *aut
 	if authenticatorSelected {
 		info := m.MilestoneDidSelectAuthenticator()
 		claimName, claimValue := info.OOBOTP.ToClaimPair()
-		claimStatus, err := deps.Verification.GetClaimStatus(n.UserID, claimName, claimValue)
+		verified, err := getCreateAuthenticatorOOBOTPTargetVerified(deps, n.UserID, claimName, claimValue)
 		if err != nil {
 			return nil, err
 		}
-		claimVerifiedAlready = claimStatus.Verified
+		claimVerifiedAlready = verified
 	}
 
 	shouldVerifyInThisFlow := !claimVerifiedAlready && verificationRequired
@@ -114,49 +112,10 @@ func (n *IntentCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *aut
 	switch {
 	case !authenticatorSelected:
 		if targetStepName != "" {
-			// Find the target step from the root.
-			targetStepFlow, err := authflow.FindTargetStep(flows.Root, targetStepName)
+			oobOTPTarget, err := getCreateAuthenticatorOOBOTPTargetFromTargetStep(ctx, deps, flows, targetStepName)
 			if err != nil {
 				return nil, err
 			}
-
-			target, ok := targetStepFlow.Intent.(IntentSignupFlowStepCreateAuthenticatorTarget)
-			if !ok {
-				return nil, InvalidTargetStep.NewWithInfo("invalid target_step", apierrors.Details{
-					"target_step": targetStepName,
-				})
-			}
-
-			claims, err := target.GetOOBOTPClaims(ctx, deps, flows.Replace(targetStepFlow))
-			if err != nil {
-				return nil, err
-			}
-
-			var claimNames []model.ClaimName
-			for claimName := range claims {
-				claimNames = append(claimNames, claimName)
-			}
-
-			if len(claimNames) != 1 {
-				// TODO(authflow): support create more than 1 OOB OTP authenticator?
-				return nil, InvalidTargetStep.NewWithInfo("target_step does not contain exactly one claim for OOB-OTP", apierrors.Details{
-					"claims": claimNames,
-				})
-			}
-
-			claimName := claimNames[0]
-			switch claimName {
-			case model.ClaimEmail:
-				break
-			case model.ClaimPhoneNumber:
-				break
-			default:
-				return nil, InvalidTargetStep.NewWithInfo("target_step contains unsupported claim for OOB-OTP", apierrors.Details{
-					"claim_name": claimName,
-				})
-			}
-
-			oobOTPTarget := claims[claimName]
 			return n.newDidSelectAuthenticatorNode(deps, oobOTPTarget)
 		}
 

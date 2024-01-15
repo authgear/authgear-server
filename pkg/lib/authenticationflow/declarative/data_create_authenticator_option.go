@@ -1,10 +1,14 @@
 package declarative
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
 type CreateAuthenticatorOption struct {
@@ -17,9 +21,56 @@ type CreateAuthenticatorOption struct {
 
 	// PasswordPolicy is specific to primary_password and secondary_password.
 	PasswordPolicy *PasswordPolicy `json:"password_policy,omitempty"`
+
+	// Target is specific to primary_oob_otp_email, primary_oob_otp_sms, secondary_oob_otp_email, secondary_oob_otp_sms.
+	Target *CreateAuthenticatorTarget `json:"target,omitempty"`
 }
 
-func NewCreateAuthenticationOptions(deps *authflow.Dependencies, step *config.AuthenticationFlowSignupFlowStep) []CreateAuthenticatorOption {
+type CreateAuthenticatorTarget struct {
+	MaskedDisplayName    string `json:"masked_display_name"`
+	VerificationRequired bool   `json:"verification_required"`
+}
+
+func makeCreateAuthenticatorTarget(
+	ctx context.Context,
+	deps *authflow.Dependencies,
+	flows authflow.Flows,
+	oneOf *config.AuthenticationFlowSignupFlowOneOf,
+	userID string,
+) (*CreateAuthenticatorTarget, error) {
+	var target *CreateAuthenticatorTarget = nil
+	targetStep := oneOf.TargetStep
+	if targetStep != "" {
+		claimValue, err := getCreateAuthenticatorOOBOTPTargetFromTargetStep(ctx, deps, flows, targetStep)
+		if err != nil {
+			return nil, err
+		}
+		claimName := getOOBAuthenticatorType(oneOf.Authentication).ToClaimName()
+		verified, err := getCreateAuthenticatorOOBOTPTargetVerified(deps, userID, claimName, claimValue)
+		if err != nil {
+			return nil, err
+		}
+		masked := ""
+		switch claimName {
+		case model.ClaimEmail:
+			masked = mail.MaskAddress(claimValue)
+		case model.ClaimPhoneNumber:
+			masked = phone.Mask(claimValue)
+		}
+		target = &CreateAuthenticatorTarget{
+			MaskedDisplayName:    masked,
+			VerificationRequired: !verified && oneOf.IsVerificationRequired(),
+		}
+	}
+	return target, nil
+}
+
+func NewCreateAuthenticationOptions(
+	ctx context.Context,
+	deps *authflow.Dependencies,
+	flows authflow.Flows,
+	step *config.AuthenticationFlowSignupFlowStep,
+	userID string) ([]CreateAuthenticatorOption, error) {
 	options := []CreateAuthenticatorOption{}
 	passwordPolicy := NewPasswordPolicy(
 		deps.FeatureConfig.Authenticator,
@@ -40,6 +91,10 @@ func NewCreateAuthenticationOptions(deps *authflow.Dependencies, step *config.Au
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+			target, err := makeCreateAuthenticatorTarget(ctx, deps, flows, b, userID)
+			if err != nil {
+				return nil, err
+			}
 			purpose := otp.PurposeOOBOTP
 			channels := getChannels(model.ClaimEmail, deps.Config.Authenticator.OOB)
 			otpForm := getOTPForm(purpose, model.ClaimEmail, deps.Config.Authenticator.OOB.Email)
@@ -47,10 +102,15 @@ func NewCreateAuthenticationOptions(deps *authflow.Dependencies, step *config.Au
 				Authentication: b.Authentication,
 				OTPForm:        otpForm,
 				Channels:       channels,
+				Target:         target,
 			})
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+			target, err := makeCreateAuthenticatorTarget(ctx, deps, flows, b, userID)
+			if err != nil {
+				return nil, err
+			}
 			purpose := otp.PurposeOOBOTP
 			channels := getChannels(model.ClaimPhoneNumber, deps.Config.Authenticator.OOB)
 			otpForm := getOTPForm(purpose, model.ClaimPhoneNumber, deps.Config.Authenticator.OOB.Email)
@@ -58,6 +118,7 @@ func NewCreateAuthenticationOptions(deps *authflow.Dependencies, step *config.Au
 				Authentication: b.Authentication,
 				OTPForm:        otpForm,
 				Channels:       channels,
+				Target:         target,
 			})
 		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 			options = append(options, CreateAuthenticatorOption{
@@ -71,5 +132,5 @@ func NewCreateAuthenticationOptions(deps *authflow.Dependencies, step *config.Au
 			break
 		}
 	}
-	return options
+	return options, nil
 }
