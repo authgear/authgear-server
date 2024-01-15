@@ -1,19 +1,42 @@
 {{ define "authflowv2/__phone_input.html" }}
-<div class="flex space-x-2" data-controller="phone-input">
-  <div class="w-24 h-14 px-10 py-3.5 rounded-[14px] border border-gray-200 justify-center items-center gap-2.5 inline-flex">
+<div class="phone-input" data-controller="phone-input">
+  <div data-controller="custom-select" data-phone-input-target="customSelect">
+    <!-- Select Button -->
+    <button
+      class="phone-input__trigger"
+      aria-haspopup="listbox"
+      aria-expanded="false"
+      data-custom-select-target="trigger"
+      data-action="click->custom-select#toggle"
+    ></button>
+
+    <!-- Dropdown Menu -->
+    <div
+      class="phone-input__dropdown"
+      role="tooltip"
+      data-custom-select-target="dropdown"
+    >
+      <ul
+        class="phone-input__options"
+        data-custom-select-target="options"
+        role="listbox"
+        tabindex="-1"
+      >
+        <template data-custom-select-target="itemTemplate">
+          <li
+            class="phone-input__option"
+            role="option"
+            data-action="
+              click->custom-select#selectItem
+              keydown->custom-select#handleKeyDown
+            "
+            tabindex="0"
+          >
+          </li>
+        </template>
+      </ul>
+    </div>
   </div>
-  <select
-    class="select w-24 h-14 px-10 py-3.5 rounded-[14px] border border-gray-200"
-    data-controller="custom-select"
-    data-custom-select-target="select"
-    data-phone-input-target="searchSelect"
-  >
-    <option value="1">+1</option>
-    <option value="852">+852</option>
-    <option value="853">+853</option>
-    <option value="86">+86</option>
-    <option value="886">+886</option>
-  </select>
   <input class="input w-full" placeholder="placeholder"/>
 </div>
 {{ end }}
