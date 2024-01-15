@@ -13,35 +13,44 @@
     <!-- Dropdown Menu -->
     <div
       class="phone-input__dropdown"
-      role="tooltip"
+      role="listbox"
       data-custom-select-target="dropdown"
     >
       <ul
         class="phone-input__options"
         data-custom-select-target="options"
-        role="listbox"
         tabindex="-1"
       >
       </ul>
 
       <template data-custom-select-target="searchTemplate">
-        <div class="phone-input__search">
-          <input
-            tabindex="0"
-            class="phone-input__search-input"
-            placeholder="Search"
-          >
-          <div class="phone-input__search-icon">
-            <i class="material-icons">search</i>
+        <div class="phone-input__search-container">
+          <div class="phone-input__search" data-custom-select-target="search">
+            <input
+              tabindex="0"
+              class="phone-input__search-input"
+              placeholder="Search"
+              data-action="input->custom-select#search"
+            >
+            <div class="phone-input__search-icon">
+              <i class="material-icons">search</i>
+            </div>
+            <button
+              class="phone-input__clear-icon"
+              type="button"
+              tabindex="-1"
+              data-action="click->custom-select#clear"
+            >
+              <i class="material-icons material-icons--filled">cancel</i>
+            </button>
           </div>
           <button
-            class="w-5 absolute inset-y-0 right-4 text-[#bfbfc3]"
+            class="phone-input__close-icon"
             type="button"
             tabindex="-1"
-            data-custom-select-target="clear"
-            data-ation="click->custom-select#clear"
+            data-action="click->custom-select#close"
           >
-            <i class="material-icons">close</i>
+            <i class="material-icons material-icons">close</i>
           </button>
         </div>
       </template>
