@@ -329,7 +329,7 @@ func (w *Workflow) FindInputReactor(ctx context.Context, deps *Dependencies, wor
 			return workflow, inputReactor, nil
 		}
 		// Return non ErrEOF error.
-		if err != nil && !errors.Is(err, ErrEOF) {
+		if !errors.Is(err, ErrEOF) {
 			return nil, nil, err
 		}
 		// err is ErrEOF, fallthrough

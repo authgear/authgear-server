@@ -283,9 +283,6 @@ func (c *CountCollector) CollectWeeklyForApp(appID string, date *time.Time) (cou
 func (c *CountCollector) CollectMonthlyForApp(appID string, date *time.Time) (counts []*Count, redisKeys []string, err error) {
 	utc := date.UTC()
 	firstDayOfTheMonth := timeutil.FirstDayOfTheMonth(utc)
-	if err != nil {
-		return
-	}
 	monthlyCount, err := c.AnalyticService.GetMonthlyCountResult(config.AppID(appID), firstDayOfTheMonth.Year(), int(firstDayOfTheMonth.Month()))
 	if err != nil {
 		return

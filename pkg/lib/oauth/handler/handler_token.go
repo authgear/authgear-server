@@ -260,9 +260,6 @@ func (h *TokenHandler) app2appVerifyAndConsumeChallenge(jwt string) (*app2app.Re
 		h.Logger.WithError(err).Debugln("invalid app2app jwt payload")
 		return nil, protocol.NewError("invalid_request", "invalid app2app jwt payload")
 	}
-	if err != nil {
-		return nil, err
-	}
 	purpose, err := h.Challenges.Consume(app2appToken.Challenge)
 	if err != nil || *purpose != challenge.PurposeApp2AppRequest {
 		h.Logger.WithError(err).Debugln("invalid app2app jwt challenge")

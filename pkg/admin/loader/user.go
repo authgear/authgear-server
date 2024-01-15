@@ -47,11 +47,7 @@ func (l *UserLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
 	out := make([]interface{}, len(keys))
 	for i, id := range ids {
 		entity := entityMap[id]
-		if err != nil {
-			out[i] = nil
-		} else {
-			out[i] = entity
-		}
+		out[i] = entity
 	}
 	return out, nil
 }
