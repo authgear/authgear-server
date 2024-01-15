@@ -103,6 +103,42 @@
     box-shadow: var(--phone-input__dropdown__shadow);
   }
 
+  .phone-input__search {
+    @apply relative;
+    @apply flex;
+    @apply flex-row;
+    @apply items-center;
+
+    border-bottom: 1px solid var(--color-grey-100);
+  }
+
+  .phone-input__search-input {
+    @apply w-full;
+    padding: 12px 16px 12px 52px;
+
+    border: none;
+    outline: none;
+    background-color: transparent;
+
+    @media (min-width: theme("screens.tablet")) {
+      padding: 12px 16px;
+    }
+  }
+
+  .phone-input__search-icon {
+    @apply absolute;
+    @apply flex;
+    @apply flex-row;
+    @apply items-center;
+    @apply justify-center;
+
+    @apply inset-0;
+    @apply inset-x-4;
+    @apply pointer-events-none;
+
+    width: 1.5em;
+  }
+
   .phone-input__options {
     @apply flex;
     @apply flex-col;

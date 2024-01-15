@@ -22,19 +22,42 @@
         role="listbox"
         tabindex="-1"
       >
-        <template data-custom-select-target="itemTemplate">
-          <li
-            class="phone-input__option"
-            role="option"
-            data-action="
-              click->custom-select#selectItem
-              keydown->custom-select#handleKeyDown
-            "
-            tabindex="0"
-          >
-          </li>
-        </template>
       </ul>
+
+      <template data-custom-select-target="searchTemplate">
+        <div class="phone-input__search">
+          <input
+            tabindex="0"
+            class="phone-input__search-input"
+            placeholder="Search"
+          >
+          <div class="phone-input__search-icon">
+            <i class="material-icons">search</i>
+          </div>
+          <button
+            class="w-5 absolute inset-y-0 right-4 text-[#bfbfc3]"
+            type="button"
+            tabindex="-1"
+            data-custom-select-target="clear"
+            data-ation="click->custom-select#clear"
+          >
+            <i class="material-icons">close</i>
+          </button>
+        </div>
+      </template>
+
+      <template data-custom-select-target="itemTemplate">
+        <li
+          class="phone-input__option"
+          role="option"
+          data-action="
+            click->custom-select#selectItem
+            keydown->custom-select#handleKeyDown
+          "
+          tabindex="0"
+        >
+        </li>
+      </template>
     </div>
   </div>
   <input class="input w-full" placeholder="placeholder"/>
