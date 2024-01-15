@@ -15,24 +15,27 @@ export interface SearchSelectOption {
 
 export class CustomSelectController extends Controller {
   static targets = [
+    "input",
     "trigger",
     "dropdown",
     "search",
     "options",
     "searchTemplate",
     "itemTemplate",
+    "emptyTemplate",
   ];
   static values = {
     options: Array,
-    default: String,
   };
 
+  declare readonly inputTarget: HTMLInputElement;
   declare readonly triggerTarget: HTMLButtonElement;
   declare readonly dropdownTarget: HTMLElement;
   declare readonly searchTarget?: HTMLInputElement;
   declare readonly optionsTarget: HTMLElement;
   declare readonly searchTemplateTarget?: HTMLTemplateElement;
   declare readonly itemTemplateTarget: HTMLTemplateElement;
+  declare readonly emptyTemplateTarget?: HTMLTemplateElement;
 
   declare readonly optionsValue: SearchSelectOption[];
 
@@ -46,22 +49,21 @@ export class CustomSelectController extends Controller {
   }
 
   keyword = "";
-  selectedItemIndex: number = -1;
+  value?: string;
 
   _computePositionCleanup = () => {};
 
   connect(): void {
-    this.dropdownTarget.classList.add("hidden");
     this._computePositionCleanup = autoUpdate(
       this.triggerTarget,
       this.dropdownTarget,
-      this.updateDropdownPosition
+      this._updateDropdownPosition
     );
 
+    this.dropdownTarget.classList.add("hidden");
+    this.renderTrigger();
     this.renderSearch();
     this.renderItems();
-    this.triggerTarget.textContent =
-      this.optionsValue[0]?.triggerLabel ?? this.optionsValue[0].label ?? "";
 
     this.triggerTarget.addEventListener("keydown", this.handleKeyDown);
     this.dropdownTarget.addEventListener("keydown", this.handleKeyDown);
@@ -76,31 +78,32 @@ export class CustomSelectController extends Controller {
     document.removeEventListener("click", this.handleClickOutside);
   }
 
-  updateDropdownPosition = () => {
-    computePosition(this.triggerTarget, this.dropdownTarget, {
-      middleware: [flip(), shift(), autoPlacement({ alignment: "start" })],
-    }).then(({ x, y }) => {
-      Object.assign(this.dropdownTarget.style, {
-        left: `${x}px`,
-        top: `${y}px`,
-      });
-    });
-  };
+  open() {
+    if (!this.dropdownTarget.classList.contains("hidden")) return;
+
+    this.dropdownTarget.classList.remove("hidden");
+    this.triggerTarget.setAttribute("aria-expanded", "true");
+
+    const item = this.optionsTarget.querySelector<HTMLLIElement>(
+      `[data-value="${this.value}"]`
+    );
+    item?.focus();
+  }
 
   close() {
+    if (this.dropdownTarget.classList.contains("hidden")) return;
+
     this.dropdownTarget.classList.add("hidden");
     this.triggerTarget.setAttribute("aria-expanded", "false");
+    this.triggerTarget.focus();
   }
 
   toggle() {
-    const expanded = this.dropdownTarget.classList.toggle("hidden");
-    this.triggerTarget.setAttribute("aria-expanded", expanded.toString());
-    if (expanded) {
-      const items = this.optionsTarget.querySelectorAll<any>('[role="option"]');
-      const selectedItem = items[this.selectedItemIndex] ?? items[0];
-      selectedItem?.focus();
+    const willExpand = this.dropdownTarget.classList.contains("hidden");
+    if (willExpand) {
+      this.open();
     } else {
-      this.triggerTarget.focus();
+      this.close();
     }
   }
 
@@ -120,65 +123,50 @@ export class CustomSelectController extends Controller {
     this.renderItems();
   }
 
-  selectItem(event: any) {
-    const itemValue = event.target?.getAttribute("data-value");
-    const option = this.optionsValue.find(
-      (option) => option.value === itemValue
-    );
-    this.triggerTarget.textContent =
-      option?.triggerLabel ?? option?.label ?? "";
-    this.toggle();
-    this.updateAriaSelected(event.target);
-  }
-
-  selectItemByIndex() {
-    const item = this.optionsTarget.querySelector<HTMLLIElement>(
-      `[data-index="${this.selectedItemIndex}"]`
-    );
-    if (!item) return;
-    this.selectItem({ target: item });
-  }
-
-  updateAriaSelected(selectedItem: HTMLLIElement) {
-    this.optionsTarget.querySelectorAll('[role="option"]').forEach((option) => {
-      option.setAttribute("aria-selected", "false");
-    });
-    selectedItem.setAttribute("aria-selected", "true");
-  }
-
   navigate(step: number) {
-    const items = this.optionsTarget.querySelectorAll<any>('[role="option"]');
-    if (!items.length) return;
-
-    this.selectedItemIndex =
-      (this.selectedItemIndex + step + items.length) % items.length;
-    const index = this.selectedItemIndex;
+    const currentIndex = this.filteredOptions.findIndex(
+      (option) => option.value === this.value
+    );
+    const newIndex =
+      (currentIndex + step + this.filteredOptions.length) %
+      this.filteredOptions.length;
+    const newValue = this.filteredOptions[newIndex]?.value;
 
     requestAnimationFrame(() => {
-      if (index !== this.selectedItemIndex) {
+      if (newValue !== this.value) {
         return;
       }
 
-      const selectedItem = items[this.selectedItemIndex];
-      selectedItem?.focus();
-      this.updateAriaSelected(selectedItem);
+      const selectedItem = this.optionsTarget.querySelector<HTMLLIElement>(
+        `[data-value="${newValue}"]`
+      );
+      if (!selectedItem) return;
+
+      selectedItem.focus();
+      this._updateAriaSelected(selectedItem);
     });
+  }
+
+  handleSelect(event: MouseEvent) {
+    const item = event.target as HTMLLIElement;
+    if (!item) return;
+
+    const value = item.dataset.value;
+    this._selectValue(value);
   }
 
   handleKeyDown = (event: KeyboardEvent) => {
     switch (event.key) {
       case "ArrowDown":
         this.navigate(1);
-        event.preventDefault();
         event.stopPropagation();
         break;
       case "ArrowUp":
         this.navigate(-1);
-        event.preventDefault();
         event.stopPropagation();
         break;
       case "Enter":
-        this.selectItemByIndex();
+        this._selectValue();
         break;
       case "Escape":
         this.close();
@@ -191,6 +179,44 @@ export class CustomSelectController extends Controller {
       this.close();
     }
   };
+
+  _updateDropdownPosition = () => {
+    computePosition(this.triggerTarget, this.dropdownTarget, {
+      middleware: [flip(), shift(), autoPlacement({ alignment: "start" })],
+    }).then(({ x, y }) => {
+      Object.assign(this.dropdownTarget.style, {
+        left: `${x}px`,
+        top: `${y}px`,
+      });
+    });
+  };
+
+  _selectValue(value: string | undefined = this.value) {
+    const item = this.optionsTarget.querySelector<HTMLLIElement>(
+      `[data-value="${value}"]`
+    );
+    if (!item) return;
+    this.value = value;
+    this._updateAriaSelected(item);
+    this.renderTrigger();
+    this.close();
+    this.inputTarget.value = value ?? "";
+  }
+
+  _updateAriaSelected(selectedItem: HTMLLIElement) {
+    this.optionsTarget.querySelectorAll('[role="option"]').forEach((option) => {
+      option.setAttribute("aria-selected", "false");
+    });
+    selectedItem.setAttribute("aria-selected", "true");
+  }
+
+  renderTrigger() {
+    const option =
+      this.optionsValue.find((option) => option.value === this.value) ??
+      this.optionsValue[0];
+    this.triggerTarget.textContent =
+      option?.triggerLabel ?? option?.label ?? "";
+  }
 
   renderSearch() {
     const container = this.dropdownTarget;
@@ -216,6 +242,12 @@ export class CustomSelectController extends Controller {
       option!.setAttribute("data-value", item.value);
       fragment.appendChild(clone);
     });
+
+    if (this.filteredOptions.length === 0 && this.emptyTemplateTarget) {
+      const emptyTemplate = this.emptyTemplateTarget.content;
+      const clone = document.importNode(emptyTemplate, true);
+      fragment.appendChild(clone);
+    }
 
     this.optionsTarget.innerHTML = "";
     container.appendChild(fragment);
