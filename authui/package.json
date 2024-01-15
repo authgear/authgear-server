@@ -41,6 +41,7 @@
     "@sentry/tracing": "7.80.0",
     "@tabler/icons": "1.107.0",
     "axios": "1.6.1",
+    "countries-list": "^3.0.6",
     "cropperjs": "1.6.1",
     "ethers": "5.5.1",
     "intl-tel-input": "https://github.com/authgear/intl-tel-input/tarball/d8a0b82f22366b6caea0e9ffebc7e20e6b1dd145",
