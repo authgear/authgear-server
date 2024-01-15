@@ -1,41 +1,28 @@
 import { Controller } from "@hotwired/stimulus";
 import zxcvbn from "zxcvbn";
 
-function checkPasswordStrength(
-  value: string,
-  input: HTMLInputElement,
-  currentMeter: HTMLMeterElement,
-  currentMeterDescription: HTMLElement
-) {
+function checkPasswordStrength(value: string, currentMeter: HTMLMeterElement) {
   if (value === "") {
-    currentMeter.classList.add("hidden");
+    currentMeter.value = -1;
     return;
   }
 
   currentMeter.classList.remove("hidden");
   const result = zxcvbn(value);
-  // FIXME(davis): Confirming with designer on the level of password strength
   const score = Math.min(5, Math.max(1, result.score + 1));
   currentMeter.value = score;
-  currentMeterDescription.textContent = currentMeter.getAttribute(
-    "data-desc-" + score
-  );
 }
 
 export class PasswordPolicyController extends Controller {
-  static targets = ["input", "currentMeter", "currentMeterDescription"];
+  static targets = ["input", "currentMeter"];
 
   declare inputTarget: HTMLInputElement;
   declare currentMeterTarget: HTMLMeterElement;
-  declare currentMeterDescriptionTarget: HTMLElement;
 
   check() {
     const value = this.inputTarget.value;
-    checkPasswordStrength(
-      value,
-      this.inputTarget,
-      this.currentMeterTarget,
-      this.currentMeterDescriptionTarget
-    );
+    checkPasswordStrength(value, this.currentMeterTarget);
+    const event = new CustomEvent("password-strength-updated");
+    window.dispatchEvent(event);
   }
 }
