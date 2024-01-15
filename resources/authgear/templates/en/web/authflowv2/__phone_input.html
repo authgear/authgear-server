@@ -1,3 +1,15 @@
+<!-- Example usage:
+{{ template "authflowv2/__phone_input.html"
+  (dict
+    "CountryLabel" "Country"
+    "Placeholder" "Phone number"
+    "ErrorMessage" "Please select a country"
+    "EmptyMessage" "No results found"
+    "InputName" "phone"
+  )
+}}
+-->
+
 {{ define "authflowv2/__phone_input.html" }}
 <div class="phone-input" data-controller="phone-input">
   <div data-controller="custom-select" data-phone-input-target="customSelect">
@@ -8,35 +20,35 @@
       aria-expanded="false"
       data-custom-select-target="trigger"
       data-action="click->custom-select#toggle"
-    ></button>
+    >{{ $.CountryLabel }}</button>
 
     <!-- Dropdown Menu -->
     <div
-      class="phone-input__dropdown"
+      class="select__dropdown"
       role="listbox"
       data-custom-select-target="dropdown"
     >
       <ul
-        class="phone-input__options"
+        class="select__options"
         data-custom-select-target="options"
         tabindex="-1"
       >
       </ul>
 
       <template data-custom-select-target="searchTemplate">
-        <div class="phone-input__search-container">
-          <div class="phone-input__search" data-custom-select-target="search">
+        <div class="select__search-container">
+          <div class="select__search" data-custom-select-target="search">
             <input
               tabindex="0"
-              class="phone-input__search-input"
+              class="select__search-input"
               placeholder="Search"
               data-action="input->custom-select#search"
             >
-            <div class="phone-input__search-icon">
+            <div class="select__search-icon">
               <i class="material-icons">search</i>
             </div>
             <button
-              class="phone-input__clear-icon"
+              class="select__clear-icon"
               type="button"
               tabindex="-1"
               data-action="click->custom-select#clear"
@@ -45,7 +57,7 @@
             </button>
           </div>
           <button
-            class="phone-input__close-icon"
+            class="select__close-icon"
             type="button"
             tabindex="-1"
             data-action="click->custom-select#close"
@@ -57,18 +69,30 @@
 
       <template data-custom-select-target="itemTemplate">
         <li
-          class="phone-input__option"
+          class="select__option"
           role="option"
           data-action="
-            click->custom-select#selectItem
+            click->custom-select#handleSelect
             keydown->custom-select#handleKeyDown
           "
           tabindex="0"
         >
         </li>
       </template>
+
+      <template data-custom-select-target="emptyTemplate">
+        <li class="select__empty">
+          {{ $.EmptyMessage }}
+        </li>
+      </template>
     </div>
   </div>
-  <input class="input w-full" placeholder="placeholder"/>
+  <div>
+    <input class="input w-full {{ if $.ErrorMessage }}input--error{{ end }}" placeholder="{{ $.Placeholder }}"/>
+    {{ if $.ErrorMessage }}
+    <div class="phone-input__error-message">{{ $.ErrorMessage }}</div>
+    {{ end }}
+  </div>
+  <input type="hidden" name="{{ $.InputName }}" data-phone-input-target="input" />
 </div>
 {{ end }}
