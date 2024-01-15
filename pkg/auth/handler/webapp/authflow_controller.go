@@ -883,6 +883,11 @@ func (c *AuthflowController) takeBranch(w http.ResponseWriter, r *http.Request, 
 		}
 	}
 
+	output, newScreen, err = c.takeBranchRecursively(s, newScreen)
+	if err != nil {
+		return err
+	}
+
 	now := c.Clock.NowUTC()
 	s.UpdatedAt = now
 	err = c.Sessions.Update(s)
