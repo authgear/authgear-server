@@ -442,6 +442,7 @@
   "setup-email-otp-link-instead": "改為以電郵發送登錄鏈接",
   "setup-phone-otp-sms-instead": "改為以短訊發送一次性密碼",
   "setup-phone-otp-whatsapp-instead": "改為以Whatsapp發送一次性密碼",
+  "setup-oob-otp-without-verification": "下次透過 {target} 使用一次性密碼登入",
 
   "enter-password-instead": "改為輸入密碼",
   "enter-secondary-password-instead": "改為輸入輔助密碼",
