@@ -37,6 +37,7 @@ func ConfigureAuthflowSetupOOBOTPRoute(route httproute.Route) httproute.Route {
 
 type AuthflowSetupOOBOTPViewModel struct {
 	OOBAuthenticatorType model.AuthenticatorType
+	Channel              model.AuthenticatorOOBChannel
 }
 
 type AuthflowSetupOOBOTPHandler struct {
@@ -68,8 +69,10 @@ func (h *AuthflowSetupOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Requ
 	default:
 		panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
 	}
+	channel := screen.Screen.TakenChannel
 	screenViewModel := AuthflowSetupOOBOTPViewModel{
 		OOBAuthenticatorType: oobAuthenticatorType,
+		Channel:              channel,
 	}
 	viewmodels.Embed(data, screenViewModel)
 
@@ -100,15 +103,23 @@ func (h *AuthflowSetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData)
 		option := screenData.Options[index]
 		authentication := option.Authentication
+		channel := screen.Screen.TakenChannel
 
 		target := r.Form.Get("x_target")
+
+		if channel == "" {
+			channel = option.Channels[0]
+		}
 
 		input := map[string]interface{}{
 			"authentication": authentication,
 			"target":         target,
+			"channel":        channel,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, &AdvanceOptions{
+			InheritTakenBranchState: true,
+		})
 		if err != nil {
 			return err
 		}

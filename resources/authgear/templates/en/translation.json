@@ -471,6 +471,7 @@
   "phone-otp-verify-with-whatsapp-instead": "Verify via WhatsApp instead",
 
   "setup-oob-otp-title--sms": "Set up SMS 2-step verification",
+  "setup-oob-otp-title--whatsapp": "Set up WhatsApp 2-step verification",
   "setup-oob-otp-title--email": "Set up email 2-step verification",
 
   "setup-whatsapp-otp-title": "Set up phone 2-step verification",

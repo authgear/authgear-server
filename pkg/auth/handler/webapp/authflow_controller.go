@@ -205,7 +205,7 @@ func (c *AuthflowController) HandleOAuthCallback(w http.ResponseWriter, r *http.
 		input["error_description"] = callbackResponse.ErrorDescription
 		input["error_uri"] = callbackResponse.ErrorURI
 	}
-	result, err := c.AdvanceWithInput(r, s, screen, input)
+	result, err := c.AdvanceWithInput(r, s, screen, input, nil)
 	if err != nil {
 		u, parseURLErr := url.Parse(state.ErrorRedirectURI)
 		if parseURLErr != nil {
@@ -442,7 +442,7 @@ func (c *AuthflowController) ReplaceScreen(r *http.Request, s *webapp.Session, f
 		return
 	}
 
-	result, err = c.AdvanceWithInput(r, s, screen, input)
+	result, err = c.AdvanceWithInput(r, s, screen, input, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -526,13 +526,23 @@ func (c *AuthflowController) createScreen(
 	return
 }
 
+type AdvanceOptions struct {
+	// Treat the next screen as the extend of the taken branch
+	// Allowing alternative branches to be selected based on the current state
+	InheritTakenBranchState bool
+}
+
 // AdvanceWithInputs is for feeding multiple inputs that would advance the flow.
 func (c *AuthflowController) AdvanceWithInputs(
 	r *http.Request,
 	s *webapp.Session,
 	screen0 *webapp.AuthflowScreenWithFlowResponse,
 	inputs []map[string]interface{},
+	options *AdvanceOptions,
 ) (*webapp.Result, error) {
+	if options == nil {
+		options = &AdvanceOptions{}
+	}
 	result := &webapp.Result{}
 
 	prevXStep := screen0.Screen.StateToken.XStep
@@ -548,6 +558,9 @@ func (c *AuthflowController) AdvanceWithInputs(
 		flowResponse1 := output1.ToFlowResponse()
 
 		screen1 := webapp.NewAuthflowScreenWithFlowResponse(&flowResponse1, prevXStep, input)
+		if options.InheritTakenBranchState && screen0.BranchStateTokenFlowResponse != nil {
+			screen1.InheritTakenBranchState(screen0)
+		}
 		s.RememberScreen(screen1)
 		currentScreen = screen1
 
@@ -615,8 +628,9 @@ func (c *AuthflowController) AdvanceWithInput(
 	s *webapp.Session,
 	screen0 *webapp.AuthflowScreenWithFlowResponse,
 	input map[string]interface{},
+	options *AdvanceOptions,
 ) (result *webapp.Result, err error) {
-	return c.AdvanceWithInputs(r, s, screen0, []map[string]interface{}{input})
+	return c.AdvanceWithInputs(r, s, screen0, []map[string]interface{}{input}, options)
 }
 
 // UpdateWithInput is for feeding an input that would just update the current node.

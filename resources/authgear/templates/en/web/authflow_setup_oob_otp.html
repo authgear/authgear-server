@@ -5,7 +5,11 @@
 
 <h1 class="m-0 primary-txt text-center text-xl font-bold">
 {{- if eq $.OOBAuthenticatorType "oob_otp_sms" }}
-	{{ template "setup-oob-otp-title--sms" }}
+	{{- if eq .Channel "whatsapp" }}
+		{{ template "setup-oob-otp-title--whatsapp" }}
+	{{ else }}
+		{{ template "setup-oob-otp-title--sms" }}
+	{{- end }}
 {{- end }}
 {{- if eq $.OOBAuthenticatorType "oob_otp_email" }}
 	{{ template "setup-oob-otp-title--email" }}

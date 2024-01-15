@@ -99,7 +99,7 @@ func (h *AuthflowResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.
 
 		result, err := h.Controller.AdvanceWithInput(r, s, screen, map[string]interface{}{
 			"new_password": newPassword,
-		})
+		}, nil)
 
 		if err != nil {
 			return err

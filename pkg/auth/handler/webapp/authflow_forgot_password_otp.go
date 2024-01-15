@@ -179,7 +179,7 @@ func (h *AuthflowForgotPasswordOTPHandler) ServeHTTP(w http.ResponseWriter, r *h
 			return fmt.Errorf("authflow webapp: unexpected previous step")
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, prevScreen, input)
+		result, err := h.Controller.AdvanceWithInput(r, s, prevScreen, input, nil)
 		if err != nil {
 			return err
 		}
@@ -199,7 +199,7 @@ func (h *AuthflowForgotPasswordOTPHandler) ServeHTTP(w http.ResponseWriter, r *h
 			"account_recovery_code": code,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}
