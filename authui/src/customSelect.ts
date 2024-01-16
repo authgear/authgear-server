@@ -97,7 +97,7 @@ export class CustomSelectController extends Controller {
     this.dropdownTarget.classList.remove("hidden");
     this.triggerTarget.setAttribute("aria-expanded", "true");
 
-    this.renderItems();
+    this.clearSearch();
 
     if (!this.value) {
       this.searchTarget?.focus();
