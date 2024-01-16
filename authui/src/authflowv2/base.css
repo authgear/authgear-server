@@ -19,6 +19,11 @@
     @apply outline-none;
   }
 
+  input::-ms-reveal,
+  input::-ms-clear {
+    @apply hidden;
+  }
+
   /* Colors */
   :root {
     --color-white: #ffffff;
