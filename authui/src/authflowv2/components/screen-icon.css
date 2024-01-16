@@ -1,0 +1,11 @@
+@layer components {
+  :root {
+    --screen-icon__font-size: 4rem;
+    --screen-icon__color: var(--color-primary-base);
+  }
+
+  .screen-icon {
+    font-size: var(--screen-icon__font-size);
+    color: var(--screen-icon__color);
+  }
+}
