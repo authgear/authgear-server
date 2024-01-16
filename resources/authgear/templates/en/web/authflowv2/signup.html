@@ -57,43 +57,47 @@
       {{ range $.IdentityCandidates }}
       {{ if eq .type "login_id" }}{{ if eq .login_id_key $.LoginIDKey }}
         <input type="hidden" name="q_login_id_type" value="{{ .login_id_type }}">
-        {{ if eq .login_id_type "phone" }}
-          <!-- TODO(tung): Update to use phone input (https://github.com/authgear/authgear-server/issues/3561) -->
-          <input
-            class="block input w-full"
-            tabindex="0"
-            {{ if $.ShouldFocusInput }}autofocus{{ end }}
-            type="text"
-            inputmode="tel"
-            autocomplete="tel-national"
-            autocapitalize="none"
-            name="q_login_id"
-            placeholder="{{ template "v2-placeholder.phone" }}"
-            data-retain-form-form-target="input"
-            data-retain-form-form-name-param="phone"
-          >
-        {{ else }}
-          <!-- TODO(tung): Update to use text input (https://github.com/authgear/authgear-server/issues/3557) -->
-          <input
-            {{ if $.ShouldFocusInput }}autofocus{{ end }}
-            class="block input w-full {{ if $display_error }}input--error{{end}}"
-            tabindex="0"
-            type="{{ $.NonPhoneLoginIDInputType }}"
-            name="q_login_id"
-            autocomplete="username"
-            autocapitalize="none"
-            placeholder="{{ template "v2-placeholder.login-id" (dict "variant" $.LoginIDKey) }}"
-            data-controller="retain-form-input"
-            data-action="input->retain-form-input#input retain-form-input:input->retain-form-form#input"
-            data-retain-form-form-target="input"
-            data-retain-form-form-name-param="text"
-          >
-        {{ end }}
-        {{ if $display_error }}
-          <ul class="input__error-message mt-2">
-            {{ template "authflowv2/__error.html" $ctx }}
-          </ul>
-        {{ end }}
+        <div data-controller="text-field">
+          {{ if eq .login_id_type "phone" }}
+            <!-- TODO(tung): Update to use phone input (https://github.com/authgear/authgear-server/issues/3561) -->
+            <input
+              data-text-field-target="input"
+              class="block input w-full"
+              tabindex="0"
+              {{ if $.ShouldFocusInput }}autofocus{{ end }}
+              type="text"
+              inputmode="tel"
+              autocomplete="tel-national"
+              autocapitalize="none"
+              name="q_login_id"
+              placeholder="{{ template "v2-placeholder.phone" }}"
+              data-retain-form-form-target="input"
+              data-retain-form-form-name-param="phone"
+            >
+          {{ else }}
+            <!-- TODO(tung): Update to use text input (https://github.com/authgear/authgear-server/issues/3557) -->
+            <input
+              data-text-field-target="input"
+              {{ if $.ShouldFocusInput }}autofocus{{ end }}
+              class="block input w-full {{ if $display_error }}input--error{{end}}"
+              tabindex="0"
+              type="{{ $.NonPhoneLoginIDInputType }}"
+              name="q_login_id"
+              autocomplete="username"
+              autocapitalize="none"
+              placeholder="{{ template "v2-placeholder.login-id" (dict "variant" $.LoginIDKey) }}"
+              data-controller="retain-form-input"
+              data-action="input->retain-form-input#input retain-form-input:input->retain-form-form#input"
+              data-retain-form-form-target="input"
+              data-retain-form-form-name-param="text"
+            >
+          {{ end }}
+          {{ if $display_error }}
+            <ul class="input__error-message mt-2" data-text-field-target="errorMessage">
+              {{ template "authflowv2/__error.html" $ctx }}
+            </ul>
+          {{ end }}
+        </div>
       {{ end }}{{ end }}
       {{ end }}
 
