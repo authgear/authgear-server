@@ -13,6 +13,8 @@ import { PreventDoubleTapController } from "./preventDoubleTap";
 import { LockoutController } from "./lockout";
 import { FormatDateRelativeController } from "./date";
 import { injectCSSAttrs } from "./cssattrs";
+import { ResendButtonController } from "./resendButton";
+import { OtpInputController } from "./otpInput";
 
 axios.defaults.withCredentials = true;
 
@@ -41,5 +43,8 @@ Stimulus.register("prevent-double-tap", PreventDoubleTapController);
 Stimulus.register("lockout", LockoutController);
 
 Stimulus.register("format-date-relative", FormatDateRelativeController);
+
+Stimulus.register("otp-input", OtpInputController);
+Stimulus.register("resend-button", ResendButtonController);
 
 injectCSSAttrs(document.documentElement);

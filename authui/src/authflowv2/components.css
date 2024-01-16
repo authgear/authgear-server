@@ -6,9 +6,11 @@
 @import "./components/secondary-button.css";
 @import "./components/tertiary-button.css";
 @import "./components/label-button.css";
+@import "./components/link-button.css";
 @import "./components/brand-logo.css";
 @import "./components/code-block.css";
 @import "./components/divider.css";
 @import "./components/body-text.css";
 @import "./components/input.css";
 @import "./components/alert-message.css";
+@import "./components/otp-input.css";
