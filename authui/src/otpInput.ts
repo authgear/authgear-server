@@ -7,23 +7,33 @@ export class OtpInputController extends Controller {
   declare readonly submitTarget: HTMLButtonElement;
   declare readonly digitsContainerTarget: HTMLElement;
 
-  value: string = "";
-  maxLength: number = 6;
-  masked: boolean = true;
-
   spans: HTMLElement[] = [];
+
+  get maxLength(): number {
+    if (
+      this.inputTarget.maxLength != null &&
+      this.inputTarget.maxLength !== 0
+    ) {
+      return this.inputTarget.maxLength;
+    }
+    return 6;
+  }
+
+  get value(): string {
+    return this.inputTarget.value;
+  }
 
   connect(): void {
     this.inputTarget.addEventListener("input", this.handleInput);
     this.inputTarget.addEventListener("paste", this.handlePaste);
     this.inputTarget.addEventListener("focus", this.handleFocus);
     this.inputTarget.addEventListener("blur", this.handleBlur);
-    this.inputTarget.addEventListener("keydown", this.handleKeyDown);
-    this.inputTarget.addEventListener("selectionchange", this.handleSelect);
-
-    // Set initial value and render
-    this.value = this.inputTarget.value || "";
-    this.maxLength = this.inputTarget.maxLength || 6;
+    // element.selectionchange is NOT the same as document.selectionchange
+    // element.selectionchange is an experimental technology.
+    window.document.addEventListener(
+      "selectionchange",
+      this.handleSelectionChange
+    );
     this.render();
   }
 
@@ -32,15 +42,16 @@ export class OtpInputController extends Controller {
     this.inputTarget.removeEventListener("paste", this.handlePaste);
     this.inputTarget.removeEventListener("focus", this.handleFocus);
     this.inputTarget.removeEventListener("blur", this.handleBlur);
-    this.inputTarget.removeEventListener("keydown", this.handleKeyDown);
-    this.inputTarget.removeEventListener("selectionchange", this.handleSelect);
+    window.document.removeEventListener(
+      "selectionchange",
+      this.handleSelectionChange
+    );
   }
 
   _setValue = (value: string): void => {
     this.inputTarget.value = value
       .replace(/[^0-9]/g, "")
       .slice(0, this.maxLength);
-    this.value = this.inputTarget.value;
 
     const reachedMaxDigits = this.value.length === this.maxLength;
     if (reachedMaxDigits) {
@@ -63,7 +74,9 @@ export class OtpInputController extends Controller {
     }
   };
 
-  handleFocus = (): void => {
+  handleFocus = (event: FocusEvent): void => {
+    const input = event.target as HTMLInputElement;
+    input.setSelectionRange(input.value.length, input.value.length);
     this.render();
   };
 
@@ -71,32 +84,19 @@ export class OtpInputController extends Controller {
     this.render();
   };
 
-  handleKeyDown = (event: KeyboardEvent): void => {
-    // Always delete the last digit
-    if (event.key === "Backspace") {
-      event.preventDefault();
-      this._setValue(this.value.slice(0, -1));
+  handleSelectionChange = (_event: Event): void => {
+    if (this.inputTarget === document.activeElement) {
+      this.inputTarget.setSelectionRange(
+        this.inputTarget.value.length,
+        this.inputTarget.value.length
+      );
     }
-
-    // Always append a digit
-    if (/[0-9]/.test(event.key)) {
-      event.preventDefault();
-      this.inputTarget.selectionStart = this.inputTarget.selectionEnd =
-        this.maxLength;
-      this._setValue(this.value + event.key);
-    }
-  };
-
-  handleSelect = (): void => {
-    this.render();
   };
 
   isSpanSelected = (index: number): boolean => {
     const isFocused = this.inputTarget === document.activeElement;
-    const caretStart = this.inputTarget.selectionStart || 0;
-    const caretEnd = this.inputTarget.selectionEnd || 1;
-
-    return isFocused && index + 1 >= caretStart && index < caretEnd;
+    const isNextBox = this.value.length === index;
+    return isFocused && isNextBox;
   };
 
   render = (): void => {
@@ -111,7 +111,7 @@ export class OtpInputController extends Controller {
         ? "otp-input__digit otp-input__digit--focus"
         : "otp-input__digit";
 
-      if (this.masked && textContent !== "") {
+      if (textContent !== "") {
         textContent = " ";
         className += " otp-input__digit--masked";
       }
