@@ -20,6 +20,7 @@ export class CustomSelectController extends Controller {
     "trigger",
     "dropdown",
     "search",
+    "clearSearch",
     "options",
     "searchTemplate",
     "itemTemplate",
@@ -33,6 +34,7 @@ export class CustomSelectController extends Controller {
   declare readonly triggerTarget: HTMLButtonElement;
   declare readonly dropdownTarget: HTMLElement;
   declare readonly searchTarget: HTMLInputElement;
+  declare readonly clearSearchTarget: HTMLElement;
   declare readonly optionsTarget: HTMLElement;
   declare readonly searchTemplateTarget?: HTMLTemplateElement;
   declare readonly itemTemplateTarget: HTMLTemplateElement;
@@ -48,9 +50,19 @@ export class CustomSelectController extends Controller {
     });
   }
 
-  keyword = "";
-  value?: string;
-  focusedValue?: string;
+  get value() {
+    return this.inputTarget.value;
+  }
+
+  get keyword() {
+    return this.searchTarget.value ?? "";
+  }
+
+  get focusedValue() {
+    return this.optionsTarget.querySelector<HTMLLIElement>(
+      '[aria-selected="true"]'
+    )?.dataset.value;
+  }
 
   _computePositionCleanup = () => {};
 
@@ -82,17 +94,13 @@ export class CustomSelectController extends Controller {
   open() {
     if (!this.dropdownTarget.classList.contains("hidden")) return;
 
-    this.keyword = "";
-    this.focusedValue = undefined;
-    this.value = this.inputTarget.value;
     this.dropdownTarget.classList.remove("hidden");
     this.triggerTarget.setAttribute("aria-expanded", "true");
 
-    this.renderSearch();
     this.renderItems();
 
     if (!this.value) {
-      this.searchTarget.querySelector<HTMLInputElement>("input")?.focus();
+      this.searchTarget?.focus();
     }
   }
 
@@ -114,14 +122,19 @@ export class CustomSelectController extends Controller {
   }
 
   search(event: InputEvent) {
-    const searchInput = event.target as HTMLInputElement;
-    this.keyword = searchInput.value;
+    if (this.keyword.length === 0) {
+      this.clearSearchTarget.classList.add("hidden");
+    } else {
+      this.clearSearchTarget.classList.remove("hidden");
+    }
+
     this.renderItems();
   }
 
-  clear() {
-    this.keyword = "";
-    this.renderSearch();
+  clearSearch() {
+    this.searchTarget!.value = "";
+    this.clearSearchTarget.classList.add("hidden");
+
     this.renderItems();
   }
 
@@ -133,22 +146,13 @@ export class CustomSelectController extends Controller {
     const newIndex =
       (currentIndex + step + this.filteredOptions.length) %
       this.filteredOptions.length;
-    const newValue = this.filteredOptions[newIndex]?.value;
-    this.focusedValue = newValue;
+    const item = this.optionsTarget.querySelector<HTMLLIElement>(
+      `[data-index="${newIndex}"]`
+    );
 
-    requestAnimationFrame(() => {
-      if (newValue !== this.focusedValue) {
-        return;
-      }
-
-      const selectedItem = this.optionsTarget.querySelector<HTMLLIElement>(
-        `[data-value="${newValue}"]`
-      );
-      if (!selectedItem) return;
-
-      this._updateAriaSelected(selectedItem);
-      selectedItem.focus();
-    });
+    if (!item) return;
+    this._updateAriaSelected(item);
+    item.focus();
   }
 
   handleSelect(event: MouseEvent) {
@@ -219,12 +223,12 @@ export class CustomSelectController extends Controller {
       `[data-value="${value}"]`
     );
     if (!item) return;
-    this.value = value;
     this._updateAriaSelected(item);
-    this.renderTrigger();
-    this.close();
     this.inputTarget.value = value ?? "";
     this.inputTarget.dispatchEvent(new Event("input", { bubbles: true }));
+
+    this.renderTrigger();
+    this.close();
   }
 
   _updateAriaSelected(selectedItem: HTMLLIElement) {
@@ -248,12 +252,6 @@ export class CustomSelectController extends Controller {
     }
 
     const container = this.dropdownTarget;
-    const searchInput = container.querySelector<HTMLInputElement>("input");
-    if (searchInput) {
-      searchInput.value = this.keyword;
-      return;
-    }
-
     const template = this.searchTemplateTarget.content;
     container.prepend(document.importNode(template, true));
   }
@@ -268,12 +266,18 @@ export class CustomSelectController extends Controller {
       const clone = document.importNode(template, true);
       const option = clone.querySelector("li");
       const selected = item.value === this.value;
-      const prefixEl = option!.querySelector('[data-label="prefix"]');
-      const labelEl = option!.querySelector('[data-label="content"]');
+      const prefixEl = option!.querySelector<HTMLElement>(
+        '[data-label="prefix"]'
+      );
+      const labelEl = option!.querySelector<HTMLElement>(
+        '[data-label="content"]'
+      );
       if (prefixEl) {
+        prefixEl.style.pointerEvents = "none";
         prefixEl.textContent = item.prefix ?? "";
       }
       if (labelEl) {
+        labelEl.style.pointerEvents = "none";
         labelEl.textContent = item.label;
       }
       if (!prefixEl && !labelEl) {
