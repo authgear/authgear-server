@@ -939,5 +939,8 @@
   "v2-password-policy-password-strength-meter-4": "強",
   "v2-password-policy-password-strength-meter-5": "非常強",
 
-  "v2-error.error-invalid-email": "請在電子郵件地址中包含“@”符號。"
+  "v2-error.error-invalid-email": "請在電子郵件地址中包含“@”符號。",
+  "v2-error-web-ui-invalid-session-return": "<p>此頁面已失效或已過期。</p><p>請返回並重試。</p>",
+  "v2-error-server": "伺服器內部錯誤。",
+  "v2-error-screen-title": "系統錯誤"
 }
