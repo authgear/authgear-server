@@ -1,8 +1,6 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
 
-
-  {{ $ctx := . }}
   {{ $display_error := false }}
   {{ if .Error }}
     {{ $display_error = true }}
@@ -94,7 +92,7 @@
           {{ end }}
           {{ if $display_error }}
             <ul class="input__error-message mt-2" data-text-field-target="errorMessage">
-              {{ template "authflowv2/__error.html" $ctx }}
+              {{ template "authflowv2/__error.html" $ }}
             </ul>
           {{ end }}
         </div>

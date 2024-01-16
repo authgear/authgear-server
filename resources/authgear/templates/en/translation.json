@@ -937,5 +937,7 @@
   "v2-password-policy-password-strength-meter-2": "Weak",
   "v2-password-policy-password-strength-meter-3": "Medium",
   "v2-password-policy-password-strength-meter-4": "Strong",
-  "v2-password-policy-password-strength-meter-5": "Very Strong"
+  "v2-password-policy-password-strength-meter-5": "Very Strong",
+
+  "v2-error.error-invalid-email": "Please include '@' in the email address."
 }
