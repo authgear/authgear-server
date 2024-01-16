@@ -29,7 +29,7 @@
     >{{ $.CountryLabel }}</button>
 
     <!-- Dropdown Menu -->
-    <div
+    <dialog
       class="select__dropdown"
       role="listbox"
       data-custom-select-target="dropdown"
@@ -51,7 +51,7 @@
               data-custom-select-target="search"
               data-action="input->custom-select#search"
             >
-            <div class="select__search-icon">
+            <div class="select__search-icon" tabindex="-1">
               <i class="material-icons">search</i>
             </div>
             <button
@@ -60,6 +60,7 @@
               tabindex="-1"
               data-custom-select-target="clearSearch"
               data-action="click->custom-select#clearSearch"
+              aria-label="Clear"
             >
               <i class="material-icons material-icons--filled">cancel</i>
             </button>
@@ -69,6 +70,7 @@
             type="button"
             tabindex="-1"
             data-action="click->custom-select#close"
+            aria-label="Close"
           >
             <i class="material-icons">close</i>
           </button>
@@ -95,7 +97,7 @@
           {{ $.EmptyMessage }}
         </li>
       </template>
-    </div>
+    </dialog>
   </div>
   <div>
     <input

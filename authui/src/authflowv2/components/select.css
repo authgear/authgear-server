@@ -59,8 +59,6 @@
 
   .select__dropdown {
     @apply absolute;
-    @apply flex;
-    @apply flex-col;
 
     width: var(--select__dropdown-width);
     border-radius: var(--select__dropdown-border-radius);
