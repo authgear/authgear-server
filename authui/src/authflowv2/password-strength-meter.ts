@@ -1,26 +1,38 @@
 import { Controller } from "@hotwired/stimulus";
 
 function updateMeterDescription(
-  value: number,
   currentMeter: HTMLMeterElement,
   currentMeterDescription: HTMLElement
 ) {
   currentMeterDescription.textContent = currentMeter.getAttribute(
-    "data-desc-" + value
+    "data-desc-" + currentMeter.value
   );
 }
 
 export class PasswordStrengthMeterController extends Controller {
-  static targets = ["currentMeter", "currentMeterDescription"];
+  static targets = ["currentMeterDescription"];
 
-  declare currentMeterTarget: HTMLMeterElement;
   declare currentMeterDescriptionTarget: HTMLElement;
 
+  observer: MutationObserver | null = null;
+
+  connect() {
+    const callback = () => {
+      this.display();
+    };
+    this.observer = new MutationObserver(callback);
+    this.observer.observe(this.element, {
+      attributes: true,
+    });
+  }
+  disconnect() {
+    this.observer?.disconnect();
+    this.observer = null;
+  }
+
   display() {
-    const value = this.currentMeterTarget.value;
     updateMeterDescription(
-      value,
-      this.currentMeterTarget,
+      this.element as HTMLMeterElement,
       this.currentMeterDescriptionTarget
     );
   }
