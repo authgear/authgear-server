@@ -1,0 +1,74 @@
+@layer components {
+  :root {
+    --link-btn-bg-color: transparent;
+    --link-btn-text-color: var(--color-primary-base);
+    --link-btn-border-radius: 0px;
+    --link-btn-font-family: var(--typography-label-medium__font-family);
+    --link-btn-font-size: var(--typography-label-medium__font-size);
+    --link-btn-line-height: var(--typography-label-medium__line-height);
+    --link-btn-letter-spacing: var(--typography-label-medium__letter-spacing);
+    --link-btn-font-weight: var(--typography-label-medium__font-weight);
+    --link-btn-ring-width: 0px;
+    --link-btn-ring-color: transparent;
+
+    --link-btn-bg-color--hover: transparent;
+    --link-btn-text-color--hover: var(--color-primary-500);
+    --link-btn-ring-width--hover: var(--link-btn-ring-width);
+    --link-btn-ring-color--hover: var(--link-btn-ring-color);
+
+    --link-btn-bg-color--active: transparent;
+    --link-btn-text-color--active: var(--color-primary-500);
+    --link-btn-ring-width--active: var(--link-btn-ring-width);
+    --link-btn-ring-color--active: var(--link-btn-ring-color);
+
+    --link-btn-bg-color--disabled: transparent;
+    --link-btn-text-color--disabled: var(--color-grey-300);
+    --link-btn-ring-width--disabled: var(--link-btn-ring-width);
+    --link-btn-ring-color--disabled: var(--link-btn-ring-color);
+  }
+
+  :root.dark {
+    /* TODO(newman): Dark mode styles */
+  }
+
+  .link-btn {
+    @apply text-center;
+
+    background-color: var(--link-btn-bg-color);
+    color: var(--link-btn-text-color);
+    border-radius: var(--link-btn-border-radius);
+    font-family: var(--link-btn-font-family);
+    font-size: var(--link-btn-font-size);
+    line-height: var(--link-btn-line-height);
+    letter-spacing: var(--link-btn-letter-spacing);
+    font-weight: var(--link-btn-font-weight);
+    @apply ring-inset
+      ring-[length:var(--link-btn-ring-width)]
+      ring-[color:var(--link-btn-ring-color)];
+    padding: var(--link-btn-py) var(--link-btn-px);
+
+    &:hover {
+      background-color: var(--link-btn-bg-color--hover);
+      color: var(--link-btn-text-color--hover);
+      @apply ring-inset
+        ring-[length:var(--link-btn-ring-width--hover)]
+        ring-[color:var(--link-btn-ring-color--hover)];
+    }
+
+    &:active {
+      background-color: var(--link-btn-bg-color--active);
+      color: var(--link-btn-text-color--active);
+      @apply ring-inset
+        ring-[length:var(--link-btn-ring-width--active)]
+        ring-[color:var(--link-btn-ring-color--active)];
+    }
+
+    &:disabled {
+      background-color: var(--link-btn-bg-color--disabled);
+      color: var(--link-btn-text-color--disabled);
+      @apply ring-inset
+        ring-[length:var(--link-btn-ring-width--disabled)]
+        ring-[color:var(--link-btn-ring-color--disabled)];
+    }
+  }
+}
