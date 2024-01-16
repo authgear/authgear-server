@@ -1,0 +1,73 @@
+@layer components {
+  :root {
+    --alert-message__border-radius: var(--border-radius-rounded-square);
+    --alert-message__ring-width: 1.5px;
+    --alert-message__ring-color: var(--color-grey-100);
+    --alert-message__text-color: var(--color-grey-base);
+    --alert-message__font-family: var(--typography-label-medium__font-family);
+    --alert-message__font-size: var(--typography-label-medium__font-size);
+    --alert-message__line-height: var(--typography-label-small__line-height);
+    --alert-message__letter-spacing: var(
+      --typography-label-small__letter-spacing
+    );
+    --alert-message__font-weight: var(--typography-label-medium__font-weight);
+    --alert-message__py: 1em;
+    --alert-message__px: calc(
+      var(--alert-message__font-size)
+    ); /* 1:1 ratio with font-size */
+    --alert-message__spacing: 8px;
+
+    --alert-message__icon-text-color: var(--color-grey-base);
+    --alert-message__icon-text-color--success: var(--color-success);
+    --alert-message__icon-text-color--error: var(--color-error);
+    --alert-message__icon-text-color--warning: var(--color-warning);
+    --alert-message__icon-size: 1.5em;
+  }
+
+  :root.dark {
+    /* TODO(newman): Dark mode styles */
+  }
+
+  .alert-message {
+    display: flex;
+    padding: var(--alert-message__py) var(--alert-message__px);
+    border-radius: var(--alert-message__border-radius);
+
+    @apply ring-inset
+      ring-[length:var(--alert-message\_\_ring-width)]
+      ring-[color:var(--alert-message\_\_ring-color)];
+    @apply gap-x-[var(--alert-message\_\_spacing)];
+  }
+
+  .alert-message--success {
+    .alert-message__icon {
+      color: var(--alert-message__icon-text-color--success);
+    }
+  }
+
+  .alert-message--warning {
+    .alert-message__icon {
+      color: var(--alert-message__icon-text-color--warning);
+    }
+  }
+
+  .alert-message--error {
+    .alert-message__icon {
+      color: var(--alert-message__icon-text-color--error);
+    }
+  }
+
+  .alert-message__icon {
+    height: var(--alert-message__icon-size);
+    width: var(--alert-message__icon-size);
+  }
+
+  .alert-message__text {
+    color: var(--alert-message__text-color);
+    font-family: var(--alert-message__font-family);
+    font-size: var(--alert-message__font-size);
+    line-height: var(--alert-message__line-height);
+    letter-spacing: var(--alert-message__letter-spacing);
+    font-weight: var(--alert-message__font-weight);
+  }
+}

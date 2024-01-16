@@ -1,0 +1,14 @@
+{{ define "authflowv2/__alert_message.html" }}
+<div class="alert-message
+  {{ if eq $.Type "error" }}alert-message--error{{ end }}
+  {{ if eq $.Type "success" }}alert-message--success{{ end }}
+  {{ if eq $.Type "warning" }}alert-message--warning{{ end }}
+">
+  <span class="alert-message__icon material-icons material-icons--filled">
+    {{ if eq $.Type "error" }}error{{ end }}
+  </span>
+  <span class="alert-message__text">
+    {{ .Message }}
+  </span>
+</div>
+{{ end }}
