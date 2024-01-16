@@ -12,7 +12,13 @@
 
 {{ define "authflowv2/__phone_input.html" }}
 <div class="phone-input" data-controller="phone-input">
-  <div data-controller="custom-select" data-phone-input-target="customSelect">
+  <div data-controller="custom-select" data-phone-input-target="countrySelect">
+    <input
+      type="hidden"
+      data-custom-select-target="input"
+      data-action="input->phone-input#handleCountryInput"
+    />
+
     <!-- Select Button -->
     <button
       class="phone-input__trigger"
@@ -88,11 +94,22 @@
     </div>
   </div>
   <div>
-    <input class="input w-full {{ if $.ErrorMessage }}input--error{{ end }}" placeholder="{{ $.Placeholder }}"/>
+    <input
+      class="input w-full {{ if $.ErrorMessage }}input--error{{ end }}"
+      placeholder="{{ $.Placeholder }}"
+      type="text"
+      inputmode="numeric"
+      pattern="^[0-9]*$"
+      data-action="input->phone-input#handleNumberInput"
+    />
     {{ if $.ErrorMessage }}
     <div class="phone-input__error-message">{{ $.ErrorMessage }}</div>
     {{ end }}
   </div>
-  <input type="hidden" name="{{ $.InputName }}" data-phone-input-target="input" />
+  <input
+    type="hidden"
+    name="{{ $.InputName }}"
+    data-phone-input-target="input"
+  />
 </div>
 {{ end }}
