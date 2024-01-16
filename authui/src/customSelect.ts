@@ -33,7 +33,7 @@ export class CustomSelectController extends Controller {
 
   declare readonly inputTarget: HTMLInputElement;
   declare readonly triggerTarget: HTMLButtonElement;
-  declare readonly dropdownTarget: HTMLElement;
+  declare readonly dropdownTarget: HTMLDialogElement;
   declare readonly searchTarget: HTMLInputElement;
   declare readonly clearSearchTarget: HTMLElement;
   declare readonly optionsTarget: HTMLElement;
@@ -74,7 +74,6 @@ export class CustomSelectController extends Controller {
       this._updateDropdownPosition
     );
 
-    this.dropdownTarget.classList.add("hidden");
     this.renderTrigger();
     this.renderSearch();
     this.renderItems();
@@ -98,9 +97,9 @@ export class CustomSelectController extends Controller {
   }
 
   open() {
-    if (!this.dropdownTarget.classList.contains("hidden")) return;
+    if (this.dropdownTarget.open) return;
 
-    this.dropdownTarget.classList.remove("hidden");
+    this.dropdownTarget.show();
     this.triggerTarget.setAttribute("aria-expanded", "true");
 
     this.clearSearch();
@@ -111,15 +110,15 @@ export class CustomSelectController extends Controller {
   }
 
   close() {
-    if (this.dropdownTarget.classList.contains("hidden")) return;
+    if (!this.dropdownTarget.open) return;
 
-    this.dropdownTarget.classList.add("hidden");
+    this.dropdownTarget.close();
     this.triggerTarget.setAttribute("aria-expanded", "false");
     this.triggerTarget.focus();
   }
 
   toggle() {
-    const willExpand = this.dropdownTarget.classList.contains("hidden");
+    const willExpand = !this.dropdownTarget.open;
     if (willExpand) {
       this.open();
     } else {
