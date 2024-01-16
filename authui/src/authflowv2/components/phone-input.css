@@ -8,21 +8,21 @@
     --phone-input__font-family: twemoji-countries, Inter;
     --phone-input__space-x: 0.5em;
 
-    --phone-input__trigger__ring-color: var(--color-grey-100);
-    --phone-input__trigger__ring-color--focus: var(--color-primary-base);
-    --phone-input__trigger__ring-color--error: var(--color-error);
-    --phone-input__trigger__ring-width: var(--border-width-regular);
-    --phone-input__trigger__ring-width--focus: var(
+    --phone-input__trigger-ring-color: var(--color-grey-100);
+    --phone-input__trigger-ring-color--focus: var(--color-primary-base);
+    --phone-input__trigger-ring-color--error: var(--color-error);
+    --phone-input__trigger-ring-width: var(--border-width-regular);
+    --phone-input__trigger-ring-width--focus: var(
       --border-width-regular--active
     );
-    --phone-input__trigger__border-radius: calc(
+    --phone-input__trigger-border-radius: calc(
         var(--phone-input__font-size) * 14 / 16
       )
       /* 14 / 16 ratio to font size */;
-    --phone-input__trigger__py: 1em;
-    --phone-input__trigger__px: 0.5em;
-    --phone-input__trigger__height: 3.5rem;
-    --phone-input__trigger__width: 6em;
+    --phone-input__trigger-py: 1em;
+    --phone-input__trigger-px: 0.5em;
+    --phone-input__trigger-height: 3.5rem;
+    --phone-input__trigger-width: 6em;
 
     --phone-input__error-message-margin-top: 0.5em;
     --phone-input__error-message-text-color: var(--color-error);
@@ -61,18 +61,18 @@
   }
 
   .phone-input__trigger {
-    height: var(--phone-input__trigger__height);
-    width: var(--phone-input__trigger__width);
-    padding: var(--phone-input__trigger__py) var(--phone-input__trigger__px);
-    border-radius: var(--phone-input__trigger__border-radius);
+    height: var(--phone-input__trigger-height);
+    width: var(--phone-input__trigger-width);
+    padding: var(--phone-input__trigger-py) var(--phone-input__trigger-px);
+    border-radius: var(--phone-input__trigger-border-radius);
     @apply ring-inset
-        ring-[length:var(--phone-input\_\_trigger\_\_ring-width)]
-        ring-[color:var(--phone-input\_\_trigger\_\_ring-color)];
+        ring-[length:var(--phone-input\_\_trigger-ring-width)]
+        ring-[color:var(--phone-input\_\_trigger-ring-color)];
 
     &:focus {
       @apply ring-inset
-        ring-[length:var(--phone-input\_\_trigger\_\_ring-width--focus)]
-        ring-[color:var(--phone-input\_\_trigger\_\_ring-color--focus)];
+        ring-[length:var(--phone-input\_\_trigger-ring-width--focus)]
+        ring-[color:var(--phone-input\_\_trigger-ring-color--focus)];
     }
   }
 
