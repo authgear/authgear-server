@@ -31,7 +31,7 @@ export class CustomSelectController extends Controller {
   declare readonly inputTarget: HTMLInputElement;
   declare readonly triggerTarget: HTMLButtonElement;
   declare readonly dropdownTarget: HTMLElement;
-  declare readonly searchTarget?: HTMLInputElement;
+  declare readonly searchTarget: HTMLInputElement;
   declare readonly optionsTarget: HTMLElement;
   declare readonly searchTemplateTarget?: HTMLTemplateElement;
   declare readonly itemTemplateTarget: HTMLTemplateElement;
@@ -50,6 +50,7 @@ export class CustomSelectController extends Controller {
 
   keyword = "";
   value?: string;
+  focusedValue?: string;
 
   _computePositionCleanup = () => {};
 
@@ -81,12 +82,19 @@ export class CustomSelectController extends Controller {
   open() {
     if (!this.dropdownTarget.classList.contains("hidden")) return;
 
+    this.keyword = "";
+    this.focusedValue = undefined;
+    this.value = this.inputTarget.value;
     this.dropdownTarget.classList.remove("hidden");
     this.triggerTarget.setAttribute("aria-expanded", "true");
 
-    const item = this.optionsTarget.querySelector<HTMLLIElement>(
-      `[data-value="${this.value}"]`
-    );
+    this.renderSearch();
+    this.renderItems();
+
+    const item =
+      this.optionsTarget.querySelector<HTMLLIElement>(
+        `[data-value="${this.value}"]`
+      ) ?? this.optionsTarget.querySelector<HTMLLIElement>("[data-index='0']");
     item?.focus();
   }
 
@@ -115,7 +123,7 @@ export class CustomSelectController extends Controller {
 
   clear() {
     const searchInput =
-      this.searchTarget?.querySelector<HTMLInputElement>("input");
+      this.searchTarget.querySelector<HTMLInputElement>("input");
     if (!searchInput) return;
 
     searchInput.value = "";
@@ -125,15 +133,16 @@ export class CustomSelectController extends Controller {
 
   navigate(step: number) {
     const currentIndex = this.filteredOptions.findIndex(
-      (option) => option.value === this.value
+      (option) => option.value === (this.focusedValue ?? this.value)
     );
     const newIndex =
       (currentIndex + step + this.filteredOptions.length) %
       this.filteredOptions.length;
     const newValue = this.filteredOptions[newIndex]?.value;
+    this.focusedValue = newValue;
 
     requestAnimationFrame(() => {
-      if (newValue !== this.value) {
+      if (newValue !== this.focusedValue) {
         return;
       }
 
@@ -159,10 +168,12 @@ export class CustomSelectController extends Controller {
     switch (event.key) {
       case "ArrowDown":
         this.navigate(1);
+        event.preventDefault();
         event.stopPropagation();
         break;
       case "ArrowUp":
         this.navigate(-1);
+        event.preventDefault();
         event.stopPropagation();
         break;
       case "Enter":
@@ -201,6 +212,7 @@ export class CustomSelectController extends Controller {
     this.renderTrigger();
     this.close();
     this.inputTarget.value = value ?? "";
+    this.inputTarget.dispatchEvent(new Event("input", { bubbles: true }));
   }
 
   _updateAriaSelected(selectedItem: HTMLLIElement) {
@@ -219,8 +231,14 @@ export class CustomSelectController extends Controller {
   }
 
   renderSearch() {
-    const container = this.dropdownTarget;
     if (!this.searchTemplateTarget) {
+      return;
+    }
+
+    const container = this.dropdownTarget;
+    const searchInput = container.querySelector<HTMLInputElement>("input");
+    if (searchInput) {
+      searchInput.value = this.keyword;
       return;
     }
 
