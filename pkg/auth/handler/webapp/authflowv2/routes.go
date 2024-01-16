@@ -1,16 +1,20 @@
 package authflowv2
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -58,10 +62,72 @@ const (
 	AuthflowV2RouteNoAuthenticator = "/authflow/v2/no_authenticator"
 )
 
+type AuthflowV2NavigatorEndpointsProvider interface {
+	ErrorEndpointURL(uiImpl config.UIImplementation) *url.URL
+}
+
 type AuthflowV2Navigator struct {
+	Endpoints   AuthflowV2NavigatorEndpointsProvider
+	UIConfig    *config.UIConfig
+	ErrorCookie *webapp.ErrorCookie
 }
 
 var _ handlerwebapp.AuthflowNavigator = &AuthflowV2Navigator{}
+
+func (n *AuthflowV2Navigator) NavigateError(r *http.Request, u url.URL, err error) *webapp.Result {
+	apierror := apierrors.AsAPIError(err)
+
+	recoverable := func() *webapp.Result {
+		cookie, err := n.ErrorCookie.SetRecoverableError(r, apierror)
+		if err != nil {
+			panic(err)
+		}
+
+		result := &webapp.Result{
+			RedirectURI:      u.String(),
+			NavigationAction: "replace",
+			Cookies:          []*http.Cookie{cookie},
+		}
+
+		return result
+	}
+
+	nonRecoverable := func() *webapp.Result {
+		result := &webapp.Result{
+			RedirectURI:      u.String(),
+			NavigationAction: "replace",
+		}
+		err := n.ErrorCookie.SetNonRecoverableError(result, apierror)
+		if err != nil {
+			panic(err)
+		}
+
+		return result
+	}
+
+	switch {
+	case errors.Is(err, authflow.ErrFlowNotFound):
+		u.Path = n.Endpoints.ErrorEndpointURL(n.UIConfig.Implementation).Path
+		return nonRecoverable()
+	case user.IsAccountStatusError(err):
+		u.Path = webapp.AuthflowRouteAccountStatus
+		return nonRecoverable()
+	case errors.Is(err, api.ErrNoAuthenticator):
+		u.Path = webapp.AuthflowRouteNoAuthenticator
+		return nonRecoverable()
+	case apierrors.IsKind(err, webapp.WebUIInvalidSession):
+		// Show WebUIInvalidSession error in different page.
+		u.Path = n.Endpoints.ErrorEndpointURL(n.UIConfig.Implementation).Path
+		return nonRecoverable()
+	case r.Method == http.MethodGet:
+		// If the request method is Get, avoid redirect back to the same path
+		// which causes infinite redirect loop
+		u.Path = n.Endpoints.ErrorEndpointURL(n.UIConfig.Implementation).Path
+		return nonRecoverable()
+	default:
+		return recoverable()
+	}
+}
 
 func (n *AuthflowV2Navigator) Navigate(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
 	if s.HasBranchToTake() {

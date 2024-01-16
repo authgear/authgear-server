@@ -7,6 +7,7 @@ package webapp
 import (
 	json "encoding/json"
 	http "net/http"
+	url "net/url"
 	reflect "reflect"
 
 	webapp "github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -379,4 +380,18 @@ func (m *MockAuthflowNavigator) Navigate(screen *webapp.AuthflowScreenWithFlowRe
 func (mr *MockAuthflowNavigatorMockRecorder) Navigate(screen, r, webSessionID, result interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Navigate", reflect.TypeOf((*MockAuthflowNavigator)(nil).Navigate), screen, r, webSessionID, result)
+}
+
+// NavigateError mocks base method.
+func (m *MockAuthflowNavigator) NavigateError(r *http.Request, u url.URL, err error) *webapp.Result {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NavigateError", r, u, err)
+	ret0, _ := ret[0].(*webapp.Result)
+	return ret0
+}
+
+// NavigateError indicates an expected call of NavigateError.
+func (mr *MockAuthflowNavigatorMockRecorder) NavigateError(r, u, err interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NavigateError", reflect.TypeOf((*MockAuthflowNavigator)(nil).NavigateError), r, u, err)
 }
