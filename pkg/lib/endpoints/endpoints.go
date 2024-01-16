@@ -58,6 +58,20 @@ func (e *Endpoints) ResetPasswordEndpointURL(uiImpl config.UIImplementation) *ur
 		return e.urlOf("flows/reset_password")
 	}
 }
+func (e *Endpoints) ErrorEndpointURL(uiImpl config.UIImplementation) *url.URL {
+	switch uiImpl {
+	case config.UIImplementationAuthflowV2:
+		return e.urlOf("/v2/errors/error")
+	case config.UIImplementationInteraction:
+		fallthrough
+	case config.UIImplementationDefault:
+		fallthrough
+	case config.UIImplementationAuthflow:
+		fallthrough
+	default:
+		return e.urlOf("/errors/error")
+	}
+}
 func (e *Endpoints) SSOCallbackEndpointURL() *url.URL { return e.urlOf("sso/oauth2/callback") }
 
 func (e *Endpoints) WeChatAuthorizeEndpointURL() *url.URL { return e.urlOf("sso/wechat/auth") }
