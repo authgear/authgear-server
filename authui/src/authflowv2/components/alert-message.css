@@ -52,11 +52,6 @@
     }
   }
 
-  .alert-message__icon-container {
-    height: var(--alert-message__icon-size);
-    width: var(--alert-message__icon-size);
-  }
-
   .alert-message__icon {
     height: var(--alert-message__icon-size);
     width: var(--alert-message__icon-size);
