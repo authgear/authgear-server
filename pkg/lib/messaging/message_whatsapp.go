@@ -18,7 +18,7 @@ type WhatsappMessage struct {
 }
 
 func (m *WhatsappMessage) Send() error {
-	err := m.events.DispatchEvent(&nonblocking.WhatsappSentEventPayload{
+	err := m.events.DispatchEventImmediately(&nonblocking.WhatsappSentEventPayload{
 		Recipient:           m.Options.To,
 		Type:                m.Type,
 		IsNotCountedInUsage: m.IsNotCounted,

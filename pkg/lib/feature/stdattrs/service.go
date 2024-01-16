@@ -28,7 +28,7 @@ type UserStore interface {
 }
 
 type EventService interface {
-	DispatchEvent(payload event.Payload) error
+	DispatchEventOnCommit(payload event.Payload) error
 }
 
 type Service struct {
@@ -108,7 +108,7 @@ func (s *Service) UpdateStandardAttributes(role accesscontrol.Role, userID strin
 	}
 
 	for _, eventPayload := range eventPayloads {
-		err = s.Events.DispatchEvent(eventPayload)
+		err = s.Events.DispatchEventOnCommit(eventPayload)
 		if err != nil {
 			return err
 		}

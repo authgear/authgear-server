@@ -151,7 +151,7 @@ func (n *NodeDoEnsureSession) GetEffects() ([]interaction.Effect, error) {
 				identityModels = append(identityModels, info.ToModel())
 			}
 
-			err := ctx.Events.DispatchEvent(&nonblocking.UserAnonymousPromotedEventPayload{
+			err := ctx.Events.DispatchEventOnCommit(&nonblocking.UserAnonymousPromotedEventPayload{
 				AnonymousUserRef: anonUserRef,
 				UserRef:          newUserRef,
 				Identities:       identityModels,
@@ -186,7 +186,7 @@ func (n *NodeDoEnsureSession) GetEffects() ([]interaction.Effect, error) {
 					// For authentication that involves IDP session will dispatch user.authenticated event here
 					// For authentication that suppresses IDP session. e.g. biometric login
 					// They are handled in their own node.
-					err = ctx.Events.DispatchEvent(&nonblocking.UserAuthenticatedEventPayload{
+					err = ctx.Events.DispatchEventOnCommit(&nonblocking.UserAuthenticatedEventPayload{
 						UserRef:  userRef,
 						Session:  *n.SessionToCreate.ToAPIModel(),
 						AdminAPI: n.IsAdminAPI,

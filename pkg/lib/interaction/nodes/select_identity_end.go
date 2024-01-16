@@ -65,7 +65,7 @@ func (e *EdgeSelectIdentityEnd) Instantiate(ctx *interaction.Context, graph *int
 				break
 			case model.IdentityTypeLoginID:
 				loginIDValue := e.IdentitySpec.LoginID.Value
-				err = ctx.Events.DispatchEvent(&nonblocking.AuthenticationFailedLoginIDEventPayload{
+				err = ctx.Events.DispatchEventOnCommit(&nonblocking.AuthenticationFailedLoginIDEventPayload{
 					LoginID: loginIDValue,
 				})
 				if err != nil {

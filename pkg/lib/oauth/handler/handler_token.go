@@ -70,7 +70,7 @@ type AccessTokenIssuer interface {
 }
 
 type EventService interface {
-	DispatchEvent(payload event.Payload) error
+	DispatchEventOnCommit(payload event.Payload) error
 }
 
 type TokenHandlerUserFacade interface {
@@ -809,7 +809,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 			ID: authz.UserID,
 		},
 	}
-	err = h.Events.DispatchEvent(&nonblocking.UserAuthenticatedEventPayload{
+	err = h.Events.DispatchEventOnCommit(&nonblocking.UserAuthenticatedEventPayload{
 		UserRef:  userRef,
 		Session:  *offlineGrant.ToAPIModel(),
 		AdminAPI: false,
@@ -1103,7 +1103,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 					ID: authz.UserID,
 				},
 			}
-			err = h.Events.DispatchEvent(&nonblocking.UserAuthenticatedEventPayload{
+			err = h.Events.DispatchEventOnCommit(&nonblocking.UserAuthenticatedEventPayload{
 				UserRef:  userRef,
 				Session:  *offlineGrant.ToAPIModel(),
 				AdminAPI: false,

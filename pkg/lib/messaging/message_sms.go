@@ -19,7 +19,7 @@ type SMSMessage struct {
 }
 
 func (m *SMSMessage) Send() error {
-	err := m.events.DispatchEvent(&nonblocking.SMSSentEventPayload{
+	err := m.events.DispatchEventImmediately(&nonblocking.SMSSentEventPayload{
 		Sender:              m.Sender,
 		Recipient:           m.To,
 		Type:                m.Type,

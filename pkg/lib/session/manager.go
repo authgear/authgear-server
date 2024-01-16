@@ -37,7 +37,7 @@ type IDPSessionManager ManagementService
 type AccessTokenSessionManager ManagementService
 
 type EventService interface {
-	DispatchEvent(payload event.Payload) error
+	DispatchEventOnCommit(payload event.Payload) error
 }
 
 type Manager struct {
@@ -96,7 +96,7 @@ func (m *Manager) invalidate(session Session, option *revokeEventOption) (Manage
 
 	if option != nil && len(sessionModels) > 0 {
 		if option.IsTermination {
-			err = m.Events.DispatchEvent(&nonblocking.UserSessionTerminatedEventPayload{
+			err = m.Events.DispatchEventOnCommit(&nonblocking.UserSessionTerminatedEventPayload{
 				UserRef: model.UserRef{
 					Meta: model.Meta{
 						ID: session.GetAuthenticationInfo().UserID,
@@ -107,7 +107,7 @@ func (m *Manager) invalidate(session Session, option *revokeEventOption) (Manage
 				TerminationType: nonblocking.UserSessionTerminationTypeIndividual,
 			})
 		} else {
-			err = m.Events.DispatchEvent(&nonblocking.UserSignedOutEventPayload{
+			err = m.Events.DispatchEventOnCommit(&nonblocking.UserSignedOutEventPayload{
 				UserRef: model.UserRef{
 					Meta: model.Meta{
 						ID: session.GetAuthenticationInfo().UserID,
@@ -199,7 +199,7 @@ func (m *Manager) TerminateAllExcept(userID string, currentSession Session, isAd
 	}
 
 	if len(sessionModels) > 0 {
-		err = m.Events.DispatchEvent(&nonblocking.UserSessionTerminatedEventPayload{
+		err = m.Events.DispatchEventOnCommit(&nonblocking.UserSessionTerminatedEventPayload{
 			UserRef: model.UserRef{
 				Meta: model.Meta{
 					ID: userID,

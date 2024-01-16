@@ -109,7 +109,7 @@ func (i *IntentLoginFlow) GetEffects(ctx context.Context, deps *authflow.Depende
 				return nil
 			}
 
-			err := deps.Events.DispatchEvent(&nonblocking.UserAuthenticatedEventPayload{
+			err := deps.Events.DispatchEventOnCommit(&nonblocking.UserAuthenticatedEventPayload{
 				UserRef: model.UserRef{
 					Meta: model.Meta{
 						ID: userID,

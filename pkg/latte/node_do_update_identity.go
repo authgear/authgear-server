@@ -69,7 +69,7 @@ func (n *NodeDoUpdateIdentity) GetEffects(ctx context.Context, deps *workflow.De
 			}
 
 			if e != nil {
-				err := deps.Events.DispatchEvent(e)
+				err := deps.Events.DispatchEventOnCommit(e)
 				if err != nil {
 					return err
 				}

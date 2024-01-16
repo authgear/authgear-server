@@ -60,7 +60,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationDeleteAuthorizationExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationDeleteAuthorizationExecutedEventPayload{
 				Authorization: *authz.ToAPIModel(),
 			})
 			if err != nil {

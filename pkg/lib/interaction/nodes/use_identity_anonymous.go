@@ -142,7 +142,7 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 						ID: userID,
 					},
 				}
-				err = ctx.Events.DispatchEvent(&nonblocking.AuthenticationFailedIdentityEventPayload{
+				err = ctx.Events.DispatchEventOnCommit(&nonblocking.AuthenticationFailedIdentityEventPayload{
 					UserRef:      userRef,
 					IdentityType: string(model.IdentityTypeAnonymous),
 				})

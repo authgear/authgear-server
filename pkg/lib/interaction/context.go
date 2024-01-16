@@ -122,7 +122,7 @@ type StdAttrsService interface {
 }
 
 type EventService interface {
-	DispatchEvent(payload event.Payload) error
+	DispatchEventOnCommit(payload event.Payload) error
 }
 
 type SessionProvider interface {
