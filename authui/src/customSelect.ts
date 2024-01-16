@@ -11,6 +11,7 @@ export interface SearchSelectOption {
   triggerLabel?: string;
   prefix?: string;
   label: string;
+  searchLabel?: string;
   value: string;
 }
 
@@ -44,7 +45,7 @@ export class CustomSelectController extends Controller {
 
   get filteredOptions() {
     return this.optionsValue.filter((option) => {
-      return `${option.label} ${option.value} ${option.prefix}}`
+      return `${option.label} ${option.value} ${option.prefix} ${option.searchLabel}`
         .toLocaleLowerCase()
         .includes(this.keyword.toLocaleLowerCase());
     });
@@ -89,6 +90,11 @@ export class CustomSelectController extends Controller {
     this.triggerTarget.addEventListener("keydown", this.handleKeyDown);
     this.dropdownTarget.removeEventListener("keydown", this.handleKeyDown);
     document.removeEventListener("click", this.handleClickOutside);
+  }
+
+  optionValuesChanged() {
+    this.renderTrigger();
+    this.renderItems();
   }
 
   open() {

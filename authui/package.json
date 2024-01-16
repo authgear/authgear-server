@@ -21,6 +21,7 @@
   "devDependencies": {
     "@jest/globals": "29.7.0",
     "@parcel/config-default": "2.10.2",
+    "@parcel/resolver-glob": "2.10.2",
     "@types/luxon": "3.3.4",
     "@types/zxcvbn": "4.4.4",
     "jest": "29.7.0",
@@ -42,10 +43,11 @@
     "@sentry/tracing": "7.80.0",
     "@tabler/icons": "1.107.0",
     "axios": "1.6.1",
-    "countries-list": "3.0.6",
+    "cldr-localenames-full": "44.1.0",
     "cropperjs": "1.6.1",
     "ethers": "5.5.1",
     "intl-tel-input": "https://github.com/authgear/intl-tel-input/tarball/d8a0b82f22366b6caea0e9ffebc7e20e6b1dd145",
+    "libphonenumber-js": "1.10.53",
     "luxon": "3.4.4",
     "siwe": "1.1.6",
     "zxcvbn": "4.4.2"

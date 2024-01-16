@@ -25,6 +25,8 @@
     --select__clear-icon-size: 1.25em;
     --select__clear-icon-color: var(--color-grey-200);
 
+    --select__close-icon-size: 1.25em;
+
     --select__options-height: 100%;
     --select__options-py: 1em;
     --select__options-px: calc(var(--select__font-size) * 1);
@@ -131,6 +133,7 @@
     @apply pointer-events-none;
 
     width: var(--select__search-icon-size);
+    font-size: var(--select__search-icon-size);
   }
 
   .select__clear-icon {
@@ -143,12 +146,15 @@
     @apply right-4 tablet:right-12;
 
     width: var(--select__clear-icon-size);
+    font-size: var(--select__clear-icon-size);
     color: var(--select__clear-icon-color);
   }
 
   .select__close-icon {
     @apply ml-4;
     @apply tablet:hidden;
+
+    font-size: var(--select__close-icon-size);
   }
 
   .select__options {
