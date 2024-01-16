@@ -9,6 +9,7 @@ import {
 
 export interface SearchSelectOption {
   triggerLabel?: string;
+  prefix?: string;
   label: string;
   value: string;
 }
@@ -41,10 +42,9 @@ export class CustomSelectController extends Controller {
 
   get filteredOptions() {
     return this.optionsValue.filter((option) => {
-      return (
-        option.label.toLowerCase().includes(this.keyword.toLowerCase()) ||
-        option.value?.toLowerCase().includes(this.keyword.toLowerCase())
-      );
+      return `${option.label} ${option.value} ${option.prefix}}`
+        .toLocaleLowerCase()
+        .includes(this.keyword.toLocaleLowerCase());
     });
   }
 
@@ -120,12 +120,8 @@ export class CustomSelectController extends Controller {
   }
 
   clear() {
-    const searchInput =
-      this.searchTarget.querySelector<HTMLInputElement>("input");
-    if (!searchInput) return;
-
-    searchInput.value = "";
     this.keyword = "";
+    this.renderSearch();
     this.renderItems();
   }
 
@@ -272,7 +268,17 @@ export class CustomSelectController extends Controller {
       const clone = document.importNode(template, true);
       const option = clone.querySelector("li");
       const selected = item.value === this.value;
-      option!.textContent = item.label;
+      const prefixEl = option!.querySelector('[data-label="prefix"]');
+      const labelEl = option!.querySelector('[data-label="content"]');
+      if (prefixEl) {
+        prefixEl.textContent = item.prefix ?? "";
+      }
+      if (labelEl) {
+        labelEl.textContent = item.label;
+      }
+      if (!prefixEl && !labelEl) {
+        option!.textContent = item.label;
+      }
       option!.dataset.index = index.toString();
       option!.setAttribute("data-value", item.value);
       option!.setAttribute("aria-selected", selected.toString());

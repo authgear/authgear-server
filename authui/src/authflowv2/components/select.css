@@ -27,11 +27,15 @@
     --select__clear-icon__color: var(--color-grey-200);
 
     --select__options-height: 100%;
+    --select__options__py: 1em;
+    --select__options__px: calc(var(--select__font-size) * 1);
     --select__options__space-y: 0.5em;
 
     --select__option__border-radius: calc(var(--select__font-size) * 0.75)
       /* 12 / 16 ratio to font size */;
     --select__option__background-color--active: var(--color-grey-100);
+    --select__option__py: 0.75em;
+    --select__option__px: calc(var(--select__font-size) * 1);
 
     --select__empty__text-color: var(--color-grey-300);
     --select__empty__font-size: var(--typography-body-large__font-size);
@@ -44,7 +48,7 @@
     @media (min-width: theme("screens.tablet")) {
       --select__options-height: 18em;
       --select__input__padding: 12px 16px;
-      --select__dropdown__width: 21.5625rem;
+      --select__dropdown__width: 21.5625em;
     }
   }
 
@@ -144,8 +148,8 @@
   .select__options {
     @apply flex;
     @apply flex-col;
-    @apply p-4;
 
+    padding: var(--select__options__py) var(--select__options__px);
     max-height: var(--select__options-height);
     overflow-y: auto;
 
@@ -156,10 +160,10 @@
     @apply flex;
     @apply flex-row;
     @apply items-center;
-    @apply px-4;
-    @apply py-3;
     @apply cursor-pointer;
+    @apply whitespace-pre-wrap;
 
+    padding: var(--select__option__py) var(--select__option__px);
     border-radius: var(--select__option__border-radius);
     font-family: var(--select__font-family);
 
@@ -170,14 +174,18 @@
     }
   }
 
+  .select__option__prefix {
+    width: 5.25rem;
+  }
+
   .select__empty {
     @apply flex;
     @apply flex-row;
     @apply items-center;
     @apply justify-center;
-    @apply p-4;
     @apply text-center;
 
+    padding: var(--select__option__py) var(--select__option__px);
     color: var(--select__empty__text-color);
     font-size: var(--select__empty__font-size);
     line-height: var(--select__empty__line-height);
