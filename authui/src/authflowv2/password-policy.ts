@@ -22,7 +22,5 @@ export class PasswordPolicyController extends Controller {
   check() {
     const value = this.inputTarget.value;
     checkPasswordStrength(value, this.currentMeterTarget);
-    const event = new CustomEvent("password-strength-updated");
-    window.dispatchEvent(event);
   }
 }
