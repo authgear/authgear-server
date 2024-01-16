@@ -1,6 +1,13 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
 
+
+  {{ $ctx := . }}
+  {{ $display_error := false }}
+  {{ if .Error }}
+    {{ $display_error = true }}
+  {{ end }}
+
 	{{ $has_oauth := false }}
 	{{ $has_login_id := false }}
 	{{ $has_alternatives := false }}
@@ -53,7 +60,7 @@
         {{ if eq .login_id_type "phone" }}
           <!-- TODO(tung): Update to use phone input (https://github.com/authgear/authgear-server/issues/3561) -->
           <input
-            class="block w-full"
+            class="block input w-full"
             tabindex="0"
             {{ if $.ShouldFocusInput }}autofocus{{ end }}
             type="text"
@@ -69,7 +76,7 @@
           <!-- TODO(tung): Update to use text input (https://github.com/authgear/authgear-server/issues/3557) -->
           <input
             {{ if $.ShouldFocusInput }}autofocus{{ end }}
-            class="block w-full"
+            class="block input w-full {{ if $display_error }}input--error{{end}}"
             tabindex="0"
             type="{{ $.NonPhoneLoginIDInputType }}"
             name="q_login_id"
@@ -81,6 +88,11 @@
             data-retain-form-form-target="input"
             data-retain-form-form-name-param="text"
           >
+        {{ end }}
+        {{ if $display_error }}
+          <ul class="input__error-message mt-2">
+            {{ template "authflowv2/__error.html" $ctx }}
+          </ul>
         {{ end }}
       {{ end }}{{ end }}
       {{ end }}
