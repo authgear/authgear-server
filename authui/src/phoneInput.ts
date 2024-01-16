@@ -55,9 +55,8 @@ export class PhoneInputController extends Controller {
     const options = this._countriesData.map((country) => {
       return {
         triggerLabel: `${getEmojiFlag(country.iso2)} +${country.phone}`,
-        label: `${getEmojiFlag(country.iso2)} +${country.phone}       ${
-          country.name
-        }`,
+        prefix: `${getEmojiFlag(country.iso2)} +${country.phone}`,
+        label: country.name,
         value: country.iso2,
       };
     });
