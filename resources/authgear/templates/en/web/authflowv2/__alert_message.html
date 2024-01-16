@@ -4,13 +4,11 @@
   {{ if eq $.Type "success" }}alert-message--success{{ end }}
   {{ if eq $.Type "warning" }}alert-message--warning{{ end }}
 ">
-  <div class="alert-message__icon-container">
-    <span class="alert-message__icon material-icons material-icons--filled">
-      {{ if eq $.Type "error" }}error{{ end }}
-    </span>
-  </div>
-  <div class="alert-message__text">
+  <span class="alert-message__icon material-icons material-icons--filled">
+    {{ if eq $.Type "error" }}error{{ end }}
+  </span>
+  <span class="alert-message__text">
     {{ .Message }}
-  </div>
+  </span>
 </div>
 {{ end }}
