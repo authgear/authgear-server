@@ -18,6 +18,7 @@ export class OtpInputController extends Controller {
     this.inputTarget.addEventListener("paste", this.handlePaste);
     this.inputTarget.addEventListener("focus", this.handleFocus);
     this.inputTarget.addEventListener("blur", this.handleBlur);
+    this.inputTarget.addEventListener("keydown", this.handleKeyDown);
     this.inputTarget.addEventListener("selectionchange", this.handleSelect);
 
     // Set initial value and render
@@ -31,6 +32,7 @@ export class OtpInputController extends Controller {
     this.inputTarget.removeEventListener("paste", this.handlePaste);
     this.inputTarget.removeEventListener("focus", this.handleFocus);
     this.inputTarget.removeEventListener("blur", this.handleBlur);
+    this.inputTarget.removeEventListener("keydown", this.handleKeyDown);
     this.inputTarget.removeEventListener("selectionchange", this.handleSelect);
   }
 
@@ -67,6 +69,22 @@ export class OtpInputController extends Controller {
 
   handleBlur = (): void => {
     this.render();
+  };
+
+  handleKeyDown = (event: KeyboardEvent): void => {
+    // Always delete the last digit
+    if (event.key === "Backspace") {
+      event.preventDefault();
+      this._setValue(this.value.slice(0, -1));
+    }
+
+    // Always append a digit
+    if (/[0-9]/.test(event.key)) {
+      event.preventDefault();
+      this.inputTarget.selectionStart = this.inputTarget.selectionEnd =
+        this.maxLength;
+      this._setValue(this.value + event.key);
+    }
   };
 
   handleSelect = (): void => {
