@@ -37,9 +37,6 @@
     --color-primary-600: #052e6f;
     --color-primary-700: #011234;
 
-    /* secondary */
-    --color-text-secondary: var(--color-grey-base);
-
     /* grey */
     --color-grey-base: #73747b;
     --color-grey-100: #e7e7e9;
@@ -49,9 +46,6 @@
     --color-grey-500: #505157;
     --color-grey-600: #303135;
     --color-grey-700: #131315;
-
-    /* border */
-    --color-border-primary: var(--color-grey-100);
   }
 
   /* Border Radius */
