@@ -31,6 +31,11 @@
   /* Support for IE. */
   font-feature-settings: "liga";
 
+  /*
+  * Material Icons can override 4 font axis: FILL, WGTH, GRAD, and OPSZ.
+  * FILL is used to toggle between filled and outlined icons.
+  * For other axis, refer to https://developers.google.com/fonts/docs/material_symbols#what_are_material_symbols
+  */
   &.material-icons--filled {
     font-variation-settings: "FILL" 1;
   }
