@@ -15,6 +15,9 @@ import { FormatDateRelativeController } from "./date";
 import { injectCSSAttrs } from "./cssattrs";
 import { ResendButtonController } from "./resendButton";
 import { OtpInputController } from "./otpInput";
+import { PasswordVisibilityToggleController } from "./passwordVisibility";
+import { PasswordPolicyController } from "./authflowv2/password-policy";
+import { PasswordStrengthMeterController } from "./authflowv2/password-strength-meter";
 
 axios.defaults.withCredentials = true;
 
@@ -43,8 +46,15 @@ Stimulus.register("prevent-double-tap", PreventDoubleTapController);
 Stimulus.register("lockout", LockoutController);
 
 Stimulus.register("format-date-relative", FormatDateRelativeController);
+Stimulus.register("format-date-relative", FormatDateRelativeController);
+Stimulus.register(
+  "password-visibility-toggle",
+  PasswordVisibilityToggleController
+);
 
 Stimulus.register("otp-input", OtpInputController);
 Stimulus.register("resend-button", ResendButtonController);
+Stimulus.register("password-policy", PasswordPolicyController);
+Stimulus.register("password-strength-meter", PasswordStrengthMeterController);
 
 injectCSSAttrs(document.documentElement);
