@@ -39,7 +39,7 @@
           {{ if (eq .details.format "phone") }}
             <li>{{ template "error-phone-number-format" }}</li>
           {{ else if (eq .details.format "email") }}
-            <li>{{ template "error-invalid-email" }}</li>
+            <li>{{ template "v2-error.error-invalid-email" }}</li>
           {{ else if (eq .details.format "username") }}
             <li>{{ template "error-invalid-username" }}</li>
           {{ else if (eq .details.format "x_totp_code") }}
