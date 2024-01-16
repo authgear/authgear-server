@@ -24,6 +24,14 @@
     @apply hidden;
   }
 
+  dialog {
+    margin: unset;
+
+    &::backdrop {
+      background: none;
+    }
+  }
+
   /* Colors */
   :root {
     --color-white: #ffffff;
