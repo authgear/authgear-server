@@ -91,11 +91,9 @@ export class CustomSelectController extends Controller {
     this.renderSearch();
     this.renderItems();
 
-    const item =
-      this.optionsTarget.querySelector<HTMLLIElement>(
-        `[data-value="${this.value}"]`
-      ) ?? this.optionsTarget.querySelector<HTMLLIElement>("[data-index='0']");
-    item?.focus();
+    if (!this.value) {
+      this.searchTarget.querySelector<HTMLInputElement>("input")?.focus();
+    }
   }
 
   close() {
@@ -131,10 +129,11 @@ export class CustomSelectController extends Controller {
     this.renderItems();
   }
 
-  navigate(step: number) {
+  navigate(stepFn: (index: number) => number) {
     const currentIndex = this.filteredOptions.findIndex(
       (option) => option.value === (this.focusedValue ?? this.value)
     );
+    const step = stepFn(currentIndex);
     const newIndex =
       (currentIndex + step + this.filteredOptions.length) %
       this.filteredOptions.length;
@@ -151,8 +150,8 @@ export class CustomSelectController extends Controller {
       );
       if (!selectedItem) return;
 
-      selectedItem.focus();
       this._updateAriaSelected(selectedItem);
+      selectedItem.focus();
     });
   }
 
@@ -165,23 +164,40 @@ export class CustomSelectController extends Controller {
   }
 
   handleKeyDown = (event: KeyboardEvent) => {
+    let preventAndStop = true;
     switch (event.key) {
       case "ArrowDown":
-        this.navigate(1);
-        event.preventDefault();
-        event.stopPropagation();
+        this.navigate(() => 1);
         break;
       case "ArrowUp":
-        this.navigate(-1);
-        event.preventDefault();
-        event.stopPropagation();
+        this.navigate(() => -1);
+        break;
+      case "PageDown":
+        this.navigate(() => 10);
+        break;
+      case "PageUp":
+        this.navigate(() => -10);
+        break;
+      case "Home":
+        this.navigate((idx) => -idx);
+        break;
+      case "End":
+        this.navigate((idx) => this.filteredOptions.length - 1 - idx);
         break;
       case "Enter":
-        this._selectValue();
+        this._selectValue(this.focusedValue ?? this.value);
         break;
       case "Escape":
         this.close();
+        preventAndStop = false;
         break;
+      default:
+        preventAndStop = false;
+    }
+
+    if (preventAndStop) {
+      event.preventDefault();
+      event.stopPropagation();
     }
   };
 
@@ -202,7 +218,7 @@ export class CustomSelectController extends Controller {
     });
   };
 
-  _selectValue(value: string | undefined = this.value) {
+  _selectValue(value: string | undefined) {
     const item = this.optionsTarget.querySelector<HTMLLIElement>(
       `[data-value="${value}"]`
     );
@@ -255,9 +271,11 @@ export class CustomSelectController extends Controller {
     this.filteredOptions.forEach((item, index) => {
       const clone = document.importNode(template, true);
       const option = clone.querySelector("li");
+      const selected = item.value === this.value;
       option!.textContent = item.label;
       option!.dataset.index = index.toString();
       option!.setAttribute("data-value", item.value);
+      option!.setAttribute("aria-selected", selected.toString());
       fragment.appendChild(clone);
     });
 
