@@ -1,7 +1,8 @@
 @layer components {
   :root {
     --alert-message__border-radius: var(--border-radius-rounded-square);
-    --alert-message__border: 1.5px solid var(--color-grey-100);
+    --alert-message__ring-width: 1.5px;
+    --alert-message__ring-color: var(--color-grey-100);
     --alert-message__text-color: var(--color-grey-base);
     --alert-message__font-family: var(--typography-label-medium__font-family);
     --alert-message__font-size: var(--typography-label-medium__font-size);
@@ -10,7 +11,8 @@
       --typography-label-small__letter-spacing
     );
     --alert-message__font-weight: var(--typography-label-medium__font-weight);
-    --alert-message__padding: calc(
+    --alert-message__py: 1em;
+    --alert-message__px: calc(
       var(--alert-message__font-size)
     ); /* 1:1 ratio with font-size */
     --alert-message__spacing: 8px;
@@ -28,10 +30,13 @@
 
   .alert-message {
     display: flex;
-    padding: var(--alert-message__padding);
+    padding: var(--alert-message__py) var(--alert-message__px);
     border-radius: var(--alert-message__border-radius);
-    border: var(--alert-message__border);
-    @apply space-x-[var(--alert-message\_\_spacing)];
+
+    @apply ring-inset
+      ring-[length:var(--alert-message\_\_ring-width)]
+      ring-[color:var(--alert-message\_\_ring-color)];
+    @apply gap-x-[var(--alert-message\_\_spacing)];
   }
 
   .alert-message--success {
