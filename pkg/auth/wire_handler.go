@@ -527,6 +527,14 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		AuthflowV2UIHandlerDependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2ErrorHandler)),
+	))
+}
+
 func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

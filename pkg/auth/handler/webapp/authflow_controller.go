@@ -8,12 +8,10 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
@@ -80,6 +78,7 @@ type AuthflowControllerOAuthClientResolver interface {
 
 type AuthflowNavigator interface {
 	Navigate(screen *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result)
+	NavigateError(r *http.Request, u url.URL, err error) *webapp.Result
 }
 
 type AuthflowControllerLogger struct{ *log.Logger }
@@ -884,58 +883,7 @@ func (c *AuthflowController) takeBranch(w http.ResponseWriter, r *http.Request, 
 }
 
 func (c *AuthflowController) makeErrorResult(w http.ResponseWriter, r *http.Request, u url.URL, err error) *webapp.Result {
-	apierror := apierrors.AsAPIError(err)
-
-	recoverable := func() *webapp.Result {
-		cookie, err := c.ErrorCookie.SetRecoverableError(r, apierror)
-		if err != nil {
-			panic(err)
-		}
-
-		result := &webapp.Result{
-			RedirectURI:      u.String(),
-			NavigationAction: "replace",
-			Cookies:          []*http.Cookie{cookie},
-		}
-
-		return result
-	}
-
-	nonRecoverable := func() *webapp.Result {
-		result := &webapp.Result{
-			RedirectURI:      u.String(),
-			NavigationAction: "replace",
-		}
-		err := c.ErrorCookie.SetNonRecoverableError(result, apierror)
-		if err != nil {
-			panic(err)
-		}
-
-		return result
-	}
-
-	switch {
-	case errors.Is(err, authflow.ErrFlowNotFound):
-		u.Path = "/errors/error"
-		return nonRecoverable()
-	case user.IsAccountStatusError(err):
-		u.Path = webapp.AuthflowRouteAccountStatus
-		return nonRecoverable()
-	case errors.Is(err, api.ErrNoAuthenticator):
-		u.Path = webapp.AuthflowRouteNoAuthenticator
-		return nonRecoverable()
-	case apierrors.IsKind(err, webapp.WebUIInvalidSession):
-		// Show WebUIInvalidSession error in different page.
-		u.Path = "/errors/error"
-		return nonRecoverable()
-	case r.Method == http.MethodGet:
-		// If the request method is Get, avoid redirect back to the same path
-		// which causes infinite redirect loop
-		u.Path = "/errors/error"
-		return nonRecoverable()
-	default:
-		return recoverable()
-	}
+	return c.Navigator.NavigateError(r, u, err)
 }
 
 func (c *AuthflowController) renderError(w http.ResponseWriter, r *http.Request, err error) {
