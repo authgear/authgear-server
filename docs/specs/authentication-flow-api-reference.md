@@ -527,7 +527,11 @@ When you are in this step, you will see the following response if you are settin
             "otp_form": "code",
             "channels": [
               "email"
-            ]
+            ],
+            "target": {
+              "masked_display_name": "+852*****123",
+              "verification_required": false
+            }
           },
           {
             "authentication": "primary_password",
@@ -571,10 +575,18 @@ Or this response if you are setting up 2FA.
             }
           },
           {
-            "authentication": "secondary_oob_otp_email"
+            "authentication": "secondary_oob_otp_email",
+            "otp_form": "code",
+            "channels": [
+              "email"
+            ]
           },
           {
-            "authentication": "secondary_oob_otp_sms"
+            "authentication": "secondary_oob_otp_sms",
+            "otp_form": "code",
+            "channels": [
+              "sms"
+            ]
           }
         ]
       }
@@ -635,7 +647,11 @@ The presence of this means you can create a primary Out-of-band (OOB) One-time-p
 
 ```json
 {
-  "authentication": "primary_oob_otp_email"
+  "authentication": "primary_oob_otp_email",
+  "otp_form": "code",
+  "channels": [
+    "email"
+  ]
 }
 ```
 
@@ -644,10 +660,11 @@ The corresponding input is
 ```json
 {
   "authentication": "primary_oob_otp_email"
+  "channel": "email"
 }
 ```
 
-After passing the input, you **MAY** enter a state where you need to verify the email address.
+In case `target` is present and `target.verification_required` is false, you do not need to verify the email address. Otherwise, you **MAY** enter a state where you need to verify the email address.
 
 ### authentication: primary_oob_otp_sms
 
@@ -655,7 +672,11 @@ The presence of this means you can create a primary OOB OTP authenticator using 
 
 ```json
 {
-  "authentication": "primary_oob_otp_sms"
+  "authentication": "primary_oob_otp_sms",
+  "otp_form": "code",
+  "channels": [
+    "sms"
+  ]
 }
 ```
 
@@ -663,11 +684,12 @@ The corresponding input is
 
 ```json
 {
-  "authentication": "primary_oob_otp_sms"
+  "authentication": "primary_oob_otp_sms",
+  "channel": "sms"
 }
 ```
 
-After passing the input, you **MAY** enter a state where you need to verify the phone number.
+In case `target` is present and `target.verification_required` is false, you do not need to verify the phone number. Otherwise, you **MAY** enter a state where you need to verify the phone number.
 
 ### authentication: secondary_password
 
@@ -697,7 +719,11 @@ The presence of this means you can create a secondary Out-of-band (OOB) One-time
 
 ```json
 {
-  "authentication": "secondary_oob_otp_email"
+  "authentication": "secondary_oob_otp_email",
+  "otp_form": "code",
+  "channels": [
+    "email"
+  ]
 }
 ```
 
@@ -706,6 +732,7 @@ The corresponding input is
 ```json
 {
   "authentication": "secondary_oob_otp_email",
+  "channel": "email",
   "target": "johndoe@example.com"
 }
 ```
@@ -720,7 +747,11 @@ The presence of this means you can create a secondary OOB OTP authenticator usin
 
 ```json
 {
-  "authentication": "secondary_oob_otp_sms"
+  "authentication": "secondary_oob_otp_sms",
+  "otp_form": "code",
+  "channels": [
+    "sms"
+  ]
 }
 ```
 
@@ -729,6 +760,7 @@ The corresponding input is
 ```json
 {
   "authentication": "secondary_oob_otp_sms",
+  "channel": "sms",
   "target": "+85298765432"
 }
 ```
