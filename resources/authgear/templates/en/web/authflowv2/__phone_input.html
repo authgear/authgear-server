@@ -43,11 +43,12 @@
 
       <template data-custom-select-target="searchTemplate">
         <div class="select__search-container">
-          <div class="select__search" data-custom-select-target="search">
+          <div class="select__search">
             <input
               tabindex="0"
               class="select__search-input"
               placeholder="Search"
+              data-custom-select-target="search"
               data-action="input->custom-select#search"
             >
             <div class="select__search-icon">
@@ -57,7 +58,8 @@
               class="select__clear-icon"
               type="button"
               tabindex="-1"
-              data-action="click->custom-select#clear"
+              data-custom-select-target="clearSearch"
+              data-action="click->custom-select#clearSearch"
             >
               <i class="material-icons material-icons--filled">cancel</i>
             </button>

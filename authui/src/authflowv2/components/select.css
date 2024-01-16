@@ -175,7 +175,7 @@
   }
 
   .select__option__prefix {
-    width: 5.25rem;
+    min-width: 5.25rem;
   }
 
   .select__empty {
