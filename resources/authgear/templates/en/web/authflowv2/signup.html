@@ -30,7 +30,7 @@
       {{ template "__watermark.html" . }}
     </div>
 	{{ else }}
-    <div class="space-y-4">
+    <div class="flex flex-col gap-4">
       {{ template "authflowv2/__header.html" . }}
       <h1 class="screen-title">
         {{ if $.ClientName }}
@@ -55,7 +55,7 @@
       {{ range $.IdentityCandidates }}
       {{ if eq .type "login_id" }}{{ if eq .login_id_key $.LoginIDKey }}
         <input type="hidden" name="q_login_id_type" value="{{ .login_id_type }}">
-        <div data-controller="text-field">
+        <div data-controller="text-field" class="flex flex-col gap-2">
           {{ if eq .login_id_type "phone" }}
             <!-- TODO(tung): Update to use phone input (https://github.com/authgear/authgear-server/issues/3561) -->
             <input
@@ -90,7 +90,7 @@
             >
           {{ end }}
           {{ if $display_error }}
-            <ul class="input__error-message mt-2" data-text-field-target="errorMessage">
+            <ul class="input__error-message" data-text-field-target="errorMessage">
               {{ template "authflowv2/__error.html" $ }}
             </ul>
           {{ end }}
