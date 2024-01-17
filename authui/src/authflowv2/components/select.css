@@ -1,0 +1,205 @@
+@layer components {
+  :root {
+    --select__text-color: var(--color-grey-700);
+    --select__font-size: var(--typography-body-large__font-size);
+    --select__line-height: var(--typography-body-large__line-height);
+    --select__letter-spacing: var(--typography-body-large__letter-spacing);
+    --select__font-weight: var(--typography-body-large__font-weight);
+    --select__font-family: var(--typography-body-large__font-family);
+
+    --select__dropdown-width: 100%;
+    --select__dropdown-border-radius: var(--border-radius-rounded-square);
+    --select__dropdown-background-color: var(--color-white);
+    --select__dropdown-shadow: 0px 9px 21px 0px rgba(0, 0, 0, 0.1),
+      0px 38px 38px 0px rgba(0, 0, 0, 0.09),
+      0px 85px 51px 0px rgba(0, 0, 0, 0.05),
+      0px 152px 61px 0px rgba(0, 0, 0, 0.01),
+      0px 237px 66px 0px rgba(0, 0, 0, 0);
+
+    --select__search-border: 1px solid var(--color-grey-100);
+
+    --select__input-padding: 12px 16px 12px 52px;
+
+    --select__search-icon-size: 1.5em;
+
+    --select__clear-icon-size: 1.25em;
+    --select__clear-icon-color: var(--color-grey-200);
+
+    --select__close-icon-size: 1.25em;
+
+    --select__options-height: 100%;
+    --select__options-py: 1em;
+    --select__options-px: calc(var(--select__font-size) * 1);
+    --select__options-space-y: 0.5em;
+
+    --select__option-border-radius: calc(var(--select__font-size) * 0.75)
+      /* 12 / 16 ratio to font size */;
+    --select__option-background-color--active: var(--color-grey-100);
+    --select__option-py: 0.75em;
+    --select__option-px: calc(var(--select__font-size) * 1);
+
+    --select__empty-text-color: var(--color-grey-300);
+    --select__empty-font-size: var(--typography-body-large-font-size);
+    --select__empty-line-height: var(--typography-body-large-line-height);
+    --select__empty-letter-spacing: var(
+      --typography-body-large__letter-spacing
+    );
+    --select__empty-font-weight: var(--typography-body-large-font-weight);
+
+    @media (min-width: theme("screens.tablet")) {
+      --select__options-height: 18em;
+      --select__input-padding: 12px 16px;
+      --select__dropdown-width: 21.5625em;
+    }
+  }
+
+  :root.dark {
+    /* TODO(newman): Dark mode */
+  }
+
+  .select__dropdown {
+    @apply absolute;
+
+    width: var(--select__dropdown-width);
+    border-radius: var(--select__dropdown-border-radius);
+    background-color: var(--select__dropdown-background-color);
+    box-shadow: var(--select__dropdown-shadow);
+
+    font-family: var(--select__font-family);
+    font-size: var(--select__font-size);
+    line-height: var(--select__line-height);
+    letter-spacing: var(--select__letter-spacing);
+    font-weight: var(--select__font-weight);
+    color: var(--select__text-color);
+
+    /* Full screen select for mobile */
+    @media not all and (min-width: theme("screens.tablet")) {
+      position: fixed;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0;
+      bottom: 0;
+    }
+  }
+
+  .select__search-container {
+    @apply relative;
+    @apply flex;
+    @apply flex-row;
+    @apply items-center;
+
+    @apply max-tablet:p-6 max-tablet:pb-2;
+  }
+
+  .select__search {
+    @apply relative;
+    @apply flex;
+    @apply flex-row;
+    @apply items-center;
+    @apply w-full;
+
+    @apply max-tablet:rounded-xl;
+    border: var(--select__search-border);
+
+    @media (min-width: theme("screens.tablet")) {
+      border: none;
+      border-bottom: var(--select__search-border);
+    }
+  }
+
+  .select__search-input {
+    @apply w-full;
+    padding: var(--select__input-padding);
+
+    border: none;
+    outline: none;
+    background-color: transparent;
+  }
+
+  .select__search-icon {
+    @apply absolute;
+    @apply flex;
+    @apply flex-row;
+    @apply items-center;
+    @apply justify-center;
+
+    @apply top-1/2;
+    @apply transform;
+    @apply -translate-y-1/2;
+
+    @apply max-tablet:left-4 tablet:right-4;
+    @apply pointer-events-none;
+
+    width: var(--select__search-icon-size);
+    font-size: var(--select__search-icon-size);
+  }
+
+  .select__clear-icon {
+    @apply absolute;
+    @apply flex;
+    @apply top-1/2;
+    @apply transform;
+    @apply -translate-y-1/2;
+
+    @apply right-4 tablet:right-12;
+
+    width: var(--select__clear-icon-size);
+    font-size: var(--select__clear-icon-size);
+    color: var(--select__clear-icon-color);
+  }
+
+  .select__close-icon {
+    @apply ml-4;
+    @apply tablet:hidden;
+
+    font-size: var(--select__close-icon-size);
+  }
+
+  .select__options {
+    @apply flex;
+    @apply flex-col;
+
+    padding: var(--select__options-py) var(--select__options-px);
+    max-height: var(--select__options-height);
+    overflow-y: auto;
+
+    @apply space-y-[var(--select\_\_options\_\_space-y)];
+  }
+
+  .select__option {
+    @apply flex;
+    @apply flex-row;
+    @apply items-center;
+    @apply cursor-pointer;
+    @apply whitespace-pre-wrap;
+
+    padding: var(--select__option-py) var(--select__option-px);
+    border-radius: var(--select__option-border-radius);
+    font-family: var(--select__font-family);
+
+    &:hover,
+    &:focus,
+    &[aria-selected="true"] {
+      background-color: var(--select__option-background-color--active);
+    }
+  }
+
+  .select__option-prefix {
+    min-width: 5.25rem;
+  }
+
+  .select__empty {
+    @apply flex;
+    @apply flex-row;
+    @apply items-center;
+    @apply justify-center;
+    @apply text-center;
+
+    padding: var(--select__option-py) var(--select__option-px);
+    color: var(--select__empty-text-color);
+    font-size: var(--select__empty-font-size);
+    line-height: var(--select__empty-line-height);
+    letter-spacing: var(--select__empty-letter-spacing);
+    font-weight: var(--select__empty-font-weight);
+  }
+}
