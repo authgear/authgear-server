@@ -944,5 +944,12 @@
   "v2-error-server": "Server encountered an internal error.",
   "v2-error-screen-title": "Unexpected Issues",
   "v2-error.error-password-policy-violated": "Invalid password format.",
-  "v2-create-password-page-title": "Create Password"
+  "v2-create-password-page-title": "Create Password",
+  "v2-password-policy-strength": "Password strength:",
+  "v2-password-policy-minimum-length": "At least {length, plural, one{# character} other{# characters}}",
+  "v2-password-policy-uppercase": "Contains an uppercase letter",
+  "v2-password-policy-lowercase": "Contains an lowercase letter",
+  "v2-password-policy-alphabet": "Contains an lowercase letter",
+  "v2-password-policy-digit": "Contains an digit",
+  "v2-password-policy-symbol": "Contains special character"
 }

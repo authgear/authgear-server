@@ -49,7 +49,6 @@ type AuthflowV2CreatePasswordHandler struct {
 	Renderer      handlerwebapp.Renderer
 }
 
-
 func (h *AuthflowV2CreatePasswordHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
