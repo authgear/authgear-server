@@ -95,10 +95,16 @@ func (n *AuthflowNavigator) navigateSignupPromote(s *AuthflowScreenWithFlowRespo
 	case config.AuthenticationFlowStepTypeIdentify:
 		n.navigateStepIdentify(s, r, webSessionID, result, expectedPath)
 	case config.AuthenticationFlowStepTypeCreateAuthenticator:
-		options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData).Options
-		index := *s.Screen.TakenBranchIndex
-		option := options[index]
-		switch option.Authentication {
+		// If the current step already tells the authentication, use it
+		authentication := s.StateTokenFlowResponse.Action.Authentication
+		if authentication == "" {
+			// Else, get it from the first option of the branch step
+			options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData).Options
+			index := *s.Screen.TakenBranchIndex
+			option := options[index]
+			authentication = option.Authentication
+		}
+		switch authentication {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryPassword:
@@ -128,10 +134,11 @@ func (n *AuthflowNavigator) navigateSignupPromote(s *AuthflowScreenWithFlowRespo
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-			switch s.StateTokenFlowResponse.Action.Data.(type) {
+			data := s.StateTokenFlowResponse.Action.Data
+			switch data.(type) {
 			case declarative.NodeVerifyClaimData:
 				// 1. We do not need to enter the target.
-				channel := s.Screen.TakenChannel
+				channel := data.(declarative.NodeVerifyClaimData).Channel
 				switch channel {
 				case model.AuthenticatorOOBChannelSMS:
 					s.Advance(AuthflowRouteEnterOOBOTP, result)
@@ -147,7 +154,7 @@ func (n *AuthflowNavigator) navigateSignupPromote(s *AuthflowScreenWithFlowRespo
 				panic(fmt.Errorf("unexpected data: %T", s.StateTokenFlowResponse.Action.Data))
 			}
 		default:
-			panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
+			panic(fmt.Errorf("unexpected authentication: %v", s.StateTokenFlowResponse.Action.Authentication))
 		}
 	case config.AuthenticationFlowStepTypeVerify:
 		channel := s.Screen.TakenChannel
