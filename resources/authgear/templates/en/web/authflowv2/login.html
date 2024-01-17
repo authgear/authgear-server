@@ -68,9 +68,10 @@
     {{ if (or $show_phone_input $show_text_input)}}
       <div data-controller="text-field" class="flex flex-col gap-2">
         {{ if $show_phone_input }}
+          <!-- TODO(tung): Update to use phone input (https://github.com/authgear/authgear-server/issues/3561) -->
           <input
             data-text-field-target="input"
-            class="block input w-full"
+            class="block input w-full {{ if $display_error }}input--error{{end}}"
             tabindex="0"
             {{ if $.ShouldFocusInput }}autofocus{{ end }}
             type="text"
@@ -89,7 +90,7 @@
         {{ if $show_text_input }}
           <input
             data-text-field-target="input"
-            class="block input w-full"
+            class="block input w-full {{ if $display_error }}input--error{{end}}"
             tabindex="0"
             {{ if $.ShouldFocusInput }}autofocus{{ end }}
             type="{{ $.NonPhoneLoginIDInputType }}"
@@ -104,6 +105,11 @@
           >
           <!-- This field is for Chrome and Safari to consider the above field as username for autocomplete -->
           <input class="hidden" aria-hidden="true" type="password" autocomplete="current-password" name="">
+        {{ end }}
+        {{ if $display_error }}
+          <p class="input__error-message" data-text-field-target="errorMessage">
+            {{ template "authflowv2/__error.html" $ }}
+          </p>
         {{ end }}
       </div>
     {{ end }}
