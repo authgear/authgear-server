@@ -382,16 +382,14 @@ func (mr *MockAuthflowNavigatorMockRecorder) Navigate(screen, r, webSessionID, r
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Navigate", reflect.TypeOf((*MockAuthflowNavigator)(nil).Navigate), screen, r, webSessionID, result)
 }
 
-// NavigateError mocks base method.
-func (m *MockAuthflowNavigator) NavigateError(r *http.Request, u url.URL, err error) *webapp.Result {
+// NavigateNonRecoverableError mocks base method.
+func (m *MockAuthflowNavigator) NavigateNonRecoverableError(r *http.Request, u *url.URL, e error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NavigateError", r, u, err)
-	ret0, _ := ret[0].(*webapp.Result)
-	return ret0
+	m.ctrl.Call(m, "NavigateNonRecoverableError", r, u, e)
 }
 
-// NavigateError indicates an expected call of NavigateError.
-func (mr *MockAuthflowNavigatorMockRecorder) NavigateError(r, u, err interface{}) *gomock.Call {
+// NavigateNonRecoverableError indicates an expected call of NavigateNonRecoverableError.
+func (mr *MockAuthflowNavigatorMockRecorder) NavigateNonRecoverableError(r, u, e interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NavigateError", reflect.TypeOf((*MockAuthflowNavigator)(nil).NavigateError), r, u, err)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NavigateNonRecoverableError", reflect.TypeOf((*MockAuthflowNavigator)(nil).NavigateNonRecoverableError), r, u, e)
 }

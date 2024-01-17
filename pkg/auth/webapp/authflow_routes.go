@@ -70,58 +70,21 @@ type AuthflowNavigator struct {
 	ErrorCookie *ErrorCookie
 }
 
-func (n *AuthflowNavigator) NavigateError(r *http.Request, u url.URL, err error) *Result {
-	apierror := apierrors.AsAPIError(err)
-
-	recoverable := func() *Result {
-		cookie, err := n.ErrorCookie.SetRecoverableError(r, apierror)
-		if err != nil {
-			panic(err)
-		}
-
-		result := &Result{
-			RedirectURI:      u.String(),
-			NavigationAction: "replace",
-			Cookies:          []*http.Cookie{cookie},
-		}
-
-		return result
-	}
-
-	nonRecoverable := func() *Result {
-		result := &Result{
-			RedirectURI:      u.String(),
-			NavigationAction: "replace",
-		}
-		err := n.ErrorCookie.SetNonRecoverableError(result, apierror)
-		if err != nil {
-			panic(err)
-		}
-
-		return result
-	}
-
+func (n *AuthflowNavigator) NavigateNonRecoverableError(r *http.Request, u *url.URL, e error) {
 	switch {
-	case errors.Is(err, authflow.ErrFlowNotFound):
-		u.Path = n.Endpoints.ErrorEndpointURL(n.UIConfig.Implementation).Path
-		return nonRecoverable()
-	case user.IsAccountStatusError(err):
+	case user.IsAccountStatusError(e):
 		u.Path = AuthflowRouteAccountStatus
-		return nonRecoverable()
-	case errors.Is(err, api.ErrNoAuthenticator):
+	case errors.Is(e, api.ErrNoAuthenticator):
 		u.Path = AuthflowRouteNoAuthenticator
-		return nonRecoverable()
-	case apierrors.IsKind(err, WebUIInvalidSession):
+	case errors.Is(e, authflow.ErrFlowNotFound):
+		u.Path = n.Endpoints.ErrorEndpointURL(n.UIConfig.Implementation).Path
+	case apierrors.IsKind(e, WebUIInvalidSession):
 		// Show WebUIInvalidSession error in different page.
 		u.Path = n.Endpoints.ErrorEndpointURL(n.UIConfig.Implementation).Path
-		return nonRecoverable()
 	case r.Method == http.MethodGet:
 		// If the request method is Get, avoid redirect back to the same path
 		// which causes infinite redirect loop
 		u.Path = n.Endpoints.ErrorEndpointURL(n.UIConfig.Implementation).Path
-		return nonRecoverable()
-	default:
-		return recoverable()
 	}
 }
 
