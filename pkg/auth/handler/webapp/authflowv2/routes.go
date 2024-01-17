@@ -74,58 +74,21 @@ type AuthflowV2Navigator struct {
 
 var _ handlerwebapp.AuthflowNavigator = &AuthflowV2Navigator{}
 
-func (n *AuthflowV2Navigator) NavigateError(r *http.Request, u url.URL, err error) *webapp.Result {
-	apierror := apierrors.AsAPIError(err)
-
-	recoverable := func() *webapp.Result {
-		cookie, err := n.ErrorCookie.SetRecoverableError(r, apierror)
-		if err != nil {
-			panic(err)
-		}
-
-		result := &webapp.Result{
-			RedirectURI:      u.String(),
-			NavigationAction: "replace",
-			Cookies:          []*http.Cookie{cookie},
-		}
-
-		return result
-	}
-
-	nonRecoverable := func() *webapp.Result {
-		result := &webapp.Result{
-			RedirectURI:      u.String(),
-			NavigationAction: "replace",
-		}
-		err := n.ErrorCookie.SetNonRecoverableError(result, apierror)
-		if err != nil {
-			panic(err)
-		}
-
-		return result
-	}
-
+func (n *AuthflowV2Navigator) NavigateNonRecoverableError(r *http.Request, u *url.URL, e error) {
 	switch {
-	case errors.Is(err, authflow.ErrFlowNotFound):
-		u.Path = n.Endpoints.ErrorEndpointURL(n.UIConfig.Implementation).Path
-		return nonRecoverable()
-	case user.IsAccountStatusError(err):
+	case user.IsAccountStatusError(e):
 		u.Path = webapp.AuthflowRouteAccountStatus
-		return nonRecoverable()
-	case errors.Is(err, api.ErrNoAuthenticator):
+	case errors.Is(e, api.ErrNoAuthenticator):
 		u.Path = webapp.AuthflowRouteNoAuthenticator
-		return nonRecoverable()
-	case apierrors.IsKind(err, webapp.WebUIInvalidSession):
+	case errors.Is(e, authflow.ErrFlowNotFound):
+		u.Path = n.Endpoints.ErrorEndpointURL(n.UIConfig.Implementation).Path
+	case apierrors.IsKind(e, webapp.WebUIInvalidSession):
 		// Show WebUIInvalidSession error in different page.
 		u.Path = n.Endpoints.ErrorEndpointURL(n.UIConfig.Implementation).Path
-		return nonRecoverable()
 	case r.Method == http.MethodGet:
 		// If the request method is Get, avoid redirect back to the same path
 		// which causes infinite redirect loop
 		u.Path = n.Endpoints.ErrorEndpointURL(n.UIConfig.Implementation).Path
-		return nonRecoverable()
-	default:
-		return recoverable()
 	}
 }
 

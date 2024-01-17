@@ -8,10 +8,12 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
@@ -78,7 +80,7 @@ type AuthflowControllerOAuthClientResolver interface {
 
 type AuthflowNavigator interface {
 	Navigate(screen *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result)
-	NavigateError(r *http.Request, u url.URL, err error) *webapp.Result
+	NavigateNonRecoverableError(r *http.Request, u *url.URL, e error)
 }
 
 type AuthflowControllerLogger struct{ *log.Logger }
@@ -883,7 +885,51 @@ func (c *AuthflowController) takeBranch(w http.ResponseWriter, r *http.Request, 
 }
 
 func (c *AuthflowController) makeErrorResult(w http.ResponseWriter, r *http.Request, u url.URL, err error) *webapp.Result {
-	return c.Navigator.NavigateError(r, u, err)
+	apierror := apierrors.AsAPIError(err)
+
+	recoverable := func() *webapp.Result {
+		cookie, err := c.ErrorCookie.SetRecoverableError(r, apierror)
+		if err != nil {
+			panic(err)
+		}
+
+		result := &webapp.Result{
+			RedirectURI:      u.String(),
+			NavigationAction: "replace",
+			Cookies:          []*http.Cookie{cookie},
+		}
+
+		return result
+	}
+
+	nonRecoverable := func() *webapp.Result {
+		result := &webapp.Result{
+			RedirectURI:      u.String(),
+			NavigationAction: "replace",
+		}
+		err := c.ErrorCookie.SetNonRecoverableError(result, apierror)
+		if err != nil {
+			panic(err)
+		}
+
+		return result
+	}
+
+	switch {
+	case errors.Is(err, authflow.ErrFlowNotFound):
+		fallthrough
+	case user.IsAccountStatusError(err):
+		fallthrough
+	case errors.Is(err, api.ErrNoAuthenticator):
+		fallthrough
+	case apierrors.IsKind(err, webapp.WebUIInvalidSession):
+		fallthrough
+	case r.Method == http.MethodGet:
+		c.Navigator.NavigateNonRecoverableError(r, &u, err)
+		return nonRecoverable()
+	default:
+		return recoverable()
+	}
 }
 
 func (c *AuthflowController) renderError(w http.ResponseWriter, r *http.Request, err error) {
