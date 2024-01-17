@@ -10,11 +10,12 @@ import (
 )
 
 type AuthflowBranch struct {
-	Authentication   config.AuthenticationFlowAuthentication
-	Index            int
-	Channel          model.AuthenticatorOOBChannel
-	MaskedClaimValue string
-	OTPForm          otp.Form
+	Authentication        config.AuthenticationFlowAuthentication
+	Index                 int
+	Channel               model.AuthenticatorOOBChannel
+	MaskedClaimValue      string
+	OTPForm               otp.Form
+	VerificationSkippable bool
 }
 
 func isAuthflowBranchSame(a AuthflowBranch, b AuthflowBranch) bool {
@@ -151,20 +152,37 @@ func newAuthflowBranchViewModelStepCreateAuthenticator(screen *webapp.AuthflowSc
 		}
 	}
 
+	addSkipBranch := func(idx int, o declarative.CreateAuthenticatorOption) {
+		branch := AuthflowBranch{
+			Authentication:        o.Authentication,
+			Index:                 idx,
+			MaskedClaimValue:      o.Target.MaskedDisplayName,
+			OTPForm:               o.OTPForm,
+			VerificationSkippable: true,
+		}
+		if !isAuthflowBranchSame(branch, takenBranch) {
+			branches = append(branches, branch)
+		}
+	}
+
 	for idx, o := range branchData.Options {
 		switch o.Authentication {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			addIndexBranch(idx, o)
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
-			addChannelBranch(idx, o)
+			fallthrough
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
-			addChannelBranch(idx, o)
+			fallthrough
+		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+			fallthrough
+		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+			if o.Target != nil && !o.Target.VerificationRequired {
+				addSkipBranch(idx, o)
+			} else {
+				addChannelBranch(idx, o)
+			}
 		case config.AuthenticationFlowAuthenticationSecondaryPassword:
 			addIndexBranch(idx, o)
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
-			addChannelBranch(idx, o)
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-			addChannelBranch(idx, o)
 		default:
 			// Ignore other authentications.
 			break

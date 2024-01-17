@@ -44,35 +44,51 @@
 	{{ template "setup-totp-instead" }}
 {{- end }}
 {{- if eq .Authentication "primary_oob_otp_email" }}
-	{{- if eq .OTPForm "code" }}
-	{{ template "setup-email-otp-code-instead" }}
-	{{- end }}
-	{{- if eq .OTPForm "link" }}
-	{{ template "setup-email-otp-link-instead" }}
+	{{- if .VerificationSkippable }}
+		{{ template "setup-oob-otp-without-verification" (dict "target" .MaskedClaimValue) }}
+	{{ else }}
+		{{- if eq .OTPForm "code" }}
+		{{ template "setup-email-otp-code-instead" }}
+		{{- end }}
+		{{- if eq .OTPForm "link" }}
+		{{ template "setup-email-otp-link-instead" }}
+		{{- end }}
 	{{- end }}
 {{- end }}
 {{- if eq .Authentication "secondary_oob_otp_email" }}
-	{{- if eq .OTPForm "code" }}
-	{{ template "setup-email-otp-code-instead" }}
-	{{- end }}
-	{{- if eq .OTPForm "link" }}
-	{{ template "setup-email-otp-link-instead" }}
-	{{- end }}
+	{{- if .VerificationSkippable }}
+		{{ template "setup-oob-otp-without-verification" (dict "target" .MaskedClaimValue) }}
+	{{ else }}
+		{{- if eq .OTPForm "code" }}
+		{{ template "setup-email-otp-code-instead" }}
+		{{- end }}
+		{{- if eq .OTPForm "link" }}
+		{{ template "setup-email-otp-link-instead" }}
+		{{- end }}
+  {{- end }}
 {{- end }}
 {{- if eq .Authentication "primary_oob_otp_sms" }}
-	{{- if eq .Channel "sms" }}
-	{{ template "setup-phone-otp-sms-instead" }}
-	{{- end }}
-	{{- if eq .Channel "whatsapp" }}
-	{{ template "setup-phone-otp-whatsapp-instead" }}
+	{{- if .VerificationSkippable }}
+		{{ template "setup-oob-otp-without-verification" (dict "target" .MaskedClaimValue) }}
+	{{ else }}
+		{{- if eq .Channel "sms" }}
+		{{ template "setup-phone-otp-sms-instead" }}
+		{{- end }}
+		{{- if eq .Channel "whatsapp" }}
+		{{ template "setup-phone-otp-whatsapp-instead" }}
+		{{- end }}
 	{{- end }}
 {{- end }}
 {{- if eq .Authentication "secondary_oob_otp_sms" }}
-	{{- if eq .Channel "sms" }}
-	{{ template "setup-phone-otp-sms-instead" }}
-	{{- end }}
-	{{- if eq .Channel "whatsapp" }}
-	{{ template "setup-phone-otp-whatsapp-instead" }}
+	{{- if .VerificationSkippable }}
+		{{ template "setup-oob-otp-without-verification" (dict "target" .MaskedClaimValue) }}
+	{{ else }}
+		{{- if eq .Channel "sms" }}
+		{{ template "setup-phone-otp-sms-instead" }}
+		{{- end }}
+		{{- if eq .Channel "whatsapp" }}
+		{{ template "setup-phone-otp-whatsapp-instead" }}
+		{{- end }}
 	{{- end }}
 {{- end }}
 {{- end }}

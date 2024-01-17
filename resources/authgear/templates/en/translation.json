@@ -442,6 +442,7 @@
   "setup-email-otp-link-instead": "Send login link via Email instead",
   "setup-phone-otp-sms-instead": "Send one-time password via SMS instead",
   "setup-phone-otp-whatsapp-instead": "Send one-time password via Whatsapp instead",
+  "setup-oob-otp-without-verification": "Sign in with one-time password via {target} next time",
 
   "enter-password-instead": "Enter password instead",
   "enter-secondary-password-instead": "Enter additional password instead",

@@ -153,9 +153,13 @@ func (i *IntentSignupFlowStepCreateAuthenticator) OutputData(ctx context.Context
 		return nil, err
 	}
 	step := i.step(current)
+	options, err := NewCreateAuthenticationOptions(ctx, deps, flows, step, i.UserID)
+	if err != nil {
+		return nil, err
+	}
 
 	return IntentSignupFlowStepCreateAuthenticatorData{
-		Options: NewCreateAuthenticationOptions(deps, step),
+		Options: options,
 	}, nil
 }
 

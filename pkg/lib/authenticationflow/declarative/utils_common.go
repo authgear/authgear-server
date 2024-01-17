@@ -735,31 +735,45 @@ func getMaskedOTPTarget(claimName model.ClaimName, claimValue string) string {
 	}
 }
 
+func getOOBAuthenticatorType(authentication config.AuthenticationFlowAuthentication) model.AuthenticatorType {
+	switch authentication {
+	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+		return model.AuthenticatorTypeOOBEmail
+	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+		return model.AuthenticatorTypeOOBSMS
+	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+		return model.AuthenticatorTypeOOBEmail
+	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+		return model.AuthenticatorTypeOOBSMS
+
+	default:
+		panic(fmt.Errorf("unexpected authentication method: %v", authentication))
+	}
+}
+
 func createAuthenticator(deps *authflow.Dependencies, userID string, authentication config.AuthenticationFlowAuthentication, target string) (*authenticator.Info, error) {
 	spec := &authenticator.Spec{
 		UserID: userID,
 		OOBOTP: &authenticator.OOBOTPSpec{},
 	}
 
+	spec.Type = getOOBAuthenticatorType(authentication)
+
 	switch authentication {
 	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 		spec.Kind = model.AuthenticatorKindPrimary
-		spec.Type = model.AuthenticatorTypeOOBEmail
 		spec.OOBOTP.Email = target
 
 	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 		spec.Kind = model.AuthenticatorKindPrimary
-		spec.Type = model.AuthenticatorTypeOOBSMS
 		spec.OOBOTP.Phone = target
 
 	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 		spec.Kind = model.AuthenticatorKindSecondary
-		spec.Type = model.AuthenticatorTypeOOBEmail
 		spec.OOBOTP.Email = target
 
 	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 		spec.Kind = model.AuthenticatorKindSecondary
-		spec.Type = model.AuthenticatorTypeOOBSMS
 		spec.OOBOTP.Phone = target
 
 	default:

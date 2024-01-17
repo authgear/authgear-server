@@ -40,6 +40,17 @@ func GetOOBAuthenticatorType(channel AuthenticatorOOBChannel) (AuthenticatorType
 	}
 }
 
+func (t AuthenticatorType) ToClaimName() ClaimName {
+	switch t {
+	case AuthenticatorTypeOOBSMS:
+		return ClaimPhoneNumber
+	case AuthenticatorTypeOOBEmail:
+		return ClaimEmail
+	}
+
+	panic("authenticator: incompatible authenticator type: " + t)
+}
+
 type Authenticator struct {
 	Meta
 	UserID    string            `json:"user_id"`
