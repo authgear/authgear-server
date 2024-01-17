@@ -31,7 +31,17 @@ func GetIdentificationOptions(f *authflow.FlowResponse) []declarative.Identifica
 	return options
 }
 
-func GetMostAppropriateIdentification(f *authflow.FlowResponse, loginID string) config.AuthenticationFlowIdentification {
+func GetMostAppropriateIdentification(f *authflow.FlowResponse, loginID string, loginIDInputType string) config.AuthenticationFlowIdentification {
+	// If loginIDInputType already tell us the login id type, return the corresponding type
+	switch loginIDInputType {
+	case "email":
+		return config.AuthenticationFlowIdentificationEmail
+	case "phone":
+		return config.AuthenticationFlowIdentificationPhone
+	}
+
+	// Else, guess the type
+
 	lookLikeAPhoneNumber := func(loginID string) bool {
 		err := phone.EnsureE164(loginID)
 		if err == nil {
@@ -62,33 +72,38 @@ func GetMostAppropriateIdentification(f *authflow.FlowResponse, loginID string) 
 	isEmailLike := lookLikeAnEmailAddress(loginID)
 
 	options := GetIdentificationOptions(f)
-	var first config.AuthenticationFlowIdentification
+	var iden config.AuthenticationFlowIdentification
 	for _, o := range options {
 		switch o.Identification {
 		case config.AuthenticationFlowIdentificationEmail:
-			if first == "" {
-				first = config.AuthenticationFlowIdentificationEmail
-			}
+			// If it is a email like login id, and there is an email option, it must be email
 			if isEmailLike {
-				return config.AuthenticationFlowIdentificationEmail
+				iden = config.AuthenticationFlowIdentificationEmail
+				break
 			}
 		case config.AuthenticationFlowIdentificationPhone:
-			if first == "" {
-				first = config.AuthenticationFlowIdentificationEmail
-			}
+			// If it is a phone like login id, and there is an phone option, it must be phone
 			if isPhoneLike {
-				return config.AuthenticationFlowIdentificationPhone
+				iden = config.AuthenticationFlowIdentificationPhone
+				break
 			}
 		case config.AuthenticationFlowIdentificationUsername:
-			if first == "" {
-				first = config.AuthenticationFlowIdentificationEmail
+			// The login id is not phone or email, then it can only be username
+			if !isPhoneLike && !isEmailLike {
+				iden = config.AuthenticationFlowIdentificationUsername
+				break
+			}
+			// If it is like a email or phone, it can be username,
+			// but we should continue the loop to see if there are better options
+			if iden == "" {
+				iden = config.AuthenticationFlowIdentificationUsername
 			}
 		}
 	}
 
-	if first == "" {
+	if iden == "" {
 		panic(fmt.Errorf("expected the authflow to allow login ID as identification"))
 	}
 
-	return first
+	return iden
 }
