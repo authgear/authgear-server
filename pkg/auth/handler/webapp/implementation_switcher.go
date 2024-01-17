@@ -53,13 +53,13 @@ type ImplementationSwitcherHandler struct {
 
 func (h *ImplementationSwitcherHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch GetUIImplementation(r.Context()) {
+	case config.UIImplementationAuthflow:
+		h.Authflow.ServeHTTP(w, r)
 	case config.UIImplementationInteraction:
-		h.Interaction.ServeHTTP(w, r)
+		fallthrough
 	case config.UIImplementationDefault:
 		fallthrough
-	case config.UIImplementationAuthflow:
-		fallthrough
 	default:
-		h.Authflow.ServeHTTP(w, r)
+		h.Interaction.ServeHTTP(w, r)
 	}
 }

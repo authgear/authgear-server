@@ -48,14 +48,14 @@ func (e *Endpoints) LogoutEndpointURL() *url.URL      { return e.urlOf("./logout
 func (e *Endpoints) SettingsEndpointURL() *url.URL    { return e.urlOf("./settings") }
 func (e *Endpoints) ResetPasswordEndpointURL(uiImpl config.UIImplementation) *url.URL {
 	switch uiImpl {
+	case config.UIImplementationAuthflow:
+		return e.urlOf("authflow/reset_password")
 	case config.UIImplementationInteraction:
-		return e.urlOf("flows/reset_password")
+		fallthrough
 	case config.UIImplementationDefault:
 		fallthrough
-	case config.UIImplementationAuthflow:
-		fallthrough
 	default:
-		return e.urlOf("authflow/reset_password")
+		return e.urlOf("flows/reset_password")
 	}
 }
 func (e *Endpoints) SSOCallbackEndpointURL() *url.URL { return e.urlOf("sso/oauth2/callback") }
