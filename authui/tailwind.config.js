@@ -1,5 +1,8 @@
 module.exports = {
-  content: ["../resources/authgear/templates/en/web/**/*.html"],
+  content: [
+    "../resources/authgear/templates/en/web/**/*.html",
+    "./src/**/*.{css,scss,ts}",
+  ],
   // We do not actually mention the oauth provider types in the HTML.
   // So we have to safelist them here to ensure we generate the CSS.
   safelist: [
