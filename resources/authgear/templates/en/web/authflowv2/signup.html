@@ -1,6 +1,11 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
 
+  {{ $display_error := false }}
+  {{ if .Error }}
+    {{ $display_error = true }}
+  {{ end }}
+
 	{{ $has_oauth := false }}
 	{{ $has_login_id := false }}
 	{{ $has_alternatives := false }}
@@ -25,7 +30,7 @@
       {{ template "__watermark.html" . }}
     </div>
 	{{ else }}
-    <div class="space-y-4">
+    <div class="flex flex-col gap-4">
       {{ template "authflowv2/__header.html" . }}
       <h1 class="screen-title">
         {{ if $.ClientName }}
@@ -50,38 +55,46 @@
       {{ range $.IdentityCandidates }}
       {{ if eq .type "login_id" }}{{ if eq .login_id_key $.LoginIDKey }}
         <input type="hidden" name="q_login_id_type" value="{{ .login_id_type }}">
-        {{ if eq .login_id_type "phone" }}
-          <!-- TODO(tung): Update to use phone input (https://github.com/authgear/authgear-server/issues/3561) -->
-          <input
-            class="block w-full"
-            tabindex="0"
-            {{ if $.ShouldFocusInput }}autofocus{{ end }}
-            type="text"
-            inputmode="tel"
-            autocomplete="tel-national"
-            autocapitalize="none"
-            name="q_login_id"
-            placeholder="{{ template "v2-placeholder.phone" }}"
-            data-retain-form-form-target="input"
-            data-retain-form-form-name-param="phone"
-          >
-        {{ else }}
-          <!-- TODO(tung): Update to use text input (https://github.com/authgear/authgear-server/issues/3557) -->
-          <input
-            {{ if $.ShouldFocusInput }}autofocus{{ end }}
-            class="block w-full"
-            tabindex="0"
-            type="{{ $.NonPhoneLoginIDInputType }}"
-            name="q_login_id"
-            autocomplete="username"
-            autocapitalize="none"
-            placeholder="{{ template "v2-placeholder.login-id" (dict "variant" $.LoginIDKey) }}"
-            data-controller="retain-form-input"
-            data-action="input->retain-form-input#input retain-form-input:input->retain-form-form#input"
-            data-retain-form-form-target="input"
-            data-retain-form-form-name-param="text"
-          >
-        {{ end }}
+        <div data-controller="text-field" class="flex flex-col gap-2">
+          {{ if eq .login_id_type "phone" }}
+            <!-- TODO(tung): Update to use phone input (https://github.com/authgear/authgear-server/issues/3561) -->
+            <input
+              data-text-field-target="input"
+              class="block input w-full"
+              tabindex="0"
+              {{ if $.ShouldFocusInput }}autofocus{{ end }}
+              type="text"
+              inputmode="tel"
+              autocomplete="tel-national"
+              autocapitalize="none"
+              name="q_login_id"
+              placeholder="{{ template "v2-placeholder.phone" }}"
+              data-retain-form-form-target="input"
+              data-retain-form-form-name-param="phone"
+            >
+          {{ else }}
+            <input
+              data-text-field-target="input"
+              {{ if $.ShouldFocusInput }}autofocus{{ end }}
+              class="block input w-full {{ if $display_error }}input--error{{end}}"
+              tabindex="0"
+              type="{{ $.NonPhoneLoginIDInputType }}"
+              name="q_login_id"
+              autocomplete="username"
+              autocapitalize="none"
+              placeholder="{{ template "v2-placeholder.login-id" (dict "variant" $.LoginIDKey) }}"
+              data-controller="retain-form-input"
+              data-action="input->retain-form-input#input retain-form-input:input->retain-form-form#input"
+              data-retain-form-form-target="input"
+              data-retain-form-form-name-param="text"
+            >
+          {{ end }}
+          {{ if $display_error }}
+            <p class="input__error-message" data-text-field-target="errorMessage">
+              {{ template "authflowv2/__error.html" $ }}
+            </p>
+          {{ end }}
+        </div>
       {{ end }}{{ end }}
       {{ end }}
 

@@ -937,5 +937,7 @@
   "v2-password-policy-password-strength-meter-2": "弱",
   "v2-password-policy-password-strength-meter-3": "一般",
   "v2-password-policy-password-strength-meter-4": "強",
-  "v2-password-policy-password-strength-meter-5": "非常強"
+  "v2-password-policy-password-strength-meter-5": "非常強",
+
+  "v2-error.error-invalid-email": "請在電子郵件地址中包含“@”符號。"
 }
