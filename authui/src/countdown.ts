@@ -32,7 +32,7 @@ export class CountdownController extends Controller {
       : new Date(this.cooldownUntilValue!).getTime() - scheduledAt.getTime();
     const label = this.labelValue;
     const labelUnit = this.labelUnitValue;
-    const format = this.formatValue || "s";
+    const format = this.formatValue || "mm:ss";
 
     const tick = () => {
       const now = new Date();
@@ -51,9 +51,7 @@ export class CountdownController extends Controller {
         this.animHandle = null;
       } else {
         button.disabled = true;
-        button.textContent = labelUnit
-          .replace("%d", String(seconds))
-          .replace("%s", formatted);
+        button.textContent = labelUnit.replace("%s", formatted);
         this.animHandle = requestAnimationFrame(tick);
       }
     };
