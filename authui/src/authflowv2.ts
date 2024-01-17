@@ -20,6 +20,7 @@ import { PasswordPolicyController } from "./authflowv2/password-policy";
 import { PasswordStrengthMeterController } from "./authflowv2/password-strength-meter";
 import { PhoneInputController } from "./phoneInput";
 import { CustomSelectController } from "./customSelect";
+import { CountdownController } from "./countdown";
 
 axios.defaults.withCredentials = true;
 
@@ -60,5 +61,6 @@ Stimulus.register("password-policy", PasswordPolicyController);
 Stimulus.register("password-strength-meter", PasswordStrengthMeterController);
 Stimulus.register("custom-select", CustomSelectController);
 Stimulus.register("phone-input", PhoneInputController);
+Stimulus.register("countdown", CountdownController);
 
 injectCSSAttrs(document.documentElement);
