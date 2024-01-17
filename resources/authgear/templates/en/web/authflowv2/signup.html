@@ -90,9 +90,9 @@
             >
           {{ end }}
           {{ if $display_error }}
-            <ul class="input__error-message" data-text-field-target="errorMessage">
+            <p class="input__error-message" data-text-field-target="errorMessage">
               {{ template "authflowv2/__error.html" $ }}
-            </ul>
+            </p>
           {{ end }}
         </div>
       {{ end }}{{ end }}
