@@ -26,9 +26,10 @@ var AuthflowLoginLoginIDSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"q_login_id": { "type": "string" }
+			"x_login_id": { "type": "string" },
+			"x_login_id_input_type": { "type": "string" }
 		},
-		"required": ["q_login_id"]
+		"required": ["x_login_id", "x_login_id_input_type"]
 	}
 `)
 
@@ -148,8 +149,9 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			return err
 		}
 
-		loginID := r.Form.Get("q_login_id")
-		identification := webapp.GetMostAppropriateIdentification(screen.StateTokenFlowResponse, loginID)
+		loginID := r.Form.Get("x_login_id")
+		loginIDInputType := r.Form.Get("x_login_id_input_type")
+		identification := webapp.GetMostAppropriateIdentification(screen.StateTokenFlowResponse, loginID, loginIDInputType)
 		input := map[string]interface{}{
 			"identification": identification,
 			"login_id":       loginID,

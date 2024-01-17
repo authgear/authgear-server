@@ -38,6 +38,7 @@
 					{{ template "log-in-to-continue" (dict "AppOrClientName" $appName) }}
 					{{ end }}
 				</h1>
+				<input type="hidden" name="x_login_id_input_type" value="{{ $.LoginIDInputType }}"/>
 
 				{{ if $.LoginIDInputType }}{{ if eq $.LoginIDInputType "phone" }}{{ if $.PhoneLoginIDEnabled }}
 				<input
@@ -50,7 +51,7 @@
 					inputmode="tel"
 					autocomplete="tel-national username webauthn"
 					autocapitalize="none"
-					name="q_login_id"
+					name="x_login_id"
 					placeholder="{{ template "phone-number-placeholder" }}"
 					data-controller="intl-tel-input"
 					data-action="input->intl-tel-input#input countrychange->intl-tel-input#input intl-tel-input:input->retain-form-form#input"
@@ -67,7 +68,7 @@
 					type="{{ $.NonPhoneLoginIDInputType }}"
 					autocomplete="username webauthn"
 					autocapitalize="none"
-					name="q_login_id"
+					name="x_login_id"
 					placeholder="{{ template "login-id-placeholder" (dict "variant" $.NonPhoneLoginIDType) }}"
 					data-controller="retain-form-input"
 					data-action="input->retain-form-input#input retain-form-input:input->retain-form-form#input"
