@@ -1,0 +1,13 @@
+@layer components {
+  :root {
+    --alternative-icon__font-size: 1.5em; /* 24 / 16 = 1.5 */
+  }
+
+  :root.dark {
+    /* TODO(tung): Dark mode styles */
+  }
+
+  .alternative-icon {
+    font-size: var(--alternative-icon__font-size);
+  }
+}
