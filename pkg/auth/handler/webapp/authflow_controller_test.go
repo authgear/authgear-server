@@ -28,8 +28,7 @@ type NoopNavigator struct {
 func (*NoopNavigator) Navigate(screen *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
 }
 
-func (*NoopNavigator) NavigateError(r *http.Request, u url.URL, err error) *webapp.Result {
-	return nil
+func (*NoopNavigator) NavigateNonRecoverableError(r *http.Request, u *url.URL, e error) {
 }
 
 func NewNoopAuthflowNavigator() *NoopNavigator {
