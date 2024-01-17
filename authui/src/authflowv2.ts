@@ -21,7 +21,7 @@ import { PasswordStrengthMeterController } from "./authflowv2/password-strength-
 import { PhoneInputController } from "./phoneInput";
 import { CustomSelectController } from "./customSelect";
 import { CountdownController } from "./countdown";
-import { TextFieldController } from "./authflowv2/components/text-field";
+import { TextFieldController } from "./authflowv2/text-field";
 
 axios.defaults.withCredentials = true;
 
