@@ -133,7 +133,7 @@ func (h *AuthflowV2EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.
 			"request_device_token": requestDeviceToken,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}
