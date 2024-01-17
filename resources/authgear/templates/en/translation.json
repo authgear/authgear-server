@@ -960,5 +960,7 @@
   "v2-password-policy-lowercase": "Contains an lowercase letter",
   "v2-password-policy-alphabet": "Contains an lowercase letter",
   "v2-password-policy-digit": "Contains an digit",
-  "v2-password-policy-symbol": "Contains special character"
+  "v2-password-policy-symbol": "Contains special character",
+  "v2-oob-otp-page-title": "Verification Code",
+  "v2-oob-otp-page-subtitle": "We ve just sent a {CodeLength}-digit verification code to {MaskedClaimValue}."
 }

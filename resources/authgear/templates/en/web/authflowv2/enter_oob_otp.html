@@ -1,7 +1,58 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
 
-<h1>Enter OOB OTP</h1>
-TO BE IMPLEMENTED
+  {{ $has_alternatives := false }}
+	{{ range $.IdentityCandidates }}
+		{{ if eq .type "oauth" }}
+      {{ $has_oauth = true }}
+      <!-- TODO(tung): Add SSO (https://github.com/authgear/authgear-server/issues/3593) -->
+      {{/* $has_alternatives = true */}}
+		{{ end }}
+		{{ if eq .type "login_id" }}
+		  {{ $has_login_id = true }}
+      {{ if not (eq .login_id_key $.LoginIDKey) }}
+		    {{ $has_alternatives = true }}
+      {{ end }}
+		{{ end }}
+	{{ end }}
 
+  <div class="space-y-4">
+    {{ template "authflowv2/__header.html" . }}
+    <h1 class="screen-title">
+      {{ template "v2-oob-otp-page-title" }}
+    </h1>
+    <h2 class="screen-description">
+      {{ template "v2-oob-otp-page-subtitle" . }}
+    </h2>
+  </div>
+  <form class="mt-8" method="post" novalidate>
+    {{ $.CSRFField }}
+
+    {{ template "authflowv2/__otp_input.html"
+      (dict
+        "CSRFField" $.CSRFField
+        "CodeLength" $.CodeLength
+        "AutoFocus" $.ShouldFocusInput
+        "Disabled" $.FailedAttemptRateLimitExceeded
+        "ResendButtonLabel" "Resend code"
+        "ResendButtonLabelWithValue" "Resend code (%ds)"
+        "ResendButtonCooldown" 5
+        "SubmitEvent" "authgear.button.submit_verification_code"
+        "ResendEvent" "authgear.button.resend_verification_code"
+        "Context" $
+      )
+    }}
+
+    {{ if $.CanRequestDeviceToken }}
+    <div class="mt-4 flex flex-row items-center gap-x-2.5">
+      <div class="checkbox">
+        <input id="device-token" type="checkbox" name="x_device_token" value="true" checked>
+        <label for="device-token"></label>
+      </div>
+      <label class="text-sm primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
+    </div>
+    {{ end }}
+  </form>
+
+  <!-- TODO(newman): Alternative options -->
 {{ end }}
