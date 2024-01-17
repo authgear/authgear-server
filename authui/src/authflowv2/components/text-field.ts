@@ -24,7 +24,7 @@ export class TextFieldController extends Controller {
     }
 
     if (this.errorMessageTarget != null) {
-      this.errorMessageTarget.style.display = "none";
+      this.errorMessageTarget.classList.add("hidden");
     }
   };
 }
