@@ -36,9 +36,9 @@
       <div class="otp-input__digit"></div>
     </div>
   </div>
-  {{ if $.ErrorMessage }}
+  {{ if $.Context.Error }}
   <p class="otp-input__error-message">
-    {{ $.ErrorMessage }}
+    {{ template "authflowv2/__error.html" $.Context }}
   </p>
   {{ end }}
   <form method="post" novalidate>
