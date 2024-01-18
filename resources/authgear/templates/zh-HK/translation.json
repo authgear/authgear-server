@@ -929,17 +929,26 @@
   "v2-sign-up.signup-with-username": "使用用戶名繼續",
   "v2-sign-up.signup-with-phone": "使用電話繼續",
 
+  "v2-login.title": "登入{AppOrClientName}",
+  "v2-login.subtitle": "免費。無需信用卡。",
+  "v2-login.switch-to-sign-up": "沒有帳號？ <a href=\"{href}\">建立一個</a>",
+
   "v2-or-label": "或",
   "v2-placeholder.login-id": "{variant, select, email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}}",
   "v2-placeholder.phone": "電話號碼",
   "v2-button.continue": "繼續",
+  "v2-button.login": "登入",
   "v2-password-policy-password-strength-meter-1": "非常弱",
   "v2-password-policy-password-strength-meter-2": "弱",
   "v2-password-policy-password-strength-meter-3": "一般",
   "v2-password-policy-password-strength-meter-4": "強",
   "v2-password-policy-password-strength-meter-5": "非常強",
+  "v2-no-results-found": "未找到結果",
 
-  "v2-error.error-invalid-email": "請在電子郵件地址中包含“@”符號。",
+  "v2-continue-with-text-login-id": "使用{variant, select, email {電子郵件} username {使用者名稱} other {電子郵件 / 使用者名稱}}繼續",
+  "v2-continue-with-phone": "使用電話繼續",
+
+  "v2-error-invalid-email": "請在電子郵件地址中包含“@”符號。",
   "v2-error-web-ui-invalid-session-return": "<p>此頁面已失效或已過期。</p><p>請返回並重試。</p>",
   "v2-error-server": "伺服器內部錯誤。",
   "v2-error-screen-title": "系統錯誤",
