@@ -104,7 +104,7 @@ func makeInclude(t tpl) func(tplName string, data any) (template.HTML, error) {
 	) (template.HTML, error) {
 		buf := &bytes.Buffer{}
 		err := t.ExecuteTemplate(buf, tplName, data)
-		html := template.HTML(buf.String())
+		html := template.HTML(buf.String()) // nolint:gosec
 		return html, err
 	}
 }
