@@ -21,7 +21,7 @@
     --alert-message__icon-text-color--success: var(--color-success);
     --alert-message__icon-text-color--error: var(--color-error);
     --alert-message__icon-text-color--warning: var(--color-warning);
-    --alert-message__icon-size: 1.5em;
+    --alert-message__icon-size: 1.25em;
   }
 
   :root.dark {
@@ -60,6 +60,7 @@
   .alert-message__icon {
     height: var(--alert-message__icon-size);
     width: var(--alert-message__icon-size);
+    font-size: var(--alert-message__icon-size);
   }
 
   .alert-message__text {
