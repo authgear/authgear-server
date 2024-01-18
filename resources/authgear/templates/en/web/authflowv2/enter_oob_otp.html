@@ -1,23 +1,18 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
 
-  {{ $has_alternatives := false }}
-	{{ range $.IdentityCandidates }}
-		{{ if eq .type "oauth" }}
-      {{ $has_oauth = true }}
-      <!-- TODO(tung): Add SSO (https://github.com/authgear/authgear-server/issues/3593) -->
-      {{/* $has_alternatives = true */}}
-		{{ end }}
-		{{ if eq .type "login_id" }}
-		  {{ $has_login_id = true }}
-      {{ if not (eq .login_id_key $.LoginIDKey) }}
-		    {{ $has_alternatives = true }}
-      {{ end }}
-		{{ end }}
-	{{ end }}
+  {{ $display_otp_input_error := false }}
+  {{ if $.Error }}
+    {{ if eq $.Error.reason "InvalidVerificationCode" }}
+      {{ $display_otp_input_error = true }}
+    {{ end }}
+    {{ if eq $.Error.reason "InvalidCredentials" }}
+      {{ $display_otp_input_error = true }}
+    {{ end }}
+  {{ end }}
 
   {{ if $.Error }}
-    {{ if not (eq $.Error.reason "InvalidVerificationCode") }}
+    {{ if not $display_otp_input_error }}
       <div class="mb-8 alert-message alert-message--error">
         <span class="alert-message__icon material-icons material-icons--filled">
           error
@@ -41,11 +36,10 @@
   <div class="mt-8">
     {{ $otp_error_message := "" }}
     {{ if $.Error  }}
-      {{ if eq $.Error.reason "InvalidVerificationCode" }}
+      {{ if $display_otp_input_error }}
         {{ $otp_error_message = include "authflowv2/__error.html" .  }}
       {{ end }}
     {{ end }}
-
 
     {{ template "authflowv2/__otp_input.html"
       (dict
