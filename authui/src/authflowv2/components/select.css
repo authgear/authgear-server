@@ -48,7 +48,7 @@
 
     @media (min-width: theme("screens.tablet")) {
       --select__options-height: 18em;
-      --select__input-padding: 12px 16px;
+      --select__input-padding: 0.75rem 1rem;
       --select__dropdown-width: 21.5625em;
     }
   }
@@ -79,6 +79,8 @@
       left: 0 !important;
       right: 0;
       bottom: 0;
+      height: 100%;
+      border-radius: none;
     }
   }
 
@@ -185,6 +187,9 @@
   }
 
   .select__option-prefix {
+    @apply flex;
+    @apply flex-row;
+    @apply items-center;
     min-width: 5.25rem;
   }
 

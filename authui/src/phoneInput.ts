@@ -137,7 +137,7 @@ export class PhoneInputController extends Controller {
       const countryFlag = getEmojiFlag(countryCode);
       const countryCallingCode = getCountryCallingCode(countryCode);
       return {
-        flagEmoji: countryFlag,
+        flagEmoji: `<span class="country-flag-icon phone-input__country-flag">${countryFlag}</span>`,
         localizedName: countryLocalizedName,
         name: countryName,
         iso2: countryCode,
