@@ -31,6 +31,7 @@ func makeTemplateFuncMap() map[string]interface{} {
 	templateFuncMap["ensureTime"] = EnsureTime
 	templateFuncMap["isNil"] = IsNil
 	templateFuncMap["showAttributeValue"] = ShowAttributeValue
+	templateFuncMap["htmlattr"] = HTMLAttr
 	return templateFuncMap
 }
 
@@ -95,6 +96,10 @@ func ShowAttributeValue(v interface{}) string {
 		return fmt.Sprintf("%v", v)
 
 	}
+}
+
+func HTMLAttr(v string) template.HTMLAttr {
+	return template.HTMLAttr(v)
 }
 
 func makeInclude(t tpl) func(tplName string, data any) (template.HTML, error) {

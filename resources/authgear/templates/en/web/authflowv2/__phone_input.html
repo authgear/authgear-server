@@ -1,11 +1,12 @@
 <!-- Example usage:
 {{ template "authflowv2/__phone_input.html"
   (dict
-    "CountryLabel" "Country"
     "Placeholder" "Phone number"
-    "ErrorMessage" "Please select a country"
     "EmptyMessage" "No results found"
-    "InputName" "phone"
+    "Name" "phone"
+    "IsError" true
+    "AutoFocus" true
+    "PhoneInputAttrs" `data-foo="bar"`
   )
 }}
 -->
@@ -26,7 +27,7 @@
       aria-expanded="false"
       data-custom-select-target="trigger"
       data-action="click->custom-select#toggle"
-    >{{ $.CountryLabel }}</button>
+    ></button>
 
     <!-- Dropdown Menu -->
     <dialog
@@ -101,20 +102,19 @@
   </div>
   <div>
     <input
-      class="input w-full {{ if $.ErrorMessage }}input--error{{ end }}"
+      class="input w-full {{ if $.IsError }}input--error{{ end }}"
       placeholder="{{ $.Placeholder }}"
       type="text"
-      inputmode="numeric"
-      pattern="^[0-9]*$"
+      inputmode="tel"
+      pattern="^[\+0-9]*$"
       data-action="input->phone-input#handleNumberInput"
+      {{ if $.AutoFocus }}autofocus{{ end }}
+      {{ if $.PhoneInputAttrs }}{{ htmlattr $.PhoneInputAttrs }}{{ end }}
     />
-    {{ if $.ErrorMessage }}
-    <div class="phone-input__error-message">{{ $.ErrorMessage }}</div>
-    {{ end }}
   </div>
   <input
     type="hidden"
-    name="{{ $.InputName }}"
+    name="{{ $.Name }}"
     data-phone-input-target="input"
   />
 </div>

@@ -943,6 +943,7 @@
   "v2-password-policy-password-strength-meter-3": "Medium",
   "v2-password-policy-password-strength-meter-4": "Strong",
   "v2-password-policy-password-strength-meter-5": "Very Strong",
+  "v2-no-results-found": "No results found",
 
   "v2-error.error-invalid-email": "Please include '@' in the email address.",
   "v2-error-web-ui-invalid-session-return": "<p>This page is invalid or has expired.</p><p>Please return and retry your request.</p>",
