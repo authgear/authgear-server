@@ -50,7 +50,7 @@
           {{ if (eq .details.format "phone") }}
             <span>{{ template "error-phone-number-format" }}</span>
           {{ else if (eq .details.format "email") }}
-            <span>{{ template "v2-error.error-invalid-email" }}</span>
+            <span>{{ template "v2-error-invalid-email" }}</span>
           {{ else if (eq .details.format "username") }}
             <span>{{ template "error-invalid-username" }}</span>
           {{ else if (eq .details.format "x_totp_code") }}
