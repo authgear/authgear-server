@@ -1,14 +1,18 @@
 package webapp
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -56,7 +60,32 @@ const (
 	AuthflowRouteNoAuthenticator = "/authflow/no_authenticator"
 )
 
+type AuthflowNavigatorEndpointsProvider interface {
+	ErrorEndpointURL(uiImpl config.UIImplementation) *url.URL
+}
+
 type AuthflowNavigator struct {
+	Endpoints   AuthflowNavigatorEndpointsProvider
+	UIConfig    *config.UIConfig
+	ErrorCookie *ErrorCookie
+}
+
+func (n *AuthflowNavigator) NavigateNonRecoverableError(r *http.Request, u *url.URL, e error) {
+	switch {
+	case user.IsAccountStatusError(e):
+		u.Path = AuthflowRouteAccountStatus
+	case errors.Is(e, api.ErrNoAuthenticator):
+		u.Path = AuthflowRouteNoAuthenticator
+	case errors.Is(e, authflow.ErrFlowNotFound):
+		u.Path = n.Endpoints.ErrorEndpointURL(n.UIConfig.Implementation).Path
+	case apierrors.IsKind(e, WebUIInvalidSession):
+		// Show WebUIInvalidSession error in different page.
+		u.Path = n.Endpoints.ErrorEndpointURL(n.UIConfig.Implementation).Path
+	case r.Method == http.MethodGet:
+		// If the request method is Get, avoid redirect back to the same path
+		// which causes infinite redirect loop
+		u.Path = n.Endpoints.ErrorEndpointURL(n.UIConfig.Implementation).Path
+	}
 }
 
 func (n *AuthflowNavigator) Navigate(s *AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *Result) {

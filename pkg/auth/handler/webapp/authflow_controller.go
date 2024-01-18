@@ -80,6 +80,7 @@ type AuthflowControllerOAuthClientResolver interface {
 
 type AuthflowNavigator interface {
 	Navigate(screen *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result)
+	NavigateNonRecoverableError(r *http.Request, u *url.URL, e error)
 }
 
 type AuthflowControllerLogger struct{ *log.Logger }
@@ -916,22 +917,15 @@ func (c *AuthflowController) makeErrorResult(w http.ResponseWriter, r *http.Requ
 
 	switch {
 	case errors.Is(err, authflow.ErrFlowNotFound):
-		u.Path = "/errors/error"
-		return nonRecoverable()
+		fallthrough
 	case user.IsAccountStatusError(err):
-		u.Path = webapp.AuthflowRouteAccountStatus
-		return nonRecoverable()
+		fallthrough
 	case errors.Is(err, api.ErrNoAuthenticator):
-		u.Path = webapp.AuthflowRouteNoAuthenticator
-		return nonRecoverable()
+		fallthrough
 	case apierrors.IsKind(err, webapp.WebUIInvalidSession):
-		// Show WebUIInvalidSession error in different page.
-		u.Path = "/errors/error"
-		return nonRecoverable()
+		fallthrough
 	case r.Method == http.MethodGet:
-		// If the request method is Get, avoid redirect back to the same path
-		// which causes infinite redirect loop
-		u.Path = "/errors/error"
+		c.Navigator.NavigateNonRecoverableError(r, &u, err)
 		return nonRecoverable()
 	default:
 		return recoverable()

@@ -1,16 +1,20 @@
 package authflowv2
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -58,10 +62,35 @@ const (
 	AuthflowV2RouteNoAuthenticator = "/authflow/v2/no_authenticator"
 )
 
+type AuthflowV2NavigatorEndpointsProvider interface {
+	ErrorEndpointURL(uiImpl config.UIImplementation) *url.URL
+}
+
 type AuthflowV2Navigator struct {
+	Endpoints   AuthflowV2NavigatorEndpointsProvider
+	UIConfig    *config.UIConfig
+	ErrorCookie *webapp.ErrorCookie
 }
 
 var _ handlerwebapp.AuthflowNavigator = &AuthflowV2Navigator{}
+
+func (n *AuthflowV2Navigator) NavigateNonRecoverableError(r *http.Request, u *url.URL, e error) {
+	switch {
+	case user.IsAccountStatusError(e):
+		u.Path = webapp.AuthflowRouteAccountStatus
+	case errors.Is(e, api.ErrNoAuthenticator):
+		u.Path = webapp.AuthflowRouteNoAuthenticator
+	case errors.Is(e, authflow.ErrFlowNotFound):
+		u.Path = n.Endpoints.ErrorEndpointURL(n.UIConfig.Implementation).Path
+	case apierrors.IsKind(e, webapp.WebUIInvalidSession):
+		// Show WebUIInvalidSession error in different page.
+		u.Path = n.Endpoints.ErrorEndpointURL(n.UIConfig.Implementation).Path
+	case r.Method == http.MethodGet:
+		// If the request method is Get, avoid redirect back to the same path
+		// which causes infinite redirect loop
+		u.Path = n.Endpoints.ErrorEndpointURL(n.UIConfig.Implementation).Path
+	}
+}
 
 func (n *AuthflowV2Navigator) Navigate(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
 	if s.HasBranchToTake() {

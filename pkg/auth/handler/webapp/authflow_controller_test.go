@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -25,6 +26,9 @@ type NoopNavigator struct {
 }
 
 func (*NoopNavigator) Navigate(screen *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
+}
+
+func (*NoopNavigator) NavigateNonRecoverableError(r *http.Request, u *url.URL, e error) {
 }
 
 func NewNoopAuthflowNavigator() *NoopNavigator {
