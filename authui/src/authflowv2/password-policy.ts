@@ -105,6 +105,10 @@ export class PasswordPolicyController extends Controller {
   declare currentMeterTarget: HTMLMeterElement;
   declare policyTargets: HTMLElement[];
 
+  connect() {
+    this.check();
+  }
+
   check() {
     const value = this.inputTarget.value;
     if (value === "") {
