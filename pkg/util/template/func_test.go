@@ -146,6 +146,36 @@ func TestFuncs(t *testing.T) {
 			So(buf.String(), ShouldEqual, "<div><span>content</span></div>")
 
 		})
+
+		Convey("it supports nesting", func() {
+			tmpl := template.New("")
+			funcMap := MakeTemplateFuncMap(tmpl)
+			tmpl = tmpl.Funcs(funcMap)
+
+			tmpl, err := tmpl.Parse(`
+			{{- define "span" -}}
+			<span>{{ .Children }}</span>
+			{{- end -}}
+
+			{{- define "div" -}}
+			<div>{{ .Children }}</div>
+			{{- end -}}
+
+			{{- template "div" (dict
+				"Children" (include "span" (dict
+					"Children" (include "div" (dict
+						"Children" "content"
+					))
+				))
+			) -}}
+			`)
+			So(err, ShouldBeNil)
+
+			buf := &bytes.Buffer{}
+			err = tmpl.Execute(buf, nil)
+			So(err, ShouldBeNil)
+			So(buf.String(), ShouldEqual, "<div><span><div>content</div></span></div>")
+		})
 	},
 	)
 }
