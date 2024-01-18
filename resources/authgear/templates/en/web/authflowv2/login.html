@@ -68,8 +68,21 @@
     {{ if (or $show_phone_input $show_text_input)}}
       <div data-controller="text-field" class="flex flex-col gap-2">
         {{ if $show_phone_input }}
+          {{ template "authflowv2/__phone_input.html"
+            (dict
+              "Placeholder" (include "v2-placeholder.phone" nil)
+              "EmptyMessage" (include "v2-no-results-found" nil)
+              "Name" "x_login_id"
+              "IsError" $display_error
+              "AutoFocus" $.ShouldFocusInput
+              "PhoneInputAttrs" `
+                tabindex="0"
+                data-text-field-target="input"
+              `
+            )
+          }}
           <!-- TODO(tung): Update to use phone input (https://github.com/authgear/authgear-server/issues/3561) -->
-          <input
+          <!-- <input
             data-text-field-target="input"
             class="block input w-full {{ if $display_error }}input--error{{end}}"
             tabindex="0"
@@ -84,7 +97,7 @@
             data-action="input->retain-form-input#input retain-form-input:input->retain-form-form#input"
             data-retain-form-form-target="input"
             data-retain-form-form-name-param="phone"
-          >
+          > -->
         {{ end }}
 
         {{ if $show_text_input }}

@@ -23,24 +23,6 @@
     --phone-input__trigger-px: 0.5em;
     --phone-input__trigger-height: 3.5rem;
     --phone-input__trigger-width: 6em;
-
-    --phone-input__error-message-margin-top: 0.5em;
-    --phone-input__error-message-text-color: var(--color-error);
-    --phone-input__error-message-font-family: var(
-      --typography-body-medium__font-family
-    );
-    --phone-input__error-message-font-size: var(
-      --typography-body-medium__font-size
-    );
-    --phone-input__error-message-line-height: var(
-      --typography-body-medium__line-height
-    );
-    --phone-input__error-message-letter-spacing: var(
-      --typography-body-medium__letter-spacing
-    );
-    --phone-input__error-message-font-weight: var(
-      --typography-body-medium__font-weight
-    );
   }
 
   :root.dark {
@@ -74,15 +56,5 @@
         ring-[length:var(--phone-input\_\_trigger-ring-width--focus)]
         ring-[color:var(--phone-input\_\_trigger-ring-color--focus)];
     }
-  }
-
-  .phone-input__error-message {
-    margin-top: var(--phone-input__error-message-margin-top);
-    color: var(--phone-input__error-message-text-color);
-    font-family: var(--phone-input__error-message-font-family);
-    font-size: var(--phone-input__error-message-font-size);
-    line-height: var(--phone-input__error-message-line-height);
-    letter-spacing: var(--phone-input__error-message-letter-spacing);
-    font-weight: var(--phone-input__error-message-font-weight);
   }
 }

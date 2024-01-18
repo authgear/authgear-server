@@ -7,7 +7,8 @@ export class TextFieldController extends Controller {
   static targets = ["input", "errorMessage"];
 
   declare inputErrorClassValue: string;
-  declare errorMessageTarget: HTMLElement | null;
+  declare hasErrorMessageTarget: boolean;
+  declare errorMessageTarget: HTMLElement;
   declare inputTarget: HTMLInputElement;
 
   connect() {
@@ -23,7 +24,7 @@ export class TextFieldController extends Controller {
       this.inputTarget.classList.remove(this.inputErrorClassValue);
     }
 
-    if (this.errorMessageTarget != null) {
+    if (this.hasErrorMessageTarget) {
       this.errorMessageTarget.classList.add("hidden");
     }
   };
