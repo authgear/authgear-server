@@ -43,6 +43,8 @@
             <span>{{ template "error-email-required" }}</span>
           {{ else if (call $.SliceContains .details.missing "x_e164" ) }}
             <span>{{ template "error-phone-number-required" }}</span>
+          {{ else if (call $.SliceContains .details.missing "x_target" ) }}
+            <span>{{ template "error-phone-number-required" }}</span>
           {{ else }}
             <span>{{ .Error.message }}</span>
           {{ end }}
