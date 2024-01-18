@@ -224,7 +224,11 @@ export class CustomSelectController extends Controller {
 
   _updateDropdownPosition = () => {
     computePosition(this.triggerTarget, this.dropdownTarget, {
-      middleware: [flip(), shift(), autoPlacement({ alignment: "start" })],
+      middleware: [
+        flip(),
+        shift(),
+        autoPlacement({ alignment: "start", crossAxis: true }),
+      ],
     }).then(({ x, y }) => {
       Object.assign(this.dropdownTarget.style, {
         left: `${x}px`,
@@ -261,8 +265,7 @@ export class CustomSelectController extends Controller {
     const option =
       this.optionsValue.find((option) => option.value === this.value) ??
       this.optionsValue[0];
-    this.triggerTarget.textContent =
-      option?.triggerLabel ?? option?.label ?? "";
+    this.triggerTarget.innerHTML = option?.triggerLabel ?? option?.label ?? "";
   }
 
   renderSearch() {
@@ -293,14 +296,14 @@ export class CustomSelectController extends Controller {
       );
       if (prefixEl) {
         prefixEl.style.pointerEvents = "none";
-        prefixEl.textContent = item.prefix ?? "";
+        prefixEl.innerHTML = item.prefix ?? "";
       }
       if (labelEl) {
         labelEl.style.pointerEvents = "none";
-        labelEl.textContent = item.label;
+        labelEl.innerHTML = item.label;
       }
       if (!prefixEl && !labelEl) {
-        option!.textContent = item.label;
+        option!.innerHTML = item.label;
       }
       option!.dataset.index = index.toString();
       option!.setAttribute("data-value", item.value);
