@@ -3,7 +3,7 @@
     (dict
       "CSRFField" ($.CSRFField)
       "CodeLength" 6
-      "ErrorContext" $
+      "ErrorMessage" "Invalid code"
       "InputName" "x_code"
       "SubmitButtonName" "x_action"
       "SubmitButtonValue" "submit"
@@ -38,10 +38,10 @@
     </div>
   </div>
 
-  {{ if $.ErrorContext }}
-    <p class="otp-input__error-message">
-      {{ template "authflowv2/__error.html" $.ErrorContext }}
-    </p>
+  {{ if $.ErrorMessage }}
+    <div class="otp-input__error-message">
+      {{ $.ErrorMessage }}
+    </div>
   {{ end }}
 
   <form id="main-form" method="post" novalidate>

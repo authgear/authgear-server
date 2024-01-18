@@ -39,29 +39,25 @@
     </h2>
   </div>
   <div class="mt-8">
-    {{ $otp_input_error_context := false }}
+    {{ $otp_error_message := "" }}
     {{ if $.Error  }}
       {{ if eq $.Error.reason "InvalidCredentials" }}
-        {{ $otp_input_error_context = $ }}
+        {{ $otp_error_message = include "authflowv2/__error.html" .  }}
       {{ end }}
     {{ end }}
 
-    <!--
-      FIXME(newman): Use composable template for label props `ResendButtonLabel` and `ResendButtonLabelWithValue`
-      https://github.com/authgear/authgear-server/issues/3644
-    -->
     {{ template "authflowv2/__otp_input.html"
       (dict
         "CSRFField" $.CSRFField
         "CodeLength" $.CodeLength
         "AutoFocus" $.ShouldFocusInput
         "Disabled" $.FailedAttemptRateLimitExceeded
-        "ResendButtonLabel" ($.Translations.RenderText "v2-whatsapp-otp-page-resend-button-label" nil)
-        "ResendButtonLabelWithValue" ($.Translations.RenderText "v2-whatsapp-otp-page-resend-button-label--unit" nil)
+        "ResendButtonLabel" (include "v2-whatsapp-otp-page-resend-button-label" nil)
+        "ResendButtonLabelWithValue" (include "v2-whatsapp-otp-page-resend-button-label--unit" nil)
         "ResendButtonCooldown" $.ResendCooldown
         "SubmitEvent" "authgear.button.submit_verification_code"
         "ResendEvent" "authgear.button.resend_verification_code"
-        "ErrorContext" $otp_input_error_context
+        "ErrorMessage" $otp_error_message
       )
     }}
 
