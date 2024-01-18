@@ -96,7 +96,7 @@
       {{ template "authflowv2/__error_account" . }}
     {{ else if eq .Error.reason "InvalidCredentials" }}
       <span>
-        {{ template "error-invalid-credentials" (dict "AuthenticationType" $info.AuthenticationType) }}
+        {{ template "v2-error-invalid-credentials" (dict "AuthenticationType" $info.AuthenticationType) }}
       </span>
     {{ else if eq .Error.reason "PasswordResetFailed" }}
       <span>{{ template "error-password-reset-failed" }}</span>
@@ -133,19 +133,10 @@
         <span>{{ template "error-no-authenticator" }}</span>
       {{ else }}
         <span>{{ .Error.message }}</span>
-      {{ end }}  
+      {{ end }}
     {{ else if eq .Error.reason "InvalidVerificationCode" }}
       <span>
-        {{ template "error-verification-code-invalid" }}
-        <button
-          class="btn secondary-btn"
-          type="button"
-          data-controller="mirror-button"
-          data-mirror-button-selector-value="#resend-button"
-          data-action="mirror-button#click"
-        >
-          {{ template "error-verification-code-invalid-click-to-resend" }}
-        </button>
+        {{ template "v2-error-verification-code-invalid" }}
       </span>
     {{ else if eq .Error.reason "RateLimited" }}
       {{ if eq .Error.info.bucket_name "MessagingSMSPerTarget" }}

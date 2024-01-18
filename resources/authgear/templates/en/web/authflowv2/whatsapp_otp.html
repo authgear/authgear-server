@@ -16,6 +16,19 @@
 		{{ end }}
 	{{ end }}
 
+  {{ if $.Error }}
+    {{ if not (eq $.Error.reason "InvalidCredentials") }}
+      <div class="mb-8 alert-message alert-message--error">
+        <span class="alert-message__icon material-icons material-icons--filled">
+          error
+        </span>
+        <span class="alert-message__text">
+          {{ template "authflowv2/__error.html" . }}
+        </span>
+      </div>
+    {{ end }}
+  {{ end }}
+
   <div class="space-y-4">
     {{ template "authflowv2/__header.html" . }}
     <h1 class="screen-title">
@@ -25,35 +38,43 @@
       {{ template "v2-whatsapp-otp-page-subtitle" . }}
     </h2>
   </div>
-  <form class="mt-8" method="post" novalidate>
-    {{ $.CSRFField }}
+  <div class="mt-8">
+    {{ $otp_input_error_context := false }}
+    {{ if $.Error  }}
+      {{ if eq $.Error.reason "InvalidCredentials" }}
+        {{ $otp_input_error_context = $ }}
+      {{ end }}
+    {{ end }}
 
+    <!--
+      FIXME(newman): Use composable template for label props `ResendButtonLabel` and `ResendButtonLabelWithValue`
+      https://github.com/authgear/authgear-server/issues/3644
+    -->
     {{ template "authflowv2/__otp_input.html"
       (dict
         "CSRFField" $.CSRFField
-				"InputName" "x_whatsapp_code"
         "CodeLength" $.CodeLength
         "AutoFocus" $.ShouldFocusInput
         "Disabled" $.FailedAttemptRateLimitExceeded
-        "ResendButtonLabel" "Resend code"
-        "ResendButtonLabelWithValue" "Resend code (%ds)"
+        "ResendButtonLabel" ($.Translations.RenderText "v2-whatsapp-otp-page-resend-button-label" nil)
+        "ResendButtonLabelWithValue" ($.Translations.RenderText "v2-whatsapp-otp-page-resend-button-label--unit" nil)
         "ResendButtonCooldown" $.ResendCooldown
         "SubmitEvent" "authgear.button.submit_verification_code"
         "ResendEvent" "authgear.button.resend_verification_code"
-        "Context" $
+        "ErrorContext" $otp_input_error_context
       )
     }}
 
-    {{ if $.CanRequestDeviceToken }}
-    <div class="mt-4 flex flex-row items-center gap-x-2.5">
-      <div class="checkbox">
-        <input id="device-token" type="checkbox" name="x_device_token" value="true" checked>
-        <label for="device-token"></label>
-      </div>
-      <label class="text-sm primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
-    </div>
-    {{ end }}
-  </form>
+		{{ if $.CanRequestDeviceToken }}
+		<div class="mt-4 flex flex-row items-center gap-x-2.5">
+			<div class="checkbox">
+				<input form="main-form" id="device-token" type="checkbox" name="x_device_token" value="true" checked>
+				<label for="device-token"></label>
+			</div>
+			<label class="text-sm primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
+		</div>
+		{{ end }}
+  </div>
 
   <!-- TODO(newman): Alternative options -->
 {{ end }}
