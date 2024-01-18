@@ -13,15 +13,20 @@
 
 {{ define "authflowv2/__phone_input.html" }}
 <div class="phone-input" data-controller="phone-input">
-  <div data-controller="custom-select" data-phone-input-target="countrySelect">
+  <div
+    data-controller="custom-select"
+    data-phone-input-target="countrySelect"
+    data-action="custom-select:initialized->phone-input#handleCountrySelectInitialized">
     <input
       type="hidden"
+      data-phone-input-target="countrySelectInput"
       data-custom-select-target="input"
       data-action="input->phone-input#handleCountryInput"
     />
 
     <!-- Select Button -->
     <button
+      type="button"
       class="phone-input__trigger"
       aria-haspopup="listbox"
       aria-expanded="false"
@@ -100,7 +105,7 @@
       </template>
     </dialog>
   </div>
-  <div>
+  <div class="flex-1">
     <input
       class="input w-full {{ if $.IsError }}input--error{{ end }}"
       placeholder="{{ $.Placeholder }}"

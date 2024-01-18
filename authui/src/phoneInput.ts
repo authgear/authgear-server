@@ -1,8 +1,13 @@
 import { Controller } from "@hotwired/stimulus";
-import { CountryCode, getCountryCallingCode } from "libphonenumber-js";
+import {
+  CountryCode,
+  getCountryCallingCode,
+  AsYouType,
+} from "libphonenumber-js";
 import defaultTerritories from "cldr-localenames-full/main/en/territories.json";
 import territoriesMap from "cldr-localenames-full/main/*/territories.json";
 import { getEmojiFlag } from "./getEmojiFlag";
+import { CustomSelectController } from "./customSelect";
 
 interface PhoneInputCountry {
   flagEmoji: string;
@@ -15,42 +20,55 @@ interface PhoneInputCountry {
 export class PhoneInputController extends Controller {
   static targets = ["countrySelect", "input"];
 
-  declare readonly countrySelectTarget: HTMLSelectElement;
+  declare readonly countrySelectTarget: HTMLElement;
   declare readonly inputTarget: HTMLInputElement;
-
-  countryCode?: string;
-  phoneNumber?: string;
 
   _countries: PhoneInputCountry[] = [];
 
-  connect(): void {
-    this._initPhoneCode();
+  get countrySelect(): CustomSelectController | null {
+    const ctr = this.application.getControllerForElementAndIdentifier(
+      this.countrySelectTarget,
+      "custom-select"
+    );
+    return ctr as CustomSelectController | null;
   }
 
   updateValue(): void {
+    const countryValue =
+      this.countrySelect?.value ??
+      this.countrySelectTarget.getAttribute(
+        "data-custom-select-initial-value-value"
+      );
     const country = this._countries.find(
-      (country) => country.iso2 === this.countryCode
+      (country) => country.iso2 === countryValue
     );
-    const phoneCode = country?.phone[0];
-    const value =
-      phoneCode && this.phoneNumber
-        ? `+${country?.phone[0]}${this.phoneNumber}`
-        : "";
+
+    let value = (this.inputTarget.value ?? "").trim();
+    if (value != "" && country != null && !value.startsWith("+")) {
+      value = `+${country?.phone}${value}`;
+    }
     this.inputTarget.value = value;
   }
 
   handleNumberInput(event: Event): void {
     const target = event.target as HTMLInputElement;
-    target.value = target.value.replace(/\D/g, "");
-    const value = target.value;
-    this.phoneNumber = value;
+    let value = target.value;
+    const asYouType = new AsYouType();
+    asYouType.input(value);
+    const maybeCountry = asYouType.getCountry();
+    if (maybeCountry) {
+      this.countrySelect!.select(maybeCountry);
+    }
+    value = asYouType.getChars() ?? "";
+    this.inputTarget.value = value;
+    target.value = value;
     this.updateValue();
   }
 
   handleCountryInput(event: Event): void {
     const target = event.target as HTMLInputElement;
     const value = target.value;
-    this.countryCode = value;
+    this.countrySelect!.select(value);
     this.updateValue();
   }
 
@@ -123,12 +141,20 @@ export class PhoneInputController extends Controller {
     if (options.find((o) => o.value == initialCountry) == null) {
       initialCountry = null;
     }
-
-    this.countryCode = initialCountry ?? options[0].value;
     this.countrySelectTarget.setAttribute(
       "data-custom-select-options-value",
       JSON.stringify(options)
     );
+    const initialValue = initialCountry ?? options[0].value;
+    this.countrySelectTarget.setAttribute(
+      "data-custom-select-initial-value-value",
+      initialValue
+    );
+
     this.updateValue();
+  }
+
+  connect() {
+    this._initPhoneCode();
   }
 }
