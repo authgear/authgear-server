@@ -2,13 +2,14 @@ package template
 
 import (
 	"fmt"
-	"golang.org/x/text/language"
 	htmltemplate "html/template"
 	"net/http"
 	"strconv"
 	"strings"
 	texttemplate "text/template"
 	"text/template/parse"
+
+	"golang.org/x/text/language"
 
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/messageformat"
@@ -59,7 +60,8 @@ func (e *Engine) Render(resource Resource, preferredLanguages []string, data int
 
 func (e *Engine) renderHTML(desc *HTML, preferredLanguages []string, data interface{}) (string, error) {
 	t := htmltemplate.New("")
-	t.Funcs(DefaultFuncMap)
+	funcMap := MakeTemplateFuncMap(t)
+	t.Funcs(funcMap)
 
 	var loadTemplate func(desc *HTML) error
 	loadTemplate = func(desc *HTML) error {
@@ -123,7 +125,8 @@ func (e *Engine) renderHTML(desc *HTML, preferredLanguages []string, data interf
 
 func (e *Engine) renderPlainText(desc *PlainText, preferredLanguages []string, data interface{}) (string, error) {
 	t := texttemplate.New("")
-	t.Funcs(DefaultFuncMap)
+	funcMap := MakeTemplateFuncMap(t)
+	t.Funcs(funcMap)
 
 	var loadTemplate func(desc *PlainText) error
 	loadTemplate = func(desc *PlainText) error {

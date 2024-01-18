@@ -1,7 +1,10 @@
 package template
 
 import (
+	"bytes"
 	"fmt"
+	"html/template"
+	"io"
 	"reflect"
 	"strconv"
 	"time"
@@ -11,7 +14,17 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/messageformat"
 )
 
-func MakeTemplateFuncMap() map[string]interface{} {
+type tpl interface {
+	ExecuteTemplate(wr io.Writer, name string, data any) error
+}
+
+func MakeTemplateFuncMap(t tpl) map[string]interface{} {
+	templateFuncMap := makeTemplateFuncMap()
+	templateFuncMap["include"] = makeInclude(t)
+	return templateFuncMap
+}
+
+func makeTemplateFuncMap() map[string]interface{} {
 	var templateFuncMap = sprig.HermeticHtmlFuncMap()
 	templateFuncMap[messageformat.TemplateRuntimeFuncName] = messageformat.TemplateRuntimeFunc
 	templateFuncMap["rfc3339"] = RFC3339
@@ -84,4 +97,14 @@ func ShowAttributeValue(v interface{}) string {
 	}
 }
 
-var DefaultFuncMap = MakeTemplateFuncMap()
+func makeInclude(t tpl) func(tplName string, data any) (template.HTML, error) {
+	return func(
+		tplName string,
+		data any,
+	) (template.HTML, error) {
+		buf := &bytes.Buffer{}
+		err := t.ExecuteTemplate(buf, tplName, data)
+		html := template.HTML(buf.String()) // nolint:gosec
+		return html, err
+	}
+}
