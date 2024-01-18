@@ -57,21 +57,24 @@
         <input type="hidden" name="q_login_id_type" value="{{ .login_id_type }}">
         <div data-controller="text-field" class="flex flex-col gap-2">
           {{ if eq .login_id_type "phone" }}
-            <!-- TODO(tung): Update to use phone input (https://github.com/authgear/authgear-server/issues/3561) -->
-            <input
-              data-text-field-target="input"
-              class="block input w-full"
-              tabindex="0"
-              {{ if $.ShouldFocusInput }}autofocus{{ end }}
-              type="text"
-              inputmode="tel"
-              autocomplete="tel-national"
-              autocapitalize="none"
-              name="q_login_id"
-              placeholder="{{ template "v2-placeholder.phone" }}"
-              data-retain-form-form-target="input"
-              data-retain-form-form-name-param="phone"
-            >
+            {{ template "authflowv2/__phone_input.html"
+              (dict
+                "Placeholder" (include "v2-placeholder.phone" nil)
+                "IsError" $display_error
+                "AutoFocus" $.ShouldFocusInput
+                "PhoneInputAttrs" `
+                  tabindex="0"
+                  data-text-field-target="input"
+                `
+                "InputName" "q_login_id"
+                "InputAttrs" `
+                  data-controller="retain-form-input"
+                  data-retain-form-form-target="input"
+                  data-retain-form-form-name-param="phone"
+                  data-action="input->retain-form-input#input retain-form-input:input->retain-form-form#input"
+                `
+              )
+            }}
           {{ else }}
             <input
               data-text-field-target="input"

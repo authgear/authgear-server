@@ -18,10 +18,11 @@ interface PhoneInputCountry {
 }
 
 export class PhoneInputController extends Controller {
-  static targets = ["countrySelect", "input"];
+  static targets = ["countrySelect", "input", "phoneInput"];
 
   declare readonly countrySelectTarget: HTMLElement;
   declare readonly inputTarget: HTMLInputElement;
+  declare readonly phoneInputTarget: HTMLInputElement;
 
   _countries: PhoneInputCountry[] = [];
 
@@ -48,6 +49,7 @@ export class PhoneInputController extends Controller {
       value = `+${country?.phone}${value}`;
     }
     this.inputTarget.value = value;
+    this.inputTarget.dispatchEvent(new Event("input", { bubbles: true }));
   }
 
   handleNumberInput(event: Event): void {
@@ -86,7 +88,22 @@ export class PhoneInputController extends Controller {
           .querySelector("meta[name=x-phone-input-preferred-countries]")
           ?.getAttribute("content") ?? "null"
       ) ?? [];
-    let initialCountry: CountryCode | null =
+    let initialCountry: CountryCode | null = null;
+
+    const defaultValue = this.inputTarget.value;
+    if (defaultValue) {
+      let phoneInputValue = defaultValue;
+      const defaultPhone = new AsYouType();
+      defaultPhone.input(defaultValue);
+      initialCountry = defaultPhone.getCountry() ?? null;
+      if (initialCountry != null) {
+        const callingCode = "+" + getCountryCallingCode(initialCountry);
+        phoneInputValue = phoneInputValue.replace(callingCode, "");
+      }
+      this.phoneInputTarget.value = phoneInputValue;
+    }
+
+    initialCountry ??=
       (document
         .querySelector("meta[name=x-geoip-country-code]")
         ?.getAttribute("content") as CountryCode) ?? null;
