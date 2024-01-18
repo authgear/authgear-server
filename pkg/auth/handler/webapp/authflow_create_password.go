@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	pwd "github.com/authgear/authgear-server/pkg/util/password"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -21,9 +22,10 @@ var AuthflowCreatePasswordSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_password": { "type": "string" }
+			"x_password": { "type": "string" },
+			"x_confirm_password": { "type": "string" }
 		},
-		"required": ["x_password"]
+		"required": ["x_password", "x_confirm_password"]
 	}
 `)
 
@@ -107,6 +109,11 @@ func (h *AuthflowCreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http
 		option := data.Options[index]
 
 		newPlainPassword := r.Form.Get("x_password")
+		confirmPassword := r.Form.Get("x_confirm_password")
+		err = pwd.ConfirmPassword(newPlainPassword, confirmPassword)
+		if err != nil {
+			return err
+		}
 
 		input := map[string]interface{}{
 			"authentication": option.Authentication,
