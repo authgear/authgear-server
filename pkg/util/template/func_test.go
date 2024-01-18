@@ -1,13 +1,15 @@
 package template
 
 import (
+	"bytes"
+	"html/template"
 	"testing"
 	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestRFC3339(t *testing.T) {
+func TestFuncs(t *testing.T) {
 	date := time.Date(2006, 1, 2, 3, 4, 5, 0, time.UTC)
 
 	Convey("RFC3339", t, func() {
@@ -91,4 +93,59 @@ func TestRFC3339(t *testing.T) {
 		So(ShowAttributeValue(sp), ShouldEqual, "test")
 
 	})
+
+	Convey("include", t, func() {
+		Convey("it supports variable template name", func() {
+			tmpl := template.New("")
+			funcMap := MakeTemplateFuncMap(tmpl)
+			tmpl = tmpl.Funcs(funcMap)
+			tmpl, err := tmpl.Parse(`
+			{{- define "temp1" -}}
+			content-of-temp1
+			{{- end -}}
+			{{- define "temp2" -}}
+			content-of-temp2
+			{{- end -}}
+			{{- $tmplName := .TemplateName -}}
+			{{- include $tmplName nil -}}`)
+			if err != nil {
+				panic(err)
+			}
+
+			buf := &bytes.Buffer{}
+			err = tmpl.Execute(buf, map[string]string{"TemplateName": "temp2"})
+			if err != nil {
+				panic(err)
+			}
+
+			So(buf.String(), ShouldEqual, "content-of-temp2")
+
+		})
+
+		Convey("it supports html", func() {
+			tmpl := template.New("")
+			funcMap := MakeTemplateFuncMap(tmpl)
+			tmpl = tmpl.Funcs(funcMap)
+			tmpl, err := tmpl.Parse(`
+			{{- define "some-html" -}}
+			<span>content</span>
+			{{- end -}}
+			<div>
+			{{- include "some-html" nil -}}
+			</div>`)
+			if err != nil {
+				panic(err)
+			}
+
+			buf := &bytes.Buffer{}
+			err = tmpl.Execute(buf, nil)
+			if err != nil {
+				panic(err)
+			}
+
+			So(buf.String(), ShouldEqual, "<div><span>content</span></div>")
+
+		})
+	},
+	)
 }
