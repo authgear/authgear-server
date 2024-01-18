@@ -26,6 +26,11 @@
     @apply px-6 py-8;
   }
 
+  :root:not([alignment-content]) .widget {
+    /* This rule is to prevent ui shifting before the attribute added */
+    @apply invisible;
+  }
+
   @media (min-width: theme("screens.tablet")) {
     .widget {
       @apply px-6 py-6;
