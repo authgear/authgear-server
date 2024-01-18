@@ -71,33 +71,21 @@
           {{ template "authflowv2/__phone_input.html"
             (dict
               "Placeholder" (include "v2-placeholder.phone" nil)
-              "EmptyMessage" (include "v2-no-results-found" nil)
-              "Name" "x_login_id"
               "IsError" $display_error
               "AutoFocus" $.ShouldFocusInput
               "PhoneInputAttrs" `
                 tabindex="0"
                 data-text-field-target="input"
               `
+              "InputName" "x_login_id"
+              "InputAttrs" `
+                data-controller="retain-form-input"
+                data-retain-form-form-target="input"
+                data-retain-form-form-name-param="phone"
+                data-action="input->retain-form-input#input retain-form-input:input->retain-form-form#input"
+              `
             )
           }}
-          <!-- TODO(tung): Update to use phone input (https://github.com/authgear/authgear-server/issues/3561) -->
-          <!-- <input
-            data-text-field-target="input"
-            class="block input w-full {{ if $display_error }}input--error{{end}}"
-            tabindex="0"
-            {{ if $.ShouldFocusInput }}autofocus{{ end }}
-            type="text"
-            inputmode="tel"
-            autocomplete="tel-national username webauthn"
-            autocapitalize="none"
-            name="x_login_id"
-            placeholder="{{ template "v2-placeholder.phone" }}"
-            data-controller="retain-form-input"
-            data-action="input->retain-form-input#input retain-form-input:input->retain-form-form#input"
-            data-retain-form-form-target="input"
-            data-retain-form-form-name-param="phone"
-          > -->
         {{ end }}
 
         {{ if $show_text_input }}

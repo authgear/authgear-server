@@ -3,7 +3,8 @@
   (dict
     "Placeholder" "Phone number"
     "EmptyMessage" "No results found"
-    "Name" "phone"
+    "InputName" "phone"
+    "InputAttrs" `data-foo="bar"`
     "IsError" true
     "AutoFocus" true
     "PhoneInputAttrs" `data-foo="bar"`
@@ -100,7 +101,7 @@
 
       <template data-custom-select-target="emptyTemplate">
         <li class="select__empty">
-          {{ $.EmptyMessage }}
+          {{ template "v2-no-results-found" }}
         </li>
       </template>
     </dialog>
@@ -111,16 +112,20 @@
       placeholder="{{ $.Placeholder }}"
       type="text"
       inputmode="tel"
+      autocapitalize="none"
+      autocomplete="tel-national"
       pattern="^[\+0-9]*$"
       data-action="input->phone-input#handleNumberInput"
+      data-phone-input-target="phoneInput"
       {{ if $.AutoFocus }}autofocus{{ end }}
       {{ if $.PhoneInputAttrs }}{{ htmlattr $.PhoneInputAttrs }}{{ end }}
     />
   </div>
   <input
     type="hidden"
-    name="{{ $.Name }}"
+    name="{{ $.InputName }}"
     data-phone-input-target="input"
+    {{ if $.InputAttrs }}{{ htmlattr $.InputAttrs }}{{ end }}
   />
 </div>
 {{ end }}
