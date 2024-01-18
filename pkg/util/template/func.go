@@ -3,6 +3,7 @@ package template
 import (
 	"bytes"
 	"fmt"
+	"html/template"
 	"io"
 	"reflect"
 	"strconv"
@@ -96,13 +97,14 @@ func ShowAttributeValue(v interface{}) string {
 	}
 }
 
-func makeInclude(t tpl) func(tplName string, data any) (string, error) {
+func makeInclude(t tpl) func(tplName string, data any) (template.HTML, error) {
 	return func(
 		tplName string,
 		data any,
-	) (string, error) {
+	) (template.HTML, error) {
 		buf := &bytes.Buffer{}
 		err := t.ExecuteTemplate(buf, tplName, data)
-		return buf.String(), err
+		html := template.HTML(buf.String())
+		return html, err
 	}
 }
