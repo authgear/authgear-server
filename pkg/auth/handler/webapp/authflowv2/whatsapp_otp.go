@@ -15,7 +15,7 @@ import (
 )
 
 var TemplateWebAuthflowWhatsappOTPHTML = template.RegisterHTML(
-	"web/authflowv2/whatsapp_otp.html",
+	"web/authflowv2/enter_oob_otp.html",
 	handlerwebapp.Components...,
 )
 
