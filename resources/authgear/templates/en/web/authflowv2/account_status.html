@@ -1,0 +1,27 @@
+{{ template "authflowv2/__page_frame.html" . }}
+{{ define "page-content" }}
+
+{{ if $.Error }}
+  {{ if eq .Error.reason "DisabledUser" }}
+
+  <div class="flex flex-col items-center gap-y-4">
+    <span class="material-icons screen-icon">account_circle_off</span>
+    <h1 class="screen-title mt-2">
+      {{ template "v2-error-disabled-user-title" }}
+    </h1>
+    <h2 class="screen-description">
+      {{ template "v2-error-disabled-user-subtitle" }}
+    </h2>
+
+    <div class="screen-actions mt-14">
+      <a class="primary-btn w-full" href="/login" data-turbo="false">
+        {{ template "v2-account-status-return-button-label" }}
+      </a>
+    </div>
+  </div>
+
+  {{ end }}
+
+  <!-- TODO(newman): Add copywriting for other account status errors -->
+{{ end }}
+{{ end }}

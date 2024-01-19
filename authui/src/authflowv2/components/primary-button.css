@@ -39,6 +39,7 @@
   }
 
   .primary-btn {
+    @apply block;
     @apply text-center;
 
     background-color: var(--primary-btn__bg-color);
@@ -49,7 +50,7 @@
     line-height: var(--primary-btn__line-height);
     letter-spacing: var(--primary-btn__letter-spacing);
     font-weight: var(--primary-btn__font-weight);
-    @apply ring-inset	
+    @apply ring-inset
       ring-[length:var(--primary-btn\_\_ring-width)]
       ring-[color:var(--primary-btn\_\_ring-color)];
     padding: var(--primary-btn__py) var(--primary-btn__px);
