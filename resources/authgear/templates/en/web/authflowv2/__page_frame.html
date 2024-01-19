@@ -13,7 +13,8 @@
 {{ end }}
 
 <body
-	data-controller="prevent-double-tap xhr-submit-form lockout"
+  data-controller="prevent-double-tap xhr-submit-form lockout restore-form"
+  data-restore-form-json-value="{{ $.FormJSON }}"
 	data-action="dblclick->prevent-double-tap#action"
 	data-lockout-format-date-relative-outlet="[data-controller='format-date-relative']"
 	data-lockout-lock-until-value="{{ $lockedUntil }}"
