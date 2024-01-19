@@ -77,7 +77,7 @@ var _ handlerwebapp.AuthflowNavigator = &AuthflowV2Navigator{}
 func (n *AuthflowV2Navigator) NavigateNonRecoverableError(r *http.Request, u *url.URL, e error) {
 	switch {
 	case user.IsAccountStatusError(e):
-		u.Path = webapp.AuthflowRouteAccountStatus
+		u.Path = AuthflowV2RouteAccountStatus
 	case errors.Is(e, api.ErrNoAuthenticator):
 		u.Path = webapp.AuthflowRouteNoAuthenticator
 	case errors.Is(e, authflow.ErrFlowNotFound):

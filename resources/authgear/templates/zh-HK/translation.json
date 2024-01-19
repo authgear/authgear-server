@@ -989,5 +989,13 @@
   "v2-setup-oob-otp-page-title": "多重驗證",
   "v2-setup-oob-otp-page-subtitle--sms": "您可以透過此號碼接收驗證碼。",
   "v2-setup-oob-otp-page-subtitle--whatsapp": "您可以透過此號碼接收驗證碼。",
-  "v2-setup-oob-otp-page-subtitle--email": "您可以透過此電子郵件接收驗證碼。"
+  "v2-setup-oob-otp-page-subtitle--email": "您可以透過此電子郵件接收驗證碼。",
+
+  "v2-lockout-title": "帳戶不可用",
+  "v2-lockout-subtitle": "由於嘗試次數過多，您的帳戶已被鎖定，請稍後重試。",
+  "v2-lockout-retry-button-label": "重試",
+  "v2-lockout-retry-button-label--unit": "%s 後重試",
+  "v2-error-disabled-user-title": "帳號不可用",
+  "v2-error-disabled-user-subtitle": "管理員已停用您的帳號。請聯絡客戶支援。",
+  "v2-account-status-return-button-label": "返回登入"
 }

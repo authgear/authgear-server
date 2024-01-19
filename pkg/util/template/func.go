@@ -7,6 +7,7 @@ import (
 	"io"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Masterminds/sprig"
@@ -21,6 +22,7 @@ type tpl interface {
 func MakeTemplateFuncMap(t tpl) map[string]interface{} {
 	templateFuncMap := makeTemplateFuncMap()
 	templateFuncMap["include"] = makeInclude(t)
+	templateFuncMap["trimSpace"] = trimSpace
 	return templateFuncMap
 }
 
@@ -115,5 +117,16 @@ func makeInclude(t tpl) func(tplName string, data any) (template.HTML, error) {
 		// But we should be careful that do not pass any user input to this function
 		html := template.HTML(buf.String()) // nolint:gosec
 		return html, err
+	}
+}
+
+func trimSpace(input interface{}) string {
+	switch input := input.(type) {
+	case string:
+		return strings.TrimSpace(input)
+	case template.HTML:
+		return strings.TrimSpace(string(input))
+	default:
+		return ""
 	}
 }

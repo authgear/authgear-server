@@ -1,0 +1,17 @@
+@layer components {
+  .screen-actions {
+    @apply w-full;
+    @apply max-w-full;
+  }
+
+  @media (max-width: theme("screens.tablet")) {
+    .screen-actions {
+      @apply absolute;
+      @apply bottom-0;
+      @apply left-0;
+      @apply right-0;
+      @apply px-6;
+      @apply py-10;
+    }
+  }
+}

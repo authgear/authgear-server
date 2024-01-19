@@ -2,6 +2,7 @@
 @import "./components/widget.css";
 @import "./components/screen-title.css";
 @import "./components/screen-description.css";
+@import "./components/screen-actions.css";
 @import "./components/primary-button.css";
 @import "./components/secondary-button.css";
 @import "./components/tertiary-button.css";
@@ -21,3 +22,4 @@
 @import "./components/password-policy.css";
 @import "./components/icon.css";
 @import "./components/checkbox.css";
+@import "./components/modal.css";
