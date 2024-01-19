@@ -963,8 +963,8 @@
   "v2-password-policy-symbol": "請輸入最少一個符號",
 
   "v2-oob-otp-page-title": "驗證碼",
-  "v2-oob-otp-page-subtitle": "我們已發送一段 {CodeLength} 位的一次性密碼到 {MaskedClaimValue}。",
-  "v2-oob-otp-page-subtitle--whatsapp": "我們已發送一段 {CodeLength} 位的一次性密碼到 {MaskedClaimValue}。",
+  "v2-oob-otp-page-subtitle": "我們已發送一段 {CodeLength} 位的驗證碼到 {MaskedClaimValue}。",
+  "v2-oob-otp-page-subtitle--whatsapp": "我們已發送一段 {CodeLength} 位的驗證碼到 {MaskedClaimValue}。",
   "v2-error-invalid-credentials": "{AuthenticationType, select, password{密碼不正確} totp{驗證器應用程式／裝置所顯示的6位碼不正確} oob_otp_sms {一次性密碼不正確} oob_otp_email{無效的憑証} recovery_code {10位的備用碼不正確} other {無效的憑証}}",
   "v2-error-verification-code-invalid": "無效的憑証",
   "v2-oob-otp-page-resend-button-label": "重發",
@@ -983,5 +983,12 @@
   "v2-enter-password-page-title": "請輸入密碼",
   "v2-enter-additional-password-page-title": "請輸入輔助密碼",
   "v2-enter-password-page-title-reauth": "請輸入密碼以繼續操作",
-  "v2-enter-additional-password-page-title-reauth": "請輸入輔助密碼以繼續操作"
+  "v2-enter-additional-password-page-title-reauth": "請輸入輔助密碼以繼續操作",
+
+  "v2-setup-oob-otp-page-title": "多重驗證",
+  "v2-setup-oob-otp-page-subtitle--sms": "您可以透過此號碼接收驗證碼。",
+  "v2-setup-oob-otp-page-subtitle--whatsapp": "您可以透過此號碼接收驗證碼。",
+  "v2-setup-oob-otp-page-subtitle--email": "您可以透過此電子郵件接收驗證碼。",
+  "v2-setup-oob-otp-page-phone-number-placeholder": "電話號碼",
+  "v2-setup-oob-otp-page-phone-number-empty-message": "找不到結果"
 }
