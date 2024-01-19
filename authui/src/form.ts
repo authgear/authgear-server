@@ -149,17 +149,20 @@ export class XHRSubmitFormController extends Controller {
   }
 }
 
+// NOTE: As turbo would first disconnect and connect head and then disconnect and connect body, if we put this controller in head and modify field value, it will then be covered.
 export class RestoreFormController extends Controller {
-  connect() {
-    const metaTag = this.element as HTMLMetaElement;
+  static values = { json: String };
 
-    const content = metaTag.content;
+  declare jsonValue: string;
+
+  connect() {
+    const content = this.jsonValue;
     if (content === "") {
       return;
     }
 
     // Clear the content to avoid restoring twice.
-    metaTag.content = "";
+    this.jsonValue = "";
 
     const formDataJSON = JSON.parse(content);
 
