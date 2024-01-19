@@ -49,7 +49,7 @@ type AuthflowEnterOOBOTPViewModel struct {
 func NewAuthflowEnterOOBOTPViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, now time.Time) AuthflowEnterOOBOTPViewModel {
 	flowActionType := screen.StateTokenFlowResponse.Action.Type
 
-	data := screen.StateTokenFlowResponse.Action.Data.(declarative.NodeVerifyClaimData)
+	data := screen.StateTokenFlowResponse.Action.Data.(declarative.NodeAuthenticationOOBData)
 	channel := data.Channel
 	maskedClaimValue := data.MaskedClaimValue
 	codeLength := data.CodeLength

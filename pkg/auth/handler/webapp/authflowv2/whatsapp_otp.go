@@ -46,12 +46,25 @@ type AuthflowWhatsappOTPViewModel struct {
 }
 
 func NewAuthflowWhatsappOTPViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, now time.Time) AuthflowWhatsappOTPViewModel {
-	data := screen.StateTokenFlowResponse.Action.Data.(declarative.NodeVerifyClaimData)
+	var maskedClaimValue string
+	var codeLength int
+	var failedAttemptRateLimitExceeded bool
+	var resendCooldown int
 
-	maskedClaimValue := data.MaskedClaimValue
-	codeLength := data.CodeLength
-	failedAttemptRateLimitExceeded := data.FailedAttemptRateLimitExceeded
-	resendCooldown := int(data.CanResendAt.Sub(now).Seconds())
+	switch data := screen.StateTokenFlowResponse.Action.Data.(type) {
+	case declarative.NodeAuthenticationOOBData:
+		maskedClaimValue = data.MaskedClaimValue
+		codeLength = data.CodeLength
+		failedAttemptRateLimitExceeded = data.FailedAttemptRateLimitExceeded
+		resendCooldown = int(data.CanResendAt.Sub(now).Seconds())
+	case declarative.NodeVerifyClaimData:
+		maskedClaimValue = data.MaskedClaimValue
+		codeLength = data.CodeLength
+		failedAttemptRateLimitExceeded = data.FailedAttemptRateLimitExceeded
+		resendCooldown = int(data.CanResendAt.Sub(now).Seconds())
+	default:
+		panic("authflowv2: unexpected action data")
+	}
 	if resendCooldown < 0 {
 		resendCooldown = 0
 	}

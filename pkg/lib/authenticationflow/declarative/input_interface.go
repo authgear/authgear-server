@@ -81,6 +81,13 @@ type inputNodeVerifyClaim interface {
 	GetCode() string
 }
 
+type inputNodeAuthenticationOOB interface {
+	IsCode() bool
+	IsResend() bool
+	IsCheck() bool
+	GetCode() string
+}
+
 type inputStepAccountRecoveryVerifyCode interface {
 	IsCode() bool
 	IsResend() bool
