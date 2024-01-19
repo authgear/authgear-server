@@ -119,6 +119,7 @@ func (n *AuthflowNavigator) navigatePromote(s *AuthflowScreenWithFlowResponse, r
 	n.navigateSignupPromote(s, r, webSessionID, result, AuthflowRoutePromote)
 }
 
+//nolint:gocognit
 func (n *AuthflowNavigator) navigateSignupPromote(s *AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *Result, expectedPath string) {
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
@@ -152,6 +153,16 @@ func (n *AuthflowNavigator) navigateSignupPromote(s *AuthflowScreenWithFlowRespo
 				default:
 					panic(fmt.Errorf("unexpected otp form: %v", data.OTPForm))
 				}
+			case declarative.NodeAuthenticationOOBData:
+				// 1. We do not need to enter the target.
+				switch data.OTPForm {
+				case otp.FormCode:
+					s.Advance(AuthflowRouteEnterOOBOTP, result)
+				case otp.FormLink:
+					s.Advance(AuthflowRouteOOBOTPLink, result)
+				default:
+					panic(fmt.Errorf("unexpected otp form: %v", data.OTPForm))
+				}
 			case declarative.IntentSignupFlowStepCreateAuthenticatorData:
 				// 2. We need to enter the target.
 				s.Advance(AuthflowRouteSetupOOBOTP, result)
@@ -168,6 +179,17 @@ func (n *AuthflowNavigator) navigateSignupPromote(s *AuthflowScreenWithFlowRespo
 			case declarative.NodeVerifyClaimData:
 				// 1. We do not need to enter the target.
 				channel := data.(declarative.NodeVerifyClaimData).Channel
+				switch channel {
+				case model.AuthenticatorOOBChannelSMS:
+					s.Advance(AuthflowRouteEnterOOBOTP, result)
+				case model.AuthenticatorOOBChannelWhatsapp:
+					s.Advance(AuthflowRouteWhatsappOTP, result)
+				default:
+					panic(fmt.Errorf("unexpected channel: %v", channel))
+				}
+			case declarative.NodeAuthenticationOOBData:
+				// 1. We do not need to enter the target.
+				channel := data.(declarative.NodeAuthenticationOOBData).Channel
 				switch channel {
 				case model.AuthenticatorOOBChannelSMS:
 					s.Advance(AuthflowRouteEnterOOBOTP, result)

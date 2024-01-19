@@ -87,17 +87,16 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authfl
 		}
 	case !claimVerified:
 		info := m.MilestoneDidSelectAuthenticator()
-		claimName, claimValue := info.OOBOTP.ToClaimPair()
+		claimName, _ := info.OOBOTP.ToClaimPair()
 		purpose := otp.PurposeOOBOTP
 		otpForm := getOTPForm(purpose, claimName, deps.Config.Authenticator.OOB.Email)
-		return authflow.NewSubFlow(&IntentVerifyClaim{
-			JSONPointer: n.JSONPointer,
-			UserID:      n.UserID,
-			Purpose:     purpose,
-			MessageType: n.otpMessageType(info),
-			Form:        otpForm,
-			ClaimName:   claimName,
-			ClaimValue:  claimValue,
+		return authflow.NewSubFlow(&IntentAuthenticationOOB{
+			JSONPointer:    n.JSONPointer,
+			UserID:         n.UserID,
+			Purpose:        purpose,
+			Authentication: n.Authentication,
+			Info:           info,
+			Form:           otpForm,
 		}), nil
 	case !authenticated:
 		info := m.MilestoneDidSelectAuthenticator()
@@ -174,15 +173,4 @@ func (n *IntentUseAuthenticatorOOBOTP) createAuthenticator(deps *authflow.Depend
 	}
 
 	return authenticatorInfo, nil
-}
-
-func (*IntentUseAuthenticatorOOBOTP) otpMessageType(info *authenticator.Info) otp.MessageType {
-	switch info.Kind {
-	case model.AuthenticatorKindPrimary:
-		return otp.MessageTypeAuthenticatePrimaryOOB
-	case model.AuthenticatorKindSecondary:
-		return otp.MessageTypeAuthenticateSecondaryOOB
-	default:
-		panic(fmt.Errorf("unexpected OOB OTP authenticator kind: %v", info.Kind))
-	}
 }

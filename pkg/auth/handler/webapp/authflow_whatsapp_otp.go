@@ -45,7 +45,7 @@ type AuthflowWhatsappOTPViewModel struct {
 }
 
 func NewAuthflowWhatsappOTPViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, now time.Time) AuthflowWhatsappOTPViewModel {
-	data := screen.StateTokenFlowResponse.Action.Data.(declarative.NodeVerifyClaimData)
+	data := screen.StateTokenFlowResponse.Action.Data.(declarative.NodeAuthenticationOOBData)
 
 	maskedClaimValue := data.MaskedClaimValue
 	codeLength := data.CodeLength
