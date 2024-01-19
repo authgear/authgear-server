@@ -13,18 +13,17 @@
 
   {{ if $.Error }}
     {{ if not $display_otp_input_error }}
-      <div class="mb-8 alert-message alert-message--error">
-        <span class="alert-message__icon material-icons material-icons--filled">
-          error
-        </span>
-        <span class="alert-message__text">
-          {{ template "authflowv2/__error.html" . }}
-        </span>
-      </div>
+      {{ template "authflowv2/__alert_message.html"
+        (dict
+          "Type" "error"
+          "Classname" "tablet:hidden mb-8"
+          "Message" (include "authflowv2/__error.html" .)
+        )
+      }}
     {{ end }}
   {{ end }}
 
-  <div class="space-y-4">
+  <div class="gap-y-4">
     {{ template "authflowv2/__header.html" . }}
     <h1 class="screen-title">
       {{ template "v2-whatsapp-otp-page-title" }}
@@ -32,6 +31,18 @@
     <h2 class="screen-description">
       {{ template "v2-whatsapp-otp-page-subtitle" . }}
     </h2>
+
+    {{ if $.Error }}
+      {{ if not $display_otp_input_error }}
+        {{ template "authflowv2/__alert_message.html"
+          (dict
+            "Type" "error"
+            "Classname" "max-tablet:hidden my-8"
+            "Message" (include "authflowv2/__error.html" .)
+          )
+        }}
+      {{ end }}
+    {{ end }}
   </div>
   <div class="mt-8">
     {{ $otp_error_message := "" }}
