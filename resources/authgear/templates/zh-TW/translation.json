@@ -970,5 +970,18 @@
   "v2-oob-otp-page-resend-button-label": "重發",
   "v2-oob-otp-page-resend-button-label--unit": "%s 後重發",
   "v2-whatsapp-otp-page-resend-button-label": "重發",
-  "v2-whatsapp-otp-page-resend-button-label--unit": "%s 後重發"
+  "v2-whatsapp-otp-page-resend-button-label--unit": "%s 後重發",
+  "v2-enter-password-instead": "改為輸入密碼",
+  "v2-enter-secondary-password-instead": "改為輸入輔助密碼",
+  "v2-enter-totp-instead": "改為輸入6位驗證器碼",
+  "v2-use-passkey-instead": "改為使用通行密鑰",
+  "v2-enter-phone-otp-sms-instead": "改為以短訊發送一次性密碼",
+  "v2-enter-phone-otp-whatsapp-instead": "改為以Whatsapp發送一次性密碼",
+  "v2-enter-email-otp-code-instead": "改為發送一次性密碼至",
+  "v2-use-email-otp-link-instead": "改為發送登錄鏈接至",
+  "v2-create-device-token-label": "不要再詢問",
+  "v2-enter-password-page-title": "請輸入密碼",
+  "v2-enter-additional-password-page-title": "請輸入輔助密碼",
+  "v2-enter-password-page-title-reauth": "請輸入密碼以繼續操作",
+  "v2-enter-additional-password-page-title-reauth": "請輸入輔助密碼以繼續操作"
 }
