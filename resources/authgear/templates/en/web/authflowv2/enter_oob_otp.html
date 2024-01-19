@@ -29,7 +29,11 @@
       {{ template "v2-oob-otp-page-title" }}
     </h1>
     <h2 class="screen-description">
-      {{ template "v2-oob-otp-page-subtitle" . }}
+      {{ if eq $.Channel "whatsapp" }}
+        {{ template "v2-oob-otp-page-subtitle--whatsapp" . }}
+      {{ else }}
+        {{ template "v2-oob-otp-page-subtitle" . }}
+      {{ end }}
     </h2>
 
     {{ if $.Error }}
