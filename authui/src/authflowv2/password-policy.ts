@@ -12,9 +12,6 @@ enum PasswordPolicyName {
 }
 
 function checkPasswordLength(value: string, el: HTMLElement) {
-  if (el == null) {
-    return;
-  }
   const minLength = Number(el.getAttribute("data-min-length"));
   const codePoints = Array.from(value);
   if (codePoints.length >= minLength) {
@@ -25,9 +22,6 @@ function checkPasswordLength(value: string, el: HTMLElement) {
 }
 
 function checkPasswordUppercase(value: string, el: HTMLElement) {
-  if (el == null) {
-    return;
-  }
   if (/[A-Z]/.test(value)) {
     el.setAttribute("data-state", "pass");
   } else {
@@ -36,9 +30,6 @@ function checkPasswordUppercase(value: string, el: HTMLElement) {
 }
 
 function checkPasswordLowercase(value: string, el: HTMLElement) {
-  if (el == null) {
-    return;
-  }
   if (/[a-z]/.test(value)) {
     el.setAttribute("data-state", "pass");
   } else {
@@ -47,9 +38,6 @@ function checkPasswordLowercase(value: string, el: HTMLElement) {
 }
 
 function checkPasswordAlphabet(value: string, el: HTMLElement) {
-  if (el == null) {
-    return;
-  }
   if (/[a-zA-Z]/.test(value)) {
     el.setAttribute("data-state", "pass");
   } else {
@@ -58,9 +46,6 @@ function checkPasswordAlphabet(value: string, el: HTMLElement) {
 }
 
 function checkPasswordDigit(value: string, el: HTMLElement) {
-  if (el == null) {
-    return;
-  }
   if (/[0-9]/.test(value)) {
     el.setAttribute("data-state", "pass");
   } else {
@@ -69,9 +54,6 @@ function checkPasswordDigit(value: string, el: HTMLElement) {
 }
 
 function checkPasswordSymbol(value: string, el: HTMLElement) {
-  if (el == null) {
-    return;
-  }
   if (/[^a-zA-Z0-9]/.test(value)) {
     el.setAttribute("data-state", "pass");
   } else {
@@ -84,9 +66,6 @@ function checkPasswordStrength(
   el: HTMLElement,
   currentMeter: HTMLMeterElement
 ) {
-  if (el == null) {
-    return;
-  }
   const minLevel = Number(el.getAttribute("data-min-level"));
   const result = zxcvbn(value);
   const score = Math.min(5, Math.max(1, result.score + 1));
@@ -102,6 +81,7 @@ export class PasswordPolicyController extends Controller {
   static targets = ["input", "currentMeter", "policy"];
 
   declare inputTarget: HTMLInputElement;
+  declare hasCurrentMeterTarget: boolean;
   declare currentMeterTarget: HTMLMeterElement;
   declare policyTargets: HTMLElement[];
 
@@ -122,7 +102,9 @@ export class PasswordPolicyController extends Controller {
     this.policyTargets.forEach((e) => {
       switch (e.getAttribute("data-password-policy-name")) {
         case PasswordPolicyName.Strength:
-          checkPasswordStrength(value, e, this.currentMeterTarget);
+          if (this.hasCurrentMeterTarget) {
+            checkPasswordStrength(value, e, this.currentMeterTarget);
+          }
           break;
         case PasswordPolicyName.Length:
           checkPasswordLength(value, e);
