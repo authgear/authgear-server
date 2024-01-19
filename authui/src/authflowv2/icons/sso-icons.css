@@ -6,48 +6,48 @@
   background-image: url(./icons/raw/icon-google.svg);
 }
 .sso-icon.apple-icon {
-  background-image: url(./icons/raw/icon-google.svg);
+  background-image: url(./icons/raw/icon-apple.svg);
 }
 .sso-icon.linkedin-icon {
-  background-image: url(./icons/raw/icon-google.svg);
+  background-image: url(./icons/raw/icon-linkedin.svg);
 }
 .sso-icon.github-icon {
-  background-image: url(./icons/raw/icon-google.svg);
+  background-image: url(./icons/raw/icon-github.svg);
 }
 .sso-icon.whatsapp-icon {
-  background-image: url(./icons/raw/icon-google.svg);
+  background-image: url(./icons/raw/icon-whatsapp.svg);
 }
 .sso-icon.microsoft-icon {
-  background-image: url(./icons/raw/icon-google.svg);
+  background-image: url(./icons/raw/icon-microsoft.svg);
 }
 .sso-icon.facebook-icon {
-  background-image: url(./icons/raw/icon-google.svg);
+  background-image: url(./icons/raw/icon-facebook.svg);
 }
 .sso-icon.wechat-icon {
-  background-image: url(./icons/raw/icon-google.svg);
+  background-image: url(./icons/raw/icon-wechat.svg);
 }
 
 .dark .sso-icon.google-icon {
   background-image: url(./icons/raw/icon-google-dark.svg);
 }
 .dark .sso-icon.apple-icon {
-  background-image: url(./icons/raw/icon-google-dark.svg);
+  background-image: url(./icons/raw/icon-apple-dark.svg);
 }
 .dark .sso-icon.linkedin-icon {
-  background-image: url(./icons/raw/icon-google-dark.svg);
+  background-image: url(./icons/raw/icon-linkedin-dark.svg);
 }
 .dark .sso-icon.github-icon {
-  background-image: url(./icons/raw/icon-google-dark.svg);
+  background-image: url(./icons/raw/icon-github-dark.svg);
 }
 .dark .sso-icon.whatsapp-icon {
-  background-image: url(./icons/raw/icon-google-dark.svg);
+  background-image: url(./icons/raw/icon-whatsapp-dark.svg);
 }
 .dark .sso-icon.microsoft-icon {
-  background-image: url(./icons/raw/icon-google-dark.svg);
+  background-image: url(./icons/raw/icon-microsoft-dark.svg);
 }
 .dark .sso-icon.facebook-icon {
-  background-image: url(./icons/raw/icon-google-dark.svg);
+  background-image: url(./icons/raw/icon-facebook-dark.svg);
 }
 .dark .sso-icon.wechat-icon {
-  background-image: url(./icons/raw/icon-google-dark.svg);
+  background-image: url(./icons/raw/icon-wechat-dark.svg);
 }

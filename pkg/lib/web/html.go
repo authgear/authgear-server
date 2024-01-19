@@ -41,6 +41,7 @@ var TemplateWebAuthflowV2PasswordStrengthMeterHTML = template.RegisterHTML("web/
 var TemplateWebAuthflowV2PhoneInputHTML = template.RegisterHTML("web/authflowv2/__phone_input.html")
 var TemplateWebAuthflowV2ErrorHTML = template.RegisterHTML("web/authflowv2/__error.html")
 var TemplateWebAuthflowV2PasswordPolicyHTML = template.RegisterHTML("web/authflowv2/__password_policy.html")
+var TemplateWebAuthflowV2BranchHTML = template.RegisterHTML("web/authflowv2/__authflow_branch.html")
 
 var ComponentsHTML = []*template.HTML{
 	TemplateWebHTMLHeadHTML,
@@ -79,4 +80,5 @@ var ComponentsHTML = []*template.HTML{
 	TemplateWebAuthflowV2PhoneInputHTML,
 	TemplateWebAuthflowV2ErrorHTML,
 	TemplateWebAuthflowV2PasswordPolicyHTML,
+	TemplateWebAuthflowV2BranchHTML,
 }

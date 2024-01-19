@@ -29,13 +29,26 @@
     --primary-btn__ring-color--active: var(--primary-btn__ring-color);
 
     --primary-btn__bg-color--disabled: var(--color-grey-200);
-    --primary-btn__text-color--disabled: var(--color-grey-600);
+    --primary-btn__text-color--disabled: var(--color-grey-400);
     --primary-btn__ring-width--disabled: var(--primary-btn__ring-width);
     --primary-btn__ring-color--disabled: var(--primary-btn__ring-color);
   }
 
   :root.dark {
     /* TODO(tung): Dark mode styles */
+  }
+
+  .primary-btn__content {
+    @apply block;
+  }
+
+  .primary-btn__loading {
+    @apply hidden;
+    height: calc(1.5 * var(--primary-btn__font-size)) /* 24 / 16 = 1.5 */;
+  }
+
+  .primary-btn__loading-icon {
+    font-size: calc(1.5 * var(--primary-btn__font-size)) /* 24 / 16 = 1.5 */;
   }
 
   .primary-btn {
@@ -76,6 +89,14 @@
       @apply ring-inset
         ring-[length:var(--primary-btn\_\_ring-width--disabled)]
         ring-[color:var(--primary-btn\_\_ring-color--disabled)];
+
+      & .primary-btn__content {
+        @apply hidden;
+      }
+
+      & .primary-btn__loading {
+        @apply block;
+      }
     }
   }
 }
