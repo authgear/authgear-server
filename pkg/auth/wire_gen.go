@@ -72931,7 +72931,11 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		Redis:   handle,
 		AppID:   appID,
 	}
-	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{}
+	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
+		Endpoints:   endpointsEndpoints,
+		UIConfig:    uiConfig,
+		ErrorCookie: errorCookie,
+	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
