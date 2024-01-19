@@ -80,6 +80,7 @@ check-tidy:
 	$(MAKE) html-email
 	$(MAKE) export-schemas
 	$(MAKE) generate-timezones
+	$(MAKE) generate-rtl
 	go mod tidy
 	git status --porcelain | grep '.*'; test $$? -eq 1
 
@@ -145,6 +146,10 @@ export-schemas:
 .PHONY:	generate-timezones
 generate-timezones:
 	npm run --silent --prefix ./scripts/npm generate-go-timezones > pkg/util/tzutil/names.go
+
+.PHONY: generate-rtl
+generate-rtl:
+	go run ./scripts/characterorder/main.go > pkg/util/intl/rtl_map.go
 
 .PHONY: logs-summary
 logs-summary:
