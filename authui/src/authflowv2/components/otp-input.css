@@ -33,7 +33,7 @@
       --typography-body-medium__font-weight
     );
 
-    --otp-input-resend-button-margin-top: 0.5rem;
+    --otp-input-resend-button-margin-top: 1rem;
   }
 
   .otp-input {
