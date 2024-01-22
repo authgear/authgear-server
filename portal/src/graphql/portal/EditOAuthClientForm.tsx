@@ -288,7 +288,8 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       () =>
         !clientConfig.x_application_type ||
         clientConfig.x_application_type === "spa" ||
-        clientConfig.x_application_type === "traditional_webapp",
+        clientConfig.x_application_type === "traditional_webapp" ||
+        clientConfig.x_application_type === "confidential",
       [clientConfig.x_application_type]
     );
 
@@ -396,6 +397,10 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             {
               labelMessageID: "EditOAuthClientForm.userinfo-endpoint.label",
               endpoint: `${publicOrigin}/oauth2/userinfo`,
+            },
+            {
+              labelMessageID: "EditOAuthClientForm.end-session-endpoint.label",
+              endpoint: `${publicOrigin}/oauth2/end_session`,
             },
             {
               labelMessageID: "EditOAuthClientForm.jwks-uri.label",

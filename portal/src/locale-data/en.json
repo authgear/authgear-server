@@ -657,6 +657,7 @@
   "EditOAuthClientForm.authorization-endpoint.label": "Authorization Endpoint",
   "EditOAuthClientForm.token-endpoint.label": "Token Endpoint",
   "EditOAuthClientForm.userinfo-endpoint.label": "Userinfo Endpoint",
+  "EditOAuthClientForm.end-session-endpoint.label": "End Session Endpoint",
   "EditOAuthClientForm.openid-configuration-endpoint.label": "OpenID Configuration Endpoint",
   "EditOAuthClientForm.jwks-uri.label": "JSON Web Key (JWK) Set",
   "EditOAuthClientForm.expire-when-login-on-other-device.label": "Expire when login on another device",
