@@ -8,7 +8,7 @@
     --checkbox__background-color: var(--color-white);
     --checkbox__background-color--checked: var(--color-primary-base);
 
-    --checkbox__check-color: var(--color-white);
+    --checkbox__icon-color: var(--color-white);
   }
 
   :root.dark {
@@ -28,23 +28,17 @@
       @apply w-0;
       @apply h-0;
 
-      &:checked + label {
+      &:checked + .checkbox__label {
         @apply bg-[color:var(--checkbox\_\_background-color--checked)];
         @apply ring-[color:var(--checkbox\_\_ring-color-checked)];
       }
 
-      &:checked + label::before {
-        @apply absolute;
-        @apply inset-0;
-        @apply text-center;
-        @apply leading-[var(--checkbox\_\_size)];
-
-        content: "check";
-        font-family: "material-icons";
+      &:checked + .checkbox__label > .checkbox__icon {
+        @apply inline;
       }
     }
 
-    label {
+    .checkbox__label {
       @apply relative;
       @apply inline-block;
       @apply cursor-pointer;
@@ -56,8 +50,14 @@
         ring-[length:var(--checkbox\_\_ring-width)]
         ring-[color:var(--checkbox\_\_ring-color)];
 
-      &::before {
-        color: var(--checkbox__check-color);
+      & > .material-icons {
+        @apply hidden;
+        @apply absolute;
+        @apply inset-0;
+        @apply text-center;
+
+        color: var(--checkbox__icon-color);
+        @apply leading-[var(--checkbox\_\_size)];
       }
     }
   }
