@@ -39,7 +39,7 @@
     letter-spacing: var(--phone-input__letter-spacing);
     font-weight: var(--phone-input__font-weight);
 
-    @apply space-x-[var(--phone-input\_\_space-x)];
+    @apply gap-x-[var(--phone-input\_\_space-x)];
   }
 
   .phone-input__trigger {
@@ -59,8 +59,7 @@
   }
 
   .phone-input__country-flag {
-    /* FIXME(tung): Write ltr:mr-1 rtl:ml-1 after dir is added */
-    @apply inline-block align-middle mr-1 rtl:ml-1 rtl:mr-0;
+    @apply inline-block align-middle ltr:mr-1 rtl:ml-1;
     height: 1em;
     width: 1em;
   }
