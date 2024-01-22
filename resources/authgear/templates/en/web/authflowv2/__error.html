@@ -5,6 +5,7 @@
   {{ end }}
   {{- if $display_error -}}
     {{ $info := .Error.info }}
+    {{ .Error }}
     {{ if eq .Error.reason "PasswordPolicyViolated" }}
         <span>
           {{ template "v2-error.error-password-policy-violated" }}
@@ -133,7 +134,7 @@
         <span>{{ template "error-no-authenticator" }}</span>
       {{ else }}
         <span>{{ .Error.message }}</span>
-      {{ end }}  
+      {{ end }}
     {{ else if eq .Error.reason "InvalidVerificationCode" }}
       <span>
         {{ template "error-verification-code-invalid" }}

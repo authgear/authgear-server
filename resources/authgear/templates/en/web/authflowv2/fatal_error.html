@@ -8,6 +8,10 @@
   <div class="screen-description mt-4">
     {{ template "v2-error-web-ui-invalid-session-return" }}
   </div>
+  {{ else if eq .Error.reason "AuthenticationFlowNoPublicSignup" }}
+  <div class="screen-description mt-4">
+    {{ template "v2-error-no-public-signup" }}
+  </div>
   {{ else }}
   <p class="screen-description mt-4">{{ template "error-server" }}</p>
   {{ end }} {{ else }}
