@@ -157,15 +157,6 @@
                 data-authgear-event="authgear.button.oauth"
               >
                 {{- $icon_class := printf "%s-icon" .provider_type -}}
-                {{- if eq .provider_type "azureadv2" -}}
-                  {{- $icon_class = "microsoft-icon" }}
-                {{- end -}}
-                {{- if eq .provider_type "azureadb2c" -}}
-                  {{- $icon_class = "microsoft-icon" }}
-                {{- end -}}
-                {{- if eq .provider_type "adfs" -}}
-                  {{- $icon_class = "microsoft-icon" }}
-                {{- end -}}
                 <i class="sso-icon {{ $icon_class }} mr-2"></i>
                 <span>
                   {{ include (printf "oauth-branding-%s" .provider_type) nil }}
