@@ -399,6 +399,10 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
               endpoint: `${publicOrigin}/oauth2/userinfo`,
             },
             {
+              labelMessageID: "EditOAuthClientForm.end-session-endpoint.label",
+              endpoint: `${publicOrigin}/oauth2/end_session`,
+            },
+            {
               labelMessageID: "EditOAuthClientForm.jwks-uri.label",
               endpoint: `${publicOrigin}/oauth2/jwks`,
             },
