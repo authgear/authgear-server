@@ -139,19 +139,11 @@ export class CustomSelectController extends Controller {
   }
 
   search(event: InputEvent) {
-    if (this.keyword.length === 0) {
-      this.clearSearchTarget.classList.add("hidden");
-    } else {
-      this.clearSearchTarget.classList.remove("hidden");
-    }
-
     this.renderItems();
   }
 
   clearSearch() {
     this.searchTarget!.value = "";
-    this.clearSearchTarget.classList.add("hidden");
-
     this.renderItems();
   }
 
