@@ -92,7 +92,9 @@ export class PasswordPolicyController extends Controller {
   check() {
     const value = this.inputTarget.value;
     if (value === "") {
-      this.currentMeterTarget.value = -1;
+      if (this.hasCurrentMeterTarget) {
+        this.currentMeterTarget.value = -1;
+      }
       this.policyTargets.forEach((e) => {
         e.setAttribute("data-state", "");
       });
