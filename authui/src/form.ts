@@ -245,9 +245,21 @@ export class RetainFormFormController extends Controller {
   }
 
   disconnect() {
+    // Before disconnect, collect all values once.
+    this.collectAllValues();
     if (this.idValue !== "") {
       const key = this.getSessionStorageKey(this.idValue);
       sessionStorage.setItem(key, JSON.stringify(this.retained));
+    }
+  }
+
+  private collectAllValues() {
+    for (const input of this.inputTargets) {
+      const name = input.getAttribute("data-retain-form-form-name-param");
+      const value = input.value;
+      if (typeof name === "string" && typeof value === "string") {
+        this.retained[name] = value;
+      }
     }
   }
 }
