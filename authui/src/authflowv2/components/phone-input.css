@@ -59,6 +59,7 @@
   }
 
   .phone-input__country-flag {
+    /* FIXME(tung): Write ltr:mr-1 rtl:ml-1 after dir is added */
     @apply inline-block align-middle mr-1 rtl:ml-1 rtl:mr-0;
     height: 1em;
     width: 1em;
