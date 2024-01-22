@@ -72,7 +72,9 @@ export class CustomSelectController extends Controller {
   _computePositionCleanup = () => {};
 
   connect(): void {
-    this.inputTarget.value = this.initialValueValue;
+    if (this.inputTarget.value === "") {
+      this.inputTarget.value = this.initialValueValue;
+    }
     this._computePositionCleanup = autoUpdate(
       this.triggerTarget,
       this.dropdownTarget,
