@@ -49,7 +49,7 @@ func (h *SetupRecoveryCodeHandler) MakeViewModel(graph *interaction.Graph) Setup
 	}
 
 	recoveryCodes := node.GetRecoveryCodes()
-	recoveryCodes = formatRecoveryCodes(recoveryCodes)
+	recoveryCodes = FormatRecoveryCodes(recoveryCodes)
 
 	return SetupRecoveryCodeViewModel{
 		RecoveryCodes: recoveryCodes,
@@ -100,7 +100,7 @@ func (h *SetupRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 			return err
 		}
 
-		setRecoveryCodeAttachmentHeaders(w)
+		SetRecoveryCodeAttachmentHeaders(w)
 		h.Renderer.Render(w, r, TemplateWebDownloadRecoveryCodeTXT, data)
 		return nil
 	})
@@ -119,7 +119,7 @@ func (h *SetupRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 	})
 }
 
-func formatRecoveryCodes(recoveryCodes []string) []string {
+func FormatRecoveryCodes(recoveryCodes []string) []string {
 	out := make([]string, len(recoveryCodes))
 	for i, code := range recoveryCodes {
 		out[i] = secretcode.RecoveryCode.FormatForHuman(code)
@@ -127,7 +127,7 @@ func formatRecoveryCodes(recoveryCodes []string) []string {
 	return out
 }
 
-func setRecoveryCodeAttachmentHeaders(w http.ResponseWriter) {
+func SetRecoveryCodeAttachmentHeaders(w http.ResponseWriter) {
 	// No need to use FormatMediaType because the value is constant.
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.Header().Set("Content-Disposition", mime.FormatMediaType("attachment", map[string]string{

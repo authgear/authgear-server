@@ -1,8 +1,9 @@
-package webapp
+package authflowv2
 
 import (
 	"net/http"
 
+	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
@@ -11,27 +12,27 @@ import (
 )
 
 var TemplateWebAuthflowViewRecoveryCodeHTML = template.RegisterHTML(
-	"web/authflow_view_recovery_code.html",
-	Components...,
+	"web/authflowv2/view_recovery_code.html",
+	handlerwebapp.Components...,
 )
 
-func ConfigureAuthflowViewRecoveryCodeRoute(route httproute.Route) httproute.Route {
+func ConfigureAuthflowV2ViewRecoveryCodeRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern(webapp.AuthflowRouteViewRecoveryCode)
+		WithPathPattern(AuthflowV2RouteViewRecoveryCode)
 }
 
 type AuthflowViewRecoveryCodeViewModel struct {
 	RecoveryCodes []string
 }
 
-type AuthflowViewRecoveryCodeHandler struct {
-	Controller    *AuthflowController
+type AuthflowV2ViewRecoveryCodeHandler struct {
+	Controller    *handlerwebapp.AuthflowController
 	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      Renderer
+	Renderer      handlerwebapp.Renderer
 }
 
-func (h *AuthflowViewRecoveryCodeHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
+func (h *AuthflowV2ViewRecoveryCodeHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
@@ -40,15 +41,15 @@ func (h *AuthflowViewRecoveryCodeHandler) GetData(w http.ResponseWriter, r *http
 	screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepViewRecoveryCodeData)
 
 	screenViewModel := AuthflowViewRecoveryCodeViewModel{
-		RecoveryCodes: FormatRecoveryCodes(screenData.RecoveryCodes),
+		RecoveryCodes: handlerwebapp.FormatRecoveryCodes(screenData.RecoveryCodes),
 	}
 	viewmodels.Embed(data, screenViewModel)
 
 	return data, nil
 }
 
-func (h *AuthflowViewRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var handlers AuthflowControllerHandlers
+func (h *AuthflowV2ViewRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var handlers handlerwebapp.AuthflowControllerHandlers
 	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data, err := h.GetData(w, r, s, screen)
 		if err != nil {
@@ -64,8 +65,8 @@ func (h *AuthflowViewRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *ht
 			return err
 		}
 
-		SetRecoveryCodeAttachmentHeaders(w)
-		h.Renderer.Render(w, r, TemplateWebDownloadRecoveryCodeTXT, data)
+		handlerwebapp.SetRecoveryCodeAttachmentHeaders(w)
+		h.Renderer.Render(w, r, handlerwebapp.TemplateWebDownloadRecoveryCodeTXT, data)
 		return nil
 	})
 	handlers.PostAction("proceed", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
