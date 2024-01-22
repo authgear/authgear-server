@@ -76,5 +76,5 @@
 }
 
 .input.input__password {
-  padding-inline-end: var(--input__password-padding-end);
+  @apply ltr:pr-[var(--input\_\_password-padding-end)] rtl:pl-[var(--input\_\_password-padding-end)];
 }
