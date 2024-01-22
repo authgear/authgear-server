@@ -190,7 +190,7 @@
               {{- $icon_class := printf "%s-icon" .provider_type -}}
               <i class="sso-icon {{ $icon_class }} mr-2"></i>
               <span>
-                {{ include (printf "oauth-branding-%s" .provider_type) nil }}
+                {{ include (printf "v2-oauth-branding-%s" .provider_type) nil }}
               </span>
             </button>
           </form>

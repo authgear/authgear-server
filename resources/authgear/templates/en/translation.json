@@ -950,6 +950,16 @@
   "v2-continue-with-text-login-id": "Continue with {variant, select, email {Email} username {Username} other {Email / Username}}",
   "v2-continue-with-phone": "Continue with Phone",
 
+  "v2-oauth-branding-apple": "Sign in with Apple",
+  "v2-oauth-branding-google": "Sign in with Google",
+  "v2-oauth-branding-facebook": "Login with Facebook",
+  "v2-oauth-branding-github": "Sign in with GitHub",
+  "v2-oauth-branding-linkedin": "Sign in with LinkedIn",
+  "v2-oauth-branding-azureadv2": "Sign in with Microsoft Azure AD",
+  "v2-oauth-branding-azureadb2c": "Sign in with Microsoft Azure AD B2C",
+  "v2-oauth-branding-adfs": "Sign in with Microsoft AD FS",
+  "v2-oauth-branding-wechat": "Login with WeChat",
+
   "v2-error-invalid-email": "Please include '@' in the email address.",
   "v2-error-web-ui-invalid-session-return": "<p>This page is invalid or has expired.</p><p>Please return and retry your request.</p>",
   "v2-error-no-public-signup": "<p>Sign up is disabled.</p><p>Please contact system admin.</p>",
