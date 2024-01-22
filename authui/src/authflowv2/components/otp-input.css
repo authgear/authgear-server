@@ -65,7 +65,7 @@
     @apply inset-0;
     @apply flex;
     @apply items-stretch;
-    @apply space-x-[var(--otp-input\_\_spacing)];
+    @apply gap-x-[var(--otp-input\_\_spacing)];
     @apply pointer-events-none;
   }
 
