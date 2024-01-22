@@ -48,7 +48,7 @@
       {{ if $.ClientName }}
       {{ template "v2-login.title" (dict "AppOrClientName" $.ClientName) }}
       {{ else }}
-      {{ $appName := ($.Translations.RenderText "app.name" nil) }}
+      {{ $appName := (include "app.name" nil) }}
       {{ template "v2-login.title" (dict "AppOrClientName" $appName) }}
       {{ end }}
     </h1>
