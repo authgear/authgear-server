@@ -945,6 +945,9 @@
   "v2-password-policy-password-strength-meter-5": "Very Strong",
   "v2-no-results-found": "No results found",
 
+  "v2-continue-with-text-login-id": "Continue with {variant, select, email {Email} username {Username} other {Email / Username}}",
+  "v2-continue-with-phone": "Continue with Phone",
+
   "v2-error-invalid-email": "Please include '@' in the email address.",
   "v2-error-web-ui-invalid-session-return": "<p>This page is invalid or has expired.</p><p>Please return and retry your request.</p>",
   "v2-error-server": "Server encountered an internal error.",
@@ -957,7 +960,5 @@
   "v2-password-policy-lowercase": "Contains an lowercase letter",
   "v2-password-policy-alphabet": "Contains an lowercase letter",
   "v2-password-policy-digit": "Contains an digit",
-  "v2-password-policy-symbol": "Contains special character",
-  "v2-continue-with-text-login-id": "Continue with {variant, select, email {Email} username {Username} other {Email / Username}}",
-  "v2-continue-with-phone": "Continue with Phone"
+  "v2-password-policy-symbol": "Contains special character"
 }
