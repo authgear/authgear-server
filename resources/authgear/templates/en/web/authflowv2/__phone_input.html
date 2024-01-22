@@ -1,32 +1,42 @@
 <!-- Example usage:
 {{ template "authflowv2/__phone_input.html"
   (dict
-    "CountryLabel" "Country"
     "Placeholder" "Phone number"
-    "ErrorMessage" "Please select a country"
     "EmptyMessage" "No results found"
     "InputName" "phone"
+    "InputAttrs" `data-foo="bar"`
+    "IsError" true
+    "AutoFocus" true
+    "PhoneInputAttrs" `data-foo="bar"`
   )
 }}
 -->
 
 {{ define "authflowv2/__phone_input.html" }}
 <div class="phone-input" data-controller="phone-input">
-  <div data-controller="custom-select" data-phone-input-target="countrySelect">
+  <div
+    data-controller="custom-select"
+    data-phone-input-target="countrySelect"
+    data-action="custom-select:initialized->phone-input#handleCountrySelectInitialized">
+    <!-- NOTE(tung): Use type="text" here,
+      because browser will not restore value of input with type="hidden" on back -->
     <input
-      type="hidden"
+      type="text"
+      class="hidden"
+      data-phone-input-target="countrySelectInput"
       data-custom-select-target="input"
       data-action="input->phone-input#handleCountryInput"
     />
 
     <!-- Select Button -->
     <button
+      type="button"
       class="phone-input__trigger"
       aria-haspopup="listbox"
       aria-expanded="false"
       data-custom-select-target="trigger"
       data-action="click->custom-select#toggle"
-    >{{ $.CountryLabel }}</button>
+    ></button>
 
     <!-- Dropdown Menu -->
     <dialog
@@ -94,28 +104,34 @@
 
       <template data-custom-select-target="emptyTemplate">
         <li class="select__empty">
-          {{ $.EmptyMessage }}
+          {{ template "v2-no-results-found" }}
         </li>
       </template>
     </dialog>
   </div>
-  <div>
+  <div class="flex-1">
     <input
-      class="input w-full {{ if $.ErrorMessage }}input--error{{ end }}"
+      class="input w-full {{ if $.IsError }}input--error{{ end }}"
       placeholder="{{ $.Placeholder }}"
       type="text"
-      inputmode="numeric"
-      pattern="^[0-9]*$"
+      inputmode="tel"
+      autocapitalize="none"
+      autocomplete="tel-national"
+      pattern="^[\+0-9]*$"
       data-action="input->phone-input#handleNumberInput"
+      data-phone-input-target="phoneInput"
+      {{ if $.AutoFocus }}autofocus{{ end }}
+      {{ if $.PhoneInputAttrs }}{{ htmlattr $.PhoneInputAttrs }}{{ end }}
     />
-    {{ if $.ErrorMessage }}
-    <div class="phone-input__error-message">{{ $.ErrorMessage }}</div>
-    {{ end }}
   </div>
+  <!-- NOTE(tung): Use type="text" here,
+    because browser will not restore value of input with type="hidden" on back -->
   <input
-    type="hidden"
+    type="text"
+    class="hidden"
     name="{{ $.InputName }}"
     data-phone-input-target="input"
+    {{ if $.InputAttrs }}{{ htmlattr $.InputAttrs }}{{ end }}
   />
 </div>
 {{ end }}

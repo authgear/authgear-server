@@ -29,6 +29,7 @@ export class CustomSelectController extends Controller {
   ];
   static values = {
     options: Array,
+    initialValue: String,
   };
 
   declare readonly inputTarget: HTMLInputElement;
@@ -42,6 +43,9 @@ export class CustomSelectController extends Controller {
   declare readonly emptyTemplateTarget?: HTMLTemplateElement;
 
   declare readonly optionsValue: SearchSelectOption[];
+  declare readonly initialValueValue: string;
+
+  private isInitialized: boolean = false;
 
   get filteredOptions() {
     return this.optionsValue.filter((option) => {
@@ -68,6 +72,9 @@ export class CustomSelectController extends Controller {
   _computePositionCleanup = () => {};
 
   connect(): void {
+    if (this.inputTarget.value === "") {
+      this.inputTarget.value = this.initialValueValue;
+    }
     this._computePositionCleanup = autoUpdate(
       this.triggerTarget,
       this.dropdownTarget,
@@ -81,17 +88,22 @@ export class CustomSelectController extends Controller {
     this.triggerTarget.addEventListener("keydown", this.handleKeyDown);
     this.dropdownTarget.addEventListener("keydown", this.handleKeyDown);
     document.addEventListener("click", this.handleClickOutside);
+
+    this.isInitialized = true;
   }
 
   disconnect(): void {
     this._computePositionCleanup();
 
-    this.triggerTarget.addEventListener("keydown", this.handleKeyDown);
+    this.triggerTarget.removeEventListener("keydown", this.handleKeyDown);
     this.dropdownTarget.removeEventListener("keydown", this.handleKeyDown);
     document.removeEventListener("click", this.handleClickOutside);
   }
 
-  optionValuesChanged() {
+  optionsValueChanged() {
+    if (!this.isInitialized) {
+      return;
+    }
     this.renderTrigger();
     this.renderItems();
   }
@@ -214,7 +226,11 @@ export class CustomSelectController extends Controller {
 
   _updateDropdownPosition = () => {
     computePosition(this.triggerTarget, this.dropdownTarget, {
-      middleware: [flip(), shift(), autoPlacement({ alignment: "start" })],
+      middleware: [
+        flip(),
+        shift(),
+        autoPlacement({ alignment: "start", crossAxis: true }),
+      ],
     }).then(({ x, y }) => {
       Object.assign(this.dropdownTarget.style, {
         left: `${x}px`,
@@ -227,7 +243,11 @@ export class CustomSelectController extends Controller {
     const item = this.optionsTarget.querySelector<HTMLLIElement>(
       `[data-value="${value}"]`
     );
-    if (!item) return;
+    if (value === this.inputTarget.value) return;
+    if (item == null) {
+      console.warn("Trying to select an option which does not exist");
+      return;
+    }
     this._updateAriaSelected(item);
     this.inputTarget.value = value ?? "";
     this.inputTarget.dispatchEvent(new Event("input", { bubbles: true }));
@@ -247,8 +267,7 @@ export class CustomSelectController extends Controller {
     const option =
       this.optionsValue.find((option) => option.value === this.value) ??
       this.optionsValue[0];
-    this.triggerTarget.textContent =
-      option?.triggerLabel ?? option?.label ?? "";
+    this.triggerTarget.innerHTML = option?.triggerLabel ?? option?.label ?? "";
   }
 
   renderSearch() {
@@ -279,14 +298,14 @@ export class CustomSelectController extends Controller {
       );
       if (prefixEl) {
         prefixEl.style.pointerEvents = "none";
-        prefixEl.textContent = item.prefix ?? "";
+        prefixEl.innerHTML = item.prefix ?? "";
       }
       if (labelEl) {
         labelEl.style.pointerEvents = "none";
-        labelEl.textContent = item.label;
+        labelEl.innerHTML = item.label;
       }
       if (!prefixEl && !labelEl) {
-        option!.textContent = item.label;
+        option!.innerHTML = item.label;
       }
       option!.dataset.index = index.toString();
       option!.setAttribute("data-value", item.value);
@@ -302,5 +321,9 @@ export class CustomSelectController extends Controller {
 
     this.optionsTarget.innerHTML = "";
     container.appendChild(fragment);
+  }
+
+  public select(value: string | undefined) {
+    this._selectValue(value);
   }
 }

@@ -31,6 +31,7 @@ func makeTemplateFuncMap() map[string]interface{} {
 	templateFuncMap["ensureTime"] = EnsureTime
 	templateFuncMap["isNil"] = IsNil
 	templateFuncMap["showAttributeValue"] = ShowAttributeValue
+	templateFuncMap["htmlattr"] = HTMLAttr
 	return templateFuncMap
 }
 
@@ -97,6 +98,12 @@ func ShowAttributeValue(v interface{}) string {
 	}
 }
 
+func HTMLAttr(v string) template.HTMLAttr {
+	// Ignore gosec error because the app developer can actually write any template
+	// But we should be careful that do not pass any user input to this function
+	return template.HTMLAttr(v) // nolint:gosec
+}
+
 func makeInclude(t tpl) func(tplName string, data any) (template.HTML, error) {
 	return func(
 		tplName string,
@@ -104,6 +111,8 @@ func makeInclude(t tpl) func(tplName string, data any) (template.HTML, error) {
 	) (template.HTML, error) {
 		buf := &bytes.Buffer{}
 		err := t.ExecuteTemplate(buf, tplName, data)
+		// Ignore gosec error because the app developer can actually write any template
+		// But we should be careful that do not pass any user input to this function
 		html := template.HTML(buf.String()) // nolint:gosec
 		return html, err
 	}

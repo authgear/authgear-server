@@ -36,7 +36,7 @@
         {{ if $.ClientName }}
         {{ template "v2-sign-up.title" (dict "AppOrClientName" $.ClientName) }}
         {{ else }}
-        {{ $appName := ($.Translations.RenderText "app.name" nil) }}
+        {{ $appName := (include "app.name" nil) }}
         {{ template "v2-sign-up.title" (dict "AppOrClientName" $appName) }}
         {{ end }}
       </h1>
@@ -57,21 +57,24 @@
         <input type="hidden" name="q_login_id_type" value="{{ .login_id_type }}">
         <div data-controller="text-field" class="flex flex-col gap-2">
           {{ if eq .login_id_type "phone" }}
-            <!-- TODO(tung): Update to use phone input (https://github.com/authgear/authgear-server/issues/3561) -->
-            <input
-              data-text-field-target="input"
-              class="block input w-full"
-              tabindex="0"
-              {{ if $.ShouldFocusInput }}autofocus{{ end }}
-              type="text"
-              inputmode="tel"
-              autocomplete="tel-national"
-              autocapitalize="none"
-              name="q_login_id"
-              placeholder="{{ template "v2-placeholder.phone" }}"
-              data-retain-form-form-target="input"
-              data-retain-form-form-name-param="phone"
-            >
+            {{ template "authflowv2/__phone_input.html"
+              (dict
+                "Placeholder" (include "v2-placeholder.phone" nil)
+                "IsError" $display_error
+                "AutoFocus" $.ShouldFocusInput
+                "PhoneInputAttrs" `
+                  tabindex="0"
+                  data-text-field-target="input"
+                `
+                "InputName" "q_login_id"
+                "InputAttrs" `
+                  data-controller="retain-form-input"
+                  data-retain-form-form-target="input"
+                  data-retain-form-form-name-param="phone"
+                  data-action="input->retain-form-input#input retain-form-input:input->retain-form-form#input"
+                `
+              )
+            }}
           {{ else }}
             <input
               data-text-field-target="input"
@@ -110,7 +113,7 @@
     </form>
 
     <p class="body-text--md mt-4">
-      {{ $loginHref := call $.MakeURL "/login" }}
+      {{ $loginHref := call $.MakeURL "/login" "q_login_id_input_type" $.LoginIDInputType "x_step" "" }}
       {{ template "v2-sign-up.switch-to-login" (dict "href" $loginHref )}}
     </p>
 
@@ -122,21 +125,21 @@
             {{ if eq .login_id_key "email" }}
               <a class="secondary-btn" data-turbo-action="replace"
                 href="{{ call $.MakeURL "" "q_login_id_key" .login_id_key "q_login_id_input_type" .login_id_input_type }}">
-                <i class="material-icons mr-2">mail</i>
+                <i class="alternative-icon material-icons mr-2">mail</i>
                 {{ template "v2-sign-up.signup-with-email" }}
               </a>
             {{ end }}
             {{ if eq .login_id_key "username" }}
               <a class="secondary-btn" data-turbo-action="replace"
                 href="{{ call $.MakeURL "" "q_login_id_key" .login_id_key "q_login_id_input_type" .login_id_input_type }}">
-                <i class="material-icons mr-2">person</i>
+                <i class="alternative-icon material-icons mr-2">person</i>
                 {{ template "v2-sign-up.signup-with-username" }}
               </a>
             {{ end }}
             {{ if eq .login_id_key "phone" }}
               <a class="secondary-btn" data-turbo-action="replace"
                 href="{{ call $.MakeURL "" "q_login_id_key" .login_id_key "q_login_id_input_type" .login_id_input_type }}">
-                <i class="material-icons mr-2">smartphone</i>
+                <i class="alternative-icon material-icons mr-2">smartphone</i>
                 {{ template "v2-sign-up.signup-with-phone" }}
               </a>
             {{ end }}

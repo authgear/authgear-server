@@ -929,17 +929,26 @@
   "v2-sign-up.signup-with-username": "Continue with Username",
   "v2-sign-up.signup-with-phone": "Continue with Phone",
 
+  "v2-login.title": "Sign in to {AppOrClientName}",
+  "v2-login.subtitle": "It''s free. No credit card needed.",
+  "v2-login.switch-to-sign-up": "No account? <a href=\"{href}\">Create one</a>",
+
   "v2-or-label": "or",
   "v2-placeholder.login-id": "{variant, select, email {Email address} username {Username} other {Email address or username}}",
   "v2-placeholder.phone": "Phone number",
   "v2-button.continue": "Continue",
+  "v2-button.login": "Login",
   "v2-password-policy-password-strength-meter-1": "Very Weak",
   "v2-password-policy-password-strength-meter-2": "Weak",
   "v2-password-policy-password-strength-meter-3": "Medium",
   "v2-password-policy-password-strength-meter-4": "Strong",
   "v2-password-policy-password-strength-meter-5": "Very Strong",
+  "v2-no-results-found": "No results found",
 
-  "v2-error.error-invalid-email": "Please include '@' in the email address.",
+  "v2-continue-with-text-login-id": "Continue with {variant, select, email {Email} username {Username} other {Email / Username}}",
+  "v2-continue-with-phone": "Continue with Phone",
+
+  "v2-error-invalid-email": "Please include '@' in the email address.",
   "v2-error-web-ui-invalid-session-return": "<p>This page is invalid or has expired.</p><p>Please return and retry your request.</p>",
   "v2-error-server": "Server encountered an internal error.",
   "v2-error-screen-title": "Unexpected Issues",

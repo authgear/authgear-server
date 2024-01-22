@@ -11,8 +11,15 @@
         </span>
     {{ else if eq .Error.reason "ValidationFailed" }}
       {{ range .Error.info.causes }}
+        {{ $details := .details }}
         {{ if (eq .kind "required") }}
-          {{ if (call $.SliceContains .details.missing "q_login_id") }}
+          {{ $is_missing_login_id := false }}
+          {{ range (list "q_login_id" "x_login_id") }}
+            {{ if (call $.SliceContains $details.missing .) }}
+              {{ $is_missing_login_id = true}}
+            {{ end }}
+          {{ end }}
+          {{ if $is_missing_login_id }}
             <span>
               {{ template "error-login-id-required" (dict "variant" $.LoginIDContextualType) }}
             </span>
@@ -43,7 +50,7 @@
           {{ if (eq .details.format "phone") }}
             <span>{{ template "error-phone-number-format" }}</span>
           {{ else if (eq .details.format "email") }}
-            <span>{{ template "v2-error.error-invalid-email" }}</span>
+            <span>{{ template "v2-error-invalid-email" }}</span>
           {{ else if (eq .details.format "username") }}
             <span>{{ template "error-invalid-username" }}</span>
           {{ else if (eq .details.format "x_totp_code") }}
