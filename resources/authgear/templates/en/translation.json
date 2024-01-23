@@ -936,6 +936,7 @@
   "v2-or-label": "or",
   "v2-placeholder.login-id": "{variant, select, email {Email address} username {Username} other {Email address or username}}",
   "v2-placeholder.phone": "Phone number",
+  "v2-placeholder.email": "Email address",
   "v2-button.continue": "Continue",
   "v2-button.login": "Login",
   "v2-password-policy-password-strength-meter-1": "Very Weak",
