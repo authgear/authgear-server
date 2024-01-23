@@ -19,10 +19,11 @@ import (
 )
 
 const (
-	AuthflowV2RouteLogin   = "/login"
-	AuthflowV2RouteSignup  = "/signup"
-	AuthflowV2RoutePromote = "/flows/promote_user"
-	AuthflowV2RouteReauth  = "/reauth"
+	AuthflowV2RouteLogin         = "/login"
+	AuthflowV2RouteSignup        = "/signup"
+	AuthflowV2RoutePromote       = "/flows/promote_user"
+	AuthflowV2RouteReauth        = "/reauth"
+	AuthflowV2RouteSelectAccount = "/authflow/v2/select_account"
 	// AuthflowV2RouteSignupLogin is login because login page has passkey.
 	AuthflowV2RouteSignupLogin = AuthflowV2RouteLogin
 
