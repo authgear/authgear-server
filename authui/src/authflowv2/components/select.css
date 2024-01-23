@@ -18,10 +18,9 @@
 
     --select__search-border: 1px solid var(--color-grey-100);
 
-    --select__search-input-padding: 0.875em 0.625em;
-    @media (max-width: theme("screens.tablet")) {
-      --select__search-input-padding: 0.875em 0.125em;
-    }
+    --select__search-input-py: 0.875em;
+    --select__search-input-px--desktop: 0.625em;
+    --select__search-input-px--mobile: 0.125em;
     --select__search-input-text-color: var(--color-grey-700);
     --select__search-input-caret-color: var(--color-primary-base);
     --select__search-input-font-family: var(
@@ -149,7 +148,12 @@
     outline: none;
     background-color: transparent;
 
-    padding: var(--select__search-input-padding);
+    padding: var(--select__search-input-py)
+      var(--select__search-input-px--desktop);
+    @media (max-width: theme("screens.tablet")) {
+      padding: var(--select__search-input-py)
+        var(--select__search-input-px--mobile);
+    }
 
     color: var(--select__search-input-text-color);
     font-family: var(--select__search-input-font-family);
