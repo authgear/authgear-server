@@ -106,6 +106,8 @@ func newAuthflowBranchViewModelStepAuthenticate(screen *webapp.AuthflowScreenWit
 			addChannelBranch(idx, o)
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			addChannelBranch(idx, o)
+		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+			addIndexBranch(idx, o)
 		case config.AuthenticationFlowAuthenticationRecoveryCode:
 			addIndexBranch(idx, o)
 		default:
@@ -181,6 +183,8 @@ func newAuthflowBranchViewModelStepCreateAuthenticator(screen *webapp.AuthflowSc
 			} else {
 				addChannelBranch(idx, o)
 			}
+		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryPassword:
 			addIndexBranch(idx, o)
 		default:
