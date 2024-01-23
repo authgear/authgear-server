@@ -79,4 +79,10 @@
         ring-[color:var(--primary-btn\_\_ring-color--disabled)];
     }
   }
+
+  .primary-btn__loading-icon {
+    font-size: calc(1.5 * var(--primary-btn__font-size)) /* 24 / 16 = 1.5 */;
+    height: 1em;
+    display: block !important;
+  }
 }
