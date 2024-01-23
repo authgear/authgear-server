@@ -72,6 +72,17 @@ func (s *Service) makeAuthenticationTemplateComponents(text string, code string)
 }
 
 func (s *Service) getOTPTemplate() (*config.WhatsappTemplateConfig, error) {
+	if s.DevMode {
+		return &config.WhatsappTemplateConfig{
+			Name: "otp",
+			Type: config.WhatsappTemplateTypeAuthentication,
+			Languages: []string{
+				"en",
+			},
+			Namespace: "default",
+		}, nil
+	}
+
 	switch s.Config.APIType {
 	case config.WhatsappAPITypeOnPremises:
 		if s.OnPremisesClient == nil {

@@ -3,6 +3,7 @@
   {{ if eq $.Type "error" }}alert-message--error{{ end }}
   {{ if eq $.Type "success" }}alert-message--success{{ end }}
   {{ if eq $.Type "warning" }}alert-message--warning{{ end }}
+  {{ $.Classname }}
 ">
   <span class="alert-message__icon material-icons material-icons--filled">
     {{ if eq $.Type "error" }}error{{ end }}

@@ -20,8 +20,9 @@
 
 {{ define "authflowv2/__otp_input.html" }}
 <div data-controller="otp-input">
-  <div class="otp-input {{ if $.ErrorMessage }}otp-input--error{{ end }}">
+  <div class="otp-input{{ if $.ErrorContext }} otp-input--error{{ end }}">
     <input
+      form="main-form"
       type="text"
       name="{{ or $.InputName "x_code" }}"
       inputmode="numeric"
@@ -36,12 +37,14 @@
       <div class="otp-input__digit"></div>
     </div>
   </div>
+
   {{ if $.ErrorMessage }}
-  <p class="otp-input__error-message">
-    {{ $.ErrorMessage }}
-  </p>
+    <div class="otp-input__error-message">
+      {{ $.ErrorMessage }}
+    </div>
   {{ end }}
-  <form method="post" novalidate>
+
+  <form id="main-form" method="post" novalidate>
     {{ $.CSRFField }}
     <button
       class="hidden"
@@ -52,6 +55,7 @@
       data-authgear-event="{{ $.SubmitEvent }}"
     ></button>
   </form>
+
   <form method="post" novalidate>
     {{ $.CSRFField }}
     <button
@@ -60,14 +64,15 @@
       type="submit"
       name="{{ or $.ResendButtonName "x_action" }}"
       value="{{ or $.ResendButtonValue "resend" }}"
-      data-controller="resend-button"
-      data-resend-button-cooldown-value="{{ $.ResendButtonCooldown }}"
-      data-resend-button-label-value="{{ $.ResendButtonLabel }}"
-      data-resend-button-label-unit-value="{{ $.ResendButtonLabelWithValue }}"
+      data-controller="countdown"
+      data-countdown-target="button"
+      data-countdown-cooldown-value="{{ $.ResendButtonCooldown }}"
+      data-countdown-label-value="{{ $.ResendButtonLabel }}"
+      data-countdown-label-unit-value="{{ $.ResendButtonLabelWithValue }}"
       data-authgear-event="{{ $.ResendEvent }}"
     >
       {{ $.ResendButtonLabel }}
-    </form>
-  </button>
+    </button>
+  </form>
 </div>
 {{ end }}

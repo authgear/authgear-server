@@ -67,10 +67,6 @@ export class CountdownController extends Controller {
   }
 
   private validateValues() {
-    if (!this.cooldownValue && !this.cooldownUntilValue) {
-      throw new Error("cooldown or cooldownUntil must be set");
-    }
-
     if (this.cooldownValue && isNaN(this.cooldownValue)) {
       throw new Error("cooldown must be a valid number");
     }
