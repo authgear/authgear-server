@@ -43,6 +43,12 @@
             <span>{{ template "error-email-required" }}</span>
           {{ else if (call $.SliceContains .details.missing "x_e164" ) }}
             <span>{{ template "error-phone-number-required" }}</span>
+          {{ else if (call $.SliceContains .details.missing "x_target" ) }}
+            {{ if eq $.OOBAuthenticatorType "oob_otp_email" }}
+            <span>{{ template "error-email-required" }}</span>
+            {{ else }}
+            <span>{{ template "error-phone-number-required" }}</span>
+            {{ end }}
           {{ else }}
             <span>{{ .Error.message }}</span>
           {{ end }}

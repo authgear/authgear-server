@@ -936,6 +936,7 @@
   "v2-or-label": "or",
   "v2-placeholder.login-id": "{variant, select, email {Email address} username {Username} other {Email address or username}}",
   "v2-placeholder.phone": "Phone number",
+  "v2-placeholder.email": "Email address",
   "v2-button.continue": "Continue",
   "v2-button.login": "Login",
   "v2-password-policy-password-strength-meter-1": "Very Weak",
@@ -983,5 +984,10 @@
   "v2-enter-password-page-title": "Enter password",
   "v2-enter-additional-password-page-title": "Enter additional password",
   "v2-enter-password-page-title-reauth": "Enter password to continue",
-  "v2-enter-additional-password-page-title-reauth": "Enter additional password to continue"
+  "v2-enter-additional-password-page-title-reauth": "Enter additional password to continue",
+
+  "v2-setup-oob-otp-page-title": "2-Step Verification",
+  "v2-setup-oob-otp-page-subtitle--sms": "You can receive sign-in codes at this number.",
+  "v2-setup-oob-otp-page-subtitle--whatsapp": "You can receive sign-in codes at this number.",
+  "v2-setup-oob-otp-page-subtitle--email": "You can receive sign-in codes at this email."
 }
