@@ -988,7 +988,5 @@
   "v2-setup-oob-otp-page-title": "多重驗證",
   "v2-setup-oob-otp-page-subtitle--sms": "您可以透過此號碼接收驗證碼。",
   "v2-setup-oob-otp-page-subtitle--whatsapp": "您可以透過此號碼接收驗證碼。",
-  "v2-setup-oob-otp-page-subtitle--email": "您可以透過此電子郵件接收驗證碼。",
-  "v2-setup-oob-otp-page-phone-number-placeholder": "電話號碼",
-  "v2-setup-oob-otp-page-phone-number-empty-message": "找不到結果"
+  "v2-setup-oob-otp-page-subtitle--email": "您可以透過此電子郵件接收驗證碼。"
 }
