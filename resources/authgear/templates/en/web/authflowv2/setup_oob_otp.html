@@ -53,10 +53,10 @@
 		{{- if eq $.OOBAuthenticatorType "oob_otp_sms" }}
 		{{ template "authflowv2/__phone_input.html"
 			(dict
-				"Placeholder" (include "v2-setup-oob-otp-page-phone-number-placeholder" nil)
+				"Placeholder" (include "v2-placeholder.phone" nil)
+				"IsError" $display_otp_input_error
+				"AutoFocus" $.ShouldFocusInput
 				"InputName" "x_target"
-				"ErrorMessage" $otp_error_message
-				"EmptyMessage" (include "v2-setup-oob-otp-page-phone-number-empty-message" nil)
 			)
 		}}
 		{{- end }}
@@ -72,12 +72,13 @@
 			autocapitalize="none"
 			placeholder="{{ template "email-placeholder" }}"
 		>
+		{{- end }}
+
 		{{ if $display_otp_input_error }}
 		<p class="input__error-message mt-2">
 			{{ $otp_error_message }}
 		</p>
 		{{ end }}
-		{{- end }}
 
 		<button
 			class="primary-btn w-full mt-4"

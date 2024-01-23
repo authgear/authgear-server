@@ -988,7 +988,5 @@
   "v2-setup-oob-otp-page-title": "2-Step Verification",
   "v2-setup-oob-otp-page-subtitle--sms": "You can receive sign-in codes at this number.",
   "v2-setup-oob-otp-page-subtitle--whatsapp": "You can receive sign-in codes at this number.",
-  "v2-setup-oob-otp-page-subtitle--email": "You can receive sign-in codes at this email.",
-  "v2-setup-oob-otp-page-phone-number-placeholder": "Phone number",
-  "v2-setup-oob-otp-page-phone-number-empty-message": "No results found"
+  "v2-setup-oob-otp-page-subtitle--email": "You can receive sign-in codes at this email."
 }
