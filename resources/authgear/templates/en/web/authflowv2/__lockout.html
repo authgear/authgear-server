@@ -2,7 +2,7 @@
 {{ if $.Error }}
   {{ if eq .Error.reason "AccountLockout" }}
 
-  <dialog class="modal modal--full gap-y-4" data-controller="modal" open>
+  <dialog class="modal gap-y-4" data-controller="modal" open>
     <span class="material-icons screen-icon">account_circle_off</span>
     <h1 class="screen-title mt-2">
       {{ template "v2-lockout-title" }}

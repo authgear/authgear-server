@@ -4,20 +4,12 @@
   }
 
   .modal[open] {
-    @apply absolute;
-    @apply left-1/2;
-    @apply transform;
-    @apply -translate-x-1/2;
+    @apply absolute inset-0;
 
     @apply flex;
     @apply flex-col;
     @apply items-center;
     @apply justify-center;
-
-    @apply h-full;
-    @apply max-h-full;
-    @apply w-full;
-    @apply max-w-full;
 
     @apply px-6;
     @apply py-8;
@@ -25,10 +17,11 @@
     background-color: var(--lockout__bg-color);
   }
 
-  .modal--full {
-    @apply !left-0;
-    @apply !-translate-x-0;
-    @apply inset-0;
+  .modal__content {
+    @apply flex-1;
+    @apply flex;
+    @apply flex-col;
+    @apply items-center;
   }
 
   .modal__actions {
@@ -38,10 +31,6 @@
 
   @media (max-width: theme("screens.tablet")) {
     .modal__actions {
-      @apply absolute;
-      @apply bottom-0;
-      @apply left-0;
-      @apply right-0;
       @apply px-6;
       @apply py-10;
     }
