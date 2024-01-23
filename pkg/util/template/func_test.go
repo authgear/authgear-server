@@ -179,13 +179,13 @@ func TestFuncs(t *testing.T) {
 	},
 	)
 
-	Convey("trimSpace", t, func() {
+	Convey("trimHTML", t, func() {
 		Convey("With string", func() {
-			So(trimSpace(" A B "), ShouldEqual, "A B")
+			So(trimHTML(" A B "), ShouldEqual, "A B")
 		})
 
 		Convey("With HTML", func() {
-			So(trimSpace(template.HTML("  A  B ")), ShouldEqual, "A  B")
+			So(trimHTML(template.HTML("  A  B ")), ShouldEqual, "A  B")
 		})
 	})
 }

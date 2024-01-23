@@ -1,6 +1,6 @@
 {{ define "authflowv2/__alert_message.html" }}
-{{ $message := trimSpace .Message }}
-{{ if not (eq $message "") }}
+{{ $message := trimHTML .Message }}
+{{ if $message }}
   <div class="alert-message
     {{ if eq $.Type "error" }}alert-message--error{{ end }}
     {{ if eq $.Type "success" }}alert-message--success{{ end }}

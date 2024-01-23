@@ -22,7 +22,7 @@ type tpl interface {
 func MakeTemplateFuncMap(t tpl) map[string]interface{} {
 	templateFuncMap := makeTemplateFuncMap()
 	templateFuncMap["include"] = makeInclude(t)
-	templateFuncMap["trimSpace"] = trimSpace
+	templateFuncMap["trimHTML"] = trimHTML
 	return templateFuncMap
 }
 
@@ -120,11 +120,12 @@ func makeInclude(t tpl) func(tplName string, data any) (template.HTML, error) {
 	}
 }
 
-func trimSpace(input interface{}) string {
+func trimHTML(input interface{}) string {
 	switch input := input.(type) {
 	case string:
 		return strings.TrimSpace(input)
 	case template.HTML:
+		// `Masterminds/sprig`'s `trimAll` cannot handle html type, so we need to convert it to string first
 		return strings.TrimSpace(string(input))
 	default:
 		return ""
