@@ -63,3 +63,7 @@
     }
   }
 }
+
+.secondary-btn__icon {
+  font-size: calc(1.5 * var(--secondary-btn__font-size)) /* 24 / 16 = 1.5 */;
+}

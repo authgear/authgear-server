@@ -1,0 +1,152 @@
+{{- define "authflowv2/__authflow_branch.html" }}
+
+{{- if (len $.Branches) }}
+  {{ template "authflowv2/__divider.html" . }}
+{{- end }}
+
+<div class="flex flex-col gap-y-4">
+
+  <!-- TODO: Update authenticate with recovery_code to v2 -->
+{{- range $.Branches }}
+  {{- if eq $.ActionType "authenticate" }}
+    {{- if eq .Authentication "recovery_code" }}
+      <form class="text-left text-sm" method="post" novalidate>
+        {{ $.CSRFField }}
+        <input type="hidden" name="x_index" value="{{ .Index }}">
+        <input type="hidden" name="x_channel" value="{{ .Channel }}">
+        <input type="hidden" name="x_action" value="take_branch">
+        {{ if ($.Translations.HasKey "customer-support-link") }}
+            {{ template "enter-recovery-code-instead-with-customer-support-v1" (dict "customerSupportLink" ($.Translations.RenderText "customer-support-link" nil)) }}
+        {{ else }}
+            {{ template "enter-recovery-code-instead-v1" }}
+        {{ end }}
+      </form>
+    {{- end }}
+  {{- end }}
+{{- end }}
+
+{{- range $.Branches }}
+  <form method="post" novalidate>
+  {{ $.CSRFField }}
+  <input type="hidden" name="x_index" value="{{ .Index }}">
+  <input type="hidden" name="x_channel" value="{{ .Channel }}">
+  <input type="hidden" name="x_action" value="take_branch">
+  <button class="secondary-btn w-full flex gap-x-2" type="submit">
+    <!-- TODO: Update create_authenticator to v2 -->
+    {{- if eq $.ActionType "create_authenticator" }}
+      {{- if eq .Authentication "primary_password" }}
+        {{ template "setup-password-instead" }}
+      {{- end }}
+      {{- if eq .Authentication "secondary_password" }}
+        {{ template "setup-secondary-password-instead" }}
+      {{- end }}
+      {{- if eq .Authentication "secondary_totp" }}
+        {{ template "setup-totp-instead" }}
+      {{- end }}
+      {{- if eq .Authentication "primary_oob_otp_email" }}
+        {{- if .VerificationSkippable }}
+          {{ template "setup-oob-otp-without-verification" (dict "target" .MaskedClaimValue) }}
+        {{ else }}
+          {{- if eq .OTPForm "code" }}
+            {{ template "setup-email-otp-code-instead" }}
+          {{- end }}
+          {{- if eq .OTPForm "link" }}
+            {{ template "setup-email-otp-link-instead" }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- if eq .Authentication "secondary_oob_otp_email" }}
+        {{- if .VerificationSkippable }}
+          {{ template "setup-oob-otp-without-verification" (dict "target" .MaskedClaimValue) }}
+        {{ else }}
+          {{- if eq .OTPForm "code" }}
+            {{ template "setup-email-otp-code-instead" }}
+          {{- end }}
+          {{- if eq .OTPForm "link" }}
+            {{ template "setup-email-otp-link-instead" }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- if eq .Authentication "primary_oob_otp_sms" }}
+        {{- if .VerificationSkippable }}
+          {{ template "setup-oob-otp-without-verification" (dict "target" .MaskedClaimValue) }}
+        {{ else }}
+          {{- if eq .Channel "sms" }}
+            {{ template "setup-phone-otp-sms-instead" }}
+          {{- end }}
+          {{- if eq .Channel "whatsapp" }}
+            {{ template "setup-phone-otp-whatsapp-instead" }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- if eq .Authentication "secondary_oob_otp_sms" }}
+        {{- if .VerificationSkippable }}
+          {{ template "setup-oob-otp-without-verification" (dict "target" .MaskedClaimValue) }}
+        {{ else }}
+          {{- if eq .Channel "sms" }}
+            {{ template "setup-phone-otp-sms-instead" }}
+          {{- end }}
+          {{- if eq .Channel "whatsapp" }}
+            {{ template "setup-phone-otp-whatsapp-instead" }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+
+    {{- if eq $.ActionType "authenticate" }}
+      {{- if eq .Authentication "primary_password" }}
+        <span class="material-icons secondary-btn__icon">key_vertical</span>
+        {{ template "v2-enter-password-instead" }}
+      {{- end }}
+      {{- if eq .Authentication "secondary_password" }}
+        <span class="material-icons secondary-btn__icon">key_vertical</span>
+        {{ template "v2-enter-secondary-password-instead" }}
+      {{- end }}
+      {{- if eq .Authentication "primary_passkey" }}
+        <span class="material-icons secondary-btn__icon">passkey</span>
+        {{ template "v2-use-passkey-instead" }}
+      {{- end }}
+      {{- if eq .Authentication "secondary_totp" }}
+        <span class="material-icons secondary-btn__icon">qr_code</span>
+        {{ template "v2-enter-totp-instead" }}
+      {{- end }}
+      {{- if ( or (eq .Authentication "primary_oob_otp_email") (eq .Authentication "secondary_oob_otp_email")) }}
+        {{- if eq .OTPForm "code" }}
+        <span class="material-icons secondary-btn__icon">mail</span>
+        {{ template "v2-enter-email-otp-code-instead" }}
+        {{- end }}
+        {{- if eq .OTPForm "link" }}
+        <span class="material-icons secondary-btn__icon">mail</span>
+        {{ template "v2-use-email-otp-link-instead" }}
+        {{- end }}
+      {{- end }}
+      {{- if (or (eq .Authentication "primary_oob_otp_sms") (eq .Authentication "secondary_oob_otp_sms")) }}
+        {{- if eq .Channel "sms" }}
+        <span class="material-icons secondary-btn__icon">phone_iphone</span>
+        {{ template "v2-enter-phone-otp-sms-instead" }}
+        {{- end }}
+        {{- if eq .Channel "whatsapp" }}
+        <span class="sso-icon whatsapp-icon secondary-btn__icon"></span>
+        {{ template "v2-enter-phone-otp-whatsapp-instead" }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+
+
+    <!-- TODO: Update verify to v2 -->
+    {{- if eq $.ActionType "verify" }}
+      {{- if eq .Channel "sms" }}
+        {{ template "enter-phone-otp-sms-instead" (dict "target" .MaskedClaimValue) }}
+      {{- end }}
+      {{- if eq .Channel "whatsapp" }}
+        {{ template "enter-phone-otp-whatsapp-instead" (dict "target" .MaskedClaimValue) }}
+      {{- end }}
+    {{- end }}
+
+    </button>
+  </form>
+{{- end }}
+
+</div>
+
+{{- end }}

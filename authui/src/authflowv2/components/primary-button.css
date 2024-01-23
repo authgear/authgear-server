@@ -29,7 +29,7 @@
     --primary-btn__ring-color--active: var(--primary-btn__ring-color);
 
     --primary-btn__bg-color--disabled: var(--color-grey-200);
-    --primary-btn__text-color--disabled: var(--color-grey-600);
+    --primary-btn__text-color--disabled: var(--color-grey-400);
     --primary-btn__ring-width--disabled: var(--primary-btn__ring-width);
     --primary-btn__ring-color--disabled: var(--primary-btn__ring-color);
   }
@@ -70,7 +70,7 @@
         ring-[color:var(--primary-btn\_\_ring-color--active)];
     }
 
-    &:disabled {
+    &:diysabled {
       background-color: var(--primary-btn__bg-color--disabled);
       color: var(--primary-btn__text-color--disabled);
       @apply ring-inset
