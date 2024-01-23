@@ -999,5 +999,9 @@
   "v2-lockout-retry-button-label--unit": "%s 後重試",
   "v2-error-disabled-user-title": "帳號不可用",
   "v2-error-disabled-user-subtitle": "管理員已停用您的帳號。請聯絡客戶支援。",
-  "v2-account-status-return-button-label": "返回登入"
+  "v2-account-status-return-button-label": "返回登入",
+  "v2-error-disabled-user-reason": "原因： {reason}",
+  "v2-error-deactivated-user": "你已停用你的帳戶。",
+  "v2-error-scheduled-deletion-by-admin": "你的帳戶已被管理員停用，而你的帳戶將在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除。",
+  "v2-error-scheduled-deletion-by-end-user": "你已停用你的帳戶，而你的帳戶將在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除。"
 }
