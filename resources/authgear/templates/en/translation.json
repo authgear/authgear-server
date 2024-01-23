@@ -1015,5 +1015,14 @@
   "v2-error-scheduled-deletion-by-admin": "Administrator has disabled your account and your account will be deleted on <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2-error-scheduled-deletion-by-end-user": "You have deactivated your account and your account will be deleted on <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
 
-  "v2-error-page-not-found": "The page cannot be found"
+  "v2-error-page-not-found": "The page cannot be found",
+  "v2-setup-password-instead": "Set up password",
+  "v2-setup-secondary-password-instead": "Set up additional password",
+  "v2-setup-totp-instead": "Set up Authenticator",
+  "v2-setup-passkey-instead": "Set up Passkey",
+  "v2-setup-email-otp-code-instead": "Set up email",
+  "v2-setup-email-otp-link-instead": "Set up email",
+  "v2-setup-phone-otp-sms-instead": "Set up phone",
+  "v2-setup-phone-otp-whatsapp-instead": "Set up Whatsapp",
+  "v2-setup-oob-otp-without-verification": "Set up phone"
 }
