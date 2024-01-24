@@ -1,13 +1,9 @@
 import { visit, clearCache } from "@hotwired/turbo";
 import { Controller } from "@hotwired/stimulus";
 import axios, { Method } from "axios";
-import {
-  disableAllButtons,
-  hideProgressBar,
-  showProgressBar,
-  progressEventHandler,
-} from "../loading";
+import { progressEventHandler } from "../loading";
 import { handleAxiosError } from "../messageBar";
+import { LoadingController } from "./loading";
 
 // Turbo has builtin support for form submission.
 // We once migrated to use it.
@@ -28,7 +24,6 @@ import { handleAxiosError } from "../messageBar";
 //
 // See https://github.com/authgear/authgear-server/issues/2333
 export class XHRSubmitFormController extends Controller {
-  revertDisabledButtons: { (): void } | null = null;
   forms: HTMLFormElement[] = [];
 
   onSubmitCapture = (e: Event) => {
@@ -55,18 +50,14 @@ export class XHRSubmitFormController extends Controller {
     formData.forEach((value, name) => {
       params.set(name, value as string);
     });
-    const loadingEvent = new CustomEvent<{ button?: HTMLButtonElement }>(
-      "onLoading",
-      {
-        detail: {},
-      }
-    );
+    let loadingButton: HTMLButtonElement | null = null;
     // FormData does not include any submit button's data:
     // include them manually, since we have at most one submit button per form.
     const submitButtons = form.querySelectorAll('button[type="submit"]');
     for (let i = 0; i < submitButtons.length; i++) {
       const button = submitButtons[i] as HTMLButtonElement;
       params.set(button.name, button.value);
+      loadingButton = button;
     }
     if (form.id) {
       const el = document.querySelector(
@@ -75,11 +66,16 @@ export class XHRSubmitFormController extends Controller {
       if (el) {
         const button = el as HTMLButtonElement;
         params.set(button.name, button.value);
-        loadingEvent.detail.button = button;
+        loadingButton = button;
       }
     }
-
-    this.element.dispatchEvent(loadingEvent);
+    const loadingController: LoadingController | null =
+      this.application.getControllerForElementAndIdentifier(
+        this.element,
+        "loading"
+      ) as LoadingController | null;
+    const { onError: onLoadingError, onFinally: onLoadingFinally } =
+      loadingController?.startLoading(loadingButton) ?? {};
     try {
       const resp = await axios(form.action, {
         method: form.method as Method,
@@ -109,15 +105,9 @@ export class XHRSubmitFormController extends Controller {
       }
     } catch (e: unknown) {
       handleAxiosError(e);
-      this.element.dispatchEvent(
-        new CustomEvent("onLoadingError", {
-          detail: {
-            error: e,
-          },
-        })
-      );
+      onLoadingError?.();
     } finally {
-      this.element.dispatchEvent(new CustomEvent("onLoadingEnd"));
+      onLoadingFinally?.();
     }
   }
 
