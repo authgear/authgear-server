@@ -1,9 +1,5 @@
 import { Controller } from "@hotwired/stimulus";
-import {
-  disableAllButtons,
-  hideProgressBar,
-  showProgressBar,
-} from "../loading";
+import { disableAllButtons } from "../loading";
 
 interface LoadingEvent extends Event {
   detail?: {
@@ -26,7 +22,6 @@ export class LoadingController extends Controller {
 
   onLoading(e: LoadingEvent) {
     this.revertDisabledButtons = disableAllButtons();
-    showProgressBar();
     if (e.detail?.button?.getAttribute("data-loading-state") != null) {
       e.detail.button.classList.add("primary-btn--loading");
       this.button = e.detail.button;
@@ -43,7 +38,6 @@ export class LoadingController extends Controller {
     this.button?.classList.remove("primary-btn--loading");
   }
   onLoadingEnd(e: LoadingEvent) {
-    hideProgressBar();
     this.button?.classList.remove("primary-btn--loading");
   }
 

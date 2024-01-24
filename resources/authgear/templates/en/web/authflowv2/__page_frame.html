@@ -1,42 +1,43 @@
 {{ define "authflowv2/__page_frame.html" }}
-<!DOCTYPE html>
+<!doctype html>
 
 <html
-	lang="{{ $.ResolvedLanguageTag }}"
-	dir="{{ $.HTMLDir }}"
-	data-controller="format-date-relative"
-	data-dark-theme-enabled="{{ $.DarkThemeEnabled }}">
-{{ template "authflowv2/__html_head.html" . }}
+  lang="{{ $.ResolvedLanguageTag }}"
+  dir="{{ $.HTMLDir }}"
+  data-controller="format-date-relative"
+  data-dark-theme-enabled="{{ $.DarkThemeEnabled }}"
+>
+  {{ template "authflowv2/__html_head.html" . }} {{ $lockedUntil := "" }} {{ if
+  and (.Error) (eq .Error.reason "AccountLockout") }} {{ $lockedUntil = (rfc3339
+  (ensureTime .Error.info.until)) }} {{ end }}
 
-{{ $lockedUntil := "" }}
-{{ if and (.Error) (eq .Error.reason "AccountLockout") }}
-	{{ $lockedUntil = (rfc3339 (ensureTime .Error.info.until)) }}
-{{ end }}
+  <body
+    data-controller="prevent-double-tap xhr-submit-form lockout restore-form loading"
+    data-restore-form-json-value="{{ $.FormJSON }}"
+    data-action="dblclick->prevent-double-tap#action"
+    data-lockout-format-date-relative-outlet="[data-controller='format-date-relative']"
+    data-lockout-lock-until-value="{{ $lockedUntil }}"
+    data-lockout-action-button-selector-value="[data-action-button]"
+  >
+    <!-- Google Tag Manager (noscript) -->
+    {{ if $.GoogleTagManagerContainerID }}
+    <noscript
+      ><iframe
+        src="https://www.googletagmanager.com/ns.html?id={{ $.GoogleTagManagerContainerID }}"
+        height="0"
+        width="0"
+        style="display: none; visibility: hidden"
+      ></iframe
+    ></noscript>
+    {{ end }}
+    <!-- End Google Tag Manager (noscript) -->
 
-<body
-  data-controller="prevent-double-tap xhr-submit-form lockout restore-form loading"
-  data-restore-form-json-value="{{ $.FormJSON }}"
-	data-action="dblclick->prevent-double-tap#action"
-	data-lockout-format-date-relative-outlet="[data-controller='format-date-relative']"
-	data-lockout-lock-until-value="{{ $lockedUntil }}"
-	data-lockout-action-button-selector-value="[data-action-button]">
-
-<!-- Google Tag Manager (noscript) -->
-{{ if $.GoogleTagManagerContainerID }}
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ $.GoogleTagManagerContainerID }}"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-{{ end }}
-<!-- End Google Tag Manager (noscript) -->
-
-<div id="loading-progress-bar"></div>
-{{ template "web/authflowv2/layout.html" . }}
-</body>
+    <div></div>
+    {{ template "web/authflowv2/layout.html" . }}
+  </body>
 </html>
-{{ end }}
-
-{{ define "widget" }}
-	<div class="widget">
-		{{ template "page-content" . }}
-		{{ template "authflowv2/__lockout.html" . }}
-	</div>
+{{ end }} {{ define "widget" }}
+<div class="widget">
+  {{ template "page-content" . }} {{ template "authflowv2/__lockout.html" . }}
+</div>
 {{ end }}
