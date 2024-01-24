@@ -18,14 +18,44 @@
 
     --select__search-border: 1px solid var(--color-grey-100);
 
-    --select__input-padding: 0.75em 1em 0.75em 3.25em;
+    --select__search-input-py: 0.875em;
+    --select__search-input-px--desktop: 0.625em;
+    --select__search-input-px--mobile: 0.125em;
+    --select__search-input-text-color: var(--color-grey-700);
+    --select__search-input-caret-color: var(--color-primary-base);
+    --select__search-input-font-family: var(
+      --typography-body-large__font-family
+    );
+    --select__search-input-font-size: var(--typography-body-large__font-size);
+    --select__search-input-line-height: var(
+      --typography-body-large__line-height
+    );
+    --select__search-input-letter-spacing: var(
+      --typography-body-large__letter-spacing
+    );
+    --select__search-input-font-weight: var(
+      --typography-body-large__font-weight
+    );
 
-    --select__search-icon-size: 1.5em;
+    --select__search-icon-width: calc(
+      var(--select__search-input-font-size) * 2.75
+    );
+    --select__search-icon-font-size: calc(
+      var(--select__search-input-font-size) * 1.5
+    );
+    --select__search-icon-color: var(--color-grey-200);
 
-    --select__clear-icon-size: 1.25em;
+    --select__clear-icon-width: calc(
+      var(--select__search-input-font-size) * 2.75
+    );
+    --select__clear-icon-font-size: calc(
+      var(--select__search-input-font-size) * 1.25
+    );
     --select__clear-icon-color: var(--color-grey-200);
 
-    --select__close-icon-size: 1.25em;
+    --select__close-icon-font-size: calc(
+      var(--select__search-input-font-size) * 1.5
+    );
 
     --select__options-height: 100%;
     --select__options-py: 1em;
@@ -48,7 +78,6 @@
 
     @media (min-width: theme("screens.tablet")) {
       --select__options-height: 18em;
-      --select__input-padding: 0.75em 1em;
       --select__dropdown-width: 21.5625em;
     }
   }
@@ -85,7 +114,6 @@
   }
 
   .select__search-container {
-    @apply relative;
     @apply flex;
     @apply flex-row;
     @apply items-center;
@@ -94,67 +122,87 @@
   }
 
   .select__search {
-    @apply relative;
-    @apply flex;
-    @apply flex-row;
-    @apply items-center;
-    @apply w-full;
+    @apply flex-1;
+    @apply grid;
+    grid-template:
+      "search  input clear" auto
+      / auto 1fr auto;
 
+    @apply px-1.5;
     @apply max-tablet:rounded-xl;
     border: var(--select__search-border);
 
     @media (min-width: theme("screens.tablet")) {
+      grid-template:
+        "input clear search" auto
+        / 1fr auto auto;
       border: none;
       border-bottom: var(--select__search-border);
     }
   }
 
   .select__search-input {
-    @apply w-full;
-    padding: var(--select__input-padding);
+    grid-area: input;
 
     border: none;
     outline: none;
     background-color: transparent;
+
+    padding: var(--select__search-input-py)
+      var(--select__search-input-px--desktop);
+    @media (max-width: theme("screens.tablet")) {
+      padding: var(--select__search-input-py)
+        var(--select__search-input-px--mobile);
+    }
+
+    color: var(--select__search-input-text-color);
+    font-family: var(--select__search-input-font-family);
+    font-size: var(--select__search-input-font-size);
+    line-height: var(--select__search-input-line-height);
+    letter-spacing: var(--select__search-input-letter-spacing);
+    font-weight: var(--select__search-input-font-weight);
+    caret-color: var(--select__search-input-caret-color);
+  }
+
+  @media (min-width: theme("screens.tablet")) {
+    .select__search-input:placeholder-shown ~ .select__clear-icon {
+      @apply hidden;
+    }
+    .select__search-input:not(:placeholder-shown) ~ .select__search-icon {
+      @apply hidden;
+    }
   }
 
   .select__search-icon {
-    @apply absolute;
+    grid-area: search;
     @apply flex;
-    @apply flex-row;
     @apply items-center;
     @apply justify-center;
 
-    @apply top-1/2;
-    @apply transform;
-    @apply -translate-y-1/2;
-
-    @apply max-tablet:left-4 tablet:right-4;
-    @apply pointer-events-none;
-
-    width: var(--select__search-icon-size);
-    font-size: var(--select__search-icon-size);
+    width: var(--select__search-icon-width);
+    font-size: var(--select__search-icon-font-size);
+    color: var(--select__search-icon-color);
   }
 
   .select__clear-icon {
-    @apply absolute;
+    grid-area: clear;
     @apply flex;
-    @apply top-1/2;
-    @apply transform;
-    @apply -translate-y-1/2;
+    @apply items-center;
+    @apply justify-center;
 
-    @apply right-4 tablet:right-12;
-
-    width: var(--select__clear-icon-size);
-    font-size: var(--select__clear-icon-size);
+    width: var(--select__clear-icon-width);
+    font-size: var(--select__clear-icon-font-size);
     color: var(--select__clear-icon-color);
   }
 
   .select__close-icon {
-    @apply ml-4;
+    @apply flex;
+    @apply items-center;
+    @apply justify-center;
     @apply tablet:hidden;
+    @apply ltr:ml-4 rtl:mr-4;
 
-    font-size: var(--select__close-icon-size);
+    font-size: var(--select__close-icon-font-size);
   }
 
   .select__options {
