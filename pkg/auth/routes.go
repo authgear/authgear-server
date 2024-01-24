@@ -161,6 +161,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 			// It can now determine redirection from the response.
 			// https://github.com/hotwired/turbo/blob/daabebb0575fffbae1b2582dc458967cd638e899/src/core/drive/visit.ts#L316
 			p.Middleware(newSafeDynamicCSPMiddleware),
+			p.Middleware(newImplementationSwitcherMiddleware),
 		)
 	}
 	webappPageChain := newWebappPageChain(false)
@@ -411,7 +412,11 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(apihandler.ConfigureAuthenticationFlowV1GetRoute(workflowRoute), p.Handler(newAPIAuthenticationFlowV1GetHandler))
 	router.Add(apihandler.ConfigureAuthenticationFlowV1WebsocketRoute(workflowRoute), p.Handler(newAPIAuthenticationFlowV1WebsocketHandler))
 
-	router.NotFound(webappPageRoute, p.Handler(newWebAppNotFoundHandler))
+	router.NotFound(webappPageRoute, &webapphandler.ImplementationSwitcherHandler{
+		Interaction: p.Handler(newWebAppNotFoundHandler),
+		Authflow:    p.Handler(newWebAppNotFoundHandler),
+		AuthflowV2:  p.Handler(newWebAppAuthflowV2NotFoundHandler),
+	})
 
 	return router
 }

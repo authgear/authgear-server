@@ -1003,5 +1003,7 @@
   "v2-error-disabled-user-reason": "Reason: {reason}",
   "v2-error-deactivated-user": "You have deactivated your account.",
   "v2-error-scheduled-deletion-by-admin": "Administrator has disabled your account and your account will be deleted on <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
-  "v2-error-scheduled-deletion-by-end-user": "You have deactivated your account and your account will be deleted on <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>"
+  "v2-error-scheduled-deletion-by-end-user": "You have deactivated your account and your account will be deleted on <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
+
+  "v2-error-page-not-found": "The page cannot be found"
 }
