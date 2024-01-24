@@ -45,9 +45,14 @@
         {{ end }}
       {{ end }}
 
+      <form id="main-form" method="post" novalidate data-restore-form="false">
+        {{ $.CSRFField }}
+      </form>
+
       {{ template "authflowv2/__otp_input.html"
         (dict
           "CSRFField" $.CSRFField
+          "FormName" "main-form"
           "CodeLength" $.CodeLength
           "AutoFocus" $.ShouldFocusInput
           "Disabled" $.FailedAttemptRateLimitExceeded

@@ -2,6 +2,7 @@
   {{ template "authflowv2/__otp_input.html"
     (dict
       "CSRFField" ($.CSRFField)
+      "FormName" "otp-form"
       "CodeLength" 6
       "ErrorMessage" "Invalid code"
       "InputName" "x_code"
@@ -14,6 +15,7 @@
       "ResendButtonCooldown" 5
       "SubmitEvent" "submit"
       "ResendEvent" "resend"
+      "Disabled" false
     )
   }}
 -->
@@ -22,7 +24,7 @@
 <div data-controller="otp-input">
   <div class="otp-input{{ if $.ErrorContext }} otp-input--error{{ end }}">
     <input
-      form="main-form"
+      form="{{ $.FormName }}"
       type="text"
       name="{{ or $.InputName "x_code" }}"
       inputmode="numeric"
@@ -32,6 +34,7 @@
       autofocus=""
       required
       data-otp-input-target="input"
+      {{ if $.Disabled }}disabled{{ end }}
     />
     <div data-otp-input-target="digitsContainer" class="otp-input__digits-container">
       <div class="otp-input__digit"></div>
@@ -44,17 +47,15 @@
     </div>
   {{ end }}
 
-  <form id="main-form" method="post" novalidate>
-    {{ $.CSRFField }}
-    <button
-      class="hidden"
-      type="submit"
-      name="{{ or $.SubmitButtonName "x_action" }}"
-      value="{{ or $.SubmitButtonValue "submit" }}"
-      data-otp-input-target="submit"
-      data-authgear-event="{{ $.SubmitEvent }}"
-    ></button>
-  </form>
+  <button
+    form="{{ $.FormName }}"
+    class="hidden"
+    type="submit"
+    name="{{ or $.SubmitButtonName "x_action" }}"
+    value="{{ or $.SubmitButtonValue "submit" }}"
+    data-otp-input-target="submit"
+    data-authgear-event="{{ $.SubmitEvent }}"
+  ></button>
 
   <form method="post" novalidate>
     {{ $.CSRFField }}
