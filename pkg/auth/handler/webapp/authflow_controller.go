@@ -82,7 +82,7 @@ type AuthflowControllerOAuthClientResolver interface {
 type AuthflowNavigator interface {
 	Navigate(screen *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result)
 	NavigateNonRecoverableError(r *http.Request, u *url.URL, e error)
-	NavigateSelectAccount() *url.URL
+	NavigateSelectAccount(result *webapp.Result)
 }
 
 type AuthflowControllerLogger struct{ *log.Logger }
@@ -476,13 +476,12 @@ func (c *AuthflowController) Restart(s *webapp.Session) (result *webapp.Result, 
 		return
 	}
 
-	u := c.Navigator.NavigateSelectAccount()
 	result = &webapp.Result{
-		RedirectURI: u.String(),
 		RemoveQueries: setutil.Set[string]{
 			"x_step": struct{}{},
 		},
 	}
+	c.Navigator.NavigateSelectAccount(result)
 	return
 }
 

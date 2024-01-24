@@ -442,6 +442,7 @@ func (n *AuthflowNavigator) navigateAccountRecovery(s *AuthflowScreenWithFlowRes
 	}
 }
 
-func (n *AuthflowNavigator) NavigateSelectAccount() *url.URL {
-	return n.Endpoints.SelectAccountEndpointURL(n.UIConfig.Implementation)
+func (n *AuthflowNavigator) NavigateSelectAccount(result *Result) {
+	url := n.Endpoints.SelectAccountEndpointURL(n.UIConfig.Implementation)
+	result.RedirectURI = url.String()
 }

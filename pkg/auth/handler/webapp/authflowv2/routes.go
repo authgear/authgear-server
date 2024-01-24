@@ -425,6 +425,7 @@ func (n *AuthflowV2Navigator) navigateAccountRecovery(s *webapp.AuthflowScreenWi
 	}
 }
 
-func (n *AuthflowV2Navigator) NavigateSelectAccount() *url.URL {
-	return n.Endpoints.SelectAccountEndpointURL(n.UIConfig.Implementation)
+func (n *AuthflowV2Navigator) NavigateSelectAccount(result *webapp.Result) {
+	url := n.Endpoints.SelectAccountEndpointURL(n.UIConfig.Implementation)
+	result.RedirectURI = url.String()
 }
