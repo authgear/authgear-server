@@ -180,6 +180,9 @@ export class RestoreFormController extends Controller {
     if (form == null) {
       return;
     }
+    if (form.getAttribute("data-restore-form") === "false") {
+      return;
+    }
 
     for (let i = 0; i < form.elements.length; i++) {
       const elem = form.elements[i];
