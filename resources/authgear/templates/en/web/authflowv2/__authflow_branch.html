@@ -7,7 +7,7 @@
 <div class="flex flex-col gap-y-4">
 
   <!-- TODO: Update authenticate with recovery_code to v2 -->
-<!-- {{- range $.Branches }}
+{{- range $.Branches }}
   {{- if eq $.ActionType "authenticate" }}
     {{- if eq .Authentication "recovery_code" }}
       <form class="text-left text-sm" method="post" novalidate>
@@ -15,15 +15,14 @@
         <input type="hidden" name="x_index" value="{{ .Index }}">
         <input type="hidden" name="x_channel" value="{{ .Channel }}">
         <input type="hidden" name="x_action" value="take_branch">
-        {{ if ($.Translations.HasKey "customer-support-link") }}
-            {{ template "enter-recovery-code-instead-with-customer-support-v1" (dict "customerSupportLink" ($.Translations.RenderText "customer-support-link" nil)) }}
-        {{ else }}
-            {{ template "enter-recovery-code-instead-v1" }}
-        {{ end }}
+        <button class="secondary-btn w-full flex gap-x-2" type="submit">
+          <span class="material-icons secondary-btn__icon">key_vertical</span>
+          {{ template "v2-enter-recovery-code-instead" }}
+        </button>
       </form>
     {{- end }}
   {{- end }}
-{{- end }} -->
+{{- end }}
 
 {{- range $.Branches }}
   {{- if eq .Authentication "recovery_code" -}}

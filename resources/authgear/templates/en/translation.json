@@ -992,6 +992,7 @@
   "v2-enter-phone-otp-whatsapp-instead": "Send code via WhatsApp",
   "v2-enter-email-otp-code-instead": "Send code via Email",
   "v2-use-email-otp-link-instead": "Send Link via Email",
+  "v2-enter-recovery-code-instead": "Use a recovery code",
   "v2-create-device-token-label": "Remember this device, and don’t ask again",
   "v2-enter-password-page-title": "Enter password",
   "v2-enter-additional-password-page-title": "Enter additional password",

@@ -992,6 +992,7 @@
   "v2-enter-phone-otp-whatsapp-instead": "改為以Whatsapp發送一次性密碼",
   "v2-enter-email-otp-code-instead": "改為發送一次性密碼至",
   "v2-use-email-otp-link-instead": "改為發送登錄鏈接至",
+  "v2-enter-recovery-code-instead": "改為輸入備用碼",
   "v2-create-device-token-label": "不要再詢問",
   "v2-enter-password-page-title": "請輸入密碼",
   "v2-enter-additional-password-page-title": "請輸入輔助密碼",
