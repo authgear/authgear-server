@@ -1,0 +1,12 @@
+@layer components {
+  .screen-icon-layout {
+    @apply flex-1 tablet:flex-none;
+
+    @apply pt-14 pb-2;
+    @apply tablet:pt-0 tablet:pb-0;
+
+    @apply grid gap-6;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto 1fr auto;
+  }
+}
