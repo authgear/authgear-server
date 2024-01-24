@@ -14,8 +14,7 @@
   {{ range $.IdentityCandidates }}
     {{ if eq .type "oauth" }}
       {{ $has_oauth = true }}
-      <!-- TODO(tung): Add SSO (https://github.com/authgear/authgear-server/issues/3593) -->
-      {{/* $has_alternatives = true */}}
+      {{ $has_alternatives = true }}
     {{ end }}
     {{ if eq .type "login_id" }}
       {{ $has_login_id = true }}
@@ -165,6 +164,38 @@
           <i class="alternative-icon material-icons mr-2">smartphone</i>
           {{ template "v2-continue-with-phone" }}
         </a>
+      {{ end }}
+      {{ range .IdentityCandidates }}
+        {{ if eq .type "oauth" }}
+        {{ $skip := false }}
+        {{- if (and (eq .provider_type "wechat") (eq .provider_app_type "mobile") (not $.IsNativePlatform)) -}}
+          {{ $skip = true }}
+        {{ end }}
+        {{- if (and (eq .provider_type "wechat") (eq .provider_app_type "web") ($.IsNativePlatform)) -}}
+          {{ $skip = true }}
+        {{ end }}
+
+        {{- if not $skip -}}
+          <form class="block" method="post" data-turbo="false" novalidate>
+            {{ $.CSRFField }}
+            <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
+            <button
+              class="secondary-btn w-full"
+              type="submit"
+              name="x_action"
+              value="oauth"
+              data-turbo="false"
+              data-authgear-event="authgear.button.oauth"
+            >
+              {{- $icon_class := printf "%s-icon" .provider_type -}}
+              <i class="sso-icon {{ $icon_class }} mr-2"></i>
+              <span>
+                {{ include (printf "v2-oauth-branding-%s" .provider_type) nil }}
+              </span>
+            </button>
+          </form>
+        {{ end }}
+      {{ end }}
       {{ end }}
     </section>
   {{ end }}

@@ -17,7 +17,9 @@
 .sso-icon.whatsapp-icon {
   background-image: url(./icons/raw/icon-whatsapp.svg);
 }
-.sso-icon.microsoft-icon {
+.sso-icon.azureadv2-icon,
+.sso-icon.azureadb2c-icon,
+.sso-icon.adfs-icon {
   background-image: url(./icons/raw/icon-microsoft.svg);
 }
 .sso-icon.facebook-icon {
