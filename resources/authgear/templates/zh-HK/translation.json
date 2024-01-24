@@ -1003,5 +1003,8 @@
   "v2-error-disabled-user-reason": "原因： {reason}",
   "v2-error-deactivated-user": "你已停用你的帳戶。",
   "v2-error-scheduled-deletion-by-admin": "你的帳戶已被管理員停用，而你的帳戶將在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除。",
-  "v2-error-scheduled-deletion-by-end-user": "你已停用你的帳戶，而你的帳戶將在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除。"
+  "v2-error-scheduled-deletion-by-end-user": "你已停用你的帳戶，而你的帳戶將在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除。",
+  "v2-change-password-page-title": "更新密碼",
+  "v2-change-password-page-subtitle": "(TBC) 基於安全考量，請更新你的密碼",
+  "v2-update-button-label": "更新"
 }
