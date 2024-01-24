@@ -190,8 +190,8 @@ func (n *AuthflowV2Navigator) navigateSignupPromote(s *webapp.AuthflowScreenWith
 			panic(fmt.Errorf("unexpected authentication: %v", s.StateTokenFlowResponse.Action.Authentication))
 		}
 	case config.AuthenticationFlowStepTypeVerify:
-		channel := s.Screen.TakenChannel
 		data := s.StateTokenFlowResponse.Action.Data.(declarative.NodeVerifyClaimData)
+		channel := data.Channel
 		switch data.OTPForm {
 		case otp.FormCode:
 			switch channel {
