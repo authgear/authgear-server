@@ -923,6 +923,8 @@ func (c *AuthflowController) makeErrorResult(w http.ResponseWriter, r *http.Requ
 	}
 
 	switch {
+	case apierror.Reason == "AuthenticationFlowNoPublicSignup":
+		fallthrough
 	case errors.Is(err, authflow.ErrFlowNotFound):
 		fallthrough
 	case user.IsAccountStatusError(err):
