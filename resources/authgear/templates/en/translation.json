@@ -998,6 +998,10 @@
   "v2-enter-password-page-title-reauth": "Enter password to continue",
   "v2-enter-additional-password-page-title-reauth": "Enter additional password to continue",
 
+  "v2-select-account-title": "Log in to {AppOrClientName}",
+  "v2-select-account-description": "You have logged in with {IdentityDisplayName}. Proceed to continue.",
+  "v2-select-account-use-another-account": "Use another account",
+
   "v2-setup-oob-otp-page-title": "2-Step Verification",
   "v2-setup-oob-otp-page-subtitle--sms": "You can receive sign-in codes at this number.",
   "v2-setup-oob-otp-page-subtitle--whatsapp": "You can receive sign-in codes at this number.",

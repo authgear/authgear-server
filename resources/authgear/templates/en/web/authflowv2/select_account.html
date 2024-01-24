@@ -1,17 +1,45 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
 
-<div class="screen-icon-layout flex-1 tablet:flex-none">
+<form class="screen-icon-layout flex-1 tablet:flex-none" method="post" novalidate>
+  {{ $.CSRFField }}
   <i class="screen-icon material-icons justify-self-center">account_circle</i>
   <section class="flex flex-col gap-4">
-    <h1 class="screen-title">Log in to {App name}</h1>
-    <p class="screen-description">You have logged in with Marianne20@gmail.com. Proceed to continue.</p>
+    <h1 class="screen-title">
+      {{ if $.ClientName }}
+        {{ template "v2-select-account-title" (dict "AppOrClientName" $.ClientName) }}
+      {{ else }}
+        {{ $appName := (include "app.name" nil) }}
+        {{ template "v2-select-account-title" (dict "AppOrClientName" $appName) }}
+      {{ end }}
+    </h1>
+    <p class="screen-description">
+      {{ template "v2-select-account-description" (dict "IdentityDisplayName" $.IdentityDisplayName) }}
+    </p>
   </section>
   <div></div>
   <footer class="flex flex-col gap-4">
-    <button class="primary-btn w-full">Continue</button>
-    <button class="label-btn w-full">Use another account</button>
+    <button
+      class="primary-btn w-full"
+      type="submit"
+      name="x_action"
+      value="continue"
+      data-turbo="false"
+      data-authgear-event="authgear.button.continue_with_current_account"
+      >
+      {{ template "v2-button.continue" }}
+    </button>
+    <button
+      class="label-btn w-full"
+      type="submit"
+      name="x_action"
+      value="login"
+      data-turbo="false"
+      data-authgear-event="authgear.button.use_another_account"
+      >
+      {{ template "v2-select-account-use-another-account" }}
+    </button>
   </footer>
-</div>
+</form>
 
 {{ end }}
