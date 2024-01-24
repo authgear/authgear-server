@@ -1,12 +1,16 @@
 @layer components {
   .screen-icon-layout {
-    @apply flex-1 tablet:flex-none;
-
     @apply pt-14 pb-2;
-    @apply tablet:pt-0 tablet:pb-0;
 
     @apply grid gap-6;
     grid-template-columns: 1fr;
     grid-template-rows: auto auto 1fr auto;
+  }
+
+  @media (min-width: theme("screens.tablet")) {
+    .screen-icon-layout {
+      @apply pt-0 pb-0;
+      grid-template-rows: auto auto 16px auto; /* 64 - 24(gap) * 2 = 16 */
+    }
   }
 }
