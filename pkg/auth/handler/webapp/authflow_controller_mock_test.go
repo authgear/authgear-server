@@ -393,3 +393,17 @@ func (mr *MockAuthflowNavigatorMockRecorder) NavigateNonRecoverableError(r, u, e
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NavigateNonRecoverableError", reflect.TypeOf((*MockAuthflowNavigator)(nil).NavigateNonRecoverableError), r, u, e)
 }
+
+// NavigateSelectAccount mocks base method.
+func (m *MockAuthflowNavigator) NavigateSelectAccount() *url.URL {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NavigateSelectAccount")
+	ret0, _ := ret[0].(*url.URL)
+	return ret0
+}
+
+// NavigateSelectAccount indicates an expected call of NavigateSelectAccount.
+func (mr *MockAuthflowNavigatorMockRecorder) NavigateSelectAccount() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NavigateSelectAccount", reflect.TypeOf((*MockAuthflowNavigator)(nil).NavigateSelectAccount))
+}

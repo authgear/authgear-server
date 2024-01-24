@@ -6483,7 +6483,25 @@ func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 }
 
 func newWebAppOAuthEntrypointHandler(p *deps.RequestProvider) http.Handler {
-	oAuthEntrypointHandler := &webapp.OAuthEntrypointHandler{}
+	appProvider := p.AppProvider
+	appContext := appProvider.AppContext
+	config := appContext.Config
+	appConfig := config.AppConfig
+	uiConfig := appConfig.UI
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	oAuthEntrypointHandler := &webapp.OAuthEntrypointHandler{
+		UIConfig:  uiConfig,
+		Endpoints: endpointsEndpoints,
+	}
 	return oAuthEntrypointHandler
 }
 
@@ -15979,6 +15997,8 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
+		Endpoints:         endpointsEndpoints,
+		UIConfig:          uiConfig,
 	}
 	return confirmTerminateOtherSessionsHandler
 }

@@ -65,6 +65,7 @@ const (
 
 type AuthflowV2NavigatorEndpointsProvider interface {
 	ErrorEndpointURL(uiImpl config.UIImplementation) *url.URL
+	SelectAccountEndpointURL(uiImpl config.UIImplementation) *url.URL
 }
 
 type AuthflowV2Navigator struct {
@@ -422,4 +423,8 @@ func (n *AuthflowV2Navigator) navigateAccountRecovery(s *webapp.AuthflowScreenWi
 	default:
 		panic(fmt.Errorf("unexpected action type: %v", s.StateTokenFlowResponse.Action.Type))
 	}
+}
+
+func (n *AuthflowV2Navigator) NavigateSelectAccount() *url.URL {
+	return n.Endpoints.SelectAccountEndpointURL(n.UIConfig.Implementation)
 }
