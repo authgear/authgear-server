@@ -1,0 +1,121 @@
+@layer components {
+  :root {
+    --otp-input__spacing: 21px;
+
+    --otp-input__digit-ring-color: var(--color-grey-200);
+    --otp-input__digit-ring-color--focus: var(--color-primary-base);
+    --otp-input__digit-ring-color--error: var(--color-error);
+    --otp-input__digit-ring-width: 1.5px;
+    --otp-input__digit-ring-width--focus: 1.5px;
+    --otp-input__digit-ring-width--error: 1.5px;
+    --otp-input__digit-border-radius: var(--border-radius-rounded-large);
+    --otp-input__digit-width: 2.5em;
+    --otp-input__digit-height: 2.75em;
+
+    --otp-input__digit-mask-color: var(--color-black);
+    --otp-input__digit-mask-size: 0.625rem;
+
+    --otp-input-error-message__margin-top: 0.5rem;
+    --otp-input-error-message__text-color: var(--color-error);
+    --otp-input-error-message__font-family: var(
+      --typography-body-medium__font-family
+    );
+    --otp-input-error-message__font-size: var(
+      --typography-body-medium__font-size
+    );
+    --otp-input-error-message__line-height: var(
+      --typography-body-medium__line-height
+    );
+    --otp-input-error-message__letter-spacing: var(
+      --typography-body-medium__letter-spacing
+    );
+    --otp-input-error-message__font-weight: var(
+      --typography-body-medium__font-weight
+    );
+
+    --otp-input-resend-button-margin-top: 1rem;
+  }
+
+  .otp-input {
+    @apply relative;
+    @apply w-full;
+
+    height: var(--otp-input\_\_digit-height);
+
+    input {
+      @apply w-full;
+      @apply h-full;
+      @apply outline-none;
+      @apply selection:bg-white/0;
+      @apply caret-white/0;
+      @apply opacity-0;
+    }
+
+    &.otp-input--error {
+      .otp-input__digit {
+        @apply ring-inset
+          ring-[length:var(--otp-input\_\_digit-ring-width--error)]
+          ring-[color:var(--otp-input\_\_digit-ring-color--error)];
+      }
+    }
+  }
+
+  .otp-input__digits-container {
+    @apply absolute;
+    @apply inset-0;
+    @apply flex;
+    @apply items-stretch;
+    @apply gap-x-[var(--otp-input\_\_spacing)];
+    @apply pointer-events-none;
+  }
+
+  .otp-input__digit {
+    @apply relative;
+    @apply flex;
+    @apply items-center;
+    @apply justify-center;
+
+    width: var(--otp-input\_\_digit-width);
+    height: var(--otp-input\_\_digit-height);
+    border-radius: var(--otp-input\_\_digit-border-radius);
+
+    @apply ring-inset
+      ring-[length:var(--otp-input\_\_digit-ring-width)]
+      ring-[color:var(--otp-input\_\_digit-ring-color)];
+
+    &.otp-input__digit--masked {
+      &::before {
+        content: "";
+        @apply absolute;
+        @apply left-1/2;
+        @apply transform;
+        @apply -translate-x-1/2;
+        @apply rounded-full;
+
+        width: var(--otp-input\_\_digit-mask-size);
+        height: var(--otp-input\_\_digit-mask-size);
+        background-color: var(--otp-input\_\_digit-mask-color);
+      }
+    }
+
+    &.otp-input__digit--focus {
+      @apply ring-inset
+        ring-[length:var(--otp-input\_\_digit-ring-width--focus)]
+        ring-[color:var(--otp-input\_\_digit-ring-color--focus)];
+    }
+  }
+
+  .otp-input__error-message {
+    margin-top: var(--otp-input-error-message__margin-top);
+    color: var(--otp-input-error-message__text-color);
+    font-family: var(--otp-input-error-message__font-family);
+    font-size: var(--otp-input-error-message__font-size);
+    line-height: var(--otp-input-error-message__line-height);
+    letter-spacing: var(--otp-input-error-message__letter-spacing);
+    font-weight: var(--otp-input-error-message__font-weight);
+  }
+
+  .otp-input__resend-btn {
+    margin-top: var(--otp-input-resend-button-margin-top);
+  }
+}

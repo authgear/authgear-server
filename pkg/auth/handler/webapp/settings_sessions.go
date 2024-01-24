@@ -18,7 +18,7 @@ import (
 
 var TemplateWebSettingsSessionsHTML = template.RegisterHTML(
 	"web/settings_sessions.html",
-	components...,
+	Components...,
 )
 
 func ConfigureSettingsSessionsRoute(route httproute.Route) httproute.Route {

@@ -16,7 +16,7 @@ import (
 
 var TemplateWebConnectWeb3AccountHTML = template.RegisterHTML(
 	"web/connect_web3_account.html",
-	components...,
+	Components...,
 )
 
 var Web3AccountConfirmationSchema = validation.NewSimpleSchema(`

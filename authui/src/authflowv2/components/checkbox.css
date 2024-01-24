@@ -1,0 +1,64 @@
+@layer components {
+  :root {
+    --checkbox__size: 1.125em;
+    --checkbox__border-radius: 0.25em;
+    --checkbox__ring-width: 1.5px;
+    --checkbox__ring-color: var(--color-grey-200);
+    --checkbox__ring-color-checked: var(--color-primary-base);
+    --checkbox__background-color: var(--color-white);
+    --checkbox__background-color--checked: var(--color-primary-base);
+
+    --checkbox__icon-color: var(--color-white);
+  }
+
+  :root.dark {
+    /* TODO(newman): Dark mode */
+  }
+
+  .checkbox {
+    @apply relative;
+    @apply inline-block;
+
+    width: var(--checkbox__size);
+    height: var(--checkbox__size);
+
+    input {
+      @apply absolute;
+      @apply opacity-0;
+      @apply w-0;
+      @apply h-0;
+
+      &:checked + .checkbox__label {
+        @apply bg-[color:var(--checkbox\_\_background-color--checked)];
+        @apply ring-[color:var(--checkbox\_\_ring-color-checked)];
+      }
+
+      &:checked + .checkbox__label > .checkbox__icon {
+        @apply inline;
+      }
+    }
+
+    .checkbox__label {
+      @apply relative;
+      @apply inline-block;
+      @apply cursor-pointer;
+      @apply w-full;
+      @apply h-full;
+
+      border-radius: var(--checkbox__border-radius);
+      @apply ring-inset
+        ring-[length:var(--checkbox\_\_ring-width)]
+        ring-[color:var(--checkbox\_\_ring-color)];
+
+      & > .material-icons {
+        @apply hidden;
+        @apply absolute;
+        @apply inset-0;
+        @apply text-center;
+
+        color: var(--checkbox__icon-color);
+        @apply leading-[var(--checkbox\_\_size)];
+      }
+    }
+  }
+}

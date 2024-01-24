@@ -10,7 +10,7 @@ import (
 
 var TemplateWebVerifyIdentitySuccessHTML = template.RegisterHTML(
 	"web/verify_identity_success.html",
-	components...,
+	Components...,
 )
 
 func ConfigureVerifyIdentitySuccessRoute(route httproute.Route) httproute.Route {

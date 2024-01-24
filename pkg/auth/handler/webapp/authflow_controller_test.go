@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -21,6 +22,19 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
+type NoopNavigator struct {
+}
+
+func (*NoopNavigator) Navigate(screen *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
+}
+
+func (*NoopNavigator) NavigateNonRecoverableError(r *http.Request, u *url.URL, e error) {
+}
+
+func NewNoopAuthflowNavigator() *NoopNavigator {
+	return &NoopNavigator{}
+}
+
 func TestAuthflowControllerGetOrCreateWebSession(t *testing.T) {
 	Convey("AuthflowController.getOrCreateWebSession", t, func() {
 		ctrl := gomock.NewController(t)
@@ -28,12 +42,14 @@ func TestAuthflowControllerGetOrCreateWebSession(t *testing.T) {
 
 		mockSessionStore := NewMockAuthflowControllerSessionStore(ctrl)
 		mockCookieManager := NewMockAuthflowControllerCookieManager(ctrl)
+		mockNavigator := NewNoopAuthflowNavigator()
 
 		c := &AuthflowController{
 			Clock:         clock.NewMockClockAt("2006-01-02T03:04:05Z"),
 			Cookies:       mockCookieManager,
 			Sessions:      mockSessionStore,
 			SessionCookie: webapp.NewSessionCookieDef(),
+			Navigator:     mockNavigator,
 		}
 
 		Convey("Create new if not in context", func() {
@@ -77,9 +93,11 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 		defer ctrl.Finish()
 
 		mockAuthflows := NewMockAuthflowControllerAuthflowService(ctrl)
+		mockNavigator := NewNoopAuthflowNavigator()
 
 		c := &AuthflowController{
 			Authflows: mockAuthflows,
+			Navigator: mockNavigator,
 		}
 
 		Convey("return ErrFlowNotFound if session has no authflow", func() {
@@ -176,11 +194,13 @@ func TestAuthflowControllerCreateScreen(t *testing.T) {
 		mockAuthflows := NewMockAuthflowControllerAuthflowService(ctrl)
 		mockSessionStore := NewMockAuthflowControllerSessionStore(ctrl)
 		mockClock := clock.NewMockClockAt("2006-01-02T03:04:05Z")
+		mockNavigator := NewNoopAuthflowNavigator()
 
 		c := &AuthflowController{
 			Clock:     mockClock,
 			Authflows: mockAuthflows,
 			Sessions:  mockSessionStore,
+			Navigator: mockNavigator,
 		}
 
 		Convey("create screen", func() {
@@ -223,11 +243,13 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 		mockAuthflows := NewMockAuthflowControllerAuthflowService(ctrl)
 		mockSessionStore := NewMockAuthflowControllerSessionStore(ctrl)
 		mockClock := clock.NewMockClockAt("2006-01-02T03:04:05Z")
+		mockNavigator := &webapp.AuthflowNavigator{}
 
 		c := AuthflowController{
 			Clock:     mockClock,
 			Authflows: mockAuthflows,
 			Sessions:  mockSessionStore,
+			Navigator: mockNavigator,
 		}
 
 		Convey("the branch does not require input to take", func() {

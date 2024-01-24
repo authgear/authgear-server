@@ -15,7 +15,7 @@ import (
 
 var TemplateWebSettingsRecoveryCodeHTML = template.RegisterHTML(
 	"web/settings_recovery_code.html",
-	components...,
+	Components...,
 )
 
 func ConfigureSettingsRecoveryCodeRoute(route httproute.Route) httproute.Route {
@@ -52,7 +52,7 @@ func (h *SettingsRecoveryCodeHandler) GetData(r *http.Request, rw http.ResponseW
 		for i, code := range codes {
 			recoveryCodes[i] = code.Code
 		}
-		viewModel.RecoveryCodes = formatRecoveryCodes(recoveryCodes)
+		viewModel.RecoveryCodes = FormatRecoveryCodes(recoveryCodes)
 	}
 
 	viewmodels.Embed(data, baseViewModel)
@@ -100,7 +100,7 @@ func (h *SettingsRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 			return err
 		}
 
-		setRecoveryCodeAttachmentHeaders(w)
+		SetRecoveryCodeAttachmentHeaders(w)
 		h.Renderer.Render(w, r, TemplateWebDownloadRecoveryCodeTXT, data)
 		return nil
 	})

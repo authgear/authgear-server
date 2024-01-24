@@ -17,7 +17,7 @@ import (
 
 var TemplateWebSettingsOOBOTPHTML = template.RegisterHTML(
 	"web/settings_oob_otp.html",
-	components...,
+	Components...,
 )
 
 func ConfigureSettingsOOBOTPRoute(route httproute.Route) httproute.Route {

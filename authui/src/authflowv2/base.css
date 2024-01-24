@@ -1,0 +1,133 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+@layer base {
+  html,
+  body {
+    @apply h-full min-h-min flex flex-col flex-1-0-auto;
+    /* Reference font size */
+    font-size: 16px;
+    font-family: "Inter", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  *:focus {
+    @apply outline-none;
+  }
+
+  input::-ms-reveal,
+  input::-ms-clear {
+    @apply hidden;
+  }
+
+  dialog {
+    margin: unset;
+    padding: unset;
+    height: unset;
+    width: unset;
+    border: none;
+
+    &::backdrop {
+      background: none;
+    }
+  }
+
+  /* Colors */
+  :root {
+    --color-white: #ffffff;
+    --color-black: #000000;
+    --color-success: #11c624;
+    --color-error: #ff295b;
+    --color-warning: #f39d17;
+
+    /* primary */
+    --color-primary-base: #176df3;
+    --color-primary-100: #e2e7fe;
+    --color-primary-200: #adbdfd;
+    --color-primary-300: #7295fc;
+    --color-primary-400: #176df3;
+    --color-primary-500: #0d4cae;
+    --color-primary-600: #052e6f;
+    --color-primary-700: #011234;
+
+    /* grey */
+    --color-grey-base: #73747b;
+    --color-grey-100: #e7e7e9;
+    --color-grey-200: #bfbfc3;
+    --color-grey-300: #98999e;
+    --color-grey-400: #73747b;
+    --color-grey-500: #505157;
+    --color-grey-600: #303135;
+    --color-grey-700: #131315;
+  }
+
+  /* Border Radius */
+  :root {
+    --border-radius-full: 9999px;
+    --border-radius-sqaure: 0px;
+    --border-radius-rounded-large: 0.75em;
+    --border-radius-rounded-square: 0.875em;
+    --border-radius-large: 1.25rem;
+  }
+
+  /* Border Width */
+  :root {
+    --border-width-regular: 1.5px;
+    --border-width-regular--active: 2px;
+  }
+
+  /* Typography */
+  :root {
+    --typography-headline-medium__font-family: inherit;
+    --typography-headline-medium__font-size: 1.75rem;
+    --typography-headline-medium__line-height: 1.21428571429em; /* 34 / 28 = 1.21428571429 */
+    --typography-headline-medium__letter-spacing: 0px;
+    --typography-headline-medium__font-weight: 700;
+
+    --typography-title-medium__font-family: inherit;
+    --typography-title-medium__font-size: 1rem;
+    --typography-title-medium__line-height: 1.5em;
+    --typography-title-medium__letter-spacing: 0.009375em;
+    --typography-title-medium__font-weight: 500;
+
+    --typography-label-large__font-family: inherit;
+    --typography-label-large__font-size: 1rem;
+    --typography-label-large__line-height: 1.5em;
+    --typography-label-large__letter-spacing: 0.00625em;
+    --typography-label-large__font-weight: 600;
+
+    --typography-label-medium__font-family: inherit;
+    --typography-label-medium__font-size: 0.875rem;
+    --typography-label-medium__line-height: 1.42857142857em; /* 20 / 14 = 1.42857142857 */
+    --typography-label-medium__letter-spacing: 0.03571428571em; /* 0.5 / 14 = 0.03571428571 */
+    --typography-label-medium__font-weight: 600;
+
+    --typography-body-small__font-family: inherit;
+    --typography-body-small__font-size: 0.75rem;
+    --typography-body-small__line-height: 1.33333333333em; /* 16 / 12 = 1.33333333333 */
+    --typography-body-small__letter-spacing: 0.03333333333em; /* 0.4 / 12 = 0.03333333333 */
+    --typography-body-small__font-weight: 500;
+
+    --typography-body-medium__font-family: inherit;
+    --typography-body-medium__font-size: 0.875rem;
+    --typography-body-medium__line-height: 1.42857142857em; /* 20 / 14 = 1.42857142857 */
+    --typography-body-medium__letter-spacing: 0.01785714285em; /* 0.25 / 14 = 0.01785714285 */
+    --typography-body-medium__font-weight: 500;
+
+    --typography-body-large__font-family: inherit;
+    --typography-body-large__font-size: 1rem;
+    --typography-body-large__line-height: 1.5em;
+    --typography-body-large__letter-spacing: 0.03125em;
+    --typography-body-large__font-weight: 500;
+  }
+
+  /* Alignment */
+  :root {
+    --alignment-logo: center; /* center / start / end / hidden */
+    --alignment-content: center; /* center / start / end */
+  }
+}

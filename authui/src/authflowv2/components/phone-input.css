@@ -1,0 +1,66 @@
+@layer components {
+  :root {
+    --phone-input__text-color: var(--color-grey-700);
+    --phone-input__font-size: var(--typography-body-large__font-size);
+    --phone-input__line-height: var(--typography-body-large__line-height);
+    --phone-input__letter-spacing: var(--typography-body-large__letter-spacing);
+    --phone-input__font-weight: var(--typography-body-large__font-weight);
+    --phone-input__font-family: twemoji-countries, Inter;
+    --phone-input__space-x: 0.5em;
+
+    --phone-input__trigger-ring-color: var(--color-grey-100);
+    --phone-input__trigger-ring-color--focus: var(--color-primary-base);
+    --phone-input__trigger-ring-color--error: var(--color-error);
+    --phone-input__trigger-ring-width: var(--border-width-regular);
+    --phone-input__trigger-ring-width--focus: var(
+      --border-width-regular--active
+    );
+    --phone-input__trigger-border-radius: calc(
+        var(--phone-input__font-size) * 14 / 16
+      )
+      /* 14 / 16 ratio to font size */;
+    --phone-input__trigger-py: 1em;
+    --phone-input__trigger-px: 0.5em;
+    --phone-input__trigger-height: 3.5rem;
+    --phone-input__trigger-width: 6em;
+  }
+
+  :root.dark {
+    /* TODO(newman): Dark mode */
+  }
+
+  .phone-input {
+    @apply flex;
+
+    font-family: var(--phone-input__font-family);
+    color: var(--phone-input__text-color);
+    font-size: var(--phone-input__font-size);
+    line-height: var(--phone-input__line-height);
+    letter-spacing: var(--phone-input__letter-spacing);
+    font-weight: var(--phone-input__font-weight);
+
+    @apply gap-x-[var(--phone-input\_\_space-x)];
+  }
+
+  .phone-input__trigger {
+    height: var(--phone-input__trigger-height);
+    width: var(--phone-input__trigger-width);
+    padding: var(--phone-input__trigger-py) var(--phone-input__trigger-px);
+    border-radius: var(--phone-input__trigger-border-radius);
+    @apply ring-inset
+        ring-[length:var(--phone-input\_\_trigger-ring-width)]
+        ring-[color:var(--phone-input\_\_trigger-ring-color)];
+
+    &:focus {
+      @apply ring-inset
+        ring-[length:var(--phone-input\_\_trigger-ring-width--focus)]
+        ring-[color:var(--phone-input\_\_trigger-ring-color--focus)];
+    }
+  }
+
+  .phone-input__country-flag {
+    @apply inline-block align-middle ltr:mr-1 rtl:ml-1;
+    height: 1em;
+    width: 1em;
+  }
+}

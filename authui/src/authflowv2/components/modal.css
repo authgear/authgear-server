@@ -1,0 +1,45 @@
+@layer components {
+  :root {
+    --lockout__bg-color: var(--color-white);
+  }
+
+  .modal[open] {
+    @apply absolute inset-0;
+
+    @apply flex;
+    @apply flex-col;
+    @apply items-center;
+    @apply justify-center;
+
+    @apply px-6;
+    @apply py-8;
+
+    background-color: var(--lockout__bg-color);
+  }
+
+  .modal__content {
+    @apply flex-1;
+    @apply flex;
+    @apply flex-col;
+    @apply items-center;
+  }
+
+  .modal__actions {
+    @apply w-full;
+    @apply max-w-full;
+  }
+
+  @media (max-width: theme("screens.tablet")) {
+    .modal__actions {
+      @apply px-6;
+      @apply py-10;
+    }
+  }
+
+  @media (min-width: theme("screens.tablet")) {
+    .modal {
+      @apply px-6;
+      @apply py-6;
+    }
+  }
+}

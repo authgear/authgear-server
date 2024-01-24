@@ -2,13 +2,21 @@ package webapp
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/successpage"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
+type SuccessPageMiddlewareEndpointsProvider interface {
+	ErrorEndpointURL(uiImpl config.UIImplementation) *url.URL
+}
+
 type SuccessPageMiddleware struct {
+	Endpoints   SuccessPageMiddlewareEndpointsProvider
+	UIConfig    *config.UIConfig
 	Cookies     CookieManager
 	ErrorCookie *ErrorCookie
 }
@@ -42,7 +50,7 @@ func (m *SuccessPageMiddleware) Handle(next http.Handler) http.Handler {
 				panic(err)
 			}
 			httputil.UpdateCookie(w, errorCookie)
-			http.Redirect(w, r, "/errors/error", http.StatusFound)
+			http.Redirect(w, r, m.Endpoints.ErrorEndpointURL(m.UIConfig.Implementation).Path, http.StatusFound)
 		} else {
 			next.ServeHTTP(w, r)
 		}

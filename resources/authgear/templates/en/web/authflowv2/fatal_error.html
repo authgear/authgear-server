@@ -1,0 +1,21 @@
+{{ template "authflowv2/__page_frame.html" . }} {{ define "page-content" }}
+<div
+  class="text-center flex flex-col justify-center items-center h-full w-full pb-[274px]"
+>
+  <span class="material-icons screen-icon">error</span>
+  <h1 class="screen-title mt-6">{{ template "v2-error-screen-title" }}</h1>
+  {{ if .Error }} {{ if eq .Error.reason "WebUIInvalidSession" }}
+  <div class="screen-description mt-4">
+    {{ template "v2-error-web-ui-invalid-session-return" }}
+  </div>
+  {{ else if eq .Error.reason "AuthenticationFlowNoPublicSignup" }}
+  <div class="screen-description mt-4">
+    {{ template "v2-error-no-public-signup" }}
+  </div>
+  {{ else }}
+  <p class="screen-description mt-4">{{ template "error-server" }}</p>
+  {{ end }} {{ else }}
+  <p class="screen-description mt-4">{{ template "error-server" }}</p>
+  {{ end }}
+</div>
+{{ end }}

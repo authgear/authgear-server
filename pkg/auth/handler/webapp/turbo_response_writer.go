@@ -12,7 +12,7 @@ import (
 
 var TemplateTurboErrorHTML = template.RegisterHTML(
 	"web/turbo_error.html",
-	components...,
+	Components...,
 )
 
 type ResponseWriter struct {

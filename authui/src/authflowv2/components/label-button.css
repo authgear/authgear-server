@@ -1,0 +1,81 @@
+@layer components {
+  :root {
+    --label-btn__bg-color: transparent;
+    --label-btn__text-color: var(--color-primary-base);
+    --label-btn__border-radius: 0px;
+    --label-btn__font-family: var(--typography-label-large__font-family);
+    --label-btn__font-size: var(--typography-label-large__font-size);
+    --label-btn__line-height: var(--typography-label-large__line-height);
+    --label-btn__letter-spacing: var(--typography-label-large__letter-spacing);
+    --label-btn__font-weight: var(--typography-label-large__font-weight);
+    --label-btn__ring-width: 0px;
+    --label-btn__ring-color: transparent;
+    --label-btn__py: calc(
+      var(--label-btn__font-size) * 10 / 16
+    ); /* y padding / font size ration = 10 / 16 */
+
+    --label-btn__px: calc(
+      (var(--label-btn__py) * 2 + var(--label-btn__line-height)) / 2
+    ); /* = Height / 2 */
+
+    --label-btn__bg-color--hover: transparent;
+    --label-btn__text-color--hover: var(--color-primary-500);
+    --label-btn__ring-width--hover: var(--label-btn__ring-width);
+    --label-btn__ring-color--hover: var(--label-btn__ring-color);
+
+    --label-btn__bg-color--active: transparent;
+    --label-btn__text-color--active: var(--color-primary-500);
+    --label-btn__ring-width--active: var(--label-btn__ring-width);
+    --label-btn__ring-color--active: var(--label-btn__ring-color);
+
+    --label-btn__bg-color--disabled: transparent;
+    --label-btn__text-color--disabled: var(--color-grey-300);
+    --label-btn__ring-width--disabled: var(--label-btn__ring-width);
+    --label-btn__ring-color--disabled: var(--label-btn__ring-color);
+  }
+
+  :root.dark {
+    /* TODO(tung): Dark mode styles */
+  }
+
+  .label-btn {
+    @apply text-center;
+
+    background-color: var(--label-btn__bg-color);
+    color: var(--label-btn__text-color);
+    border-radius: var(--label-btn__border-radius);
+    font-family: var(--label-btn__font-family);
+    font-size: var(--label-btn__font-size);
+    line-height: var(--label-btn__line-height);
+    letter-spacing: var(--label-btn__letter-spacing);
+    font-weight: var(--label-btn__font-weight);
+    @apply ring-inset	
+      ring-[length:var(--label-btn\_\_ring-width)]
+      ring-[color:var(--label-btn\_\_ring-color)];
+    padding: var(--label-btn__py) var(--label-btn__px);
+
+    &:hover {
+      background-color: var(--label-btn__bg-color--hover);
+      color: var(--label-btn__text-color--hover);
+      @apply ring-inset
+        ring-[length:var(--label-btn\_\_ring-width--hover)]
+        ring-[color:var(--label-btn\_\_ring-color--hover)];
+    }
+
+    &:active {
+      background-color: var(--label-btn__bg-color--active);
+      color: var(--label-btn__text-color--active);
+      @apply ring-inset
+        ring-[length:var(--label-btn\_\_ring-width--active)]
+        ring-[color:var(--label-btn\_\_ring-color--active)];
+    }
+
+    &:disabled {
+      background-color: var(--label-btn__bg-color--disabled);
+      color: var(--label-btn__text-color--disabled);
+      @apply ring-inset
+        ring-[length:var(--label-btn\_\_ring-width--disabled)]
+        ring-[color:var(--label-btn\_\_ring-color--disabled)];
+    }
+  }
+}

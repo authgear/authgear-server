@@ -21,7 +21,7 @@ import (
 
 var TemplateWebWechatAuthHandlerHTML = template.RegisterHTML(
 	"web/wechat_auth.html",
-	components...,
+	Components...,
 )
 
 func ConfigureWechatAuthRoute(route httproute.Route) httproute.Route {

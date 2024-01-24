@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
@@ -78,6 +79,11 @@ type AuthflowControllerOAuthClientResolver interface {
 	ResolveClient(clientID string) *config.OAuthClientConfig
 }
 
+type AuthflowNavigator interface {
+	Navigate(screen *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result)
+	NavigateNonRecoverableError(r *http.Request, u *url.URL, e error)
+}
+
 type AuthflowControllerLogger struct{ *log.Logger }
 
 func NewAuthflowControllerLogger(lf *log.Factory) AuthflowControllerLogger {
@@ -115,6 +121,8 @@ type AuthflowController struct {
 
 	UIConfig            *config.UIConfig
 	OAuthClientResolver AuthflowControllerOAuthClientResolver
+
+	Navigator AuthflowNavigator
 }
 
 func (c *AuthflowController) HandleStartOfFlow(
@@ -145,7 +153,10 @@ func (c *AuthflowController) HandleStartOfFlow(
 	if err != nil {
 		if errors.Is(err, authflow.ErrFlowNotFound) {
 			screen, err := c.createScreen(r, s, flowReference, input)
-			if err != nil {
+			if errors.Is(err, declarative.ErrNoPublicSignup) {
+				c.renderError(w, r, err)
+				return
+			} else if err != nil {
 				c.Logger.WithError(err).Errorf("failed to create screen")
 				c.renderError(w, r, err)
 				return
@@ -258,7 +269,10 @@ func (c *AuthflowController) HandleResumeOfFlow(
 	}
 
 	screen, err := c.createScreenWithOutput(r, s, output, "")
-	if err != nil {
+	if errors.Is(err, declarative.ErrNoPublicSignup) {
+		handleError(err)
+		return
+	} else if err != nil {
 		c.Logger.WithError(err).Errorf("failed to create screen")
 		handleError(err)
 		return
@@ -586,7 +600,7 @@ func (c *AuthflowController) AdvanceWithInputs(
 		}
 	}
 
-	currentScreen.Navigate(r, s.ID, result)
+	currentScreen.Navigate(c.Navigator, r, s.ID, result)
 
 	return result, nil
 }
@@ -628,7 +642,7 @@ func (c *AuthflowController) UpdateWithInput(r *http.Request, s *webapp.Session,
 		result.Cookies = append(result.Cookies, output.Cookies...)
 	}
 
-	newScreen.Navigate(r, s.ID, result)
+	newScreen.Navigate(c.Navigator, r, s.ID, result)
 	return
 }
 
@@ -872,7 +886,7 @@ func (c *AuthflowController) takeBranch(w http.ResponseWriter, r *http.Request, 
 		return nil
 	}
 
-	newScreen.Navigate(r, s.ID, result)
+	newScreen.Navigate(c.Navigator, r, s.ID, result)
 	result.WriteResponse(w, r)
 	return nil
 }
@@ -909,23 +923,18 @@ func (c *AuthflowController) makeErrorResult(w http.ResponseWriter, r *http.Requ
 	}
 
 	switch {
+	case apierror.Reason == "AuthenticationFlowNoPublicSignup":
+		fallthrough
 	case errors.Is(err, authflow.ErrFlowNotFound):
-		u.Path = "/errors/error"
-		return nonRecoverable()
+		fallthrough
 	case user.IsAccountStatusError(err):
-		u.Path = webapp.AuthflowRouteAccountStatus
-		return nonRecoverable()
+		fallthrough
 	case errors.Is(err, api.ErrNoAuthenticator):
-		u.Path = webapp.AuthflowRouteNoAuthenticator
-		return nonRecoverable()
+		fallthrough
 	case apierrors.IsKind(err, webapp.WebUIInvalidSession):
-		// Show WebUIInvalidSession error in different page.
-		u.Path = "/errors/error"
-		return nonRecoverable()
+		fallthrough
 	case r.Method == http.MethodGet:
-		// If the request method is Get, avoid redirect back to the same path
-		// which causes infinite redirect loop
-		u.Path = "/errors/error"
+		c.Navigator.NavigateNonRecoverableError(r, &u, err)
 		return nonRecoverable()
 	default:
 		return recoverable()
@@ -940,7 +949,7 @@ func (c *AuthflowController) checkPath(w http.ResponseWriter, r *http.Request, s
 	// We derive the intended path of the screen,
 	// and check if the paths match.
 	result := &webapp.Result{}
-	screen.Navigate(r, s.ID, result)
+	screen.Navigate(c.Navigator, r, s.ID, result)
 	redirectURI := result.RedirectURI
 
 	if redirectURI == "" {

@@ -15,7 +15,7 @@ import (
 
 var TemplateWebConfirmTerminateOtherSessionsHTML = template.RegisterHTML(
 	"web/confirm_terminate_other_sessions.html",
-	components...,
+	Components...,
 )
 
 var ConfirmTerminateOtherSessionsSchema = validation.NewSimpleSchema(`

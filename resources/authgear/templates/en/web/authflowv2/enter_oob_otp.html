@@ -1,0 +1,88 @@
+{{ template "authflowv2/__page_frame.html" . }}
+{{ define "page-content" }}
+
+  {{ $display_otp_input_error := false }}
+  {{ if $.Error }}
+    {{ if eq $.Error.reason "InvalidVerificationCode" }}
+      {{ $display_otp_input_error = true }}
+    {{ end }}
+    {{ if eq $.Error.reason "InvalidCredentials" }}
+      {{ $display_otp_input_error = true }}
+    {{ end }}
+  {{ end }}
+
+  {{ if $.Error }}
+    {{ if not $display_otp_input_error }}
+      {{ template "authflowv2/__alert_message.html"
+        (dict
+          "Type" "error"
+          "Classname" "tablet:hidden mb-8"
+          "Message" (include "authflowv2/__error.html" .)
+        )
+      }}
+    {{ end }}
+  {{ end }}
+
+  <div class="flex flex-col gap-y-4">
+    {{ template "authflowv2/__header.html" . }}
+    <h1 class="screen-title">
+      {{ template "v2-oob-otp-page-title" }}
+    </h1>
+    <h2 class="screen-description">
+      {{ if eq $.Channel "whatsapp" }}
+        {{ template "v2-oob-otp-page-subtitle--whatsapp" . }}
+      {{ else }}
+        {{ template "v2-oob-otp-page-subtitle" . }}
+      {{ end }}
+    </h2>
+
+    {{ if $.Error }}
+      {{ if not $display_otp_input_error }}
+        {{ template "authflowv2/__alert_message.html"
+          (dict
+            "Type" "error"
+            "Classname" "max-tablet:hidden mt-4"
+            "Message" (include "authflowv2/__error.html" .)
+          )
+        }}
+      {{ end }}
+    {{ end }}
+  </div>
+  <div class="mt-8">
+    {{ $otp_error_message := "" }}
+    {{ if $.Error  }}
+      {{ if $display_otp_input_error }}
+        {{ $otp_error_message = include "authflowv2/__error.html" .  }}
+      {{ end }}
+    {{ end }}
+
+    {{ template "authflowv2/__otp_input.html"
+      (dict
+        "CSRFField" $.CSRFField
+        "CodeLength" $.CodeLength
+        "AutoFocus" $.ShouldFocusInput
+        "Disabled" $.FailedAttemptRateLimitExceeded
+        "ResendButtonLabel" (include "v2-oob-otp-page-resend-button-label" nil)
+        "ResendButtonLabelWithValue" (include "v2-oob-otp-page-resend-button-label--unit" nil)
+        "ResendButtonCooldown" $.ResendCooldown
+        "SubmitEvent" "authgear.button.submit_verification_code"
+        "ResendEvent" "authgear.button.resend_verification_code"
+        "ErrorMessage" $otp_error_message
+      )
+    }}
+
+    {{ if $.CanRequestDeviceToken }}
+    <div class="mt-4 flex flex-row items-center gap-x-2.5">
+      <div class="checkbox">
+        <input form="main-form" id="device-token" type="checkbox" name="x_device_token" value="true">
+        <label class="checkbox__label" for="device-token">
+          <span class="checkbox__icon material-icons">check</span>
+        </label>
+      </div>
+      <label class="text-sm primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
+    </div>
+    {{ end }}
+  </div>
+
+  <!-- TODO(newman): Alternative options -->
+{{ end }}

@@ -10,7 +10,7 @@ import (
 
 var TemplateWebResetPasswordSuccessHTML = template.RegisterHTML(
 	"web/reset_password_success.html",
-	components...,
+	Components...,
 )
 
 func ConfigureResetPasswordSuccessRoute(route httproute.Route) httproute.Route {

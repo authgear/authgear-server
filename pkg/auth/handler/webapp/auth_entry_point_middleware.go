@@ -13,7 +13,7 @@ import (
 
 var TemplateRequireOAuth = template.RegisterHTML(
 	"web/require_oauth.html",
-	components...,
+	Components...,
 )
 
 type AuthEntryPointMiddleware struct {

@@ -12,7 +12,7 @@ import (
 
 var TemplateWebAuthflowViewRecoveryCodeHTML = template.RegisterHTML(
 	"web/authflow_view_recovery_code.html",
-	components...,
+	Components...,
 )
 
 func ConfigureAuthflowViewRecoveryCodeRoute(route httproute.Route) httproute.Route {
@@ -40,7 +40,7 @@ func (h *AuthflowViewRecoveryCodeHandler) GetData(w http.ResponseWriter, r *http
 	screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepViewRecoveryCodeData)
 
 	screenViewModel := AuthflowViewRecoveryCodeViewModel{
-		RecoveryCodes: formatRecoveryCodes(screenData.RecoveryCodes),
+		RecoveryCodes: FormatRecoveryCodes(screenData.RecoveryCodes),
 	}
 	viewmodels.Embed(data, screenViewModel)
 
@@ -64,7 +64,7 @@ func (h *AuthflowViewRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *ht
 			return err
 		}
 
-		setRecoveryCodeAttachmentHeaders(w)
+		SetRecoveryCodeAttachmentHeaders(w)
 		h.Renderer.Render(w, r, TemplateWebDownloadRecoveryCodeTXT, data)
 		return nil
 	})

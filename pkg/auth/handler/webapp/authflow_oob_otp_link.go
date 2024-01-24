@@ -15,7 +15,7 @@ import (
 
 var TemplateWebAuthflowOOBOTPLinkHTML = template.RegisterHTML(
 	"web/authflow_oob_otp_link.html",
-	components...,
+	Components...,
 )
 
 func ConfigureAuthflowOOBOTPLinkRoute(route httproute.Route) httproute.Route {
