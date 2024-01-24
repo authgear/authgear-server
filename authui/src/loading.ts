@@ -21,18 +21,6 @@ export function disableAllButtons(): () => void {
   };
 }
 
-// displayButtonLoadingState remembers the content of button.
-// It show loading state on button and returns a function to revert to original content.
-export function displayButtonLoadingState(el: HTMLButtonElement): () => void {
-  const original: string = el.innerHTML;
-  el.innerHTML =
-    '<span class="primary-btn__loading-icon material-icons animate-spin">progress_activity</span>';
-
-  return () => {
-    el.innerHTML = original;
-  };
-}
-
 export function hideProgressBar(): void {
   const loadingProgressBar = document.getElementById("loading-progress-bar");
   if (loadingProgressBar == null) {
