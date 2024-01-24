@@ -38,6 +38,16 @@
     /* TODO(tung): Dark mode styles */
   }
 
+  /* NOTE: @apply animate-spin raises error @parcel/transformer-css: Unknown at rule: @keyframes. So define it here */
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
   .primary-btn {
     @apply block;
     @apply text-center;
@@ -78,11 +88,21 @@
         ring-[length:var(--primary-btn\_\_ring-width--disabled)]
         ring-[color:var(--primary-btn\_\_ring-color--disabled)];
     }
-  }
 
-  .primary-btn__loading-icon {
-    font-size: calc(1.5 * var(--primary-btn__font-size)) /* 24 / 16 = 1.5 */;
-    height: 1em;
-    display: block !important;
+    &:after {
+      @apply material-icons align-middle absolute inset-x-0;
+      animation: spin 1s linear infinite;
+
+      font-size: calc(1.5 * var(--primary-btn__font-size)) /* 24 / 16 = 1.5 */;
+      color: var(--primary-btn__text-color--disabled);
+      height: 1em;
+      content: "progress_activity";
+    }
+    &.primary-btn--loading {
+      color: transparent;
+    }
+    &:not(.primary-btn--loading)::after {
+      @apply hidden;
+    }
   }
 }
