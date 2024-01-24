@@ -9,7 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
-func ConfigureAuthflowErrorRoute(route httproute.Route) httproute.Route {
+func ConfigureAuthflowV2ErrorRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "GET").
 		WithPathPattern("/v2/errors/error")
