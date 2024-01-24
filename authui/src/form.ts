@@ -6,7 +6,6 @@ import {
   hideProgressBar,
   showProgressBar,
   progressEventHandler,
-  displayButtonLoadingState,
 } from "./loading";
 import { handleAxiosError } from "./messageBar";
 
@@ -30,7 +29,6 @@ import { handleAxiosError } from "./messageBar";
 // See https://github.com/authgear/authgear-server/issues/2333
 export class XHRSubmitFormController extends Controller {
   revertDisabledButtons: { (): void } | null = null;
-  dismissButtonLoadingState: { (): void } | null = null;
   forms: HTMLFormElement[] = [];
 
   // Revert disabled buttons before Turbo caches the page
@@ -38,9 +36,6 @@ export class XHRSubmitFormController extends Controller {
   beforeCache = () => {
     if (this.revertDisabledButtons) {
       this.revertDisabledButtons();
-    }
-    if (this.dismissButtonLoadingState) {
-      this.dismissButtonLoadingState();
     }
   };
 
@@ -82,9 +77,6 @@ export class XHRSubmitFormController extends Controller {
       if (el) {
         const button = el as HTMLButtonElement;
         params.set(button.name, button.value);
-        if (button.getAttribute("data-button-loading-state") != null) {
-          this.dismissButtonLoadingState = displayButtonLoadingState(button);
-        }
       }
     }
 
@@ -125,10 +117,6 @@ export class XHRSubmitFormController extends Controller {
       if (this.revertDisabledButtons) {
         this.revertDisabledButtons();
         this.revertDisabledButtons = null;
-      }
-      if (this.dismissButtonLoadingState) {
-        this.dismissButtonLoadingState();
-        this.dismissButtonLoadingState = null;
       }
     } finally {
       hideProgressBar();
