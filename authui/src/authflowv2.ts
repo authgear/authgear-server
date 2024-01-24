@@ -22,6 +22,7 @@ import { PhoneInputController } from "./phoneInput";
 import { CustomSelectController } from "./customSelect";
 import { CountdownController } from "./countdown";
 import { TextFieldController } from "./authflowv2/text-field";
+import { DialogController } from "./authflowv2/dialog";
 
 axios.defaults.withCredentials = true;
 
@@ -65,5 +66,6 @@ Stimulus.register("phone-input", PhoneInputController);
 Stimulus.register("countdown", CountdownController);
 
 Stimulus.register("text-field", TextFieldController);
+Stimulus.register("dialog", DialogController);
 
 injectCSSAttrs(document.documentElement);

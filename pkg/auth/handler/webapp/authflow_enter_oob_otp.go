@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
@@ -49,12 +50,28 @@ type AuthflowEnterOOBOTPViewModel struct {
 func NewAuthflowEnterOOBOTPViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, now time.Time) AuthflowEnterOOBOTPViewModel {
 	flowActionType := screen.StateTokenFlowResponse.Action.Type
 
-	data := screen.StateTokenFlowResponse.Action.Data.(declarative.NodeVerifyClaimData)
-	channel := data.Channel
-	maskedClaimValue := data.MaskedClaimValue
-	codeLength := data.CodeLength
-	failedAttemptRateLimitExceeded := data.FailedAttemptRateLimitExceeded
-	resendCooldown := int(data.CanResendAt.Sub(now).Seconds())
+	var channel model.AuthenticatorOOBChannel
+	var maskedClaimValue string
+	var codeLength int
+	var failedAttemptRateLimitExceeded bool
+	var resendCooldown int
+
+	switch data := screen.StateTokenFlowResponse.Action.Data.(type) {
+	case declarative.NodeAuthenticationOOBData:
+		channel = data.Channel
+		maskedClaimValue = data.MaskedClaimValue
+		codeLength = data.CodeLength
+		failedAttemptRateLimitExceeded = data.FailedAttemptRateLimitExceeded
+		resendCooldown = int(data.CanResendAt.Sub(now).Seconds())
+	case declarative.NodeVerifyClaimData:
+		channel = data.Channel
+		maskedClaimValue = data.MaskedClaimValue
+		codeLength = data.CodeLength
+		failedAttemptRateLimitExceeded = data.FailedAttemptRateLimitExceeded
+		resendCooldown = int(data.CanResendAt.Sub(now).Seconds())
+	default:
+		panic("authflowv2: unexpected action data")
+	}
 	if resendCooldown < 0 {
 		resendCooldown = 0
 	}

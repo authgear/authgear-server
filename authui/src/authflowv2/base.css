@@ -26,6 +26,10 @@
 
   dialog {
     margin: unset;
+    padding: unset;
+    height: unset;
+    width: unset;
+    border: none;
 
     &::backdrop {
       background: none;

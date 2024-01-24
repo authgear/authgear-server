@@ -751,7 +751,7 @@ func getOOBAuthenticatorType(authentication config.AuthenticationFlowAuthenticat
 	}
 }
 
-func createAuthenticator(deps *authflow.Dependencies, userID string, authentication config.AuthenticationFlowAuthentication, target string) (*authenticator.Info, error) {
+func createAuthenticatorSpec(deps *authflow.Dependencies, userID string, authentication config.AuthenticationFlowAuthentication, target string) (*authenticator.Spec, error) {
 	spec := &authenticator.Spec{
 		UserID: userID,
 		OOBOTP: &authenticator.OOBOTPSpec{},
@@ -785,6 +785,15 @@ func createAuthenticator(deps *authflow.Dependencies, userID string, authenticat
 		return nil, err
 	}
 	spec.IsDefault = isDefault
+
+	return spec, nil
+}
+
+func createAuthenticator(deps *authflow.Dependencies, userID string, authentication config.AuthenticationFlowAuthentication, target string) (*authenticator.Info, error) {
+	spec, err := createAuthenticatorSpec(deps, userID, authentication, target)
+	if err != nil {
+		return nil, err
+	}
 
 	authenticatorID := uuid.New()
 	info, err := deps.Authenticators.NewWithAuthenticatorID(authenticatorID, spec)
