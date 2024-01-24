@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
@@ -152,7 +153,10 @@ func (c *AuthflowController) HandleStartOfFlow(
 	if err != nil {
 		if errors.Is(err, authflow.ErrFlowNotFound) {
 			screen, err := c.createScreen(r, s, flowReference, input)
-			if err != nil {
+			if errors.Is(err, declarative.ErrNoPublicSignup) {
+				c.renderError(w, r, err)
+				return
+			} else if err != nil {
 				c.Logger.WithError(err).Errorf("failed to create screen")
 				c.renderError(w, r, err)
 				return
@@ -265,7 +269,10 @@ func (c *AuthflowController) HandleResumeOfFlow(
 	}
 
 	screen, err := c.createScreenWithOutput(r, s, output, "")
-	if err != nil {
+	if errors.Is(err, declarative.ErrNoPublicSignup) {
+		handleError(err)
+		return
+	} else if err != nil {
 		c.Logger.WithError(err).Errorf("failed to create screen")
 		handleError(err)
 		return

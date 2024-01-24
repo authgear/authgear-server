@@ -952,6 +952,7 @@
 
   "v2-error-invalid-email": "Please include '@' in the email address.",
   "v2-error-web-ui-invalid-session-return": "<p>This page is invalid or has expired.</p><p>Please return and retry your request.</p>",
+  "v2-error-no-public-signup": "<p>Sign up is disabled.</p><p>Please contact system admin.</p>",
   "v2-error-server": "Server encountered an internal error.",
   "v2-error-screen-title": "Unexpected Issues",
   "v2-error.error-password-policy-violated": "Invalid password format.",
