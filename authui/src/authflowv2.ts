@@ -23,6 +23,7 @@ import { CustomSelectController } from "./customSelect";
 import { CountdownController } from "./countdown";
 import { TextFieldController } from "./authflowv2/text-field";
 import { DialogController } from "./authflowv2/dialog";
+import { CopyButtonController } from "./copy";
 
 axios.defaults.withCredentials = true;
 
@@ -64,6 +65,7 @@ Stimulus.register("password-strength-meter", PasswordStrengthMeterController);
 Stimulus.register("custom-select", CustomSelectController);
 Stimulus.register("phone-input", PhoneInputController);
 Stimulus.register("countdown", CountdownController);
+Stimulus.register("copy-button", CopyButtonController);
 
 Stimulus.register("text-field", TextFieldController);
 Stimulus.register("dialog", DialogController);

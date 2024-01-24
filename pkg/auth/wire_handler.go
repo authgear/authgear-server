@@ -774,6 +774,14 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 	))
 }
 
+func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		AuthflowV2UIHandlerDependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2ViewRecoveryCodeHandler)),
+	))
+}
+
 func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

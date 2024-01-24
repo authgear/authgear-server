@@ -280,6 +280,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2EnterOOBOTPRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2EnterOOBOTPHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2WhatsappOTPRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2WhatsappOTPHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SetupOOBOTPRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2SetupOOBOTPHandler))
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2ViewRecoveryCodeRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2ViewRecoveryCodeHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowErrorRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2ErrorHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2CreatePasswordRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2CreatePasswordHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2AccountStatusRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2AccountStatusHandler))
