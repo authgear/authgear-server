@@ -20,7 +20,7 @@ import (
 )
 
 var TemplateWebAuthflowForgotPasswordGenericOTPHTML = template.RegisterHTML(
-	"web/authflow_forgot_password_generic_otp.html",
+	"web/authflowv2/forgot_password_generic_otp.html",
 	handlerwebapp.Components...,
 )
 

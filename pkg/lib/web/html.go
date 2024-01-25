@@ -43,6 +43,7 @@ var TemplateWebAuthflowV2ErrorHTML = template.RegisterHTML("web/authflowv2/__err
 var TemplateWebAuthflowV2PasswordPolicyHTML = template.RegisterHTML("web/authflowv2/__password_policy.html")
 var TemplateWebAuthflowV2BranchHTML = template.RegisterHTML("web/authflowv2/__authflow_branch.html")
 var TemplateWebAuthflowV2LockoutHTML = template.RegisterHTML("web/authflowv2/__lockout.html")
+var TemplateWebAuthflowV2ForgotPasswordAlternativesHTML = template.RegisterHTML("web/authflowv2/__forgot_password_alternatives.html")
 
 var ComponentsHTML = []*template.HTML{
 	TemplateWebHTMLHeadHTML,
@@ -83,4 +84,5 @@ var ComponentsHTML = []*template.HTML{
 	TemplateWebAuthflowV2PasswordPolicyHTML,
 	TemplateWebAuthflowV2BranchHTML,
 	TemplateWebAuthflowV2LockoutHTML,
+	TemplateWebAuthflowV2ForgotPasswordAlternativesHTML,
 }

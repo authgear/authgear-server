@@ -22,7 +22,7 @@
 
 {{ define "authflowv2/__otp_input.html" }}
 <div data-controller="otp-input">
-  <div class="otp-input{{ if $.ErrorContext }} otp-input--error{{ end }}">
+  <div class="otp-input{{ if $.ErrorMessage }} otp-input--error{{ end }}">
     <input
       form="{{ $.FormName }}"
       type="text"
