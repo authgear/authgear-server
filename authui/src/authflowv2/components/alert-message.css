@@ -15,13 +15,13 @@
     --alert-message__px: calc(
       var(--alert-message__font-size)
     ); /* 1:1 ratio with font-size */
-    --alert-message__spacing: 8px;
+    --alert-message__spacing: 0.5em;
 
     --alert-message__icon-text-color: var(--color-grey-base);
     --alert-message__icon-text-color--success: var(--color-success);
     --alert-message__icon-text-color--error: var(--color-error);
     --alert-message__icon-text-color--warning: var(--color-warning);
-    --alert-message__icon-size: 1.25em;
+    --alert-message__icon-size: 1.25rem;
   }
 
   :root.dark {

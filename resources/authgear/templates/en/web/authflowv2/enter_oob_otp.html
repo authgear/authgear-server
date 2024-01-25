@@ -11,18 +11,6 @@
     {{ end }}
   {{ end }}
 
-  {{ if $.Error }}
-    {{ if not $display_otp_input_error }}
-      {{ template "authflowv2/__alert_message.html"
-        (dict
-          "Type" "error"
-          "Classname" "tablet:hidden mb-8"
-          "Message" (include "authflowv2/__error.html" .)
-        )
-      }}
-    {{ end }}
-  {{ end }}
-
   <div class="flex flex-col gap-y-8">
     <div class="flex flex-col gap-y-4">
       {{ template "authflowv2/__header.html" . }}
@@ -42,7 +30,7 @@
           {{ template "authflowv2/__alert_message.html"
             (dict
               "Type" "error"
-              "Classname" "max-tablet:hidden mt-4"
+              "Classname" "mt-4"
               "Message" (include "authflowv2/__error.html" .)
             )
           }}

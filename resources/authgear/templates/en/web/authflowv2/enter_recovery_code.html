@@ -1,0 +1,88 @@
+{{ template "authflowv2/__page_frame.html" . }}
+{{ define "page-content" }}
+
+  {{ $display_input_error := false }}
+  {{ if $.Error }}
+    {{ if eq $.Error.reason "ValidationFailed" }}
+      {{ $display_input_error = true }}
+    {{ end }}
+  {{ end }}
+
+  <div class="flex flex-col gap-y-8">
+    <div class="flex flex-col gap-y-4">
+      <h1 class="screen-title">
+        {{ template "v2-enter-recovery-code-title" }}
+      </h1>
+
+      <h2 class="screen-description">
+        {{ template "v2-enter-recovery-code-description" }}
+      </h2>
+
+      {{ if $.Error }}
+        {{ if not $display_input_error }}
+          {{ template "authflowv2/__alert_message.html"
+            (dict
+              "Type" "error"
+              "Classname" "mt-4"
+              "Message" (include "authflowv2/__error.html" .)
+            )
+          }}
+        {{ end }}
+      {{ end }}
+    </div>
+
+    <form id="main-form" method="post" novalidate>
+      {{ $.CSRFField }}
+
+      {{ $input_error_message := "" }}
+      {{ if $.Error  }}
+        {{ if $display_input_error }}
+          {{ $input_error_message = include "authflowv2/__error.html" .  }}
+        {{ end }}
+      {{ end }}
+
+      <input
+        form="main-form"
+        tabindex="0"
+        {{ if $.ShouldFocusInput }}autofocus{{ end }}
+        class="input w-full {{ if $.Error }}input--error{{end}}"
+        type="text"
+        tabindex="0"
+        autocomplete="one-time-code"
+        autocapitalize="characters"
+        name="x_recovery_code"
+        placeholder="{{ template "enter-recovery-code-placeholder" }}"
+      >
+
+      {{ if $display_input_error }}
+      <p class="input__error-message mt-2">
+        {{ $input_error_message }}
+      </p>
+      {{ end }}
+
+      {{- if $.DeviceTokenEnabled }}
+      <div class="mt-4 flex flex-row items-center gap-x-2.5">
+        <div class="checkbox">
+          <input form="main-form" id="device-token" type="checkbox" name="x_device_token" value="true">
+          <label class="checkbox__label" for="device-token">
+            <span class="checkbox__icon material-icons">check</span>
+          </label>
+        </div>
+        <label class="text-sm primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
+      </div>
+      {{- end }}
+
+      <button
+        class="mt-4 primary-btn w-full"
+        type="submit"
+        name="x_action"
+        value=""
+        data-authgear-event="authgear.button.enter_recovery_code"
+      >
+        {{ template "v2-button.continue" }}
+      </button>
+    </form>
+
+  {{ template "authflowv2/__authflow_branch.html" . }}
+  </div>
+{{ end }}

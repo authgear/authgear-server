@@ -966,6 +966,7 @@
   "v2-error-server": "伺服器內部錯誤。",
   "v2-error-screen-title": "系統錯誤",
   "v2-error.error-password-policy-violated": "無效密碼格式",
+  "v2-error-phone-number-format": "你所輸入的電話號碼格式不正確。",
   "v2-create-password-page-title": "創建密碼",
   "v2-password-policy-strength": "密碼強度",
   "v2-password-policy-minimum-length": "最少 {length, plural, other{# 位}}",
@@ -992,6 +993,7 @@
   "v2-enter-phone-otp-whatsapp-instead": "改為以Whatsapp發送一次性密碼",
   "v2-enter-email-otp-code-instead": "改為發送一次性密碼至",
   "v2-use-email-otp-link-instead": "改為發送登錄鏈接至",
+  "v2-enter-recovery-code-instead": "改為輸入備用碼",
   "v2-create-device-token-label": "不要再詢問",
   "v2-enter-password-page-title": "請輸入密碼",
   "v2-enter-additional-password-page-title": "請輸入輔助密碼",
@@ -1028,5 +1030,8 @@
   "v2-setup-email-otp-link-instead": "設定電子郵件",
   "v2-setup-phone-otp-sms-instead": "設定電話",
   "v2-setup-phone-otp-whatsapp-instead": "設定 Whatsapp",
-  "v2-setup-oob-otp-without-verification": "設定電話"
+  "v2-setup-oob-otp-without-verification": "設定電話",
+
+  "v2-enter-recovery-code-title": "輸入備用碼",
+  "v2-enter-recovery-code-description": "輸入未使用的備用碼。"
 }

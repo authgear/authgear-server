@@ -8,19 +8,6 @@
     {{ end }}
   {{ end }}
 
-  {{ if $.Error }}
-    {{ if not $display_otp_input_error }}
-      <div class="mb-8 alert-message alert-message--error">
-        <span class="alert-message__icon material-icons material-icons--filled">
-          error
-        </span>
-        <span class="alert-message__text">
-          {{ template "authflowv2/__error.html" . }}
-        </span>
-      </div>
-    {{ end }}
-  {{ end }}
-
   <div class="flex flex-col gap-y-8">
     <div class="space-y-4">
       {{ template "authflowv2/__header.html" . }}
@@ -39,6 +26,18 @@
           {{ template "v2-setup-oob-otp-page-subtitle--email" }}
         {{ end }}
       </h2>
+
+      {{ if $.Error }}
+        {{ if not $display_otp_input_error }}
+          {{ template "authflowv2/__alert_message.html"
+            (dict
+              "Type" "error"
+              "Classname" "mt-4"
+              "Message" (include "authflowv2/__error.html" .)
+            )
+          }}
+        {{ end }}
+      {{ end }}
     </div>
 
     <form method="post" novalidate>
