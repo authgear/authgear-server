@@ -1011,7 +1011,8 @@
   "v2-setup-oob-otp-page-subtitle--email": "You can receive sign-in codes at this email.",
 
   "v2-forgot-password-title": "Forgot password?",
-  "v2-forgot-password-description--input-login-id": "Enter the email address associated with your account, and we''ll send you a email to reset your password.",
+  "v2-forgot-password-description--input-email": "Enter the email address associated with your account, and we''ll send you a email to reset your password.",
+  "v2-forgot-password-description--input-phone": "Enter the phone number associated with your account, and we''ll send you a message to reset your password.",
 
   "v2-lockout-title": "Account Unavailable",
   "v2-lockout-subtitle": "Your account has been locked due to too many attempts. Please try again later.",
