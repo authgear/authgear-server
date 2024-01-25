@@ -19,10 +19,11 @@ import (
 )
 
 const (
-	AuthflowV2RouteLogin   = "/login"
-	AuthflowV2RouteSignup  = "/signup"
-	AuthflowV2RoutePromote = "/flows/promote_user"
-	AuthflowV2RouteReauth  = "/reauth"
+	AuthflowV2RouteLogin         = "/login"
+	AuthflowV2RouteSignup        = "/signup"
+	AuthflowV2RoutePromote       = "/flows/promote_user"
+	AuthflowV2RouteReauth        = "/reauth"
+	AuthflowV2RouteSelectAccount = "/authflow/v2/select_account"
 	// AuthflowV2RouteSignupLogin is login because login page has passkey.
 	AuthflowV2RouteSignupLogin = AuthflowV2RouteLogin
 
@@ -64,6 +65,7 @@ const (
 
 type AuthflowV2NavigatorEndpointsProvider interface {
 	ErrorEndpointURL(uiImpl config.UIImplementation) *url.URL
+	SelectAccountEndpointURL(uiImpl config.UIImplementation) *url.URL
 }
 
 type AuthflowV2Navigator struct {
@@ -421,4 +423,9 @@ func (n *AuthflowV2Navigator) navigateAccountRecovery(s *webapp.AuthflowScreenWi
 	default:
 		panic(fmt.Errorf("unexpected action type: %v", s.StateTokenFlowResponse.Action.Type))
 	}
+}
+
+func (n *AuthflowV2Navigator) NavigateSelectAccount(result *webapp.Result) {
+	url := n.Endpoints.SelectAccountEndpointURL(n.UIConfig.Implementation)
+	result.RedirectURI = url.String()
 }

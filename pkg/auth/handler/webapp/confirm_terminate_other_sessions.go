@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
@@ -34,10 +35,16 @@ func ConfigureConfirmTerminateOtherSessionsRoute(route httproute.Route) httprout
 		WithPathPattern("/flows/confirm_terminate_other_sessions")
 }
 
+type ConfirmTerminateOtherSessionsEndpointsProvider interface {
+	SelectAccountEndpointURL(uiImpl config.UIImplementation) *url.URL
+}
+
 type ConfirmTerminateOtherSessionsHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          Renderer
+	Endpoints         ConfirmTerminateOtherSessionsEndpointsProvider
+	UIConfig          *config.UIConfig
 }
 
 func (h *ConfirmTerminateOtherSessionsHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
@@ -98,7 +105,7 @@ func (h *ConfirmTerminateOtherSessionsHandler) ServeHTTP(w http.ResponseWriter, 
 			if err = ctrl.Page.UpdateSession(session); err != nil {
 				return err
 			}
-			u := webapp.MakeRelativeURL("/flows/select_account", url.Values{})
+			u := h.Endpoints.SelectAccountEndpointURL(h.UIConfig.Implementation)
 			result := &webapp.Result{
 				RedirectURI: u.String(),
 				RemoveQueries: setutil.Set[string]{

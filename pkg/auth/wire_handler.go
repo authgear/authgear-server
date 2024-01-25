@@ -183,6 +183,13 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SelectAccountHandler)),
+	))
+}
+
 func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

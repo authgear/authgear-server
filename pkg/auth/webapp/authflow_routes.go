@@ -62,6 +62,7 @@ const (
 
 type AuthflowNavigatorEndpointsProvider interface {
 	ErrorEndpointURL(uiImpl config.UIImplementation) *url.URL
+	SelectAccountEndpointURL(uiImpl config.UIImplementation) *url.URL
 }
 
 type AuthflowNavigator struct {
@@ -439,4 +440,9 @@ func (n *AuthflowNavigator) navigateAccountRecovery(s *AuthflowScreenWithFlowRes
 	default:
 		panic(fmt.Errorf("unexpected action type: %v", s.StateTokenFlowResponse.Action.Type))
 	}
+}
+
+func (n *AuthflowNavigator) NavigateSelectAccount(result *Result) {
+	url := n.Endpoints.SelectAccountEndpointURL(n.UIConfig.Implementation)
+	result.RedirectURI = url.String()
 }

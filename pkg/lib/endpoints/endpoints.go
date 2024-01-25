@@ -72,6 +72,20 @@ func (e *Endpoints) ErrorEndpointURL(uiImpl config.UIImplementation) *url.URL {
 		return e.urlOf("/errors/error")
 	}
 }
+func (e *Endpoints) SelectAccountEndpointURL(uiImpl config.UIImplementation) *url.URL {
+	switch uiImpl {
+	case config.UIImplementationAuthflowV2:
+		return e.urlOf("/authflow/v2/select_account")
+	case config.UIImplementationInteraction:
+		fallthrough
+	case config.UIImplementationDefault:
+		fallthrough
+	case config.UIImplementationAuthflow:
+		fallthrough
+	default:
+		return e.urlOf("/flows/select_account")
+	}
+}
 func (e *Endpoints) SSOCallbackEndpointURL() *url.URL { return e.urlOf("sso/oauth2/callback") }
 
 func (e *Endpoints) WeChatAuthorizeEndpointURL() *url.URL { return e.urlOf("sso/wechat/auth") }

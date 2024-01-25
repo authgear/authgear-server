@@ -31,6 +31,9 @@ func (*NoopNavigator) Navigate(screen *webapp.AuthflowScreenWithFlowResponse, r 
 func (*NoopNavigator) NavigateNonRecoverableError(r *http.Request, u *url.URL, e error) {
 }
 
+func (*NoopNavigator) NavigateSelectAccount(result *webapp.Result) {
+}
+
 func NewNoopAuthflowNavigator() *NoopNavigator {
 	return &NoopNavigator{}
 }
