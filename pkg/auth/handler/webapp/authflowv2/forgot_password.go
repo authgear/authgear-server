@@ -3,6 +3,7 @@ package authflowv2
 import (
 	"errors"
 	"net/http"
+	"net/url"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -56,6 +57,18 @@ func (t ForgotPasswordLoginIDInputType) IsValid() bool {
 	}
 }
 
+type AuthFlowV2ForgotPasswordAlternativeType string
+
+const (
+	AuthFlowV2ForgotPasswordAlternativeTypeEmail AuthFlowV2ForgotPasswordAlternativeType = "email"
+	AuthFlowV2ForgotPasswordAlternativeTypePhone AuthFlowV2ForgotPasswordAlternativeType = "phone"
+)
+
+type AuthFlowV2ForgotPasswordAlternative struct {
+	AlternativeType AuthFlowV2ForgotPasswordAlternativeType
+	Href            string
+}
+
 type AuthFlowV2ForgotPasswordViewModel struct {
 	LoginIDInputType     ForgotPasswordLoginIDInputType
 	LoginID              string
@@ -64,6 +77,7 @@ type AuthFlowV2ForgotPasswordViewModel struct {
 	LoginIDDisabled      bool
 	OTPForm              string
 	RequiresLoginIDInput bool
+	Alternatives         []*AuthFlowV2ForgotPasswordAlternative
 }
 
 func forgotPasswordGetInitialLoginIDInputType(data declarative.IntentAccountRecoveryFlowStepIdentifyData) ForgotPasswordLoginIDInputType {
@@ -77,6 +91,35 @@ func forgotPasswordGetInitialLoginIDInputType(data declarative.IntentAccountReco
 		return ForgotPasswordLoginIDInputTypePhone
 	}
 	return ForgotPasswordLoginIDInputTypeEmail
+}
+
+func deriveAlternatives(
+	r *http.Request,
+	loginIDInputType ForgotPasswordLoginIDInputType,
+	emailLoginIDEnabled bool,
+	phoneLoginIDEnabled bool) []*AuthFlowV2ForgotPasswordAlternative {
+
+	alternatives := []*AuthFlowV2ForgotPasswordAlternative{}
+
+	if loginIDInputType != ForgotPasswordLoginIDInputTypeEmail && emailLoginIDEnabled {
+		alternatives = append(alternatives, &AuthFlowV2ForgotPasswordAlternative{
+			AlternativeType: AuthFlowV2ForgotPasswordAlternativeTypeEmail,
+			Href: webapp.MakeURL(r.URL, "", url.Values{
+				"q_login_id_input_type": []string{string(ForgotPasswordLoginIDInputTypeEmail)},
+			}).String(),
+		})
+	}
+
+	if loginIDInputType != ForgotPasswordLoginIDInputTypePhone && phoneLoginIDEnabled {
+		alternatives = append(alternatives, &AuthFlowV2ForgotPasswordAlternative{
+			AlternativeType: AuthFlowV2ForgotPasswordAlternativeTypePhone,
+			Href: webapp.MakeURL(r.URL, "", url.Values{
+				"q_login_id_input_type": []string{string(ForgotPasswordLoginIDInputTypePhone)},
+			}).String(),
+		})
+	}
+
+	return alternatives
 }
 
 func NewAuthFlowV2ForgotPasswordViewModel(
@@ -115,14 +158,20 @@ func NewAuthFlowV2ForgotPasswordViewModel(
 
 	otpForm := ""
 	if selectDestinationScreen != nil {
-		// FIXME(tung): Set this flag to true when the corresponding ui is implemented
-		// requiresLoginIDInput = false
+		requiresLoginIDInput = false
 		data2, ok := selectDestinationScreen.StateTokenFlowResponse.Action.
 			Data.(declarative.IntentAccountRecoveryFlowStepSelectDestinationData)
 		if ok && len(data2.Options) > 0 {
 			otpForm = string(data2.Options[0].OTPForm)
 		}
 	}
+
+	alternatives := deriveAlternatives(
+		r,
+		loginIDInputType,
+		emailLoginIDEnabled,
+		phoneLoginIDEnabled,
+	)
 
 	return AuthFlowV2ForgotPasswordViewModel{
 		LoginIDInputType:     loginIDInputType,
@@ -132,6 +181,7 @@ func NewAuthFlowV2ForgotPasswordViewModel(
 		LoginIDDisabled:      loginIDDisabled,
 		OTPForm:              otpForm,
 		RequiresLoginIDInput: requiresLoginIDInput,
+		Alternatives:         alternatives,
 	}
 }
 

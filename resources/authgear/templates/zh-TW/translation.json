@@ -1013,6 +1013,10 @@
   "v2-forgot-password-title": "忘記密碼？",
   "v2-forgot-password-description--input-email": "輸入與您的帳戶關聯的電子郵件地址，我們將向您發送一封電子郵件以重置您的密碼。",
   "v2-forgot-password-description--input-phone": "輸入與您的帳戶關聯的電話號碼，我們將向您發送一條訊息以重置您的密碼。",
+  "v2-forgot-password-description--send-email": "我們會寄給您一封電子郵件到 {LoginID} 以重設您的密碼。",
+  "v2-forgot-password-description--send-phone": "我們會寄給您一則訊息到 {LoginID} 以重設您的密碼。",
+  "v2-forgot-password-send-via-phone": "透過電話傳送",
+  "v2-forgot-password-send-via-email": "透過電子郵件傳送",
 
   "v2-lockout-title": "帳戶不可用",
   "v2-lockout-subtitle": "由於嘗試次數過多，您的帳戶已被鎖定，請稍後重試。",

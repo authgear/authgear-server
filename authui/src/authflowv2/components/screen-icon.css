@@ -5,6 +5,7 @@
   }
 
   .screen-icon {
+    @apply text-center;
     font-size: var(--screen-icon__font-size);
     color: var(--screen-icon__color);
   }
