@@ -939,6 +939,7 @@
   "v2-placeholder.email": "Email address",
   "v2-button.continue": "Continue",
   "v2-button.login": "Login",
+  "v2-button.send": "Send",
   "v2-password-policy-password-strength-meter-1": "Very Weak",
   "v2-password-policy-password-strength-meter-2": "Weak",
   "v2-password-policy-password-strength-meter-3": "Medium",
@@ -1008,6 +1009,9 @@
   "v2-setup-oob-otp-page-subtitle--sms": "You can receive sign-in codes at this number.",
   "v2-setup-oob-otp-page-subtitle--whatsapp": "You can receive sign-in codes at this number.",
   "v2-setup-oob-otp-page-subtitle--email": "You can receive sign-in codes at this email.",
+
+  "v2-forgot-password-title": "Forgot password?",
+  "v2-forgot-password-description--input-login-id": "Enter the email address associated with your account, and we''ll send you a email to reset your password.",
 
   "v2-lockout-title": "Account Unavailable",
   "v2-lockout-subtitle": "Your account has been locked due to too many attempts. Please try again later.",

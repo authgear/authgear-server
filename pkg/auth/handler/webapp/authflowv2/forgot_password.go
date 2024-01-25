@@ -57,12 +57,13 @@ func (t ForgotPasswordLoginIDInputType) IsValid() bool {
 }
 
 type AuthFlowV2ForgotPasswordViewModel struct {
-	LoginIDInputType    ForgotPasswordLoginIDInputType
-	LoginID             string
-	PhoneLoginIDEnabled bool
-	EmailLoginIDEnabled bool
-	LoginIDDisabled     bool
-	OTPForm             string
+	LoginIDInputType     ForgotPasswordLoginIDInputType
+	LoginID              string
+	PhoneLoginIDEnabled  bool
+	EmailLoginIDEnabled  bool
+	LoginIDDisabled      bool
+	OTPForm              string
+	RequiresLoginIDInput bool
 }
 
 func forgotPasswordGetInitialLoginIDInputType(data declarative.IntentAccountRecoveryFlowStepIdentifyData) ForgotPasswordLoginIDInputType {
@@ -82,6 +83,8 @@ func NewAuthFlowV2ForgotPasswordViewModel(
 	r *http.Request,
 	initialScreen *webapp.AuthflowScreenWithFlowResponse,
 	selectDestinationScreen *webapp.AuthflowScreenWithFlowResponse) AuthFlowV2ForgotPasswordViewModel {
+
+	requiresLoginIDInput := true
 
 	data, ok := initialScreen.StateTokenFlowResponse.Action.Data.(declarative.IntentAccountRecoveryFlowStepIdentifyData)
 	if !ok {
@@ -112,6 +115,8 @@ func NewAuthFlowV2ForgotPasswordViewModel(
 
 	otpForm := ""
 	if selectDestinationScreen != nil {
+		// FIXME(tung): Set this flag to true when the corresponding ui is implemented
+		// requiresLoginIDInput = false
 		data2, ok := selectDestinationScreen.StateTokenFlowResponse.Action.
 			Data.(declarative.IntentAccountRecoveryFlowStepSelectDestinationData)
 		if ok && len(data2.Options) > 0 {
@@ -120,12 +125,13 @@ func NewAuthFlowV2ForgotPasswordViewModel(
 	}
 
 	return AuthFlowV2ForgotPasswordViewModel{
-		LoginIDInputType:    loginIDInputType,
-		LoginID:             loginID,
-		PhoneLoginIDEnabled: phoneLoginIDEnabled,
-		EmailLoginIDEnabled: emailLoginIDEnabled,
-		LoginIDDisabled:     loginIDDisabled,
-		OTPForm:             otpForm,
+		LoginIDInputType:     loginIDInputType,
+		LoginID:              loginID,
+		PhoneLoginIDEnabled:  phoneLoginIDEnabled,
+		EmailLoginIDEnabled:  emailLoginIDEnabled,
+		LoginIDDisabled:      loginIDDisabled,
+		OTPForm:              otpForm,
+		RequiresLoginIDInput: requiresLoginIDInput,
 	}
 }
 
