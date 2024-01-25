@@ -82,7 +82,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
-	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
@@ -92754,11 +92753,6 @@ func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 func newBodyLimitMiddleware(p *deps.RootProvider) httproute.Middleware {
 	bodyLimitMiddleware := &middleware.BodyLimitMiddleware{}
 	return bodyLimitMiddleware
-}
-
-func newUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	uiparamMiddleware := &uiparam.Middleware{}
-	return uiparamMiddleware
 }
 
 func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {

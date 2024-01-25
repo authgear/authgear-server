@@ -1,9 +1,11 @@
 package webapp
 
 import (
+	"net/http"
+
+	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/log"
-	"net/http"
 )
 
 type ContextHolderMiddlewareLogger struct{ *log.Logger }
@@ -20,8 +22,10 @@ func (m *ContextHolderMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// This middleware only creates the holder of context.
 		// This enables the holder to be mutated later in other places.
-		var empty web.CSPNonceContextValue
-		ctx := web.WithCSPNonce(r.Context(), &empty)
+		var emptyCSPNonceContext web.CSPNonceContextValue
+		var emptyUIParamContext uiparam.T
+		ctx := web.WithCSPNonce(r.Context(), &emptyCSPNonceContext)
+		ctx = uiparam.WithUIParam(ctx, &emptyUIParamContext)
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
 	})
