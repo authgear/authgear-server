@@ -78,6 +78,13 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	))
 }
 
+func newContextHolderMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*webapp.ContextHolderMiddleware)),
+	))
+}
+
 func newDynamicCSPMiddleware(p *deps.RequestProvider, allowInlineScript webapp.AllowInlineScript, allowFrameAncestors webapp.AllowFrameAncestors) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,

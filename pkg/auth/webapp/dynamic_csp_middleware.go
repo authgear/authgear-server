@@ -49,7 +49,7 @@ func (m *DynamicCSPMiddleware) Handle(next http.Handler) http.Handler {
 			httputil.UpdateCookie(w, cookie)
 		}
 
-		r = r.WithContext(web.WithCSPNonce(r.Context(), nonce))
+		r = r.WithContext(web.WithCSPNonce(r.Context(), &web.CSPNonceContextValue{Nonce: nonce}))
 
 		var frameAncestors []string
 		if m.AllowFrameAncestors {

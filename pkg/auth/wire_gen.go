@@ -92905,6 +92905,16 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	return corsMiddleware
 }
 
+func newContextHolderMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	contextHolderMiddlewareLogger := webapp2.NewContextHolderMiddlewareLogger(factory)
+	contextHolderMiddleware := &webapp2.ContextHolderMiddleware{
+		Logger: contextHolderMiddlewareLogger,
+	}
+	return contextHolderMiddleware
+}
+
 func newDynamicCSPMiddleware(p *deps.RequestProvider, allowInlineScript webapp2.AllowInlineScript, allowFrameAncestors webapp2.AllowFrameAncestors) httproute.Middleware {
 	request := p.Request
 	appProvider := p.AppProvider
