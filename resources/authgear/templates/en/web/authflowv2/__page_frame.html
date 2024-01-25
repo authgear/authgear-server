@@ -14,7 +14,7 @@
 {{ end }}
 
 <body
-  data-controller="prevent-double-tap xhr-submit-form lockout restore-form"
+  data-controller="prevent-double-tap xhr-submit-form lockout restore-form loading"
   data-restore-form-json-value="{{ $.FormJSON }}"
 	data-action="dblclick->prevent-double-tap#action"
 	data-lockout-format-date-relative-outlet="[data-controller='format-date-relative']"
@@ -28,7 +28,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 {{ end }}
 <!-- End Google Tag Manager (noscript) -->
 
-<div id="loading-progress-bar"></div>
 {{ template "web/authflowv2/layout.html" . }}
 </body>
 </html>

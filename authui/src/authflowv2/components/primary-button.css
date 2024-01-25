@@ -79,4 +79,21 @@
         ring-[color:var(--primary-btn\_\_ring-color--disabled)];
     }
   }
+
+  .primary-btn::after {
+    @apply material-icons align-middle absolute inset-x-0 animate-spin;
+
+    font-size: calc(1.5 * var(--primary-btn__font-size)) /* 24 / 16 = 1.5 */;
+    color: var(--primary-btn__text-color--disabled);
+    height: 1em;
+    content: "progress_activity";
+  }
+
+  .primary-btn[data-loading="true"] {
+    color: transparent;
+  }
+
+  .primary-btn:not([data-loading="true"])::after {
+    @apply hidden;
+  }
 }

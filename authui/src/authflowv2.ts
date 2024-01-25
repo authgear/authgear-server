@@ -7,8 +7,9 @@ import {
   RestoreFormController,
   RetainFormFormController,
   RetainFormInputController,
-  XHRSubmitFormController,
 } from "./form";
+import { XHRSubmitFormController } from "./authflowv2/form";
+import { LoadingController } from "./authflowv2/loading";
 import { PreventDoubleTapController } from "./preventDoubleTap";
 import { LockoutController } from "./lockout";
 import { FormatDateRelativeController } from "./date";
@@ -69,5 +70,6 @@ Stimulus.register("copy-button", CopyButtonController);
 
 Stimulus.register("text-field", TextFieldController);
 Stimulus.register("dialog", DialogController);
+Stimulus.register("loading", LoadingController);
 
 injectCSSAttrs(document.documentElement);
