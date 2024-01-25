@@ -175,10 +175,10 @@ func (n *AuthflowNavigator) navigateSignupPromote(s *AuthflowScreenWithFlowRespo
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			data := s.StateTokenFlowResponse.Action.Data
-			switch data.(type) {
+			switch data := data.(type) {
 			case declarative.NodeVerifyClaimData:
 				// 1. We do not need to enter the target.
-				channel := data.(declarative.NodeVerifyClaimData).Channel
+				channel := data.Channel
 				switch channel {
 				case model.AuthenticatorOOBChannelSMS:
 					s.Advance(AuthflowRouteEnterOOBOTP, result)
@@ -189,7 +189,7 @@ func (n *AuthflowNavigator) navigateSignupPromote(s *AuthflowScreenWithFlowRespo
 				}
 			case declarative.NodeAuthenticationOOBData:
 				// 1. We do not need to enter the target.
-				channel := data.(declarative.NodeAuthenticationOOBData).Channel
+				channel := data.Channel
 				switch channel {
 				case model.AuthenticatorOOBChannelSMS:
 					s.Advance(AuthflowRouteEnterOOBOTP, result)
@@ -306,14 +306,27 @@ func (n *AuthflowNavigator) navigateLogin(s *AuthflowScreenWithFlowResponse, r *
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
-			data := s.StateTokenFlowResponse.Action.Data.(declarative.NodeVerifyClaimData)
-			switch data.OTPForm {
-			case otp.FormCode:
-				s.Advance(AuthflowRouteEnterOOBOTP, result)
-			case otp.FormLink:
-				s.Advance(AuthflowRouteOOBOTPLink, result)
+			switch data := s.StateTokenFlowResponse.Action.Data.(type) {
+			case declarative.NodeVerifyClaimData:
+				switch data.OTPForm {
+				case otp.FormCode:
+					s.Advance(AuthflowRouteEnterOOBOTP, result)
+				case otp.FormLink:
+					s.Advance(AuthflowRouteOOBOTPLink, result)
+				default:
+					panic(fmt.Errorf("unexpected otp form: %v", data.OTPForm))
+				}
+			case declarative.NodeAuthenticationOOBData:
+				switch data.OTPForm {
+				case otp.FormCode:
+					s.Advance(AuthflowRouteEnterOOBOTP, result)
+				case otp.FormLink:
+					s.Advance(AuthflowRouteOOBOTPLink, result)
+				default:
+					panic(fmt.Errorf("unexpected otp form: %v", data.OTPForm))
+				}
 			default:
-				panic(fmt.Errorf("unexpected otp form: %v", data.OTPForm))
+				panic(fmt.Errorf("unexpected data: %T", s.StateTokenFlowResponse.Action.Data))
 			}
 		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 			s.Advance(AuthflowRouteEnterTOTP, result)
@@ -365,14 +378,27 @@ func (n *AuthflowNavigator) navigateReauth(s *AuthflowScreenWithFlowResponse, r 
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
-			data := s.StateTokenFlowResponse.Action.Data.(declarative.NodeVerifyClaimData)
-			switch data.OTPForm {
-			case otp.FormCode:
-				s.Advance(AuthflowRouteEnterOOBOTP, result)
-			case otp.FormLink:
-				s.Advance(AuthflowRouteOOBOTPLink, result)
+			switch data := s.StateTokenFlowResponse.Action.Data.(type) {
+			case declarative.NodeVerifyClaimData:
+				switch data.OTPForm {
+				case otp.FormCode:
+					s.Advance(AuthflowRouteEnterOOBOTP, result)
+				case otp.FormLink:
+					s.Advance(AuthflowRouteOOBOTPLink, result)
+				default:
+					panic(fmt.Errorf("unexpected otp form: %v", data.OTPForm))
+				}
+			case declarative.NodeAuthenticationOOBData:
+				switch data.OTPForm {
+				case otp.FormCode:
+					s.Advance(AuthflowRouteEnterOOBOTP, result)
+				case otp.FormLink:
+					s.Advance(AuthflowRouteOOBOTPLink, result)
+				default:
+					panic(fmt.Errorf("unexpected otp form: %v", data.OTPForm))
+				}
 			default:
-				panic(fmt.Errorf("unexpected otp form: %v", data.OTPForm))
+				panic(fmt.Errorf("unexpected data: %T", s.StateTokenFlowResponse.Action.Data))
 			}
 		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 			s.Advance(AuthflowRouteEnterTOTP, result)
