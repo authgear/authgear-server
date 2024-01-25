@@ -41,7 +41,7 @@
     line-height: var(--secondary-btn__line-height);
     letter-spacing: var(--secondary-btn__letter-spacing);
     font-weight: var(--secondary-btn__font-weight);
-    @apply ring-inset	
+    @apply ring-inset
       ring-[length:var(--secondary-btn\_\_ring-width)]
       ring-[color:var(--secondary-btn\_\_ring-color)];
     padding: var(--secondary-btn__py) var(--secondary-btn__px);

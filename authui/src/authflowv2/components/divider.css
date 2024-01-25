@@ -1,7 +1,6 @@
 @layer components {
   :root {
-    /* FIXME(davis): Design use opacity on it which should be not necessary */
-    --divider__bg-color: var(--color-grey-200);
+    --divider__bg-color: var(--color-grey-100);
     --divider__text-color: var(--color-grey-300);
     --divider__font-family: var(--typography-body-large__font-family);
     --divider__font-size: var(--typography-body-large__font-size);
