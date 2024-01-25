@@ -966,6 +966,7 @@
   "v2-error-server": "Server encountered an internal error.",
   "v2-error-screen-title": "Unexpected Issues",
   "v2-error.error-password-policy-violated": "Invalid password format.",
+  "v2-error-phone-number-format": "Incorrect phone number format for the selected country.",
   "v2-create-password-page-title": "Create Password",
   "v2-password-policy-strength": "Password strength:",
   "v2-password-policy-minimum-length": "At least {length, plural, one{# character} other{# characters}}",
@@ -1029,5 +1030,8 @@
   "v2-setup-email-otp-link-instead": "Set up email",
   "v2-setup-phone-otp-sms-instead": "Set up phone",
   "v2-setup-phone-otp-whatsapp-instead": "Set up Whatsapp",
-  "v2-setup-oob-otp-without-verification": "Set up phone"
+  "v2-setup-oob-otp-without-verification": "Set up phone",
+
+  "v2-enter-recovery-code-title": "Enter Recovery Code",
+  "v2-enter-recovery-code-description": "Enter an unused 10-character recovery code."
 }

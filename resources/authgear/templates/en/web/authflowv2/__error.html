@@ -54,7 +54,7 @@
           {{ end }}
         {{ else if (eq .kind "format") }}
           {{ if (eq .details.format "phone") }}
-            <span>{{ template "error-phone-number-format" }}</span>
+            <span>{{ template "v2-error-phone-number-format" }}</span>
           {{ else if (eq .details.format "email") }}
             <span>{{ template "v2-error-invalid-email" }}</span>
           {{ else if (eq .details.format "username") }}
