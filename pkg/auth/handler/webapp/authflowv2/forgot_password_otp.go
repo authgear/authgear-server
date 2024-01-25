@@ -19,13 +19,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-var TemplateWebAuthflowForgotPasswordGenericOTPHTML = template.RegisterHTML(
-	"web/authflowv2/forgot_password_generic_otp.html",
-	handlerwebapp.Components...,
-)
-
-var TemplateWebAuthflowForgotPasswordWhatsappOTPHTML = template.RegisterHTML(
-	"web/authflow_forgot_password_whatsapp_otp.html",
+var TemplateWebAuthflowForgotPasswordOTPHTML = template.RegisterHTML(
+	"web/authflowv2/forgot_password_otp.html",
 	handlerwebapp.Components...,
 )
 
@@ -139,12 +134,7 @@ func (h *AuthflowV2ForgotPasswordOTPHandler) ServeHTTP(w http.ResponseWriter, r 
 		}
 		viewmodels.Embed(data, screenViewModel)
 
-		if screenViewModel.Channel == declarative.AccountRecoveryChannelWhatsapp {
-			h.Renderer.RenderHTML(w, r, TemplateWebAuthflowForgotPasswordWhatsappOTPHTML, data)
-		} else {
-
-			h.Renderer.RenderHTML(w, r, TemplateWebAuthflowForgotPasswordGenericOTPHTML, data)
-		}
+		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowForgotPasswordOTPHTML, data)
 		return nil
 	})
 	handlers.PostAction("resend", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
