@@ -92857,6 +92857,7 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Logger:        panicMiddlewareLogger,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
+		UIConfig:      uiConfig,
 	}
 	return panicMiddleware
 }
