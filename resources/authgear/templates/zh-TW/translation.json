@@ -1052,10 +1052,14 @@
   "v2-change-password-page-subtitle": "(TBC) 基於安全考量，請更新你的密碼",
   "v2-update-button-label": "更新",
 
+  "v2-forgot-password-otp-page-title--sms": "驗證碼",
+  "v2-forgot-password-otp-page-title--email": "驗證碼",
   "v2-forgot-password-otp-page-title": "驗證碼",
   "v2-forgot-password-otp-description": "我們已發送一段 {CodeLength} 位的驗證碼到 {MaskedClaimValue}。",
   "v2-forgot-password-otp-description--whatsapp": "我們已發送一段 {CodeLength} 位的驗證碼到 {MaskedClaimValue}。",
 
   "v2-forgot-password-alternatives--sms-otp": "改為以短訊發送",
-  "v2-forgot-password-alternatives--whatsapp-otp": "改為以Whatsapp發送"
+  "v2-forgot-password-alternatives--whatsapp-otp": "改為以Whatsapp發送",
+  "v2-reset-password-page-title": "更新密碼",
+  "v2-reset-password-page-subtitle": "(TBC) 基於安全考量，請更新你的密碼"
 }
