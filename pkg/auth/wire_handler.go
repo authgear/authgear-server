@@ -780,6 +780,14 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		AuthflowV2UIHandlerDependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SetupTOTPHandler)),
+	))
+}
+
 func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
