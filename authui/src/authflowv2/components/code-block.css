@@ -21,6 +21,16 @@
     background-color: var(--code-block__bg-color);
   }
 
+  .code-block--single {
+    @apply py-2;
+    @apply flex-row;
+
+    & .code-block__text {
+      @apply overflow-hidden;
+      @apply text-ellipsis;
+    }
+  }
+
   .code-block__text {
     @apply whitespace-pre;
 
