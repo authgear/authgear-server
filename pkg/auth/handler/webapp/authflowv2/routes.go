@@ -34,7 +34,8 @@ const (
 	// nolint: gosec
 	AuthflowV2RouteCreatePassword = "/authflow/v2/create_password"
 	// nolint: gosec
-	AuthflowV2RouteChangePassword        = "/authflow/v2/change_password"
+	AuthflowV2RouteChangePassword = "/authflow/v2/change_password"
+	// nolint: gosec
 	AuthflowV2RouteChangePasswordSuccess = "/authflow/v2/change_password/success"
 	// nolint: gosec
 	AuthflowV2RouteEnterPassword     = "/authflow/v2/enter_password"

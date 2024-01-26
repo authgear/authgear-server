@@ -28,6 +28,10 @@ type NoopNavigator struct {
 func (*NoopNavigator) Navigate(screen *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
 }
 
+func (*NoopNavigator) NavigateResetPasswordSuccessPage() string {
+	return ""
+}
+
 func (*NoopNavigator) NavigateNonRecoverableError(r *http.Request, u *url.URL, e error) {
 }
 
