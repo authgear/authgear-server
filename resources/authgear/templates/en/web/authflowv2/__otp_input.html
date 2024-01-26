@@ -26,7 +26,7 @@
     <input
       form="{{ $.FormName }}"
       type="text"
-      name="{{ or $.InputName "x_code" }}"
+      name="{{ or $.InputName `x_code` }}"
       inputmode="numeric"
       autocomplete="one-time-code"
       pattern="\d{{ $.CodeLength }}"
@@ -34,25 +34,31 @@
       autofocus=""
       required
       data-otp-input-target="input"
-      {{ if $.Disabled }}disabled{{ end }}
+      {{
+      if
+      $.Disabled
+      }}disabled{{
+      end
+      }}
     />
-    <div data-otp-input-target="digitsContainer" class="otp-input__digits-container">
+    <div
+      data-otp-input-target="digitsContainer"
+      class="otp-input__digits-container"
+    >
       <div class="otp-input__digit"></div>
     </div>
   </div>
 
   {{ if $.ErrorMessage }}
-    <div class="otp-input__error-message">
-      {{ $.ErrorMessage }}
-    </div>
+  <div class="otp-input__error-message">{{ $.ErrorMessage }}</div>
   {{ end }}
 
   <button
     form="{{ $.FormName }}"
     class="hidden"
     type="submit"
-    name="{{ or $.SubmitButtonName "x_action" }}"
-    value="{{ or $.SubmitButtonValue "submit" }}"
+    name="{{ or $.SubmitButtonName `x_action` }}"
+    value="{{ or $.SubmitButtonValue `submit` }}"
     data-otp-input-target="submit"
     data-authgear-event="{{ $.SubmitEvent }}"
   ></button>
@@ -63,8 +69,8 @@
       id="resend-button"
       class="otp-input__resend-btn link-btn"
       type="submit"
-      name="{{ or $.ResendButtonName "x_action" }}"
-      value="{{ or $.ResendButtonValue "resend" }}"
+      name="{{ or $.ResendButtonName `x_action` }}"
+      value="{{ or $.ResendButtonValue `resend` }}"
       data-controller="countdown"
       data-countdown-target="button"
       data-countdown-cooldown-value="{{ $.ResendButtonCooldown }}"

@@ -1,10 +1,11 @@
-{{ template "authflowv2/__page_frame.html" . }}
-{{ define "page-content" }}
-  <div
-    class="text-center flex flex-col justify-center items-center h-full w-full pb-[274px]"
-  >
-    <span class="material-icons screen-icon">error</span>
+{{ template "authflowv2/__page_frame.html" . }} {{ define "page-content" }}
+<div
+  class="text-center flex flex-col justify-center items-center h-full w-full pb-[274px]"
+>
+  <span class="material-icons screen-icon">error</span>
   <h1 class="screen-title mt-6">{{ template "v2-error-screen-title" }}</h1>
-  <p class="screen-description mt-4">{{ template "v2-error-page-not-found" }}</p>
-  </div>
+  <p class="screen-description mt-4">
+    {{ template "v2-error-page-not-found" }}
+  </p>
+</div>
 {{ end }}

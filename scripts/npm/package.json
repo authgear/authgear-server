@@ -4,13 +4,17 @@
   "version": "0.1.0",
   "scripts": {
     "export-graphql-schema": "node export-graphql-schema.js",
-    "generate-go-timezones": "node generate-go-timezones.js"
+    "generate-go-timezones": "node generate-go-timezones.js",
+    "format": "prettier --write --list-different ../../resources/authgear/templates/en/web/authflowv2",
+    "lint": "prettier --list-different ../../resources/authgear/templates/en/web/authflowv2"
   },
   "devDependencies": {
     "cldr-localenames-modern": "44.0.1",
     "graphql": "16.8.1",
     "luxon": "3.4.4",
     "mjml": "4.14.1",
+    "prettier": "3.2.4",
+    "prettier-plugin-go-template": "0.0.15",
     "tzdata": "1.0.25"
   }
 }

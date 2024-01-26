@@ -1,54 +1,60 @@
-{{ template "authflowv2/__page_frame.html" . }}
-{{ define "page-content" }}
+{{ template "authflowv2/__page_frame.html" . }} {{ define "page-content" }}
 
-  <div class="space-y-4">
-    {{ template "authflowv2/__header.html" . }}
-    <h1 class="screen-title">
-      {{ template "recovery-code-title" }}
-    </h1>
-    <h2 class="screen-description">
-      {{ template "recovery-code-storage-description" }}
-    </h2>
-  </div>
+<div class="space-y-4">
+  {{ template "authflowv2/__header.html" . }}
+  <h1 class="screen-title">{{ template "recovery-code-title" }}</h1>
+  <h2 class="screen-description">
+    {{ template "recovery-code-storage-description" }}
+  </h2>
+</div>
 
-  <div class="my-6 code-block">
-    <p class="code-block__text">{{ range $.RecoveryCodes }}{{ . }}
-{{ end }}</p>
+<div class="my-6 code-block">
+  <p class="code-block__text">{{ range $.RecoveryCodes }}{{ . }} {{ end }}</p>
 
-    <code id="copy-button-source" class="hidden">{{ template "__recovery_code.html" . }}</code>
-    <div class="mt-5 w-full grid gap-4 {{ if not .IsNativePlatform }}grid-cols-2{{ else }}grid-cols-1{{ end }}">
-      {{ if not .IsNativePlatform }}
-      <form id="download-form" method="post" novalidate target="_blank">
-        {{ $.CSRFField }}
-        <button
-          form="download-form"
-          class="tertiary-btn w-full"
-          type="submit"
-          name="x_action"
-          value="download"
-          data-turbo="false"
-        >
-          {{ template "download-button-label" }}
-        </button>
-      </form>
-      {{ end }}
+  <code id="copy-button-source" class="hidden"
+    >{{ template "__recovery_code.html" . }}</code
+  >
+  <div
+    class="mt-5 w-full grid gap-4 {{ if not .IsNativePlatform }}grid-cols-2{{ else }}grid-cols-1{{ end }}"
+  >
+    {{ if not .IsNativePlatform }}
+    <form id="download-form" method="post" novalidate target="_blank">
+      {{ $.CSRFField }}
       <button
+        form="download-form"
         class="tertiary-btn w-full"
-        type="button"
-        data-controller="copy-button"
-        data-copy-button-source-value="#copy-button-source"
-        data-copy-button-copy-label-value="{{ template "copy-button-label" }}"
-        data-copy-button-copied-label-value="{{ template "copied-button-label" }}"
-        data-action="copy-button#copy">
-        {{ template "copy-button-label" }}
+        type="submit"
+        name="x_action"
+        value="download"
+        data-turbo="false"
+      >
+        {{ template "download-button-label" }}
       </button>
-    </div>
-  </div>
-
-  <form method="post" novalidate>
-    {{ $.CSRFField }}
-    <button class="btn primary-btn w-full" type="submit" name="x_action" value="proceed">
-    {{ template "v2-button.continue" }}
+    </form>
+    {{ end }}
+    <button
+      class="tertiary-btn w-full"
+      type="button"
+      data-controller="copy-button"
+      data-copy-button-source-value="#copy-button-source"
+      data-copy-button-copy-label-value="{{ template `copy-button-label` }}"
+      data-copy-button-copied-label-value="{{ template `copied-button-label` }}"
+      data-action="copy-button#copy"
+    >
+      {{ template "copy-button-label" }}
     </button>
-  </form>
+  </div>
+</div>
+
+<form method="post" novalidate>
+  {{ $.CSRFField }}
+  <button
+    class="btn primary-btn w-full"
+    type="submit"
+    name="x_action"
+    value="proceed"
+  >
+    {{ template "v2-button.continue" }}
+  </button>
+</form>
 {{ end }}

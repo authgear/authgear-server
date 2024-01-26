@@ -16,7 +16,8 @@
   <div
     data-controller="custom-select"
     data-phone-input-target="countrySelect"
-    data-action="custom-select:initialized->phone-input#handleCountrySelectInitialized">
+    data-action="custom-select:initialized->phone-input#handleCountrySelectInitialized"
+  >
     <!-- NOTE(tung): Use type="text" here,
       because browser will not restore value of input with type="hidden" on back -->
     <input
@@ -47,8 +48,7 @@
         class="select__options"
         data-custom-select-target="options"
         tabindex="-1"
-      >
-      </ul>
+      ></ul>
 
       <template data-custom-select-target="searchTemplate">
         <div class="select__search-container">
@@ -56,10 +56,10 @@
             <input
               tabindex="0"
               class="select__search-input"
-              placeholder="{{ template "v2-search-label" }}"
+              placeholder="{{ template `v2-search-label` }}"
               data-custom-select-target="search"
               data-action="input->custom-select#search"
-            >
+            />
             <div class="select__search-icon" tabindex="-1">
               <i class="material-icons">search</i>
             </div>
@@ -102,9 +102,7 @@
       </template>
 
       <template data-custom-select-target="emptyTemplate">
-        <li class="select__empty">
-          {{ template "v2-no-results-found" }}
-        </li>
+        <li class="select__empty">{{ template "v2-no-results-found" }}</li>
       </template>
     </dialog>
   </div>
@@ -119,8 +117,21 @@
       pattern="^[\+0-9]*$"
       data-action="input->phone-input#handleNumberInput"
       data-phone-input-target="phoneInput"
-      {{ if $.AutoFocus }}autofocus{{ end }}
-      {{ if $.PhoneInputAttrs }}{{ htmlattr $.PhoneInputAttrs }}{{ end }}
+      {{
+      if
+      $.AutoFocus
+      }}autofocus{{
+      end
+      }}
+      {{
+      if
+      $.PhoneInputAttrs
+      }}{{
+      htmlattr
+      $.PhoneInputAttrs
+      }}{{
+      end
+      }}
     />
   </div>
   <!-- NOTE(tung): Use type="text" here,
@@ -130,7 +141,15 @@
     class="hidden"
     name="{{ $.InputName }}"
     data-phone-input-target="input"
-    {{ if $.InputAttrs }}{{ htmlattr $.InputAttrs }}{{ end }}
+    {{
+    if
+    $.InputAttrs
+    }}{{
+    htmlattr
+    $.InputAttrs
+    }}{{
+    end
+    }}
   />
 </div>
 {{ end }}

@@ -1,0 +1,12 @@
+{
+  "plugins": ["prettier-plugin-go-template"],
+  "trailingComma": "es5",
+  "overrides": [
+    {
+      "files": ["*.html"],
+      "options": {
+        "parser": "go-template"
+      }
+    }
+  ]
+}
