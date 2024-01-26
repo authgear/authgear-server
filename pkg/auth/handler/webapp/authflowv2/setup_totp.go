@@ -20,6 +20,11 @@ var TemplateWebAuthflowSetupTOTPHTML = template.RegisterHTML(
 	handlerwebapp.Components...,
 )
 
+var TemplateWebAuthflowSetupTOTPVerifyHTML = template.RegisterHTML(
+	"web/authflowv2/setup_totp_verify.html",
+	handlerwebapp.Components...,
+)
+
 var AuthflowSetupTOTPSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
@@ -85,10 +90,15 @@ func (h *AuthflowV2SetupTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 			return err
 		}
 
+		if r.URL.Query().Get("x_action") == "submit" {
+			h.Renderer.RenderHTML(w, r, TemplateWebAuthflowSetupTOTPVerifyHTML, data)
+			return nil
+		}
+
 		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowSetupTOTPHTML, data)
 		return nil
 	})
-	handlers.PostAction("", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("submit", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		err := AuthflowSetupTOTPSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err

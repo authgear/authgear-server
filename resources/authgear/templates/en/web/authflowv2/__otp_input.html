@@ -8,6 +8,7 @@
       "InputName" "x_code"
       "SubmitButtonName" "x_action"
       "SubmitButtonValue" "submit"
+      "ResendButtonHidden" false
       "ResendButtonName" "x_action"
       "ResendButtonValue" "resend"
       "ResendButtonLabel" "Resend code"
@@ -57,23 +58,25 @@
     data-authgear-event="{{ $.SubmitEvent }}"
   ></button>
 
-  <form method="post" novalidate>
-    {{ $.CSRFField }}
-    <button
-      id="resend-button"
-      class="otp-input__resend-btn link-btn"
-      type="submit"
-      name="{{ or $.ResendButtonName "x_action" }}"
-      value="{{ or $.ResendButtonValue "resend" }}"
-      data-controller="countdown"
-      data-countdown-target="button"
-      data-countdown-cooldown-value="{{ $.ResendButtonCooldown }}"
-      data-countdown-label-value="{{ $.ResendButtonLabel }}"
-      data-countdown-label-unit-value="{{ $.ResendButtonLabelWithValue }}"
-      data-authgear-event="{{ $.ResendEvent }}"
-    >
-      {{ $.ResendButtonLabel }}
-    </button>
-  </form>
+  {{ if not $.ResendButtonHidden }}
+    <form method="post" novalidate>
+      {{ $.CSRFField }}
+      <button
+        id="resend-button"
+        class="otp-input__resend-btn link-btn"
+        type="submit"
+        name="{{ or $.ResendButtonName "x_action" }}"
+        value="{{ or $.ResendButtonValue "resend" }}"
+        data-controller="countdown"
+        data-countdown-target="button"
+        data-countdown-cooldown-value="{{ $.ResendButtonCooldown }}"
+        data-countdown-label-value="{{ $.ResendButtonLabel }}"
+        data-countdown-label-unit-value="{{ $.ResendButtonLabelWithValue }}"
+        data-authgear-event="{{ $.ResendEvent }}"
+      >
+        {{ $.ResendButtonLabel }}
+      </button>
+    </form>
+  {{ end }}
 </div>
 {{ end }}

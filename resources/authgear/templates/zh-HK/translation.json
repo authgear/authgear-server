@@ -1068,5 +1068,8 @@
   "v2-error-password-reset-failed-title": "無效鏈接",
   "v2-error-password-reset-failed-description": "該重設密碼鏈接已無效、已使用、或過期。請重新獲取一個新的鏈接。",
   "v2-setup-totp-title": "設置驗證器",
-  "v2-setup-totp-description": "請先從 <a class=\"link\" target=\"_blank\" href=\"https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2\">Google Play Store</a> 或 <a class=\"link\" target=\"_blank\" href=\"https://apps.apple.com/app/google-authenticator/id388497605\">Apple App Store</a> 下載 Google Authenticator 應用程式。\n\n安裝後掃描二維碼或使用您的身份驗證裝置/應用程式輸入金鑰。"
+  "v2-setup-totp-description": "請先從 <a class=\"link\" target=\"_blank\" href=\"https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2\">Google Play Store</a> 或 <a class=\"link\" target=\"_blank\" href=\"https://apps.apple.com/app/google-authenticator/id388497605\">Apple App Store</a> 下載 Google Authenticator 應用程式。\n\n安裝後掃描二維碼或使用您的身份驗證裝置/應用程式輸入金鑰。",
+  "v2-setup-totp-verify-title": "驗證碼",
+  "v2-setup-totp-verify-description": "輸入您在驗證器裝置/應用程式中看到的 6 位元代碼。",
+  "v2-setup-totp-verify-rescan-button-label": "重新掃描二維碼"
 }
