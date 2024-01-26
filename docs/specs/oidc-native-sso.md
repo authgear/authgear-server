@@ -2,12 +2,13 @@
   * [Key points to note](#key-points-to-note)
   * [Changes on Client](#changes-on-client)
   * [Changes on OfflineGrant](#changes-on-offlinegrant)
+  * [Changes on Authorization Endpoint](#changes-on-authorization-endpoint)
   * [Changes on Token Endpoint](#changes-on-token-endpoint)
-    + [`grant_type=authorization_code` and `scope=device_sso`](#grant_typeauthorization_code-and-scopedevice_sso)
-    + [`grant_type=biometric` and `scope=device_sso`](#grant_typebiometric-and-scopedevice_sso)
-    + [`grant_type=refresh_token` and `scope=device_sso`](#grant_typerefresh_token-and-scopedevice_sso)
-    + [`grant_type=app2app` and `scope=device_sso`](#grant_typeapp2app-and-scopedevice_sso)
-    + [`grant_type=urn:ietf:params:oauth:grant-type:token-exchange` and `scope=device_sso`](#grant_typeurnietfparamsoauthgrant-typetoken-exchange-and-scopedevice_sso)
+    + [`grant_type=authorization_code`](#grant_typeauthorization_code)
+    + [`grant_type=urn:authgear:params:oauth:grant-type:biometric-request`](#grant_typeurnauthgearparamsoauthgrant-typebiometric-request)
+    + [`grant_type=refresh_token`](#grant_typerefresh_token)
+    + [`grant_type=urn:authgear:params:oauth:grant-type:app2app`](#grant_typeurnauthgearparamsoauthgrant-typeapp2app)
+    + [`grant_type=urn:ietf:params:oauth:grant-type:token-exchange`](#grant_typeurnietfparamsoauthgrant-typetoken-exchange)
     + [When issuing ID tokens](#when-issuing-id-tokens)
   * [Changes on Admin API](#changes-on-admin-api)
   * [Changes on SDK](#changes-on-sdk)
@@ -24,6 +25,7 @@ This document specifies the implementation of [OIDC Native SSO](https://openid.n
 - A OfflineGrant used to has only one set of client-specific information, like `client_id` and `refresh_token`. Now, a OfflineGrant can have multiple refresh tokens.
 - Since there is only one OfflineGrant, the apps sharing user authentication with Native SSO does not share refresh token. But the underlying session is shared. Thus signing out in one app will sign out all apps. This is by design. See [App2app](./app2app.md) if you want the apps have independent sessions.
 - Native SSO is done through the Token Endpoint, thus it requires no user interaction.
+- Existing OfflineGrant cannot perform Native SSO. It is because `device_sso` is not in the `scope`. Sign in again to obtain a Native SSO OfflineGrant to perform Native SSO.
 
 ## Changes on Client
 
@@ -52,32 +54,39 @@ This document specifies the implementation of [OIDC Native SSO](https://openid.n
 - If `DeviceSSORefreshTokens` is non-empty, then the offline grant is a Native SSO offline grant.
 - Otherwise, the offline grant is an ordinary offline grant.
 
+## Changes on Authorization Endpoint
+
+- Allow `scope=device_sso` if the client has `x_device_sso_enabled=true`.
+
 ## Changes on Token Endpoint
 
-### `grant_type=authorization_code` and `scope=device_sso`
+### `grant_type=authorization_code`
 
-- If `device_secret` is present and it is valid, a new `refresh_token` is added to Native SSO offline grant.
-- If `device_secret` is absent or it is invalid, a new Native SSO offline grant is created.
+- If `authorization_code.scope=device_sso` and `device_secret` is present and it is valid, a new `refresh_token` is added to Native SSO offline grant.
+- If `authorization_code.scope=device_sso` and `device_secret` is absent or it is invalid, a new Native SSO offline grant is created.
 
-### `grant_type=urn:authgear:params:oauth:grant-type:biometric-request` and `scope=device_sso`
+### `grant_type=refresh_token`
 
-- If `device_secret` is present and it is valid, a new `refresh_token` is added to Native SSO offline grant.
-- If `device_secret` is absent or it is invalid, a new Native SSO offline grant is created.
+- If `refresh_token.scope=device_sso` and `device_secret` is present and it is valid, nothing to do.
+- If `refresh_token.scope=device_sso` and `device_secret` is absent or it is invalid, a new `device_secret` is generated. `DeviceSecretHash` is updated.
 
-### `grant_type=refresh_token` and `scope=device_sso`
+### `grant_type=urn:authgear:params:oauth:grant-type:biometric-request`
 
-- If `device_secret` is present and it is valid, nothing to do.
-- If `device_secret` is absent or it is invalid, a new `device_secret` is generated. Upgrade the offline grant to be Native SSO.
-  - Set `DeviceSecretHash`
-  - Copy existing client-specific fields and append `DeviceSSORefreshTokens`.
+- Support a new parameter `scope`.
+- Allow `scope=device_sso` if the client has `x_device_sso_enabled=true`.
+- If `scope=device_sso` and `device_secret` is present and it is valid, a new `refresh_token` is added to Native SSO offline grant.
+- If `scope=device_sso` and `device_secret` is absent or it is invalid, a new Native SSO offline grant is created.
 
-### `grant_type=urn:authgear:params:oauth:grant-type:app2app` and `scope=device_sso`
+### `grant_type=urn:authgear:params:oauth:grant-type:app2app`
 
-- If `device_secret` is present and it is valid, a new `refresh_token` is added to Native SSO offline grant.
-- If `device_secret` is absent or it is invalid, a new Native SSO offline grant is created.
+- Support a new parameter `scope`.
+- Allow `scope=device_sso` if the client has `x_device_sso_enabled=true`.
+- If `scope=device_sso` and `device_secret` is present and it is valid, a new `refresh_token` is added to Native SSO offline grant.
+- If `scope=device_sso` and `device_secret` is absent or it is invalid, a new Native SSO offline grant is created.
 
-### `grant_type=urn:ietf:params:oauth:grant-type:token-exchange` and `scope=device_sso`
+### `grant_type=urn:ietf:params:oauth:grant-type:token-exchange`
 
+- Validate `scope=device_sso`. Return `error=invalid_request` otherwise. This is because this is the only Token Change flow we support.
 - Validate `audience` is the origin of the endpoint.
 - Validate `subject_token` is a valid ID token issued to the first app. An expired ID token is still valid. (4.3 Point 2)
 - Validate `subject_token_type` is `urn:ietf:params:oauth:token-type:id_token`.
@@ -87,7 +96,7 @@ This document specifies the implementation of [OIDC Native SSO](https://openid.n
 - Validate `subject_token.ds_hash` is the hex of SHA256 of `actor_token`. (4.3 Point 3)
 - Validate `subject_token.sid` is pointing to a valid session. (4.3 Point 4)
 - Validate `client_id` and `subject_token.aud` are allowed to perform Native SSO. (4.3 Point 5)
-- Validate `scope` is equal or a subset of the Native SSO offline grant (4.3 Point 6)
+- Validate `scope` is equal or a subset of the `scope` in all refresh tokens of the Native SSO offline grant. (4.3 Point 6)
 
 ### When issuing ID tokens
 
