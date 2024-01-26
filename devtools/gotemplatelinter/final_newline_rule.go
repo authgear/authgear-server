@@ -6,8 +6,8 @@ import (
 
 type FinalNewlineRule struct{}
 
-func (r FinalNewlineRule) Check(content string, path string) []LintViolation {
-	var violations []LintViolation
+func (r FinalNewlineRule) Check(content string, path string) LintViolations {
+	var violations LintViolations
 	lines := strings.Split(content, "\n")
 	if len(content) > 0 && !strings.HasSuffix(content, "\n") {
 		lineNumber := len(lines)

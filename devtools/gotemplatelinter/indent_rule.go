@@ -6,8 +6,8 @@ import (
 
 type IndentationRule struct{}
 
-func (r IndentationRule) Check(content string, path string) []LintViolation {
-	var violations []LintViolation
+func (r IndentationRule) Check(content string, path string) LintViolations {
+	var violations LintViolations
 	lines := strings.Split(content, "\n")
 	for i, line := range lines {
 		if strings.HasPrefix(line, "\t") {

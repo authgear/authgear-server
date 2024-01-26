@@ -8,14 +8,8 @@ import (
 	"strings"
 )
 
-type multilineError string
-
-func (e multilineError) Error() string {
-	return string(e)
-}
-
 type Rule interface {
-	Check(content string, path string) []LintViolation
+	Check(content string, path string) LintViolations
 }
 
 type LintViolation struct {
@@ -25,15 +19,29 @@ type LintViolation struct {
 	Message string
 }
 
-func (e LintViolation) Error() string {
-	return fmt.Sprintf("%s:%d:%d: %s", e.Path, e.Line, e.Column, e.Message)
+type LintViolations []LintViolation
+
+func (violations LintViolations) Error() error {
+	var buf strings.Builder
+	violationsByPath := make(map[string]LintViolations)
+	for _, v := range violations {
+		violationsByPath[v.Path] = append(violationsByPath[v.Path], v)
+	}
+
+	for _, violations := range violationsByPath {
+		for _, v := range violations {
+			fmt.Fprintf(&buf, "%s:%d:%d: %s\n", v.Path, v.Line, v.Column, v.Message)
+		}
+		fmt.Fprintf(&buf, "\n")
+	}
+
+	return fmt.Errorf(buf.String())
 }
 
 type Linter struct {
 	Path           string
 	IgnorePatterns []string
 	Rules          []Rule
-	Errors         []LintViolation
 }
 
 func isGoTemplateFile(info os.FileInfo) bool {
@@ -41,7 +49,7 @@ func isGoTemplateFile(info os.FileInfo) bool {
 	return !info.IsDir() && strings.HasSuffix(name, ".html")
 }
 
-func (l *Linter) Lint() (err error) {
+func (l *Linter) Lint() (violations LintViolations, err error) {
 	err = filepath.Walk(l.Path, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -62,19 +70,17 @@ func (l *Linter) Lint() (err error) {
 				return nil
 			}
 		}
-		violation, err := l.LintFile(path, info)
+		fileViolations, err := l.LintFile(path, info)
 		if err != nil {
 			return err
 		}
-		if violation != nil {
-			l.Errors = append(l.Errors, *violation)
-		}
+		violations = append(violations, fileViolations...)
 		return nil
 	})
 	return
 }
 
-func (l *Linter) LintFile(path string, info os.FileInfo) (violation *LintViolation, err error) {
+func (l *Linter) LintFile(path string, info os.FileInfo) (violations LintViolations, err error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return
@@ -87,13 +93,13 @@ func (l *Linter) LintFile(path string, info os.FileInfo) (violation *LintViolati
 	}
 
 	for _, rule := range l.Rules {
-		l.Errors = append(l.Errors, rule.Check(string(content), path)...)
+		violations = append(violations, rule.Check(string(content), path)...)
 	}
 
 	return
 }
 
-func doMain() (err error) {
+func doMain() (violationCount int, err error) {
 	if len(os.Args) < 2 {
 		err = fmt.Errorf("usage: gotemplatelinter <path/to/htmls>")
 		return
@@ -109,25 +115,14 @@ func doMain() (err error) {
 		},
 		Path: path,
 	}
-	err = linter.Lint()
+	violations, err := linter.Lint()
 	if err != nil {
 		return
 	}
 
-	if len(linter.Errors) > 0 {
-		var buf strings.Builder
-		errorsByPath := make(map[string][]error)
-		for _, e := range linter.Errors {
-			// Assuming e has a Path field
-			errorsByPath[e.Path] = append(errorsByPath[e.Path], e)
-		}
-		for _, errors := range errorsByPath {
-			for _, e := range errors {
-				fmt.Fprintf(&buf, "%v\n", e)
-			}
-		}
-		fmt.Fprintf(&buf, "\n%d errors found.\n", len(linter.Errors))
-		err = multilineError(buf.String())
+	if len(violations) > 0 {
+		violationCount = len(violations)
+		err = violations.Error()
 		return
 	}
 
@@ -135,9 +130,10 @@ func doMain() (err error) {
 }
 
 func main() {
-	err := doMain()
+	violationCount, err := doMain()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
+		fmt.Fprintf(os.Stderr, "%d errors found\n", violationCount)
 		os.Exit(1)
 	}
 
