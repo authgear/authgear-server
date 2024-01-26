@@ -149,7 +149,7 @@ generate-timezones:
 
 .PHONY: generate-rtl
 generate-rtl:
-	go run ./scripts/characterorder/main.go > pkg/util/intl/rtl_map.go
+	go run ./scripts/characterorder/main.go | gofmt > pkg/util/intl/rtl_map.go
 
 .PHONY: logs-summary
 logs-summary:
