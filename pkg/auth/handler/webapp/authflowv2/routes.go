@@ -51,7 +51,7 @@ const (
 	// nolint: gosec
 	AuthflowV2RouteForgotPasswordOTP = "/authflow/v2/forgot_password/otp"
 	// nolint: gosec
-	AuthflowV2RouteForgotPasswordSuccess = "/authflow/v2/forgot_password/link/sent"
+	AuthflowV2RouteForgotPasswordLinkSent = "/authflow/v2/forgot_password/link/sent"
 	// nolint: gosec
 	AuthflowV2RouteResetPassword = "/authflow/v2/reset_password"
 	// nolint: gosec
@@ -446,7 +446,7 @@ func (n *AuthflowV2Navigator) navigateAccountRecovery(s *webapp.AuthflowScreenWi
 		case declarative.AccountRecoveryOTPFormCode:
 			navigate(AuthflowV2RouteForgotPasswordOTP, &url.Values{"x_can_back_to_login": []string{"true"}})
 		case declarative.AccountRecoveryOTPFormLink:
-			navigate(AuthflowV2RouteForgotPasswordSuccess, &url.Values{"x_can_back_to_login": []string{"false"}})
+			navigate(AuthflowV2RouteForgotPasswordLinkSent, &url.Values{"x_can_back_to_login": []string{"false"}})
 		default:
 			panic(fmt.Errorf("unexpected otp form in step verify_account_recovery_code"))
 		}

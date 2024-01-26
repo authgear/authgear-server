@@ -10,24 +10,24 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
-var TemplateWebAuthflowV2ForgotPasswordSuccessHTML = template.RegisterHTML(
-	"web/authflowv2/forgot_password_success.html",
+var TemplateWebAuthflowV2ForgotPasswordLinkSentHTML = template.RegisterHTML(
+	"web/authflowv2/forgot_password_link_sent.html",
 	handlerwebapp.Components...,
 )
 
-func ConfigureAuthflowV2ForgotPasswordSuccessRoute(route httproute.Route) httproute.Route {
+func ConfigureAuthflowV2ForgotPasswordLinkSentRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "GET").
-		WithPathPattern(webapp.AuthflowRouteForgotPasswordSuccess)
+		WithPathPattern(AuthflowV2RouteForgotPasswordLinkSent)
 }
 
-type AuthflowV2ForgotPasswordSuccessHandler struct {
+type AuthflowV2ForgotPasswordLinkSentHandler struct {
 	Controller    *handlerwebapp.AuthflowController
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      handlerwebapp.Renderer
 }
 
-func (h *AuthflowV2ForgotPasswordSuccessHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
+func (h *AuthflowV2ForgotPasswordLinkSentHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
@@ -36,7 +36,7 @@ func (h *AuthflowV2ForgotPasswordSuccessHandler) GetData(w http.ResponseWriter, 
 	return data, nil
 }
 
-func (h *AuthflowV2ForgotPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *AuthflowV2ForgotPasswordLinkSentHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers handlerwebapp.AuthflowControllerHandlers
 	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 
@@ -45,7 +45,7 @@ func (h *AuthflowV2ForgotPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter
 			return err
 		}
 
-		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowV2ForgotPasswordSuccessHTML, data)
+		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowV2ForgotPasswordLinkSentHTML, data)
 		return nil
 	})
 
