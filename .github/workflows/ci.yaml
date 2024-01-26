@@ -84,6 +84,8 @@ jobs:
       if: ${{ !cancelled() }}
     - run: make test
       if: ${{ !cancelled() }}
+    - run: make fmt
+      if: ${{ !cancelled() }}
     - run: make check-tidy
       if: ${{ !cancelled() }}
 
