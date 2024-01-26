@@ -59,7 +59,7 @@ This document specifies the implementation of [OIDC Native SSO](https://openid.n
 - If `device_secret` is present and it is valid, a new `refresh_token` is added to Native SSO offline grant.
 - If `device_secret` is absent or it is invalid, a new Native SSO offline grant is created.
 
-### `grant_type=biometric` and `scope=device_sso`
+### `grant_type=urn:authgear:params:oauth:grant-type:biometric-request` and `scope=device_sso`
 
 - If `device_secret` is present and it is valid, a new `refresh_token` is added to Native SSO offline grant.
 - If `device_secret` is absent or it is invalid, a new Native SSO offline grant is created.
@@ -71,7 +71,7 @@ This document specifies the implementation of [OIDC Native SSO](https://openid.n
   - Set `DeviceSecretHash`
   - Copy existing client-specific fields and append `DeviceSSORefreshTokens`.
 
-### `grant_type=app2app` and `scope=device_sso`
+### `grant_type=urn:authgear:params:oauth:grant-type:app2app` and `scope=device_sso`
 
 - If `device_secret` is present and it is valid, a new `refresh_token` is added to Native SSO offline grant.
 - If `device_secret` is absent or it is invalid, a new Native SSO offline grant is created.
