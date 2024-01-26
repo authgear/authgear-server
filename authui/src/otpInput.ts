@@ -23,6 +23,10 @@ export class OtpInputController extends Controller {
     return this.inputTarget.value;
   }
 
+  beforeCache = () => {
+    this.inputTarget.value = "";
+  };
+
   connect(): void {
     this.inputTarget.addEventListener("input", this.handleInput);
     this.inputTarget.addEventListener("paste", this.handlePaste);
@@ -34,6 +38,7 @@ export class OtpInputController extends Controller {
       "selectionchange",
       this.handleSelectionChange
     );
+    document.addEventListener("turbo:before-cache", this.beforeCache);
     this.render();
   }
 
@@ -46,6 +51,7 @@ export class OtpInputController extends Controller {
       "selectionchange",
       this.handleSelectionChange
     );
+    document.removeEventListener("turbo:before-cache", this.beforeCache);
   }
 
   _setValue = (value: string): void => {
