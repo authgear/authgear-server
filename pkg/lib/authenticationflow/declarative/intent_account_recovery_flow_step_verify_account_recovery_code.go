@@ -86,7 +86,8 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) ReactTo(ctx con
 			dest.ForgotPasswordCodeKind(),
 			dest.ForgotPasswordCodeChannel(),
 		)
-		err := nextNode.Send(deps)
+		// Ignore rate limit error on first entering the step.
+		err := nextNode.Send(deps, true)
 		if err != nil {
 			return nil, err
 		}
@@ -104,7 +105,7 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) ReactTo(ctx con
 				prevNode := flows.Nearest.Nodes[0].Simple
 				switch prevNode.(type) {
 				case *NodeDoSendAccountRecoveryCode:
-					err := prevNode.(*NodeDoSendAccountRecoveryCode).Send(deps)
+					err := prevNode.(*NodeDoSendAccountRecoveryCode).Send(deps, false)
 					if err != nil {
 						return nil, err
 					}
