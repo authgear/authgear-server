@@ -1060,6 +1060,9 @@
 
   "v2-forgot-password-alternatives--sms-otp": "改為以短訊發送",
   "v2-forgot-password-alternatives--whatsapp-otp": "改為以Whatsapp發送",
+
   "v2-reset-password-page-title": "更新密碼",
-  "v2-reset-password-page-subtitle": "(TBC) 基於安全考量，請更新你的密碼"
+  "v2-reset-password-page-subtitle": "(TBC) 基於安全考量，請更新你的密碼",
+  "v2-reset-password-success-page-title": "成功更新密碼",
+  "v2-reset-password-success-page-description": "你已成功更新密碼。"
 }

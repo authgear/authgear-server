@@ -1060,6 +1060,9 @@
 
   "v2-forgot-password-alternatives--sms-otp": "Send via SMS",
   "v2-forgot-password-alternatives--whatsapp-otp": "Send via WhatsApp",
+
   "v2-reset-password-page-title": "Update Password",
   "v2-reset-password-page-subtitle": "For account security, please change your password.",
+  "v2-reset-password-success-page-title": "Password updated",
+  "v2-reset-password-success-page-description": "Your password successfully updated!"
 }
