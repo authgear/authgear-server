@@ -16,7 +16,7 @@ func TestWriteResponse(t *testing.T) {
 		test := func(responseMode string, expected string) {
 			w := httptest.NewRecorder()
 			r, _ := http.NewRequest("GET", "/", nil)
-			r = r.WithContext(web.WithCSPNonce(r.Context(), &web.CSPNonceContextValue{Nonce: "nonce"}))
+			r = r.WithContext(web.WithCSPNonce(r.Context(), "nonce"))
 			redirectURI, _ := url.Parse("https://example.com")
 			response := map[string]string{
 				"code":  "this_is_the_code",
