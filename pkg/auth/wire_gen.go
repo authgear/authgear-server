@@ -94127,6 +94127,7 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		Controller:    authflowController,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
+		Clock:         clockClock,
 	}
 	return authflowV2ForgotPasswordLinkSentHandler
 }
