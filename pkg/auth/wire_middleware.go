@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
@@ -49,6 +50,13 @@ func newBodyLimitMiddleware(p *deps.RootProvider) httproute.Middleware {
 	))
 }
 
+func newUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*uiparam.Middleware)),
+	))
+}
+
 func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,
@@ -67,13 +75,6 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*middleware.CORSMiddleware)),
-	))
-}
-
-func newContextHolderMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(httproute.Middleware), new(*webapp.ContextHolderMiddleware)),
 	))
 }
 

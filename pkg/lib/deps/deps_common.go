@@ -67,6 +67,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
+	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
@@ -82,6 +83,8 @@ var CommonDependencySet = wire.NewSet(
 	template.DependencySet,
 
 	healthz.DependencySet,
+
+	uiparam.DependencySet,
 
 	wire.NewSet(
 		authenticationinfo.DependencySet,

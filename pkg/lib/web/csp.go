@@ -122,25 +122,13 @@ type dynamicCSPContextKeyType struct{}
 
 var dynamicCSPContextKey = dynamicCSPContextKeyType{}
 
-type cspNonceContextValue struct {
-	Nonce string
-}
-
 func WithCSPNonce(ctx context.Context, nonce string) context.Context {
-	v, ok := ctx.Value(dynamicCSPContextKey).(*cspNonceContextValue)
-	if ok {
-		v.Nonce = nonce
-		return ctx
-	}
-	return context.WithValue(ctx, dynamicCSPContextKey, &cspNonceContextValue{Nonce: nonce})
+	return context.WithValue(ctx, dynamicCSPContextKey, nonce)
 }
 
 func GetCSPNonce(ctx context.Context) string {
-	v, ok := ctx.Value(dynamicCSPContextKey).(*cspNonceContextValue)
-	if ok {
-		return v.Nonce
-	}
-	return ""
+	nonce, _ := ctx.Value(dynamicCSPContextKey).(string)
+	return nonce
 }
 
 type CSPDirectivesOptions struct {

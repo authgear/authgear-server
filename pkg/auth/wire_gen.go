@@ -82,6 +82,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
+	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
@@ -95348,6 +95349,11 @@ func newBodyLimitMiddleware(p *deps.RootProvider) httproute.Middleware {
 	return bodyLimitMiddleware
 }
 
+func newUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	uiparamMiddleware := &uiparam.Middleware{}
+	return uiparamMiddleware
+}
+
 func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	errorCookieDef := webapp2.NewErrorCookieDef()
 	request := p.Request
@@ -95444,7 +95450,6 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Logger:        panicMiddlewareLogger,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
-		UIConfig:      uiConfig,
 	}
 	return panicMiddleware
 }
@@ -95490,16 +95495,6 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Logger:  corsMiddlewareLogger,
 	}
 	return corsMiddleware
-}
-
-func newContextHolderMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	appProvider := p.AppProvider
-	factory := appProvider.LoggerFactory
-	contextHolderMiddlewareLogger := webapp2.NewContextHolderMiddlewareLogger(factory)
-	contextHolderMiddleware := &webapp2.ContextHolderMiddleware{
-		Logger: contextHolderMiddlewareLogger,
-	}
-	return contextHolderMiddleware
 }
 
 func newDynamicCSPMiddleware(p *deps.RequestProvider, allowInlineScript webapp2.AllowInlineScript, allowFrameAncestors webapp2.AllowFrameAncestors) httproute.Middleware {

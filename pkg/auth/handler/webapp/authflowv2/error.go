@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 func ConfigureAuthflowErrorRoute(route httproute.Route) httproute.Route {
@@ -15,7 +16,10 @@ func ConfigureAuthflowErrorRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/v2/errors/error")
 }
 
-var TemplateWebFatalErrorHTML = handlerwebapp.TemplateV2WebFatalErrorHTML
+var TemplateWebFatalErrorHTML = template.RegisterHTML(
+	"web/authflowv2/fatal_error.html",
+	handlerwebapp.Components...,
+)
 
 type AuthflowV2ErrorHandler struct {
 	Controller    *handlerwebapp.AuthflowController
