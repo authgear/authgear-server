@@ -8,8 +8,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/panicutil"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 type PanicMiddlewareLogger struct{ *log.Logger }
@@ -23,6 +25,7 @@ type PanicMiddleware struct {
 	Logger        PanicMiddlewareLogger
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
+	UIConfig      *config.UIConfig
 }
 
 func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
@@ -66,8 +69,21 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 					data := make(map[string]interface{})
 					baseViewModel := m.BaseViewModel.ViewModel(r, w)
 					viewmodels.Embed(data, baseViewModel)
+					var errorHTML *template.HTML
+					switch m.UIConfig.Implementation {
+					case config.UIImplementationAuthflowV2:
+						errorHTML = TemplateV2WebFatalErrorHTML
+					case config.UIImplementationInteraction:
+						fallthrough
+					case config.UIImplementationDefault:
+						fallthrough
+					case config.UIImplementationAuthflow:
+						fallthrough
+					default:
+						errorHTML = TemplateWebFatalErrorHTML
+					}
 
-					m.Renderer.RenderHTML(w, r, TemplateWebFatalErrorHTML, data)
+					m.Renderer.RenderHTML(w, r, errorHTML, data)
 				}
 			}
 		}()
