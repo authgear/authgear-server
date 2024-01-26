@@ -30,9 +30,10 @@ func (e LintViolation) Error() string {
 }
 
 type Linter struct {
-	Path   string
-	Rules  []Rule
-	Errors []LintViolation
+	Path           string
+	IgnorePatterns []string
+	Rules          []Rule
+	Errors         []LintViolation
 }
 
 func isGoTemplateFile(info os.FileInfo) bool {
@@ -47,6 +48,19 @@ func (l *Linter) Lint() (err error) {
 		}
 		if !isGoTemplateFile(info) {
 			return nil
+		}
+		for _, pattern := range l.IgnorePatterns {
+			if filepath.Base(path) == pattern {
+				return nil
+			}
+
+			matched, err := filepath.Match(pattern, path)
+			if err != nil {
+				return err
+			}
+			if matched {
+				return nil
+			}
 		}
 		violation, err := l.LintFile(path, info)
 		if err != nil {
@@ -86,6 +100,9 @@ func doMain() (err error) {
 	}
 	path := os.Args[1]
 	linter := Linter{
+		IgnorePatterns: []string{
+			"__generated_asset.html",
+		},
 		Rules: []Rule{
 			IndentationRule{},
 			FinalNewlineRule{},
