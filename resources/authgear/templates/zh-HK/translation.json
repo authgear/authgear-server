@@ -1064,5 +1064,7 @@
   "v2-reset-password-page-title": "更新密碼",
   "v2-reset-password-page-subtitle": "(TBC) 基於安全考量，請更新你的密碼",
   "v2-reset-password-success-page-title": "成功更新密碼",
-  "v2-reset-password-success-page-description": "你已成功更新密碼，請以新密碼登入。"
+  "v2-reset-password-success-page-description": "你已成功更新密碼，請以新密碼登入。",
+  "v2-error-password-reset-failed-title": "無效鏈接",
+  "v2-error-password-reset-failed-description": "該重設密碼鏈接已無效、已使用、或過期。請重新獲取一個新的鏈接。"
 }
