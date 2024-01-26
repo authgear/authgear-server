@@ -557,7 +557,8 @@ func (s *Service) verifyWithSpec(info *authenticator.Info, spec *authenticator.S
 		code := spec.OOBOTP.Code
 		a := info.OOBOTP
 		err = s.OTPCodeService.VerifyOTP(kind, a.ToTarget(), code, &otp.VerifyOptions{
-			UserID: info.UserID,
+			UseSubmittedCode: options.UseSubmittedValue,
+			UserID:           info.UserID,
 		})
 		if apierrors.IsKind(err, otp.InvalidOTPCode) {
 			err = api.ErrInvalidCredentials

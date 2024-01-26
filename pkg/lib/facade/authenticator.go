@@ -62,6 +62,7 @@ func (a AuthenticatorFacade) MarkOOBIdentityVerified(info *authenticator.Info) e
 
 type VerifyOptions struct {
 	OOBChannel            *apimodel.AuthenticatorOOBChannel
+	UseSubmittedValue     bool
 	AuthenticationDetails *AuthenticationDetails
 }
 
@@ -70,7 +71,8 @@ func (v *VerifyOptions) toServiceOptions() *service.VerifyOptions {
 		return nil
 	}
 	return &service.VerifyOptions{
-		OOBChannel: v.OOBChannel,
+		OOBChannel:        v.OOBChannel,
+		UseSubmittedValue: v.UseSubmittedValue,
 	}
 }
 

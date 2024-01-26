@@ -567,8 +567,13 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(index int, channel mode
 						return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowLoginFlowStepTypeAuthenticate) && flowResponse.Action.Authentication == option.Authentication
 					}
 					takenChannel := channel
-					if d, ok := flowResponse.Action.Data.(declarative.NodeVerifyClaimData); ok {
+					switch d := flowResponse.Action.Data.(type) {
+					case declarative.NodeVerifyClaimData:
 						takenChannel = d.Channel
+					case declarative.NodeAuthenticationOOBData:
+						takenChannel = d.Channel
+					default:
+						// Skip if we do not have the channel.
 					}
 
 					screen := s.makeScreenForTakenBranch(flowResponse, input, &index, takenChannel, isContinuation)
@@ -636,8 +641,13 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchReauth(index int, channel mod
 						return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowStepTypeAuthenticate) && flowResponse.Action.Authentication == option.Authentication
 					}
 					takenChannel := channel
-					if d, ok := flowResponse.Action.Data.(declarative.NodeVerifyClaimData); ok {
+					switch d := flowResponse.Action.Data.(type) {
+					case declarative.NodeVerifyClaimData:
 						takenChannel = d.Channel
+					case declarative.NodeAuthenticationOOBData:
+						takenChannel = d.Channel
+					default:
+						// Skip if we do not have the channel.
 					}
 
 					screen := s.makeScreenForTakenBranch(flowResponse, input, &index, takenChannel, isContinuation)

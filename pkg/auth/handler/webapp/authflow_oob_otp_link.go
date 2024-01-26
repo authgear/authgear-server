@@ -33,21 +33,37 @@ type AuthflowOOBOTPLinkViewModel struct {
 }
 
 func NewAuthflowOOBOTPLinkViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, now time.Time) AuthflowOOBOTPLinkViewModel {
-	data := screen.StateTokenFlowResponse.Action.Data.(declarative.NodeVerifyClaimData)
-	maskedClaimValue := data.MaskedClaimValue
-	resendCooldown := int(data.CanResendAt.Sub(now).Seconds())
+	var maskedClaimValue string
+	var resendCooldown int
+	var canCheck bool
+	var websocketURL string
+
+	switch data := screen.StateTokenFlowResponse.Action.Data.(type) {
+	case declarative.NodeAuthenticationOOBData:
+		maskedClaimValue = data.MaskedClaimValue
+		resendCooldown = int(data.CanResendAt.Sub(now).Seconds())
+		canCheck = data.CanCheck
+		websocketURL = data.WebsocketURL
+	case declarative.NodeVerifyClaimData:
+		maskedClaimValue = data.MaskedClaimValue
+		resendCooldown = int(data.CanResendAt.Sub(now).Seconds())
+		canCheck = data.CanCheck
+		websocketURL = data.WebsocketURL
+	default:
+		panic("authflowv2: unexpected action data")
+	}
 	if resendCooldown < 0 {
 		resendCooldown = 0
 	}
 
 	stateQuery := LoginLinkOTPPageQueryStateInitial
-	if data.CanCheck {
+	if canCheck {
 		stateQuery = LoginLinkOTPPageQueryStateMatched
 	}
 
 	return AuthflowOOBOTPLinkViewModel{
 		// nolint: gosec
-		WebsocketURL:     htmltemplate.URL(data.WebsocketURL),
+		WebsocketURL:     htmltemplate.URL(websocketURL),
 		StateToken:       screen.Screen.StateToken.StateToken,
 		StateQuery:       stateQuery,
 		MaskedClaimValue: maskedClaimValue,

@@ -116,18 +116,15 @@ func (n *NodeAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.Depe
 		claimName, claimValue := n.Info.OOBOTP.ToClaimPair()
 
 		authenticatorSpec := n.createAuthenticatorSpec(emptyCode)
+		authenticators := []*authenticator.Info{n.Info}
 
-		authenticators, err := deps.Authenticators.List(n.UserID, authenticator.KeepType(model.AuthenticatorTypePasskey))
-		if err != nil {
-			return nil, err
-		}
-
-		_, _, err = deps.Authenticators.VerifyOneWithSpec(
+		_, _, err := deps.Authenticators.VerifyOneWithSpec(
 			n.UserID,
 			n.Info.Type,
 			authenticators,
 			authenticatorSpec,
 			&facade.VerifyOptions{
+				UseSubmittedValue: true,
 				AuthenticationDetails: facade.NewAuthenticationDetails(
 					n.UserID,
 					authn.AuthenticationStageFromAuthenticationMethod(n.Authentication),
