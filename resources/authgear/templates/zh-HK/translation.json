@@ -1020,8 +1020,8 @@
   "v2-error-deactivated-user": "你已停用你的帳戶。",
   "v2-error-scheduled-deletion-by-admin": "你的帳戶已被管理員停用，而你的帳戶將在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除。",
   "v2-error-scheduled-deletion-by-end-user": "你已停用你的帳戶，而你的帳戶將在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除。",
-
   "v2-error-page-not-found": "找不到頁面",
+
   "v2-setup-password-instead": "設定密碼",
   "v2-setup-secondary-password-instead": "設定附加密碼",
   "v2-setup-totp-instead": "設定6位驗證器碼",
@@ -1033,5 +1033,8 @@
   "v2-setup-oob-otp-without-verification": "設定電話",
 
   "v2-enter-recovery-code-title": "輸入備用碼",
-  "v2-enter-recovery-code-description": "輸入未使用的備用碼。"
+  "v2-enter-recovery-code-description": "輸入未使用的備用碼。",
+  "v2-change-password-page-title": "更新密碼",
+  "v2-change-password-page-subtitle": "(TBC) 基於安全考量，請更新你的密碼",
+  "v2-update-button-label": "更新"
 }
