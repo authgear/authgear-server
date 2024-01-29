@@ -50,6 +50,7 @@ func (*NodeDoSendAccountRecoveryCode) Kind() string {
 
 func (n *NodeDoSendAccountRecoveryCode) Send(
 	deps *authflow.Dependencies,
+	ignoreRateLimitError bool,
 ) error {
 	err := deps.ForgotPassword.SendCode(n.TargetLoginID, &forgotpassword.CodeOptions{
 		AuthenticationFlowType:        string(n.FlowReference.Type),
@@ -59,7 +60,7 @@ func (n *NodeDoSendAccountRecoveryCode) Send(
 		Channel:                       n.CodeChannel,
 	})
 
-	if deps.ForgotPassword.IsRateLimitError(err, n.TargetLoginID, n.CodeChannel, n.CodeKind) {
+	if ignoreRateLimitError && deps.ForgotPassword.IsRateLimitError(err, n.TargetLoginID, n.CodeChannel, n.CodeKind) {
 		// Ignore trigger cooldown rate limit error; continue the flow
 	} else if errors.Is(err, forgotpassword.ErrUserNotFound) {
 		// Do not tell user the user doen't exist
