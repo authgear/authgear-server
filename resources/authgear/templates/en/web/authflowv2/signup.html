@@ -6,21 +6,21 @@
     {{ $display_error = true }}
   {{ end }}
 
-	{{ $has_oauth := false }}
-	{{ $has_login_id := false }}
-	{{ $has_alternatives := false }}
-	{{ range $.IdentityCandidates }}
-		{{ if eq .type "oauth" }}
+  {{ $has_oauth := false }}
+  {{ $has_login_id := false }}
+  {{ $has_alternatives := false }}
+  {{ range $.IdentityCandidates }}
+    {{ if eq .type "oauth" }}
       {{ $has_oauth = true }}
       {{ $has_alternatives = true }}
-		{{ end }}
-		{{ if eq .type "login_id" }}
-		  {{ $has_login_id = true }}
+    {{ end }}
+    {{ if eq .type "login_id" }}
+      {{ $has_login_id = true }}
       {{ if not (eq .login_id_key $.LoginIDKey) }}
-		    {{ $has_alternatives = true }}
+        {{ $has_alternatives = true }}
       {{ end }}
-		{{ end }}
-	{{ end }}
+    {{ end }}
+  {{ end }}
   <div class="flex flex-col gap-4">
     {{ template "authflowv2/__header.html" . }}
     <h1 class="screen-title">
