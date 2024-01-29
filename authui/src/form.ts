@@ -240,7 +240,9 @@ export class RetainFormFormController extends Controller {
       for (const input of this.inputTargets) {
         for (const name in this.retained) {
           if (input.getAttribute("data-retain-form-form-name-param") === name) {
-            input.setAttribute("value", this.retained[name]);
+            // NOTE(tung): Setting value attribute cause bfcache of chrome failing to restore
+            // input.setAttribute("value", this.retained[name]);
+            input.value = this.retained[name];
           }
         }
       }

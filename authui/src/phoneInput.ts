@@ -105,20 +105,24 @@ export class PhoneInputController extends Controller {
     return ctr as CustomSelectController | null;
   }
 
+  set value(newValue: string) {
+    this.inputTarget.value = newValue;
+  }
+
   // countrySelect, phoneInputTarget -> inputTarget
   updateValue(): void {
     const countryValue = this.countrySelect?.value;
     const rawValue = this.phoneInputTarget.value;
 
     if (rawValue.startsWith("+")) {
-      this.inputTarget.value = rawValue;
+      this.value = rawValue;
     } else if (countryValue != null) {
       const newValue = `+${getCountryCallingCode(
         countryValue as CountryCode
       )}${rawValue}`;
-      this.inputTarget.value = newValue;
+      this.value = newValue;
     } else {
-      this.inputTarget.value = rawValue;
+      this.value = rawValue;
     }
   }
 
@@ -199,17 +203,48 @@ export class PhoneInputController extends Controller {
     }
 
     const initialValue = countryCode ?? options[0].value;
-    this.countrySelectTarget.setAttribute(
-      "data-custom-select-initial-value-value",
-      initialValue
-    );
+    this.setCountrySelectValue(initialValue);
   }
 
   connect() {
     this._initPhoneCode();
+
+    window.addEventListener("pageshow", this.handlePageShow);
+  }
+
+  disconnect() {
+    window.removeEventListener("pageshow", this.handlePageShow);
   }
 
   inputTargetConnected() {
     this._initPhoneCode();
+  }
+
+  handlePageShow = () => {
+    // Restore the value from bfcache
+    const restoredValue = this.inputTarget.value;
+    if (!restoredValue) {
+      return;
+    }
+
+    const [countryCode, inputValue] = this.decomposeValue(
+      this.inputTarget.value
+    );
+    this.phoneInputTarget.value = inputValue;
+
+    if (countryCode != null) {
+      this.setCountrySelectValue(countryCode);
+    }
+  };
+
+  private setCountrySelectValue(newValue: string) {
+    if (this.countrySelect != null) {
+      this.countrySelect.select(newValue);
+    } else {
+      this.countrySelectTarget.setAttribute(
+        "data-custom-select-initial-value-value",
+        newValue
+      );
+    }
   }
 }
