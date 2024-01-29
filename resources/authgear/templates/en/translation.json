@@ -1018,6 +1018,11 @@
   "v2-forgot-password-send-via-phone": "Send via Phone",
   "v2-forgot-password-send-via-email": "Send via Email",
 
+  "v2-forgot-password-link-sent-title": "Link Sent",
+  "v2-forgot-password-link-sent-description": "A link to reset your password has been sent to {MaskedLoginID}",
+  "v2-forgot-password-link-sent-resend": "Resend again",
+  "v2-forgot-password-link-sent-resend--unit": "Resend again in %s",
+
   "v2-lockout-title": "Account Unavailable",
   "v2-lockout-subtitle": "Your account has been locked due to too many attempts. Please try again later.",
   "v2-lockout-retry-button-label": "Retry",

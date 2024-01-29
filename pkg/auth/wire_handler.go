@@ -924,6 +924,14 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 	))
 }
 
+func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		AuthflowV2UIHandlerDependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2ForgotPasswordLinkSentHandler)),
+	))
+}
+
 func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

@@ -51,7 +51,7 @@ const (
 	// nolint: gosec
 	AuthflowV2RouteForgotPasswordOTP = "/authflow/v2/forgot_password/otp"
 	// nolint: gosec
-	AuthflowV2RouteForgotPasswordSuccess = "/authflow/v2/forgot_password/success"
+	AuthflowV2RouteForgotPasswordLinkSent = "/authflow/v2/forgot_password/link/sent"
 	// nolint: gosec
 	AuthflowV2RouteResetPassword = "/authflow/v2/reset_password"
 	// nolint: gosec
@@ -439,10 +439,16 @@ func (n *AuthflowV2Navigator) navigateAccountRecovery(s *webapp.AuthflowScreenWi
 		navigate(AuthflowV2RouteForgotPassword, &url.Values{})
 	case config.AuthenticationFlowStepTypeVerifyAccountRecoveryCode:
 		data, ok := s.StateTokenFlowResponse.Action.Data.(declarative.IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData)
-		if ok && data.OTPForm == declarative.AccountRecoveryOTPFormCode {
+		if !ok {
+			panic(fmt.Errorf("unexpected data type in step verify_account_recovery_code"))
+		}
+		switch data.OTPForm {
+		case declarative.AccountRecoveryOTPFormCode:
 			navigate(AuthflowV2RouteForgotPasswordOTP, &url.Values{"x_can_back_to_login": []string{"true"}})
-		} else {
-			navigate(AuthflowV2RouteForgotPasswordSuccess, &url.Values{"x_can_back_to_login": []string{"false"}})
+		case declarative.AccountRecoveryOTPFormLink:
+			navigate(AuthflowV2RouteForgotPasswordLinkSent, &url.Values{"x_can_back_to_login": []string{"false"}})
+		default:
+			panic(fmt.Errorf("unexpected otp form in step verify_account_recovery_code"))
 		}
 	case config.AuthenticationFlowStepTypeResetPassword:
 		navigate(AuthflowV2RouteResetPassword, &url.Values{})

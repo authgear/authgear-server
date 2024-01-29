@@ -48,6 +48,8 @@ func (e *Endpoints) LogoutEndpointURL() *url.URL      { return e.urlOf("./logout
 func (e *Endpoints) SettingsEndpointURL() *url.URL    { return e.urlOf("./settings") }
 func (e *Endpoints) ResetPasswordEndpointURL(uiImpl config.UIImplementation) *url.URL {
 	switch uiImpl {
+	case config.UIImplementationAuthflowV2:
+		return e.urlOf("authflow/v2/reset_password")
 	case config.UIImplementationAuthflow:
 		return e.urlOf("authflow/reset_password")
 	case config.UIImplementationInteraction:

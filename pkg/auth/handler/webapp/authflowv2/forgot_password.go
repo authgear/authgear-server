@@ -93,7 +93,7 @@ func forgotPasswordGetInitialLoginIDInputType(data declarative.IntentAccountReco
 	return ForgotPasswordLoginIDInputTypeEmail
 }
 
-func deriveAlternatives(
+func deriveForgotPasswordAlternatives(
 	r *http.Request,
 	loginIDInputType ForgotPasswordLoginIDInputType,
 	emailLoginIDEnabled bool,
@@ -166,7 +166,7 @@ func NewAuthFlowV2ForgotPasswordViewModel(
 		}
 	}
 
-	alternatives := deriveAlternatives(
+	alternatives := deriveForgotPasswordAlternatives(
 		r,
 		loginIDInputType,
 		emailLoginIDEnabled,
