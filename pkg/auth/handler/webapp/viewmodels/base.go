@@ -227,7 +227,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		GeoIPCountryCode:            geoipCountryCode,
 		ClientURI:                   clientURI,
 		ClientName:                  clientName,
-		SliceContains:               sliceContains,
+		SliceContains:               SliceContains,
 		MakeURL: func(path string, pairs ...string) string {
 			u := r.URL
 			outQuery := webapp.PreserveQuery(u.Query())

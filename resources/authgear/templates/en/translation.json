@@ -1062,7 +1062,7 @@
   "v2-forgot-password-alternatives--whatsapp-otp": "Send via WhatsApp",
 
   "v2-reset-password-page-title": "Update Password",
-  "v2-reset-password-page-subtitle": "For account security, please change your password.",
+  "v2-reset-password-page-subtitle": "Create a new password that complies with security requirements.",
   "v2-reset-password-success-page-title": "Password updated",
   "v2-reset-password-success-page-description": "Your password successfully updated! \nYou can now log in using the new password.",
   "v2-error-password-reset-failed-title": "Invalid Link",
