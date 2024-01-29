@@ -20,7 +20,7 @@ type SendOptions struct {
 
 type EndpointsProvider interface {
 	BaseURL() *neturl.URL
-	LoginLinkVerificationEndpointURL() *neturl.URL
+	LoginLinkVerificationEndpointURL(uiImpl config.UIImplementation) *neturl.URL
 	ResetPasswordEndpointURL(uiImpl config.UIImplementation) *neturl.URL
 }
 
@@ -91,7 +91,7 @@ func (s *MessageSender) setupTemplateContext(msg *PreparedMessage, opts SendOpti
 			nonblocking.MessageTypeAuthenticatePrimaryOOB,
 			nonblocking.MessageTypeAuthenticateSecondaryOOB:
 
-			linkURL = s.Endpoints.LoginLinkVerificationEndpointURL()
+			linkURL = s.Endpoints.LoginLinkVerificationEndpointURL(s.UIConfig.Implementation)
 			query := linkURL.Query()
 			query.Set("code", opts.OTP)
 			linkURL.RawQuery = query.Encode()

@@ -95,8 +95,19 @@ func (e *Endpoints) WeChatCallbackEndpointURL() *url.URL {
 	return e.urlOf("sso/wechat/callback")
 }
 
-func (e *Endpoints) LoginLinkVerificationEndpointURL() *url.URL {
-	return e.urlOf("flows/verify_login_link")
+func (e *Endpoints) LoginLinkVerificationEndpointURL(uiImpl config.UIImplementation) *url.URL {
+	switch uiImpl {
+	case config.UIImplementationAuthflowV2:
+		return e.urlOf("/authflow/v2/verify_login_link")
+	case config.UIImplementationInteraction:
+		fallthrough
+	case config.UIImplementationDefault:
+		fallthrough
+	case config.UIImplementationAuthflow:
+		fallthrough
+	default:
+		return e.urlOf("flows/verify_login_link")
+	}
 }
 
 func (e *Endpoints) LogoutURL(redirectURI *url.URL) *url.URL {
