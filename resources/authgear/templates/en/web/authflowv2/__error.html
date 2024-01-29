@@ -50,7 +50,9 @@
             <span>{{ template "error-phone-number-required" }}</span>
             {{ end }}
           {{ else }}
-            <span>{{ .Error.message }}</span>
+            <span>
+              {{ $.Error.message }}
+            </span>
           {{ end }}
         {{ else if (eq .kind "format") }}
           {{ if (eq .details.format "phone") }}
@@ -95,7 +97,7 @@
         {{ else if (eq .kind "general") }}
           <span>{{ .details.msg }}</span>
         {{ else }}
-          <span>{{ .Error.message }}</span>
+          <span>{{ $.Error.message }}</span>
         {{ end }}
       {{ end }}
     {{ else if eq .Error.reason "UserNotFound" }}

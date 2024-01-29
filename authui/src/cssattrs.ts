@@ -4,8 +4,12 @@ const cssVarsToAttrs = {
 };
 
 export function injectCSSAttrs(el: HTMLElement) {
-  for (const [cssVar, attr] of Object.entries(cssVarsToAttrs)) {
-    const value = getComputedStyle(el).getPropertyValue(cssVar);
-    el.setAttribute(attr, value);
-  }
+  const fn = () => {
+    for (const [cssVar, attr] of Object.entries(cssVarsToAttrs)) {
+      const value = getComputedStyle(el).getPropertyValue(cssVar);
+      el.setAttribute(attr, value);
+    }
+  };
+  fn();
+  window.addEventListener("load", fn);
 }
