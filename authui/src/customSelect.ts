@@ -235,7 +235,6 @@ export class CustomSelectController extends Controller {
     const item = this.optionsTarget.querySelector<HTMLLIElement>(
       `[data-value="${value}"]`
     );
-    if (value === this.inputTarget.value) return;
     if (item == null) {
       console.warn("Trying to select an option which does not exist");
       return;
