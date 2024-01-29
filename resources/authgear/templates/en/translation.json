@@ -1052,10 +1052,19 @@
   "v2-change-password-page-subtitle": "For account security, please change your password.",
   "v2-update-button-label": "Update",
 
+  "v2-forgot-password-otp-page-title--sms": "Verification Code",
+  "v2-forgot-password-otp-page-title--email": "Verification Code",
   "v2-forgot-password-otp-page-title": "Verification Code",
   "v2-forgot-password-otp-description": "We''ve just sent a {CodeLength}-digit verification code to {MaskedClaimValue}.",
   "v2-forgot-password-otp-description--whatsapp": "We''ve just sent a {CodeLength}-digit verification code to your WhatsApp number at {MaskedClaimValue}.",
 
   "v2-forgot-password-alternatives--sms-otp": "Send via SMS",
-  "v2-forgot-password-alternatives--whatsapp-otp": "Send via WhatsApp"
+  "v2-forgot-password-alternatives--whatsapp-otp": "Send via WhatsApp",
+
+  "v2-reset-password-page-title": "Update Password",
+  "v2-reset-password-page-subtitle": "For account security, please change your password.",
+  "v2-reset-password-success-page-title": "Password updated",
+  "v2-reset-password-success-page-description": "Your password successfully updated! \nYou can now log in using the new password.",
+  "v2-error-password-reset-failed-title": "Invalid Link",
+  "v2-error-password-reset-failed-description": "This reset password link is invalid, used or expired. Please request a new one."
 }

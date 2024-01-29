@@ -963,11 +963,27 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 	))
 }
 
+func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		AuthflowV2UIHandlerDependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2ResetPasswordHandler)),
+	))
+}
+
 func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
 		AuthflowUIHandlerDependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebapp.AuthflowResetPasswordSuccessHandler)),
+	))
+}
+
+func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		AuthflowV2UIHandlerDependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2ResetPasswordSuccessHandler)),
 	))
 }
 

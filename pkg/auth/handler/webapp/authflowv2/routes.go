@@ -36,6 +36,8 @@ const (
 	// nolint: gosec
 	AuthflowV2RouteChangePassword = "/authflow/v2/change_password"
 	// nolint: gosec
+	AuthflowV2RouteChangePasswordSuccess = "/authflow/v2/change_password/success"
+	// nolint: gosec
 	AuthflowV2RouteEnterPassword     = "/authflow/v2/enter_password"
 	AuthflowV2RouteEnterRecoveryCode = "/authflow/v2/enter_recovery_code"
 	AuthflowV2RouteEnterOOBOTP       = "/authflow/v2/enter_oob_otp"
@@ -92,6 +94,10 @@ func (n *AuthflowV2Navigator) NavigateNonRecoverableError(r *http.Request, u *ur
 		// which causes infinite redirect loop
 		u.Path = n.Endpoints.ErrorEndpointURL(n.UIConfig.Implementation).Path
 	}
+}
+
+func (n *AuthflowV2Navigator) NavigateResetPasswordSuccessPage() string {
+	return AuthflowV2RouteResetPasswordSuccess
 }
 
 func (n *AuthflowV2Navigator) Navigate(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {

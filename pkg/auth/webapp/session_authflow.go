@@ -770,11 +770,3 @@ func (s *AuthflowScreenWithFlowResponse) makeFallbackToSMSFromWhatsappRetryHandl
 		return inputFactory(channels[smsChannelIdx])
 	}
 }
-
-func DeriveAuthflowFinishPath(response *authflow.FlowResponse) string {
-	switch response.Type {
-	case authflow.FlowTypeAccountRecovery:
-		return AuthflowRouteResetPasswordSuccess
-	}
-	return ""
-}

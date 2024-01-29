@@ -83,6 +83,7 @@ type AuthflowNavigator interface {
 	Navigate(screen *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result)
 	NavigateNonRecoverableError(r *http.Request, u *url.URL, e error)
 	NavigateSelectAccount(result *webapp.Result)
+	NavigateResetPasswordSuccessPage() string
 }
 
 type AuthflowControllerLogger struct{ *log.Logger }
@@ -716,6 +717,14 @@ func (c *AuthflowController) feedInput(stateToken string, input interface{}) (*a
 	return output, nil
 }
 
+func (c *AuthflowController) deriveAuthflowFinishPath(f *authflow.FlowResponse) string {
+	switch f.Type {
+	case authflow.FlowTypeAccountRecovery:
+		return c.Navigator.NavigateResetPasswordSuccessPage()
+	}
+	return ""
+}
+
 func (c *AuthflowController) deriveFinishRedirectURI(r *http.Request, s *webapp.Session, f *authflow.FlowResponse) string {
 	bytes, err := json.Marshal(f.Action.Data)
 	if err != nil {
@@ -733,7 +742,7 @@ func (c *AuthflowController) deriveFinishRedirectURI(r *http.Request, s *webapp.
 	// 3. Use redirect URI in webapp.Session.
 	// 4. DerivePostLoginRedirectURIFromRequest
 
-	path := webapp.DeriveAuthflowFinishPath(f)
+	path := c.deriveAuthflowFinishPath(f)
 	if path != "" {
 		return path
 	}
