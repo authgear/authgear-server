@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/felixge/httpsnoop"
@@ -70,17 +71,16 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 					baseViewModel := m.BaseViewModel.ViewModel(r, w)
 					viewmodels.Embed(data, baseViewModel)
 					var errorHTML *template.HTML
-					switch m.UIConfig.Implementation {
+					uiImpl := m.UIConfig.Implementation.WithDefault()
+					switch uiImpl {
 					case config.UIImplementationAuthflowV2:
 						errorHTML = TemplateV2WebFatalErrorHTML
 					case config.UIImplementationInteraction:
 						fallthrough
-					case config.UIImplementationDefault:
-						fallthrough
 					case config.UIImplementationAuthflow:
-						fallthrough
-					default:
 						errorHTML = TemplateWebFatalErrorHTML
+					default:
+						panic(fmt.Errorf("unexpected ui implementation %s", uiImpl))
 					}
 
 					m.Renderer.RenderHTML(w, r, errorHTML, data)
