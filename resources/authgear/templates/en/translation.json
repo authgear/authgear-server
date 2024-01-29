@@ -1066,5 +1066,10 @@
   "v2-reset-password-success-page-title": "Password updated",
   "v2-reset-password-success-page-description": "Your password successfully updated! \nYou can now log in using the new password.",
   "v2-error-password-reset-failed-title": "Invalid Link",
-  "v2-error-password-reset-failed-description": "This reset password link is invalid, used or expired. Please request a new one."
+  "v2-error-password-reset-failed-description": "This reset password link is invalid, used or expired. Please request a new one.",
+  "v2-setup-totp-title": "Set up authenticator",
+  "v2-setup-totp-description": "First, download Google Authenticator App from the <a class=\"link-btn\" target=\"_blank\" href=\"https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2\">Google Play Store</a> or <a class=\"link-btn\" target=\"_blank\" href=\"https://apps.apple.com/app/google-authenticator/id388497605\">Apple App Store</a>.\n\nScan the QR code or enter the key with your authenticator device / app.",
+  "v2-setup-totp-verify-title": "Verification Code",
+  "v2-setup-totp-verify-description": "Enter the 6-digit code you see in the authenticator device/app.",
+  "v2-setup-totp-verify-rescan-button-label": "Rescan QR code"
 }

@@ -1,0 +1,43 @@
+{{ template "authflowv2/__page_frame.html" . }}
+{{ define "page-content" }}
+
+<div class="flex flex-col gap-y-8">
+  <div class="space-y-4">
+    <h1 class="screen-title">{{ template "v2-setup-totp-title" }}</h1>
+
+    <h2 class="screen-description whitespace-pre-wrap">{{ template "v2-setup-totp-description" }}</h2>
+  </div>
+
+  <img class="w-48 place-self-center" src="{{ $.ImageURI }}">
+
+  <div>
+    <div class="code-block code-block--single gap-x-8">
+      <p
+        id="copy-button-source"
+        class="code-block__text"
+      >{{ template "setup-totp-raw-secret" (dict "secret" $.Secret) }}</p>
+
+      <button
+        class="tertiary-btn"
+        type="button"
+        data-controller="copy-button"
+        data-copy-button-source-value="#copy-button-source"
+        data-copy-button-copy-label-value="{{ template "copy-button-label" }}"
+        data-copy-button-copied-label-value="{{ template "copied-button-label" }}"
+        data-action="copy-button#copy">
+        {{ template "copy-button-label" }}
+      </button>
+    </div>
+
+    <a
+      class="primary-btn w-full mt-10"
+      href="{{ call $.MakeURL "setup_totp" "q_setup_totp_step" "verify"}}"
+    >
+      {{ template "v2-button.continue" }}
+    </a>
+  </div>
+
+  {{ template "authflowv2/__authflow_branch.html" . }}
+
+  </div>
+{{ end }}
