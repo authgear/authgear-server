@@ -7,7 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
-func sliceContains(slice []interface{}, value interface{}) bool {
+func SliceContains(slice []interface{}, value interface{}) bool {
 	for _, v := range slice {
 		if reflect.DeepEqual(v, value) {
 			return true
