@@ -21,7 +21,7 @@ type LintViolation struct {
 
 type LintViolations []LintViolation
 
-func (violations LintViolations) Error() error {
+func (violations LintViolations) Error() string {
 	var buf strings.Builder
 	violationsByPath := make(map[string]LintViolations)
 	for _, v := range violations {
@@ -35,7 +35,7 @@ func (violations LintViolations) Error() error {
 		fmt.Fprintf(&buf, "\n")
 	}
 
-	return fmt.Errorf(buf.String())
+	return buf.String()
 }
 
 type Linter struct {
@@ -99,7 +99,7 @@ func (l *Linter) LintFile(path string, info os.FileInfo) (violations LintViolati
 	return
 }
 
-func doMain() (violationCount int, err error) {
+func doMain() (violations LintViolations, err error) {
 	if len(os.Args) < 2 {
 		err = fmt.Errorf("usage: gotemplatelinter <path/to/htmls>")
 		return
@@ -115,14 +115,8 @@ func doMain() (violationCount int, err error) {
 		},
 		Path: path,
 	}
-	violations, err := linter.Lint()
+	violations, err = linter.Lint()
 	if err != nil {
-		return
-	}
-
-	if len(violations) > 0 {
-		violationCount = len(violations)
-		err = violations.Error()
 		return
 	}
 
@@ -130,10 +124,16 @@ func doMain() (violationCount int, err error) {
 }
 
 func main() {
-	violationCount, err := doMain()
+	violations, err := doMain()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
-		fmt.Fprintf(os.Stderr, "%d errors found\n", violationCount)
+		os.Exit(1)
+	}
+	if len(violations) > 0 {
+		var err error
+		err = violations
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		fmt.Fprintf(os.Stderr, "%v errors found\n", len(violations))
 		os.Exit(1)
 	}
 }
