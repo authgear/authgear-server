@@ -5,8 +5,19 @@
   }
 
   .screen-icon {
-    @apply text-center;
     font-size: var(--screen-icon__font-size);
     color: var(--screen-icon__color);
+
+    :root[alignment-content="start"] & {
+      @apply text-start;
+    }
+
+    :root[alignment-content="center"] & {
+      @apply text-center;
+    }
+
+    :root[alignment-content="end"] & {
+      @apply text-end;
+    }
   }
 }
