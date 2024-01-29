@@ -136,6 +136,4 @@ func main() {
 		fmt.Fprintf(os.Stderr, "%d errors found\n", violationCount)
 		os.Exit(1)
 	}
-
-	fmt.Println("No errors found")
 }
