@@ -90,7 +90,7 @@ func (h *AuthflowV2SetupTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 			return err
 		}
 
-		if r.URL.Query().Get("x_action") == "submit" {
+		if r.URL.Query().Get("q_setup_totp_step") == "verify" {
 			h.Renderer.RenderHTML(w, r, TemplateWebAuthflowSetupTOTPVerifyHTML, data)
 			return nil
 		}
