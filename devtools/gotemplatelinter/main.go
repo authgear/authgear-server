@@ -32,7 +32,6 @@ func (violations LintViolations) Error() string {
 		for _, v := range violations {
 			fmt.Fprintf(&buf, "%s:%d:%d: %s\n", v.Path, v.Line, v.Column, v.Message)
 		}
-		fmt.Fprintf(&buf, "\n")
 	}
 
 	return buf.String()
@@ -132,7 +131,7 @@ func main() {
 	if len(violations) > 0 {
 		var err error
 		err = violations
-		fmt.Fprintf(os.Stderr, "%v\n", err)
+		fmt.Fprintf(os.Stderr, "%v", err)
 		fmt.Fprintf(os.Stderr, "%v errors found\n", len(violations))
 		os.Exit(1)
 	}
