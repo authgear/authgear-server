@@ -140,14 +140,14 @@
       {{- end }}
     {{- end }}
 
-
-    <!-- TODO: Update verify to v2 -->
     {{- if eq $.ActionType "verify" }}
       {{- if eq .Channel "sms" }}
-        {{ template "enter-phone-otp-sms-instead" (dict "target" .MaskedClaimValue) }}
+        <span class="material-icons secondary-btn__icon">phone_iphone</span>
+        {{ template "v2-enter-phone-otp-sms-instead" }}
       {{- end }}
       {{- if eq .Channel "whatsapp" }}
-        {{ template "enter-phone-otp-whatsapp-instead" (dict "target" .MaskedClaimValue) }}
+        <span class="sso-icon whatsapp-icon secondary-btn__icon"></span>
+        {{ template "v2-enter-phone-otp-whatsapp-instead" }}
       {{- end }}
     {{- end }}
 

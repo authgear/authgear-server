@@ -2,12 +2,10 @@ package authflowv2
 
 import (
 	"net/http"
-	"time"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -38,45 +36,6 @@ func ConfigureAuthflowV2WhatsappOTPRoute(route httproute.Route) httproute.Route 
 		WithPathPattern(AuthflowV2RouteWhatsappOTP)
 }
 
-type AuthflowWhatsappOTPViewModel struct {
-	MaskedClaimValue               string
-	CodeLength                     int
-	FailedAttemptRateLimitExceeded bool
-	ResendCooldown                 int
-}
-
-func NewAuthflowWhatsappOTPViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, now time.Time) AuthflowWhatsappOTPViewModel {
-	var maskedClaimValue string
-	var codeLength int
-	var failedAttemptRateLimitExceeded bool
-	var resendCooldown int
-
-	switch data := screen.StateTokenFlowResponse.Action.Data.(type) {
-	case declarative.NodeAuthenticationOOBData:
-		maskedClaimValue = data.MaskedClaimValue
-		codeLength = data.CodeLength
-		failedAttemptRateLimitExceeded = data.FailedAttemptRateLimitExceeded
-		resendCooldown = int(data.CanResendAt.Sub(now).Seconds())
-	case declarative.NodeVerifyClaimData:
-		maskedClaimValue = data.MaskedClaimValue
-		codeLength = data.CodeLength
-		failedAttemptRateLimitExceeded = data.FailedAttemptRateLimitExceeded
-		resendCooldown = int(data.CanResendAt.Sub(now).Seconds())
-	default:
-		panic("authflowv2: unexpected action data")
-	}
-	if resendCooldown < 0 {
-		resendCooldown = 0
-	}
-
-	return AuthflowWhatsappOTPViewModel{
-		MaskedClaimValue:               maskedClaimValue,
-		CodeLength:                     codeLength,
-		FailedAttemptRateLimitExceeded: failedAttemptRateLimitExceeded,
-		ResendCooldown:                 resendCooldown,
-	}
-}
-
 type AuthflowV2WhatsappOTPHandler struct {
 	Controller    *handlerwebapp.AuthflowController
 	BaseViewModel *viewmodels.BaseViewModeler
@@ -92,7 +51,7 @@ func (h *AuthflowV2WhatsappOTPHandler) GetData(w http.ResponseWriter, r *http.Re
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	screenViewModel := NewAuthflowWhatsappOTPViewModel(s, screen, now)
+	screenViewModel := NewAuthflowEnterOOBOTPViewModel(s, screen, now)
 	viewmodels.Embed(data, screenViewModel)
 
 	branchViewModel := viewmodels.NewAuthflowBranchViewModel(screen)
