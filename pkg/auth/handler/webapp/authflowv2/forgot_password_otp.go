@@ -7,12 +7,14 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -191,7 +193,11 @@ func (h *AuthflowV2ForgotPasswordOTPHandler) ServeHTTP(w http.ResponseWriter, r 
 		}
 
 		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
-		if err != nil {
+		if apierrors.IsKind(err, forgotpassword.PasswordResetFailed) {
+			err := apierrors.AsAPIError(err)
+			err.Info["OTPType"] = "OOBOTP"
+			return err
+		} else if err != nil {
 			return err
 		}
 
