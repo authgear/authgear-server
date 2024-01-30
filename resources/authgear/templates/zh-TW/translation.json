@@ -1061,6 +1061,14 @@
   "v2-forgot-password-alternatives--sms-otp": "改為以短訊發送",
   "v2-forgot-password-alternatives--whatsapp-otp": "改為以Whatsapp發送",
 
+  "v2-verify-login-link-title": "確認您的登入",
+  "v2-verify-login-link-description": "點擊按鈕確認登入 {AppOrClientName}.",
+  "v2-verify-login-link-approve": "批准",
+  "v2-verify-login-link-invalid-title": "無效連結",
+  "v2-verify-login-link-invalid-description": "此連結無效、已使用或已過期。請要求一個新連結。",
+  "v2-verify-login-link-approved-title": "已批准",
+  "v2-verify-login-link-approved-description": "您已核准登入 {AppOrClientName}。<br/>您可以關閉此視窗。",
+
   "v2-reset-password-page-title": "更新密碼",
   "v2-reset-password-page-subtitle": "(TBC) 基於安全考量，請更新你的密碼",
   "v2-reset-password-success-page-title": "成功更新密碼",
