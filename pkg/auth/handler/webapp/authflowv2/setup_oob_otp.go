@@ -77,7 +77,21 @@ func (h *AuthflowV2SetupOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Re
 	}
 	viewmodels.Embed(data, screenViewModel)
 
-	branchViewModel := viewmodels.NewAuthflowBranchViewModel(screen)
+	authentication := getTakenBranchSignupCreateAuthenticatorAuthentication(screen)
+
+	branchFilter := func(branches []viewmodels.AuthflowBranch) []viewmodels.AuthflowBranch {
+		filtered := []viewmodels.AuthflowBranch{}
+		for _, branch := range branches {
+			if branch.Authentication == authentication {
+				// Hide oob otp branches of same type
+				continue
+			}
+			filtered = append(filtered, branch)
+		}
+		return filtered
+	}
+
+	branchViewModel := viewmodels.NewAuthflowBranchViewModel(screen, branchFilter)
 	viewmodels.Embed(data, branchViewModel)
 
 	return data, nil

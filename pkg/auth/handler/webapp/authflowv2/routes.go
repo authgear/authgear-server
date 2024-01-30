@@ -136,15 +136,7 @@ func (n *AuthflowV2Navigator) navigateSignupPromote(s *webapp.AuthflowScreenWith
 	case config.AuthenticationFlowStepTypeIdentify:
 		n.navigateStepIdentify(s, r, webSessionID, result, expectedPath)
 	case config.AuthenticationFlowStepTypeCreateAuthenticator:
-		// If the current step already tells the authentication, use it
-		authentication := s.StateTokenFlowResponse.Action.Authentication
-		if authentication == "" {
-			// Else, get it from the first option of the branch step
-			options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData).Options
-			index := *s.Screen.TakenBranchIndex
-			option := options[index]
-			authentication = option.Authentication
-		}
+		authentication := getTakenBranchSignupCreateAuthenticatorAuthentication(s)
 		switch authentication {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough

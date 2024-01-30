@@ -6,7 +6,6 @@
 
 <div class="flex flex-col gap-y-4">
 
-  <!-- TODO: Update authenticate with recovery_code to v2 -->
 {{- range $.Branches }}
   {{- if eq $.ActionType "authenticate" }}
     {{- if eq .Authentication "recovery_code" }}
@@ -33,7 +32,6 @@
   <input type="hidden" name="x_channel" value="{{ .Channel }}">
   <input type="hidden" name="x_action" value="take_branch">
   <button class="secondary-btn w-full flex gap-x-2" type="submit">
-    <!-- TODO: Update create_authenticator to v2 -->
     {{- if eq $.ActionType "create_authenticator" }}
       {{- if eq .Authentication "primary_password" }}
         <span class="material-icons secondary-btn__icon">key_vertical</span>
