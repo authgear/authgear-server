@@ -1044,7 +1044,7 @@
   "v2-setup-email-otp-link-instead": "Set up email",
   "v2-setup-phone-otp-sms-instead": "Set up phone",
   "v2-setup-phone-otp-whatsapp-instead": "Set up Whatsapp",
-  "v2-setup-oob-otp-without-verification": "Set up phone",
+  "v2-setup-oob-otp-without-verification": "Sign in with one-time password via {target} next time",
 
   "v2-enter-recovery-code-title": "Enter Recovery Code",
   "v2-enter-recovery-code-description": "Enter an unused 10-character recovery code.",
