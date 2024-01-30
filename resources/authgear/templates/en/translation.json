@@ -1061,6 +1061,14 @@
   "v2-forgot-password-alternatives--sms-otp": "Send via SMS",
   "v2-forgot-password-alternatives--whatsapp-otp": "Send via WhatsApp",
 
+  "v2-verify-login-link-title": "Confirm Your Login",
+  "v2-verify-login-link-description": "Click the button to confirm login for {AppOrClientName}.",
+  "v2-verify-login-link-approve": "Approve",
+  "v2-verify-login-link-invalid-title": "Invalid Link",
+  "v2-verify-login-link-invalid-description": "This link is invalid, used or expired. Please request a new one.",
+  "v2-verify-login-link-approved-title": "Approved",
+  "v2-verify-login-link-approved-description": "You''ve approved the login for {AppOrClientName}. <br/>You can close this window.",
+
   "v2-reset-password-page-title": "Update Password",
   "v2-reset-password-page-subtitle": "Create a new password that complies with security requirements.",
   "v2-reset-password-success-page-title": "Password updated",
