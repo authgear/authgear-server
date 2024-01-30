@@ -1073,5 +1073,14 @@
   "v2-setup-totp-verify-description": "Enter the 6-digit code you see in the authenticator device/app.",
   "v2-setup-totp-verify-rescan-button-label": "Rescan QR code",
   "v2-enter-totp-title": "Verification Code",
-  "v2-enter-totp-description": "Enter the 6-digit code you see in the authenticator device/app."
+  "v2-enter-totp-description": "Enter the 6-digit code you see in the authenticator device/app.",
+
+  "v2-login-link-otp-page-title": "Link Sent",
+  "v2-login-link-otp-page-title-reauth": "(TBC) Link Sent",
+  "v2-login-link-otp-initial-description": "We''ve just sent a login link to {target}. If not received, please resend.",
+  "v2-login-link-otp-invalid-code-description": "This login link is invalid, used or expired. Please request a new one.",
+  "v2-login-link-otp-matched-title": "Verification successful",
+  "v2-login-link-otp-matched-description": "Your email has been successfully verified. Start exploring now.",
+  "v2-login-link-otp-resend-button-label": "Resend again",
+  "v2-login-link-otp-resend-button-label--unit": "Resend in %s"
 }
