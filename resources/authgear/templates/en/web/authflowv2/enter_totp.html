@@ -1,0 +1,73 @@
+{{ template "authflowv2/__page_frame.html" . }}
+{{ define "page-content" }}
+
+  {{ $display_otp_input_error := false }}
+  {{ if $.Error }}
+    {{ if eq $.Error.reason "InvalidCredentials" }}
+      {{ $display_otp_input_error = true }}
+    {{ end }}
+  {{ end }}
+
+  <div class="flex flex-col gap-y-8">
+    <div class="flex flex-col gap-y-4">
+      {{ template "authflowv2/__header.html" . }}
+      <h1 class="screen-title">
+        {{ template "v2-enter-totp-title" }}
+      </h1>
+      <h2 class="screen-description">
+        {{ template "v2-enter-totp-description" . }}
+      </h2>
+
+      {{ if $.Error }}
+        {{ if not $display_otp_input_error }}
+          {{ template "authflowv2/__alert_message.html"
+            (dict
+              "Type" "error"
+              "Classname" "mt-4"
+              "Message" (include "authflowv2/__error.html" .)
+            )
+          }}
+        {{ end }}
+      {{ end }}
+    </div>
+    <div>
+      {{ $otp_error_message := "" }}
+      {{ if $.Error  }}
+        {{ if $display_otp_input_error }}
+          {{ $otp_error_message = include "authflowv2/__error.html" .  }}
+        {{ end }}
+      {{ end }}
+
+      <form id="main-form" method="post" novalidate data-restore-form="false">
+        {{ $.CSRFField }}
+      </form>
+
+      {{ template "authflowv2/__otp_input.html"
+        (dict
+          "CSRFField" $.CSRFField
+          "FormName" "main-form"
+          "CodeLength" 6
+          "AutoFocus" $.ShouldFocusInput
+          "Disabled" $.FailedAttemptRateLimitExceeded
+          "SubmitEvent" "authgear.button.setup_totp"
+          "ErrorMessage" $otp_error_message
+          "ResendButtonHidden" true
+        )
+      }}
+
+      {{ if $.CanRequestDeviceToken }}
+      <div class="mt-4 flex flex-row items-center gap-x-2.5">
+        <div class="checkbox">
+          <input form="main-form" id="device-token" type="checkbox" name="x_device_token" value="true">
+          <label class="checkbox__label" for="device-token">
+            <span class="checkbox__icon material-icons">check</span>
+          </label>
+        </div>
+        <label class="text-sm primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
+      </div>
+      {{ end }}
+    </div>
+
+    {{ template "authflowv2/__authflow_branch.html" $ }}
+  </div>
+{{ end }}
