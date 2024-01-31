@@ -25,6 +25,8 @@ import { CountdownController } from "./countdown";
 import { TextFieldController } from "./authflowv2/text-field";
 import { DialogController } from "./authflowv2/dialog";
 import { CopyButtonController } from "./copy";
+import { AuthflowWebsocketController } from "./authflow_websocket";
+import { AuthflowPollingController } from "./authflow_polling";
 
 axios.defaults.withCredentials = true;
 
@@ -71,5 +73,8 @@ Stimulus.register("copy-button", CopyButtonController);
 Stimulus.register("text-field", TextFieldController);
 Stimulus.register("dialog", DialogController);
 Stimulus.register("loading", LoadingController);
+
+Stimulus.register("authflow-websocket", AuthflowWebsocketController);
+Stimulus.register("authflow-polling", AuthflowPollingController);
 
 injectCSSAttrs(document.documentElement);

@@ -1,0 +1,91 @@
+{{ template "authflowv2/__page_frame.html" . }}
+{{ define "page-content" }}
+{{- if eq $.StateQuery "matched" }}
+  <form id="next-form" class="screen-icon-layout flex-1-0-auto" method="post" novalidate>
+    <i class="screen-icon material-icons">check_circle</i>
+    <header class="flex flex-col gap-4">
+      <h1 class="screen-title">
+        {{ template "v2-login-link-otp-matched-title" }}
+      </h1>
+
+      <p class="screen-description">
+        {{ template "v2-login-link-otp-matched-description" }}
+      </p>
+    </header>
+    <div></div>
+
+    {{ $.CSRFField }}
+    <footer class="flex flex-col gap-y-4">
+      {{- if $.DeviceTokenEnabled }}
+        <div class="mt-4 flex flex-row items-center gap-x-2.5">
+          <div class="checkbox">
+            <input id="device-token" type="checkbox" name="x_device_token" value="true">
+            <label class="checkbox__label" for="device-token">
+              <span class="checkbox__icon material-icons">check</span>
+            </label>
+          </div>
+          <label class="text-sm primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
+        </div>
+      {{- end }}
+      <button
+        class="primary-btn w-full"
+        type="submit"
+        name="x_action"
+        value="check"
+        data-authgear-event="authgear.button.redirect_login_link_result"
+      >
+        {{ template "v2-button.continue" }}
+      </button>
+    </footer>
+  </form>
+{{- end }}
+
+{{- if not (eq $.StateQuery "matched") }}
+<div class="screen-icon-layout screen-icon-layout--compact flex-1-0-auto">
+
+<i class="screen-icon material-icons">forward_to_inbox</i>
+<header class="flex flex-col gap-4">
+  <h1 class="screen-title">
+    {{- if eq $.FlowType "reauth" }}
+      {{ template "v2-login-link-otp-page-title-reauth" }}
+    {{- else }}
+      {{ template "v2-login-link-otp-page-title" }}
+    {{- end }}
+  </h1>
+
+  <p class="screen-description">
+    {{- if eq $.StateQuery "invalid_code" }}
+      {{ template "v2-login-link-otp-invalid-code-description" }}
+    {{- else }}
+      {{ template "v2-login-link-otp-initial-description" (dict "target" $.MaskedClaimValue) }}
+    {{- end }}
+  </p>
+</header>
+
+<footer class="flex flex-col gap-y-8">
+  <div class="hidden" data-controller="authflow-websocket authflow-polling" data-authflow-websocket-url-value="{{ $.WebsocketURL }}" data-authflow-polling-statetoken-value="{{ $.StateToken }}"></div>
+  <form method="post" novalidate>
+    {{ $.CSRFField }}
+    <button
+      class="primary-btn w-full"
+      type="submit"
+      name="x_action"
+      value="resend"
+      data-controller="countdown"
+      data-countdown-target="button"
+      data-countdown-cooldown-value="{{ $.ResendCooldown }}"
+      data-countdown-label-value='{{ template "v2-login-link-otp-resend-button-label" }}'
+      data-countdown-label-unit-value='{{ template "v2-login-link-otp-resend-button-label--unit" }}'
+      data-authgear-event="authgear.button.resend_login_link_otp"
+    >
+      {{ template "v2-login-link-otp-resend-button-label" }}
+    </button>
+  </form>
+
+  {{ template "authflowv2/__authflow_branch.html" . }}
+
+  {{- end }}
+</footer>
+
+</div>
+{{ end }}
