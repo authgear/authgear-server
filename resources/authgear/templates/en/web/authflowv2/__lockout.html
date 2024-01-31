@@ -2,11 +2,19 @@
 {{ if $.Error }}
   {{ if eq .Error.reason "AccountLockout" }}
 
-  <dialog class="modal" data-controller="dialog" open>
+  <div
+    class="modal"
+    data-controller="dialog"
+    data-dialog-default-open-value="true"
+    role="dialog"
+    aria-labelledby="lockout-title"
+    aria-modal="true"
+    tabindex="-1"
+  >
     <div class="screen-icon-layout flex-1-0-auto">
       <i class="material-icons screen-icon">account_circle_off</i>
       <header class="flex flex-col gap-4">
-        <h1 class="screen-title">
+        <h1 class="screen-title" id="lockout-title">
           {{ template "v2-lockout-title" }}
         </h1>
         <h2 class="screen-description">
@@ -28,7 +36,7 @@
       ></button>
     </footer>
     </div>
-  </dialog>
+  </div>
 
   {{ end }}
 {{ end }}
