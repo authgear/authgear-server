@@ -18,13 +18,6 @@
     {{ $.CSRFField }}
   </form>
 
-  {{ if $.CanRequestDeviceToken }}
-  <div class="flex flex-row items-center self-start">
-  <input class="device-token-input" id="device-token" type="checkbox" name="x_device_token" value="true">
-  <label class="p-1 text-sm primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
-  </div>
-  {{ end }}
-
   <button
     form="dryrun-verify-form"
     class="hidden"
@@ -66,6 +59,12 @@
   <i class="good-txt text-base ti ti-check" aria-hidden="true"></i>
   <p class="text-sm primary-txt whitespace-pre-wrap">{{ template "login-link-otp-matched-description" }}</p>
 </div>
+{{ if $.CanRequestDeviceToken }}
+  <div class="flex flex-row items-center self-start">
+    <input form="next-form" class="device-token-input" id="device-token" type="checkbox" name="x_device_token" value="true">
+    <label class="p-1 text-sm primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
+  </div>
+{{ end }}
 <button
   form="next-form"
   class="btn primary-btn"
