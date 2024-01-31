@@ -107,7 +107,7 @@
         {{ template "v2-error-invalid-credentials" (dict "AuthenticationType" $info.AuthenticationType) }}
       </span>
     {{ else if eq .Error.reason "PasswordResetFailed" }}
-      {{ if and (.Error.info) (eq .Error.info.OTPType "OOBOTP") }}
+      {{ if and (.Error.info) (eq .Error.info.otp_form "code") }}
         <span>{{ template "v2-error-invalid-credentials" }}</span>
       {{ else }}
         <span>{{ template "v2-error-password-reset-failed-description" }}</span>

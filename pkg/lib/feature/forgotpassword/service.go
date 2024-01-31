@@ -313,7 +313,7 @@ func (s *Service) getChannel(target string, codeChannel CodeChannel) model.Authe
 func (s *Service) doVerifyCodeWithTarget(target string, code string, codeChannel CodeChannel, codeKind CodeKind) (state *otp.State, err error) {
 	channel := s.getChannel(target, codeChannel)
 
-	kind, _ := s.getForgotPasswordOTP(channel, codeKind)
+	kind, otpForm := s.getForgotPasswordOTP(channel, codeKind)
 
 	state, err = s.OTPCodes.InspectState(kind, target)
 	if errors.Is(err, otp.ErrConsumedCode) {
@@ -326,15 +326,21 @@ func (s *Service) doVerifyCodeWithTarget(target string, code string, codeChannel
 		return
 	}
 
+	withOTPFormInfo := func(err error) error {
+		apierror := apierrors.AsAPIError(err)
+		apierror.Info["otp_form"] = otpForm
+		return apierror
+	}
+
 	err = s.OTPCodes.VerifyOTP(kind, target, code, &otp.VerifyOptions{
 		UserID:      state.UserID,
 		SkipConsume: true,
 	})
 	if errors.Is(err, otp.ErrConsumedCode) {
-		err = ErrUsedCode
+		err = withOTPFormInfo(ErrUsedCode)
 		return
 	} else if apierrors.IsKind(err, otp.InvalidOTPCode) {
-		err = ErrInvalidCode
+		err = withOTPFormInfo(ErrInvalidCode)
 		return
 	} else if err != nil {
 		return
