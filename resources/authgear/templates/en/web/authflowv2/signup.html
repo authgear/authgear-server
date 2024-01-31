@@ -116,22 +116,28 @@
           {{ if eq .login_id_key "email" }}
             <a class="secondary-btn" data-turbo-action="replace"
               href="{{ call $.MakeURL "" "q_login_id_key" .login_id_key "q_login_id_input_type" .login_id_input_type }}">
-              <i class="alternative-icon material-icons mr-2">mail</i>
-              {{ template "v2-sign-up.signup-with-email" }}
+              <div class="flex gap-2">
+                <i class="alternative-icon material-icons">mail</i>
+                {{ template "v2-sign-up.signup-with-email" }}
+              </div>
             </a>
           {{ end }}
           {{ if eq .login_id_key "username" }}
             <a class="secondary-btn" data-turbo-action="replace"
               href="{{ call $.MakeURL "" "q_login_id_key" .login_id_key "q_login_id_input_type" .login_id_input_type }}">
-              <i class="alternative-icon material-icons mr-2">person</i>
-              {{ template "v2-sign-up.signup-with-username" }}
+              <div class="flex gap-2">
+                <i class="alternative-icon material-icons">person</i>
+                {{ template "v2-sign-up.signup-with-username" }}
+              </div>
             </a>
           {{ end }}
           {{ if eq .login_id_key "phone" }}
             <a class="secondary-btn" data-turbo-action="replace"
               href="{{ call $.MakeURL "" "q_login_id_key" .login_id_key "q_login_id_input_type" .login_id_input_type }}">
-              <i class="alternative-icon material-icons mr-2">smartphone</i>
-              {{ template "v2-sign-up.signup-with-phone" }}
+              <div class="flex gap-2">
+                <i class="alternative-icon material-icons">smartphone</i>
+                {{ template "v2-sign-up.signup-with-phone" }}
+              </div>
             </a>
           {{ end }}
         {{ end }}{{ end }}
@@ -157,10 +163,12 @@
                 data-authgear-event="authgear.button.oauth"
               >
                 {{- $icon_class := printf "%s-icon" .provider_type -}}
-                <i class="sso-icon {{ $icon_class }} mr-2"></i>
-                <span>
-                  {{ include (printf "v2-oauth-branding-%s" .provider_type) nil }}
-                </span>
+                <div class="flex gap-2">
+                  <i class="sso-icon {{ $icon_class }}"></i>
+                  <span>
+                    {{ include (printf "v2-oauth-branding-%s" .provider_type) nil }}
+                  </span>
+                </div>
               </button>
             </form>
           {{ end }}

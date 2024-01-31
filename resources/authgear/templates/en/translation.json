@@ -950,6 +950,7 @@
 
   "v2-continue-with-text-login-id": "Continue with {variant, select, email {Email} username {Username} other {Email / Username}}",
   "v2-continue-with-phone": "Continue with Phone",
+  "v2-continue-with-passkey": "Continue with Passkey",
 
   "v2-oauth-branding-apple": "Sign in with Apple",
   "v2-oauth-branding-google": "Sign in with Google",

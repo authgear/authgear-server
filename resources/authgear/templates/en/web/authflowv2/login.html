@@ -21,6 +21,10 @@
     {{ end }}
   {{ end }}
 
+  {{ if $.PasskeyEnabled }}
+    {{ $has_alternatives = true }}
+  {{ end }}
+
   {{ if $.LoginIDInputType }}{{ if eq $.LoginIDInputType "phone" }}{{ if (or $.EmailLoginIDEnabled $.UsernameLoginIDEnabled) }}
     {{ $has_alternatives = true }}
     {{ $show_use_text_login_id_option = true }}
@@ -141,28 +145,60 @@
   {{ if $has_alternatives }}
     {{ template "authflowv2/__divider.html" (dict "Classname" "my-8")  }}
     <section class="flex flex-col gap-4">
+      {{ if $.PasskeyEnabled }}
+				<div class="block w-full"
+					data-controller="authflow-passkey-request"
+					data-authflow-passkey-request-options-value="{{ $.PasskeyRequestOptionsJSON }}"
+					data-authflow-passkey-request-auto-value="false">
+					<button class="secondary-btn w-full"
+						type="button"
+						data-action="click->authflow-passkey-request#use"
+						data-authflow-passkey-request-target="button"
+						data-authgear-event="authgear.button.use_passkey">
+            <div class="flex gap-2">
+              <i class="alternative-icon material-icons">
+                passkey
+              </i>
+              <span>
+                {{ template "v2-continue-with-passkey" }}
+              </span>
+            </div>
+						</span>
+					</button>
+					<form class="hidden" method="post" novalidate>
+            {{ $.CSRFField }}
+            <input type="hidden" name="x_assertion_response" data-authflow-passkey-request-target="input">
+            <button type="submit" class="hidden" name="x_action" value="passkey" data-authflow-passkey-request-target="submit"></button>
+					</form>
+				</div>
+      {{ end }}
+
       {{ if $show_use_text_login_id_option }}
         <a
-          class="secondary-btn"
+          class="secondary-btn w-full"
           data-turbo-action="replace"
           href="{{ call $.MakeURL "" "q_login_id_input_type" $.NonPhoneLoginIDInputType }}">
-          <i class="alternative-icon material-icons mr-2">
-            {{- if eq $.NonPhoneLoginIDInputType "username" -}}
-              person
-            {{ else }}
-              mail
-            {{- end -}}
-          </i>
-          {{ template "v2-continue-with-text-login-id" (dict "variant" $.NonPhoneLoginIDType) }}
+          <div class="flex gap-2">
+            <i class="alternative-icon material-icons">
+              {{- if eq $.NonPhoneLoginIDInputType "username" -}}
+                person
+              {{ else }}
+                mail
+              {{- end -}}
+            </i>
+            {{ template "v2-continue-with-text-login-id" (dict "variant" $.NonPhoneLoginIDType) }}
+          </div>
         </a>
       {{ end }}
       {{ if $show_use_phone_login_id_option }}
         <a
-          class="secondary-btn"
+          class="secondary-btn w-full"
           data-turbo-action="replace"
           href="{{ call $.MakeURL "" "q_login_id_input_type" "phone" }}">
-          <i class="alternative-icon material-icons mr-2">smartphone</i>
-          {{ template "v2-continue-with-phone" }}
+          <div class="flex gap-2">
+            <i class="alternative-icon material-icons">smartphone</i>
+            {{ template "v2-continue-with-phone" }}
+          </div>
         </a>
       {{ end }}
       {{ range .IdentityCandidates }}
@@ -188,10 +224,12 @@
               data-authgear-event="authgear.button.oauth"
             >
               {{- $icon_class := printf "%s-icon" .provider_type -}}
-              <i class="sso-icon {{ $icon_class }} mr-2"></i>
-              <span>
-                {{ include (printf "v2-oauth-branding-%s" .provider_type) nil }}
-              </span>
+              <div class="flex gap-2">
+                <i class="sso-icon {{ $icon_class }}"></i>
+                <span>
+                  {{ include (printf "v2-oauth-branding-%s" .provider_type) nil }}
+                </span>
+              </div>
             </button>
           </form>
         {{ end }}
