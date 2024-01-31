@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
@@ -315,6 +316,14 @@ func (s *Service) doVerifyCodeWithTarget(target string, code string, codeChannel
 
 	kind, otpForm := s.getForgotPasswordOTP(channel, codeKind)
 
+	defer func() {
+		if err != nil {
+			err = errorutil.WithDetails(err, errorutil.Details{
+				"otp_form": apierrors.APIErrorDetail.Value(otpForm),
+			})
+		}
+	}()
+
 	state, err = s.OTPCodes.InspectState(kind, target)
 	if errors.Is(err, otp.ErrConsumedCode) {
 		err = ErrUsedCode
@@ -326,21 +335,15 @@ func (s *Service) doVerifyCodeWithTarget(target string, code string, codeChannel
 		return
 	}
 
-	withOTPFormInfo := func(err error) error {
-		apierror := apierrors.AsAPIError(err)
-		apierror.Info["otp_form"] = otpForm
-		return apierror
-	}
-
 	err = s.OTPCodes.VerifyOTP(kind, target, code, &otp.VerifyOptions{
 		UserID:      state.UserID,
 		SkipConsume: true,
 	})
 	if errors.Is(err, otp.ErrConsumedCode) {
-		err = withOTPFormInfo(ErrUsedCode)
+		err = ErrUsedCode
 		return
 	} else if apierrors.IsKind(err, otp.InvalidOTPCode) {
-		err = withOTPFormInfo(ErrInvalidCode)
+		err = ErrInvalidCode
 		return
 	} else if err != nil {
 		return
