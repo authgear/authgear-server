@@ -4,6 +4,7 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 func init() {
@@ -11,6 +12,7 @@ func init() {
 }
 
 type NodeDoUseAuthenticatorPassword struct {
+	JSONPointer            jsonpointer.T       `json:"json_pointer,omitempty"`
 	Authenticator          *authenticator.Info `json:"authenticator,omitempty"`
 	PasswordChangeRequired bool                `json:"password_change_required,omitempty"`
 }
@@ -38,4 +40,8 @@ func (n *NodeDoUseAuthenticatorPassword) MilestoneDidAuthenticate() (amr []strin
 }
 func (n *NodeDoUseAuthenticatorPassword) MilestoneDidUseAuthenticationLockoutMethod() (config.AuthenticationLockoutMethod, bool) {
 	return config.AuthenticationLockoutMethodFromAuthenticatorType(n.Authenticator.Type)
+}
+
+func (n *NodeDoUseAuthenticatorPassword) GetJSONPointer() jsonpointer.T {
+	return n.JSONPointer
 }

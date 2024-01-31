@@ -40,18 +40,24 @@ func (i *IntentLoginFlowStepAuthenticate) GetJSONPointer() jsonpointer.T {
 
 var _ IntentLoginFlowStepChangePasswordTarget = &IntentLoginFlowStepAuthenticate{}
 
-func (*IntentLoginFlowStepAuthenticate) GetPasswordAuthenticator(_ context.Context, _ *authflow.Dependencies, flows authflow.Flows) (info *authenticator.Info, ok bool) {
-	m, ok := authflow.FindMilestone[MilestoneDoUseAuthenticatorPassword](flows.Nearest)
-	if !ok {
-		return
+func (i *IntentLoginFlowStepAuthenticate) GetPasswordAuthenticator(_ context.Context, _ *authflow.Dependencies, flows authflow.Flows) (info *authenticator.Info, ok bool) {
+	milestones := authflow.FindAllMilestones[MilestoneDoUseAuthenticatorPassword](flows.Nearest)
+	var targetMilestone MilestoneDoUseAuthenticatorPassword
+	for _, m := range milestones {
+		p := authflow.JSONPointerToParent(m.GetJSONPointer())
+		if p.String() == i.GetJSONPointer().String() {
+			targetMilestone = m
+			break
+		}
 	}
 
 	ok = false
-	n := m.MilestoneDoUseAuthenticatorPassword()
-
-	if n.PasswordChangeRequired {
-		info = n.Authenticator
-		ok = true
+	if targetMilestone != nil {
+		n := targetMilestone.MilestoneDoUseAuthenticatorPassword()
+		if n.PasswordChangeRequired {
+			info = n.Authenticator
+			ok = true
+		}
 	}
 
 	return
