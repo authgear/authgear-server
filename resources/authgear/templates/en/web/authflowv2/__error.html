@@ -6,9 +6,35 @@
   {{- if $display_error -}}
     {{ $info := .Error.info }}
     {{ if eq .Error.reason "PasswordPolicyViolated" }}
+      {{ $general_policy_error := false }}
+      {{ $contain_excluded_keywords_policy_error := false }}
+      {{ $reused_error := false }}
+      {{ range .Error.info.causes }}
+        {{ if eq .Name "PasswordContainingExcludedKeywords" }}
+          {{ $contain_excluded_keywords_policy_error = true }}
+        {{ else if eq .Name "PasswordReused" }}
+          {{ $reused_error = true }}
+        {{ else }}
+          {{ $general_policy_error = true }}
+        {{ end }}
+      {{ end }}
+      {{ if $general_policy_error }}
         <span>
           {{ template "v2-error.error-password-policy-violated" }}
         </span>
+      {{ else if $contain_excluded_keywords_policy_error }}
+        <span>
+          {{ template "v2-error.error-password-policy-banned-words" }}
+        </span>
+      {{ else if $reused_error }}
+        {{ range .PasswordPolicies }}
+          {{ if eq .Name "PasswordReused" }}
+            <span>
+              {{ template "v2-error.error-password-policy-reuse" (dict "size" .Info.history_size "day" .Info.history_days) }}
+            </span>
+          {{ end }}
+        {{ end }}
+      {{ end }}
     {{ else if eq .Error.reason "ValidationFailed" }}
       {{ range .Error.info.causes }}
         {{ $details := .details }}
