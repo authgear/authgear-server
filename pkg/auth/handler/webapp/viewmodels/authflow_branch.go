@@ -30,7 +30,11 @@ type AuthflowBranchViewModel struct {
 	Branches           []AuthflowBranch
 }
 
-func NewAuthflowBranchViewModel(screen *webapp.AuthflowScreenWithFlowResponse) AuthflowBranchViewModel {
+type AuthflowBranchFilter func([]AuthflowBranch) []AuthflowBranch
+
+func NewAuthflowBranchViewModel(
+	screen *webapp.AuthflowScreenWithFlowResponse,
+	filters ...AuthflowBranchFilter) AuthflowBranchViewModel {
 	branchFlowResponse := screen.BranchStateTokenFlowResponse
 
 	deviceTokenEnabled := false
@@ -45,6 +49,10 @@ func NewAuthflowBranchViewModel(screen *webapp.AuthflowScreenWithFlowResponse) A
 		case declarative.IntentVerifyClaimData:
 			branches = newAuthflowBranchViewModelVerify(screen, branchData)
 		}
+	}
+
+	for _, filter := range filters {
+		branches = filter(branches)
 	}
 
 	return AuthflowBranchViewModel{

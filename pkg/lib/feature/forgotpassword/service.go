@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
@@ -313,7 +314,15 @@ func (s *Service) getChannel(target string, codeChannel CodeChannel) model.Authe
 func (s *Service) doVerifyCodeWithTarget(target string, code string, codeChannel CodeChannel, codeKind CodeKind) (state *otp.State, err error) {
 	channel := s.getChannel(target, codeChannel)
 
-	kind, _ := s.getForgotPasswordOTP(channel, codeKind)
+	kind, otpForm := s.getForgotPasswordOTP(channel, codeKind)
+
+	defer func() {
+		if err != nil {
+			err = errorutil.WithDetails(err, errorutil.Details{
+				"otp_form": apierrors.APIErrorDetail.Value(otpForm),
+			})
+		}
+	}()
 
 	state, err = s.OTPCodes.InspectState(kind, target)
 	if errors.Is(err, otp.ErrConsumedCode) {

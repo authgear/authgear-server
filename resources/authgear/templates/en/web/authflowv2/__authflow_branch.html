@@ -6,7 +6,6 @@
 
 <div class="flex flex-col gap-y-4">
 
-  <!-- TODO: Update authenticate with recovery_code to v2 -->
 {{- range $.Branches }}
   {{- if eq $.ActionType "authenticate" }}
     {{- if eq .Authentication "recovery_code" }}
@@ -33,7 +32,6 @@
   <input type="hidden" name="x_channel" value="{{ .Channel }}">
   <input type="hidden" name="x_action" value="take_branch">
   <button class="secondary-btn w-full flex gap-x-2" type="submit">
-    <!-- TODO: Update create_authenticator to v2 -->
     {{- if eq $.ActionType "create_authenticator" }}
       {{- if eq .Authentication "primary_password" }}
         <span class="material-icons secondary-btn__icon">key_vertical</span>
@@ -142,14 +140,14 @@
       {{- end }}
     {{- end }}
 
-
-    <!-- TODO: Update verify to v2 -->
     {{- if eq $.ActionType "verify" }}
       {{- if eq .Channel "sms" }}
-        {{ template "enter-phone-otp-sms-instead" (dict "target" .MaskedClaimValue) }}
+        <span class="material-icons secondary-btn__icon">phone_iphone</span>
+        {{ template "v2-enter-phone-otp-sms-instead" }}
       {{- end }}
       {{- if eq .Channel "whatsapp" }}
-        {{ template "enter-phone-otp-whatsapp-instead" (dict "target" .MaskedClaimValue) }}
+        <span class="sso-icon whatsapp-icon secondary-btn__icon"></span>
+        {{ template "v2-enter-phone-otp-whatsapp-instead" }}
       {{- end }}
     {{- end }}
 

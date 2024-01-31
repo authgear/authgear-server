@@ -41,7 +41,6 @@ const (
 	AuthflowV2RouteEnterPassword     = "/authflow/v2/enter_password"
 	AuthflowV2RouteEnterRecoveryCode = "/authflow/v2/enter_recovery_code"
 	AuthflowV2RouteEnterOOBOTP       = "/authflow/v2/enter_oob_otp"
-	AuthflowV2RouteWhatsappOTP       = "/authflow/v2/whatsapp_otp"
 	AuthflowV2RouteOOBOTPLink        = "/authflow/v2/oob_otp_link"
 	AuthflowV2RouteEnterTOTP         = "/authflow/v2/enter_totp"
 	AuthflowV2RouteSetupTOTP         = "/authflow/v2/setup_totp"
@@ -136,15 +135,7 @@ func (n *AuthflowV2Navigator) navigateSignupPromote(s *webapp.AuthflowScreenWith
 	case config.AuthenticationFlowStepTypeIdentify:
 		n.navigateStepIdentify(s, r, webSessionID, result, expectedPath)
 	case config.AuthenticationFlowStepTypeCreateAuthenticator:
-		// If the current step already tells the authentication, use it
-		authentication := s.StateTokenFlowResponse.Action.Authentication
-		if authentication == "" {
-			// Else, get it from the first option of the branch step
-			options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData).Options
-			index := *s.Screen.TakenBranchIndex
-			option := options[index]
-			authentication = option.Authentication
-		}
+		authentication := getTakenBranchSignupCreateAuthenticatorAuthentication(s)
 		switch authentication {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough
@@ -184,7 +175,7 @@ func (n *AuthflowV2Navigator) navigateSignupPromote(s *webapp.AuthflowScreenWith
 				case model.AuthenticatorOOBChannelSMS:
 					s.Advance(AuthflowV2RouteEnterOOBOTP, result)
 				case model.AuthenticatorOOBChannelWhatsapp:
-					s.Advance(AuthflowV2RouteWhatsappOTP, result)
+					s.Advance(AuthflowV2RouteEnterOOBOTP, result)
 				default:
 					panic(fmt.Errorf("unexpected channel: %v", channel))
 				}
@@ -208,7 +199,7 @@ func (n *AuthflowV2Navigator) navigateSignupPromote(s *webapp.AuthflowScreenWith
 			case model.AuthenticatorOOBChannelSMS:
 				s.Advance(AuthflowV2RouteEnterOOBOTP, result)
 			case model.AuthenticatorOOBChannelWhatsapp:
-				s.Advance(AuthflowV2RouteWhatsappOTP, result)
+				s.Advance(AuthflowV2RouteEnterOOBOTP, result)
 			case "":
 				// Verify may not have branches.
 				s.Advance(AuthflowV2RouteEnterOOBOTP, result)
@@ -328,7 +319,7 @@ func (n *AuthflowV2Navigator) navigateLogin(s *webapp.AuthflowScreenWithFlowResp
 			case model.AuthenticatorOOBChannelSMS:
 				s.Advance(AuthflowV2RouteEnterOOBOTP, result)
 			case model.AuthenticatorOOBChannelWhatsapp:
-				s.Advance(AuthflowV2RouteWhatsappOTP, result)
+				s.Advance(AuthflowV2RouteEnterOOBOTP, result)
 			default:
 				panic(fmt.Errorf("unexpected channel: %v", channel))
 			}
@@ -400,7 +391,7 @@ func (n *AuthflowV2Navigator) navigateReauth(s *webapp.AuthflowScreenWithFlowRes
 			case model.AuthenticatorOOBChannelSMS:
 				s.Advance(AuthflowV2RouteEnterOOBOTP, result)
 			case model.AuthenticatorOOBChannelWhatsapp:
-				s.Advance(AuthflowV2RouteWhatsappOTP, result)
+				s.Advance(AuthflowV2RouteEnterOOBOTP, result)
 			default:
 				panic(fmt.Errorf("unexpected channel: %v", channel))
 			}

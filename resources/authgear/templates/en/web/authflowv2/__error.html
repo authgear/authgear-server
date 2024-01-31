@@ -107,7 +107,11 @@
         {{ template "v2-error-invalid-credentials" (dict "AuthenticationType" $info.AuthenticationType) }}
       </span>
     {{ else if eq .Error.reason "PasswordResetFailed" }}
-      <span>{{ template "error-password-reset-failed" }}</span>
+      {{ if and (.Error.info) (eq .Error.info.otp_form "code") }}
+        <span>{{ template "v2-error-invalid-credentials" }}</span>
+      {{ else }}
+        <span>{{ template "v2-error-password-reset-failed-description" }}</span>
+      {{ end }}
     {{ else if eq .Error.reason "NewPasswordTypo" }}
       <span>{{ template "error-new-password-typo" }}</span>
     {{ else if eq .Error.reason "StandardAttributesEmailRequired" }}
