@@ -26,6 +26,8 @@
       method="post"
       action="{{ $.FormActionPath }}"
       novalidate>
+      {{ $.CSRFField }}
+      <input type="hidden" name="x_oob_otp_code" value="{{ .Code }}">
       <h1 class="screen-title">{{ template "v2-verify-login-link-title" }}</h1>
       <p class="screen-description">{{ template "v2-verify-login-link-description" (dict "AppOrClientName" $appName) }}</p>
       <div class="flex-1 tablet:h-4 tablet:flex-none"></div>
