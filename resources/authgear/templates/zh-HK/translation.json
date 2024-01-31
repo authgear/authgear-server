@@ -1069,6 +1069,10 @@
   "v2-verify-login-link-approved-title": "已批准",
   "v2-verify-login-link-approved-description": "您已核准登入 {AppOrClientName}。<br/>您可以關閉此視窗。",
 
+  "v2-prompt-create-passkey-title": "簡化您的登入",
+  "v2-prompt-create-passkey-description": "透過通行密匙，您現在可以使用指紋、臉部或螢幕鎖定來驗證您的身分。",
+  "v2-prompt-create-passkey-skip": "現在不要",
+
   "v2-reset-password-page-title": "更新密碼",
   "v2-reset-password-page-subtitle": "(TBC) 基於安全考量，請更新你的密碼",
   "v2-reset-password-success-page-title": "成功更新密碼",
