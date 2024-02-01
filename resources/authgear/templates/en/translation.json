@@ -1076,7 +1076,7 @@
   "v2-prompt-create-passkey-description": "With Passkeys you can now use your fingerprint, face, or screen lock to verify it''s really you.",
   "v2-prompt-create-passkey-skip": "Not now",
 
-  "v2-use-passkey-title": "Passkey",
+  "v2-use-passkey-title": "Login with Passkey",
   "v2-use-passkey-description": "Continue to login with passkey.",
   "v2-use-passkey-action": "Use passkey",
 

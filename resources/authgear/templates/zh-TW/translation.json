@@ -1076,6 +1076,10 @@
   "v2-prompt-create-passkey-description": "透過通行密匙，您現在可以使用指紋、臉部或螢幕鎖定來驗證您的身分。",
   "v2-prompt-create-passkey-skip": "現在不要",
 
+  "v2-use-passkey-title": "使用通行密匙登入",
+  "v2-use-passkey-description": "繼續使用通行密匙登入。",
+  "v2-use-passkey-action": "使用通行密匙",
+
   "v2-reset-password-page-title": "更新密碼",
   "v2-reset-password-page-subtitle": "(TBC) 基於安全考量，請更新你的密碼",
   "v2-reset-password-success-page-title": "成功更新密碼",
