@@ -1,0 +1,37 @@
+{{ template "authflowv2/__page_frame.html" . }}
+
+{{ define "page-content" }}
+  <form class="screen-icon-layout flex-1-0-auto" method="post" novalidate>
+    {{ $.CSRFField }}
+    <i class="material-icons screen-icon">phone_iphone</i>
+    <header class="flex flex-col gap-4">
+      <h1 class="screen-title">{{ template "v2-confirm-terminate-other-sessions-title" }}</h1>
+      <p class="screen-description">{{ template "v2-confirm-terminate-other-sessions-description" }}</p>
+    </header>
+    <div></div>
+
+    <footer class="flex flex-col gap-4">
+      <button
+        class="primary-btn w-full"
+        type="submit"
+        name="x_action"
+        value="confirm"
+        data-turbo="false"
+        data-authgear-event="authgear.button.confirm_terminate_other_sessions"
+      >
+        {{ template "v2-button.continue" }}
+      </button>
+      <button
+        class="label-btn w-full"
+        type="submit"
+        name="x_action"
+        value="cancel"
+        data-turbo="false"
+        data-authgear-event="authgear.button.cancel_terminate_other_sessions"
+      >
+        {{ template "v2-confirm-terminate-other-sessions-cancel-button-label" }}
+      </button>
+    </footer>
+  </form>
+
+{{ end }}

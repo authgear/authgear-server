@@ -1101,5 +1101,9 @@
   "v2-login-link-otp-matched-title": "(TBC) 鏈接已驗證",
   "v2-login-link-otp-matched-description": "(TBC) 成功驗證你的電郵",
   "v2-login-link-otp-resend-button-label": "重新發送",
-  "v2-login-link-otp-resend-button-label--unit": "在 %s 後重新發送"
+  "v2-login-link-otp-resend-button-label--unit": "在 %s 後重新發送",
+
+  "v2-confirm-terminate-other-sessions-title": "(TBC) 登出其他設備？",
+  "v2-confirm-terminate-other-sessions-description": "(TBC) 你已登入其他設備，繼續登入將從其他設備登出。",
+  "v2-confirm-terminate-other-sessions-cancel-button-label": "(TBC) 不，不要登出"
 }
