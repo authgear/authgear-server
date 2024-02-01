@@ -146,15 +146,15 @@
     {{ template "authflowv2/__divider.html" (dict "Classname" "my-8")  }}
     <section class="flex flex-col gap-4">
       {{ if $.PasskeyEnabled }}
-				<div class="block w-full"
-					data-controller="authflow-passkey-request"
-					data-authflow-passkey-request-options-value="{{ $.PasskeyRequestOptionsJSON }}"
-					data-authflow-passkey-request-auto-value="false">
-					<button class="secondary-btn w-full"
-						type="button"
-						data-action="click->authflow-passkey-request#use"
-						data-authflow-passkey-request-target="button"
-						data-authgear-event="authgear.button.use_passkey">
+        <div class="block w-full"
+          data-controller="authflow-passkey-request"
+          data-authflow-passkey-request-options-value="{{ $.PasskeyRequestOptionsJSON }}"
+          data-authflow-passkey-request-auto-value="false">
+          <button class="secondary-btn w-full"
+            type="button"
+            data-action="click->authflow-passkey-request#use"
+            data-authflow-passkey-request-target="button"
+            data-authgear-event="authgear.button.use_passkey">
             <div class="flex gap-2">
               <i class="alternative-icon material-icons">
                 passkey
@@ -163,14 +163,14 @@
                 {{ template "v2-continue-with-passkey" }}
               </span>
             </div>
-						</span>
-					</button>
-					<form class="hidden" method="post" novalidate>
+            </span>
+          </button>
+          <form class="hidden" method="post" novalidate>
             {{ $.CSRFField }}
             <input type="hidden" name="x_assertion_response" data-authflow-passkey-request-target="input">
             <button type="submit" class="hidden" name="x_action" value="passkey" data-authflow-passkey-request-target="submit"></button>
-					</form>
-				</div>
+          </form>
+        </div>
       {{ end }}
 
       {{ if $show_use_text_login_id_option }}
