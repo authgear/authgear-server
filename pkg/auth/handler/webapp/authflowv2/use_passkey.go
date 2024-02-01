@@ -20,7 +20,7 @@ var TemplateWebAuthflowUsePasskeyHTML = template.RegisterHTML(
 func ConfigureAuthflowV2UsePasskeyRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern(webapp.AuthflowRouteUsePasskey)
+		WithPathPattern(AuthflowV2RouteUsePasskey)
 }
 
 type AuthflowV2UsePasskeyViewModel struct {
