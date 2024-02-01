@@ -82,6 +82,7 @@ func (i *NodeUseAuthenticatorPassword) ReactTo(ctx context.Context, deps *authfl
 		return authflow.NewNodeSimple(&NodeDoUseAuthenticatorPassword{
 			Authenticator:          info,
 			PasswordChangeRequired: requireUpdate,
+			JSONPointer:            i.JSONPointer,
 		}), nil
 	}
 

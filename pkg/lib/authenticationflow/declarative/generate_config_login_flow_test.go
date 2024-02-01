@@ -58,8 +58,6 @@ steps:
       one_of:
       - authentication: primary_password
         steps:
-        - type: change_password
-          target_step: authenticate_primary_email
         - name: authenticate_secondary_email
           type: authenticate
           optional: true
@@ -67,6 +65,8 @@ steps:
           - authentication: secondary_totp
           - authentication: recovery_code
           - authentication: device_token
+        - type: change_password
+          target_step: authenticate_primary_email
 - type: check_account_status
 - type: terminate_other_sessions
 `)
@@ -167,8 +167,6 @@ steps:
       one_of:
       - authentication: primary_password
         steps:
-        - type: change_password
-          target_step: authenticate_primary_username
         - name: authenticate_secondary_username
           type: authenticate
           optional: true
@@ -176,6 +174,8 @@ steps:
           - authentication: secondary_totp
           - authentication: recovery_code
           - authentication: device_token
+        - type: change_password
+          target_step: authenticate_primary_username
 - type: check_account_status
 - type: terminate_other_sessions
 `)
@@ -207,8 +207,6 @@ steps:
       one_of:
       - authentication: primary_password
         steps:
-        - type: change_password
-          target_step: authenticate_primary_email
         - name: authenticate_secondary_email
           type: authenticate
           optional: true
@@ -216,6 +214,8 @@ steps:
           - authentication: secondary_totp
           - authentication: recovery_code
           - authentication: device_token
+        - type: change_password
+          target_step: authenticate_primary_email
       - authentication: primary_oob_otp_email
         target_step: identify
         steps:
@@ -233,8 +233,6 @@ steps:
       one_of:
       - authentication: primary_password
         steps:
-        - type: change_password
-          target_step: authenticate_primary_phone
         - name: authenticate_secondary_phone
           type: authenticate
           optional: true
@@ -242,6 +240,8 @@ steps:
           - authentication: secondary_totp
           - authentication: recovery_code
           - authentication: device_token
+        - type: change_password
+          target_step: authenticate_primary_phone
       - authentication: primary_oob_otp_sms
         target_step: identify
         steps:
@@ -283,14 +283,14 @@ steps:
       one_of:
       - authentication: primary_password
         steps:
-        - type: change_password
-          target_step: authenticate_primary_email
         - name: authenticate_secondary_email
           type: authenticate
           one_of:
           - authentication: secondary_totp
           - authentication: recovery_code
           - authentication: device_token
+        - type: change_password
+          target_step: authenticate_primary_email
 - type: check_account_status
 - type: terminate_other_sessions
 `)
@@ -323,13 +323,13 @@ steps:
       one_of:
       - authentication: primary_password
         steps:
-        - type: change_password
-          target_step: authenticate_primary_email
         - name: authenticate_secondary_email
           type: authenticate
           optional: true
           one_of:
           - authentication: secondary_totp
+        - type: change_password
+          target_step: authenticate_primary_email
 - type: check_account_status
 - type: terminate_other_sessions
 `)
@@ -429,12 +429,12 @@ steps:
       one_of:
       - authentication: primary_password
         steps:
-        - type: change_password
-          target_step: authenticate_primary_email
         - name: authenticate_secondary_email
           type: authenticate
           one_of:
           - authentication: secondary_totp
+        - type: change_password
+          target_step: authenticate_primary_email
   - identification: oauth
 - type: check_account_status
 - type: terminate_other_sessions
@@ -466,8 +466,6 @@ steps:
       one_of:
       - authentication: primary_password
         steps:
-        - type: change_password
-          target_step: authenticate_primary_email
         - name: authenticate_secondary_email
           type: authenticate
           optional: true
@@ -475,6 +473,8 @@ steps:
           - authentication: secondary_totp
           - authentication: recovery_code
           - authentication: device_token
+        - type: change_password
+          target_step: authenticate_primary_email
       - authentication: primary_passkey
   - identification: passkey
 - type: check_account_status
@@ -520,12 +520,12 @@ steps:
       one_of:
       - authentication: primary_password
         steps:
-        - type: change_password
-          target_step: authenticate_primary_email
         - name: authenticate_secondary_email
           type: authenticate
           one_of:
           - authentication: secondary_totp
+        - type: change_password
+          target_step: authenticate_primary_email
       - authentication: primary_passkey
   - identification: oauth
   - identification: passkey

@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/slice"
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 func getUserID(flows authflow.Flows) (userID string, err error) {
@@ -179,6 +180,7 @@ type MilestoneDidSelectAuthenticator interface {
 type MilestoneDoUseAuthenticatorPassword interface {
 	authflow.Milestone
 	MilestoneDoUseAuthenticatorPassword() *NodeDoUseAuthenticatorPassword
+	GetJSONPointer() jsonpointer.T
 }
 
 type MilestoneDoPopulateStandardAttributes interface {

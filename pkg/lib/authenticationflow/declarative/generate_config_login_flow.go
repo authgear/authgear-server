@@ -189,17 +189,17 @@ func generateLoginFlowStepAuthenticatePrimaryPassword(
 		Authentication: config.AuthenticationFlowAuthenticationPrimaryPassword,
 	}
 
+	// Add authenticate step secondary if necessary
+	if stepAuthenticateSecondary, ok := generateLoginFlowStepAuthenticateSecondary(cfg, identification); ok {
+		oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
+	}
+
 	// Add change password step.
 	if *cfg.Authenticator.Password.ForceChange {
 		oneOf.Steps = append(oneOf.Steps, &config.AuthenticationFlowLoginFlowStep{
 			Type:       config.AuthenticationFlowLoginFlowStepTypeChangePassword,
 			TargetStep: targetStep,
 		})
-	}
-
-	// Add authenticate step secondary if necessary
-	if stepAuthenticateSecondary, ok := generateLoginFlowStepAuthenticateSecondary(cfg, identification); ok {
-		oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
 	}
 	return oneOf
 }
