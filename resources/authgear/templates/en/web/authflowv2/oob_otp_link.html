@@ -17,15 +17,7 @@
     {{ $.CSRFField }}
     <footer class="flex flex-col gap-y-4">
       {{- if $.DeviceTokenEnabled }}
-        <div class="mt-4 flex flex-row items-center gap-x-2.5">
-          <div class="checkbox">
-            <input id="device-token" type="checkbox" name="x_device_token" value="true">
-            <label class="checkbox__label" for="device-token">
-              <span class="checkbox__icon material-icons">check</span>
-            </label>
-          </div>
-          <label class="text-sm primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
-        </div>
+        {{ template "authflowv2/__device_token_checkbox.html" }}
       {{- end }}
       <button
         class="primary-btn w-full"
