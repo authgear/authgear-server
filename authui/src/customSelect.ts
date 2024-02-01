@@ -116,6 +116,7 @@ export class CustomSelectController extends Controller {
     this.triggerTarget.setAttribute("aria-expanded", "true");
 
     this.clearSearch();
+    this.resetScroll();
 
     this.searchTarget?.focus();
   }
@@ -139,11 +140,21 @@ export class CustomSelectController extends Controller {
 
   search(event: InputEvent) {
     this.renderItems();
+    this.resetScroll();
   }
 
   clearSearch() {
     this.searchTarget!.value = "";
     this.renderItems();
+  }
+
+  resetScroll() {
+    const item = this.optionsTarget.querySelector<HTMLLIElement>(
+      `[data-value="${this.focusedValue ?? this.value}"]`
+    );
+    if (item) {
+      item.scrollIntoView({ block: "center" });
+    }
   }
 
   navigate(stepFn: (index: number) => number) {
@@ -160,7 +171,6 @@ export class CustomSelectController extends Controller {
 
     if (!item) return;
     this._updateAriaSelected(item);
-    item.focus();
   }
 
   handleSelect(event: MouseEvent) {
@@ -246,11 +256,47 @@ export class CustomSelectController extends Controller {
     this.close();
   }
 
-  _updateAriaSelected(selectedItem: HTMLLIElement) {
+  _updateAriaSelected(item: HTMLLIElement) {
     this.optionsTarget.querySelectorAll('[role="option"]').forEach((option) => {
       option.setAttribute("aria-selected", "false");
     });
-    selectedItem.setAttribute("aria-selected", "true");
+    item.setAttribute("aria-selected", "true");
+    this._scrollIntoNearestView(item);
+  }
+
+  // Default `scrollIntoView({ block: "nearest" })` does not keep padding
+  // into account, which makes the selected item stick to the top/bottom of the
+  // dropdown.
+  _scrollIntoNearestView(item: HTMLLIElement) {
+    const container = this.optionsTarget;
+    const containerPadding = parseFloat(getComputedStyle(container).paddingTop);
+    const padding = parseFloat(getComputedStyle(item).paddingTop);
+    const itemPosition = item.offsetTop - this.searchTarget.offsetHeight;
+
+    let scrollPosition: number | undefined;
+
+    switch (true) {
+      case container.firstElementChild === item:
+        scrollPosition = 0;
+        break;
+      case container.lastElementChild === item:
+        scrollPosition = container.scrollHeight;
+        break;
+      case itemPosition < container.scrollTop + padding - containerPadding:
+        scrollPosition = itemPosition - padding;
+        break;
+      case itemPosition + item.offsetHeight + padding >
+        container.scrollTop + container.offsetHeight - containerPadding:
+        scrollPosition =
+          itemPosition + item.offsetHeight + padding - container.offsetHeight;
+        break;
+    }
+
+    if (scrollPosition !== undefined) {
+      requestAnimationFrame(() => {
+        container.scrollTo({ top: scrollPosition });
+      });
+    }
   }
 
   renderTrigger() {
