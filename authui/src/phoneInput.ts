@@ -55,7 +55,7 @@ function compileCountryList(): PhoneInputCountry[] {
     const countryFlag = getEmojiFlag(countryCode);
     const countryCallingCode = getCountryCallingCode(countryCode);
     return {
-      flagEmoji: `<span class="country-flag-icon phone-input__country-flag">${countryFlag}</span>`,
+      flagEmoji: `<span class="country-flag-icon phone-input__country-flag twemoji-countries">${countryFlag}</span>`,
       localizedName: countryLocalizedName,
       name: countryName,
       iso2: countryCode,

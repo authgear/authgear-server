@@ -28,18 +28,6 @@
     @apply hidden;
   }
 
-  dialog {
-    margin: unset;
-    padding: unset;
-    height: unset;
-    width: unset;
-    border: none;
-
-    &::backdrop {
-      background: none;
-    }
-  }
-
   /* Colors */
   :root {
     --color-white: #ffffff;

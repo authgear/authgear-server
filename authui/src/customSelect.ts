@@ -28,7 +28,7 @@ export class CustomSelectController extends Controller {
 
   declare readonly inputTarget: HTMLInputElement;
   declare readonly triggerTarget: HTMLButtonElement;
-  declare readonly dropdownTarget: HTMLDialogElement;
+  declare readonly dropdownTarget: HTMLElement;
   declare readonly searchTarget: HTMLInputElement;
   declare readonly clearSearchTarget: HTMLElement;
   declare readonly optionsTarget: HTMLElement;
@@ -75,6 +75,7 @@ export class CustomSelectController extends Controller {
       this._updateDropdownPosition
     );
 
+    this.dropdownTarget.classList.add("hidden");
     this.renderTrigger();
     this.renderSearch();
     this.renderItems();
@@ -103,28 +104,27 @@ export class CustomSelectController extends Controller {
   }
 
   open() {
-    if (this.dropdownTarget.open) return;
+    if (!this.dropdownTarget.classList.contains("hidden")) return;
 
-    this.dropdownTarget.show();
+    this.dropdownTarget.classList.remove("hidden");
     this.triggerTarget.setAttribute("aria-expanded", "true");
 
     this.clearSearch();
+    this.resetScroll();
 
-    if (!this.value) {
-      this.searchTarget?.focus();
-    }
+    this.searchTarget?.focus();
   }
 
   close() {
-    if (!this.dropdownTarget.open) return;
+    if (this.dropdownTarget.classList.contains("hidden")) return;
 
-    this.dropdownTarget.close();
+    this.dropdownTarget.classList.add("hidden");
     this.triggerTarget.setAttribute("aria-expanded", "false");
     this.triggerTarget.focus();
   }
 
   toggle() {
-    const willExpand = !this.dropdownTarget.open;
+    const willExpand = this.dropdownTarget.classList.contains("hidden");
     if (willExpand) {
       this.open();
     } else {
@@ -134,11 +134,21 @@ export class CustomSelectController extends Controller {
 
   search(event: InputEvent) {
     this.renderItems();
+    this.resetScroll();
   }
 
   clearSearch() {
     this.searchTarget!.value = "";
     this.renderItems();
+  }
+
+  resetScroll() {
+    const item = this.optionsTarget.querySelector<HTMLLIElement>(
+      `[data-value="${this.focusedValue ?? this.value}"]`
+    );
+    if (item) {
+      item.scrollIntoView({ block: "center" });
+    }
   }
 
   navigate(stepFn: (index: number) => number) {
@@ -155,7 +165,6 @@ export class CustomSelectController extends Controller {
 
     if (!item) return;
     this._updateAriaSelected(item);
-    item.focus();
   }
 
   handleSelect(event: MouseEvent) {
@@ -243,11 +252,47 @@ export class CustomSelectController extends Controller {
     this.close();
   }
 
-  _updateAriaSelected(selectedItem: HTMLLIElement) {
+  _updateAriaSelected(item: HTMLLIElement) {
     this.optionsTarget.querySelectorAll('[role="option"]').forEach((option) => {
       option.setAttribute("aria-selected", "false");
     });
-    selectedItem.setAttribute("aria-selected", "true");
+    item.setAttribute("aria-selected", "true");
+    this._scrollIntoNearestView(item);
+  }
+
+  // Default `scrollIntoView({ block: "nearest" })` does not keep padding
+  // into account, which makes the selected item stick to the top/bottom of the
+  // dropdown.
+  _scrollIntoNearestView(item: HTMLLIElement) {
+    const container = this.optionsTarget;
+    const containerPadding = parseFloat(getComputedStyle(container).paddingTop);
+    const padding = parseFloat(getComputedStyle(item).paddingTop);
+    const itemPosition = item.offsetTop - this.searchTarget.offsetHeight;
+
+    let scrollPosition: number | undefined;
+
+    switch (true) {
+      case container.firstElementChild === item:
+        scrollPosition = 0;
+        break;
+      case container.lastElementChild === item:
+        scrollPosition = container.scrollHeight;
+        break;
+      case itemPosition < container.scrollTop + padding - containerPadding:
+        scrollPosition = itemPosition - padding;
+        break;
+      case itemPosition + item.offsetHeight + padding >
+        container.scrollTop + container.offsetHeight - containerPadding:
+        scrollPosition =
+          itemPosition + item.offsetHeight + padding - container.offsetHeight;
+        break;
+    }
+
+    if (scrollPosition !== undefined) {
+      requestAnimationFrame(() => {
+        container.scrollTo({ top: scrollPosition });
+      });
+    }
   }
 
   renderTrigger() {
@@ -276,7 +321,7 @@ export class CustomSelectController extends Controller {
     this.filteredOptions.forEach((item, index) => {
       const clone = document.importNode(template, true);
       const option = clone.querySelector("li");
-      const selected = item.value === this.value;
+      const selected = this.keyword ? index === 0 : item.value === this.value;
       const prefixEl = option!.querySelector<HTMLElement>(
         '[data-label="prefix"]'
       );

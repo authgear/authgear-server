@@ -38,15 +38,14 @@
     ></button>
 
     <!-- Dropdown Menu -->
-    <dialog
-      class="select__dropdown"
+    <div
+      class="select__dropdown hidden"
       role="listbox"
       data-custom-select-target="dropdown"
     >
       <ul
         class="select__options"
         data-custom-select-target="options"
-        tabindex="-1"
       >
       </ul>
 
@@ -60,7 +59,7 @@
               data-custom-select-target="search"
               data-action="input->custom-select#search"
             >
-            <div class="select__search-icon" tabindex="-1">
+            <div class="select__search-icon">
               <i class="material-icons">search</i>
             </div>
             <button
@@ -69,7 +68,6 @@
               tabindex="-1"
               data-custom-select-target="clearSearch"
               data-action="click->custom-select#clearSearch"
-              aria-label="Clear"
             >
               <i class="material-icons material-icons--filled">cancel</i>
             </button>
@@ -79,7 +77,6 @@
             type="button"
             tabindex="-1"
             data-action="click->custom-select#close"
-            aria-label="Close"
           >
             <i class="material-icons">close</i>
           </button>
@@ -94,7 +91,7 @@
             click->custom-select#handleSelect
             keydown->custom-select#handleKeyDown
           "
-          tabindex="0"
+          tabindex="-1"
         >
           <span data-label="prefix" class="select__option-prefix"></span>
           <span data-label="content" class="select__option-content"></span>
@@ -106,7 +103,7 @@
           {{ template "v2-no-results-found" }}
         </li>
       </template>
-    </dialog>
+    </div>
   </div>
   <div class="flex-1">
     <input

@@ -13,7 +13,6 @@
   font-family: "twemoji-countries";
   font-weight: normal;
   font-style: normal;
-  font-size: 22px;
   display: inline-block;
   line-height: 1;
   text-transform: none;
@@ -32,4 +31,11 @@
 
   /* Support for IE. */
   font-feature-settings: "liga";
+}
+
+@supports (-webkit-appearance: none) and (stroke-color: transparent) {
+  .twemoji-countries {
+    position: relative;
+    bottom: 0.2rem;
+  }
 }

@@ -3,10 +3,10 @@
     --lockout__bg-color: var(--color-white);
   }
 
-  .modal[open] {
+  .modal {
     @apply absolute inset-0;
 
-    @apply flex;
+    @apply hidden;
     @apply flex-col;
     @apply items-center;
     @apply justify-center;
@@ -15,6 +15,10 @@
     @apply py-8;
 
     background-color: var(--lockout__bg-color);
+
+    &.open {
+      @apply flex;
+    }
   }
 
   @media (min-width: theme("screens.tablet")) {
