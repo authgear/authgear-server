@@ -923,6 +923,14 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 	))
 }
 
+func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		AuthflowV2UIHandlerDependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2TerminateOtherSessionsHandler)),
+	))
+}
+
 func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
