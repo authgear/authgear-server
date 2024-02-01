@@ -125,6 +125,7 @@
 
   .select__search {
     @apply flex-1;
+    @apply min-w-0;
     @apply grid;
     grid-template:
       "search  input clear" auto
@@ -144,6 +145,8 @@
   }
 
   .select__search-input {
+    @apply min-w-0;
+
     grid-area: input;
 
     border: none;
