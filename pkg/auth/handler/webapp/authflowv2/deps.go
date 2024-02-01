@@ -28,4 +28,5 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(AuthflowV2OOBOTPLinkHandler), "*"),
 	wire.Struct(new(AuthflowV2VerifyLoginLinkOTPHandler), "*"),
 	wire.Struct(new(AuthflowV2PromptCreatePasskeyHandler), "*"),
+	wire.Struct(new(AuthflowV2UsePasskeyHandler), "*"),
 )
