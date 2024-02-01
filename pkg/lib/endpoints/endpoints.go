@@ -1,6 +1,7 @@
 package endpoints
 
 import (
+	"fmt"
 	"net/url"
 	"path"
 
@@ -47,45 +48,42 @@ func (e *Endpoints) PromoteUserEndpointURL() *url.URL { return e.urlOf("flows/pr
 func (e *Endpoints) LogoutEndpointURL() *url.URL      { return e.urlOf("./logout") }
 func (e *Endpoints) SettingsEndpointURL() *url.URL    { return e.urlOf("./settings") }
 func (e *Endpoints) ResetPasswordEndpointURL(uiImpl config.UIImplementation) *url.URL {
+	uiImpl = uiImpl.WithDefault()
 	switch uiImpl {
 	case config.UIImplementationAuthflowV2:
 		return e.urlOf("authflow/v2/reset_password")
 	case config.UIImplementationAuthflow:
 		return e.urlOf("authflow/reset_password")
 	case config.UIImplementationInteraction:
-		fallthrough
-	case config.UIImplementationDefault:
-		fallthrough
-	default:
 		return e.urlOf("flows/reset_password")
+	default:
+		panic(fmt.Errorf("unexpected ui implementation %s", uiImpl))
 	}
 }
 func (e *Endpoints) ErrorEndpointURL(uiImpl config.UIImplementation) *url.URL {
+	uiImpl = uiImpl.WithDefault()
 	switch uiImpl {
 	case config.UIImplementationAuthflowV2:
 		return e.urlOf("/v2/errors/error")
 	case config.UIImplementationInteraction:
 		fallthrough
-	case config.UIImplementationDefault:
-		fallthrough
 	case config.UIImplementationAuthflow:
-		fallthrough
-	default:
 		return e.urlOf("/errors/error")
+	default:
+		panic(fmt.Errorf("unexpected ui implementation %s", uiImpl))
 	}
 }
 func (e *Endpoints) SelectAccountEndpointURL(uiImpl config.UIImplementation) *url.URL {
+	uiImpl = uiImpl.WithDefault()
 	switch uiImpl {
 	case config.UIImplementationAuthflowV2:
 		return e.urlOf("/authflow/v2/select_account")
 	case config.UIImplementationInteraction:
 		fallthrough
-	case config.UIImplementationDefault:
-		fallthrough
 	case config.UIImplementationAuthflow:
-		fallthrough
-	default:
 		return e.urlOf("/flows/select_account")
+	default:
+		panic(fmt.Errorf("unexpected ui implementation %s", uiImpl))
 	}
 }
 func (e *Endpoints) SSOCallbackEndpointURL() *url.URL { return e.urlOf("sso/oauth2/callback") }
@@ -95,8 +93,18 @@ func (e *Endpoints) WeChatCallbackEndpointURL() *url.URL {
 	return e.urlOf("sso/wechat/callback")
 }
 
-func (e *Endpoints) LoginLinkVerificationEndpointURL() *url.URL {
-	return e.urlOf("flows/verify_login_link")
+func (e *Endpoints) LoginLinkVerificationEndpointURL(uiImpl config.UIImplementation) *url.URL {
+	uiImpl = uiImpl.WithDefault()
+	switch uiImpl {
+	case config.UIImplementationAuthflowV2:
+		return e.urlOf("/authflow/v2/verify_login_link")
+	case config.UIImplementationInteraction:
+		fallthrough
+	case config.UIImplementationAuthflow:
+		return e.urlOf("flows/verify_login_link")
+	default:
+		panic(fmt.Errorf("unexpected ui implementation %s", uiImpl))
+	}
 }
 
 func (e *Endpoints) LogoutURL(redirectURI *url.URL) *url.URL {

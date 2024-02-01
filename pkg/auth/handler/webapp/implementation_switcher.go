@@ -2,6 +2,7 @@ package webapp
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -53,16 +54,15 @@ type ImplementationSwitcherHandler struct {
 }
 
 func (h *ImplementationSwitcherHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	switch GetUIImplementation(r.Context()) {
+	impl := GetUIImplementation(r.Context()).WithDefault()
+	switch impl {
 	case config.UIImplementationAuthflow:
 		h.Authflow.ServeHTTP(w, r)
 	case config.UIImplementationAuthflowV2:
 		h.AuthflowV2.ServeHTTP(w, r)
 	case config.UIImplementationInteraction:
-		fallthrough
-	case config.UIImplementationDefault:
-		fallthrough
-	default:
 		h.Interaction.ServeHTTP(w, r)
+	default:
+		panic(fmt.Errorf("unknown ui implementation %s", impl))
 	}
 }

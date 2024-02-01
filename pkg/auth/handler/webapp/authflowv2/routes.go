@@ -42,6 +42,7 @@ const (
 	AuthflowV2RouteEnterRecoveryCode = "/authflow/v2/enter_recovery_code"
 	AuthflowV2RouteEnterOOBOTP       = "/authflow/v2/enter_oob_otp"
 	AuthflowV2RouteOOBOTPLink        = "/authflow/v2/oob_otp_link"
+	AuthflowV2RouteVerifyLink        = "/authflow/v2/verify_login_link"
 	AuthflowV2RouteEnterTOTP         = "/authflow/v2/enter_totp"
 	AuthflowV2RouteSetupTOTP         = "/authflow/v2/setup_totp"
 	AuthflowV2RouteSetupOOBOTP       = "/authflow/v2/setup_oob_otp"
