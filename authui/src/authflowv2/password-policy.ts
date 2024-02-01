@@ -64,12 +64,12 @@ function checkPasswordSymbol(value: string, el: HTMLElement) {
 function checkPasswordStrength(
   value: string,
   el: HTMLElement,
-  currentMeter: HTMLMeterElement
+  currentMeter: HTMLElement
 ) {
   const minLevel = Number(el.getAttribute("data-min-level"));
   const result = zxcvbn(value);
   const score = Math.min(5, Math.max(1, result.score + 1));
-  currentMeter.value = score;
+  currentMeter.setAttribute("aria-valuenow", String(score));
   if (score >= minLevel) {
     el.setAttribute("data-state", "pass");
   } else {
@@ -82,7 +82,7 @@ export class PasswordPolicyController extends Controller {
 
   declare inputTarget: HTMLInputElement;
   declare hasCurrentMeterTarget: boolean;
-  declare currentMeterTarget: HTMLMeterElement;
+  declare currentMeterTarget: HTMLElement;
   declare policyTargets: HTMLElement[];
 
   connect() {
@@ -93,7 +93,7 @@ export class PasswordPolicyController extends Controller {
     const value = this.inputTarget.value;
     if (value === "") {
       if (this.hasCurrentMeterTarget) {
-        this.currentMeterTarget.value = -1;
+        this.currentMeterTarget.setAttribute("aria-valuenow", "0");
       }
       this.policyTargets.forEach((e) => {
         e.setAttribute("data-state", "");
