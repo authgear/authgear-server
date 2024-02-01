@@ -1069,6 +1069,10 @@
   "v2-verify-login-link-approved-title": "Approved",
   "v2-verify-login-link-approved-description": "You''ve approved the login for {AppOrClientName}. <br/>You can close this window.",
 
+  "v2-prompt-create-passkey-title": "Simplify your sign-in",
+  "v2-prompt-create-passkey-description": "With Passkeys you can now use your fingerprint, face, or screen lock to verify it''s really you.",
+  "v2-prompt-create-passkey-skip": "Not now",
+
   "v2-reset-password-page-title": "Update Password",
   "v2-reset-password-page-subtitle": "Create a new password that complies with security requirements.",
   "v2-reset-password-success-page-title": "Password updated",

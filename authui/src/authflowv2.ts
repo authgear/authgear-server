@@ -27,6 +27,10 @@ import { DialogController } from "./authflowv2/dialog";
 import { CopyButtonController } from "./copy";
 import { AuthflowWebsocketController } from "./authflow_websocket";
 import { AuthflowPollingController } from "./authflow_polling";
+import {
+  AuthflowPasskeyRequestController,
+  AuthflowPasskeyCreationController,
+} from "./passkey";
 
 axios.defaults.withCredentials = true;
 
@@ -76,5 +80,10 @@ Stimulus.register("loading", LoadingController);
 
 Stimulus.register("authflow-websocket", AuthflowWebsocketController);
 Stimulus.register("authflow-polling", AuthflowPollingController);
+Stimulus.register("authflow-passkey-request", AuthflowPasskeyRequestController);
+Stimulus.register(
+  "authflow-passkey-creation",
+  AuthflowPasskeyCreationController
+);
 
 injectCSSAttrs(document.documentElement);

@@ -1,0 +1,55 @@
+{{ template "authflowv2/__page_frame.html" . }}
+{{ define "page-content" }}
+  <div
+    class="screen-icon-layout flex-1-0-auto"
+    data-controller="authflow-passkey-creation"
+    data-authflow-passkey-creation-options-value="{{ $.CreationOptionsJSON }}">
+    <i class="material-icons screen-icon">encrypted</i>
+    <header class="flex flex-col gap-4">
+      <h1 class="screen-title">
+        {{ template "v2-prompt-create-passkey-title" }}
+      </h1>
+      <p class="screen-description">
+        {{ template "v2-prompt-create-passkey-description" }}
+      </p>
+    </header>
+    <div></div>
+    <footer class="flex flex-col gap-4">
+      <button
+        class="primary-btn w-full"
+        type="button"
+        data-action="click->authflow-passkey-creation#create"
+        data-authflow-passkey-creation-target="button"
+        data-authgear-event="authgear.button.create_passkey"
+        >
+        {{ template "v2-button.continue" }}
+      </button>
+      <form method="post" novalidate>
+        {{ $.CSRFField }}
+        <button
+          class="label-btn w-full"
+          type="submit"
+          name="x_action"
+          value="skip"
+          >
+          {{ template "v2-prompt-create-passkey-skip" }}
+        </button>
+      </form>
+    </footer>
+    <form class="hidden" method="post" novalidate>
+      {{ $.CSRFField }}
+      <input
+        type="hidden"
+        name="x_attestation_response"
+        data-authflow-passkey-creation-target="input"
+      />
+      <button
+        type="submit"
+        class="hidden"
+        name="x_action"
+        value=""
+        data-authflow-passkey-creation-target="submit">
+      </button>
+    </form>
+  </div>
+{{ end }}
