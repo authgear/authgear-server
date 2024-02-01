@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	pwd "github.com/authgear/authgear-server/pkg/util/password"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -57,6 +58,15 @@ func (h *AuthflowV2ChangePasswordHandler) GetData(w http.ResponseWriter, r *http
 			IsNew: false,
 		},
 	)
+
+	// put policy PasswordBelowGuessableLevel to front
+	for p, x := range passwordPolicyViewModel.PasswordPolicies {
+		if x.Name == password.PasswordBelowGuessableLevel {
+			passwordPolicyViewModel.PasswordPolicies = append([]password.Policy{x}, append((passwordPolicyViewModel.PasswordPolicies)[:p], (passwordPolicyViewModel.PasswordPolicies)[p+1:]...)...)
+			break
+		}
+	}
+
 	viewmodels.Embed(data, passwordPolicyViewModel)
 
 	passwordInputErrorViewModel := authflowv2viewmodels.NewPasswordInputErrorViewModel(baseViewModel.RawError)
