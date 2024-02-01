@@ -1,11 +1,5 @@
 import { Controller } from "@hotwired/stimulus";
-import {
-  autoPlacement,
-  autoUpdate,
-  computePosition,
-  flip,
-  shift,
-} from "@floating-ui/dom";
+import { autoUpdate, computePosition, flip } from "@floating-ui/dom";
 
 export interface SearchSelectOption {
   triggerLabel?: string;
@@ -218,10 +212,12 @@ export class CustomSelectController extends Controller {
 
   _updateDropdownPosition = () => {
     computePosition(this.triggerTarget, this.dropdownTarget, {
+      placement: "bottom-start",
       middleware: [
-        flip(),
-        shift(),
-        autoPlacement({ alignment: "start", crossAxis: true }),
+        flip({
+          fallbackPlacements: ["top-start"],
+          fallbackStrategy: "initialPlacement",
+        }),
       ],
     }).then(({ x, y }) => {
       Object.assign(this.dropdownTarget.style, {
