@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus";
+import { TextFieldController } from './authflowv2/text-field';
 
 export class OtpInputController extends Controller {
   static targets = ["input", "submit", "digitsContainer"];
@@ -8,6 +9,14 @@ export class OtpInputController extends Controller {
   declare readonly digitsContainerTarget: HTMLElement;
 
   spans: HTMLElement[] = [];
+
+  get textField(): TextFieldController | null {
+    const ctr = this.application.getControllerForElementAndIdentifier(
+      this.inputTarget,
+      "text-field"
+    );
+    return ctr as TextFieldController | null;
+  }
 
   get maxLength(): number {
     if (
@@ -64,6 +73,7 @@ export class OtpInputController extends Controller {
       this.submitTarget.click();
     }
 
+    this.textField?.onInput();
     this.render();
   };
 
@@ -117,7 +127,9 @@ export class OtpInputController extends Controller {
         ? "otp-input__digit otp-input__digit--focus"
         : "otp-input__digit";
 
-      if (textContent !== "") {
+      const isLastDigit = i < this.value.length - 1;
+      const isBlurred = this.inputTarget !== document.activeElement;
+      if (textContent && (isLastDigit || isBlurred)) {
         textContent = " ";
         className += " otp-input__digit--masked";
       }
