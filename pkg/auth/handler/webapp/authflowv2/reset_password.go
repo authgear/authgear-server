@@ -59,6 +59,7 @@ func (h *AuthflowV2ResetPasswordHandler) GetData(w http.ResponseWriter, r *http.
 			IsNew: false,
 		},
 	)
+
 	viewmodels.Embed(data, passwordPolicyViewModel)
 	passwordInputErrorViewModel := authflowv2viewmodels.NewPasswordInputErrorViewModel(baseViewModel.RawError)
 	viewmodels.Embed(data, passwordInputErrorViewModel)
