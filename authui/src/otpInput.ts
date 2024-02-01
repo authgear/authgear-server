@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus";
-import { TextFieldController } from './authflowv2/text-field';
+import { TextFieldController } from "./authflowv2/text-field";
 
 export class OtpInputController extends Controller {
   static targets = ["input", "submit", "digitsContainer"];
