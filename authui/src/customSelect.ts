@@ -279,7 +279,7 @@ export class CustomSelectController extends Controller {
     this.filteredOptions.forEach((item, index) => {
       const clone = document.importNode(template, true);
       const option = clone.querySelector("li");
-      const selected = item.value === this.value;
+      const selected = this.keyword ? index === 0 : item.value === this.value;
       const prefixEl = option!.querySelector<HTMLElement>(
         '[data-label="prefix"]'
       );
