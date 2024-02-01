@@ -1,11 +1,11 @@
 import { Controller } from "@hotwired/stimulus";
 
 function updateMeterDescription(
-  currentMeter: HTMLMeterElement,
+  currentMeter: HTMLElement,
   currentMeterDescription: HTMLElement
 ) {
   currentMeterDescription.textContent = currentMeter.getAttribute(
-    "data-desc-" + currentMeter.value
+    "data-desc-" + currentMeter.getAttribute("aria-valuenow")
   );
 }
 
@@ -18,7 +18,7 @@ export class PasswordStrengthMeterController extends Controller {
 
   connect() {
     const callback = () => {
-      this.display();
+      this.update();
     };
     this.observer = new MutationObserver(callback);
     this.observer.observe(this.element, {
@@ -30,9 +30,9 @@ export class PasswordStrengthMeterController extends Controller {
     this.observer = null;
   }
 
-  display() {
+  update() {
     updateMeterDescription(
-      this.element as HTMLMeterElement,
+      this.element as HTMLElement,
       this.currentMeterDescriptionTarget
     );
   }
