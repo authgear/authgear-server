@@ -11,7 +11,7 @@
     aria-modal="true"
     tabindex="-1"
   >
-    <div class="screen-icon-layout flex-1-0-auto">
+    <div class="screen-icon-layout flex-1-0-auto tablet:flex-none">
       <i class="material-icons screen-icon">account_circle_off</i>
       <header class="flex flex-col gap-4">
         <h1 class="screen-title" id="lockout-title">
@@ -36,6 +36,7 @@
       ></button>
     </footer>
     </div>
+    {{ template "authflowv2/__watermark.html" . }}
   </div>
 
   {{ end }}

@@ -1,7 +1,7 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
 
-<form class="screen-icon-layout flex-1-0-auto" method="post" novalidate>
+<form class="screen-icon-layout flex-1-0-auto tablet:flex-none" method="post" novalidate>
   {{ $.CSRFField }}
   <i class="screen-icon material-icons">account_circle</i>
   <section class="flex flex-col gap-4">

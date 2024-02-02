@@ -11,7 +11,7 @@
           <button/>
         </footer>
      */
-    @apply pt-14 pb-2;
+    @apply pt-14;
 
     @apply grid gap-6;
     grid-template-columns: 1fr;
@@ -30,9 +30,8 @@
           <--or--/>
           <buttons.../>
         </footer>
-        <remaining spacing/>
      */
-    grid-template-rows: auto auto auto 1fr;
+    grid-template-rows: auto auto auto;
   }
 
   @media (min-width: theme("screens.tablet")) {
@@ -49,12 +48,12 @@
         </footer>
      */
       @apply pt-0 pb-0;
-      grid-template-rows: auto auto 1rem auto; /* 64 - 24(gap) * 2 = 16 */
+      grid-template-rows: auto auto 1rem 1fr; /* 64 - 24(gap) * 2 = 16 */
     }
 
     .screen-icon-layout--compact {
       /* Same as mobile */
-      grid-template-rows: auto auto auto 1fr;
+      grid-template-rows: auto auto auto;
     }
   }
 }

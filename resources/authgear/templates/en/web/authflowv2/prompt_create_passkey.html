@@ -1,7 +1,7 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
   <div
-    class="screen-icon-layout flex-1-0-auto"
+    class="screen-icon-layout flex-1-0-auto tablet:flex-none"
     data-controller="authflow-passkey-creation"
     data-authflow-passkey-creation-options-value="{{ $.CreationOptionsJSON }}">
     <i class="material-icons screen-icon">encrypted</i>

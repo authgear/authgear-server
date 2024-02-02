@@ -1,6 +1,6 @@
 {{ define "authflowv2/__watermark.html" }}
-<div class="watermark__container">
-  {{ if $.WatermarkEnabled }}
+{{ if $.WatermarkEnabled }}
+  <div class="watermark__container">
     {{ if $.IsNativePlatform }}
     <div>
       <span class="watermark"></span>
@@ -10,6 +10,6 @@
       <span class="watermark"></span>
     </a>
     {{ end }}
-  {{ end }}
-</div>
+  </div>
+{{ end }}
 {{ end }}
