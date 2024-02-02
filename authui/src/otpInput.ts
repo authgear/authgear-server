@@ -117,7 +117,9 @@ export class OtpInputController extends Controller {
         ? "otp-input__digit otp-input__digit--focus"
         : "otp-input__digit";
 
-      if (textContent !== "") {
+      const isLastDigit = i < this.value.length - 1;
+      const isBlurred = this.inputTarget !== document.activeElement;
+      if (textContent && (isLastDigit || isBlurred)) {
         textContent = " ";
         className += " otp-input__digit--masked";
       }
