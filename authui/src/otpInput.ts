@@ -1,5 +1,4 @@
 import { Controller } from "@hotwired/stimulus";
-import { TextFieldController } from "./authflowv2/text-field";
 
 export class OtpInputController extends Controller {
   static targets = ["input", "submit", "digitsContainer"];
@@ -9,14 +8,6 @@ export class OtpInputController extends Controller {
   declare readonly digitsContainerTarget: HTMLElement;
 
   spans: HTMLElement[] = [];
-
-  get textField(): TextFieldController | null {
-    const ctr = this.application.getControllerForElementAndIdentifier(
-      this.inputTarget,
-      "text-field"
-    );
-    return ctr as TextFieldController | null;
-  }
 
   get maxLength(): number {
     if (
@@ -73,7 +64,6 @@ export class OtpInputController extends Controller {
       this.submitTarget.click();
     }
 
-    this.textField?.onInput();
     this.render();
   };
 
