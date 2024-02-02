@@ -14,10 +14,6 @@
   }
 
   @media (min-width: theme("screens.tablet")) {
-    .layout--default .widget {
-      @apply flex-none;
-    }
-
     .layout__header--default,
     .layout__footer--default {
       @apply flex-1;

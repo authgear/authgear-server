@@ -1,0 +1,17 @@
+@layer components {
+  .watermark {
+    @apply inline-block h-[22px] w-[120px] bg-no-repeat bg-center;
+    background-size: auto 22px;
+    background-image: url(./icons/raw/watermark.svg);
+  }
+
+  .watermark__container {
+    @apply mt-8 flex justify-center;
+  }
+
+  @media (min-width: theme("screens.tablet")) {
+    .watermark__container {
+      @apply mt-16;
+    }
+  }
+}
