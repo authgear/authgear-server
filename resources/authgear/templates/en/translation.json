@@ -1037,6 +1037,7 @@
   "v2-error-scheduled-deletion-by-admin": "Administrator has disabled your account and your account will be deleted on <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2-error-scheduled-deletion-by-end-user": "You have deactivated your account and your account will be deleted on <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2-error-page-not-found": "The page cannot be found",
+  "v2-error-new-password-typo": "The re-typed new password does not match the new password. Please ensure the two match.",
 
   "v2-setup-password-instead": "Set up password",
   "v2-setup-secondary-password-instead": "Set up additional password",

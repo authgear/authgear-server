@@ -31,6 +31,7 @@ import {
   AuthflowPasskeyRequestController,
   AuthflowPasskeyCreationController,
 } from "./passkey";
+import { NewPasswordFieldController } from "./authflowv2/new-password-field";
 
 axios.defaults.withCredentials = true;
 
@@ -77,6 +78,7 @@ Stimulus.register("copy-button", CopyButtonController);
 Stimulus.register("text-field", TextFieldController);
 Stimulus.register("dialog", DialogController);
 Stimulus.register("loading", LoadingController);
+Stimulus.register("new-password-field", NewPasswordFieldController);
 
 Stimulus.register("authflow-websocket", AuthflowWebsocketController);
 Stimulus.register("authflow-polling", AuthflowPollingController);
