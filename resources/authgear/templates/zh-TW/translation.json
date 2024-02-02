@@ -1105,5 +1105,7 @@
 
   "v2-confirm-terminate-other-sessions-title": "(TBC) 登出其他設備？",
   "v2-confirm-terminate-other-sessions-description": "(TBC) 你已登入其他設備，繼續登入將從其他設備登出。",
-  "v2-confirm-terminate-other-sessions-cancel-button-label": "(TBC) 不，不要登出"
+  "v2-confirm-terminate-other-sessions-cancel-button-label": "(TBC) 不，不要登出",
+
+  "v2-toc-pp-footer": "註冊即表示我已同意 {variant, select, both{<a class=\"link-btn\" target=\"_blank\" href=\"{termsOfService}\">條款和細則</a> 及 <a class=\"link-btn\" target=\"_blank\" href=\"{privacyPolicy}\">隱私政策</a>} termsOnly{<a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">條款和細則</a>} privacyOnly{<a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">隱私政策</a>} other{}}。"
 }
