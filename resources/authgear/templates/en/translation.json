@@ -1101,5 +1101,9 @@
   "v2-login-link-otp-matched-title": "Verification successful",
   "v2-login-link-otp-matched-description": "Your email has been successfully verified. Start exploring now.",
   "v2-login-link-otp-resend-button-label": "Resend again",
-  "v2-login-link-otp-resend-button-label--unit": "Resend in %s"
+  "v2-login-link-otp-resend-button-label--unit": "Resend in %s",
+
+  "v2-confirm-terminate-other-sessions-title": "Log out other device?",
+  "v2-confirm-terminate-other-sessions-description": "You''re logged in on another device. Continuing will log out from other devices.",
+  "v2-confirm-terminate-other-sessions-cancel-button-label": "No, don''t log out"
 }
