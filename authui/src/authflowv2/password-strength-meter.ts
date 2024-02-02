@@ -24,6 +24,7 @@ export class PasswordStrengthMeterController extends Controller {
     this.observer.observe(this.element, {
       attributes: true,
     });
+    this.update();
   }
   disconnect() {
     this.observer?.disconnect();
