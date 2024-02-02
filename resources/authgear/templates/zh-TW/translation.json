@@ -1077,7 +1077,7 @@
   "v2-prompt-create-passkey-skip": "現在不要",
 
   "v2-use-passkey-title": "使用通行密匙登入",
-  "v2-use-passkey-description": "繼續使用通行密匙登入。",
+  "v2-use-passkey-description": "使用下面的按鈕登入。",
   "v2-use-passkey-action": "使用通行密匙",
 
   "v2-reset-password-page-title": "更新密碼",
