@@ -950,6 +950,7 @@
 
   "v2-continue-with-text-login-id": "使用{variant, select, email {電子郵件} username {使用者名稱} other {電子郵件 / 使用者名稱}}繼續",
   "v2-continue-with-phone": "使用電話繼續",
+  "v2-continue-with-passkey": "使用通行密匙繼續",
 
   "v2-oauth-branding-apple": "使用 Apple 帳戶登入",
   "v2-oauth-branding-google": "使用 Google 帳戶登入",
@@ -1074,6 +1075,10 @@
   "v2-prompt-create-passkey-title": "簡化您的登入",
   "v2-prompt-create-passkey-description": "透過通行密匙，您現在可以使用指紋、臉部或螢幕鎖定來驗證您的身分。",
   "v2-prompt-create-passkey-skip": "現在不要",
+
+  "v2-use-passkey-title": "使用通行密匙登入",
+  "v2-use-passkey-description": "繼續使用通行密匙登入。",
+  "v2-use-passkey-action": "使用通行密匙",
 
   "v2-reset-password-page-title": "更新密碼",
   "v2-reset-password-page-subtitle": "(TBC) 基於安全考量，請更新你的密碼",

@@ -297,6 +297,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandlerauthflowv2.ConfigureV2AuthflowOOBOTPLinkRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2OOBOTPLinkHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2VerifyLoginLinkOTPRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2VerifyLoginLinkOTPHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2PromptCreatePasskeyRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2PromptCreatePasskeyHandler))
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2UsePasskeyRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2UsePasskeyHandler))
 
 	router.Add(webapphandler.ConfigureAuthflowEnterPasswordRoute(webappPageRoute), p.Handler(newWebAppAuthflowEnterPasswordHandler))
 	router.Add(webapphandler.ConfigureAuthflowEnterOOBOTPRoute(webappPageRoute), p.Handler(newWebAppAuthflowEnterOOBOTPHandler))

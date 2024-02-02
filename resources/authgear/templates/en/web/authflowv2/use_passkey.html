@@ -1,0 +1,37 @@
+{{ template "authflowv2/__page_frame.html" . }}
+{{ define "page-content" }}
+
+  <div class="screen-icon-layout screen-icon-layout--compact flex-1-0-auto">
+    <i class="screen-icon material-icons">passkey</i>
+    <header class="flex flex-col gap-4">
+      <h1 class="screen-title">
+        {{ template "v2-use-passkey-title" }}
+      </h1>
+      <p class="screen-description">
+        {{ template "v2-use-passkey-description" }}
+      </p>
+    </header>
+    <footer
+      class="flex flex-col gap-y-8"
+      data-controller="authflow-passkey-request"
+      data-authflow-passkey-request-options-value="{{ $.PasskeyRequestOptionsJSON }}"
+      data-authflow-passkey-request-auto-value="true">
+      <button
+        class="primary-btn w-full"
+        type="button"
+        data-action="click->authflow-passkey-request#use"
+        data-authflow-passkey-request-target="button"
+        data-authgear-event="authgear.button.use_passkey"
+      >
+        {{ template "v2-use-passkey-action" }}
+      </button>
+      <form class="hidden" method="post" novalidate>
+        {{ $.CSRFField }}
+        <input type="hidden" name="x_assertion_response" data-authflow-passkey-request-target="input">
+        <button type="submit" class="hidden" name="x_action" value="" data-authflow-passkey-request-target="submit"></button>
+      </form>
+      {{ template "authflowv2/__authflow_branch.html" . }}
+    </footer>
+  </div>
+
+{{ end }}

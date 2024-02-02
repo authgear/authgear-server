@@ -950,6 +950,7 @@
 
   "v2-continue-with-text-login-id": "Continue with {variant, select, email {Email} username {Username} other {Email / Username}}",
   "v2-continue-with-phone": "Continue with Phone",
+  "v2-continue-with-passkey": "Continue with Passkey",
 
   "v2-oauth-branding-apple": "Sign in with Apple",
   "v2-oauth-branding-google": "Sign in with Google",
@@ -1074,6 +1075,10 @@
   "v2-prompt-create-passkey-title": "Simplify your sign-in",
   "v2-prompt-create-passkey-description": "With Passkeys you can now use your fingerprint, face, or screen lock to verify it''s really you.",
   "v2-prompt-create-passkey-skip": "Not now",
+
+  "v2-use-passkey-title": "Login with Passkey",
+  "v2-use-passkey-description": "Continue to login with passkey.",
+  "v2-use-passkey-action": "Use passkey",
 
   "v2-reset-password-page-title": "Update Password",
   "v2-reset-password-page-subtitle": "Create a new password that complies with security requirements.",
