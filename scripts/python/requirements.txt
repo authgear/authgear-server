@@ -1,0 +1,5 @@
+beautifulsoup4==4.12.3
+brotli==1.1.0
+fonttools==4.47.2
+lxml==5.1.0
+requests==2.31.0

@@ -152,6 +152,14 @@ generate-timezones:
 generate-rtl:
 	go run ./scripts/characterorder/main.go | gofmt > pkg/util/intl/rtl_map.go
 
+.PHONT: generate-material-icons
+generate-material-icons:
+	pushd ./scripts/python && pip install -r requirements.txt && python ./subset_material_icons.py && popd
+
+.PHONT: generate-twemoji-icons
+generate-twemoji-icons:
+	pushd ./scripts/python && pip install -r requirements.txt && python ./subset_twemoji_icons.py && popd
+
 .PHONY: logs-summary
 logs-summary:
 	git log --first-parent --format='%as (%h) %s' $(A)..$(B)
