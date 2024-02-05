@@ -1053,7 +1053,8 @@
   "v2-setup-oob-otp-without-verification": "下次透過 {target} 使用一次性密碼登入",
 
   "v2-enter-recovery-code-title": "輸入備用碼",
-  "v2-enter-recovery-code-description": "輸入未使用的備用碼。",
+  "v2-enter-recovery-code-description": "輸入未使用的 10 個字元的備用碼。",
+  "v2-enter-recovery-code-description-reauth": "為了您的安全，我們需要驗證您的身分。輸入未使用的 10 個字元的備用碼。",
   "v2-change-password-page-title": "更新密碼",
   "v2-change-password-page-subtitle": "(TBC) 基於安全考量，請更新你的密碼",
   "v2-update-button-label": "更新",
