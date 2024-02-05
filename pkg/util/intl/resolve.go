@@ -26,3 +26,21 @@ func Resolve(preferred []string, fallback string, supported []string) (int, lang
 
 	return -1, tag
 }
+
+func ResolveLocaleCode(resolved string, fallback string, supported []string) string {
+	var matcher = language.NewMatcher(SupportedLanguageTags(supported))
+	var locale language.Tag
+
+	locale, _, confidence := matcher.Match(language.MustParse(resolved))
+	if confidence == language.No {
+		locale, _ = language.Parse(fallback)
+	}
+
+	_, _, region := locale.Raw()
+	localeCode := locale.String()
+	if locale.Parent() != locale {
+		localeCode = locale.Parent().String() + "-" + region.String()
+	}
+
+	return localeCode
+}

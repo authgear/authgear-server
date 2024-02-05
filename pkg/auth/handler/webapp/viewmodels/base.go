@@ -58,6 +58,7 @@ type BaseViewModel struct {
 	IsNativePlatform      bool
 	FlashMessageType      string
 	ResolvedLanguageTag   string
+	ResolvedLocale        string
 	HTMLDir               string
 	// IsSupportedMobilePlatform is true when the user agent is iOS or Android.
 	IsSupportedMobilePlatform   bool
@@ -177,6 +178,9 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 	preferredLanguageTags := intl.GetPreferredLanguageTags(r.Context())
 	_, resolvedLanguageTagTag := intl.Resolve(preferredLanguageTags, string(m.DefaultLanguageTag), []string(m.SupportedLanguageTags))
 	resolvedLanguageTag := resolvedLanguageTagTag.String()
+
+	localeCode := intl.ResolveLocaleCode(resolvedLanguageTag, string(m.DefaultLanguageTag), []string(m.SupportedLanguageTags))
+
 	htmlDir := intl.HTMLDir(resolvedLanguageTag)
 
 	allowedPhoneCountryCodeJSON, err := json.Marshal(m.AuthUI.PhoneInput.AllowList)
@@ -247,6 +251,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		PageLoadedAt:                int(now),
 		FlashMessageType:            m.FlashMessage.Pop(r, rw),
 		ResolvedLanguageTag:         resolvedLanguageTag,
+		ResolvedLocale:              localeCode,
 		HTMLDir:                     htmlDir,
 		GoogleTagManagerContainerID: m.GoogleTagManager.ContainerID,
 		HasThirdPartyClient:         hasThirdPartyApp,

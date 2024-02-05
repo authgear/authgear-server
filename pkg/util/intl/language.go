@@ -1,5 +1,7 @@
 package intl
 
+import "golang.org/x/text/language"
+
 // FallbackLanguage is non-empty.
 // Its purpose is to ensure fallback language is non-empty at compile time.
 // Use Fallback to construct FallbackLanguage.
@@ -41,4 +43,14 @@ func Supported(supportedLanguageTags []string, fallbackLanguage FallbackLanguage
 	s = append(s, supportedLanguageTags[:fallbackIdx]...)
 	s = append(s, supportedLanguageTags[fallbackIdx+1:]...)
 	return s
+}
+
+func SupportedLanguageTags(languages []string) []language.Tag {
+	var tags []language.Tag
+
+	for _, lang := range languages {
+		tags = append(tags, language.Make(lang))
+	}
+
+	return tags
 }
