@@ -59,7 +59,7 @@ type BaseViewModel struct {
 	IsNativePlatform      bool
 	FlashMessageType      string
 	ResolvedLanguageTag   string
-	ResolvedLocale        string
+	ResolvedCLDRLocale    string
 	HTMLDir               string
 	// IsSupportedMobilePlatform is true when the user agent is iOS or Android.
 	IsSupportedMobilePlatform   bool
@@ -252,7 +252,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		PageLoadedAt:                int(now),
 		FlashMessageType:            m.FlashMessage.Pop(r, rw),
 		ResolvedLanguageTag:         resolvedLanguageTag,
-		ResolvedLocale:              locale,
+		ResolvedCLDRLocale:          locale,
 		HTMLDir:                     htmlDir,
 		GoogleTagManagerContainerID: m.GoogleTagManager.ContainerID,
 		HasThirdPartyClient:         hasThirdPartyApp,

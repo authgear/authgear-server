@@ -41,7 +41,7 @@ async function compileCountryList(): Promise<PhoneInputCountry[]> {
   const preferredCountryCodes = getPreferredCountryCodes();
 
   const lang =
-    document.querySelector("meta[name=x-locale]")?.getAttribute("content") ||
+    document.querySelector("meta[name=x-cldr-locale]")?.getAttribute("content") ||
     document.documentElement.lang ||
     "en";
   const localizedTerritories = await fetch(
