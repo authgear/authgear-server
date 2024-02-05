@@ -114,6 +114,7 @@ var DependencySet = wire.NewSet(
 		wire.Bind(new(webapp.SuccessPageMiddlewareEndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(handlerwebappauthflowv2.AuthflowLoginEndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(handlerwebappauthflowv2.AuthflowV2NavigatorEndpointsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(handlerwebappauthflowv2.AuthflowV2PromoteEndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(handlerwebapp.AuthflowSignupEndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(handlerwebapp.AuthflowPromoteEndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(oidc.EndpointsProvider), new(*endpoints.Endpoints)),
