@@ -15,7 +15,11 @@
         {{ template "v2-enter-totp-title" }}
       </h1>
       <h2 class="screen-description">
-        {{ template "v2-enter-totp-description" . }}
+        {{ if eq $.FlowType "reauth" }}
+          {{ template "v2-enter-totp-description" . }}
+        {{ else }}
+          {{ template "v2-enter-totp-description-reauth" . }}
+        {{ end }}
       </h2>
 
       {{ if $.Error }}
