@@ -16,6 +16,9 @@ interface PhoneInputCountry {
   phone: string;
 }
 
+type Territories =
+  typeof defaultTerritories.main.en.localeDisplayNames.territories;
+
 function getOnlyCountryCodes(): CountryCode[] {
   const onlyCountries: CountryCode[] =
     JSON.parse(
@@ -36,12 +39,17 @@ function getPreferredCountryCodes(): CountryCode[] {
   return preferredCountries;
 }
 
-async function compileCountryList(): Promise<PhoneInputCountry[]> {
-  const onlyCountryCodes = getOnlyCountryCodes();
-  const preferredCountryCodes = getPreferredCountryCodes();
+async function compileDefaultCountryList() {
+  return compileCountryList(
+    defaultTerritories.main.en.localeDisplayNames.territories
+  );
+}
 
+async function compileLocalizedCountryList() {
   const lang =
-    document.querySelector("meta[name=x-cldr-locale]")?.getAttribute("content") ||
+    document
+      .querySelector("meta[name=x-cldr-locale]")
+      ?.getAttribute("content") ||
     document.documentElement.lang ||
     "en";
   const localizedTerritories = await fetch(
@@ -52,10 +60,23 @@ async function compileCountryList(): Promise<PhoneInputCountry[]> {
   const territories =
     localizedTerritories?.main[lang].localeDisplayNames.territories;
 
+  if (territories == null) {
+    return compileDefaultCountryList();
+  }
+
+  return compileCountryList(territories);
+}
+
+async function compileCountryList(
+  territories: Territories
+): Promise<PhoneInputCountry[]> {
+  const onlyCountryCodes = getOnlyCountryCodes();
+  const preferredCountryCodes = getPreferredCountryCodes();
+
   function countryCodeToCountry(countryCode: CountryCode): PhoneInputCountry {
     const countryName =
       defaultTerritories.main.en.localeDisplayNames.territories[countryCode];
-    const countryLocalizedName = territories?.[countryCode] ?? countryName;
+    const countryLocalizedName = territories[countryCode] ?? countryName;
     const countryFlag = getEmojiFlag(countryCode);
     const countryCallingCode = getCountryCallingCode(countryCode);
     return {
@@ -162,66 +183,75 @@ export class PhoneInputController extends Controller {
     this.updateValue();
   }
 
-  async _initPhoneCode() {
-    const countries = await compileCountryList();
-    const options = countries.map((country) => {
-      return {
-        triggerLabel: `${country.flagEmoji} +${country.phone}`,
-        prefix: `${country.flagEmoji} +${country.phone}`,
-        searchLabel: country.name,
-        label: country.localizedName,
-        value: country.iso2,
-      };
-    });
-    this.countrySelectTarget.setAttribute(
-      "data-custom-select-options-value",
-      JSON.stringify(options)
-    );
+  private async initPhoneCode() {
+    const countryListSources = [
+      compileDefaultCountryList,
+      compileLocalizedCountryList,
+    ];
 
-    // 1. If this.inputTarget.value has something.
-    // 2. x-geoip-country-code.
-    // 3. If countryCode is invalid, reset to empty.
-    // 4. Select the first one if countryCode is empty.
+    for (const source of countryListSources) {
+      try {
+        const countries = await source();
+        const options = countries.map((country) => {
+          return {
+            triggerLabel: `${country.flagEmoji} +${country.phone}`,
+            prefix: `${country.flagEmoji} +${country.phone}`,
+            searchLabel: country.name,
+            label: country.localizedName,
+            value: country.iso2,
+          };
+        });
+        this.countrySelectTarget.setAttribute(
+          "data-custom-select-options-value",
+          JSON.stringify(options)
+        );
 
-    const geoIPCountryCode: CountryCode | null =
-      (document
-        .querySelector("meta[name=x-geoip-country-code]")
-        ?.getAttribute("content") as CountryCode) ?? null;
+        // 1. If this.inputTarget.value has something.
+        // 2. x-geoip-country-code.
+        // 3. If countryCode is invalid, reset to empty.
+        // 4. Select the first one if countryCode is empty.
 
-    let countryCode: CountryCode | null = null;
-    let inputValue: string = this.phoneInputTarget.value;
+        const geoIPCountryCode: CountryCode | null =
+          (document
+            .querySelector("meta[name=x-geoip-country-code]")
+            ?.getAttribute("content") as CountryCode) ?? null;
 
-    if (this.inputTarget.value !== "") {
-      [countryCode, inputValue] = this.decomposeValue(this.inputTarget.value);
-      this.phoneInputTarget.value = inputValue;
+        let countryCode: CountryCode | null = null;
+        let inputValue: string = this.phoneInputTarget.value;
+
+        if (this.inputTarget.value !== "") {
+          [countryCode, inputValue] = this.decomposeValue(
+            this.inputTarget.value
+          );
+          this.phoneInputTarget.value = inputValue;
+        }
+
+        // countryCode is still null.
+        if (countryCode == null && geoIPCountryCode != null) {
+          countryCode = geoIPCountryCode;
+        }
+
+        // The detected country is not allowed.
+        if (options.find((o) => o.value == countryCode) == null) {
+          countryCode = null;
+        }
+
+        const initialValue = countryCode ?? options[0].value;
+        this.setCountrySelectValue(initialValue);
+      } catch (e) {
+        console.error(e);
+      }
     }
-
-    // countryCode is still null.
-    if (countryCode == null && geoIPCountryCode != null) {
-      countryCode = geoIPCountryCode;
-    }
-
-    // The detected country is not allowed.
-    if (options.find((o) => o.value == countryCode) == null) {
-      countryCode = null;
-    }
-
-    const initialValue = countryCode ?? options[0].value;
-    this.setCountrySelectValue(initialValue);
   }
 
   connect() {
-    this._initPhoneCode();
+    this.initPhoneCode();
 
     window.addEventListener("pageshow", this.handlePageShow);
   }
 
   disconnect() {
     window.removeEventListener("pageshow", this.handlePageShow);
-  }
-
-  inputTargetConnected() {
-    this._initPhoneCode();
   }
 
   handlePageShow = () => {
