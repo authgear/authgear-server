@@ -1,0 +1,15 @@
+{{ define "authflowv2/__watermark.html" }}
+{{ if $.WatermarkEnabled }}
+  <div class="watermark__container">
+    {{ if $.IsNativePlatform }}
+    <div>
+      <span class="watermark"></span>
+    </div>
+    {{ else }}
+    <a href="https://www.authgear.com/?utm_campaign=uibrand" target="_blank">
+      <span class="watermark"></span>
+    </a>
+    {{ end }}
+  </div>
+{{ end }}
+{{ end }}

@@ -48,6 +48,7 @@ var TemplateWebAuthflowV2ForgotPasswordAlternativesHTML = template.RegisterHTML(
 var TemplateWebAuthflowV2ErrorPageLayoutHTML = template.RegisterHTML("web/authflowv2/__error_page_layout.html")
 var TemplateWebAuthflowV2DeviceTokenCheckboxHTML = template.RegisterHTML("web/authflowv2/__device_token_checkbox.html")
 var TemplateWebAuthflowV2TermsOfServiceAndPrivacyPolicyFooterHTML = template.RegisterHTML("web/authflowv2/__toc_pp_footer.html")
+var TemplateWebAuthflowV2WatermarkHTML = template.RegisterHTML("web/authflowv2/__watermark.html")
 
 var ComponentsHTML = []*template.HTML{
 	TemplateWebHTMLHeadHTML,
@@ -93,4 +94,5 @@ var ComponentsHTML = []*template.HTML{
 	TemplateWebAuthflowV2ErrorPageLayoutHTML,
 	TemplateWebAuthflowV2DeviceTokenCheckboxHTML,
 	TemplateWebAuthflowV2TermsOfServiceAndPrivacyPolicyFooterHTML,
+	TemplateWebAuthflowV2WatermarkHTML,
 }
