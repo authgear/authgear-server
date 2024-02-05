@@ -8,6 +8,38 @@ import defaultTerritories from "cldr-localenames-full/main/en/territories.json";
 import territoriesMap from "cldr-localenames-full/main/*/territories.json";
 import { getEmojiFlag } from "./getEmojiFlag";
 import { CustomSelectController } from "./customSelect";
+import metadata from "libphonenumber-js/metadata.min.json";
+const CountryCodes = metadata.country_calling_codes;
+// Duplicated country codes
+// {
+//     "1": [ "US", "AG", "AI", "AS", "BB", "BM", "BS", "CA", "DM", "DO", "GD", "GU", "JM", "KN", "KY", "LC", "MP", "MS", "PR", "SX", "TC", "TT", "VC", "VG", "VI" ],
+//     "7": [ "RU", "KZ" ],
+//     "39": [ "IT", "VA" ],
+//     "44": [ "GB", "GG", "IM", "JE" ],
+//     "47": [ "NO", "SJ" ],
+//     "61": [ "AU", "CC", "CX" ],
+//     "212": [ "MA", "EH" ],
+//     "262": [ "RE", "YT" ],
+//     "290": [ "SH", "TA" ],
+//     "358": [ "FI", "AX" ],
+//     "590": [ "GP", "BL", "MF" ],
+//     "599": [ "CW", "BQ" ]
+// }
+
+const defaultCountryForDuplicatedCountryCodes: Record<string, CountryCode> = {
+  "1": "US",
+  "7": "RU",
+  "39": "IT",
+  "44": "GB",
+  "47": "NO",
+  "61": "AU",
+  "212": "MA",
+  "262": "RE",
+  "290": "SH",
+  "358": "FI",
+  "590": "GP",
+  "599": "CW",
+};
 
 interface PhoneInputCountry {
   flagEmoji: string;
@@ -146,9 +178,17 @@ export class PhoneInputController extends Controller {
     let value = target.value;
     const asYouType = new AsYouType();
     asYouType.input(value);
+
+    let countryCodeFromPartialNumber: CountryCode | undefined = undefined;
+    const callingCode = asYouType.getCallingCode();
+    if (callingCode != null) {
+      countryCodeFromPartialNumber =
+        defaultCountryForDuplicatedCountryCodes[callingCode] ??
+        CountryCodes[callingCode][0];
+    }
     const maybeCountry = asYouType.getCountry();
-    if (maybeCountry) {
-      this.countrySelect!.select(maybeCountry);
+    if (maybeCountry || countryCodeFromPartialNumber) {
+      this.countrySelect!.select(maybeCountry ?? countryCodeFromPartialNumber);
     }
     this.updateValue();
   }
