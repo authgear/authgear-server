@@ -1003,8 +1003,8 @@
   "v2-create-device-token-label": "不要再詢問",
   "v2-enter-password-page-title": "請輸入密碼",
   "v2-enter-additional-password-page-title": "請輸入輔助密碼",
-  "v2-enter-password-page-title-reauth": "為了您的安全，我們需要驗證您的身分。",
-  "v2-enter-additional-password-page-title-reauth": "為了您的安全，我們需要您的額外密碼才能繼續。",
+  "v2-enter-password-page-description-reauth": "為了您的安全，我們需要驗證您的身分。",
+  "v2-enter-additional-password-page-description-reauth": "為了您的安全，我們需要您的額外密碼才能繼續。",
 
   "v2-select-account-title": "登入 {AppOrClientName}",
   "v2-select-account-description": "您正在使用 {IdentityDisplayName} 登入。",

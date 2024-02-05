@@ -1003,8 +1003,8 @@
   "v2-create-device-token-label": "Remember this device, and don’t ask again",
   "v2-enter-password-page-title": "Enter password",
   "v2-enter-additional-password-page-title": "Enter additional password",
-  "v2-enter-password-page-title-reauth": "For your security, we need to verify it''s you.",
-  "v2-enter-additional-password-page-title-reauth": "For your security, we need your additional password to continue.",
+  "v2-enter-password-page-description-reauth": "For your security, we need to verify it''s you.",
+  "v2-enter-additional-password-page-description-reauth": "For your security, we need your additional password to continue.",
 
   "v2-select-account-title": "Log in to {AppOrClientName}",
   "v2-select-account-description": "You have logged in with {IdentityDisplayName}. Proceed to continue.",
