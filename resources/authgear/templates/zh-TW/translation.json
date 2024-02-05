@@ -1082,6 +1082,7 @@
 
   "v2-use-passkey-title": "使用通行密匙登入",
   "v2-use-passkey-description": "使用下面的按鈕登入。",
+  "v2-use-passkey-description-reauth": "為了您的安全，我們需要驗證您的身分。使用下面的按鈕登入。",
   "v2-use-passkey-action": "使用通行密匙",
 
   "v2-reset-password-page-title": "更新密碼",

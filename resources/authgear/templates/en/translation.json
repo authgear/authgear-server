@@ -1082,6 +1082,7 @@
 
   "v2-use-passkey-title": "Login with Passkey",
   "v2-use-passkey-description": "Log in using the button below.",
+  "v2-use-passkey-description-reauth": "For your security, we need to verify it''s you. Log in using the button below.",
   "v2-use-passkey-action": "Use passkey",
 
   "v2-reset-password-page-title": "Update Password",

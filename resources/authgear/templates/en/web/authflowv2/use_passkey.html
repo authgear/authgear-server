@@ -8,7 +8,11 @@
         {{ template "v2-use-passkey-title" }}
       </h1>
       <p class="screen-description">
-        {{ template "v2-use-passkey-description" }}
+        {{ if eq $.FlowType "reauth" }}
+          {{ template "v2-use-passkey-description" }}
+        {{ else }}
+          {{ template "v2-use-passkey-description-reauth" }}
+        {{ end }}
       </p>
     </header>
     <footer
