@@ -139,7 +139,7 @@
         <span>{{ template "v2-error-password-reset-failed-description" }}</span>
       {{ end }}
     {{ else if eq .Error.reason "NewPasswordTypo" }}
-      <span>{{ template "error-new-password-typo" }}</span>
+      <span>{{ template "v2-error-new-password-typo" }}</span>
     {{ else if eq .Error.reason "StandardAttributesEmailRequired" }}
       {{ if .Error.info.ProviderType }}
         {{ if eq .Error.info.ProviderType "github" }}

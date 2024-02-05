@@ -1038,6 +1038,7 @@
   "v2-error-scheduled-deletion-by-admin": "你的帳戶已被管理員停用，而你的帳戶將在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除。",
   "v2-error-scheduled-deletion-by-end-user": "你已停用你的帳戶，而你的帳戶將在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除。",
   "v2-error-page-not-found": "找不到頁面",
+  "v2-error-new-password-typo": "再輸入的新密碼與新密碼不同。請確保兩者相同。",
 
   "v2-setup-password-instead": "設定密碼",
   "v2-setup-secondary-password-instead": "設定附加密碼",

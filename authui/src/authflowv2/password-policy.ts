@@ -11,54 +11,101 @@ enum PasswordPolicyName {
   Symbol = "symbol",
 }
 
-function checkPasswordLength(value: string, el: HTMLElement) {
+interface ValidationResult {
+  policy: PasswordPolicyName;
+  isViolated: boolean;
+}
+
+function checkPasswordLength(value: string, el: HTMLElement): ValidationResult {
   const minLength = Number(el.getAttribute("data-min-length"));
   const codePoints = Array.from(value);
+  let isViolated = false;
   if (codePoints.length >= minLength) {
     el.setAttribute("data-state", "pass");
   } else {
     el.setAttribute("data-state", "fail");
+    isViolated = true;
   }
+  return {
+    policy: PasswordPolicyName.Length,
+    isViolated,
+  };
 }
 
-function checkPasswordUppercase(value: string, el: HTMLElement) {
+function checkPasswordUppercase(
+  value: string,
+  el: HTMLElement
+): ValidationResult {
+  let isViolated = false;
   if (/[A-Z]/.test(value)) {
     el.setAttribute("data-state", "pass");
   } else {
     el.setAttribute("data-state", "fail");
+    isViolated = true;
   }
+  return {
+    policy: PasswordPolicyName.Uppercase,
+    isViolated,
+  };
 }
 
-function checkPasswordLowercase(value: string, el: HTMLElement) {
+function checkPasswordLowercase(
+  value: string,
+  el: HTMLElement
+): ValidationResult {
+  let isViolated = false;
   if (/[a-z]/.test(value)) {
     el.setAttribute("data-state", "pass");
   } else {
     el.setAttribute("data-state", "fail");
+    isViolated = true;
   }
+  return {
+    policy: PasswordPolicyName.Lowercase,
+    isViolated,
+  };
 }
 
 function checkPasswordAlphabet(value: string, el: HTMLElement) {
+  let isViolated = false;
   if (/[a-zA-Z]/.test(value)) {
     el.setAttribute("data-state", "pass");
   } else {
     el.setAttribute("data-state", "fail");
+    isViolated = true;
   }
+  return {
+    policy: PasswordPolicyName.Alphabet,
+    isViolated,
+  };
 }
 
 function checkPasswordDigit(value: string, el: HTMLElement) {
+  let isViolated = false;
   if (/[0-9]/.test(value)) {
     el.setAttribute("data-state", "pass");
   } else {
     el.setAttribute("data-state", "fail");
+    isViolated = true;
   }
+  return {
+    policy: PasswordPolicyName.Digit,
+    isViolated,
+  };
 }
 
 function checkPasswordSymbol(value: string, el: HTMLElement) {
+  let isViolated = false;
   if (/[^a-zA-Z0-9]/.test(value)) {
     el.setAttribute("data-state", "pass");
   } else {
     el.setAttribute("data-state", "fail");
+    isViolated = true;
   }
+  return {
+    policy: PasswordPolicyName.Symbol,
+    isViolated,
+  };
 }
 
 function checkPasswordStrength(
@@ -66,6 +113,7 @@ function checkPasswordStrength(
   el: HTMLElement,
   currentMeter: HTMLElement
 ) {
+  let isViolated = false;
   const minLevel = Number(el.getAttribute("data-min-level"));
   const result = zxcvbn(value);
   const score = Math.min(5, Math.max(1, result.score + 1));
@@ -74,11 +122,17 @@ function checkPasswordStrength(
     el.setAttribute("data-state", "pass");
   } else {
     el.setAttribute("data-state", "fail");
+    isViolated = true;
   }
+  return {
+    policy: PasswordPolicyName.Strength,
+    isViolated,
+  };
 }
 
 export class PasswordPolicyController extends Controller {
   static targets = ["input", "currentMeter", "policy"];
+  static ATTR_POLICY_VIOLATED = "data-password-policy-violated";
 
   declare inputTarget: HTMLInputElement;
   declare hasCurrentMeterTarget: boolean;
@@ -101,34 +155,76 @@ export class PasswordPolicyController extends Controller {
 
       return;
     }
+    const violatedPolicies: PasswordPolicyName[] = [];
     this.policyTargets.forEach((e) => {
       switch (e.getAttribute("data-password-policy-name")) {
         case PasswordPolicyName.Strength:
           if (this.hasCurrentMeterTarget) {
-            checkPasswordStrength(value, e, this.currentMeterTarget);
+            const result = checkPasswordStrength(
+              value,
+              e,
+              this.currentMeterTarget
+            );
+            if (result.isViolated) {
+              violatedPolicies.push(result.policy);
+            }
           }
           break;
-        case PasswordPolicyName.Length:
-          checkPasswordLength(value, e);
+        case PasswordPolicyName.Length: {
+          const result = checkPasswordLength(value, e);
+          if (result.isViolated) {
+            violatedPolicies.push(result.policy);
+          }
           break;
-        case PasswordPolicyName.Uppercase:
-          checkPasswordUppercase(value, e);
+        }
+        case PasswordPolicyName.Uppercase: {
+          const result = checkPasswordUppercase(value, e);
+          if (result.isViolated) {
+            violatedPolicies.push(result.policy);
+          }
           break;
-        case PasswordPolicyName.Lowercase:
-          checkPasswordLowercase(value, e);
+        }
+        case PasswordPolicyName.Lowercase: {
+          const result = checkPasswordLowercase(value, e);
+          if (result.isViolated) {
+            violatedPolicies.push(result.policy);
+          }
           break;
-        case PasswordPolicyName.Alphabet:
-          checkPasswordAlphabet(value, e);
+        }
+        case PasswordPolicyName.Alphabet: {
+          const result = checkPasswordAlphabet(value, e);
+          if (result.isViolated) {
+            violatedPolicies.push(result.policy);
+          }
           break;
-        case PasswordPolicyName.Digit:
-          checkPasswordDigit(value, e);
+        }
+        case PasswordPolicyName.Digit: {
+          const result = checkPasswordDigit(value, e);
+          if (result.isViolated) {
+            violatedPolicies.push(result.policy);
+          }
           break;
-        case PasswordPolicyName.Symbol:
-          checkPasswordSymbol(value, e);
+        }
+        case PasswordPolicyName.Symbol: {
+          const result = checkPasswordSymbol(value, e);
+          if (result.isViolated) {
+            violatedPolicies.push(result.policy);
+          }
           break;
+        }
         default:
           break;
       }
     });
+    if (violatedPolicies.length > 0) {
+      this.inputTarget.setAttribute(
+        PasswordPolicyController.ATTR_POLICY_VIOLATED,
+        violatedPolicies.join(" ")
+      );
+    } else {
+      this.inputTarget.removeAttribute(
+        PasswordPolicyController.ATTR_POLICY_VIOLATED
+      );
+    }
   }
 }
