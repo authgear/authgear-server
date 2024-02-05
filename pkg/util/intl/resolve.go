@@ -27,20 +27,18 @@ func Resolve(preferred []string, fallback string, supported []string) (int, lang
 	return -1, tag
 }
 
-func ResolveLocaleCode(resolved string, fallback string, supported []string) string {
-	var matcher = language.NewMatcher(SupportedLanguageTags(supported))
-	var locale language.Tag
+// ResolveUnicodeCldr resolves language tag to Unicode CLDR language tag.
+func ResolveUnicodeCldr(lang language.Tag, fallback language.Tag) string {
+	var clrdTags []language.Tag
+	for _, cldr := range CldrLanguages {
+		clrdTags = append(clrdTags, language.MustParse(cldr))
+	}
 
-	locale, _, confidence := matcher.Match(language.MustParse(resolved))
+	var matcher = language.NewMatcher(clrdTags)
+	_, idx, confidence := matcher.Match(lang)
 	if confidence == language.No {
-		locale, _ = language.Parse(fallback)
+		return fallback.String()
 	}
 
-	_, _, region := locale.Raw()
-	localeCode := locale.String()
-	if locale.Parent() != locale {
-		localeCode = locale.Parent().String() + "-" + region.String()
-	}
-
-	return localeCode
+	return CldrLanguages[idx]
 }

@@ -7,6 +7,7 @@ import (
 	"net/url"
 
 	"github.com/gorilla/csrf"
+	"golang.org/x/text/language"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
@@ -179,7 +180,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 	_, resolvedLanguageTagTag := intl.Resolve(preferredLanguageTags, string(m.DefaultLanguageTag), []string(m.SupportedLanguageTags))
 	resolvedLanguageTag := resolvedLanguageTagTag.String()
 
-	localeCode := intl.ResolveLocaleCode(resolvedLanguageTag, string(m.DefaultLanguageTag), []string(m.SupportedLanguageTags))
+	locale := intl.ResolveUnicodeCldr(resolvedLanguageTagTag, language.MustParse(string(m.DefaultLanguageTag)))
 
 	htmlDir := intl.HTMLDir(resolvedLanguageTag)
 
@@ -251,7 +252,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		PageLoadedAt:                int(now),
 		FlashMessageType:            m.FlashMessage.Pop(r, rw),
 		ResolvedLanguageTag:         resolvedLanguageTag,
-		ResolvedLocale:              localeCode,
+		ResolvedLocale:              locale,
 		HTMLDir:                     htmlDir,
 		GoogleTagManagerContainerID: m.GoogleTagManager.ContainerID,
 		HasThirdPartyClient:         hasThirdPartyApp,

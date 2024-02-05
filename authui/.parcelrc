@@ -2,5 +2,5 @@
   "extends": "@parcel/config-default",
   "namers": ["parcel-namer-authgear", "..."],
   "resolvers": ["@parcel/resolver-glob", "..."],
-  "reporters": ["...", "parcel-reporter-authgear"]
+  "reporters": ["...", "parcel-reporter-static-files-copy", "parcel-reporter-authgear"]
 }

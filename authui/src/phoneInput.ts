@@ -5,7 +5,6 @@ import {
   AsYouType,
 } from "libphonenumber-js";
 import defaultTerritories from "cldr-localenames-full/main/en/territories.json";
-import territoriesMap from "cldr-localenames-full/main/*/territories.json";
 import { getEmojiFlag } from "./getEmojiFlag";
 import { CustomSelectController } from "./customSelect";
 
@@ -37,21 +36,26 @@ function getPreferredCountryCodes(): CountryCode[] {
   return preferredCountries;
 }
 
-function compileCountryList(): PhoneInputCountry[] {
+async function compileCountryList(): Promise<PhoneInputCountry[]> {
   const onlyCountryCodes = getOnlyCountryCodes();
   const preferredCountryCodes = getPreferredCountryCodes();
 
-  const lang = document.documentElement.lang || "en";
-  const localizedTerritories = territoriesMap[lang];
+  const lang =
+    document.querySelector("meta[name=x-locale]")?.getAttribute("content") ||
+    document.documentElement.lang ||
+    "en";
+  const localizedTerritories = await fetch(
+    `/shared-assets/cldr-localenames-full/${lang}/territories.json`
+  )
+    .then((r) => r.json())
+    .catch(() => null);
   const territories =
-    localizedTerritories?.main[lang as keyof typeof localizedTerritories.main]
-      ?.localeDisplayNames.territories ||
-    defaultTerritories.main.en.localeDisplayNames.territories;
+    localizedTerritories?.main[lang].localeDisplayNames.territories;
 
   function countryCodeToCountry(countryCode: CountryCode): PhoneInputCountry {
-    const countryLocalizedName = territories[countryCode];
     const countryName =
       defaultTerritories.main.en.localeDisplayNames.territories[countryCode];
+    const countryLocalizedName = territories?.[countryCode] ?? countryName;
     const countryFlag = getEmojiFlag(countryCode);
     const countryCallingCode = getCountryCallingCode(countryCode);
     return {
@@ -159,7 +163,7 @@ export class PhoneInputController extends Controller {
   }
 
   async _initPhoneCode() {
-    const countries = compileCountryList();
+    const countries = await compileCountryList();
     const options = countries.map((country) => {
       return {
         triggerLabel: `${country.flagEmoji} +${country.phone}`,
