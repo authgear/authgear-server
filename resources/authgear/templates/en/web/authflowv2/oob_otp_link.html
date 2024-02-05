@@ -38,18 +38,18 @@
 <i class="screen-icon material-icons">forward_to_inbox</i>
 <header class="flex flex-col gap-4">
   <h1 class="screen-title">
-    {{- if eq $.FlowType "reauth" }}
-      {{ template "v2-login-link-otp-page-title-reauth" }}
-    {{- else }}
-      {{ template "v2-login-link-otp-page-title" }}
-    {{- end }}
+    {{ template "v2-login-link-otp-page-title" }}
   </h1>
 
   <p class="screen-description">
     {{- if eq $.StateQuery "invalid_code" }}
       {{ template "v2-login-link-otp-invalid-code-description" }}
     {{- else }}
-      {{ template "v2-login-link-otp-initial-description" (dict "target" $.MaskedClaimValue) }}
+      {{- if eq $.FlowType "reauth" }}
+        {{ template "v2-login-link-otp-initial-description" (dict "target" $.MaskedClaimValue) }}
+      {{- else }}
+        {{ template "v2-login-link-otp-initial-description-reauth" (dict "target" $.MaskedClaimValue) }}
+      {{- end }}
     {{- end }}
   </p>
 </header>
