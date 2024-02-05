@@ -15,7 +15,7 @@ import (
 )
 
 var TemplateWebAuthflowPromoteHTML = template.RegisterHTML(
-	"web/authflowv2/promote.html",
+	"web/authflowv2/signup.html",
 	handlerwebapp.Components...,
 )
 
@@ -56,6 +56,8 @@ func (h *AuthflowV2PromoteHandler) GetData(w http.ResponseWriter, r *http.Reques
 
 	authflowViewModel := h.AuthflowViewModel.NewWithAuthflow(screen.StateTokenFlowResponse, r)
 	viewmodels.Embed(data, authflowViewModel)
+
+	data["LoginDisabled"] = true
 
 	return data, nil
 }
