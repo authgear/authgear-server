@@ -82,6 +82,8 @@ check-tidy:
 	$(MAKE) export-schemas
 	$(MAKE) generate-timezones
 	$(MAKE) generate-rtl
+	$(MAKE) generate-twemoji-icons
+	$(MAKE) generate-material-icons
 	go mod tidy
 	git status --porcelain | grep '.*'; test $$? -eq 1
 
@@ -152,13 +154,13 @@ generate-timezones:
 generate-rtl:
 	go run ./scripts/characterorder/main.go | gofmt > pkg/util/intl/rtl_map.go
 
-.PHONT: generate-material-icons
+.PHONY: generate-material-icons
 generate-material-icons:
-	pushd ./scripts/python && pip install -r requirements.txt && python ./subset_material_icons.py && popd
+	make -C ./scripts/python generate-material-icons
 
-.PHONT: generate-twemoji-icons
+.PHONY: generate-twemoji-icons
 generate-twemoji-icons:
-	pushd ./scripts/python && pip install -r requirements.txt && python ./subset_twemoji_icons.py && popd
+	make -C ./scripts/python generate-twemoji-icons
 
 .PHONY: logs-summary
 logs-summary:

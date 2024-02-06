@@ -59,6 +59,14 @@ def parse_css_directory(directory_path):
   return set(icon_names)
 
 
+def parse_custom_list(file_path):
+  if not os.path.exists(file_path):
+    return set()
+
+  with open(file_path, 'r') as file:
+    return set(file.read().split('\n'))
+
+
 if __name__ == '__main__':
   # Fetch codepoints for subsetting by unicode
   response = requests.get('https://raw.githubusercontent.com/google/material-design-icons/master/variablefont/MaterialSymbolsOutlined%5BFILL%2CGRAD%2Copsz%2Cwght%5D.codepoints')
@@ -68,10 +76,16 @@ if __name__ == '__main__':
   # Find icon names in authflowv2 templates and css files
   html_directory_path = '../../resources/authgear/templates/en/web/authflowv2'
   css_directory_path = '../../authui/src/authflowv2'
-  icon_names = parse_html_directory(html_directory_path) | parse_css_directory(css_directory_path)
+  custom_list_path = 'material-icons.txt'
 
-  print(f'Found {len(icon_names)} icon names:')
-  print(', '.join(icon_names))
+  icon_names = \
+    parse_html_directory(html_directory_path) | \
+    parse_css_directory(css_directory_path) | \
+    parse_custom_list(custom_list_path)
+  icon_names = sorted(icon_names)
+
+  with open(custom_list_path, 'w') as file:
+    file.write('\n'.join(icon_names))
 
   icon_codepoints = [codepoints[name] for name in icon_names if name in codepoints]
 
@@ -93,3 +107,5 @@ if __name__ == '__main__':
     unicode_range,
     layout_closure=False,
   )
+
+  print(f'\nUpdated {custom_list_path} with latest list.')
