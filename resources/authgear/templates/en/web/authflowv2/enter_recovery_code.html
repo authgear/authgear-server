@@ -47,11 +47,9 @@
 
       <input
         form="main-form"
-        tabindex="0"
         {{ if $.ShouldFocusInput }}autofocus{{ end }}
         class="input w-full {{ if $.Error }}input--error{{end}}"
         type="text"
-        tabindex="0"
         autocomplete="one-time-code"
         autocapitalize="characters"
         name="x_recovery_code"

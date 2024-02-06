@@ -77,7 +77,6 @@
               "IsError" $display_error
               "AutoFocus" $.ShouldFocusInput
               "PhoneInputAttrs" `
-                tabindex="0"
                 data-text-field-target="input"
               `
               "InputName" "x_login_id"
@@ -95,7 +94,6 @@
           <input
             data-text-field-target="input"
             class="block input w-full {{ if $display_error }}input--error{{end}}"
-            tabindex="0"
             {{ if $.ShouldFocusInput }}autofocus{{ end }}
             type="{{ $.NonPhoneLoginIDInputType }}"
             autocomplete="username webauthn"

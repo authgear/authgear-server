@@ -62,7 +62,6 @@
 
       {{- if eq $.OOBAuthenticatorType "oob_otp_email" }}
       <input
-        tabindex="0"
         {{ if $.ShouldFocusInput }}autofocus{{ end }}
         class="input w-full{{ if $display_otp_input_error }} input--error{{end}}"
         type="email"

@@ -54,7 +54,6 @@
               "IsError" $display_error
               "AutoFocus" $.ShouldFocusInput
               "PhoneInputAttrs" `
-                tabindex="0"
                 data-text-field-target="input"
               `
               "InputName" "q_login_id"
@@ -71,7 +70,6 @@
             data-text-field-target="input"
             {{ if $.ShouldFocusInput }}autofocus{{ end }}
             class="block input w-full {{ if $display_error }}input--error{{end}}"
-            tabindex="0"
             type="{{ $.NonPhoneLoginIDInputType }}"
             name="q_login_id"
             autocomplete="username"
