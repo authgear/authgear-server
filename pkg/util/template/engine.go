@@ -68,7 +68,7 @@ func (e *Engine) renderHTML(desc *HTML, preferredLanguages []string, data interf
 		// Include main template.
 		tpl, err := e.Resolver.ResolveHTML(desc, preferredLanguages)
 		if err != nil {
-			return fmt.Errorf("failed to load template: %w", err)
+			return fmt.Errorf("failed to load template %s: %w", desc.Name, err)
 		}
 		for _, tpl := range tpl.Templates() {
 			if _, err := t.AddParseTree(tpl.Name(), tpl.Tree); err != nil {
