@@ -982,7 +982,9 @@
 
   "v2-oob-otp-page-title": "Verification Code",
   "v2-oob-otp-page-subtitle": "We''ve just sent a {CodeLength}-digit verification code to {MaskedClaimValue}.",
+  "v2-oob-otp-page-subtitle-reauth": "For your security, we need to verify it''s you. We''ve just sent a {CodeLength}-digit verification code to {MaskedClaimValue}.",
   "v2-oob-otp-page-subtitle--whatsapp": "We''ve just sent a {CodeLength}-digit verification code to your WhatsApp number at {MaskedClaimValue}.",
+  "v2-oob-otp-page-subtitle-reauth--whatsapp": "For your security, we need to verify it''s you. We''ve just sent a {CodeLength}-digit verification code to your WhatsApp number at {MaskedClaimValue}.",
   "v2-error-invalid-credentials": "{AuthenticationType, select, password{Incorrect password} totp{Incorrect 6-digit code from the authenticator app / device} oob_otp_sms {Credentials are incorrect} oob_otp_email{Credentials are incorrect} recovery_code {Incorrect recovery code} other {Invalid credentials}}.",
   "v2-error-verification-code-invalid": "Credentials are incorrect.",
   "v2-oob-otp-page-resend-button-label": "Resend code",
@@ -1001,8 +1003,8 @@
   "v2-create-device-token-label": "Remember this device, and don’t ask again",
   "v2-enter-password-page-title": "Enter password",
   "v2-enter-additional-password-page-title": "Enter additional password",
-  "v2-enter-password-page-title-reauth": "Enter password to continue",
-  "v2-enter-additional-password-page-title-reauth": "Enter additional password to continue",
+  "v2-enter-password-page-description-reauth": "For your security, we need to verify it''s you.",
+  "v2-enter-additional-password-page-description-reauth": "For your security, we need your additional password to continue.",
 
   "v2-select-account-title": "Log in to {AppOrClientName}",
   "v2-select-account-description": "You have logged in with {IdentityDisplayName}. Proceed to continue.",
@@ -1052,6 +1054,7 @@
 
   "v2-enter-recovery-code-title": "Enter Recovery Code",
   "v2-enter-recovery-code-description": "Enter an unused 10-character recovery code.",
+  "v2-enter-recovery-code-description-reauth": "For your security, we need to verify it''s you. Enter an unused 10-character recovery code.",
   "v2-change-password-page-title": "Update Password",
   "v2-change-password-page-subtitle": "For account security, please change your password.",
   "v2-update-button-label": "Update",
@@ -1079,6 +1082,7 @@
 
   "v2-use-passkey-title": "Login with Passkey",
   "v2-use-passkey-description": "Log in using the button below.",
+  "v2-use-passkey-description-reauth": "For your security, we need to verify it''s you. Log in using the button below.",
   "v2-use-passkey-action": "Use passkey",
 
   "v2-reset-password-page-title": "Update Password",
@@ -1094,10 +1098,11 @@
   "v2-setup-totp-verify-rescan-button-label": "Rescan QR code",
   "v2-enter-totp-title": "Verification Code",
   "v2-enter-totp-description": "Enter the 6-digit code you see in the authenticator device/app.",
+  "v2-enter-totp-description-reauth": "For your security, we need to verify it''s you. Enter the 6-digit code you see in the authenticator device/app.",
 
   "v2-login-link-otp-page-title": "Link Sent",
-  "v2-login-link-otp-page-title-reauth": "(TBC) Link Sent",
   "v2-login-link-otp-initial-description": "We''ve just sent a login link to {target}. If not received, please resend.",
+  "v2-login-link-otp-initial-description-reauth": "For your security, we need to verify it''s you. We''ve just sent a login link to {target}. If not received, please resend.",
   "v2-login-link-otp-invalid-code-description": "This login link is invalid, used or expired. Please request a new one.",
   "v2-login-link-otp-matched-title": "Verification successful",
   "v2-login-link-otp-matched-description": "Your email has been successfully verified. Start exploring now.",

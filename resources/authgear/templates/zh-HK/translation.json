@@ -982,7 +982,9 @@
 
   "v2-oob-otp-page-title": "驗證碼",
   "v2-oob-otp-page-subtitle": "我們已發送一段 {CodeLength} 位的驗證碼到 {MaskedClaimValue}。",
-  "v2-oob-otp-page-subtitle--whatsapp": "我們已發送一段 {CodeLength} 位的驗證碼到 {MaskedClaimValue}。",
+  "v2-oob-otp-page-subtitle-reauth": "為了您的安全，我們需要驗證您的身分。我們已發送一段 {CodeLength} 位的驗證碼到 {MaskedClaimValue}。",
+  "v2-oob-otp-page-subtitle--whatsapp": "我們已發送一段 {CodeLength} 位的驗證碼到你的WhatsApp號碼 {MaskedClaimValue}。",
+  "v2-oob-otp-page-subtitle-reauth--whatsapp": "為了您的安全，我們需要驗證您的身分。我們已發送一段 {CodeLength} 位的驗證碼到你的WhatsApp號碼 {MaskedClaimValue}。",
   "v2-error-invalid-credentials": "{AuthenticationType, select, password{密碼不正確} totp{驗證器應用程式／裝置所顯示的6位碼不正確} oob_otp_sms {一次性密碼不正確} oob_otp_email{無效的憑証} recovery_code {10位的備用碼不正確} other {無效的憑証}}",
   "v2-error-verification-code-invalid": "無效的憑証",
   "v2-oob-otp-page-resend-button-label": "重發",
@@ -1001,8 +1003,8 @@
   "v2-create-device-token-label": "不要再詢問",
   "v2-enter-password-page-title": "請輸入密碼",
   "v2-enter-additional-password-page-title": "請輸入輔助密碼",
-  "v2-enter-password-page-title-reauth": "請輸入密碼以繼續操作",
-  "v2-enter-additional-password-page-title-reauth": "請輸入輔助密碼以繼續操作",
+  "v2-enter-password-page-description-reauth": "為了您的安全，我們需要驗證您的身分。",
+  "v2-enter-additional-password-page-description-reauth": "為了您的安全，我們需要您的額外密碼才能繼續。",
 
   "v2-select-account-title": "登入 {AppOrClientName}",
   "v2-select-account-description": "您正在使用 {IdentityDisplayName} 登入。",
@@ -1051,7 +1053,8 @@
   "v2-setup-oob-otp-without-verification": "下次透過 {target} 使用一次性密碼登入",
 
   "v2-enter-recovery-code-title": "輸入備用碼",
-  "v2-enter-recovery-code-description": "輸入未使用的備用碼。",
+  "v2-enter-recovery-code-description": "輸入未使用的 10 個字元的備用碼。",
+  "v2-enter-recovery-code-description-reauth": "為了您的安全，我們需要驗證您的身分。輸入未使用的 10 個字元的備用碼。",
   "v2-change-password-page-title": "更新密碼",
   "v2-change-password-page-subtitle": "(TBC) 基於安全考量，請更新你的密碼",
   "v2-update-button-label": "更新",
@@ -1079,6 +1082,7 @@
 
   "v2-use-passkey-title": "使用通行密匙登入",
   "v2-use-passkey-description": "使用下面的按鈕登入。",
+  "v2-use-passkey-description-reauth": "為了您的安全，我們需要驗證您的身分。使用下面的按鈕登入。",
   "v2-use-passkey-action": "使用通行密匙",
 
   "v2-reset-password-page-title": "更新密碼",
@@ -1094,13 +1098,14 @@
   "v2-setup-totp-verify-rescan-button-label": "重新掃描二維碼",
   "v2-enter-totp-title": "驗證碼",
   "v2-enter-totp-description": "輸入您在驗證器裝置/應用程式中看到的 6 位元代碼。",
+  "v2-enter-totp-description-reauth": "為了您的安全，我們需要驗證您的身分。輸入您在驗證器裝置/應用程式中看到的 6 位元代碼。",
 
-  "v2-login-link-otp-page-title": "(TBC) 鏈接已發送",
-  "v2-login-link-otp-page-title-reauth": "(TBC) 鏈接已發送",
-  "v2-login-link-otp-initial-description": "(TBC) 我們已經向 {target} 發送了一個登錄鏈接。請訪問該鏈接以繼續",
-  "v2-login-link-otp-invalid-code-description": "(TBC) 該登錄鏈接已無效、已使用、或過期。請重新獲取一個新的鏈接。",
-  "v2-login-link-otp-matched-title": "(TBC) 鏈接已驗證",
-  "v2-login-link-otp-matched-description": "(TBC) 成功驗證你的電郵",
+  "v2-login-link-otp-page-title": "鏈接已發送",
+  "v2-login-link-otp-initial-description": "我們剛剛向 {target} 發送了登入連結。如果沒有收到，請重新發送。",
+  "v2-login-link-otp-initial-description-reauth": "為了您的安全，我們需要驗證您的身分。我們剛剛向 {target} 發送了登入連結。如果沒有收到，請重新發送。",
+  "v2-login-link-otp-invalid-code-description": "該登錄鏈接已無效、已使用、或過期。請重新獲取一個新的鏈接。",
+  "v2-login-link-otp-matched-title": "驗證成功",
+  "v2-login-link-otp-matched-description": "您的電子郵件已成功驗證。現在就開始探索吧。",
   "v2-login-link-otp-resend-button-label": "重新發送",
   "v2-login-link-otp-resend-button-label--unit": "在 %s 後重新發送",
 

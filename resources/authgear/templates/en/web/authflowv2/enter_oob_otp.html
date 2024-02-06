@@ -18,9 +18,17 @@
       </h1>
       <h2 class="screen-description">
         {{ if eq $.Channel "whatsapp" }}
-          {{ template "v2-oob-otp-page-subtitle--whatsapp" . }}
+          {{ if eq $.FlowType "reauth" }}
+            {{ template "v2-oob-otp-page-subtitle-reauth--whatsapp" . }}
+          {{ else }}
+            {{ template "v2-oob-otp-page-subtitle--whatsapp" . }}
+          {{ end }}
         {{ else }}
-          {{ template "v2-oob-otp-page-subtitle" . }}
+          {{ if eq $.FlowType "reauth" }}
+            {{ template "v2-oob-otp-page-subtitle-reauth" . }}
+          {{ else }}
+            {{ template "v2-oob-otp-page-subtitle" . }}
+          {{ end }}
         {{ end }}
       </h2>
 
