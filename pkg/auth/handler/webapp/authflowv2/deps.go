@@ -32,4 +32,5 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(AuthflowV2UsePasskeyHandler), "*"),
 	wire.Struct(new(AuthflowV2TerminateOtherSessionsHandler), "*"),
 	wire.Struct(new(AuthflowV2PromoteHandler), "*"),
+	wire.Struct(new(AuthflowV2FinishFlowHandler), "*"),
 )

@@ -591,20 +591,34 @@ func (c *AuthflowController) AdvanceWithInputs(
 		}
 		prevXStep = screen2.Screen.StateToken.XStep
 
-		flowResponse2 := *screen2.StateTokenFlowResponse
+		_ = *screen2.StateTokenFlowResponse
 
-		isFinished, err := c.finishOrUpdateSession(r, s, &flowResponse2, result)
+		err = c.updateSession(r, s)
 		if err != nil {
 			return nil, err
-		}
-		if isFinished {
-			return result, nil
 		}
 	}
 
 	currentScreen.Navigate(c.Navigator, r, s.ID, result)
 
 	return result, nil
+}
+
+func (c *AuthflowController) Finish(r *http.Request, s *webapp.Session) (*webapp.Result, error) {
+	result := &webapp.Result{}
+	screen, ok := s.Authflow.AllScreens[GetXStepFromQuery(r)]
+	if !ok {
+		return nil, authflow.ErrFlowNotFound
+	}
+	isFinished, err := c.finishSession(r, s, result, screen.FlowType, screen.FinishRedirectURI)
+	if err != nil {
+		return nil, err
+	}
+	if isFinished {
+		return result, nil
+	}
+
+	return nil, authflow.ErrUnknownFlow
 }
 
 // AdvanceWithInput is same as AdvanceWithInputs but only allow one input.
@@ -718,37 +732,26 @@ func (c *AuthflowController) feedInput(stateToken string, input interface{}) (*a
 	return output, nil
 }
 
-func (c *AuthflowController) deriveAuthflowFinishPath(f *authflow.FlowResponse) string {
-	switch f.Type {
+func (c *AuthflowController) deriveAuthflowFinishPath(flowType authflow.FlowType) string {
+	switch flowType {
 	case authflow.FlowTypeAccountRecovery:
 		return c.Navigator.NavigateResetPasswordSuccessPage()
 	}
 	return ""
 }
 
-func (c *AuthflowController) deriveFinishRedirectURI(r *http.Request, s *webapp.Session, f *authflow.FlowResponse) string {
-	bytes, err := json.Marshal(f.Action.Data)
-	if err != nil {
-		panic(err)
-	}
-
-	var data map[string]interface{}
-	err = json.Unmarshal(bytes, &data)
-	if err != nil {
-		panic(err)
-	}
-
+func (c *AuthflowController) deriveFinishRedirectURI(r *http.Request, s *webapp.Session, flowType authflow.FlowType, finishRedirectURI string) string {
 	// 1. Use predefined redirect path of the flow
 	// 2. Use the finish_redirect_uri from authflow. (To return to /oauth2/consent)
 	// 3. Use redirect URI in webapp.Session.
 	// 4. DerivePostLoginRedirectURIFromRequest
 
-	path := c.deriveAuthflowFinishPath(f)
+	path := c.deriveAuthflowFinishPath(flowType)
 	if path != "" {
 		return path
 	}
 
-	if finishRedirectURI, ok := data["finish_redirect_uri"].(string); ok {
+	if finishRedirectURI != "" {
 		return finishRedirectURI
 	}
 	if s.RedirectURI != "" {
@@ -887,13 +890,9 @@ func (c *AuthflowController) takeBranch(w http.ResponseWriter, r *http.Request, 
 		result.Cookies = append(result.Cookies, output2.Cookies...)
 	}
 
-	isFinished, err := c.finishOrUpdateSession(r, s, newScreen.StateTokenFlowResponse, result)
+	err = c.updateSession(r, s)
 	if err != nil {
 		return err
-	}
-	if isFinished {
-		result.WriteResponse(w, r)
-		return nil
 	}
 
 	newScreen.Navigate(c.Navigator, r, s.ID, result)
@@ -981,51 +980,51 @@ func (c *AuthflowController) checkPath(w http.ResponseWriter, r *http.Request, s
 	return nil
 }
 
-func (c *AuthflowController) finishOrUpdateSession(
+func (c *AuthflowController) updateSession(
+	r *http.Request,
+	s *webapp.Session) (err error) {
+	now := c.Clock.NowUTC()
+	s.UpdatedAt = now
+	return c.Sessions.Update(s)
+}
+
+func (c *AuthflowController) finishSession(
 	r *http.Request,
 	s *webapp.Session,
-	flowResponse *authflow.FlowResponse,
-	result *webapp.Result) (isFinished bool, err error) {
-	if flowResponse.Action.Type == authflow.FlowActionTypeFinished {
-		result.RemoveQueries = setutil.Set[string]{
-			"x_step": struct{}{},
-		}
-		result.NavigationAction = "redirect"
-		result.RedirectURI = c.deriveFinishRedirectURI(r, s, flowResponse)
+	result *webapp.Result,
+	flowType authflow.FlowType,
+	finishRedirectURI string,
+) (isFinished bool, err error) {
+	result.RemoveQueries = setutil.Set[string]{
+		"x_step": struct{}{},
+	}
+	result.NavigationAction = "redirect"
+	result.RedirectURI = c.deriveFinishRedirectURI(r, s, flowType, finishRedirectURI)
 
-		switch flowResponse.Type {
-		case authflow.FlowTypeLogin:
-			fallthrough
-		case authflow.FlowTypePromote:
-			fallthrough
-		case authflow.FlowTypeSignup:
-			fallthrough
-		case authflow.FlowTypeSignupLogin:
-			fallthrough
-		case authflow.FlowTypeReauth:
-			// Forget the session.
-			err := c.Sessions.Delete(s.ID)
-			if err != nil {
-				return false, err
-			}
-			// Marked signed up in cookie after authorization.
-			// When user visit auth ui root "/", redirect user to "/login" if
-			// cookie exists
-			result.Cookies = append(result.Cookies, c.Cookies.ValueCookie(c.SignedUpCookie.Def, "true"))
-			result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(c.SessionCookie.Def))
-			// Reset visitor ID.
-			result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(webapp.VisitorIDCookieDef))
-		default:
-			// Do nothing for other flows
-		}
-		return true, nil
-	} else {
-		now := c.Clock.NowUTC()
-		s.UpdatedAt = now
-		err := c.Sessions.Update(s)
+	switch flowType {
+	case authflow.FlowTypeLogin:
+		fallthrough
+	case authflow.FlowTypePromote:
+		fallthrough
+	case authflow.FlowTypeSignup:
+		fallthrough
+	case authflow.FlowTypeSignupLogin:
+		fallthrough
+	case authflow.FlowTypeReauth:
+		// Forget the session.
+		err := c.Sessions.Delete(s.ID)
 		if err != nil {
 			return false, err
 		}
+		// Marked signed up in cookie after authorization.
+		// When user visit auth ui root "/", redirect user to "/login" if
+		// cookie exists
+		result.Cookies = append(result.Cookies, c.Cookies.ValueCookie(c.SignedUpCookie.Def, "true"))
+		result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(c.SessionCookie.Def))
+		// Reset visitor ID.
+		result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(webapp.VisitorIDCookieDef))
+	default:
+		// Do nothing for other flows
 	}
-	return false, nil
+	return true, nil
 }

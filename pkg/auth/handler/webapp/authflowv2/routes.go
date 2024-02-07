@@ -63,6 +63,8 @@ const (
 	// The following routes are dead ends.
 	AuthflowV2RouteAccountStatus   = "/authflow/v2/account_status"
 	AuthflowV2RouteNoAuthenticator = "/authflow/v2/no_authenticator"
+
+  AuthflowV2RouteFinishFlow = "/authflow/v2/finish"
 )
 
 type AuthflowV2NavigatorEndpointsProvider interface {
@@ -104,6 +106,11 @@ func (n *AuthflowV2Navigator) Navigate(s *webapp.AuthflowScreenWithFlowResponse,
 	if s.HasBranchToTake() {
 		panic(fmt.Errorf("expected screen to have its branches taken"))
 	}
+
+  if(s.StateTokenFlowResponse.Action.Type == authflow.FlowActionTypeFinished){
+    s.Advance(AuthflowV2RouteFinishFlow, result)
+    return;
+  }
 
 	switch s.StateTokenFlowResponse.Type {
 	case authflow.FlowTypeSignup:

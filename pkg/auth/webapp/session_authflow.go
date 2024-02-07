@@ -105,6 +105,9 @@ func newXStep() string {
 // Some steps in an authflow can have branches.
 // In order to be able to switch between branches, we need to remember the state that has branches.
 type AuthflowScreen struct {
+	// Store FlowType and FinishRedirectURI when the flow is finish
+	FlowType authflow.FlowType `json:"flow_type,omitempty"`
+	FinishRedirectURI string `json:"finish_redirect_uri,omitempty"`
 	// PreviousXStep is the x_step of the screen that leads to this screen.
 	PreviousXStep string `json:"previous_x_step,omitempty"`
 	// PreviousInput is the input that leads to this screen.
@@ -125,11 +128,24 @@ type AuthflowScreen struct {
 func newAuthflowScreen(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreen {
 	switch {
 	case flowResponse.Action.Type == authflow.FlowActionTypeFinished:
-		state := NewAuthflowStateToken(flowResponse)
-		screen := &AuthflowScreen{
-			PreviousXStep: previousXStep,
-			PreviousInput: previousInput,
-			StateToken:    state,
+      bytes, err := json.Marshal(flowResponse.Action.Data)
+      if err != nil {
+        panic(err)
+      }
+
+      var data map[string]interface{}
+      err = json.Unmarshal(bytes, &data)
+      if err != nil {
+        panic(err)
+      }
+      finishRedirectURI, _ := data["finish_redirect_uri"].(string);
+      state := NewAuthflowStateToken(flowResponse)
+      screen := &AuthflowScreen{
+			FlowType: flowResponse.Type,
+      FinishRedirectURI: finishRedirectURI,
+			PreviousXStep:        previousXStep,
+			PreviousInput:        previousInput,
+			StateToken:           state,
 		}
 		return screen
 	default:
