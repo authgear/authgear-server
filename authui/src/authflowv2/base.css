@@ -30,7 +30,6 @@
 
   /* Colors */
   :root {
-    --color-white: #ffffff;
     --color-success: #11c624;
     --color-error: #ff295b;
     --color-warning: #f39d17;
@@ -62,6 +61,9 @@
     --color-text-500: #505157;
     --color-text-600: #303135;
     --color-text-700: #131315;
+
+    /* background */
+    --color-bg-base: #ffffff;
   }
 
   /* Border Radius */
