@@ -1,8 +1,15 @@
 @layer components {
   :root {
-    /* Colors */
+    /* Common */
     --body-text__text-color: var(--color-text-400);
     --body-text__link-color: var(--color-primary-theme-primary);
+    --body-text__link-color--hover: var(--body-text__link-color);
+    --body-text__link-color--active: var(--body-text__link-color);
+    --body-text__link-text-decoration: none;
+    --body-text__link-text-decoration--hover: underline;
+    --body-text__link-text-decoration--active: var(
+      --body-text__link-text-decoration--hover
+    );
 
     /* sm */
     --body-text__font-family--sm: var(--typography-body-small__font-family);
@@ -96,12 +103,20 @@
 
   .body-text--sm a,
   .body-text--md a {
+    text-decoration: var(--body-text__link-text-decoration);
     color: var(--body-text__link-color);
   }
 
   .body-text--sm a:hover,
   .body-text--md a:hover {
-    text-decoration: underline;
+    text-decoration: var(--body-text__link-text-decoration--hover);
+    color: var(--body-text__link-color--hover);
+  }
+
+  .body-text--sm a:active,
+  .body-text--md a:active {
+    text-decoration: var(--body-text__link-text-decoration--active);
+    color: var(--body-text__link-color--active);
   }
 
   .body-text--sm,
