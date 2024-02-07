@@ -23,7 +23,7 @@
     background-color: var(--widget__bg-color);
     @apply flex flex-col;
     @apply relative;
-    @apply px-6 py-8;
+    @apply px-6 pt-8 pb-10;
   }
 
   :root:not([alignment-content]) .widget {
