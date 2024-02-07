@@ -11,6 +11,7 @@ class
 clear
 close
 code
+colors
 create
 css
 description
@@ -51,6 +52,7 @@ mode
 opacity
 outlet
 padding
+palette
 passkey
 password
 pattern
