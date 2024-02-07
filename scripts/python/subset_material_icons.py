@@ -54,6 +54,7 @@ if __name__ == '__main__':
 
   # Update icon name list
   with open(icon_name_list_path, 'w') as file:
-    file.write('\n'.join(sorted(filtered_icon_names)))
+    for icon_name in sorted(filtered_icon_names):
+      print(f"{icon_name}", file=file)
 
   print(f'\nUpdated {icon_name_list_path} with latest list.')
