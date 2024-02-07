@@ -1060,6 +1060,8 @@
   "v2-enter-recovery-code-description-reauth": "For your security, we need to verify it''s you. Enter an unused 10-character recovery code.",
   "v2-change-password-page-title": "Update Password",
   "v2-change-password-page-subtitle": "For account security, please change your password.",
+  "v2-change-password-success-page-title": "Password updated",
+  "v2-change-password-success-page-description": "Your password successfully updated!",
   "v2-update-button-label": "Update",
 
   "v2-forgot-password-otp-page-title--sms": "Verification Code",

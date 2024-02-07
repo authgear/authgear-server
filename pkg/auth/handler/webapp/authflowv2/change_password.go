@@ -99,6 +99,7 @@ func (h *AuthflowV2ChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *ht
 			return err
 		}
 
+    h.Controller.Navigator.NavigateChangePasswordSuccessPage(screen, r, s.ID, result)
 		result.WriteResponse(w, r)
 		return nil
 	})

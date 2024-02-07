@@ -112,6 +112,9 @@ func (n *AuthflowNavigator) Navigate(s *AuthflowScreenWithFlowResponse, r *http.
 	}
 }
 
+func (n *AuthflowNavigator) NavigateChangePasswordSuccessPage(s *AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *Result) {
+}
+
 func (n *AuthflowNavigator) NavigateResetPasswordSuccessPage() string {
 	return AuthflowRouteResetPasswordSuccess
 }

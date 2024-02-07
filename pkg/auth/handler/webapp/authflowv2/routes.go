@@ -102,6 +102,25 @@ func (n *AuthflowV2Navigator) NavigateResetPasswordSuccessPage() string {
 	return AuthflowV2RouteResetPasswordSuccess
 }
 
+func (n *AuthflowV2Navigator) NavigateChangePasswordSuccessPage(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
+  	navigate := func(path string, query *url.Values) {
+		u := *r.URL
+		u.Path = path
+		q := u.Query()
+		q.Set(webapp.AuthflowQueryKey, s.Screen.StateToken.XStep)
+		for k, param := range *query {
+			for _, p := range param {
+				q.Add(k, p)
+			}
+		}
+		u.RawQuery = q.Encode()
+		result.NavigationAction = "advance"
+		result.RedirectURI = u.String()
+	}
+
+  navigate(AuthflowV2RouteChangePasswordSuccess, &url.Values{})
+}
+
 func (n *AuthflowV2Navigator) Navigate(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
 	if s.HasBranchToTake() {
 		panic(fmt.Errorf("expected screen to have its branches taken"))
