@@ -305,3 +305,11 @@ Various files in this project have versioned dependencies.
 - [The cropperjs type definition in ./authui/src](./authui/src)
 - [GeoLite2-Country.mmdb](./GeoLite2-Country.mmdb)
 - [GraphiQL](./pkg/util/graphqlutil/graphiql.go)
+- [Material Icons](authui/src/authflowv2/icons/material-symbols-outlined.woff2)
+  - Download the latest version from https://github.com/google/material-design-icons/tree/master/variablefont
+  - Also need to update `.ttf`, `.codepoint` and `.gitcommit`
+  - Run `make generate-material-icons` again after update
+- [Twemoji SVG](authui/src/authflowv2/icons/twemoji-color.woff2), [Twemoji Mozilla](authui/src/authflowv2/icons/Twemoji.Mozilla.woff2)
+  - Download the latest versions from https://github.com/13rac1/twemoji-color-font and https://github.com/mozilla/twemoji-colr
+  - Also need to update `.ttf` and `.gitcommit`
+  - Run `make generate-twemoji-icons` again after update

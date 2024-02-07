@@ -37,8 +37,8 @@
   @font-face {
     font-family: "twemoji-countries";
     src:
-      url("./icons/twemoji-countries-subset.woff2") format("woff2"),
-      url("./icons/twemoji-countries-subset.ttf") format("ttf");
+      url("./icons/twemoji-color-subset.woff2") format("woff2"),
+      url("./icons/twemoji-color-subset.ttf") format("truetype");
   }
 
   .twemoji-countries {

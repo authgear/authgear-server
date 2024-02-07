@@ -18,16 +18,16 @@ if __name__ == '__main__':
     unicode_range,
   )
 
-  # Subset ttf and woff2 fonts for twemoji-countries
+  # Subset ttf and woff2 fonts for twemoji-color
   subset_font(
-    '../../authui/src/authflowv2/icons/twemoji-countries.woff2',
-    '../../authui/src/authflowv2/icons/twemoji-countries-subset.woff2',
+    '../../authui/src/authflowv2/icons/twemoji-color.woff2',
+    '../../authui/src/authflowv2/icons/twemoji-color-subset.woff2',
     'woff2',
     unicode_range,
   )
   subset_font(
-    '../../authui/src/authflowv2/icons/twemoji-countries.ttf',
-    '../../authui/src/authflowv2/icons/twemoji-countries-subset.ttf',
+    '../../authui/src/authflowv2/icons/twemoji-color.ttf',
+    '../../authui/src/authflowv2/icons/twemoji-color-subset.ttf',
     'ttf',
     unicode_range,
   )
