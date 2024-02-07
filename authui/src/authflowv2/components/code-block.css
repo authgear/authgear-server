@@ -1,8 +1,8 @@
 @layer components {
   :root {
-    --code-block__bg-color: var(--color-grey-100);
+    --code-block__bg-color: var(--color-text-100);
     --code-block__border-radius: var(--border-radius-rounded-square);
-    --code-block__text-color: var(--color-grey-700);
+    --code-block__text-color: var(--color-text-700);
     --code-block__font-family: var(--typography-body-small__font-family);
     --code-block__font-size: var(--typography-body-small__font-size);
     --code-block__line-height: var(--typography-body-small__line-height);

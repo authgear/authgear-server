@@ -13,7 +13,7 @@
     --screen-description__font-weight: var(
       --typography-title-medium__font-weight
     );
-    --screen-description__text-color: var(--color-grey-base);
+    --screen-description__text-color: var(--color-text-400);
   }
   :root.dark {
     /* TODO(tung): Dark mode styles */

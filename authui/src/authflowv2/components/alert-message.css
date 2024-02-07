@@ -2,8 +2,8 @@
   :root {
     --alert-message__border-radius: var(--border-radius-rounded-square);
     --alert-message__ring-width: 1.5px;
-    --alert-message__ring-color: var(--color-grey-100);
-    --alert-message__text-color: var(--color-grey-base);
+    --alert-message__ring-color: var(--color-text-100);
+    --alert-message__text-color: var(--color-text-400);
     --alert-message__font-family: var(--typography-label-medium__font-family);
     --alert-message__font-size: var(--typography-label-medium__font-size);
     --alert-message__line-height: var(--typography-label-small__line-height);
@@ -17,7 +17,7 @@
     ); /* 1:1 ratio with font-size */
     --alert-message__spacing: 0.5em;
 
-    --alert-message__icon-text-color: var(--color-grey-base);
+    --alert-message__icon-text-color: var(--color-text-400);
     --alert-message__icon-text-color--success: var(--color-success);
     --alert-message__icon-text-color--error: var(--color-error);
     --alert-message__icon-text-color--warning: var(--color-warning);

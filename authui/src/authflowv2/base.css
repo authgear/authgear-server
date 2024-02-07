@@ -42,6 +42,7 @@
       Primary color: #176df3
     */
 
+    /* primary */
     --color-primary-theme-darker: #0c3c88;
     --color-primary-theme-dark: #1151b8;
     --color-primary-theme-dark-alt: #1460da;
@@ -52,15 +53,16 @@
     --color-primary-theme-lighter: #d8e6fd;
     --color-primary-theme-lighter-alt: #f5f9fe;
 
-    /* grey */
-    --color-grey-base: #73747b;
-    --color-grey-100: #e7e7e9;
-    --color-grey-200: #bfbfc3;
-    --color-grey-300: #98999e;
-    --color-grey-400: #73747b;
-    --color-grey-500: #505157;
-    --color-grey-600: #303135;
-    --color-grey-700: #131315;
+    /* Text colors is tonal palette */
+    /* https://m3.material.io/styles/color/system/how-the-system-works#395813c8-b314-48d1-bb55-266f421eb3a4 */
+    /* text */
+    --color-text-100: #e7e7e9;
+    --color-text-200: #bfbfc3;
+    --color-text-300: #98999e;
+    --color-text-400: #73747b;
+    --color-text-500: #505157;
+    --color-text-600: #303135;
+    --color-text-700: #131315;
   }
 
   /* Border Radius */

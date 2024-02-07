@@ -1,7 +1,7 @@
 @layer components {
   :root {
     /* Colors */
-    --body-text__text-color: var(--color-grey-base);
+    --body-text__text-color: var(--color-text-400);
     --body-text__link-color: var(--color-primary-theme-primary);
 
     /* sm */

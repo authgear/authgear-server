@@ -1,13 +1,13 @@
 @layer components {
   :root {
-    --input__ring-color: var(--color-grey-100);
+    --input__ring-color: var(--color-text-100);
     --input__ring-color--focus: var(--color-primary-theme-primary);
     --input__ring-color--error: var(--color-error);
     --input__ring-width: var(--border-width-regular);
     --input__ring-width--focus: var(--border-width-regular--active);
     --input__border-radius: var(--border-radius-rounded-square);
-    --input__placeholder-color: var(--color-grey-200);
-    --input__text-color: var(--color-grey-700);
+    --input__placeholder-color: var(--color-text-200);
+    --input__text-color: var(--color-text-700);
     --input__font-family: var(--typography-body-large__font-family);
     --input__font-size: var(--typography-body-large__font-size);
     --input__line-height: var(--typography-body-large__line-height);

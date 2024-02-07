@@ -1,6 +1,6 @@
 @layer components {
   :root {
-    --tertiary-btn__bg-color: var(--color-grey-700);
+    --tertiary-btn__bg-color: var(--color-text-700);
     --tertiary-btn__text-color: var(--color-white);
     --tertiary-btn__border-radius: var(--border-radius-full);
     --tertiary-btn__font-family: var(--typography-label-medium__font-family);
@@ -30,8 +30,8 @@
     --tertiary-btn__ring-width--active: var(--tertiary-btn__ring-width);
     --tertiary-btn__ring-color--active: var(--tertiary-btn__ring-color);
 
-    --tertiary-btn__bg-color--disabled: var(--color-grey-200);
-    --tertiary-btn__text-color--disabled: var(--color-grey-600);
+    --tertiary-btn__bg-color--disabled: var(--color-text-200);
+    --tertiary-btn__text-color--disabled: var(--color-text-600);
     --tertiary-btn__ring-width--disabled: var(--tertiary-btn__ring-width);
     --tertiary-btn__ring-color--disabled: var(--tertiary-btn__ring-color);
   }

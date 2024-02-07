@@ -28,8 +28,8 @@
     --primary-btn__ring-width--active: var(--primary-btn__ring-width);
     --primary-btn__ring-color--active: var(--primary-btn__ring-color);
 
-    --primary-btn__bg-color--disabled: var(--color-grey-200);
-    --primary-btn__text-color--disabled: var(--color-grey-400);
+    --primary-btn__bg-color--disabled: var(--color-text-200);
+    --primary-btn__text-color--disabled: var(--color-text-400);
     --primary-btn__ring-width--disabled: var(--primary-btn__ring-width);
     --primary-btn__ring-color--disabled: var(--primary-btn__ring-color);
   }
