@@ -1,96 +1,40 @@
-import os
+import glob
 import re
-import requests
-from bs4 import BeautifulSoup
 
 from lib import subset_font
 
-def parse_html_file(file_path):
-  with open(file_path, 'r') as file:
-    soup = BeautifulSoup(file.read(), 'html.parser')
-    icons = soup.find_all(class_='material-icons')
-    icon_names = []
-    for icon in icons:
-      if not icon.string:
-        continue
+def filter_icon_names_from_path(icon_names, path):
+  filtered_icon_names = set()
+  regex = re.compile(rf'\W({"|".join(icon_names)})\W')
 
-      icon_text = icon.string.replace('\n', '').strip()
-      if not icon_text:
-        continue
+  for file in glob.iglob(path, recursive=True):
+    with open(file, 'r') as f:
+      content = f.read()
+      matched_icon_names = set(re.findall(regex, content))
+      filtered_icon_names |= matched_icon_names
 
-      # Handle golang template syntax
-      # e.g. {{ if .IsEmail }}email{{ else }}phone{{ end }} -> ['email', 'phone']
-      if icon_text.startswith('{{'):
-        matches = re.findall('}}([^{]*){{', icon_text)
-        for match in matches:
-            icon_names.append(match.strip())
-      else:
-          icon_names.append(icon_text)
-
-    return icon_names
-
-# Find all <i class="material-icons">icon_name</i> in authflowv2 templates
-def parse_html_directory(directory_path):
-  icon_names = []
-  for root, dirs, files in os.walk(directory_path):
-    for file in files:
-      if file.endswith('.html'):
-        file_path = os.path.join(root, file)
-        icon_names.extend(parse_html_file(file_path))
-    for dir in dirs:
-      icon_names.extend(parse_html_directory(os.path.join(root, dir)))
-  return set(icon_names)
-
-
-# Find all `content: "icon_name"` in authflowv2 css files
-def parse_css_directory(directory_path):
-  icon_names = []
-  for root, dirs, files in os.walk(directory_path):
-    for file in files:
-      if file.endswith('.css'):
-        file_path = os.path.join(root, file)
-        with open(file_path, 'r') as file:
-          content = file.read()
-          matches = re.findall(r'content: "([^"]+)"', content)
-          icon_names.extend(matches)
-    for dir in dirs:
-      icon_names.extend(parse_css_directory(os.path.join(root, dir)))
-
-  return set(icon_names)
-
-
-def parse_custom_list(file_path):
-  if not os.path.exists(file_path):
-    return set()
-
-  with open(file_path, 'r') as file:
-    return set(file.read().split('\n'))
-
+  return filtered_icon_names
 
 if __name__ == '__main__':
-  # Fetch codepoints for subsetting by unicode
-  response = requests.get('https://raw.githubusercontent.com/google/material-design-icons/master/variablefont/MaterialSymbolsOutlined%5BFILL%2CGRAD%2Copsz%2Cwght%5D.codepoints')
-  lines = response.text.split('\n')
-  codepoints = {line.split()[0]: line.split()[1] for line in lines if line}
+  # Get codepoints for subsetting by unicode
+  codepoint_file = '../../authui/src/authflowv2/icons/material-symbols-outlined.codepoints'
+  with open(codepoint_file, 'r') as file:
+    codepoints_dict = {name: codepoint for name, codepoint in (line.split() for line in file)}
+    icon_names = codepoints_dict.keys()
 
   # Find icon names in authflowv2 templates and css files
-  html_directory_path = '../../resources/authgear/templates/en/web/authflowv2'
-  css_directory_path = '../../authui/src/authflowv2'
-  custom_list_path = 'material-icons.txt'
+  html_directory_path = '../../resources/authgear/templates/en/web/authflowv2/**/*.html'
+  css_directory_path = '../../authui/src/authflowv2/**/*.css'
+  icon_name_list_path = 'material-icons.txt'
 
-  icon_names = \
-    parse_html_directory(html_directory_path) | \
-    parse_css_directory(css_directory_path) | \
-    parse_custom_list(custom_list_path)
-  icon_names = sorted(icon_names)
+  filtered_icon_names = \
+    filter_icon_names_from_path(icon_names, html_directory_path) | \
+    filter_icon_names_from_path(icon_names, css_directory_path)
 
-  with open(custom_list_path, 'w') as file:
-    file.write('\n'.join(icon_names))
-
-  icon_codepoints = [codepoints[name] for name in icon_names if name in codepoints]
+  filtered_codepoints = [codepoints_dict[name] for name in filtered_icon_names if name in codepoints_dict]
 
   _latin_unicode_range = 'U+0030-0039,U+0061-007A,U+005F,'  # 0-9, a-z, _
-  unicode_range = _latin_unicode_range + ','.join([f'U+{codepoint.upper()}' for codepoint in icon_codepoints])
+  unicode_range = _latin_unicode_range + ','.join([f'U+{codepoint.upper()}' for codepoint in filtered_codepoints])
 
   # Subset ttf and woff2 fonts
   subset_font(
@@ -108,4 +52,8 @@ if __name__ == '__main__':
     layout_closure=False,
   )
 
-  print(f'\nUpdated {custom_list_path} with latest list.')
+  # Update icon name list
+  with open(icon_name_list_path, 'w') as file:
+    file.write('\n'.join(sorted(filtered_icon_names)))
+
+  print(f'\nUpdated {icon_name_list_path} with latest list.')
