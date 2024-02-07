@@ -22,7 +22,7 @@
     --select__search-input-px--desktop: 0.625em;
     --select__search-input-px--mobile: 0.125em;
     --select__search-input-text-color: var(--color-grey-700);
-    --select__search-input-caret-color: var(--color-primary-base);
+    --select__search-input-caret-color: var(--color-primary-theme-primary);
     --select__search-input-font-family: var(
       --typography-body-large__font-family
     );

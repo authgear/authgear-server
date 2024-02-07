@@ -1,7 +1,7 @@
 @layer components {
   :root {
     --input__ring-color: var(--color-grey-100);
-    --input__ring-color--focus: var(--color-primary-base);
+    --input__ring-color--focus: var(--color-primary-theme-primary);
     --input__ring-color--error: var(--color-error);
     --input__ring-width: var(--border-width-regular);
     --input__ring-width--focus: var(--border-width-regular--active);

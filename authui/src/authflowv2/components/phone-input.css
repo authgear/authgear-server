@@ -9,7 +9,9 @@
     --phone-input__space-x: 0.5em;
 
     --phone-input__trigger-ring-color: var(--color-grey-100);
-    --phone-input__trigger-ring-color--focus: var(--color-primary-base);
+    --phone-input__trigger-ring-color--focus: var(
+      --color-primary-theme-primary
+    );
     --phone-input__trigger-ring-color--error: var(--color-error);
     --phone-input__trigger-ring-width: var(--border-width-regular);
     --phone-input__trigger-ring-width--focus: var(

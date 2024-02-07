@@ -3,7 +3,7 @@
     --otp-input__spacing: 21px;
 
     --otp-input__digit-ring-color: var(--color-grey-200);
-    --otp-input__digit-ring-color--focus: var(--color-primary-base);
+    --otp-input__digit-ring-color--focus: var(--color-primary-theme-primary);
     --otp-input__digit-ring-color--error: var(--color-error);
     --otp-input__digit-ring-width: 1.5px;
     --otp-input__digit-ring-width--focus: 1.5px;

@@ -2,7 +2,7 @@
   :root {
     /* Colors */
     --body-text__text-color: var(--color-grey-base);
-    --body-text__link-color: var(--color-primary-base);
+    --body-text__link-color: var(--color-primary-theme-primary);
 
     /* sm */
     --body-text__font-family--sm: var(--typography-body-small__font-family);
