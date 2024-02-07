@@ -46,6 +46,7 @@
         {{ template "v2-setup-totp-instead" }}
       {{- end }}
       {{- if eq .Authentication "primary_oob_otp_email" }}
+        <span class="material-icons secondary-btn__icon">mail</span>
         {{- if .VerificationSkippable }}
           {{ template "v2-setup-oob-otp-without-verification" (dict "target" .MaskedClaimValue) }}
         {{ else }}
@@ -80,6 +81,7 @@
             {{ template "v2-setup-phone-otp-sms-instead" }}
           {{- end }}
           {{- if eq .Channel "whatsapp" }}
+            <span class="sso-icon whatsapp-icon secondary-btn__icon"></span>
             {{ template "v2-setup-phone-otp-whatsapp-instead" }}
           {{- end }}
         {{- end }}
