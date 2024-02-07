@@ -4,8 +4,8 @@
   font-weight: 400;
   font-display: block;
   src:
-    url("./icons/material-symbols-outlined.woff2") format("woff2"),
-    url("./icons/material-symbols-outlined.ttf") format("truetype");
+    url("./icons/material-symbols-outlined-subset.woff2") format("woff2"),
+    url("./icons/material-symbols-outlined-subset.ttf") format("truetype");
 }
 
 @layer utilities {

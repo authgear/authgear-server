@@ -1,5 +1,4 @@
 import { Controller } from "@hotwired/stimulus";
-import zxcvbn from "zxcvbn";
 
 enum PasswordPolicyName {
   Strength = "strength",
@@ -108,13 +107,14 @@ function checkPasswordSymbol(value: string, el: HTMLElement) {
   };
 }
 
-function checkPasswordStrength(
+async function checkPasswordStrength(
   value: string,
   el: HTMLElement,
   currentMeter: HTMLElement
 ) {
   let isViolated = false;
   const minLevel = Number(el.getAttribute("data-min-level"));
+  const { default: zxcvbn } = await import("zxcvbn");
   const result = zxcvbn(value);
   const score = Math.min(5, Math.max(1, result.score + 1));
   currentMeter.setAttribute("aria-valuenow", String(score));
@@ -140,10 +140,13 @@ export class PasswordPolicyController extends Controller {
   declare policyTargets: HTMLElement[];
 
   connect() {
+    // Prefetch module for check when value is not empty
+    import("zxcvbn");
+
     this.check();
   }
 
-  check() {
+  async check() {
     const value = this.inputTarget.value;
     if (value === "") {
       if (this.hasCurrentMeterTarget) {
@@ -156,11 +159,11 @@ export class PasswordPolicyController extends Controller {
       return;
     }
     const violatedPolicies: PasswordPolicyName[] = [];
-    this.policyTargets.forEach((e) => {
+    for (const e of this.policyTargets) {
       switch (e.getAttribute("data-password-policy-name")) {
         case PasswordPolicyName.Strength:
           if (this.hasCurrentMeterTarget) {
-            const result = checkPasswordStrength(
+            const result = await checkPasswordStrength(
               value,
               e,
               this.currentMeterTarget
@@ -215,7 +218,7 @@ export class PasswordPolicyController extends Controller {
         default:
           break;
       }
-    });
+    }
     if (violatedPolicies.length > 0) {
       this.inputTarget.setAttribute(
         PasswordPolicyController.ATTR_POLICY_VIOLATED,
