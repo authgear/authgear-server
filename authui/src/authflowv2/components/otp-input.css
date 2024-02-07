@@ -12,7 +12,7 @@
     --otp-input__digit-width: 2.5em;
     --otp-input__digit-height: 2.75em;
 
-    --otp-input__digit-mask-color: var(--color-black);
+    --otp-input__digit-mask-color: var(--color-text-700);
     --otp-input__digit-mask-size: 0.625rem;
 
     --otp-input-error-message__margin-top: 0.5rem;

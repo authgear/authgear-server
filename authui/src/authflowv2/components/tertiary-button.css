@@ -20,12 +20,12 @@
       (var(--tertiary-btn__py) * 2 + var(--tertiary-btn__line-height)) / 2
     ); /* = Height / 2 */
 
-    --tertiary-btn__bg-color--hover: var(--color-black);
+    --tertiary-btn__bg-color--hover: var(--color-text-600);
     --tertiary-btn__text-color--hover: var(--tertiary-btn__text-color);
     --tertiary-btn__ring-width--hover: var(--tertiary-btn__ring-width);
     --tertiary-btn__ring-color--hover: var(--tertiary-btn__ring-color);
 
-    --tertiary-btn__bg-color--active: var(--color-black);
+    --tertiary-btn__bg-color--active: var(--color-text-600);
     --tertiary-btn__text-color--active: var(--tertiary-btn__text-color);
     --tertiary-btn__ring-width--active: var(--tertiary-btn__ring-width);
     --tertiary-btn__ring-color--active: var(--tertiary-btn__ring-color);
