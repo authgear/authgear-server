@@ -79,6 +79,7 @@ require (
 )
 
 require (
+	github.com/NYTimes/gziphandler v1.1.1
 	github.com/alicebob/miniredis/v2 v2.31.0
 	github.com/cert-manager/cert-manager v1.13.2
 	github.com/go-webauthn/webauthn v0.8.6

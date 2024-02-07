@@ -72,6 +72,7 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 	)
 	notFoundChain := httproute.Chain(
 		securityMiddleware,
+		httputil.GzipMiddleware{},
 	)
 
 	systemConfigJSONRoute := httproute.Route{Middleware: systemConfigJSONChain}
