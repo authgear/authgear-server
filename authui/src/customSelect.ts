@@ -317,10 +317,6 @@ export class CustomSelectController extends Controller {
   }
 
   renderItems() {
-    if (!this.isOpen) {
-      return;
-    }
-
     const container = this.optionsTarget;
     const template = this.itemTemplateTarget.content;
 
