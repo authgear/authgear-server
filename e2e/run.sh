@@ -8,16 +8,6 @@ function setup {
     docker compose up -d
     sleep 5
 
-    echo "[ ] DB migration..."
-    docker-compose exec authgear bash -c "
-        authgear database migrate up
-        authgear audit database migrate up
-        authgear images database migrate up
-        # portal database migrate up
-    "
-
-    # TODO(newman): Should use db fixture with CONFIG_SOURCE_TYPE=database
-
     echo "[ ] Starting authgear..."
     for i in $(seq 10); do \
         if [ "$(curl -sL -w '%{http_code}' -o /dev/null ${MAIN_LISTEN_ADDR}/healthz)" = "200" ]; then
@@ -31,6 +21,33 @@ function setup {
         echo "Error: Failed to start authgear."
         exit 1
     fi
+
+    echo "[ ] DB migration..."
+    docker-compose exec authgear bash -c "
+        authgear database migrate up
+        authgear audit database migrate up
+        authgear images database migrate up
+    "
+    docker-compose exec portal bash -c "
+        authgear-portal database migrate up
+    "
+
+    echo "[ ] Config source creation..."
+    [ -d ./fixtures ] && for f in ./fixtures/*; do
+        if [ -d "$f" ]; then
+            echo "[ ] Creating config source for $f..."
+            docker-compose exec portal bash -c "
+                authgear-portal internal configsource create $f \
+                    --database-schema=\"$DATABASE_SCHEMA\" \
+                    --database-url=\"$DATABASE_URL\"
+
+                authgear-portal internal domain create-default \
+                    --database-schema=\"$DATABASE_SCHEMA\" \
+                    --database-url=\"$DATABASE_URL\" \
+                    --default-domain-suffix=\".portal.localhost\"
+            "
+        fi
+    done
 }
 
 function teardown {
