@@ -29,3 +29,19 @@ services:
       - redis
     volumes:
       - ./var:/app/var
+      - ./fixtures:/app/fixtures
+
+  portal:
+    build:
+      context: ..
+      dockerfile: ./cmd/portal/Dockerfile
+    ports:
+      - "4003:4003"
+    env_file:
+      - .env
+    links:
+      - db
+      - redis
+    volumes:
+      - ./var:/app/var
+      - ./fixtures:/app/fixtures
