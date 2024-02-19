@@ -25,7 +25,10 @@ const CountryCodes = metadata.country_calling_codes;
 //     "599": [ "CW", "BQ" ]
 // }
 
-const defaultCountryForDuplicatedCountryCodes: Record<string, CountryCode> = {
+const defaultCountryForDuplicatedCountryCodes: Record<
+  string,
+  CountryCode | undefined
+> = {
   "1": "US",
   "7": "RU",
   "39": "IT",
@@ -79,15 +82,16 @@ async function compileDefaultCountryList() {
 
 async function compileLocalizedCountryList() {
   const lang =
-    document
+    (document
       .querySelector("meta[name=x-cldr-locale]")
-      ?.getAttribute("content") ||
+      ?.getAttribute("content") ??
+      "") ||
     document.documentElement.lang ||
     "en";
   const localizedTerritories = await fetch(
     `/shared-assets/cldr-localenames-full/${lang}/territories.json`
   )
-    .then((r) => r.json())
+    .then(async (r) => r.json())
     .catch(() => null);
   const territories =
     localizedTerritories?.main[lang].localeDisplayNames.territories;
@@ -108,7 +112,7 @@ async function compileCountryList(
   function countryCodeToCountry(countryCode: CountryCode): PhoneInputCountry {
     const countryName =
       defaultTerritories.main.en.localeDisplayNames.territories[countryCode];
-    const countryLocalizedName = territories[countryCode] ?? countryName;
+    const countryLocalizedName = territories[countryCode] || countryName;
     const countryFlag = getEmojiFlag(countryCode);
     const countryCallingCode = getCountryCallingCode(countryCode);
     return {
@@ -162,6 +166,10 @@ export class PhoneInputController extends Controller {
     return ctr as CustomSelectController | null;
   }
 
+  get value(): string {
+    return this.inputTarget.value;
+  }
+
   set value(newValue: string) {
     this.inputTarget.value = newValue;
   }
@@ -200,11 +208,11 @@ export class PhoneInputController extends Controller {
   // phoneInputTarget -> countrySelect AND inputTarget.
   handleNumberInput(event: Event): void {
     const target = event.target as HTMLInputElement;
-    let value = target.value;
+    const value = target.value;
     const asYouType = new AsYouType();
     asYouType.input(value);
 
-    let countryCodeFromPartialNumber: CountryCode | undefined = undefined;
+    let countryCodeFromPartialNumber: CountryCode | undefined;
     const callingCode = asYouType.getCallingCode();
     if (callingCode != null) {
       countryCodeFromPartialNumber =
@@ -254,7 +262,7 @@ export class PhoneInputController extends Controller {
         const geoIPCountryCode: CountryCode | null =
           (document
             .querySelector("meta[name=x-geoip-country-code]")
-            ?.getAttribute("content") as CountryCode) ?? null;
+            ?.getAttribute("content") as CountryCode | undefined) ?? null;
 
         let countryCode: CountryCode | null = null;
         let inputValue: string = this.phoneInputTarget.value;
@@ -272,20 +280,20 @@ export class PhoneInputController extends Controller {
         }
 
         // The detected country is not allowed.
-        if (options.find((o) => o.value == countryCode) == null) {
+        if (options.find((o) => o.value === countryCode) == null) {
           countryCode = null;
         }
 
         const initialValue = countryCode ?? options[0].value;
         this.setCountrySelectValue(initialValue);
-      } catch (e) {
+      } catch (e: unknown) {
         console.error(e);
       }
     }
   }
 
   connect() {
-    this.initPhoneCode();
+    void this.initPhoneCode();
 
     window.addEventListener("pageshow", this.handlePageShow);
   }

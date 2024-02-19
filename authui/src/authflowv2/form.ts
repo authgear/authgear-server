@@ -31,7 +31,7 @@ export class XHRSubmitFormController extends Controller {
   };
 
   onSubmit = (e: Event) => {
-    this.submitForm(e);
+    void this.submitForm(e);
   };
 
   async submitForm(e: Event) {
@@ -117,7 +117,7 @@ export class XHRSubmitFormController extends Controller {
       if (elems[i].querySelector('[data-turbo="false"]')) {
         continue;
       }
-      this.forms.push(elems[i] as HTMLFormElement);
+      this.forms.push(elems[i]);
     }
     for (const form of this.forms) {
       form.addEventListener("submit", this.onSubmitCapture, true);

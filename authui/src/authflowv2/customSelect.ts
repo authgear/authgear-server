@@ -29,7 +29,7 @@ export class CustomSelectController extends Controller {
   declare readonly inputTarget: HTMLInputElement;
   declare readonly triggerTarget: HTMLButtonElement;
   declare readonly dropdownTarget: HTMLElement;
-  declare readonly searchTarget: HTMLInputElement;
+  declare readonly searchTarget: HTMLInputElement | undefined;
   declare readonly clearSearchTarget: HTMLElement;
   declare readonly optionsTarget: HTMLElement;
   declare readonly searchTemplateTarget?: HTMLTemplateElement;
@@ -41,7 +41,7 @@ export class CustomSelectController extends Controller {
 
   private isInitialized: boolean = false;
 
-  get filteredOptions() {
+  get filteredOptions(): SearchSelectOption[] {
     return this.optionsValue.filter((option) => {
       return `${option.label} ${option.value} ${option.prefix} ${option.searchLabel}`
         .toLocaleLowerCase()
@@ -49,7 +49,7 @@ export class CustomSelectController extends Controller {
     });
   }
 
-  get isOpen() {
+  get isOpen(): boolean {
     return !this.dropdownTarget.classList.contains("hidden");
   }
 
@@ -58,7 +58,7 @@ export class CustomSelectController extends Controller {
   }
 
   get keyword() {
-    return this.searchTarget.value ?? "";
+    return this.searchTarget?.value ?? "";
   }
 
   get focusedValue() {
@@ -136,13 +136,15 @@ export class CustomSelectController extends Controller {
     }
   }
 
-  search(event: InputEvent) {
+  search() {
     this.renderItems();
     this.resetScroll();
   }
 
   clearSearch() {
-    this.searchTarget!.value = "";
+    if (!this.searchTarget) return;
+
+    this.searchTarget.value = "";
     this.renderItems();
   }
 
@@ -172,13 +174,14 @@ export class CustomSelectController extends Controller {
   }
 
   handleSelect(event: MouseEvent) {
-    const item = event.target as HTMLLIElement;
+    const item = event.target as HTMLLIElement | undefined;
     if (!item) return;
 
     const value = item.dataset.value;
     this._selectValue(value);
   }
 
+  // eslint-disable-next-line complexity
   handleKeyDown = (event: KeyboardEvent) => {
     let preventAndStop = true;
     switch (event.key) {
@@ -224,7 +227,7 @@ export class CustomSelectController extends Controller {
   };
 
   _updateDropdownPosition = () => {
-    computePosition(this.triggerTarget, this.dropdownTarget, {
+    void computePosition(this.triggerTarget, this.dropdownTarget, {
       placement: "bottom-start",
       middleware: [
         flip({
@@ -271,7 +274,8 @@ export class CustomSelectController extends Controller {
     const container = this.optionsTarget;
     const containerPadding = parseFloat(getComputedStyle(container).paddingTop);
     const padding = parseFloat(getComputedStyle(item).paddingTop);
-    const itemPosition = item.offsetTop - this.searchTarget.offsetHeight;
+    const itemPosition =
+      item.offsetTop - (this.searchTarget?.offsetHeight ?? 0);
 
     let scrollPosition: number | undefined;
 
@@ -302,8 +306,13 @@ export class CustomSelectController extends Controller {
   renderTrigger() {
     const option =
       this.optionsValue.find((option) => option.value === this.value) ??
-      this.optionsValue[0];
-    this.triggerTarget.innerHTML = option?.triggerLabel ?? option?.label ?? "";
+      this.optionsValue.at(0);
+
+    if (!option) {
+      return;
+    }
+
+    this.triggerTarget.innerHTML = option.triggerLabel ?? option.label;
   }
 
   renderSearch() {

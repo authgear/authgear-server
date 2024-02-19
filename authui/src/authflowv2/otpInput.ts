@@ -10,12 +10,10 @@ export class OtpInputController extends Controller {
   spans: HTMLElement[] = [];
 
   get maxLength(): number {
-    if (
-      this.inputTarget.maxLength != null &&
-      this.inputTarget.maxLength !== 0
-    ) {
+    if (this.inputTarget.maxLength) {
       return this.inputTarget.maxLength;
     }
+
     return 6;
   }
 
@@ -127,6 +125,7 @@ export class OtpInputController extends Controller {
       this.inputTarget.style.letterSpacing = `calc(${this.inputTarget.offsetWidth}px / ${this.maxLength})`;
 
       let span = this.spans[i];
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (!span) {
         span = document.createElement("span");
         digitsContainer.appendChild(span);
