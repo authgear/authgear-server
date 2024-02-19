@@ -112,9 +112,10 @@ type AuthflowController struct {
 	TrustProxy              config.TrustProxy
 	Clock                   clock.Clock
 
-	Cookies       AuthflowControllerCookieManager
-	Sessions      AuthflowControllerSessionStore
-	SessionCookie webapp.SessionCookieDef
+	Cookies        AuthflowControllerCookieManager
+	Sessions       AuthflowControllerSessionStore
+	SessionCookie  webapp.SessionCookieDef
+	SignedUpCookie webapp.SignedUpCookieDef
 
 	Authflows AuthflowControllerAuthflowService
 
@@ -1007,6 +1008,10 @@ func (c *AuthflowController) finishOrUpdateSession(
 			if err != nil {
 				return false, err
 			}
+			// Marked signed up in cookie after authorization.
+			// When user visit auth ui root "/", redirect user to "/login" if
+			// cookie exists
+			result.Cookies = append(result.Cookies, c.Cookies.ValueCookie(c.SignedUpCookie.Def, "true"))
 			result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(c.SessionCookie.Def))
 			// Reset visitor ID.
 			result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(webapp.VisitorIDCookieDef))
