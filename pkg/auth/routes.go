@@ -327,6 +327,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	router.Add(webapphandler.ConfigureAuthflowAccountStatusRoute(webappPageRoute), p.Handler(newWebAppAuthflowAccountStatusHandler))
 	router.Add(webapphandler.ConfigureAuthflowNoAuthenticatorRoute(webappPageRoute), p.Handler(newWebAppAuthflowNoAuthenticatorHandler))
+	router.Add(webapphandler.ConfigureAuthflowFinishFlowRoute(webappPageRoute), p.Handler(newWebAppAuthflowFinishFlowHandler))
 
 	router.Add(webapphandler.ConfigureEnterPasswordRoute(webappPageRoute), p.Handler(newWebAppEnterPasswordHandler))
 	router.Add(webapphandler.ConfigureConfirmTerminateOtherSessionsRoute(webappPageRoute), p.Handler(newWebConfirmTerminateOtherSessionsHandler))

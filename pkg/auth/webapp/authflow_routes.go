@@ -58,6 +58,8 @@ const (
 	// The following routes are dead ends.
 	AuthflowRouteAccountStatus   = "/authflow/account_status"
 	AuthflowRouteNoAuthenticator = "/authflow/no_authenticator"
+
+	AuthflowRouteFinishFlow = "/authflow/finish"
 )
 
 type AuthflowNavigatorEndpointsProvider interface {
@@ -92,6 +94,11 @@ func (n *AuthflowNavigator) NavigateNonRecoverableError(r *http.Request, u *url.
 func (n *AuthflowNavigator) Navigate(s *AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *Result) {
 	if s.HasBranchToTake() {
 		panic(fmt.Errorf("expected screen to have its branches taken"))
+	}
+
+	if s.StateTokenFlowResponse.Action.Type == authflow.FlowActionTypeFinished {
+		s.Advance(AuthflowRouteFinishFlow, result)
+		return
 	}
 
 	switch s.StateTokenFlowResponse.Type {
