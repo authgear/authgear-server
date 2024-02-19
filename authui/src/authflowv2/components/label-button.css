@@ -2,13 +2,13 @@
   :root {
     --label-btn__bg-color: transparent;
     --label-btn__text-color: var(--color-primary-theme-primary);
-    --label-btn__border-radius: 0px;
+    --label-btn__border-radius: 0;
     --label-btn__font-family: var(--typography-label-large__font-family);
     --label-btn__font-size: var(--typography-label-large__font-size);
     --label-btn__line-height: var(--typography-label-large__line-height);
     --label-btn__letter-spacing: var(--typography-label-large__letter-spacing);
     --label-btn__font-weight: var(--typography-label-large__font-weight);
-    --label-btn__ring-width: 0px;
+    --label-btn__ring-width: 0;
     --label-btn__ring-color: transparent;
     --label-btn__py: calc(
       var(--label-btn__font-size) * 10 / 16
@@ -49,7 +49,7 @@
     line-height: var(--label-btn__line-height);
     letter-spacing: var(--label-btn__letter-spacing);
     font-weight: var(--label-btn__font-weight);
-    @apply ring-inset	
+    @apply ring-inset
       ring-[length:var(--label-btn\_\_ring-width)]
       ring-[color:var(--label-btn\_\_ring-color)];
     padding: var(--label-btn__py) var(--label-btn__px);

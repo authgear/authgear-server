@@ -2,13 +2,13 @@
   :root {
     --link-btn-bg-color: transparent;
     --link-btn-text-color: var(--color-primary-theme-primary);
-    --link-btn-border-radius: 0px;
+    --link-btn-border-radius: 0;
     --link-btn-font-family: var(--typography-label-medium__font-family);
     --link-btn-font-size: var(--typography-label-medium__font-size);
     --link-btn-line-height: var(--typography-label-medium__line-height);
     --link-btn-letter-spacing: var(--typography-label-medium__letter-spacing);
     --link-btn-font-weight: var(--typography-label-medium__font-weight);
-    --link-btn-ring-width: 0px;
+    --link-btn-ring-width: 0;
     --link-btn-ring-color: transparent;
 
     --link-btn-bg-color--hover: transparent;

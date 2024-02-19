@@ -39,6 +39,21 @@
     @apply gap-x-[var(--alert-message\_\_spacing)];
   }
 
+  .alert-message__icon {
+    height: var(--alert-message__icon-size);
+    width: var(--alert-message__icon-size);
+    font-size: var(--alert-message__icon-size);
+  }
+
+  .alert-message__text {
+    color: var(--alert-message__text-color);
+    font-family: var(--alert-message__font-family);
+    font-size: var(--alert-message__font-size);
+    line-height: var(--alert-message__line-height);
+    letter-spacing: var(--alert-message__letter-spacing);
+    font-weight: var(--alert-message__font-weight);
+  }
+
   .alert-message--success {
     .alert-message__icon {
       color: var(--alert-message__icon-text-color--success);
@@ -55,20 +70,5 @@
     .alert-message__icon {
       color: var(--alert-message__icon-text-color--error);
     }
-  }
-
-  .alert-message__icon {
-    height: var(--alert-message__icon-size);
-    width: var(--alert-message__icon-size);
-    font-size: var(--alert-message__icon-size);
-  }
-
-  .alert-message__text {
-    color: var(--alert-message__text-color);
-    font-family: var(--alert-message__font-family);
-    font-size: var(--alert-message__font-size);
-    line-height: var(--alert-message__line-height);
-    letter-spacing: var(--alert-message__letter-spacing);
-    font-weight: var(--alert-message__font-weight);
   }
 }

@@ -21,16 +21,6 @@
     background-color: var(--code-block__bg-color);
   }
 
-  .code-block--single {
-    @apply py-2;
-    @apply flex-row;
-
-    & .code-block__text {
-      @apply overflow-hidden;
-      @apply text-ellipsis;
-    }
-  }
-
   .code-block__text {
     @apply whitespace-pre;
 
@@ -40,5 +30,15 @@
     line-height: var(--code-block__line-height);
     letter-spacing: var(--code-block__letter-spacing);
     font-weight: var(--code-block__font-weight);
+  }
+
+  .code-block--single {
+    @apply py-2;
+    @apply flex-row;
+
+    & .code-block__text {
+      @apply overflow-hidden;
+      @apply text-ellipsis;
+    }
   }
 }

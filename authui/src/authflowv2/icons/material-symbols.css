@@ -11,7 +11,7 @@
 @layer utilities {
   .material-icons {
     font-family: "material-icons";
-    font-weight: normal;
+    font-weight: 400;
     font-style: normal;
     display: inline-block;
     line-height: 1;
@@ -24,7 +24,7 @@
     /* Support for all WebKit browsers. */
     -webkit-font-smoothing: antialiased;
     /* Support for Safari and Chrome. */
-    text-rendering: optimizeLegibility;
+    text-rendering: optimizelegibility;
 
     /* Support for Firefox. */
     -moz-osx-font-smoothing: grayscale;
