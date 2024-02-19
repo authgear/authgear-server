@@ -10847,6 +10847,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -11655,6 +11656,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -11663,7 +11665,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Navigator:               authflowNavigator,
 	}
 	webappServiceLogger := webapp2.NewServiceLogger(factory)
-	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	interactionLogger := interaction.NewLogger(factory)
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -52423,6 +52424,7 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -53231,6 +53233,7 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -65771,6 +65774,7 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -66579,6 +66583,7 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -66678,6 +66683,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -67486,6 +67492,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -67585,6 +67592,7 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -68393,6 +68401,7 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -68491,6 +68500,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -69299,6 +69309,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -69397,6 +69408,7 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -70205,6 +70217,7 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -70286,6 +70299,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -71094,6 +71108,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -71175,6 +71190,7 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -71983,6 +71999,7 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -72058,6 +72075,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -72866,6 +72884,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -72941,6 +72960,7 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -73749,6 +73769,7 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -73826,6 +73847,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -74634,6 +74656,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -74711,6 +74734,7 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -75519,6 +75543,7 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -75594,6 +75619,7 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -76402,6 +76428,7 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -76477,6 +76504,7 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -77285,6 +77313,7 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -77360,6 +77389,7 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -78168,6 +78198,7 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -78243,6 +78274,7 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -79051,6 +79083,7 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -79126,6 +79159,7 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -79934,6 +79968,7 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -80009,6 +80044,7 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -80817,6 +80853,7 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -80892,6 +80929,7 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -81700,6 +81738,7 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -81775,6 +81814,7 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -82583,6 +82623,7 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -82660,6 +82701,7 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -83468,6 +83510,7 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -83545,6 +83588,7 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -84353,6 +84397,7 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -84429,6 +84474,7 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -85237,6 +85283,7 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -85312,6 +85359,7 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -86120,6 +86168,7 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -86195,6 +86244,7 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -87003,6 +87053,7 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -87078,6 +87129,7 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -87886,6 +87938,7 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -87961,6 +88014,7 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -88769,6 +88823,7 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -88844,6 +88899,7 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -89652,6 +89708,7 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -89727,6 +89784,7 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -90535,6 +90593,7 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -90610,6 +90669,7 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -91418,6 +91478,7 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -91493,6 +91554,7 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -92301,6 +92363,7 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -92376,6 +92439,7 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -93184,6 +93248,7 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -93259,6 +93324,7 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -94067,6 +94133,7 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -94142,6 +94209,7 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -94950,6 +95018,7 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -95025,6 +95094,7 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -95833,6 +95903,7 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -95908,6 +95979,7 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -96716,6 +96788,7 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -96791,6 +96864,7 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -97599,6 +97673,7 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -97674,6 +97749,7 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -98482,6 +98558,7 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -98559,6 +98636,7 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -99367,6 +99445,7 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -99444,6 +99523,7 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -100252,6 +100332,7 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -100327,6 +100408,7 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -101135,6 +101217,7 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -102049,6 +102132,7 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -102857,6 +102941,7 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -102903,6 +102988,7 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -103711,6 +103797,7 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -103757,6 +103844,7 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -104565,6 +104653,7 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -104640,6 +104729,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -105448,6 +105538,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -105523,6 +105614,7 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -106331,6 +106423,7 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -106406,6 +106499,7 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -107214,6 +107308,7 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
