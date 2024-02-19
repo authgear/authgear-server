@@ -86206,6 +86206,7 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 	}
 	authflowV2ChangePasswordHandler := &authflowv2.AuthflowV2ChangePasswordHandler{
 		Controller:    authflowController,
+		Navigator:     authflowV2Navigator,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 	}
