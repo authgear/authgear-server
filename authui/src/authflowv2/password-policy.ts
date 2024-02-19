@@ -1,5 +1,4 @@
 import { Controller } from "@hotwired/stimulus";
-import { runZxcvbn } from "./zxcvbn";
 
 enum PasswordPolicyName {
   Strength = "strength",
@@ -115,7 +114,8 @@ async function checkPasswordStrength(
 ) {
   let isViolated = false;
   const minLevel = Number(el.getAttribute("data-min-level"));
-  const result = await runZxcvbn(value);
+  const { default: zxcvbn } = await import("zxcvbn");
+  const result = zxcvbn(value);
   const score = Math.min(5, Math.max(1, result.score + 1));
   currentMeter.setAttribute("aria-valuenow", String(score));
   if (score >= minLevel) {
