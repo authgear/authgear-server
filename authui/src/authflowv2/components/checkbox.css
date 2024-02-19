@@ -3,12 +3,12 @@
     --checkbox__size: 1.125em;
     --checkbox__border-radius: 0.25em;
     --checkbox__ring-width: 1.5px;
-    --checkbox__ring-color: var(--color-grey-200);
-    --checkbox__ring-color-checked: var(--color-primary-base);
-    --checkbox__background-color: var(--color-white);
-    --checkbox__background-color--checked: var(--color-primary-base);
+    --checkbox__ring-color: var(--color-neutral-200);
+    --checkbox__ring-color-checked: var(--color-primary-theme-primary);
+    --checkbox__background-color: var(--color-bg-base);
+    --checkbox__background-color--checked: var(--color-primary-theme-primary);
 
-    --checkbox__icon-color: var(--color-white);
+    --checkbox__icon-color: var(--color-bg-base);
   }
 
   :root.dark {

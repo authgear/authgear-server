@@ -7,6 +7,7 @@
       --typography-headline-medium__letter-spacing
     );
     --screen-title__font-weight: var(--typography-headline-medium__font-weight);
+    --screen-title__text-color: var(--color-neutral-700);
   }
   :root.dark {
     /* TODO(tung): Dark mode styles */
@@ -18,6 +19,7 @@
     line-height: var(--screen-title__line-height);
     letter-spacing: var(--screen-title__letter-spacing);
     font-weight: var(--screen-title__font-weight);
+    color: var(--screen-title__text-color);
 
     :root[alignment-content="start"] & {
       @apply text-start;

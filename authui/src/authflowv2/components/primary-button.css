@@ -1,7 +1,7 @@
 @layer components {
   :root {
-    --primary-btn__bg-color: var(--color-primary-base);
-    --primary-btn__text-color: var(--color-white);
+    --primary-btn__bg-color: var(--color-primary-theme-primary);
+    --primary-btn__text-color: var(--color-bg-base);
     --primary-btn__border-radius: var(--border-radius-rounded-square);
     --primary-btn__font-family: var(--typography-label-large__font-family);
     --primary-btn__font-size: var(--typography-label-large__font-size);
@@ -18,18 +18,18 @@
       (var(--primary-btn__py) * 2 + var(--primary-btn__line-height)) / 2
     ); /* = Height / 2 */
 
-    --primary-btn__bg-color--hover: var(--color-primary-500);
+    --primary-btn__bg-color--hover: var(--color-primary-theme-dark);
     --primary-btn__text-color--hover: var(--primary-btn__text-color);
     --primary-btn__ring-width--hover: var(--primary-btn__ring-width);
     --primary-btn__ring-color--hover: var(--primary-btn__ring-color);
 
-    --primary-btn__bg-color--active: var(--color-primary-500);
+    --primary-btn__bg-color--active: var(--color-primary-theme-dark);
     --primary-btn__text-color--active: var(--primary-btn__text-color);
     --primary-btn__ring-width--active: var(--primary-btn__ring-width);
     --primary-btn__ring-color--active: var(--primary-btn__ring-color);
 
-    --primary-btn__bg-color--disabled: var(--color-grey-200);
-    --primary-btn__text-color--disabled: var(--color-grey-400);
+    --primary-btn__bg-color--disabled: var(--color-neutral-200);
+    --primary-btn__text-color--disabled: var(--color-neutral-400);
     --primary-btn__ring-width--disabled: var(--primary-btn__ring-width);
     --primary-btn__ring-color--disabled: var(--primary-btn__ring-color);
   }

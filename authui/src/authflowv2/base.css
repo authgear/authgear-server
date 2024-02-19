@@ -30,31 +30,40 @@
 
   /* Colors */
   :root {
-    --color-white: #ffffff;
-    --color-black: #000000;
     --color-success: #11c624;
     --color-error: #ff295b;
     --color-warning: #f39d17;
 
-    /* primary */
-    --color-primary-base: #176df3;
-    --color-primary-100: #e2e7fe;
-    --color-primary-200: #adbdfd;
-    --color-primary-300: #7295fc;
-    --color-primary-400: #176df3;
-    --color-primary-500: #0d4cae;
-    --color-primary-600: #052e6f;
-    --color-primary-700: #011234;
+    /* Primary colors is generated using fluent ui theme generator */
+    /* https://developer.microsoft.com/en-us/fluentui?fabricVer=5#/styles/themegenerator */
+    /* Parameters:
+      Primary color: #176df3
+    */
 
-    /* grey */
-    --color-grey-base: #73747b;
-    --color-grey-100: #e7e7e9;
-    --color-grey-200: #bfbfc3;
-    --color-grey-300: #98999e;
-    --color-grey-400: #73747b;
-    --color-grey-500: #505157;
-    --color-grey-600: #303135;
-    --color-grey-700: #131315;
+    /* primary */
+    /* --color-primary-theme-darker: #0c3c88; */
+    --color-primary-theme-dark: #1151b8;
+    /* --color-primary-theme-dark-alt: #1460da; */
+    --color-primary-theme-primary: #176df3;
+    /* --color-primary-theme-secondary: #317bf4; */
+    /* --color-primary-theme-tertiary: #70a4f7; */
+    /* --color-primary-theme-light: #b7d1fb;
+    --color-primary-theme-lighter: #d8e6fd;
+    --color-primary-theme-lighter-alt: #f5f9fe; */
+
+    /* Neutral colors is tonal palette */
+    /* https://m3.material.io/styles/color/system/how-the-system-works#395813c8-b314-48d1-bb55-266f421eb3a4 */
+    /* neutral */
+    --color-neutral-100: #e7e7e9;
+    --color-neutral-200: #bfbfc3;
+    --color-neutral-300: #98999e;
+    --color-neutral-400: #73747b;
+    --color-neutral-500: #505157;
+    --color-neutral-600: #303135;
+    --color-neutral-700: #131315;
+
+    /* background */
+    --color-bg-base: #ffffff;
   }
 
   /* Border Radius */

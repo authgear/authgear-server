@@ -1,6 +1,6 @@
 @layer components {
   :root {
-    --lockout__bg-color: var(--color-white);
+    --modal__bg-color: var(--color-bg-base);
   }
 
   .modal {
@@ -14,7 +14,7 @@
     @apply px-6;
     @apply py-8;
 
-    background-color: var(--lockout__bg-color);
+    background-color: var(--modal__bg-color);
 
     &.open {
       @apply flex;

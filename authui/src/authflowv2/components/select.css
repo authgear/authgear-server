@@ -1,6 +1,6 @@
 @layer components {
   :root {
-    --select__text-color: var(--color-grey-700);
+    --select__text-color: var(--color-neutral-700);
     --select__font-size: var(--typography-body-large__font-size);
     --select__line-height: var(--typography-body-large__line-height);
     --select__letter-spacing: var(--typography-body-large__letter-spacing);
@@ -9,20 +9,20 @@
 
     --select__dropdown-width: 100%;
     --select__dropdown-border-radius: var(--border-radius-rounded-square);
-    --select__dropdown-background-color: var(--color-white);
+    --select__dropdown-background-color: var(--color-bg-base);
     --select__dropdown-shadow: 0px 9px 21px 0px rgba(0, 0, 0, 0.1),
       0px 38px 38px 0px rgba(0, 0, 0, 0.09),
       0px 85px 51px 0px rgba(0, 0, 0, 0.05),
       0px 152px 61px 0px rgba(0, 0, 0, 0.01),
       0px 237px 66px 0px rgba(0, 0, 0, 0);
 
-    --select__search-border: 1px solid var(--color-grey-100);
+    --select__search-border: 1px solid var(--color-neutral-100);
 
     --select__search-input-py: 0.875em;
     --select__search-input-px--desktop: 0.625em;
     --select__search-input-px--mobile: 0.125em;
-    --select__search-input-text-color: var(--color-grey-700);
-    --select__search-input-caret-color: var(--color-primary-base);
+    --select__search-input-text-color: var(--color-neutral-700);
+    --select__search-input-caret-color: var(--color-primary-theme-primary);
     --select__search-input-font-family: var(
       --typography-body-large__font-family
     );
@@ -43,7 +43,7 @@
     --select__search-icon-font-size: calc(
       var(--select__search-input-font-size) * 1.5
     );
-    --select__search-icon-color: var(--color-grey-200);
+    --select__search-icon-color: var(--color-neutral-200);
 
     --select__clear-icon-width: calc(
       var(--select__search-input-font-size) * 2.75
@@ -51,7 +51,7 @@
     --select__clear-icon-font-size: calc(
       var(--select__search-input-font-size) * 1.25
     );
-    --select__clear-icon-color: var(--color-grey-200);
+    --select__clear-icon-color: var(--color-neutral-200);
 
     --select__close-icon-font-size: calc(
       var(--select__search-input-font-size) * 1.5
@@ -64,11 +64,11 @@
 
     --select__option-border-radius: calc(var(--select__font-size) * 0.75)
       /* 12 / 16 ratio to font size */;
-    --select__option-background-color--active: var(--color-grey-100);
+    --select__option-background-color--active: var(--color-neutral-100);
     --select__option-py: 0.75em;
     --select__option-px: calc(var(--select__font-size) * 1);
 
-    --select__empty-text-color: var(--color-grey-300);
+    --select__empty-text-color: var(--color-neutral-300);
     --select__empty-font-size: var(--typography-body-large-font-size);
     --select__empty-line-height: var(--typography-body-large-line-height);
     --select__empty-letter-spacing: var(
