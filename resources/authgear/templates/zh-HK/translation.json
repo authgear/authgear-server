@@ -985,7 +985,7 @@
   "v2-oob-otp-page-subtitle-reauth": "為了您的安全，我們需要驗證您的身分。我們已發送一段 {CodeLength} 位的驗證碼到 {MaskedClaimValue}。",
   "v2-oob-otp-page-subtitle--whatsapp": "我們已發送一段 {CodeLength} 位的驗證碼到你的WhatsApp號碼 {MaskedClaimValue}。",
   "v2-oob-otp-page-subtitle-reauth--whatsapp": "為了您的安全，我們需要驗證您的身分。我們已發送一段 {CodeLength} 位的驗證碼到你的WhatsApp號碼 {MaskedClaimValue}。",
-  "v2-error-invalid-credentials": "{AuthenticationType, select, password{密碼不正確} totp{驗證器應用程式／裝置所顯示的6位碼不正確} oob_otp_sms {一次性密碼不正確} oob_otp_email{無效的憑証} recovery_code {10位的備用碼不正確} other {無效的憑証}}",
+  "v2-error-invalid-credentials": "{AuthenticationType, select, password{密碼不正確} totp{驗證器應用程式／裝置所顯示的6位碼不正確} oob_otp_sms {一次性密碼不正確} oob_otp_email{無效的憑証} recovery_code {10位的備用碼不正確} passkey {此通行密鑰不屬於此帳戶} other {無效的憑証}}",
   "v2-error-verification-code-invalid": "無效的憑証",
   "v2-oob-otp-page-resend-button-label": "重發",
   "v2-oob-otp-page-resend-button-label--unit": "%s 後重發",
