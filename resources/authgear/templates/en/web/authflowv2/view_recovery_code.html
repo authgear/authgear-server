@@ -1,6 +1,7 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
 
+<div class="flex-1-0-auto">
   <div class="space-y-4">
     <h1 class="screen-title">
       {{ template "recovery-code-title" }}
@@ -49,4 +50,5 @@
     {{ template "v2-button.continue" }}
     </button>
   </form>
+</div>
 {{ end }}
