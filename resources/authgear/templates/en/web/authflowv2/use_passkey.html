@@ -14,12 +14,24 @@
           {{ template "v2-use-passkey-description" }}
         {{ end }}
       </p>
+      {{ if $.Error }}
+          {{ template "authflowv2/__alert_message.html"
+            (dict
+              "Type" "error"
+              "Classname" "mt-4"
+              "Message" (include "authflowv2/__error.html" .)
+            )
+          }}
+      {{ end }}
     </header>
     <footer
       class="flex flex-col gap-y-8"
       data-controller="authflow-passkey-request"
       data-authflow-passkey-request-options-value="{{ $.PasskeyRequestOptionsJSON }}"
-      data-authflow-passkey-request-auto-value="true">
+      {{ if not $.Error }}
+        data-authflow-passkey-request-auto-value="true"
+      {{ end }}
+      >
       <button
         class="primary-btn w-full"
         type="button"

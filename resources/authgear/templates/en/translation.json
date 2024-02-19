@@ -985,7 +985,7 @@
   "v2-oob-otp-page-subtitle-reauth": "For your security, we need to verify it''s you. We''ve just sent a {CodeLength}-digit verification code to {MaskedClaimValue}.",
   "v2-oob-otp-page-subtitle--whatsapp": "We''ve just sent a {CodeLength}-digit verification code to your WhatsApp number at {MaskedClaimValue}.",
   "v2-oob-otp-page-subtitle-reauth--whatsapp": "For your security, we need to verify it''s you. We''ve just sent a {CodeLength}-digit verification code to your WhatsApp number at {MaskedClaimValue}.",
-  "v2-error-invalid-credentials": "{AuthenticationType, select, password{Incorrect password} totp{Incorrect 6-digit code from the authenticator app / device} oob_otp_sms {Credentials are incorrect} oob_otp_email{Credentials are incorrect} recovery_code {Incorrect recovery code} other {Invalid credentials}}.",
+  "v2-error-invalid-credentials": "{AuthenticationType, select, password{Incorrect password} totp{Incorrect 6-digit code from the authenticator app / device} oob_otp_sms {Credentials are incorrect} oob_otp_email{Credentials are incorrect} recovery_code {Incorrect recovery code} passkey {This passkey is no longer associated with this account.} other {Invalid credentials}}.",
   "v2-error-verification-code-invalid": "Credentials are incorrect.",
   "v2-oob-otp-page-resend-button-label": "Resend code",
   "v2-oob-otp-page-resend-button-label--unit": "Resend code in %s",
@@ -1113,5 +1113,7 @@
   "v2-confirm-terminate-other-sessions-description": "You''re logged in on another device. Continuing will log out from other devices.",
   "v2-confirm-terminate-other-sessions-cancel-button-label": "No, don''t log out",
 
-  "v2-toc-pp-footer": "By registering, you agree to the {variant, select, both{<a class=\"link-btn\" target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a> and <a class=\"link-btn\" target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>} termsOnly{<a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a>} privacyOnly{<a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>} other{}}"
+  "v2-toc-pp-footer": "By registering, you agree to the {variant, select, both{<a class=\"link-btn\" target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a> and <a class=\"link-btn\" target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>} termsOnly{<a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a>} privacyOnly{<a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>} other{}}",
+
+  "v2-error-account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {This email} phone {This phone number} username {This username} other {This identity} }} oauth {This email} other {This identity} } cannot be found. Please ensure it is correct."
 }
