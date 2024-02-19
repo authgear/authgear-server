@@ -1,6 +1,6 @@
 @layer components {
   :root {
-    --phone-input__text-color: var(--color-text-700);
+    --phone-input__text-color: var(--color-neutral-700);
     --phone-input__font-size: var(--typography-body-large__font-size);
     --phone-input__line-height: var(--typography-body-large__line-height);
     --phone-input__letter-spacing: var(--typography-body-large__letter-spacing);
@@ -8,7 +8,7 @@
     --phone-input__font-family: twemoji-countries, Inter;
     --phone-input__space-x: 0.5em;
 
-    --phone-input__trigger-ring-color: var(--color-text-100);
+    --phone-input__trigger-ring-color: var(--color-neutral-100);
     --phone-input__trigger-ring-color--focus: var(
       --color-primary-theme-primary
     );

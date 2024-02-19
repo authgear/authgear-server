@@ -1,7 +1,7 @@
 @layer components {
   :root {
     /* Common */
-    --body-text__text-color: var(--color-text-400);
+    --body-text__text-color: var(--color-neutral-400);
     --body-text__link-color: var(--color-primary-theme-primary);
     --body-text__link-color--hover: var(--body-text__link-color);
     --body-text__link-color--active: var(--body-text__link-color);

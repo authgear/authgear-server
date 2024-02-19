@@ -7,7 +7,7 @@
       --typography-headline-medium__letter-spacing
     );
     --screen-title__font-weight: var(--typography-headline-medium__font-weight);
-    --screen-title__text-color: var(--color-text-700);
+    --screen-title__text-color: var(--color-neutral-700);
   }
   :root.dark {
     /* TODO(tung): Dark mode styles */

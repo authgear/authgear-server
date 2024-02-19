@@ -1,7 +1,7 @@
 @layer components {
   :root {
     --secondary-btn__bg-color: var(--color-bg-base);
-    --secondary-btn__text-color: var(--color-text-700);
+    --secondary-btn__text-color: var(--color-neutral-700);
     --secondary-btn__border-radius: var(--border-radius-rounded-square);
     --secondary-btn__font-family: var(--typography-label-large__font-family);
     --secondary-btn__font-size: var(--typography-label-large__font-size);
@@ -11,19 +11,19 @@
     );
     --secondary-btn__font-weight: var(--typography-label-large__font-weight);
     --secondary-btn__ring-width: 1.5px;
-    --secondary-btn__ring-color: var(--color-text-100);
+    --secondary-btn__ring-color: var(--color-neutral-100);
     --secondary-btn__py: var(--secondary-btn__font-size);
 
     --secondary-btn__px: calc(
       (var(--secondary-btn__py) * 2 + var(--secondary-btn__line-height)) / 2
     ); /* = Height / 2 */
 
-    --secondary-btn__bg-color--hover: var(--color-text-100);
+    --secondary-btn__bg-color--hover: var(--color-neutral-100);
     --secondary-btn__text-color--hover: var(--secondary-btn__text-color);
     --secondary-btn__ring-width--hover: var(--secondary-btn__ring-width);
     --secondary-btn__ring-color--hover: var(--secondary-btn__ring-color);
 
-    --secondary-btn__bg-color--active: var(--color-text-100);
+    --secondary-btn__bg-color--active: var(--color-neutral-100);
     --secondary-btn__text-color--active: var(--secondary-btn__text-color);
     --secondary-btn__ring-width--active: var(--secondary-btn__ring-width);
     --secondary-btn__ring-color--active: var(--secondary-btn__ring-color);

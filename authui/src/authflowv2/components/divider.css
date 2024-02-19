@@ -1,7 +1,7 @@
 @layer components {
   :root {
-    --divider__bg-color: var(--color-text-100);
-    --divider__text-color: var(--color-text-300);
+    --divider__bg-color: var(--color-neutral-100);
+    --divider__text-color: var(--color-neutral-300);
     --divider__font-family: var(--typography-body-large__font-family);
     --divider__font-size: var(--typography-body-large__font-size);
     --divider__line-height: var(--typography-body-large__line-height);

@@ -2,7 +2,7 @@
   :root {
     --otp-input__spacing: 21px;
 
-    --otp-input__digit-ring-color: var(--color-text-200);
+    --otp-input__digit-ring-color: var(--color-neutral-200);
     --otp-input__digit-ring-color--focus: var(--color-primary-theme-primary);
     --otp-input__digit-ring-color--error: var(--color-error);
     --otp-input__digit-ring-width: 1.5px;
@@ -12,7 +12,7 @@
     --otp-input__digit-width: 2.5em;
     --otp-input__digit-height: 2.75em;
 
-    --otp-input__digit-mask-color: var(--color-text-700);
+    --otp-input__digit-mask-color: var(--color-neutral-700);
     --otp-input__digit-mask-size: 0.625rem;
 
     --otp-input-error-message__margin-top: 0.5rem;
