@@ -1113,5 +1113,7 @@
   "v2-confirm-terminate-other-sessions-description": "You''re logged in on another device. Continuing will log out from other devices.",
   "v2-confirm-terminate-other-sessions-cancel-button-label": "No, don''t log out",
 
-  "v2-toc-pp-footer": "By registering, you agree to the {variant, select, both{<a class=\"link-btn\" target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a> and <a class=\"link-btn\" target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>} termsOnly{<a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a>} privacyOnly{<a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>} other{}}"
+  "v2-toc-pp-footer": "By registering, you agree to the {variant, select, both{<a class=\"link-btn\" target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a> and <a class=\"link-btn\" target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>} termsOnly{<a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a>} privacyOnly{<a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>} other{}}",
+
+  "v2-error-account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {This email} phone {This phone number} username {This username} other {This identity} }} oauth {This email} other {This identity} } cannot be found. Please ensure it is correct."
 }
