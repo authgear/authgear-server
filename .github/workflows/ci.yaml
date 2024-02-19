@@ -13,6 +13,31 @@ on:
     - '!gh-pages'
 
 jobs:
+  authui-test:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version-file: "./.tool-versions"
+    - run: npm ci
+      working-directory: ./authui
+    - run: npm run typecheck
+      working-directory: ./authui
+      if: ${{ !cancelled() }}
+    - run: npm run eslint
+      working-directory: ./authui
+      if: ${{ !cancelled() }}
+    - run: npm run stylelint
+      working-directory: ./authui
+      if: ${{ !cancelled() }}
+    - run: npm run prettier
+      working-directory: ./authui
+      if: ${{ !cancelled() }}
+    - run: npm run build
+      working-directory: ./authui
+      if: ${{ !cancelled() }}
+
   portal-test:
     runs-on: ubuntu-22.04
     steps:
@@ -91,7 +116,7 @@ jobs:
 
   authgear-image:
     runs-on: ubuntu-22.04
-    needs: authgear-test
+    needs: ["authgear-test", "authui-test"]
     env:
       TARGET: authgear
       IMAGE_NAME: authgear-server
