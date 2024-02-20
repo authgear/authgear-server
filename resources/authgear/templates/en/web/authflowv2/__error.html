@@ -231,7 +231,7 @@
   {{ $info := $.Error.info }}
   {{ $dict :=
     (dict
-      "IntentKind" $info.IntentKind
+      "FlowType" $info.FlowType
       "IdentityTypeIncoming" $info.IdentityTypeIncoming
       "LoginIDTypeIncoming" $info.LoginIDTypeIncoming
       "OAuthProviderTypeIncoming" $info.OAuthProviderTypeIncoming

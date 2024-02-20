@@ -1041,7 +1041,7 @@
   "v2-error-scheduled-deletion-by-end-user": "You have deactivated your account and your account will be deleted on <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2-error-page-not-found": "The page cannot be found",
   "v2-error-new-password-typo": "The re-typed new password does not match the new password. Please ensure the two match.",
-  "v2-error-account-conflict": "{ IdentityTypeIncoming, select, login_id {{IntentKind, select, IntentLoginFlow {Looks like you used {OAuthProviderNameExisting} for login before.} other {This {LoginIDNameIncoming} is already registered.}}} oauth {Looks like you haven''t linked up with that {OAuthProviderNameIncoming} account yet.} other {This account is already registered} }",
+  "v2-error-account-conflict": "{ IdentityTypeIncoming, select, login_id {{FlowType, select, login {Looks like you used {OAuthProviderNameExisting} for login before.} other {This {LoginIDNameIncoming} is already registered.}}} oauth {Looks like you haven''t linked up with that {OAuthProviderNameIncoming} account yet.} other {This account is already registered} }",
   "v2-error-suggestion-account-conflict-oauth": "{ IdentityTypeIncoming, select, login_id {You can try login with {OAuthProviderNameExisting} or use another {LoginIDNameIncoming} below.} oauth {You can try another {OAuthProviderNameIncoming} account or use your {LoginIDNameExisting} below.} other {You can try another account.} }",
 
   "v2-setup-password-instead": "Set up password",
