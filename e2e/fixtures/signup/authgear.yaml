@@ -1,8 +1,6 @@
 authentication:
   identities:
   - login_id
-  - anonymous
-  - oauth
   lockout:
     backoff_factor: 2
     history_duration: 5m
@@ -16,8 +14,6 @@ authentication:
       enabled: true
   primary_authenticators:
   - password
-  - oob_otp_email
-  - oob_otp_sms
   rate_limits:
     oob_otp:
       email:
@@ -27,12 +23,7 @@ authentication:
   recovery_code:
     count: 16
     disabled: false
-  secondary_authentication_mode: required
-  secondary_authenticators:
-  - oob_otp_sms
-  - oob_otp_email
-  - password
-  - totp
+  secondary_authentication_mode: disabled
 authenticator:
   oob_otp:
     email:
@@ -44,7 +35,7 @@ authenticator:
       maximum: 99
       phone_otp_mode: whatsapp_sms
   password:
-    force_change: true
+    force_change: false
     policy:
       alphabet_required: false
       digit_required: false
@@ -52,8 +43,8 @@ authenticator:
       history_days: 0
       history_size: 0
       lowercase_required: false
-      min_length: 8
-      minimum_guessable_level: 5
+      min_length: 1
+      minimum_guessable_level: 1
       symbol_required: false
       uppercase_required: false
 forgot_password:
