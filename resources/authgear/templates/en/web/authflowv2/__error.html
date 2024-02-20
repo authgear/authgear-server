@@ -267,6 +267,8 @@
       {{ template "v2-error-account-conflict" $dict }}
       {{ if $suggest_oauth }}
         {{ template "v2-error-suggestion-account-conflict-oauth" $dict }}
+      {{ else }}
+        {{ template "v2-error-suggestion-account-conflict-login-id" $dict }}
       {{ end }}
     </span>
   {{ end }}

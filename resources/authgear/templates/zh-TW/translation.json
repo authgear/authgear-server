@@ -1042,7 +1042,8 @@
   "v2-error-page-not-found": "找不到頁面",
   "v2-error-new-password-typo": "再輸入的新密碼與新密碼不同。請確保兩者相同。",
   "v2-error-account-conflict": "{ IdentityTypeIncoming, select, login_id {{FlowType, select, login {看起來您之前使用 {OAuthProviderNameExisting} 進行登入。} other {此 {LoginIDNameIncoming} 已註冊。 {看來您尚未與該{OAuthProviderNameIncoming} 帳戶關聯。} 其他{此帳號已註冊。} }",
-  "v2-error-suggestion-account-conflict-oauth": "{ IdentityTypeIncoming, select, login_id {您可以嘗試使用{OAuthProviderNameExisting} 登入或使用下面的另一個{LoginIDNameIncoming}。} oauthName } 帳號或請使用下面的 {LoginIDNameExisting}。} 其他 {您可以嘗試其他帳號。} }",
+  "v2-error-suggestion-account-conflict-oauth": "{ IdentityTypeIncoming, select, login_id {您可以嘗試使用{OAuthProviderNameExisting} 登入或使用下面的另一個{LoginIDNameIncoming}。} oauth {您可以嘗試使用其他{OAuthProviderNameIncoming}帳號{ IdentityTypeExisting, select, login_id {或使用下面的 {LoginIDNameExisting}。} other {或使用其他登入方式。} }} other {您可以嘗試其他帳號。} }",
+  "v2-error-suggestion-account-conflict-login-id": "您想改為登入嗎？",
 
   "v2-setup-password-instead": "設定密碼",
   "v2-setup-secondary-password-instead": "設定附加密碼",
