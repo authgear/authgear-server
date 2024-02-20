@@ -29,12 +29,14 @@ export class CustomSelectController extends Controller {
   declare readonly inputTarget: HTMLInputElement;
   declare readonly triggerTarget: HTMLButtonElement;
   declare readonly dropdownTarget: HTMLElement;
-  declare readonly searchTarget: HTMLInputElement | undefined;
+  declare readonly searchTarget: HTMLInputElement;
   declare readonly clearSearchTarget: HTMLElement;
   declare readonly optionsTarget: HTMLElement;
   declare readonly searchTemplateTarget?: HTMLTemplateElement;
   declare readonly itemTemplateTarget: HTMLTemplateElement;
   declare readonly emptyTemplateTarget?: HTMLTemplateElement;
+
+  declare readonly hasSearchTarget: boolean;
 
   declare readonly optionsValue: SearchSelectOption[];
   declare readonly initialValueValue: string;
@@ -58,7 +60,11 @@ export class CustomSelectController extends Controller {
   }
 
   get keyword() {
-    return this.searchTarget?.value ?? "";
+    if (!this.hasSearchTarget) {
+      return "";
+    }
+
+    return this.searchTarget.value;
   }
 
   get focusedValue() {
@@ -116,7 +122,9 @@ export class CustomSelectController extends Controller {
     this.clearSearch();
     this.resetScroll();
 
-    this.searchTarget?.focus();
+    if (this.hasSearchTarget) {
+      this.searchTarget.focus();
+    }
   }
 
   close() {
@@ -142,7 +150,7 @@ export class CustomSelectController extends Controller {
   }
 
   clearSearch() {
-    if (!this.searchTarget) return;
+    if (!this.hasSearchTarget) return;
 
     this.searchTarget.value = "";
     this.renderItems();
@@ -275,7 +283,8 @@ export class CustomSelectController extends Controller {
     const containerPadding = parseFloat(getComputedStyle(container).paddingTop);
     const padding = parseFloat(getComputedStyle(item).paddingTop);
     const itemPosition =
-      item.offsetTop - (this.searchTarget?.offsetHeight ?? 0);
+      item.offsetTop -
+      (this.hasSearchTarget ? this.searchTarget.offsetHeight : 0);
 
     let scrollPosition: number | undefined;
 
