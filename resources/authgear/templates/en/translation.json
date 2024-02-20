@@ -1041,6 +1041,9 @@
   "v2-error-scheduled-deletion-by-end-user": "You have deactivated your account and your account will be deleted on <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2-error-page-not-found": "The page cannot be found",
   "v2-error-new-password-typo": "The re-typed new password does not match the new password. Please ensure the two match.",
+  "v2-error-account-conflict": "{ IdentityTypeIncoming, select, login_id {{FlowType, select, login {Looks like you used {OAuthProviderNameExisting} for login before.} other {This {LoginIDNameIncoming} is already registered.}}} oauth {Looks like you haven''t linked up with that {OAuthProviderNameIncoming} account yet.} other {This account is already registered} }",
+  "v2-error-suggestion-account-conflict-oauth": "{ IdentityTypeIncoming, select, login_id {You can try login with {OAuthProviderNameExisting} or use another {LoginIDNameIncoming} below.} oauth {You can try another {OAuthProviderNameIncoming} account{ IdentityTypeExisting, select, login_id { or use your {LoginIDNameExisting} below.} other {or use another method below.} }} other {You can try another account.} }",
+  "v2-error-suggestion-account-conflict-login-id": "Do you want to login?",
 
   "v2-setup-password-instead": "Set up password",
   "v2-setup-secondary-password-instead": "Set up additional password",
@@ -1115,5 +1118,7 @@
 
   "v2-toc-pp-footer": "By registering, you agree to the {variant, select, both{<a class=\"link-btn\" target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a> and <a class=\"link-btn\" target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>} termsOnly{<a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a>} privacyOnly{<a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>} other{}}",
 
-  "v2-error-account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {This email} phone {This phone number} username {This username} other {This identity} }} oauth {This email} other {This identity} } cannot be found. Please ensure it is correct."
+  "v2-error-account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {This email} phone {This phone number} username {This username} other {This identity} }} oauth {This email} other {This identity} } cannot be found. Please ensure it is correct.",
+  "v2-login-id-name": "{ LoginIDType, select, email {email} phone {phone number} username {username} other {{ LoginIDKey, select, email {email} phone {phone number} username {username} other {identity} }} }",
+  "v2-oauth-provider-name": "{ OAuthProviderType, select, google {Google} facebook {Facebook} github {GitHub} linkedin {LinkedIn} azureadv2 {Azure AD} azureadb2c {Azure AD B2C} adfs {AD FS} apple {Apple} wechat {Wechat} other {OAuth} }"
 }

@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -108,6 +110,10 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, inputFn func(i
 
 		// Handle other error.
 		if err != nil {
+			err = errorutil.WithDetails(err, errorutil.Details{
+				"FlowType": apierrors.APIErrorDetail.Value(flows.Nearest.Intent.(PublicFlow).FlowType()),
+			})
+
 			return
 		}
 

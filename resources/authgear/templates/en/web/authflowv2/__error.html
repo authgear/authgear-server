@@ -230,12 +230,20 @@
 {{ define "authflowv2/__error_account" }}
   {{ $info := $.Error.info }}
   {{ $dict :=
-    (dict "IntentKind" $info.IntentKind "IdentityTypeIncoming"
-    $info.IdentityTypeIncoming "LoginIDTypeIncoming" $info.LoginIDTypeIncoming
-    "OAuthProviderTypeIncoming" $info.OAuthProviderTypeIncoming
-    "IdentityTypeExisting" $info.IdentityTypeExisting "LoginIDTypeExisting"
-    $info.LoginIDTypeExisting "OAuthProviderTypeExisting"
-    $info.OAuthProviderTypeExisting ) }}
+    (dict
+      "FlowType" $info.FlowType
+      "IdentityTypeIncoming" $info.IdentityTypeIncoming
+      "LoginIDTypeIncoming" $info.LoginIDTypeIncoming
+      "OAuthProviderTypeIncoming" $info.OAuthProviderTypeIncoming
+      "IdentityTypeExisting" $info.IdentityTypeExisting
+      "LoginIDTypeExisting" $info.LoginIDTypeExisting
+      "OAuthProviderTypeExisting" $info.OAuthProviderTypeExisting
+      "OAuthProviderNameIncoming" (include "v2-oauth-provider-name" (dict "OAuthProviderType" $info.OAuthProviderTypeIncoming))
+      "OAuthProviderNameExisting" (include "v2-oauth-provider-name" (dict "OAuthProviderType" $info.OAuthProviderTypeExisting))
+      "LoginIDNameIncoming" (include "v2-login-id-name" (dict "LoginIDType" $info.LoginIDTypeIncoming "LoginIDKey" $.LoginIDKey))
+      "LoginIDNameExisting" (include "v2-login-id-name" (dict "LoginIDType" $info.LoginIDTypeExisting "LoginIDKey" $.LoginIDKey))
+    )
+  }}
   {{/* Determine whether it is a conflict */}}
   {{ $is_conflict := true }}
   {{ if not $info.IdentityTypeExisting }}
@@ -248,16 +256,19 @@
   {{/* Tell the end-user these is a conflict */}}
   {{/* and give suggestion contextually */}}
   {{ if $is_conflict }}
-    {{ $suggest_connect_oauth :=
-      (and (eq $info.IdentityTypeExisting "login_id") (eq $info.IdentityTypeIncoming
-      "oauth") )
-    }}
+    {{ $suggest_oauth := true }}
+    {{ if and (ne $info.IdentityTypeExisting "oauth") (ne $info.IdentityTypeIncoming "oauth") }}
+      {{ $suggest_oauth = false }}
+    {{ end }}
+    {{ if eq $info.OAuthProviderTypeExisting $info.OAuthProviderTypeIncoming }}
+      {{ $suggest_oauth = false }}
+    {{ end }}
     <span>
-      {{ template "error-account-conflict" $dict }}
-        {{ if $suggest_connect_oauth }}
-          {{ template "error-suggestion-connect-oauth" $dict }}
-        {{ else }}
-        {{ template "error-suggestion-sign-in" $dict }}
+      {{ template "v2-error-account-conflict" $dict }}
+      {{ if $suggest_oauth }}
+        {{ template "v2-error-suggestion-account-conflict-oauth" $dict }}
+      {{ else }}
+        {{ template "v2-error-suggestion-account-conflict-login-id" $dict }}
       {{ end }}
     </span>
   {{ end }}
