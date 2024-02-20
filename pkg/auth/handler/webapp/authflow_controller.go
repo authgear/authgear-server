@@ -611,7 +611,7 @@ func (c *AuthflowController) Finish(r *http.Request, s *webapp.Session) (*webapp
 	if !ok {
 		return nil, authflow.ErrFlowNotFound
 	}
-	isFinished, err := c.finishSession(r, s, result, screen.FlowType, screen.FinishRedirectURI)
+	isFinished, err := c.finishSession(r, s, result, screen.FinishedUIScreenData.FlowType, screen.FinishedUIScreenData.FinishRedirectURI)
 	if err != nil {
 		return nil, err
 	}
