@@ -620,6 +620,21 @@ func (c *AuthflowController) Finish(r *http.Request, s *webapp.Session) (*webapp
 
 	return nil, authflow.ErrUnknownFlow
 }
+func (c *AuthflowController) InjectNewAuthflowScreen(r *http.Request,
+	s *webapp.Session,
+	sourceScreen *webapp.AuthflowScreen,
+	targetURI string,
+) (*webapp.AuthflowScreen, error) {
+	prevXStep := sourceScreen.StateToken.XStep
+	screen := webapp.NewAuthflowScreenWithoutFlowResponse(prevXStep, targetURI)
+	s.RememberScreen(screen)
+	err := c.updateSession(r, s)
+	if err != nil {
+		return nil, err
+	}
+
+	return screen, nil
+}
 
 // AdvanceWithInput is same as AdvanceWithInputs but only allow one input.
 func (c *AuthflowController) AdvanceWithInput(

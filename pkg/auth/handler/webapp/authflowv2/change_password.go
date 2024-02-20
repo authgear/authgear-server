@@ -103,9 +103,14 @@ func (h *AuthflowV2ChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		if err != nil {
 			return err
 		}
+		injectedScreen, err := h.Controller.InjectNewAuthflowScreen(r, s, screen.Screen, result.RedirectURI)
+		if err != nil {
+			return err
+		}
+		newResult := &webapp.Result{}
 
-		h.Navigator.NavigateChangePasswordSuccessPage(screen.Screen, r, s.ID, result)
-		result.WriteResponse(w, r)
+		h.Navigator.NavigateChangePasswordSuccessPage(injectedScreen, r, s.ID, newResult)
+		newResult.WriteResponse(w, r)
 		return nil
 	})
 	h.Controller.HandleStep(w, r, &handlers)

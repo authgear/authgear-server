@@ -86245,6 +86245,7 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -87053,6 +87054,7 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -108556,6 +108558,7 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -109364,6 +109367,7 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
@@ -109439,6 +109443,7 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	contextContext := deps.ProvideRequestContext(request)
 	featureConfig := config.FeatureConfig
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -110247,6 +110252,7 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		Cookies:                 cookieManager,
 		Sessions:                sessionStoreRedis,
 		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,

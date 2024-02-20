@@ -35,6 +35,10 @@ type AuthflowFinishedUIScreenData struct {
 	FinishRedirectURI string            `json:"finish_redirect_uri,omitempty"`
 }
 
+type AuthflowInjectedUIScreenData struct {
+	TargetRedirectURI string `json:"target_redirect_uri,omitempty"`
+}
+
 func (s AuthflowOAuthState) Encode() string {
 	b, err := json.Marshal(s)
 	if err != nil {
@@ -112,6 +116,8 @@ func newXStep() string {
 type AuthflowScreen struct {
 	// Store FinishedUIScreenData when the flow is finish
 	FinishedUIScreenData *AuthflowFinishedUIScreenData `json:"finished_ui_screen_data,omitempty"`
+	// Store InjectedUIScreenData when injecting screen between two steps
+	InjectedUIScreenData *AuthflowInjectedUIScreenData `json:"injected_ui_screen_data,omitempty"`
 	// PreviousXStep is the x_step of the screen that leads to this screen.
 	PreviousXStep string `json:"previous_x_step,omitempty"`
 	// PreviousInput is the input that leads to this screen.
@@ -327,6 +333,19 @@ type AuthflowScreenWithFlowResponse struct {
 	Screen                       *AuthflowScreen
 	StateTokenFlowResponse       *authflow.FlowResponse
 	BranchStateTokenFlowResponse *authflow.FlowResponse
+}
+
+func NewAuthflowScreenWithoutFlowResponse(previousXStep string, targetRedirectURI string) *AuthflowScreen {
+	return &AuthflowScreen{
+		InjectedUIScreenData: &AuthflowInjectedUIScreenData{
+			TargetRedirectURI: targetRedirectURI,
+		},
+		PreviousXStep: previousXStep,
+		StateToken: &AuthflowStateToken{
+			XStep:      newXStep(),
+			StateToken: "",
+		},
+	}
 }
 
 func NewAuthflowScreenWithFlowResponse(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreenWithFlowResponse {
