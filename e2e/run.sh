@@ -4,7 +4,8 @@
 
 function setup {
     echo "[ ] Starting services..."
-    # docker compose build --pull
+    # docker compose build --up
+    # docker compose build authgear
     docker compose up -d
     sleep 5
 
@@ -57,7 +58,7 @@ function teardown {
 
 function runtests {
     echo "[ ] Run tests..."
-    # TODO(newman): Add tests
+    go test ./tests/... -timeout 1m30s
 }
 
 function main {
