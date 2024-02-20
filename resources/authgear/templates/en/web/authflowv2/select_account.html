@@ -16,6 +16,12 @@
     <p class="screen-description">
       {{ template "v2-select-account-description" (dict "IdentityDisplayName" $.IdentityDisplayName) }}
     </p>
+    {{ template "authflowv2/__alert_message.html"
+      (dict
+        "Type" "error"
+        "Classname" "mt-4"
+      )
+    }}
   </section>
   <div></div>
   <footer class="flex flex-col gap-4">

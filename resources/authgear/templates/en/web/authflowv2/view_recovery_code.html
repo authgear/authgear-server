@@ -9,6 +9,12 @@
     <h2 class="screen-description">
       {{ template "recovery-code-storage-description" }}
     </h2>
+    {{ template "authflowv2/__alert_message.html"
+      (dict
+        "Type" "error"
+        "Classname" "mt-4"
+      )
+    }}
   </div>
 
   <div class="my-6 code-block">

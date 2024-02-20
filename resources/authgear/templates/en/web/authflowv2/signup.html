@@ -35,6 +35,12 @@
     <h2 class="screen-description">
       {{ template "v2-sign-up.subtitle" }}
     </h2>
+    {{ template "authflowv2/__alert_message.html"
+      (dict
+        "Type" "error"
+        "Classname" "mt-4"
+      )
+    }}
   </div>
   <form
     class="block mt-8"

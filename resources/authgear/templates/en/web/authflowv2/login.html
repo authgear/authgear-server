@@ -59,6 +59,12 @@
       <h2 class="screen-description">
         {{ template "v2-login.subtitle" }}
       </h2>
+      {{ template "authflowv2/__alert_message.html"
+        (dict
+          "Type" "error"
+          "Classname" "mt-4"
+        )
+      }}
     </div>
     <form
       class="flex flex-col gap-4 mt-8"

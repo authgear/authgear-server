@@ -14,15 +14,13 @@
           {{ template "v2-use-passkey-description" }}
         {{ end }}
       </p>
-      {{ if $.Error }}
-          {{ template "authflowv2/__alert_message.html"
-            (dict
-              "Type" "error"
-              "Classname" "mt-4"
-              "Message" (include "authflowv2/__error.html" .)
-            )
-          }}
-      {{ end }}
+      {{ template "authflowv2/__alert_message.html"
+        (dict
+          "Type" "error"
+          "Classname" "mt-4"
+          "Message" (ternary (include "authflowv2/__error.html" .) nil (not (empty $.Error)))
+        )
+      }}
     </header>
     <footer
       class="flex flex-col gap-y-8"

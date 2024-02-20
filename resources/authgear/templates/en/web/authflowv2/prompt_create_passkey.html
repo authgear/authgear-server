@@ -12,6 +12,12 @@
       <p class="screen-description">
         {{ template "v2-prompt-create-passkey-description" }}
       </p>
+      {{ template "authflowv2/__alert_message.html"
+        (dict
+          "Type" "error"
+          "Classname" "mt-4"
+        )
+      }}
     </header>
     <div></div>
     <footer class="flex flex-col gap-4">
