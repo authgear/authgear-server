@@ -383,7 +383,7 @@ func (mr *MockAuthflowNavigatorMockRecorder) Navigate(screen, r, webSessionID, r
 }
 
 // NavigateChangePasswordSuccessPage mocks base method.
-func (m *MockAuthflowNavigator) NavigateChangePasswordSuccessPage(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
+func (m *MockAuthflowNavigator) NavigateChangePasswordSuccessPage(s *webapp.AuthflowScreen, r *http.Request, webSessionID string, result *webapp.Result) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "NavigateChangePasswordSuccessPage", s, r, webSessionID, result)
 }

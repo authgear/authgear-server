@@ -102,12 +102,12 @@ func (n *AuthflowV2Navigator) NavigateResetPasswordSuccessPage() string {
 	return AuthflowV2RouteResetPasswordSuccess
 }
 
-func (n *AuthflowV2Navigator) NavigateChangePasswordSuccessPage(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
+func (n *AuthflowV2Navigator) NavigateChangePasswordSuccessPage(s *webapp.AuthflowScreen, r *http.Request, webSessionID string, result *webapp.Result) {
 	navigate := func(path string, query *url.Values) {
 		u := *r.URL
 		u.Path = path
 		q := u.Query()
-		q.Set(webapp.AuthflowQueryKey, s.Screen.StateToken.XStep)
+		q.Set(webapp.AuthflowQueryKey, s.StateToken.XStep)
 		for k, param := range *query {
 			for _, p := range param {
 				q.Add(k, p)
