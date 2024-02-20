@@ -6,8 +6,8 @@
   {{ if eq $.Type "warning" }}alert-message--warning{{ end }}
   {{ $.Classname }}"
   data-controller="alert-message"
-  data-server-error-message="{{ template "error-server" }}"
-  data-network-error-message="{{ template "error-network" }}"
+  data-server-error-message="{{ template "v2-error-server" }}"
+  data-network-error-message="{{ template "v2-error-network" }}"
   {{ if $message }}
     data-error-message={{ $message }}
   {{ end }}

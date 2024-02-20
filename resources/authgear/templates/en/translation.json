@@ -1120,5 +1120,8 @@
 
   "v2-error-account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {This email} phone {This phone number} username {This username} other {This identity} }} oauth {This email} other {This identity} } cannot be found. Please ensure it is correct.",
   "v2-login-id-name": "{ LoginIDType, select, email {email} phone {phone number} username {username} other {{ LoginIDKey, select, email {email} phone {phone number} username {username} other {identity} }} }",
-  "v2-oauth-provider-name": "{ OAuthProviderType, select, google {Google} facebook {Facebook} github {GitHub} linkedin {LinkedIn} azureadv2 {Azure AD} azureadb2c {Azure AD B2C} adfs {AD FS} apple {Apple} wechat {Wechat} other {OAuth} }"
+  "v2-oauth-provider-name": "{ OAuthProviderType, select, google {Google} facebook {Facebook} github {GitHub} linkedin {LinkedIn} azureadv2 {Azure AD} azureadb2c {Azure AD B2C} adfs {AD FS} apple {Apple} wechat {Wechat} other {OAuth} }",
+
+  "v2-error-network": "There was a problem performing this action. Please try again",
+  "v2-error-server": "Server encountered an internal error."
 }
