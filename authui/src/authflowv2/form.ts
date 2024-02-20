@@ -2,8 +2,8 @@ import { visit, clearCache } from "@hotwired/turbo";
 import { Controller } from "@hotwired/stimulus";
 import axios, { Method } from "axios";
 import { progressEventHandler } from "../loading";
-import { handleAxiosError } from "../messageBar";
 import { LoadingController } from "./loading";
+import { handleAxiosError } from "./alert-message";
 
 // Turbo has builtin support for form submission.
 // We once migrated to use it.
