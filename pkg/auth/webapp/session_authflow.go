@@ -66,7 +66,7 @@ type Authflow struct {
 	AllScreens map[string]*AuthflowScreen `json:"all_screens,omitempty"`
 }
 
-func (s *Session) RememberScreen(screen *AuthflowScreenWithFlowResponse) {
+func (s *Session) RememberScreen(screen *AuthflowScreen) {
 	if s.Authflow == nil {
 		s.Authflow = &Authflow{}
 	}
@@ -75,7 +75,7 @@ func (s *Session) RememberScreen(screen *AuthflowScreenWithFlowResponse) {
 		s.Authflow.AllScreens = make(map[string]*AuthflowScreen)
 	}
 
-	s.Authflow.AllScreens[screen.Screen.StateToken.XStep] = screen.Screen
+	s.Authflow.AllScreens[screen.StateToken.XStep] = screen
 }
 
 // AuthflowStateToken pairs x_step with its underlying state_token.

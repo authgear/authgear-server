@@ -446,7 +446,7 @@ func (c *AuthflowController) ReplaceScreen(r *http.Request, s *webapp.Session, f
 	emptyXStep := ""
 	var emptyInput map[string]interface{}
 	screen = webapp.NewAuthflowScreenWithFlowResponse(&flowResponse, emptyXStep, emptyInput)
-	s.RememberScreen(screen)
+	s.RememberScreen(screen.Screen)
 
 	output, screen, err = c.takeBranchRecursively(s, screen)
 	if err != nil {
@@ -497,7 +497,7 @@ func (c *AuthflowController) createScreenWithOutput(
 	flowResponse := output.ToFlowResponse()
 	var emptyInput map[string]interface{}
 	screen := webapp.NewAuthflowScreenWithFlowResponse(&flowResponse, prevXStep, emptyInput)
-	s.RememberScreen(screen)
+	s.RememberScreen(screen.Screen)
 
 	output, screen, err := c.takeBranchRecursively(s, screen)
 	if err != nil {
@@ -578,7 +578,7 @@ func (c *AuthflowController) AdvanceWithInputs(
 		if options.InheritTakenBranchState && screen0.BranchStateTokenFlowResponse != nil {
 			screen1.InheritTakenBranchState(screen0)
 		}
-		s.RememberScreen(screen1)
+		s.RememberScreen(screen1.Screen)
 		currentScreen = screen1
 
 		output2, screen2, err := c.takeBranchRecursively(s, screen1)
@@ -646,7 +646,7 @@ func (c *AuthflowController) UpdateWithInput(r *http.Request, s *webapp.Session,
 	result.Cookies = append(result.Cookies, output.Cookies...)
 	newF := output.ToFlowResponse()
 	newScreen := webapp.UpdateAuthflowScreenWithFlowResponse(screen, &newF)
-	s.RememberScreen(newScreen)
+	s.RememberScreen(newScreen.Screen)
 
 	now := c.Clock.NowUTC()
 	s.UpdatedAt = now
@@ -686,7 +686,7 @@ func (c *AuthflowController) handleTakeBranchResultInput(
 
 	flowResponse := output.ToFlowResponse()
 	newScreen := takeBranchResult.NewAuthflowScreenFull(&flowResponse, err)
-	s.RememberScreen(newScreen)
+	s.RememberScreen(newScreen.Screen)
 	return output, newScreen, nil
 }
 
@@ -700,7 +700,7 @@ func (c *AuthflowController) takeBranchRecursively(s *webapp.Session, screen *we
 		switch takeBranchResult := takeBranchResult.(type) {
 		// This taken branch does not require an input to select.
 		case webapp.TakeBranchResultSimple:
-			s.RememberScreen(takeBranchResult.Screen)
+			s.RememberScreen(takeBranchResult.Screen.Screen)
 			screen = takeBranchResult.Screen
 		// This taken branch require an input to select.
 		case webapp.TakeBranchResultInput:
@@ -872,7 +872,7 @@ func (c *AuthflowController) takeBranch(w http.ResponseWriter, r *http.Request, 
 	switch takeBranchResult := takeBranchResult.(type) {
 	// This taken branch does not require an input to select.
 	case webapp.TakeBranchResultSimple:
-		s.RememberScreen(takeBranchResult.Screen)
+		s.RememberScreen(takeBranchResult.Screen.Screen)
 		newScreen = takeBranchResult.Screen
 	// This taken branch require an input to select.
 	case webapp.TakeBranchResultInput:
