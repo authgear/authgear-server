@@ -620,13 +620,26 @@ func (c *AuthflowController) Finish(r *http.Request, s *webapp.Session) (*webapp
 
 	return nil, authflow.ErrUnknownFlow
 }
+func (c *AuthflowController) AdvanceFromInjectedScreen(r *http.Request, s *webapp.Session) (*webapp.Result, error) {
+	if s.Authflow == nil {
+		return nil, authflow.ErrFlowNotFound
+	}
+
+	screen, ok := s.Authflow.AllScreens[GetXStepFromQuery(r)]
+	if !ok {
+		return nil, authflow.ErrFlowNotFound
+	}
+
+	return screen.InjectedUIScreenData.TargetResult, nil
+}
+
 func (c *AuthflowController) InjectNewAuthflowScreen(r *http.Request,
 	s *webapp.Session,
 	sourceScreen *webapp.AuthflowScreen,
-	targetURI string,
+	targetResult *webapp.Result,
 ) (*webapp.AuthflowScreen, error) {
 	prevXStep := sourceScreen.StateToken.XStep
-	screen := webapp.NewAuthflowScreenWithoutFlowResponse(prevXStep, targetURI)
+	screen := webapp.NewAuthflowScreenWithoutFlowResponse(prevXStep, targetResult)
 	s.RememberScreen(screen)
 	err := c.updateSession(r, s)
 	if err != nil {

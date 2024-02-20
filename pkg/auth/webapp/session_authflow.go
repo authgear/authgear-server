@@ -36,7 +36,7 @@ type AuthflowFinishedUIScreenData struct {
 }
 
 type AuthflowInjectedUIScreenData struct {
-	TargetRedirectURI string `json:"target_redirect_uri,omitempty"`
+	TargetResult *Result `json:"target_result,omitempty"`
 }
 
 func (s AuthflowOAuthState) Encode() string {
@@ -335,10 +335,10 @@ type AuthflowScreenWithFlowResponse struct {
 	BranchStateTokenFlowResponse *authflow.FlowResponse
 }
 
-func NewAuthflowScreenWithoutFlowResponse(previousXStep string, targetRedirectURI string) *AuthflowScreen {
+func NewAuthflowScreenWithoutFlowResponse(previousXStep string, targetResult *Result) *AuthflowScreen {
 	return &AuthflowScreen{
 		InjectedUIScreenData: &AuthflowInjectedUIScreenData{
-			TargetRedirectURI: targetRedirectURI,
+			TargetResult: targetResult,
 		},
 		PreviousXStep: previousXStep,
 		StateToken: &AuthflowStateToken{

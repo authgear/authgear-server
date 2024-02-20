@@ -103,7 +103,7 @@ func (h *AuthflowV2ChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		if err != nil {
 			return err
 		}
-		injectedScreen, err := h.Controller.InjectNewAuthflowScreen(r, s, screen.Screen, result.RedirectURI)
+		injectedScreen, err := h.Controller.InjectNewAuthflowScreen(r, s, screen.Screen, result)
 		if err != nil {
 			return err
 		}

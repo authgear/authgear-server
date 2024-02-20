@@ -17,7 +17,7 @@ var TemplateWebAuthflowChangePasswordSuccessHTML = template.RegisterHTML(
 
 func ConfigureAuthflowV2ChangePasswordSuccessRoute(route httproute.Route) httproute.Route {
 	return route.
-		WithMethods("OPTIONS", "GET").
+		WithMethods("OPTIONS", "GET", "POST").
 		WithPathPattern(AuthflowV2RouteChangePasswordSuccess)
 }
 
@@ -49,6 +49,15 @@ func (h *AuthflowV2ChangePasswordSuccessHandler) ServeHTTP(w http.ResponseWriter
 		}
 
 		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowChangePasswordSuccessHTML, data)
+		return nil
+	})
+
+	handlers.PostAction("", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+		result, err := h.Controller.AdvanceFromInjectedScreen(r, s)
+		if err != nil {
+			return err
+		}
+		result.WriteResponse(w, r)
 		return nil
 	})
 

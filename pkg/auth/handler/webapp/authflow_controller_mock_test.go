@@ -382,18 +382,6 @@ func (mr *MockAuthflowNavigatorMockRecorder) Navigate(screen, r, webSessionID, r
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Navigate", reflect.TypeOf((*MockAuthflowNavigator)(nil).Navigate), screen, r, webSessionID, result)
 }
 
-// NavigateChangePasswordSuccessPage mocks base method.
-func (m *MockAuthflowNavigator) NavigateChangePasswordSuccessPage(s *webapp.AuthflowScreen, r *http.Request, webSessionID string, result *webapp.Result) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "NavigateChangePasswordSuccessPage", s, r, webSessionID, result)
-}
-
-// NavigateChangePasswordSuccessPage indicates an expected call of NavigateChangePasswordSuccessPage.
-func (mr *MockAuthflowNavigatorMockRecorder) NavigateChangePasswordSuccessPage(s, r, webSessionID, result interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NavigateChangePasswordSuccessPage", reflect.TypeOf((*MockAuthflowNavigator)(nil).NavigateChangePasswordSuccessPage), s, r, webSessionID, result)
-}
-
 // NavigateNonRecoverableError mocks base method.
 func (m *MockAuthflowNavigator) NavigateNonRecoverableError(r *http.Request, u *url.URL, e error) {
 	m.ctrl.T.Helper()
