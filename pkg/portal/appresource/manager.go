@@ -18,6 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/crypto"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -296,6 +297,11 @@ func (m *Manager) applyUpdates(appID string, appFs resource.Fs, updates []Update
 		// Retrieve the original file.
 		resrc, err := m.getFromAppFs(newAppFs, location)
 		if err != nil {
+			return nil, nil, err
+		}
+
+		if u.Checksum != "" && crypto.ChecksumString(resrc.Data) != u.Checksum {
+			err = fmt.Errorf("checksum not equal '%s'", u.Path)
 			return nil, nil, err
 		}
 
