@@ -63,7 +63,7 @@
       {{ end }}
 
       {{- if $.DeviceTokenEnabled }}
-        {{ template "authflowv2/__device_token_checkbox.html" (dict "Form" "main-form") }}
+        {{ template "authflowv2/__device_token_checkbox.html" (dict "Form" "main-form" "Classname" "mt-4") }}
       {{- end }}
 
       <button
