@@ -2,14 +2,12 @@ package graphql
 
 import (
 	"encoding/base64"
-	"encoding/binary"
-	"encoding/hex"
 	"errors"
-	"hash/crc32"
 
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/util/crypto"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -84,15 +82,8 @@ var appResource = graphql.NewObject(graphql.ObjectConfig{
 				} else if err != nil {
 					return nil, err
 				}
-				// Calculate the checksum with crc32 IEEE
-				checksum := crc32.ChecksumIEEE(result.([]byte))
-				// Turn the 32-bit unsigned checksum into 4 bytes in big endian order.
-				byteSlice := make([]byte, 4)
-				byteSlice = binary.BigEndian.AppendUint32(byteSlice, checksum)
 
-				// Encode the 4 bytes in hex format.
-				checksumString := hex.EncodeToString(byteSlice)
-				return checksumString, nil
+        return crypto.ChecksumString(result.([]byte)), nil
 			},
 		},
 	},
