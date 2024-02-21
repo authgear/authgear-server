@@ -967,6 +967,7 @@
   "v2-error-no-public-signup": "<p>Sign up is disabled.</p><p>Please contact system admin.</p>",
   "v2-error-server": "Server encountered an internal error.",
   "v2-error-screen-title": "Unexpected Issues",
+  "v2-error-no-available-authenticator": "Your account has no available authentication methods. Please contact system admin.",
   "v2-error.error-password-policy-violated": "Invalid password format.",
   "v2-error.error-password-policy-banned-words": "Password contains disallowed keywords",
   "v2-error.error-password-policy-reuse": "No reuse of {size, plural, one{# previous password} other{# previous passwords}} / previous password within {day, plural, one{# day} other{# days}}",

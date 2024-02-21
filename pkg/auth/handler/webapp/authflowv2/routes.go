@@ -85,7 +85,7 @@ func (n *AuthflowV2Navigator) NavigateNonRecoverableError(r *http.Request, u *ur
 	case user.IsAccountStatusError(e):
 		u.Path = AuthflowV2RouteAccountStatus
 	case errors.Is(e, api.ErrNoAuthenticator):
-		u.Path = webapp.AuthflowRouteNoAuthenticator
+		u.Path = AuthflowV2RouteNoAuthenticator
 	case errors.Is(e, authflow.ErrFlowNotFound):
 		u.Path = n.Endpoints.ErrorEndpointURL(n.UIConfig.Implementation).Path
 	case apierrors.IsKind(e, webapp.WebUIInvalidSession):
