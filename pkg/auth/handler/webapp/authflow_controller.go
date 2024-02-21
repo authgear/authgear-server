@@ -610,15 +610,11 @@ func (c *AuthflowController) Finish(r *http.Request, s *webapp.Session) (*webapp
 	if !ok {
 		return nil, authflow.ErrFlowNotFound
 	}
-	isFinished, err := c.finishSession(r, s, result, screen.FinishedUIScreenData.FlowType, screen.FinishedUIScreenData.FinishRedirectURI)
+	err := c.finishSession(r, s, result, screen.FinishedUIScreenData)
 	if err != nil {
 		return nil, err
 	}
-	if isFinished {
-		return result, nil
-	}
-
-	return nil, authflow.ErrUnknownFlow
+	return result, nil
 }
 func (c *AuthflowController) AdvanceFromInjectedScreen(r *http.Request, s *webapp.Session) (*webapp.Result, error) {
 	if s.Authflow == nil {
@@ -1020,16 +1016,15 @@ func (c *AuthflowController) finishSession(
 	r *http.Request,
 	s *webapp.Session,
 	result *webapp.Result,
-	flowType authflow.FlowType,
-	finishRedirectURI string,
-) (isFinished bool, err error) {
+	finishedUIScreenData *webapp.AuthflowFinishedUIScreenData,
+) (err error) {
 	result.RemoveQueries = setutil.Set[string]{
 		"x_step": struct{}{},
 	}
 	result.NavigationAction = "redirect"
-	result.RedirectURI = c.deriveFinishRedirectURI(r, s, flowType, finishRedirectURI)
+	result.RedirectURI = c.deriveFinishRedirectURI(r, s, finishedUIScreenData.FlowType, finishedUIScreenData.FinishRedirectURI)
 
-	switch flowType {
+	switch finishedUIScreenData.FlowType {
 	case authflow.FlowTypeLogin:
 		fallthrough
 	case authflow.FlowTypePromote:
@@ -1042,7 +1037,7 @@ func (c *AuthflowController) finishSession(
 		// Forget the session.
 		err := c.Sessions.Delete(s.ID)
 		if err != nil {
-			return false, err
+			return err
 		}
 		// Marked signed up in cookie after authorization.
 		// When user visit auth ui root "/", redirect user to "/login" if
@@ -1054,5 +1049,5 @@ func (c *AuthflowController) finishSession(
 	default:
 		// Do nothing for other flows
 	}
-	return true, nil
+	return nil
 }
