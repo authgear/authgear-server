@@ -53,7 +53,7 @@ func (h *AuthflowV2ChangePasswordSuccessHandler) ServeHTTP(w http.ResponseWriter
 	})
 
 	handlers.PostAction("", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		result, err := h.Controller.AdvanceFromInjectedScreen(r, s)
+		result, err := h.Controller.AdvanceToDelayedScreen(r, s)
 		if err != nil {
 			return err
 		}

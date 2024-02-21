@@ -616,7 +616,7 @@ func (c *AuthflowController) Finish(r *http.Request, s *webapp.Session) (*webapp
 	}
 	return result, nil
 }
-func (c *AuthflowController) AdvanceFromInjectedScreen(r *http.Request, s *webapp.Session) (*webapp.Result, error) {
+func (c *AuthflowController) AdvanceToDelayedScreen(r *http.Request, s *webapp.Session) (*webapp.Result, error) {
 	if s.Authflow == nil {
 		return nil, authflow.ErrFlowNotFound
 	}
@@ -626,16 +626,16 @@ func (c *AuthflowController) AdvanceFromInjectedScreen(r *http.Request, s *webap
 		return nil, authflow.ErrFlowNotFound
 	}
 
-	return screen.InjectedUIScreenData.TargetResult, nil
+	return screen.DelayedUIScreenData.TargetResult, nil
 }
 
-func (c *AuthflowController) InjectNewAuthflowScreen(r *http.Request,
+func (c *AuthflowController) DelayScreen(r *http.Request,
 	s *webapp.Session,
 	sourceScreen *webapp.AuthflowScreen,
 	targetResult *webapp.Result,
 ) (*webapp.AuthflowScreen, error) {
 	prevXStep := sourceScreen.StateToken.XStep
-	screen := webapp.NewAuthflowScreenWithoutFlowResponse(prevXStep, targetResult)
+	screen := webapp.NewAuthflowScreenWithResult(prevXStep, targetResult)
 	s.RememberScreen(screen)
 	err := c.updateSession(r, s)
 	if err != nil {
