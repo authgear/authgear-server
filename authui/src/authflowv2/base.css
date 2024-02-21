@@ -19,7 +19,7 @@
     cursor: not-allowed;
   }
 
-  *:focus {
+  input:focus {
     @apply outline-none;
   }
 
