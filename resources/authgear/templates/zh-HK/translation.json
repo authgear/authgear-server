@@ -968,7 +968,7 @@
   "v2-error-server": "伺服器內部錯誤。",
   "v2-error-screen-title": "系統錯誤",
   "v2-error.error-password-policy-violated": "無效密碼格式",
-  "v2-error.error-password-policy-banned-words": "請勿使用禁用詞",
+  "v2-error.error-password-policy-banned-words": "密碼包含禁用詞",
   "v2-error.error-password-policy-reuse": "請勿重用以往{size, plural, other{# 個舊密碼}}，或於{day, plural, other{# 日}}以內曾用過的舊密碼",
   "v2-error-phone-number-format": "你所輸入的電話號碼格式不正確。",
   "v2-create-password-page-title": "創建密碼",

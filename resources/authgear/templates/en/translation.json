@@ -968,7 +968,7 @@
   "v2-error-server": "Server encountered an internal error.",
   "v2-error-screen-title": "Unexpected Issues",
   "v2-error.error-password-policy-violated": "Invalid password format.",
-  "v2-error.error-password-policy-banned-words": "No banned words",
+  "v2-error.error-password-policy-banned-words": "Password contains disallowed keywords",
   "v2-error.error-password-policy-reuse": "No reuse of {size, plural, one{# previous password} other{# previous passwords}} / previous password within {day, plural, one{# day} other{# days}}",
   "v2-error-phone-number-format": "Incorrect phone number format for the selected country.",
   "v2-create-password-page-title": "Create Password",
