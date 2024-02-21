@@ -108,7 +108,7 @@ func (h *AuthflowV2ChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *ht
 			return err
 		}
 
-    newResult := h.Navigator.NavigateChangePasswordSuccessPage(newScreen, r, s.ID)
+		newResult := h.Navigator.NavigateChangePasswordSuccessPage(newScreen, r, s.ID)
 		newResult.WriteResponse(w, r)
 		return nil
 	})

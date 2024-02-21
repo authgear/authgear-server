@@ -117,7 +117,7 @@ func (n *AuthflowV2Navigator) NavigateChangePasswordSuccessPage(s *webapp.Authfl
 		result = &webapp.Result{}
 		result.NavigationAction = "advance"
 		result.RedirectURI = u.String()
-    return result
+		return result
 	}
 
 	return navigate(AuthflowV2RouteChangePasswordSuccess, &url.Values{})
