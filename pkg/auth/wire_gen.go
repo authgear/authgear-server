@@ -110513,6 +110513,7 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		UIConfig:      uiConfig,
+		Endpoints:     endpointsEndpoints,
 	}
 	return panicMiddleware
 }

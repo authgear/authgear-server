@@ -110,6 +110,7 @@ var DependencySet = wire.NewSet(
 		wire.Bind(new(handlerwebapp.OAuthEntrypointEndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(handlerwebapp.ConfirmTerminateOtherSessionsEndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(handlerwebapp.AuthflowLoginEndpointsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(handlerwebapp.PanicMiddlewareEndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(webapp.AuthflowNavigatorEndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(webapp.SuccessPageMiddlewareEndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(handlerwebappauthflowv2.AuthflowLoginEndpointsProvider), new(*endpoints.Endpoints)),
