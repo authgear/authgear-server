@@ -140,10 +140,11 @@ export class PasswordPolicyController extends Controller {
   declare policyTargets: HTMLElement[];
 
   connect() {
-    this.check();
+    void this.check();
   }
 
-  check() {
+  // eslint-disable-next-line complexity
+  async check() {
     const value = this.inputTarget.value;
     if (value === "") {
       if (this.hasCurrentMeterTarget) {
@@ -156,6 +157,7 @@ export class PasswordPolicyController extends Controller {
       return;
     }
     const violatedPolicies: PasswordPolicyName[] = [];
+    // eslint-disable-next-line complexity
     this.policyTargets.forEach((e) => {
       switch (e.getAttribute("data-password-policy-name")) {
         case PasswordPolicyName.Strength:

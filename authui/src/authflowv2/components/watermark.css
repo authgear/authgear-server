@@ -2,7 +2,7 @@
   .watermark {
     @apply inline-block h-[22px] w-[120px] bg-no-repeat bg-center;
     background-size: auto 22px;
-    background-image: url(./icons/raw/watermark.svg);
+    background-image: url("./icons/raw/watermark.svg");
   }
 
   .watermark__container {

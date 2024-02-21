@@ -10,7 +10,7 @@
       --typography-label-large__letter-spacing
     );
     --primary-btn__font-weight: var(--typography-label-large__font-weight);
-    --primary-btn__ring-width: 0px;
+    --primary-btn__ring-width: 0;
     --primary-btn__ring-color: transparent;
     --primary-btn__py: 1em;
 

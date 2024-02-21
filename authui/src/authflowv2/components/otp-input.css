@@ -12,7 +12,10 @@
     --otp-input__digit-width: 2.5em;
     --otp-input__digit-height: 2.75em;
 
+    /* Not actually using css-masks features, ignoring stylelint false positive */
+    /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
     --otp-input__digit-mask-color: var(--color-neutral-700);
+    /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
     --otp-input__digit-mask-size: 0.625rem;
 
     --otp-input-error-message__margin-top: 0.5rem;
@@ -49,14 +52,6 @@
       @apply selection:bg-white/0;
       @apply caret-white/0;
       @apply opacity-0;
-    }
-
-    &.otp-input--error {
-      .otp-input__digit {
-        @apply ring-inset
-          ring-[length:var(--otp-input\_\_digit-ring-width--error)]
-          ring-[color:var(--otp-input\_\_digit-ring-color--error)];
-      }
     }
   }
 
@@ -117,5 +112,15 @@
 
   .otp-input__resend-btn {
     margin-top: var(--otp-input-resend-button-margin-top);
+  }
+
+  .otp-input {
+    &.otp-input--error {
+      .otp-input__digit {
+        @apply ring-inset
+          ring-[length:var(--otp-input\_\_digit-ring-width--error)]
+          ring-[color:var(--otp-input\_\_digit-ring-color--error)];
+      }
+    }
   }
 }

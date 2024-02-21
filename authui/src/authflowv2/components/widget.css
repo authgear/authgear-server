@@ -3,7 +3,7 @@
     --widget__bg-color: var(--color-bg-base);
     --widget__width: 100%;
     --widget__max-width: 400px;
-    --widget__border-radius: 0px;
+    --widget__border-radius: 0;
     --widget__box-shadow: none;
     --widget__border: none;
 

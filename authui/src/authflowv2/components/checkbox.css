@@ -27,38 +27,40 @@
       @apply opacity-0;
       @apply w-0;
       @apply h-0;
+    }
+  }
 
-      &:checked + .checkbox__label {
-        @apply bg-[color:var(--checkbox\_\_background-color--checked)];
-        @apply ring-[color:var(--checkbox\_\_ring-color-checked)];
-      }
+  .checkbox__label {
+    @apply relative;
+    @apply inline-block;
+    @apply cursor-pointer;
+    @apply w-full;
+    @apply h-full;
 
-      &:checked + .checkbox__label > .checkbox__icon {
-        @apply inline;
-      }
+    border-radius: var(--checkbox__border-radius);
+    @apply ring-inset
+      ring-[length:var(--checkbox\_\_ring-width)]
+      ring-[color:var(--checkbox\_\_ring-color)];
+
+    & > .material-icons {
+      @apply hidden;
+      @apply absolute;
+      @apply inset-0;
+      @apply text-center;
+
+      color: var(--checkbox__icon-color);
+      @apply leading-[var(--checkbox\_\_size)];
+    }
+  }
+
+  .checkbox input {
+    &:checked + .checkbox__label {
+      @apply bg-[color:var(--checkbox\_\_background-color--checked)];
+      @apply ring-[color:var(--checkbox\_\_ring-color-checked)];
     }
 
-    .checkbox__label {
-      @apply relative;
-      @apply inline-block;
-      @apply cursor-pointer;
-      @apply w-full;
-      @apply h-full;
-
-      border-radius: var(--checkbox__border-radius);
-      @apply ring-inset
-        ring-[length:var(--checkbox\_\_ring-width)]
-        ring-[color:var(--checkbox\_\_ring-color)];
-
-      & > .material-icons {
-        @apply hidden;
-        @apply absolute;
-        @apply inset-0;
-        @apply text-center;
-
-        color: var(--checkbox__icon-color);
-        @apply leading-[var(--checkbox\_\_size)];
-      }
+    &:checked + .checkbox__label > .checkbox__icon {
+      @apply inline;
     }
   }
 }

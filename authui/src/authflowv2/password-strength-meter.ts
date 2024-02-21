@@ -4,8 +4,13 @@ function updateMeterDescription(
   currentMeter: HTMLElement,
   currentMeterDescription: HTMLElement
 ) {
+  const ariaValueNow = currentMeter.getAttribute("aria-valuenow");
+  if (!ariaValueNow) {
+    return;
+  }
+
   currentMeterDescription.textContent = currentMeter.getAttribute(
-    "data-desc-" + currentMeter.getAttribute("aria-valuenow")
+    "data-desc-" + ariaValueNow
   );
 }
 

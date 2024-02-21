@@ -10,7 +10,7 @@
       --typography-label-medium__letter-spacing
     );
     --tertiary-btn__font-weight: var(--typography-label-medium__font-weight);
-    --tertiary-btn__ring-width: 0px;
+    --tertiary-btn__ring-width: 0;
     --tertiary-btn__ring-color: transparent;
     --tertiary-btn__py: calc(
       var(--tertiary-btn__font-size) * 10 / 14

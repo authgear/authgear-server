@@ -69,7 +69,7 @@
   /* Border Radius */
   :root {
     --border-radius-full: 9999px;
-    --border-radius-sqaure: 0px;
+    --border-radius-sqaure: 0;
     --border-radius-rounded-large: 0.75em;
     --border-radius-rounded-square: 0.875em;
     --border-radius-large: 1.25rem;
@@ -86,7 +86,7 @@
     --typography-headline-medium__font-family: inherit;
     --typography-headline-medium__font-size: 1.75rem;
     --typography-headline-medium__line-height: 1.21428571429em; /* 34 / 28 = 1.21428571429 */
-    --typography-headline-medium__letter-spacing: 0px;
+    --typography-headline-medium__letter-spacing: 0;
     --typography-headline-medium__font-weight: 700;
 
     --typography-title-medium__font-family: inherit;

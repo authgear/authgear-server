@@ -1,0 +1,35 @@
+{
+  "extends": ["@oursky/stylelint-oursky/config/oursky"],
+  "rules": {
+    "plugin/no-unsupported-browser-features": [
+      true,
+      {
+        "ignore": [
+          "viewport-units",
+          "css-appearance",
+          "css-gradients",
+          "css3-cursors",
+          "flexbox",
+          "multicolumn",
+          "font-unicode-range",
+          "calc",
+          "css-filters",
+          "css-unset-value",
+          "css-initial-value",
+          "outline"
+        ]
+      }
+    ],
+    "oursky/flex": null,
+    "declaration-block-no-redundant-longhand-properties": null,
+    "no-duplicate-selectors": null,
+    "number-max-precision": null,
+    "font-family-no-missing-generic-family-keyword": null,
+    "at-rule-no-unknown": [
+      true,
+      {
+        "ignoreAtRules": ["mixin", "include", "tailwind", "layer"]
+      }
+    ]
+  }
+}
