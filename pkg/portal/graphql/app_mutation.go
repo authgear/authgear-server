@@ -31,6 +31,10 @@ var appResourceUpdate = graphql.NewInputObject(graphql.InputObjectConfig{
 			Type:        graphql.String,
 			Description: "New data of the resource file. Set to null to remove it.",
 		},
+		"checksum": &graphql.InputObjectFieldConfig{
+			Type:        graphql.String,
+			Description: "Checksum of the resource file. Set to null to remove it.",
+		},
 	},
 })
 
@@ -178,9 +182,17 @@ var updateAppInput = graphql.NewInputObject(graphql.InputObjectConfig{
 			Type:        AppConfig,
 			Description: "authgear.yaml in JSON.",
 		},
+		"appConfigChecksum": &graphql.InputObjectFieldConfig{
+			Type:        graphql.String,
+			Description: "Checksum of the app config. Set to null to remove it.",
+		},
 		"secretConfigUpdateInstructions": &graphql.InputObjectFieldConfig{
 			Type:        secretConfigUpdateInstructionsInput,
 			Description: "update secret config instructions.",
+		},
+		"secretConfigUpdateInstructionsChecksum": &graphql.InputObjectFieldConfig{
+			Type:        graphql.String,
+			Description: "Checksum of the secret config update instructions. Set to null to remove it.",
 		},
 	},
 })
