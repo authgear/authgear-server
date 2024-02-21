@@ -55,6 +55,7 @@ export function useUpdateAppTemplatesMutation(appID: string): {
         return {
           path: update.path,
           data: update.value == null ? null : transform(update.value),
+          checksum: update.checksum,
         };
       });
 

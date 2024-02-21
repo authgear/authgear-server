@@ -268,9 +268,12 @@ var _ = registerMutationField(
 					}
 				}
 
+        checksum, _ := f["checksum"].(string);
+
 				resourceUpdates = append(resourceUpdates, appresource.Update{
 					Path: path,
 					Data: data,
+          Checksum: checksum,
 				})
 				auditedUpdatePaths = append(auditedUpdatePaths, path)
 			}

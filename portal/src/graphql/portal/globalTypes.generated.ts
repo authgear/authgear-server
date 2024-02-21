@@ -113,6 +113,7 @@ export type AppResource = {
 
 /** Update to resource file. */
 export type AppResourceUpdate = {
+  checksum?: InputMaybe<Scalars['String']['input']>;
   /** New data of the resource file. Set to null to remove it. */
   data?: InputMaybe<Scalars['String']['input']>;
   /** Path of the resource file to update. */

@@ -7,6 +7,7 @@ import (
 type Update struct {
 	Path string
 	Data []byte
+  Checksum string
 }
 
 type DescriptedPath struct {

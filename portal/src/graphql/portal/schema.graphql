@@ -131,6 +131,8 @@ input AppResourceUpdate {
 
   """Path of the resource file to update."""
   path: String!
+  """"""
+  checksum: String
 }
 
 """"""
