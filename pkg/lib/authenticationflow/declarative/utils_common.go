@@ -196,9 +196,27 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 	}
 
 	secondaryAuthenticators := authenticator.ApplyFilters(authenticators, authenticator.KeepKind(model.AuthenticatorKindSecondary))
+	userRecoveryCodes, err := deps.MFA.ListRecoveryCodes(userID)
+	if err != nil {
+		return nil, err
+	}
+	passkeyAuthenticators := authenticator.ApplyFilters(
+		authenticators,
+		authenticator.KeepType(model.AuthenticatorTypePasskey),
+	)
+	secondaryPasswordAuthenticators := authenticator.ApplyFilters(
+		secondaryAuthenticators,
+		authenticator.KeepType(model.AuthenticatorTypePassword),
+	)
+	secondaryTOTPAuthenticators := authenticator.ApplyFilters(
+		secondaryAuthenticators,
+		authenticator.KeepType(model.AuthenticatorTypeTOTP),
+	)
 
-	isOptional := step.IsOptional()
-	userHasSomeSecondaryAuthenticators := len(secondaryAuthenticators) > 0
+	userHasRecoveryCode := len(userRecoveryCodes) > 0
+	userHasPasskey := len(passkeyAuthenticators) > 0
+	userHasSecondaryPassword := len(secondaryPasswordAuthenticators) > 0
+	userHasTOTP := len(secondaryTOTPAuthenticators) > 0
 
 	findIdentity := func(targetStepName string) (*identity.Info, error) {
 		// Find the target step from the root.
@@ -219,23 +237,8 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 		return info, nil
 	}
 
-	useAuthenticationOptionAddRecoveryCodes := func(options []AuthenticateOption, isOptional bool, userHasSomeSecondaryAuthenticators bool) []AuthenticateOption {
-		shouldAdd := false
-		switch {
-		case !isOptional:
-			// We always add recovery_code even though the end-user does not actually has any.
-			// One case that this situation will happen:
-			// 1. The project makes 2FA required, disable recovery code, and enable TOTP.
-			// 2. Alice enrolls TOTP. She does not have recovery code.
-			// 3. The project enables recovery code.
-			//
-			// Alice can still use her TOTP.
-			shouldAdd = true
-		case isOptional && userHasSomeSecondaryAuthenticators:
-			shouldAdd = true
-		}
-
-		if shouldAdd {
+	useAuthenticationOptionAddRecoveryCodes := func(options []AuthenticateOption, userHasRecoveryCode bool) []AuthenticateOption {
+		if userHasRecoveryCode {
 			options = append(options, NewAuthenticateOptionRecoveryCode())
 		}
 
@@ -252,24 +255,11 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 		return options
 	}
 
-	useAuthenticationOptionAddSecondaryPassword := func(options []AuthenticateOption, isOptional bool, userHasSomeSecondaryAuthenticators bool) []AuthenticateOption {
-		shouldAdd := false
-		switch {
-		case !isOptional:
-			// We always add secondary_password even though the end-user does not actually has one.
-			// One case that this situation will happen:
-			// 1. The project makes 2FA required, and enable TOTP.
-			// 2. Alice enrolls TOTP.
-			// 3. The project enables secondary password, and disable TOTP.
-			// 4. Alice does not have secondary password.
-			//
-			// If recovery code is also disabled, Alice is locked out.
-			shouldAdd = true
-		case isOptional && userHasSomeSecondaryAuthenticators:
-			shouldAdd = true
-		}
+	useAuthenticationOptionAddSecondaryPassword := func(options []AuthenticateOption, userHasSecondaryPassword bool) []AuthenticateOption {
+		// We only add secondary_password if user has one,
+		// because user can do nothing if user didn't setup a secondary password
 
-		if shouldAdd {
+		if userHasSecondaryPassword {
 			options = append(options, NewAuthenticateOptionPassword(
 				config.AuthenticationFlowAuthenticationSecondaryPassword,
 			))
@@ -278,31 +268,18 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 		return options
 	}
 
-	useAuthenticationOptionAddTOTP := func(options []AuthenticateOption, isOptional bool, userHasSomeSecondaryAuthenticators bool) []AuthenticateOption {
-		shouldAdd := false
-		switch {
-		case !isOptional:
-			// We always add secondary_totp even though the end-user does not actually has one.
-			// One case that this situation will happen:
-			// 1. The project makes 2FA required, and enable OOBOTP.
-			// 2. Alice enrolls OOBOTP with her phone number.
-			// 3. The project enables TOTP.
-			// 4. Alice does not have TOTP.
-			//
-			// Alice can still use her OOBOTP with phone number.
-			shouldAdd = true
-		case isOptional && userHasSomeSecondaryAuthenticators:
-			shouldAdd = true
-		}
+	useAuthenticationOptionAddTOTP := func(options []AuthenticateOption, userHasTOTP bool) []AuthenticateOption {
+		// We only add totp if user has one,
+		// because user can do nothing if user didn't setup a totp
 
-		if shouldAdd {
+		if userHasTOTP {
 			options = append(options, NewAuthenticateOptionTOTP())
 		}
 
 		return options
 	}
 
-	useAuthenticationOptionAddPasskey := func(options []AuthenticateOption, deps *authflow.Dependencies, userID string) ([]AuthenticateOption, error) {
+	useAuthenticationOptionAddPasskey := func(options []AuthenticateOption, deps *authflow.Dependencies, userHasPasskey bool, userID string) ([]AuthenticateOption, error) {
 		requestOptions, err := deps.PasskeyRequestOptionsService.MakeModalRequestOptionsWithUser(userID)
 		if err != nil {
 			return nil, err
@@ -351,18 +328,18 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 			// Device token is handled transparently.
 			break
 		case config.AuthenticationFlowAuthenticationRecoveryCode:
-			options = useAuthenticationOptionAddRecoveryCodes(options, isOptional, userHasSomeSecondaryAuthenticators)
+			options = useAuthenticationOptionAddRecoveryCodes(options, userHasRecoveryCode)
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			options = useAuthenticationOptionAddPrimaryPassword(options)
 		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
-			options, err = useAuthenticationOptionAddPasskey(options, deps, userID)
+			options, err = useAuthenticationOptionAddPasskey(options, deps, userHasPasskey, userID)
 			if err != nil {
 				return nil, err
 			}
 		case config.AuthenticationFlowAuthenticationSecondaryPassword:
-			options = useAuthenticationOptionAddSecondaryPassword(options, isOptional, userHasSomeSecondaryAuthenticators)
+			options = useAuthenticationOptionAddSecondaryPassword(options, userHasSecondaryPassword)
 		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
-			options = useAuthenticationOptionAddTOTP(options, isOptional, userHasSomeSecondaryAuthenticators)
+			options = useAuthenticationOptionAddTOTP(options, userHasTOTP)
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
