@@ -38,7 +38,8 @@ func (*NoopNavigator) NavigateNonRecoverableError(r *http.Request, u *url.URL, e
 func (*NoopNavigator) NavigateSelectAccount(result *webapp.Result) {
 }
 
-func (*NoopNavigator) NavigateChangePasswordSuccessPage(screen *webapp.AuthflowScreen, r *http.Request, webSessionID string, result *webapp.Result) {
+func (*NoopNavigator) NavigateChangePasswordSuccessPage(s *webapp.AuthflowScreen, r *http.Request, webSessionID string) (result *webapp.Result) {
+	return &webapp.Result{}
 }
 
 func NewNoopAuthflowNavigator() *NoopNavigator {

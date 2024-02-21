@@ -102,8 +102,8 @@ func (n *AuthflowV2Navigator) NavigateResetPasswordSuccessPage() string {
 	return AuthflowV2RouteResetPasswordSuccess
 }
 
-func (n *AuthflowV2Navigator) NavigateChangePasswordSuccessPage(s *webapp.AuthflowScreen, r *http.Request, webSessionID string, result *webapp.Result) {
-	navigate := func(path string, query *url.Values) {
+func (n *AuthflowV2Navigator) NavigateChangePasswordSuccessPage(s *webapp.AuthflowScreen, r *http.Request, webSessionID string) (result *webapp.Result) {
+	navigate := func(path string, query *url.Values) (result *webapp.Result) {
 		u := *r.URL
 		u.Path = path
 		q := u.Query()
@@ -114,11 +114,13 @@ func (n *AuthflowV2Navigator) NavigateChangePasswordSuccessPage(s *webapp.Authfl
 			}
 		}
 		u.RawQuery = q.Encode()
+		result = &webapp.Result{}
 		result.NavigationAction = "advance"
 		result.RedirectURI = u.String()
+    return result
 	}
 
-	navigate(AuthflowV2RouteChangePasswordSuccess, &url.Values{})
+	return navigate(AuthflowV2RouteChangePasswordSuccess, &url.Values{})
 }
 
 func (n *AuthflowV2Navigator) Navigate(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
