@@ -25,6 +25,12 @@ export class AlertMessageController extends Controller {
 
   declare messageTarget: HTMLElement;
 
+  // Dismiss the alert before cache the page.
+  // See https://github.com/authgear/authgear-server/issues/1424
+  beforeCache = () => {
+    this.element.removeAttribute("data-error-message");
+  };
+
   updateMessage = (e: Event) => {
     const errorMessage = this.element.getAttribute(
       (e as CustomEvent).detail.id
@@ -43,11 +49,13 @@ export class AlertMessageController extends Controller {
   };
 
   connect() {
+    document.addEventListener("turbo:before-cache", this.beforeCache);
     document.addEventListener("alert-message:show-message", this.updateMessage);
     this.displayMessage();
   }
 
   disconnect() {
+    document.removeEventListener("turbo:before-cache", this.beforeCache);
     document.removeEventListener(
       "alert-message:show-message",
       this.updateMessage
