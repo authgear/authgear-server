@@ -15,6 +15,7 @@ export interface Resource {
   nullableValue?: string | null;
   specifier: ResourceSpecifier;
   effectiveData?: string | null;
+  checksum?: string | null;
 }
 
 export interface ResourceSpecifier {

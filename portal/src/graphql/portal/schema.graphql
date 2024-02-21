@@ -115,6 +115,9 @@ type AppResource {
   effectiveData: String
 
   """"""
+  checksum: String
+
+  """"""
   languageTag: String
 
   """"""

@@ -8,6 +8,7 @@ query appTemplatesQuery($id: ID!, $paths: [String!]!) {
         languageTag
         data
         effectiveData
+        checksum
       }
     }
   }

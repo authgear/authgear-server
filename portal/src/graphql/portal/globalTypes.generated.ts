@@ -104,6 +104,7 @@ export type AppListItem = {
 /** Resource file for an app */
 export type AppResource = {
   __typename?: 'AppResource';
+  checksum?: Maybe<Scalars['String']['output']>;
   data?: Maybe<Scalars['String']['output']>;
   effectiveData?: Maybe<Scalars['String']['output']>;
   languageTag?: Maybe<Scalars['String']['output']>;
