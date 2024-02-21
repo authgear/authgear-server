@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useCallback } from "react";
+import React, { useContext, useMemo, useCallback, useEffect } from "react";
 import cn from "classnames";
 import {
   IColumn,
@@ -89,34 +89,37 @@ const AuditLogList: React.VFC<AuditLogListProps> = function AuditLogList(
 
   const { renderToString, locale } = useContext(Context);
 
-  const columns: IColumn[] = [
-    {
-      key: "activityType",
-      fieldName: "activityType",
-      name: renderToString("AuditLogList.column.activity-type"),
-      maxWidth: 300,
-      minWidth: 300,
-      columnActionsMode: ColumnActionsMode.disabled,
-    },
-    {
-      key: "createdAt",
-      fieldName: "createdAt",
-      name: renderToString("AuditLogList.column.created-at"),
-      maxWidth: 150,
-      minWidth: 150,
-      isSorted: true,
-      isSortedDescending: sortDirection === SortDirection.Desc,
-      iconName: "SortLines",
-      iconClassName: styles.sortIcon,
-    },
-    {
-      key: "rawUserID",
-      fieldName: "rawUserID",
-      name: renderToString("AuditLogList.column.user-id"),
-      minWidth: 430,
-      columnActionsMode: ColumnActionsMode.disabled,
-    },
-  ];
+  const columns: IColumn[] = useMemo(
+    () => [
+      {
+        key: "activityType",
+        fieldName: "activityType",
+        name: renderToString("AuditLogList.column.activity-type"),
+        maxWidth: 300,
+        minWidth: 300,
+        columnActionsMode: ColumnActionsMode.disabled,
+      },
+      {
+        key: "createdAt",
+        fieldName: "createdAt",
+        name: renderToString("AuditLogList.column.created-at"),
+        maxWidth: 150,
+        minWidth: 150,
+        isSorted: true,
+        isSortedDescending: sortDirection === SortDirection.Desc,
+        iconName: "SortLines",
+        iconClassName: styles.sortIcon,
+      },
+      {
+        key: "rawUserID",
+        fieldName: "rawUserID",
+        name: renderToString("AuditLogList.column.user-id"),
+        minWidth: 430,
+        columnActionsMode: ColumnActionsMode.disabled,
+      },
+    ],
+    [renderToString, sortDirection]
+  );
 
   const items: AuditLogListItem[] = useMemo(() => {
     const items = [];
@@ -140,6 +143,12 @@ const AuditLogList: React.VFC<AuditLogListProps> = function AuditLogList(
     }
     return items;
   }, [edges, locale, renderToString]);
+
+  // Reset scroll position when items change.
+  const listWrapperRef = React.useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    listWrapperRef.current?.scrollTo(0, 0);
+  }, [items]);
 
   const onRenderItemColumn = useCallback(
     (item: AuditLogListItem, _index?: number, column?: IColumn) => {
@@ -190,7 +199,11 @@ const AuditLogList: React.VFC<AuditLogListProps> = function AuditLogList(
   return (
     <>
       <div className={cn(styles.root, className)}>
-        <div className={cn(styles.listWrapper, isEmpty && styles.empty)}>
+        <div
+          ref={listWrapperRef}
+          className={cn(styles.listWrapper, isEmpty && styles.empty)}
+          data-is-scrollable="true"
+        >
           <ShimmeredDetailsList
             className={styles.list}
             enableShimmer={loading}
