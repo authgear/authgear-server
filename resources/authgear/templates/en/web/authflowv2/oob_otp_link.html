@@ -11,6 +11,12 @@
       <p class="screen-description">
         {{ template "v2-login-link-otp-matched-description" }}
       </p>
+      {{ template "authflowv2/__alert_message.html"
+        (dict
+          "Type" "error"
+          "Classname" "mt-4"
+        )
+      }}
     </header>
     <div></div>
 

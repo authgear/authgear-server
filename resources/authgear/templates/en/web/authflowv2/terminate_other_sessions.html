@@ -7,6 +7,12 @@
     <header class="flex flex-col gap-4">
       <h1 class="screen-title">{{ template "v2-confirm-terminate-other-sessions-title" }}</h1>
       <p class="screen-description">{{ template "v2-confirm-terminate-other-sessions-description" }}</p>
+      {{ template "authflowv2/__alert_message.html"
+        (dict
+          "Type" "error"
+          "Classname" "mt-4"
+        )
+      }}
     </header>
     <div></div>
 

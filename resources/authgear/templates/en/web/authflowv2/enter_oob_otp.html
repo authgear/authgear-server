@@ -32,17 +32,13 @@
         {{ end }}
       </h2>
 
-      {{ if $.Error }}
-        {{ if not $display_otp_input_error }}
-          {{ template "authflowv2/__alert_message.html"
-            (dict
-              "Type" "error"
-              "Classname" "mt-4"
-              "Message" (include "authflowv2/__error.html" .)
-            )
-          }}
-        {{ end }}
-      {{ end }}
+      {{ template "authflowv2/__alert_message.html"
+        (dict
+          "Type" "error"
+          "Classname" "mt-4"
+          "Message" (ternary (include "authflowv2/__error.html" .) nil (not $display_otp_input_error))
+        )
+      }}
     </div>
     <div>
       {{ $otp_error_message := "" }}

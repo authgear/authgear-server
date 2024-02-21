@@ -19,6 +19,12 @@
       <p class="screen-description">
         {{ template "v2-verify-login-link-approved-description" (dict "AppOrClientName" $appName) }}
       </p>
+      {{ template "authflowv2/__alert_message.html"
+        (dict
+          "Type" "error"
+          "Classname" "mt-4"
+        )
+      }}
     </div>
   {{ else }}
     <form

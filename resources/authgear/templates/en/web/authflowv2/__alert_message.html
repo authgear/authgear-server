@@ -1,18 +1,21 @@
 {{ define "authflowv2/__alert_message.html" }}
 {{ $message := trimHTML .Message }}
-{{ if $message }}
-  <div class="alert-message
-    {{ if eq $.Type "error" }}alert-message--error{{ end }}
-    {{ if eq $.Type "success" }}alert-message--success{{ end }}
-    {{ if eq $.Type "warning" }}alert-message--warning{{ end }}
-    {{ $.Classname }}
-  ">
-    <span class="alert-message__icon material-icons material-icons--filled">
-      {{ if eq $.Type "error" }}error{{ end }}
-    </span>
-    <span class="alert-message__text">
-      {{ .Message }}
-    </span>
-  </div>
-{{ end }}
+<div class="alert-message
+  {{ if eq $.Type "error" }}alert-message--error{{ end }}
+  {{ if eq $.Type "success" }}alert-message--success{{ end }}
+  {{ if eq $.Type "warning" }}alert-message--warning{{ end }}
+  {{ $.Classname }}"
+  data-controller="alert-message"
+  data-server-error-message="{{ template "v2-error-server" }}"
+  data-network-error-message="{{ template "v2-error-network" }}"
+  {{ if $message }}
+    data-error-message={{ $message }}
+  {{ end }}
+>
+  <span class="alert-message__icon material-icons material-icons--filled">
+    {{ if eq $.Type "error" }}error{{ end }}
+  </span>
+  <span class="alert-message__text" data-alert-message-target="message">
+  </span>
+</div>
 {{ end }}

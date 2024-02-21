@@ -32,6 +32,7 @@ import {
   AuthflowPasskeyCreationController,
 } from "./passkey";
 import { NewPasswordFieldController } from "./authflowv2/new-password-field";
+import { AlertMessageController } from "./authflowv2/alert-message";
 
 axios.defaults.withCredentials = true;
 
@@ -87,5 +88,6 @@ Stimulus.register(
   "authflow-passkey-creation",
   AuthflowPasskeyCreationController
 );
+Stimulus.register("alert-message", AlertMessageController);
 
 injectCSSAttrs(document.documentElement);

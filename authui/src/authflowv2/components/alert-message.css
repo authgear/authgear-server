@@ -29,7 +29,7 @@
   }
 
   .alert-message {
-    display: flex;
+    @apply hidden;
     padding: var(--alert-message__py) var(--alert-message__px);
     border-radius: var(--alert-message__border-radius);
 
@@ -37,6 +37,9 @@
       ring-[length:var(--alert-message\_\_ring-width)]
       ring-[color:var(--alert-message\_\_ring-color)];
     @apply gap-x-[var(--alert-message\_\_spacing)];
+  }
+  .alert-message[data-error-message] {
+    @apply flex;
   }
 
   .alert-message__icon {
