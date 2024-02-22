@@ -118,6 +118,43 @@ func (s *Store) UpdateRole(options *UpdateRoleOptions) error {
 	return nil
 }
 
+func (s *Store) DeleteRole(id string) error {
+	q := s.SQLBuilder.Delete(s.SQLBuilder.TableName("_auth_group_role")).
+		Where("role_id = ?", id)
+
+	_, err := s.SQLExecutor.ExecWith(q)
+	if err != nil {
+		return err
+	}
+
+	q = s.SQLBuilder.Delete(s.SQLBuilder.TableName("_auth_user_role")).
+		Where("role_id = ?", id)
+
+	_, err = s.SQLExecutor.ExecWith(q)
+	if err != nil {
+		return err
+	}
+
+	q = s.SQLBuilder.Delete(s.SQLBuilder.TableName("_auth_role")).
+		Where("id = ?", id)
+
+	result, err := s.SQLExecutor.ExecWith(q)
+	if err != nil {
+		return err
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if count != 1 {
+		return ErrRoleNotFound
+	}
+
+	return nil
+}
+
 func (s *Store) GetRoleByID(id string) (*Role, error) {
 	q := s.selectRoleQuery().Where("id = ?", id)
 

@@ -166,3 +166,56 @@ var _ = registerMutationField(
 		},
 	},
 )
+
+var deleteRoleInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "DeleteRoleInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"id": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "The ID of the role.",
+		},
+	},
+})
+
+var deleteRolePayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "DeleteRolePayload",
+	Fields: graphql.Fields{
+		"ok": &graphql.Field{
+			Type: graphql.Boolean,
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"deleteRole",
+	&graphql.Field{
+		Description: "Delete an existing role. The associations between the role with other groups and other users will also be deleted.",
+		Type:        graphql.NewNonNull(deleteRolePayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(deleteRoleInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			input := p.Args["input"].(map[string]interface{})
+
+			roleNodeID := input["id"].(string)
+
+			resolvedNodeID := relay.FromGlobalID(roleNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeRole {
+				return nil, apierrors.NewInvalid("invalid role ID")
+			}
+			roleID := resolvedNodeID.ID
+
+			gqlCtx := GQLContext(p.Context)
+			err := gqlCtx.RolesGroupsFacade.DeleteRole(roleID)
+			if err != nil {
+				return nil, err
+			}
+
+			return map[string]interface{}{
+				"ok": true,
+			}, nil
+		},
+	},
+)

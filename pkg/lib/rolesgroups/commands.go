@@ -45,3 +45,7 @@ func (c *Commands) UpdateRole(options *UpdateRoleOptions) (*model.Role, error) {
 
 	return r.ToModel(), nil
 }
+
+func (c *Commands) DeleteRole(id string) error {
+	return c.Store.DeleteRole(id)
+}

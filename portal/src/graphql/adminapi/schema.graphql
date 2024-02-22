@@ -543,6 +543,18 @@ type DeleteIdentityPayload {
 }
 
 """"""
+input DeleteRoleInput {
+  """The ID of the role."""
+  id: ID!
+}
+
+""""""
+type DeleteRolePayload {
+  """"""
+  ok: Boolean
+}
+
+""""""
 input DeleteUserInput {
   """Target user ID."""
   userID: ID!
@@ -688,6 +700,11 @@ type Mutation {
 
   """Delete identity of user"""
   deleteIdentity(input: DeleteIdentityInput!): DeleteIdentityPayload!
+
+  """
+  Delete an existing role. The associations between the role with other groups and other users will also be deleted.
+  """
+  deleteRole(input: DeleteRoleInput!): DeleteRolePayload!
 
   """Delete specified user"""
   deleteUser(input: DeleteUserInput!): DeleteUserPayload!

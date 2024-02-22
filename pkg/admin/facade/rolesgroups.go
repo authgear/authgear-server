@@ -8,6 +8,7 @@ import (
 type RolesGroupsCommands interface {
 	CreateRole(options *rolesgroups.NewRoleOptions) (*model.Role, error)
 	UpdateRole(options *rolesgroups.UpdateRoleOptions) (*model.Role, error)
+	DeleteRole(id string) error
 }
 
 type RolesGroupsFacade struct {
@@ -31,4 +32,8 @@ func (f *RolesGroupsFacade) UpdateRole(options *rolesgroups.UpdateRoleOptions) (
 	}
 
 	return
+}
+
+func (f *RolesGroupsFacade) DeleteRole(id string) (err error) {
+	return f.RolesGroupsCommands.DeleteRole(id)
 }
