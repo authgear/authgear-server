@@ -40,6 +40,10 @@ type RoleLoader interface {
 	graphqlutil.DataLoaderInterface
 }
 
+type GroupLoader interface {
+	graphqlutil.DataLoaderInterface
+}
+
 type AuditLogLoader interface {
 	graphqlutil.DataLoaderInterface
 }
@@ -66,6 +70,10 @@ type RolesGroupsFacade interface {
 	CreateRole(options *rolesgroups.NewRoleOptions) (string, error)
 	UpdateRole(options *rolesgroups.UpdateRoleOptions) error
 	DeleteRole(id string) error
+
+	CreateGroup(options *rolesgroups.NewGroupOptions) (string, error)
+	UpdateGroup(options *rolesgroups.UpdateGroupOptions) error
+	DeleteGroup(id string) error
 }
 
 type IdentityFacade interface {
@@ -146,6 +154,7 @@ type Context struct {
 	Identities     IdentityLoader
 	Authenticators AuthenticatorLoader
 	Roles          RoleLoader
+	Groups         GroupLoader
 	AuditLogs      AuditLogLoader
 
 	UserFacade          UserFacade

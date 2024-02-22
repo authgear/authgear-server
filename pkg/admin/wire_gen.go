@@ -529,6 +529,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Store: rolesgroupsStore,
 	}
 	roleLoader := loader.NewRoleLoader(rolesgroupsQueries)
+	groupLoader := loader.NewGroupLoader(rolesgroupsQueries)
 	readHandle := appProvider.AuditReadDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
@@ -1040,6 +1041,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Identities:            identityLoader,
 		Authenticators:        authenticatorLoader,
 		Roles:                 roleLoader,
+		Groups:                groupLoader,
 		AuditLogs:             auditLogLoader,
 		UserFacade:            facadeUserFacade,
 		RolesGroupsFacade:     rolesGroupsFacade,

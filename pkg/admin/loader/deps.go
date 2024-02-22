@@ -7,5 +7,6 @@ var DependencySet = wire.NewSet(
 	NewIdentityLoader,
 	NewAuthenticatorLoader,
 	NewRoleLoader,
+	NewGroupLoader,
 	NewAuditLogLoader,
 )

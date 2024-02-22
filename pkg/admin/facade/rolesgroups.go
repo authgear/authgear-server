@@ -9,6 +9,10 @@ type RolesGroupsCommands interface {
 	CreateRole(options *rolesgroups.NewRoleOptions) (*model.Role, error)
 	UpdateRole(options *rolesgroups.UpdateRoleOptions) (*model.Role, error)
 	DeleteRole(id string) error
+
+	CreateGroup(options *rolesgroups.NewGroupOptions) (*model.Group, error)
+	UpdateGroup(options *rolesgroups.UpdateGroupOptions) (*model.Group, error)
+	DeleteGroup(id string) error
 }
 
 type RolesGroupsFacade struct {
@@ -36,4 +40,27 @@ func (f *RolesGroupsFacade) UpdateRole(options *rolesgroups.UpdateRoleOptions) (
 
 func (f *RolesGroupsFacade) DeleteRole(id string) (err error) {
 	return f.RolesGroupsCommands.DeleteRole(id)
+}
+
+func (f *RolesGroupsFacade) CreateGroup(options *rolesgroups.NewGroupOptions) (groupID string, err error) {
+	g, err := f.RolesGroupsCommands.CreateGroup(options)
+	if err != nil {
+		return
+	}
+
+	groupID = g.ID
+	return
+}
+
+func (f *RolesGroupsFacade) UpdateGroup(options *rolesgroups.UpdateGroupOptions) (err error) {
+	_, err = f.RolesGroupsCommands.UpdateGroup(options)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (f *RolesGroupsFacade) DeleteGroup(id string) (err error) {
+	return f.RolesGroupsCommands.DeleteGroup(id)
 }

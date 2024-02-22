@@ -430,6 +430,24 @@ type Claim {
 }
 
 """"""
+input CreateGroupInput {
+  """The optional description of the group."""
+  description: String
+
+  """The key of the group."""
+  key: String!
+
+  """The optional name of the group."""
+  name: String
+}
+
+""""""
+type CreateGroupPayload {
+  """"""
+  group: Group!
+}
+
+""""""
 input CreateIdentityInput {
   """Definition of the new identity."""
   definition: IdentityDefinition!
@@ -531,6 +549,18 @@ type DeleteAuthorizationPayload {
 }
 
 """"""
+input DeleteGroupInput {
+  """The ID of the group."""
+  id: ID!
+}
+
+""""""
+type DeleteGroupPayload {
+  """"""
+  ok: Boolean
+}
+
+""""""
 input DeleteIdentityInput {
   """Target identity ID."""
   identityID: ID!
@@ -591,6 +621,27 @@ input GenerateOOBOTPCodeInput {
 type GenerateOOBOTPCodePayload {
   """"""
   code: String!
+}
+
+"""Authgear group"""
+type Group implements Entity & Node {
+  """The creation time of entity"""
+  createdAt: DateTime!
+
+  """The optional description of the group."""
+  description: String
+
+  """The ID of an object"""
+  id: ID!
+
+  """The key of the group."""
+  key: String!
+
+  """The optional name of the group."""
+  name: String
+
+  """The update time of entity"""
+  updatedAt: DateTime!
 }
 
 """"""
@@ -680,6 +731,9 @@ type Mutation {
   """Anonymize specified user"""
   anonymizeUser(input: AnonymizeUserInput!): AnonymizeUserPayload!
 
+  """Create a new group."""
+  createGroup(input: CreateGroupInput!): CreateGroupPayload!
+
   """Create new identity for user"""
   createIdentity(input: CreateIdentityInput!): CreateIdentityPayload!
 
@@ -697,6 +751,11 @@ type Mutation {
 
   """Delete authorization"""
   deleteAuthorization(input: DeleteAuthorizationInput!): DeleteAuthorizationPayload!
+
+  """
+  Delete an existing group. The associations between the group with other roles and other users will also be deleted.
+  """
+  deleteGroup(input: DeleteGroupInput!): DeleteGroupPayload!
 
   """Delete identity of user"""
   deleteIdentity(input: DeleteIdentityInput!): DeleteIdentityPayload!
@@ -741,6 +800,9 @@ type Mutation {
 
   """Unschedule account deletion"""
   unscheduleAccountDeletion(input: UnscheduleAccountDeletionInput!): UnscheduleAccountDeletionPayload!
+
+  """Update an existing group."""
+  updateGroup(input: UpdateGroupInput!): UpdateGroupPayload!
 
   """Update an existing identity of user"""
   updateIdentity(input: UpdateIdentityInput!): UpdateIdentityPayload!
@@ -1031,6 +1093,33 @@ input UnscheduleAccountDeletionInput {
 type UnscheduleAccountDeletionPayload {
   """"""
   user: User!
+}
+
+""""""
+input UpdateGroupInput {
+  """
+  The new description of the group. Pass null if you do not need to update the description. Pass an empty string to remove the description.
+  """
+  description: String
+
+  """The ID of the group."""
+  id: ID!
+
+  """
+  The new key of the group. Pass null if you do not need to update the key.
+  """
+  key: String
+
+  """
+  The new name of the group. Pass null if you do not need to update the name. Pass an empty string to remove the name.
+  """
+  name: String
+}
+
+""""""
+type UpdateGroupPayload {
+  """"""
+  group: Group!
 }
 
 """"""
