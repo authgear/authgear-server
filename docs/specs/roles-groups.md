@@ -463,9 +463,11 @@ In user listing, it is possible to filter users by group keys.
 > If we implemented a filtering by non-computed role keys, the behavior is confusing.
 
 Group keys are NOT indexed in Elasticsearch. So any changes on group and role assignments DO NOT trigger reindexing.
-Imagine that in a particular project, every user belongs to a group, when that group is deleted, we need to reindex every users.
+Searching with keyword is mutually exclusive with filtering with group keys.
 
-Therefore, search keyword CANNOT be used with group key filtering.
+> (Future works)
+> When reindexing is done with queue, we can index the group keys in Elasticsearch.
+> So searching with keyword will work with filtering with group keys.
 
 # Changes in account deletion and account anonymization
 
