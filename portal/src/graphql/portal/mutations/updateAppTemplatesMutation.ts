@@ -16,7 +16,8 @@ import {
 } from "../../../util/resource";
 
 export type AppTemplatesUpdater = (
-  updates: ResourceUpdate[]
+  updates: ResourceUpdate[],
+  withChecksum?: boolean
 ) => Promise<PortalAPIApp | null>;
 
 export function useUpdateAppTemplatesMutation(appID: string): {
@@ -32,7 +33,7 @@ export function useUpdateAppTemplatesMutation(appID: string): {
     client,
   });
   const updateAppTemplates = useCallback(
-    async (updates: ResourceUpdate[]) => {
+    async (updates: ResourceUpdate[], withChecksum: boolean = true) => {
       const paths = [];
       for (const specifier of updates.map((u) => u.specifier)) {
         paths.push(expandSpecifier(specifier));
@@ -55,7 +56,7 @@ export function useUpdateAppTemplatesMutation(appID: string): {
         return {
           path: update.path,
           data: update.value == null ? null : transform(update.value),
-          checksum: update.checksum,
+          checksum: withChecksum ? update.checksum : undefined,
         };
       });
 

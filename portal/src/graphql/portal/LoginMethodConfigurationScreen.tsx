@@ -3420,9 +3420,9 @@ const LoginMethodConfigurationScreen: React.VFC =
         configForm.reset();
         resourceForm.reset();
       },
-      save: async () => {
+      save: async (withChecksum: boolean = true) => {
         await configForm.save();
-        await resourceForm.save();
+        await resourceForm.save(withChecksum);
       },
     };
 

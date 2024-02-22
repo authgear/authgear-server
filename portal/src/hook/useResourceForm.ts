@@ -18,7 +18,7 @@ export interface ResourceFormModel<State> {
   setState: (fn: (state: State) => State) => void;
   reload: () => void;
   reset: () => void;
-  save: () => Promise<void>;
+  save: (withChecksum?: boolean) => Promise<void>;
   diff: ResourcesDiffResult | null;
 }
 
@@ -79,30 +79,36 @@ export function useResourceForm<State>(
     setCurrentState(null);
   }, [isUpdating, resetError]);
 
-  const save = useCallback(async () => {
-    if (!diff) {
-      return;
-    } else if (!diff.needUpdate) {
-      // In the case that a builtin language is added,
-      // and no changes have been made to the existing resources,
-      // we need to reset current state to null to make
-      // state consistent.
-      setCurrentState(null);
-      return;
-    } else if (isUpdating) {
-      return;
-    }
+  const save = useCallback(
+    async (withChecksum: boolean = true) => {
+      if (!diff) {
+        return;
+      } else if (!diff.needUpdate) {
+        // In the case that a builtin language is added,
+        // and no changes have been made to the existing resources,
+        // we need to reset current state to null to make
+        // state consistent.
+        setCurrentState(null);
+        return;
+      } else if (isUpdating) {
+        return;
+      }
 
-    try {
-      await updateResources([
-        ...diff.newResources,
-        ...diff.editedResources,
-        ...diff.deletedResources,
-      ]);
-      setCurrentState(null);
-    } finally {
-    }
-  }, [diff, isUpdating, updateResources]);
+      try {
+        await updateResources(
+          [
+            ...diff.newResources,
+            ...diff.editedResources,
+            ...diff.deletedResources,
+          ],
+          withChecksum
+        );
+        setCurrentState(null);
+      } finally {
+      }
+    },
+    [diff, isUpdating, updateResources]
+  );
 
   const state = currentState ?? initialState;
   const setState = useCallback(

@@ -744,8 +744,8 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
         resources.reset();
         config.reset();
       },
-      save: async () => {
-        await resources.save();
+      save: async (withChecksum: boolean = true) => {
+        await resources.save(withChecksum);
         await config.save();
       },
     };
