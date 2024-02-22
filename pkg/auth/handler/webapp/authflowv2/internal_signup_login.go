@@ -41,13 +41,22 @@ type InternalAuthflowV2SignupLoginHandler struct {
 	Endpoints         handlerwebapp.AuthflowSignupEndpointsProvider
 }
 
+type AuthflowV2SignupUIVariant string
+
+const (
+	AuthflowV2SignupUIVariantSignup      AuthflowV2SignupUIVariant = "signup"
+	AuthflowV2SignupUIVariantSignupLogin AuthflowV2SignupUIVariant = "signup_login"
+)
+
 type AuthflowV2SignupServeOptions struct {
 	CanSwitchToLogin bool
 	FlowType         authflow.FlowType
+	UIVariant        AuthflowV2SignupUIVariant
 }
 
 type AuthflowV2SignupViewModel struct {
 	CanSwitchToLogin bool
+	UIVariant        AuthflowV2SignupUIVariant
 }
 
 func (h *InternalAuthflowV2SignupLoginHandler) GetData(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse, options AuthflowV2SignupServeOptions) (map[string]interface{}, error) {
@@ -62,6 +71,7 @@ func (h *InternalAuthflowV2SignupLoginHandler) GetData(w http.ResponseWriter, r 
 
 	signupViewModel := AuthflowV2SignupViewModel{
 		CanSwitchToLogin: options.CanSwitchToLogin,
+		UIVariant:        options.UIVariant,
 	}
 	viewmodels.Embed(data, signupViewModel)
 

@@ -26,14 +26,26 @@
     {{ template "authflowv2/__header.html" . }}
     <h1 class="screen-title">
       {{ if $.ClientName }}
-      {{ template "v2-sign-up.title" (dict "AppOrClientName" $.ClientName) }}
+        {{ if eq $.UIVariant "signup_login" }}
+          {{ template "v2-sign-up-title" (dict "AppOrClientName" $.ClientName) }}
+        {{ else }}
+          {{ template "v2-sign-up-login-title" (dict "AppOrClientName" $.ClientName) }}
+        {{ end }}
       {{ else }}
-      {{ $appName := (include "app.name" nil) }}
-      {{ template "v2-sign-up.title" (dict "AppOrClientName" $appName) }}
+        {{ $appName := (include "app.name" nil) }}
+        {{ if eq $.UIVariant "signup_login" }}
+          {{ template "v2-sign-up-login-title" (dict "AppOrClientName" $appName) }}
+        {{ else }}
+          {{ template "v2-sign-up-title" (dict "AppOrClientName" $appName) }}
+        {{ end }}
       {{ end }}
     </h1>
     <h2 class="screen-description">
-      {{ template "v2-sign-up.subtitle" }}
+      {{ if eq $.UIVariant "signup_login" }}
+        {{ template "v2-sign-up-login-subtitle" }}
+      {{ else }}
+        {{ template "v2-sign-up-subtitle" }}
+      {{ end }}
     </h2>
     {{ template "authflowv2/__alert_message.html"
       (dict

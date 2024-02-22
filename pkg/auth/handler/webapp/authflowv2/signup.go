@@ -15,12 +15,15 @@ type AuthflowV2SignupHandler struct {
 func (h *AuthflowV2SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	flowType := authflow.FlowTypeSignup
 	canSwitchToLogin := true
+	uiVariant := AuthflowV2SignupUIVariantSignup
 	if h.UIConfig.CombineSignupLoginFlow {
 		flowType = authflow.FlowTypeSignupLogin
 		canSwitchToLogin = false
+		uiVariant = AuthflowV2SignupUIVariantSignupLogin
 	}
 	h.SignupLoginHandler.ServeHTTP(w, r, AuthflowV2SignupServeOptions{
 		FlowType:         flowType,
 		CanSwitchToLogin: canSwitchToLogin,
+		UIVariant:        uiVariant,
 	})
 }

@@ -80,6 +80,7 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		h.SignupLoginHandler.ServeHTTP(w, r, AuthflowV2SignupServeOptions{
 			FlowType:         authflow.FlowTypeSignupLogin,
 			CanSwitchToLogin: false,
+			UIVariant:        AuthflowV2SignupUIVariantSignupLogin,
 		})
 		return
 	}
