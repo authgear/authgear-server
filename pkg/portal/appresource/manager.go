@@ -26,6 +26,9 @@ import (
 
 const ConfigFileMaxSize = 100 * 1024
 
+var ErrChecksumNotEqual = apierrors.Forbidden.WithReason("ChecksumNotEqual").
+	New("checksum of resource submitted is not equal checksum of current resource")
+
 type DenoClient interface {
 	Check(ctx context.Context, snippet string) error
 }
@@ -301,8 +304,7 @@ func (m *Manager) applyUpdates(appID string, appFs resource.Fs, updates []Update
 		}
 
 		if u.Checksum != "" && crypto.ChecksumString(resrc.Data) != u.Checksum {
-			err = fmt.Errorf("checksum not equal '%s'", u.Path)
-			return nil, nil, err
+			return nil, nil, ErrChecksumNotEqual 
 		}
 
 		desc, ok := manager.Resolve(u.Path)

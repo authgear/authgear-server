@@ -34,6 +34,7 @@ import {
 } from "./webhook";
 import { APIBadNFTCollectionError, APIAlchemyProtocolError } from "./web3";
 import type { ParsedAPIError } from "./parse";
+import { APIChecksumNotEqualError } from "./checksum";
 
 export interface NetworkError {
   errorName: "NetworkFailed";
@@ -107,6 +108,7 @@ export type APIError = { message?: string } & (
   | APIBadNFTCollectionError
   | APIAlchemyProtocolError
   | APIDenoCheckError
+  | APIChecksumNotEqualError
 );
 
 export function isAPIError(value: unknown): value is APIError {
