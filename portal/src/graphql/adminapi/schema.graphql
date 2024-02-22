@@ -728,6 +728,9 @@ type Mutation {
   """Update an existing identity of user"""
   updateIdentity(input: UpdateIdentityInput!): UpdateIdentityPayload!
 
+  """Update an existing role."""
+  updateRole(input: UpdateRoleInput!): UpdateRolePayload!
+
   """Update user"""
   updateUser(input: UpdateUserInput!): UpdateUserPayload!
 }
@@ -1032,6 +1035,33 @@ type UpdateIdentityPayload {
 
   """"""
   user: User!
+}
+
+""""""
+input UpdateRoleInput {
+  """
+  The new description of the role. Pass null if you do not need to update the description. Pass an empty string to remove the description.
+  """
+  description: String
+
+  """The ID of the role."""
+  id: ID!
+
+  """
+  The new key of the role. Pass null if you do not need to update the key.
+  """
+  key: String
+
+  """
+  The new name of the role. Pass null if you do not need to update the name. Pass an empty string to remove the name.
+  """
+  name: String
+}
+
+""""""
+type UpdateRolePayload {
+  """"""
+  role: Role!
 }
 
 """"""

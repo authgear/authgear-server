@@ -12,6 +12,17 @@ type NewRoleOptions struct {
 	Description *string
 }
 
+type UpdateRoleOptions struct {
+	ID             string
+	NewKey         *string
+	NewName        *string
+	NewDescription *string
+}
+
+func (o *UpdateRoleOptions) RequireUpdate() bool {
+	return o.NewKey != nil || o.NewName != nil || o.NewDescription != nil
+}
+
 type Role struct {
 	ID          string
 	CreatedAt   time.Time

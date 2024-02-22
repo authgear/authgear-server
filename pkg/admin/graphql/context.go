@@ -64,6 +64,7 @@ type UserFacade interface {
 
 type RolesGroupsFacade interface {
 	CreateRole(options *rolesgroups.NewRoleOptions) (string, error)
+	UpdateRole(options *rolesgroups.UpdateRoleOptions) error
 }
 
 type IdentityFacade interface {

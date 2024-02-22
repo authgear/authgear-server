@@ -1,6 +1,7 @@
 package rolesgroups
 
 import (
+	"database/sql"
 	"errors"
 
 	"github.com/lib/pq"
@@ -63,6 +64,77 @@ func (s *Store) CreateRole(r *Role) error {
 	}
 
 	return nil
+}
+
+func (s *Store) UpdateRole(options *UpdateRoleOptions) error {
+	now := s.Clock.NowUTC()
+
+	q := s.SQLBuilder.Update(s.SQLBuilder.TableName("_auth_role")).
+		Set("updated_at", now).
+		Where("id = ?", options.ID)
+
+	if options.NewKey != nil {
+		q = q.Set("key", *options.NewKey)
+	}
+
+	if options.NewName != nil {
+		if *options.NewName == "" {
+			q = q.Set("name", nil)
+		} else {
+			q = q.Set("name", *options.NewName)
+		}
+	}
+
+	if options.NewDescription != nil {
+		if *options.NewDescription == "" {
+			q = q.Set("description", nil)
+		} else {
+			q = q.Set("description", *options.NewDescription)
+		}
+	}
+
+	result, err := s.SQLExecutor.ExecWith(q)
+	if err != nil {
+		var pqError *pq.Error
+		if errors.As(err, &pqError) {
+			// https://www.postgresql.org/docs/13/errcodes-appendix.html
+			// 23505 is unique_violation
+			if pqError.Code == "23505" {
+				err = ErrRoleDuplicateKey
+			}
+		}
+		return err
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if count != 1 {
+		return ErrRoleNotFound
+	}
+
+	return nil
+}
+
+func (s *Store) GetRoleByID(id string) (*Role, error) {
+	q := s.selectRoleQuery().Where("id = ?", id)
+
+	row, err := s.SQLExecutor.QueryRowWith(q)
+	if err != nil {
+		return nil, err
+	}
+
+	r, err := s.scanRole(row)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrRoleNotFound
+		}
+		return nil, err
+	}
+
+	return r, nil
 }
 
 func (s *Store) selectRoleQuery() db.SelectBuilder {

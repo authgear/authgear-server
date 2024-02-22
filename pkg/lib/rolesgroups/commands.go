@@ -22,3 +22,26 @@ func (c *Commands) CreateRole(options *NewRoleOptions) (*model.Role, error) {
 
 	return role.ToModel(), nil
 }
+
+func (c *Commands) UpdateRole(options *UpdateRoleOptions) (*model.Role, error) {
+	if options.RequireUpdate() {
+		if options.NewKey != nil {
+			err := ValidateKey(*options.NewKey)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		err := c.Store.UpdateRole(options)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	r, err := c.Store.GetRoleByID(options.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ToModel(), nil
+}
