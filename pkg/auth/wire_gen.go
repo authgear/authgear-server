@@ -69375,6 +69375,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authflowV2SignupHandler := &authflowv2.AuthflowV2SignupHandler{
 		SignupLoginHandler: internalAuthflowV2SignupLoginHandler,
+		UIConfig:           uiConfig,
 	}
 	return authflowV2SignupHandler
 }

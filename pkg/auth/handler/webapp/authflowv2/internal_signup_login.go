@@ -41,7 +41,16 @@ type InternalAuthflowV2SignupLoginHandler struct {
 	Endpoints         handlerwebapp.AuthflowSignupEndpointsProvider
 }
 
-func (h *InternalAuthflowV2SignupLoginHandler) GetData(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
+type AuthflowV2SignupServeOptions struct {
+	CanSwitchToLogin bool
+	FlowType         authflow.FlowType
+}
+
+type AuthflowV2SignupViewModel struct {
+	CanSwitchToLogin bool
+}
+
+func (h *InternalAuthflowV2SignupLoginHandler) GetData(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse, options AuthflowV2SignupServeOptions) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	if h.TutorialCookie.Pop(r, w, httputil.SignupLoginTutorialCookieName) {
@@ -50,10 +59,16 @@ func (h *InternalAuthflowV2SignupLoginHandler) GetData(w http.ResponseWriter, r 
 	viewmodels.Embed(data, baseViewModel)
 	authflowViewModel := h.AuthflowViewModel.NewWithAuthflow(screen.StateTokenFlowResponse, r)
 	viewmodels.Embed(data, authflowViewModel)
+
+	signupViewModel := AuthflowV2SignupViewModel{
+		CanSwitchToLogin: options.CanSwitchToLogin,
+	}
+	viewmodels.Embed(data, signupViewModel)
+
 	return data, nil
 }
 
-func (h *InternalAuthflowV2SignupLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request, flowType authflow.FlowType) {
+func (h *InternalAuthflowV2SignupLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request, options AuthflowV2SignupServeOptions) {
 	flowName := "default"
 	opts := webapp.SessionOptions{
 		RedirectURI: h.Controller.RedirectURI(r),
@@ -72,7 +87,7 @@ func (h *InternalAuthflowV2SignupLoginHandler) ServeHTTP(w http.ResponseWriter, 
 			return err
 		}
 
-		data, err := h.GetData(w, r, screen)
+		data, err := h.GetData(w, r, screen, options)
 		if err != nil {
 			return err
 		}
@@ -126,7 +141,7 @@ func (h *InternalAuthflowV2SignupLoginHandler) ServeHTTP(w http.ResponseWriter, 
 	})
 
 	h.Controller.HandleStartOfFlow(w, r, opts, authflow.FlowReference{
-		Type: flowType,
+		Type: options.FlowType,
 		Name: flowName,
 	}, &handlers, nil)
 }

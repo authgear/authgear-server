@@ -10,13 +10,7 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
-)
-
-var TemplateWebAuthflowPromoteHTML = template.RegisterHTML(
-	"web/authflowv2/signup.html",
-	handlerwebapp.Components...,
 )
 
 var AuthflowPromoteLoginIDSchema = validation.NewSimpleSchema(`
@@ -57,7 +51,10 @@ func (h *AuthflowV2PromoteHandler) GetData(w http.ResponseWriter, r *http.Reques
 	authflowViewModel := h.AuthflowViewModel.NewWithAuthflow(screen.StateTokenFlowResponse, r)
 	viewmodels.Embed(data, authflowViewModel)
 
-	data["LoginDisabled"] = true
+	signupViewModel := AuthflowV2SignupViewModel{
+		CanSwitchToLogin: false,
+	}
+	viewmodels.Embed(data, signupViewModel)
 
 	return data, nil
 }
@@ -75,7 +72,7 @@ func (h *AuthflowV2PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 			return err
 		}
 
-		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowPromoteHTML, data)
+		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowV2SignupHTML, data)
 		return nil
 	})
 
