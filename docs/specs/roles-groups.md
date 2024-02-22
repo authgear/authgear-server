@@ -237,7 +237,7 @@ type DeleteGroupPayload {
 }
 
 input AddRoleToUsersInput {
-  roleID: ID!
+  roleKey: String!
   userIDs: [ID!]!
 }
 
@@ -246,7 +246,7 @@ type AddRoleToUsersPayload {
 }
 
 input RemoveRoleFromUsersInput {
-  roleID: ID!
+  roleKey: String!
   userIDs: [ID!]!
 }
 
@@ -255,8 +255,8 @@ type RemoveRoleFromUsersPayload {
 }
 
 input AddRoleToGroupsInput {
-  roleID: ID!
-  groupIDs: [ID!]!
+  roleKey: String!
+  groupKeys: [String!]!
 }
 
 type AddRoleToGroupsPayload {
@@ -264,8 +264,8 @@ type AddRoleToGroupsPayload {
 }
 
 input RemoveRoleFromGroupsInput {
-  roleID: ID!
-  groupIDs: [ID!]!
+  roleKey: String!
+  groupKeys: [String!]!
 }
 
 type RemoveRoleFromGroupsPayload {
@@ -273,7 +273,7 @@ type RemoveRoleFromGroupsPayload {
 }
 
 input AddGroupToUsersInput {
-  groupID: ID!
+  groupKey: String!
   userIDs: [ID!]!
 }
 
@@ -282,7 +282,7 @@ type AddGroupToUsersPayload {
 }
 
 input RemoveGroupFromUsersInput {
-  groupID: ID!
+  groupKey: String!
   userIDs: [ID!]!
 }
 
@@ -291,8 +291,8 @@ type RemoveGroupFromUsersPayload {
 }
 
 input AddGroupToRolesInput {
-  groupID: ID!
-  roleIDs: [ID!]!
+  groupKey: String!
+  roleKeys: [String!]!
 }
 
 type AddGroupToRolesPayload {
@@ -300,8 +300,8 @@ type AddGroupToRolesPayload {
 }
 
 input RemoveGroupFromRolesInput {
-  groupID: ID!
-  roleIDs: [ID!]!
+  groupKey: String!
+  roleKeys: [String!]!
 }
 
 type RemoveGroupFromRolesPayload {
@@ -310,7 +310,7 @@ type RemoveGroupFromRolesPayload {
 
 input AddUserToRolesInput {
   userID: ID!
-  roleIDs: [ID!]!
+  roleKeys: [String!]!
 }
 
 type AddUserToRolesPayload {
@@ -319,7 +319,7 @@ type AddUserToRolesPayload {
 
 input RemoveUserFromRolesInput {
   userID: ID!
-  roleIDs: [ID!]!
+  roleKeys: [String!]!
 }
 
 type RemoveUserFromRolesPayload {
@@ -328,7 +328,7 @@ type RemoveUserFromRolesPayload {
 
 input AddUserToGroupsInput {
   userID: ID!
-  groupIDs: [ID!]!
+  groupKeys: [String!]!
 }
 
 type AddUserToGroupsPayload {
@@ -337,7 +337,7 @@ type AddUserToGroupsPayload {
 
 input RemoveUserFromGroupsInput {
   userID: ID!
-  groupIDs: [ID!]!
+  groupKeys: [String!]!
 }
 
 type RemoveUserFromGroupsPayload {
