@@ -1094,3 +1094,10 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2FinishFlowHandler)),
 	))
 }
+
+func newWebAppAuthflowV2NoAuthenticatorHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2NoAuthenticatorHandler)),
+	))
+}

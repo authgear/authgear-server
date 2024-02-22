@@ -1,6 +1,6 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
-  {{ $error_message := include "error-server" nil }}
+  {{ $error_message := include "v2-error-server" nil }}
   {{ if .Error }}
     {{ if eq .Error.reason "WebUIInvalidSession" }}
       {{ $error_message = include "v2-error-web-ui-invalid-session-return" nil }}
