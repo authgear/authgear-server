@@ -10,13 +10,13 @@ import (
 )
 
 type Result struct {
-	UILocales        string
-	ColorScheme      string
-	RedirectURI      string
-	NavigationAction string
-	Cookies          []*http.Cookie
-	IsInteractionErr bool
-	RemoveQueries    setutil.Set[string]
+	UILocales        string              `json:"ui_locales,omitempty"`
+	ColorScheme      string              `json:"color_scheme,omitempty"`
+	RedirectURI      string              `json:"redirect_uri,omitempty"`
+	NavigationAction string              `json:"navigation_action,omitempty"`
+	Cookies          []*http.Cookie      `json:"cookies,omitempty"`
+	IsInteractionErr bool                `json:"is_interaction_err,omitempty"`
+	RemoveQueries    setutil.Set[string] `json:"remove_queries,omitempty"`
 }
 
 func (r *Result) WriteResponse(w http.ResponseWriter, req *http.Request) {

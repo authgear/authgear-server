@@ -58,6 +58,8 @@ const (
 	// The following routes are dead ends.
 	AuthflowRouteAccountStatus   = "/authflow/account_status"
 	AuthflowRouteNoAuthenticator = "/authflow/no_authenticator"
+
+	AuthflowRouteFinishFlow = "/authflow/finish"
 )
 
 type AuthflowNavigatorEndpointsProvider interface {
@@ -94,6 +96,11 @@ func (n *AuthflowNavigator) Navigate(s *AuthflowScreenWithFlowResponse, r *http.
 		panic(fmt.Errorf("expected screen to have its branches taken"))
 	}
 
+	if s.StateTokenFlowResponse.Action.Type == authflow.FlowActionTypeFinished {
+		s.Advance(AuthflowRouteFinishFlow, result)
+		return
+	}
+
 	switch s.StateTokenFlowResponse.Type {
 	case authflow.FlowTypeSignup:
 		n.navigateSignup(s, r, webSessionID, result)
@@ -110,6 +117,10 @@ func (n *AuthflowNavigator) Navigate(s *AuthflowScreenWithFlowResponse, r *http.
 	default:
 		panic(fmt.Errorf("unexpected flow type: %v", s.StateTokenFlowResponse.Type))
 	}
+}
+
+func (n *AuthflowNavigator) NavigateChangePasswordSuccessPage(s *AuthflowScreen, r *http.Request, webSessionID string) (result *Result) {
+	return &Result{}
 }
 
 func (n *AuthflowNavigator) NavigateResetPasswordSuccessPage() string {

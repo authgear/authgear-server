@@ -289,6 +289,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2AccountStatusRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2AccountStatusHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2EnterRecoveryCodeRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2EnterRecoveryCodeHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowv2ChangePasswordRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2ChangePasswordHandler))
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2ChangePasswordSuccessRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2ChangePasswordSuccessHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2ForgotPasswordRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2ForgotPasswordHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2ForgotPasswordLinkSentRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2ForgotPasswordLinkSentHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2ForgotPasswordOTPRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2ForgotPasswordOTPHandler))
@@ -301,6 +302,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2PromptCreatePasskeyRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2PromptCreatePasskeyHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2UsePasskeyRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2UsePasskeyHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2TerminateOtherSessionsRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2TerminateOtherSessionsHandler))
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowv2FinishFlowRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2FinishFlowHandler))
 
 	router.Add(webapphandler.ConfigureAuthflowEnterPasswordRoute(webappPageRoute), p.Handler(newWebAppAuthflowEnterPasswordHandler))
 	router.Add(webapphandler.ConfigureAuthflowEnterOOBOTPRoute(webappPageRoute), p.Handler(newWebAppAuthflowEnterOOBOTPHandler))
@@ -325,6 +327,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	router.Add(webapphandler.ConfigureAuthflowAccountStatusRoute(webappPageRoute), p.Handler(newWebAppAuthflowAccountStatusHandler))
 	router.Add(webapphandler.ConfigureAuthflowNoAuthenticatorRoute(webappPageRoute), p.Handler(newWebAppAuthflowNoAuthenticatorHandler))
+	router.Add(webapphandler.ConfigureAuthflowFinishFlowRoute(webappPageRoute), p.Handler(newWebAppAuthflowFinishFlowHandler))
 
 	router.Add(webapphandler.ConfigureEnterPasswordRoute(webappPageRoute), p.Handler(newWebAppEnterPasswordHandler))
 	router.Add(webapphandler.ConfigureConfirmTerminateOtherSessionsRoute(webappPageRoute), p.Handler(newWebConfirmTerminateOtherSessionsHandler))

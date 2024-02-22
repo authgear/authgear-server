@@ -859,6 +859,14 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 	))
 }
 
+func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		AuthflowV2UIHandlerDependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2ChangePasswordSuccessHandler)),
+	))
+}
+
 func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
@@ -1068,5 +1076,21 @@ func newWebAppAuthflowNoAuthenticatorHandler(p *deps.RequestProvider) http.Handl
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebapp.AuthflowNoAuthenticatorHandler)),
+	))
+}
+
+func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		AuthflowUIHandlerDependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.AuthflowFinishFlowHandler)),
+	))
+}
+
+func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		AuthflowV2UIHandlerDependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2FinishFlowHandler)),
 	))
 }

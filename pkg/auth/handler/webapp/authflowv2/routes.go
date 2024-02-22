@@ -63,6 +63,8 @@ const (
 	// The following routes are dead ends.
 	AuthflowV2RouteAccountStatus   = "/authflow/v2/account_status"
 	AuthflowV2RouteNoAuthenticator = "/authflow/v2/no_authenticator"
+
+	AuthflowV2RouteFinishFlow = "/authflow/v2/finish"
 )
 
 type AuthflowV2NavigatorEndpointsProvider interface {
@@ -100,9 +102,35 @@ func (n *AuthflowV2Navigator) NavigateResetPasswordSuccessPage() string {
 	return AuthflowV2RouteResetPasswordSuccess
 }
 
+func (n *AuthflowV2Navigator) NavigateChangePasswordSuccessPage(s *webapp.AuthflowScreen, r *http.Request, webSessionID string) (result *webapp.Result) {
+	navigate := func(path string, query *url.Values) (result *webapp.Result) {
+		u := *r.URL
+		u.Path = path
+		q := u.Query()
+		q.Set(webapp.AuthflowQueryKey, s.StateToken.XStep)
+		for k, param := range *query {
+			for _, p := range param {
+				q.Add(k, p)
+			}
+		}
+		u.RawQuery = q.Encode()
+		result = &webapp.Result{}
+		result.NavigationAction = "advance"
+		result.RedirectURI = u.String()
+		return result
+	}
+
+	return navigate(AuthflowV2RouteChangePasswordSuccess, &url.Values{})
+}
+
 func (n *AuthflowV2Navigator) Navigate(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
 	if s.HasBranchToTake() {
 		panic(fmt.Errorf("expected screen to have its branches taken"))
+	}
+
+	if s.StateTokenFlowResponse.Action.Type == authflow.FlowActionTypeFinished {
+		s.Advance(AuthflowV2RouteFinishFlow, result)
+		return
 	}
 
 	switch s.StateTokenFlowResponse.Type {

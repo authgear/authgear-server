@@ -36,8 +36,13 @@ func ConfigureAuthflowv2ChangePasswordRoute(route httproute.Route) httproute.Rou
 		WithPathPattern(AuthflowV2RouteChangePassword)
 }
 
+type AuthflowV2ChangePasswordNavigator interface {
+	NavigateChangePasswordSuccessPage(s *webapp.AuthflowScreen, r *http.Request, webSessionID string) (result *webapp.Result)
+}
+
 type AuthflowV2ChangePasswordHandler struct {
 	Controller    *handlerwebapp.AuthflowController
+	Navigator     AuthflowV2ChangePasswordNavigator
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      handlerwebapp.Renderer
 }
@@ -98,8 +103,13 @@ func (h *AuthflowV2ChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		if err != nil {
 			return err
 		}
+		newScreen, err := h.Controller.DelayScreen(r, s, screen.Screen, result)
+		if err != nil {
+			return err
+		}
 
-		result.WriteResponse(w, r)
+		newResult := h.Navigator.NavigateChangePasswordSuccessPage(newScreen, r, s.ID)
+		newResult.WriteResponse(w, r)
 		return nil
 	})
 	h.Controller.HandleStep(w, r, &handlers)

@@ -445,7 +445,7 @@ func (c *AuthflowController) ReplaceScreen(r *http.Request, s *webapp.Session, f
 	emptyXStep := ""
 	var emptyInput map[string]interface{}
 	screen = webapp.NewAuthflowScreenWithFlowResponse(&flowResponse, emptyXStep, emptyInput)
-	s.RememberScreen(screen)
+	s.RememberScreen(screen.Screen)
 
 	output, screen, err = c.takeBranchRecursively(s, screen)
 	if err != nil {
@@ -496,7 +496,7 @@ func (c *AuthflowController) createScreenWithOutput(
 	flowResponse := output.ToFlowResponse()
 	var emptyInput map[string]interface{}
 	screen := webapp.NewAuthflowScreenWithFlowResponse(&flowResponse, prevXStep, emptyInput)
-	s.RememberScreen(screen)
+	s.RememberScreen(screen.Screen)
 
 	output, screen, err := c.takeBranchRecursively(s, screen)
 	if err != nil {
@@ -577,7 +577,7 @@ func (c *AuthflowController) AdvanceWithInputs(
 		if options.InheritTakenBranchState && screen0.BranchStateTokenFlowResponse != nil {
 			screen1.InheritTakenBranchState(screen0)
 		}
-		s.RememberScreen(screen1)
+		s.RememberScreen(screen1.Screen)
 		currentScreen = screen1
 
 		output2, screen2, err := c.takeBranchRecursively(s, screen1)
@@ -591,20 +591,58 @@ func (c *AuthflowController) AdvanceWithInputs(
 		}
 		prevXStep = screen2.Screen.StateToken.XStep
 
-		flowResponse2 := *screen2.StateTokenFlowResponse
+		_ = *screen2.StateTokenFlowResponse
 
-		isFinished, err := c.finishOrUpdateSession(r, s, &flowResponse2, result)
+		err = c.updateSession(r, s)
 		if err != nil {
 			return nil, err
-		}
-		if isFinished {
-			return result, nil
 		}
 	}
 
 	currentScreen.Navigate(c.Navigator, r, s.ID, result)
 
 	return result, nil
+}
+
+func (c *AuthflowController) Finish(r *http.Request, s *webapp.Session) (*webapp.Result, error) {
+	result := &webapp.Result{}
+	screen, ok := s.Authflow.AllScreens[GetXStepFromQuery(r)]
+	if !ok {
+		return nil, authflow.ErrFlowNotFound
+	}
+	err := c.finishSession(r, s, result, screen.FinishedUIScreenData)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+func (c *AuthflowController) AdvanceToDelayedScreen(r *http.Request, s *webapp.Session) (*webapp.Result, error) {
+	if s.Authflow == nil {
+		return nil, authflow.ErrFlowNotFound
+	}
+
+	screen, ok := s.Authflow.AllScreens[GetXStepFromQuery(r)]
+	if !ok {
+		return nil, authflow.ErrFlowNotFound
+	}
+
+	return screen.DelayedUIScreenData.TargetResult, nil
+}
+
+func (c *AuthflowController) DelayScreen(r *http.Request,
+	s *webapp.Session,
+	sourceScreen *webapp.AuthflowScreen,
+	targetResult *webapp.Result,
+) (*webapp.AuthflowScreen, error) {
+	prevXStep := sourceScreen.StateToken.XStep
+	screen := webapp.NewAuthflowScreenWithResult(prevXStep, targetResult)
+	s.RememberScreen(screen)
+	err := c.updateSession(r, s)
+	if err != nil {
+		return nil, err
+	}
+
+	return screen, nil
 }
 
 // AdvanceWithInput is same as AdvanceWithInputs but only allow one input.
@@ -631,7 +669,7 @@ func (c *AuthflowController) UpdateWithInput(r *http.Request, s *webapp.Session,
 	result.Cookies = append(result.Cookies, output.Cookies...)
 	newF := output.ToFlowResponse()
 	newScreen := webapp.UpdateAuthflowScreenWithFlowResponse(screen, &newF)
-	s.RememberScreen(newScreen)
+	s.RememberScreen(newScreen.Screen)
 
 	now := c.Clock.NowUTC()
 	s.UpdatedAt = now
@@ -671,7 +709,7 @@ func (c *AuthflowController) handleTakeBranchResultInput(
 
 	flowResponse := output.ToFlowResponse()
 	newScreen := takeBranchResult.NewAuthflowScreenFull(&flowResponse, err)
-	s.RememberScreen(newScreen)
+	s.RememberScreen(newScreen.Screen)
 	return output, newScreen, nil
 }
 
@@ -685,7 +723,7 @@ func (c *AuthflowController) takeBranchRecursively(s *webapp.Session, screen *we
 		switch takeBranchResult := takeBranchResult.(type) {
 		// This taken branch does not require an input to select.
 		case webapp.TakeBranchResultSimple:
-			s.RememberScreen(takeBranchResult.Screen)
+			s.RememberScreen(takeBranchResult.Screen.Screen)
 			screen = takeBranchResult.Screen
 		// This taken branch require an input to select.
 		case webapp.TakeBranchResultInput:
@@ -718,37 +756,26 @@ func (c *AuthflowController) feedInput(stateToken string, input interface{}) (*a
 	return output, nil
 }
 
-func (c *AuthflowController) deriveAuthflowFinishPath(f *authflow.FlowResponse) string {
-	switch f.Type {
+func (c *AuthflowController) deriveAuthflowFinishPath(flowType authflow.FlowType) string {
+	switch flowType {
 	case authflow.FlowTypeAccountRecovery:
 		return c.Navigator.NavigateResetPasswordSuccessPage()
 	}
 	return ""
 }
 
-func (c *AuthflowController) deriveFinishRedirectURI(r *http.Request, s *webapp.Session, f *authflow.FlowResponse) string {
-	bytes, err := json.Marshal(f.Action.Data)
-	if err != nil {
-		panic(err)
-	}
-
-	var data map[string]interface{}
-	err = json.Unmarshal(bytes, &data)
-	if err != nil {
-		panic(err)
-	}
-
+func (c *AuthflowController) deriveFinishRedirectURI(r *http.Request, s *webapp.Session, flowType authflow.FlowType, finishRedirectURI string) string {
 	// 1. Use predefined redirect path of the flow
 	// 2. Use the finish_redirect_uri from authflow. (To return to /oauth2/consent)
 	// 3. Use redirect URI in webapp.Session.
 	// 4. DerivePostLoginRedirectURIFromRequest
 
-	path := c.deriveAuthflowFinishPath(f)
+	path := c.deriveAuthflowFinishPath(flowType)
 	if path != "" {
 		return path
 	}
 
-	if finishRedirectURI, ok := data["finish_redirect_uri"].(string); ok {
+	if finishRedirectURI != "" {
 		return finishRedirectURI
 	}
 	if s.RedirectURI != "" {
@@ -868,7 +895,7 @@ func (c *AuthflowController) takeBranch(w http.ResponseWriter, r *http.Request, 
 	switch takeBranchResult := takeBranchResult.(type) {
 	// This taken branch does not require an input to select.
 	case webapp.TakeBranchResultSimple:
-		s.RememberScreen(takeBranchResult.Screen)
+		s.RememberScreen(takeBranchResult.Screen.Screen)
 		newScreen = takeBranchResult.Screen
 	// This taken branch require an input to select.
 	case webapp.TakeBranchResultInput:
@@ -887,13 +914,9 @@ func (c *AuthflowController) takeBranch(w http.ResponseWriter, r *http.Request, 
 		result.Cookies = append(result.Cookies, output2.Cookies...)
 	}
 
-	isFinished, err := c.finishOrUpdateSession(r, s, newScreen.StateTokenFlowResponse, result)
+	err = c.updateSession(r, s)
 	if err != nil {
 		return err
-	}
-	if isFinished {
-		result.WriteResponse(w, r)
-		return nil
 	}
 
 	newScreen.Navigate(c.Navigator, r, s.ID, result)
@@ -981,51 +1004,50 @@ func (c *AuthflowController) checkPath(w http.ResponseWriter, r *http.Request, s
 	return nil
 }
 
-func (c *AuthflowController) finishOrUpdateSession(
+func (c *AuthflowController) updateSession(
+	r *http.Request,
+	s *webapp.Session) (err error) {
+	now := c.Clock.NowUTC()
+	s.UpdatedAt = now
+	return c.Sessions.Update(s)
+}
+
+func (c *AuthflowController) finishSession(
 	r *http.Request,
 	s *webapp.Session,
-	flowResponse *authflow.FlowResponse,
-	result *webapp.Result) (isFinished bool, err error) {
-	if flowResponse.Action.Type == authflow.FlowActionTypeFinished {
-		result.RemoveQueries = setutil.Set[string]{
-			"x_step": struct{}{},
-		}
-		result.NavigationAction = "redirect"
-		result.RedirectURI = c.deriveFinishRedirectURI(r, s, flowResponse)
-
-		switch flowResponse.Type {
-		case authflow.FlowTypeLogin:
-			fallthrough
-		case authflow.FlowTypePromote:
-			fallthrough
-		case authflow.FlowTypeSignup:
-			fallthrough
-		case authflow.FlowTypeSignupLogin:
-			fallthrough
-		case authflow.FlowTypeReauth:
-			// Forget the session.
-			err := c.Sessions.Delete(s.ID)
-			if err != nil {
-				return false, err
-			}
-			// Marked signed up in cookie after authorization.
-			// When user visit auth ui root "/", redirect user to "/login" if
-			// cookie exists
-			result.Cookies = append(result.Cookies, c.Cookies.ValueCookie(c.SignedUpCookie.Def, "true"))
-			result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(c.SessionCookie.Def))
-			// Reset visitor ID.
-			result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(webapp.VisitorIDCookieDef))
-		default:
-			// Do nothing for other flows
-		}
-		return true, nil
-	} else {
-		now := c.Clock.NowUTC()
-		s.UpdatedAt = now
-		err := c.Sessions.Update(s)
-		if err != nil {
-			return false, err
-		}
+	result *webapp.Result,
+	finishedUIScreenData *webapp.AuthflowFinishedUIScreenData,
+) (err error) {
+	result.RemoveQueries = setutil.Set[string]{
+		"x_step": struct{}{},
 	}
-	return false, nil
+	result.NavigationAction = "redirect"
+	result.RedirectURI = c.deriveFinishRedirectURI(r, s, finishedUIScreenData.FlowType, finishedUIScreenData.FinishRedirectURI)
+
+	switch finishedUIScreenData.FlowType {
+	case authflow.FlowTypeLogin:
+		fallthrough
+	case authflow.FlowTypePromote:
+		fallthrough
+	case authflow.FlowTypeSignup:
+		fallthrough
+	case authflow.FlowTypeSignupLogin:
+		fallthrough
+	case authflow.FlowTypeReauth:
+		// Forget the session.
+		err := c.Sessions.Delete(s.ID)
+		if err != nil {
+			return err
+		}
+		// Marked signed up in cookie after authorization.
+		// When user visit auth ui root "/", redirect user to "/login" if
+		// cookie exists
+		result.Cookies = append(result.Cookies, c.Cookies.ValueCookie(c.SignedUpCookie.Def, "true"))
+		result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(c.SessionCookie.Def))
+		// Reset visitor ID.
+		result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(webapp.VisitorIDCookieDef))
+	default:
+		// Do nothing for other flows
+	}
+	return nil
 }
