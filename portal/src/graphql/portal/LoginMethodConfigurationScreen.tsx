@@ -482,6 +482,7 @@ interface ConfigFormState {
   authenticatorOOBSMSConfig: AuthenticatorOOBSMSConfig;
   authenticatorPasswordConfig: AuthenticatorPasswordConfig;
   passkeyChecked: boolean;
+  combineSignupLoginFlowChecked: boolean;
   lockout: LockoutFormState;
 
   verificationClaims?: VerificationClaimsConfig;
@@ -1062,6 +1063,8 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     forgotPasswordLinkValidPeriodSeconds,
     forgotPasswordCodeValidPeriodSeconds,
     passkeyChecked: passkeyIndex != null && passkeyIndex >= 0,
+    combineSignupLoginFlowChecked:
+      config.ui?.combine_signup_login_flow ?? false,
     lockout: {
       isEnabled: isLockoutEnabled,
       maxAttempts: isLockoutEnabled
@@ -1366,6 +1369,9 @@ function constructConfig(
       };
     }
 
+    config.ui.combine_signup_login_flow =
+      currentState.combineSignupLoginFlowChecked;
+
     clearEmptyObject(config);
   });
 }
@@ -1645,9 +1651,11 @@ interface LoginMethodChooserProps {
   showFreePlanWarning: boolean;
   phoneLoginIDDisabled: boolean;
   passkeyChecked: boolean;
+  combineSignupLoginFlowChecked: boolean;
   appID: string;
   onChangeLoginMethod: (loginMethod: LoginMethod) => void;
   onChangePasskeyChecked?: IToggleProps["onChange"];
+  onChangeCombineSignupLoginFlowCheckedChecked?: IToggleProps["onChange"];
 }
 
 function LoginMethodChooser(props: LoginMethodChooserProps) {
@@ -1659,6 +1667,8 @@ function LoginMethodChooser(props: LoginMethodChooserProps) {
     onChangeLoginMethod,
     passkeyChecked,
     onChangePasskeyChecked,
+    combineSignupLoginFlowChecked,
+    onChangeCombineSignupLoginFlowCheckedChecked,
   } = props;
   const disabled = phoneLoginIDDisabled;
 
@@ -1800,6 +1810,14 @@ function LoginMethodChooser(props: LoginMethodChooserProps) {
           </div>
         </>
       ) : null}
+      <Toggle
+        inlineLabel={true}
+        label={
+          <FormattedMessage id="LoginMethodConfigurationScreen.combineLoginSignup.title" />
+        }
+        checked={combineSignupLoginFlowChecked}
+        onChange={onChangeCombineSignupLoginFlowCheckedChecked}
+      />
       {loginMethod === "oauth" ? (
         <LinkToOAuth appID={appID} />
       ) : (
@@ -2991,6 +3009,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       resetPasswordWithEmailBy,
       resetPasswordWithPhoneBy,
       passkeyChecked,
+      combineSignupLoginFlowChecked,
 
       verificationClaims,
       verificationCriteria,
@@ -3079,6 +3098,20 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
         setState((prev) =>
           produce(prev, (prev) => {
             prev.passkeyChecked = checked;
+          })
+        );
+      },
+      [setState]
+    );
+
+    const onChangeCombineSignupLoginFlowChecked = useCallback(
+      (_e, checked) => {
+        if (checked == null) {
+          return;
+        }
+        setState((prev) =>
+          produce(prev, (prev) => {
+            prev.combineSignupLoginFlowChecked = checked;
           })
         );
       },
@@ -3175,6 +3208,10 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
             phoneLoginIDDisabled={phoneLoginIDDisabled}
             passkeyChecked={passkeyChecked}
             onChangePasskeyChecked={onChangePasskeyChecked}
+            combineSignupLoginFlowChecked={combineSignupLoginFlowChecked}
+            onChangeCombineSignupLoginFlowCheckedChecked={
+              onChangeCombineSignupLoginFlowChecked
+            }
             appID={appID}
             onChangeLoginMethod={onChangeLoginMethod}
           />
