@@ -1,5 +1,6 @@
 @layer components {
   :root {
+    --input__bg-color: transparent;
     --input__ring-color: var(--color-neutral-100);
     --input__ring-color--focus: var(--color-primary-theme-primary);
     --input__ring-color--error: var(--color-error);
@@ -41,6 +42,7 @@
 
 .input {
   @apply placeholder:[color:var(--input\_\_placeholder-color)];
+  background-color: var(--input__bg-color);
   padding: var(--input__py) var(--input__px);
   border-radius: var(--input__border-radius);
   color: var(--input__text-color);

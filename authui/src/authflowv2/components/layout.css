@@ -2,10 +2,14 @@
   .layout--default {
     @apply flex flex-col flex-1-0-auto;
     @apply items-center justify-start;
+
+    background-color: var(--color-bg-base);
   }
 
   .layout--default .widget {
     @apply flex-1-0-auto;
+
+    background-color: var(--color-bg-base);
   }
 
   .layout__header--default,
