@@ -67547,15 +67547,26 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 	tutorialCookie := &httputil.TutorialCookie{
 		Cookies: cookieManager,
 	}
-	authflowV2LoginHandler := &authflowv2.AuthflowV2LoginHandler{
+	internalAuthflowV2SignupLoginHandler := authflowv2.InternalAuthflowV2SignupLoginHandler{
 		Controller:        authflowController,
 		BaseViewModel:     baseViewModeler,
 		AuthflowViewModel: authflowViewModeler,
 		Renderer:          responseRenderer,
 		MeterService:      meterService,
 		TutorialCookie:    tutorialCookie,
-		ErrorCookie:       errorCookie,
 		Endpoints:         endpointsEndpoints,
+	}
+	authflowV2LoginHandler := &authflowv2.AuthflowV2LoginHandler{
+		SignupLoginHandler: internalAuthflowV2SignupLoginHandler,
+		UIConfig:           uiConfig,
+		Controller:         authflowController,
+		BaseViewModel:      baseViewModeler,
+		AuthflowViewModel:  authflowViewModeler,
+		Renderer:           responseRenderer,
+		MeterService:       meterService,
+		TutorialCookie:     tutorialCookie,
+		ErrorCookie:        errorCookie,
+		Endpoints:          endpointsEndpoints,
 	}
 	return authflowV2LoginHandler
 }

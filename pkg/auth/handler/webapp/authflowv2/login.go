@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -48,14 +49,16 @@ func NewAuthflowLoginViewModel(allowLoginOnly bool) AuthflowLoginViewModel {
 }
 
 type AuthflowV2LoginHandler struct {
-	Controller        *handlerwebapp.AuthflowController
-	BaseViewModel     *viewmodels.BaseViewModeler
-	AuthflowViewModel *viewmodels.AuthflowViewModeler
-	Renderer          handlerwebapp.Renderer
-	MeterService      handlerwebapp.MeterService
-	TutorialCookie    handlerwebapp.TutorialCookie
-	ErrorCookie       handlerwebapp.ErrorCookie
-	Endpoints         AuthflowLoginEndpointsProvider
+	SignupLoginHandler InternalAuthflowV2SignupLoginHandler
+	UIConfig           *config.UIConfig
+	Controller         *handlerwebapp.AuthflowController
+	BaseViewModel      *viewmodels.BaseViewModeler
+	AuthflowViewModel  *viewmodels.AuthflowViewModeler
+	Renderer           handlerwebapp.Renderer
+	MeterService       handlerwebapp.MeterService
+	TutorialCookie     handlerwebapp.TutorialCookie
+	ErrorCookie        handlerwebapp.ErrorCookie
+	Endpoints          AuthflowLoginEndpointsProvider
 }
 
 func (h *AuthflowV2LoginHandler) GetData(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse, allowLoginOnly bool) (map[string]interface{}, error) {
@@ -72,6 +75,15 @@ func (h *AuthflowV2LoginHandler) GetData(w http.ResponseWriter, r *http.Request,
 }
 
 func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if h.UIConfig.CombineSignupLoginFlow {
+		// Login will be same as signup
+		h.SignupLoginHandler.ServeHTTP(w, r, AuthflowV2SignupServeOptions{
+			FlowType:         authflow.FlowTypeSignupLogin,
+			CanSwitchToLogin: false,
+		})
+		return
+	}
+
 	flowName := "default"
 	opts := webapp.SessionOptions{
 		RedirectURI: h.Controller.RedirectURI(r),
