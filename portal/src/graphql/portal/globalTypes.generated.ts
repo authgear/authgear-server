@@ -69,10 +69,10 @@ export type App = Node & {
   nftCollections: Array<NftCollection>;
   planName: Scalars['String']['output'];
   rawAppConfig: Scalars['AppConfig']['output'];
-  rawAppConfigChecksum?: Maybe<Scalars['String']['output']>;
+  rawAppConfigChecksum: Scalars['AppConfig']['output'];
   resources: Array<AppResource>;
   secretConfig: SecretConfig;
-  secretConfigChecksum?: Maybe<Scalars['String']['output']>;
+  secretConfigChecksum: Scalars['AppConfig']['output'];
   subscription?: Maybe<Subscription>;
   subscriptionUsage?: Maybe<SubscriptionUsage>;
   tutorialStatus: TutorialStatus;
@@ -115,6 +115,7 @@ export type AppResource = {
 
 /** Update to resource file. */
 export type AppResourceUpdate = {
+  /** Checksum of the resource file. Set to null to remove it. */
   checksum?: InputMaybe<Scalars['String']['input']>;
   /** New data of the resource file. Set to null to remove it. */
   data?: InputMaybe<Scalars['String']['input']>;
@@ -791,11 +792,13 @@ export type TutorialStatus = {
 export type UpdateAppInput = {
   /** authgear.yaml in JSON. */
   appConfig?: InputMaybe<Scalars['AppConfig']['input']>;
+  /** Checksum of the app config. Set to null to remove it. */
   appConfigChecksum?: InputMaybe<Scalars['String']['input']>;
   /** App ID to update. */
   appID: Scalars['ID']['input'];
   /** update secret config instructions. */
   secretConfigUpdateInstructions?: InputMaybe<SecretConfigUpdateInstructionsInput>;
+  /** Checksum of the secret config update instructions. Set to null to remove it. */
   secretConfigUpdateInstructionsChecksum?: InputMaybe<Scalars['String']['input']>;
   /** Resource file updates. */
   updates?: InputMaybe<Array<AppResourceUpdate>>;
