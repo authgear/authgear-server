@@ -7,6 +7,7 @@ var _ = Schema.Add("UIConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
+		"combine_signup_login_flow": { "type": "boolean" },
 		"phone_input": { "$ref": "#/$defs/PhoneInputConfig" },
 		"dark_theme_disabled": { "type": "boolean" },
 		"watermark_disabled": { "type": "boolean" },
@@ -25,9 +26,10 @@ var _ = Schema.Add("UIConfig", `
 `)
 
 type UIConfig struct {
-	PhoneInput        *PhoneInputConfig `json:"phone_input,omitempty"`
-	DarkThemeDisabled bool              `json:"dark_theme_disabled,omitempty"`
-	WatermarkDisabled bool              `json:"watermark_disabled,omitempty"`
+	CombineSignupLoginFlow bool              `json:"combine_signup_login_flow,omitempty"`
+	PhoneInput             *PhoneInputConfig `json:"phone_input,omitempty"`
+	DarkThemeDisabled      bool              `json:"dark_theme_disabled,omitempty"`
+	WatermarkDisabled      bool              `json:"watermark_disabled,omitempty"`
 	// client_uri to use when client_id is absent.
 	DefaultClientURI string `json:"default_client_uri,omitempty"`
 	// redirect_uri to use when client_id is absent.
