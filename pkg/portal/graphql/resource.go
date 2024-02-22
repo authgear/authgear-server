@@ -83,7 +83,7 @@ var appResource = graphql.NewObject(graphql.ObjectConfig{
 					return nil, err
 				}
 
-        return crypto.ChecksumString(result.([]byte)), nil
+				return crypto.ChecksumString(result.([]byte)), nil
 			},
 		},
 	},

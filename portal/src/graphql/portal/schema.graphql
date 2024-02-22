@@ -76,7 +76,7 @@ type App implements Node {
   rawAppConfig: AppConfig!
 
   """"""
-  rawAppConfigChecksum: String 
+  rawAppConfigChecksum: AppConfig!
 
   """"""
   resources(paths: [String!]): [AppResource!]!
@@ -85,7 +85,7 @@ type App implements Node {
   secretConfig(token: String): SecretConfig!
 
   """"""
-  secretConfigChecksum: String 
+  secretConfigChecksum: AppConfig!
 
   """"""
   subscription: Subscription
@@ -115,13 +115,13 @@ type AppListItem {
 """Resource file for an app"""
 type AppResource {
   """"""
+  checksum: String
+
+  """"""
   data: String
 
   """"""
   effectiveData: String
-
-  """"""
-  checksum: String
 
   """"""
   languageTag: String
@@ -132,13 +132,14 @@ type AppResource {
 
 """Update to resource file."""
 input AppResourceUpdate {
+  """Checksum of the resource file. Set to null to remove it."""
+  checksum: String
+
   """New data of the resource file. Set to null to remove it."""
   data: String
 
   """Path of the resource file to update."""
   path: String!
-  """"""
-  checksum: String
 }
 
 """"""
@@ -1000,7 +1001,8 @@ scalar TutorialStatusData
 input UpdateAppInput {
   """authgear.yaml in JSON."""
   appConfig: AppConfig
-  """"""
+
+  """Checksum of the app config. Set to null to remove it."""
   appConfigChecksum: String
 
   """App ID to update."""
@@ -1008,7 +1010,10 @@ input UpdateAppInput {
 
   """update secret config instructions."""
   secretConfigUpdateInstructions: SecretConfigUpdateInstructionsInput
-  """"""
+
+  """
+  Checksum of the secret config update instructions. Set to null to remove it.
+  """
   secretConfigUpdateInstructionsChecksum: String
 
   """Resource file updates."""

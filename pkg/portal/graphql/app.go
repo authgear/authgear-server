@@ -233,8 +233,8 @@ var nodeApp = node(
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					ctx := GQLContext(p.Context)
 					app := p.Source.(*model.App)
-          config, _, err := ctx.AppService.LoadRawAppConfig(app)
-          return config, err
+					config, _, err := ctx.AppService.LoadRawAppConfig(app)
+					return config, err
 				},
 			},
 			"rawAppConfigChecksum": &graphql.Field{
@@ -242,8 +242,8 @@ var nodeApp = node(
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					ctx := GQLContext(p.Context)
 					app := p.Source.(*model.App)
-          _, checksum, err := ctx.AppService.LoadRawAppConfig(app)
-          return checksum, err
+					_, checksum, err := ctx.AppService.LoadRawAppConfig(app)
+					return checksum, err
 				},
 			},
 			"secretConfig": &graphql.Field{
@@ -287,7 +287,7 @@ var nodeApp = node(
 					if err != nil {
 						return nil, err
 					}
-          return checksum, nil
+					return checksum, nil
 				},
 			},
 			"effectiveAppConfig": &graphql.Field{

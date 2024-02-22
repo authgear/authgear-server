@@ -225,9 +225,9 @@ var _ = registerMutationField(
 			appNodeID := input["appID"].(string)
 			updates, _ := input["updates"].([]interface{})
 			appConfigJSONValue := input["appConfig"]
-      appConfigChecksum, _ := input["appConfigChecksum"].(string)
+			appConfigChecksum, _ := input["appConfigChecksum"].(string)
 			secretConfigUpdateInstructionsJSONValue := input["secretConfigUpdateInstructions"]
-      secretConfigUpdateInstructionsChecksum, _ := input["secretConfigUpdateInstructionsChecksum"].(string)
+			secretConfigUpdateInstructionsChecksum, _ := input["secretConfigUpdateInstructionsChecksum"].(string)
 
 			resolvedNodeID := relay.FromGlobalID(appNodeID)
 			if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
@@ -270,12 +270,12 @@ var _ = registerMutationField(
 					}
 				}
 
-        checksum, _ := f["checksum"].(string);
+				checksum, _ := f["checksum"].(string)
 
 				resourceUpdates = append(resourceUpdates, appresource.Update{
-					Path: path,
-					Data: data,
-          Checksum: checksum,
+					Path:     path,
+					Data:     data,
+					Checksum: checksum,
 				})
 				auditedUpdatePaths = append(auditedUpdatePaths, path)
 			}
@@ -292,9 +292,9 @@ var _ = registerMutationField(
 				}
 
 				resourceUpdates = append(resourceUpdates, appresource.Update{
-					Path: configsource.AuthgearYAML,
-					Data: appConfigYAML,
-          Checksum: appConfigChecksum,
+					Path:     configsource.AuthgearYAML,
+					Data:     appConfigYAML,
+					Checksum: appConfigChecksum,
 				})
 			}
 
@@ -306,9 +306,9 @@ var _ = registerMutationField(
 				}
 
 				resourceUpdates = append(resourceUpdates, appresource.Update{
-					Path: configsource.AuthgearSecretYAML,
-					Data: secretConfigUpdateInstructionsJSON,
-          Checksum: secretConfigUpdateInstructionsChecksum,
+					Path:     configsource.AuthgearSecretYAML,
+					Data:     secretConfigUpdateInstructionsJSON,
+					Checksum: secretConfigUpdateInstructionsChecksum,
 				})
 			}
 

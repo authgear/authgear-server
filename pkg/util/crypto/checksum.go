@@ -16,5 +16,5 @@ func ChecksumString(data []byte) string {
 	// Encode the 4 bytes in hex format.
 	checksumString := hex.EncodeToString(byteSlice)
 
-  return checksumString
+	return checksumString
 }

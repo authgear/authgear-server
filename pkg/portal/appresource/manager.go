@@ -304,7 +304,7 @@ func (m *Manager) applyUpdates(appID string, appFs resource.Fs, updates []Update
 		}
 
 		if u.Checksum != "" && crypto.ChecksumString(resrc.Data) != u.Checksum {
-			return nil, nil, ErrChecksumNotEqual 
+			return nil, nil, ErrChecksumNotEqual
 		}
 
 		desc, ok := manager.Resolve(u.Path)
