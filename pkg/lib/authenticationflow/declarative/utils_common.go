@@ -280,12 +280,17 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 	}
 
 	useAuthenticationOptionAddPasskey := func(options []AuthenticateOption, deps *authflow.Dependencies, userHasPasskey bool, userID string) ([]AuthenticateOption, error) {
-		requestOptions, err := deps.PasskeyRequestOptionsService.MakeModalRequestOptionsWithUser(userID)
-		if err != nil {
-			return nil, err
+		// We only add passkey if user has one
+		if userHasPasskey {
+			requestOptions, err := deps.PasskeyRequestOptionsService.MakeModalRequestOptionsWithUser(userID)
+			if err != nil {
+				return nil, err
+			}
+
+			options = append(options, NewAuthenticateOptionPasskey(requestOptions))
+			return options, nil
 		}
 
-		options = append(options, NewAuthenticateOptionPasskey(requestOptions))
 		return options, nil
 	}
 
