@@ -10,7 +10,7 @@ export type UpdateAppTemplatesMutationMutationVariables = Types.Exact<{
 }>;
 
 
-export type UpdateAppTemplatesMutationMutation = { __typename?: 'Mutation', updateApp: { __typename?: 'UpdateAppPayload', app: { __typename?: 'App', id: string, resources: Array<{ __typename?: 'AppResource', path: string, languageTag?: string | null, data?: string | null, effectiveData?: string | null }>, resourceLocales: Array<{ __typename?: 'AppResource', path: string, languageTag?: string | null }> } } };
+export type UpdateAppTemplatesMutationMutation = { __typename?: 'Mutation', updateApp: { __typename?: 'UpdateAppPayload', app: { __typename?: 'App', id: string, resources: Array<{ __typename?: 'AppResource', path: string, languageTag?: string | null, data?: string | null, effectiveData?: string | null, checksum?: string | null }>, resourceLocales: Array<{ __typename?: 'AppResource', path: string, languageTag?: string | null }> } } };
 
 
 export const UpdateAppTemplatesMutationDocument = gql`
@@ -23,6 +23,7 @@ export const UpdateAppTemplatesMutationDocument = gql`
         languageTag
         data
         effectiveData
+        checksum
       }
       resourceLocales: resources {
         path
