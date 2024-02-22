@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
@@ -32,6 +33,10 @@ type IdentityLoader interface {
 }
 
 type AuthenticatorLoader interface {
+	graphqlutil.DataLoaderInterface
+}
+
+type RoleLoader interface {
 	graphqlutil.DataLoaderInterface
 }
 
@@ -55,6 +60,10 @@ type UserFacade interface {
 	ScheduleAnonymization(id string) error
 	UnscheduleAnonymization(id string) error
 	Anonymize(id string) error
+}
+
+type RolesGroupsFacade interface {
+	CreateRole(options *rolesgroups.NewRoleOptions) (string, error)
 }
 
 type IdentityFacade interface {
@@ -134,9 +143,11 @@ type Context struct {
 	Users          UserLoader
 	Identities     IdentityLoader
 	Authenticators AuthenticatorLoader
+	Roles          RoleLoader
 	AuditLogs      AuditLogLoader
 
 	UserFacade          UserFacade
+	RolesGroupsFacade   RolesGroupsFacade
 	AuditLogFacade      AuditLogFacade
 	IdentityFacade      IdentityFacade
 	AuthenticatorFacade AuthenticatorFacade

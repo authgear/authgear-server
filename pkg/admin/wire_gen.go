@@ -66,6 +66,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -519,6 +520,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	userLoader := loader.NewUserLoader(queries)
 	identityLoader := loader.NewIdentityLoader(serviceService)
 	authenticatorLoader := loader.NewAuthenticatorLoader(service4)
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsQueries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	roleLoader := loader.NewRoleLoader(rolesgroupsQueries)
 	readHandle := appProvider.AuditReadDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
@@ -926,6 +936,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		Interaction:        serviceInteractionService,
 	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
+	rolesGroupsFacade := &facade2.RolesGroupsFacade{
+		RolesGroupsCommands: rolesgroupsCommands,
+	}
 	auditLogFeatureConfig := featureConfig.AuditLog
 	auditLogFacade := &facade2.AuditLogFacade{
 		AuditLogQuery:         query,
@@ -1023,8 +1039,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Users:                 userLoader,
 		Identities:            identityLoader,
 		Authenticators:        authenticatorLoader,
+		Roles:                 roleLoader,
 		AuditLogs:             auditLogLoader,
 		UserFacade:            facadeUserFacade,
+		RolesGroupsFacade:     rolesGroupsFacade,
 		AuditLogFacade:        auditLogFacade,
 		IdentityFacade:        facadeIdentityFacade,
 		AuthenticatorFacade:   facadeAuthenticatorFacade,

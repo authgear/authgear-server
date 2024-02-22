@@ -31,6 +31,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
+	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
@@ -50,11 +51,13 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(loader.UserLoaderUserService), new(*user.Queries)),
 	wire.Bind(new(loader.IdentityLoaderIdentityService), new(*identityservice.Service)),
 	wire.Bind(new(loader.AuthenticatorLoaderAuthenticatorService), new(*authenticatorservice.Service)),
+	wire.Bind(new(loader.RoleLoaderRoles), new(*rolesgroups.Queries)),
 	wire.Bind(new(loader.AuditLogQuery), new(*audit.Query)),
 
 	facade.DependencySet,
 	wire.Bind(new(facade.UserService), new(*libfacade.UserFacade)),
 	wire.Bind(new(facade.UserSearchService), new(*libes.Service)),
+	wire.Bind(new(facade.RolesGroupsCommands), new(*rolesgroups.Commands)),
 	wire.Bind(new(facade.IdentityService), new(*identityservice.Service)),
 	wire.Bind(new(facade.AuthenticatorService), new(*authenticatorservice.Service)),
 	wire.Bind(new(facade.InteractionService), new(*service.InteractionService)),
@@ -76,7 +79,9 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(graphql.IdentityLoader), new(*loader.IdentityLoader)),
 	wire.Bind(new(graphql.AuthenticatorLoader), new(*loader.AuthenticatorLoader)),
 	wire.Bind(new(graphql.AuditLogLoader), new(*loader.AuditLogLoader)),
+	wire.Bind(new(graphql.RoleLoader), new(*loader.RoleLoader)),
 	wire.Bind(new(graphql.UserFacade), new(*facade.UserFacade)),
+	wire.Bind(new(graphql.RolesGroupsFacade), new(*facade.RolesGroupsFacade)),
 	wire.Bind(new(graphql.IdentityFacade), new(*facade.IdentityFacade)),
 	wire.Bind(new(graphql.AuthenticatorFacade), new(*facade.AuthenticatorFacade)),
 	wire.Bind(new(graphql.VerificationFacade), new(*facade.VerificationFacade)),

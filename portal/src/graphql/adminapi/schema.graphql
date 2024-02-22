@@ -451,6 +451,24 @@ type CreateIdentityPayload {
 }
 
 """"""
+input CreateRoleInput {
+  """The optional description of the role."""
+  description: String
+
+  """The key of the role."""
+  key: String!
+
+  """The optional name of the role."""
+  name: String
+}
+
+""""""
+type CreateRolePayload {
+  """"""
+  role: Role!
+}
+
+""""""
 input CreateSessionInput {
   """Target client ID."""
   clientID: String!
@@ -653,6 +671,9 @@ type Mutation {
   """Create new identity for user"""
   createIdentity(input: CreateIdentityInput!): CreateIdentityPayload!
 
+  """Create a new role."""
+  createRole(input: CreateRoleInput!): CreateRolePayload!
+
   """Create a session of a given user"""
   createSession(input: CreateSessionInput!): CreateSessionPayload!
 
@@ -799,6 +820,27 @@ input RevokeSessionInput {
 type RevokeSessionPayload {
   """"""
   user: User!
+}
+
+"""Authgear role"""
+type Role implements Entity & Node {
+  """The creation time of entity"""
+  createdAt: DateTime!
+
+  """The optional description of the role."""
+  description: String
+
+  """The ID of an object"""
+  id: ID!
+
+  """The key of the role."""
+  key: String!
+
+  """The optional name of the role."""
+  name: String
+
+  """The update time of entity"""
+  updatedAt: DateTime!
 }
 
 """"""
