@@ -1371,7 +1371,7 @@
   "IntegrationsConfigurationScreen.status.connected": "Connected",
 
   "GoogleTagManagerConfigurationScreen.title": "Google Tag Manager",
-  "GoogleTagManagerConfigurationScreen.description": "Connect your container to Authgear for conversion tracking, site analytics, retargeting, and more. See {DocLink, react, href{https://docs.authgear.com/integrate/google-tag-manager} children{integration guide}} if you need help.",
+  "GoogleTagManagerConfigurationScreen.description": "Connect your container to Authgear for conversion tracking, site analytics, retargeting, and more. See {DocLink, react, href{https://docs.authgear.com/how-to-guide/integration/user-analytics-by-google-tag-manager} children{integration guide}} if you need help.",
   "GoogleTagManagerConfigurationScreen.toggle.label": "Google Tag Manager Integration",
   "GoogleTagManagerConfigurationScreen.container-id.label": "Tag Manager Container ID",
   "GoogleTagManagerConfigurationScreen.container-id.placeholder": "e.g. GTM-123456",
