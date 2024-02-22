@@ -27,9 +27,9 @@
     <h1 class="screen-title">
       {{ if $.ClientName }}
         {{ if eq $.UIVariant "signup_login" }}
-          {{ template "v2-sign-up-title" (dict "AppOrClientName" $.ClientName) }}
-        {{ else }}
           {{ template "v2-sign-up-login-title" (dict "AppOrClientName" $.ClientName) }}
+        {{ else }}
+          {{ template "v2-sign-up-title" (dict "AppOrClientName" $.ClientName) }}
         {{ end }}
       {{ else }}
         {{ $appName := (include "app.name" nil) }}

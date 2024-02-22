@@ -53,6 +53,7 @@ func (h *AuthflowV2PromoteHandler) GetData(w http.ResponseWriter, r *http.Reques
 
 	signupViewModel := AuthflowV2SignupViewModel{
 		CanSwitchToLogin: false,
+		UIVariant:        AuthflowV2SignupUIVariantSignup,
 	}
 	viewmodels.Embed(data, signupViewModel)
 
