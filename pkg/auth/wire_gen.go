@@ -69364,7 +69364,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 	tutorialCookie := &httputil.TutorialCookie{
 		Cookies: cookieManager,
 	}
-	authflowV2SignupHandler := &authflowv2.AuthflowV2SignupHandler{
+	internalAuthflowV2SignupLoginHandler := authflowv2.InternalAuthflowV2SignupLoginHandler{
 		Controller:        authflowController,
 		BaseViewModel:     baseViewModeler,
 		AuthflowViewModel: authflowViewModeler,
@@ -69372,6 +69372,9 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		MeterService:      meterService,
 		TutorialCookie:    tutorialCookie,
 		Endpoints:         endpointsEndpoints,
+	}
+	authflowV2SignupHandler := &authflowv2.AuthflowV2SignupHandler{
+		SignupLoginHandler: internalAuthflowV2SignupLoginHandler,
 	}
 	return authflowV2SignupHandler
 }

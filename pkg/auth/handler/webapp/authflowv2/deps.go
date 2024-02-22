@@ -5,6 +5,7 @@ import (
 )
 
 var DependencySet = wire.NewSet(
+	wire.Struct(new(InternalAuthflowV2SignupLoginHandler), "*"),
 	wire.Struct(new(AuthflowV2LoginHandler), "*"),
 	wire.Struct(new(AuthflowV2SignupHandler), "*"),
 	wire.Struct(new(AuthflowV2ReauthHandler), "*"),
