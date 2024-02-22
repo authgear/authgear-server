@@ -3,7 +3,7 @@ import * as Types from '../globalTypes.generated';
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
-export type AppAndSecretConfigFragment = { __typename?: 'App', id: string, effectiveAppConfig: any, rawAppConfig: any, secretConfig: { __typename?: 'SecretConfig', oauthSSOProviderClientSecrets?: Array<{ __typename?: 'OAuthSSOProviderClientSecret', alias: string, clientSecret?: string | null }> | null, webhookSecret?: { __typename?: 'WebhookSecret', secret?: string | null } | null, adminAPISecrets?: Array<{ __typename?: 'AdminAPISecret', keyID: string, createdAt?: any | null, publicKeyPEM: string, privateKeyPEM?: string | null }> | null, smtpSecret?: { __typename?: 'SMTPSecret', host: string, port: number, username: string, password?: string | null } | null, oauthClientSecrets?: Array<{ __typename?: 'oauthClientSecretItem', clientID: string, keys?: Array<{ __typename?: 'oauthClientSecretKey', keyID: string, createdAt?: any | null, key: string }> | null }> | null }, viewer: { __typename?: 'Collaborator', id: string, role: Types.CollaboratorRole, createdAt: any, user: { __typename?: 'User', id: string, email?: string | null } } };
+export type AppAndSecretConfigFragment = { __typename?: 'App', id: string, effectiveAppConfig: any, rawAppConfig: any, rawAppConfigChecksum?: string | null, secretConfigChecksum?: string | null, secretConfig: { __typename?: 'SecretConfig', oauthSSOProviderClientSecrets?: Array<{ __typename?: 'OAuthSSOProviderClientSecret', alias: string, clientSecret?: string | null }> | null, webhookSecret?: { __typename?: 'WebhookSecret', secret?: string | null } | null, adminAPISecrets?: Array<{ __typename?: 'AdminAPISecret', keyID: string, createdAt?: any | null, publicKeyPEM: string, privateKeyPEM?: string | null }> | null, smtpSecret?: { __typename?: 'SMTPSecret', host: string, port: number, username: string, password?: string | null } | null, oauthClientSecrets?: Array<{ __typename?: 'oauthClientSecretItem', clientID: string, keys?: Array<{ __typename?: 'oauthClientSecretKey', keyID: string, createdAt?: any | null, key: string }> | null }> | null }, viewer: { __typename?: 'Collaborator', id: string, role: Types.CollaboratorRole, createdAt: any, user: { __typename?: 'User', id: string, email?: string | null } } };
 
 export type AppAndSecretConfigQueryQueryVariables = Types.Exact<{
   id: Types.Scalars['ID']['input'];
@@ -11,13 +11,14 @@ export type AppAndSecretConfigQueryQueryVariables = Types.Exact<{
 }>;
 
 
-export type AppAndSecretConfigQueryQuery = { __typename?: 'Query', node?: { __typename: 'App', id: string, effectiveAppConfig: any, rawAppConfig: any, secretConfig: { __typename?: 'SecretConfig', oauthSSOProviderClientSecrets?: Array<{ __typename?: 'OAuthSSOProviderClientSecret', alias: string, clientSecret?: string | null }> | null, webhookSecret?: { __typename?: 'WebhookSecret', secret?: string | null } | null, adminAPISecrets?: Array<{ __typename?: 'AdminAPISecret', keyID: string, createdAt?: any | null, publicKeyPEM: string, privateKeyPEM?: string | null }> | null, smtpSecret?: { __typename?: 'SMTPSecret', host: string, port: number, username: string, password?: string | null } | null, oauthClientSecrets?: Array<{ __typename?: 'oauthClientSecretItem', clientID: string, keys?: Array<{ __typename?: 'oauthClientSecretKey', keyID: string, createdAt?: any | null, key: string }> | null }> | null }, viewer: { __typename?: 'Collaborator', id: string, role: Types.CollaboratorRole, createdAt: any, user: { __typename?: 'User', id: string, email?: string | null } } } | { __typename: 'User' } | { __typename: 'Viewer' } | null };
+export type AppAndSecretConfigQueryQuery = { __typename?: 'Query', node?: { __typename: 'App', id: string, effectiveAppConfig: any, rawAppConfig: any, rawAppConfigChecksum?: string | null, secretConfigChecksum?: string | null, secretConfig: { __typename?: 'SecretConfig', oauthSSOProviderClientSecrets?: Array<{ __typename?: 'OAuthSSOProviderClientSecret', alias: string, clientSecret?: string | null }> | null, webhookSecret?: { __typename?: 'WebhookSecret', secret?: string | null } | null, adminAPISecrets?: Array<{ __typename?: 'AdminAPISecret', keyID: string, createdAt?: any | null, publicKeyPEM: string, privateKeyPEM?: string | null }> | null, smtpSecret?: { __typename?: 'SMTPSecret', host: string, port: number, username: string, password?: string | null } | null, oauthClientSecrets?: Array<{ __typename?: 'oauthClientSecretItem', clientID: string, keys?: Array<{ __typename?: 'oauthClientSecretKey', keyID: string, createdAt?: any | null, key: string }> | null }> | null }, viewer: { __typename?: 'Collaborator', id: string, role: Types.CollaboratorRole, createdAt: any, user: { __typename?: 'User', id: string, email?: string | null } } } | { __typename: 'User' } | { __typename: 'Viewer' } | null };
 
 export const AppAndSecretConfigFragmentDoc = gql`
     fragment AppAndSecretConfig on App {
   id
   effectiveAppConfig
   rawAppConfig
+  rawAppConfigChecksum
   secretConfig(token: $token) {
     oauthSSOProviderClientSecrets {
       alias
@@ -47,6 +48,7 @@ export const AppAndSecretConfigFragmentDoc = gql`
       }
     }
   }
+  secretConfigChecksum
   viewer {
     id
     role

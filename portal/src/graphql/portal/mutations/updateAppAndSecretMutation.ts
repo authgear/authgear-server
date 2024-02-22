@@ -16,7 +16,10 @@ import { useGraphqlMutation } from "../../../hook/graphql";
 export function useUpdateAppAndSecretConfigMutation(appID: string): {
   updateAppAndSecretConfig: (
     appConfig: PortalAPIAppConfig,
-    secretConfigUpdateInstructions?: PortalAPISecretConfigUpdateInstruction
+    appConfigChecksum?: string,
+    secretConfigUpdateInstructions?: PortalAPISecretConfigUpdateInstruction,
+    secretConfigUpdateInstructionsChecksum?: string,
+    withChecksum?: boolean
   ) => Promise<PortalAPIApp | null>;
   loading: boolean;
   error: unknown;
@@ -29,13 +32,20 @@ export function useUpdateAppAndSecretConfigMutation(appID: string): {
   const updateAppAndSecretConfig = React.useCallback(
     async (
       appConfig: PortalAPIAppConfig,
-      secretConfigUpdateInstructions?: PortalAPISecretConfigUpdateInstruction
+      appConfigChecksum?: string,
+      secretConfigUpdateInstructions?: PortalAPISecretConfigUpdateInstruction,
+      secretConfigUpdateInstructionsChecksum?: string,
+      withChecksum: boolean = true
     ) => {
       const result = await mutationFunction({
         variables: {
           appID,
           appConfig: appConfig,
+          appConfigChecksum: withChecksum ? appConfigChecksum : undefined,
           secretConfigUpdateInstructions: secretConfigUpdateInstructions,
+          secretConfigUpdateInstructionsChecksum: withChecksum
+            ? secretConfigUpdateInstructionsChecksum
+            : undefined,
         },
       });
       return result.data?.updateApp.app ?? null;

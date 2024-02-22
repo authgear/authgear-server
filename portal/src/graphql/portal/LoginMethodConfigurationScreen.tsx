@@ -3421,7 +3421,7 @@ const LoginMethodConfigurationScreen: React.VFC =
         resourceForm.reset();
       },
       save: async (withChecksum: boolean = true) => {
-        await configForm.save();
+        await configForm.save(withChecksum);
         await resourceForm.save(withChecksum);
       },
     };

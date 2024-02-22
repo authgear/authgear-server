@@ -27,6 +27,7 @@ import (
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
 	"github.com/authgear/authgear-server/pkg/util/blocklist"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/crypto"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -217,49 +218,51 @@ func (s *AppService) GetManyProjectQuota(userIDs []string) ([]int, error) {
 	return out, nil
 }
 
-func (s *AppService) LoadRawAppConfig(app *model.App) (*config.AppConfig, error) {
+func (s *AppService) LoadRawAppConfig(app *model.App) (*config.AppConfig, string, error) {
 	resMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
 	result, err := resMgr.ReadAppFile(configsource.AppConfig,
 		&resource.AppFile{
 			Path: configsource.AuthgearYAML,
 		})
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	bytes := result.([]byte)
+	checksum := crypto.ChecksumString(bytes)
 	var cfg *config.AppConfig
 	if err := yaml.Unmarshal(bytes, &cfg); err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	return cfg, nil
+	return cfg, checksum, nil
 }
 
 func (s *AppService) LoadAppSecretConfig(
 	app *model.App,
 	sessionInfo *apimodel.SessionInfo,
-	token string) (*model.SecretConfig, error) {
+	token string) (*model.SecretConfig, string, error) {
 	var unmaskedSecrets []config.SecretKey = []config.SecretKey{}
 	resMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
 	result, err := resMgr.ReadAppFile(configsource.SecretConfig, &resource.AppFile{
 		Path: configsource.AuthgearSecretYAML,
 	})
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	bytes := result.([]byte)
+	checksum := crypto.ChecksumString(bytes)
 
 	cfg, err := config.ParsePartialSecret(bytes)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	now := s.Clock.NowUTC()
 	if token != "" {
 		tokenModel, err := s.AppSecretVisitTokenStore.GetTokenByID(app.Context.Config.AppConfig.ID, token)
 		if err != nil && !errors.Is(err, appsecret.ErrTokenNotFound) {
-			return nil, err
+			return nil, "", err
 		}
 		if tokenModel != nil {
 			unmaskedSecrets = tokenModel.Secrets
@@ -267,10 +270,10 @@ func (s *AppService) LoadAppSecretConfig(
 	}
 	secretConfig, err := model.NewSecretConfig(cfg, unmaskedSecrets, now)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	return secretConfig, nil
+	return secretConfig, checksum, nil
 }
 
 func (s *AppService) GenerateSecretVisitToken(

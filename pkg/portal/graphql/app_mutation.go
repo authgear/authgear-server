@@ -225,7 +225,9 @@ var _ = registerMutationField(
 			appNodeID := input["appID"].(string)
 			updates, _ := input["updates"].([]interface{})
 			appConfigJSONValue := input["appConfig"]
+      appConfigChecksum, _ := input["appConfigChecksum"].(string)
 			secretConfigUpdateInstructionsJSONValue := input["secretConfigUpdateInstructions"]
+      secretConfigUpdateInstructionsChecksum, _ := input["secretConfigUpdateInstructionsChecksum"].(string)
 
 			resolvedNodeID := relay.FromGlobalID(appNodeID)
 			if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
@@ -292,6 +294,7 @@ var _ = registerMutationField(
 				resourceUpdates = append(resourceUpdates, appresource.Update{
 					Path: configsource.AuthgearYAML,
 					Data: appConfigYAML,
+          Checksum: appConfigChecksum,
 				})
 			}
 
@@ -305,6 +308,7 @@ var _ = registerMutationField(
 				resourceUpdates = append(resourceUpdates, appresource.Update{
 					Path: configsource.AuthgearSecretYAML,
 					Data: secretConfigUpdateInstructionsJSON,
+          Checksum: secretConfigUpdateInstructionsChecksum,
 				})
 			}
 

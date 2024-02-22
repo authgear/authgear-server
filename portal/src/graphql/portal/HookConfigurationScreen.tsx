@@ -746,7 +746,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       },
       save: async (withChecksum: boolean = true) => {
         await resources.save(withChecksum);
-        await config.save();
+        await config.save(withChecksum);
       },
     };
 

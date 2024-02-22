@@ -76,10 +76,16 @@ type App implements Node {
   rawAppConfig: AppConfig!
 
   """"""
+  rawAppConfigChecksum: String 
+
+  """"""
   resources(paths: [String!]): [AppResource!]!
 
   """"""
   secretConfig(token: String): SecretConfig!
+
+  """"""
+  secretConfigChecksum: String 
 
   """"""
   subscription: Subscription
@@ -994,12 +1000,16 @@ scalar TutorialStatusData
 input UpdateAppInput {
   """authgear.yaml in JSON."""
   appConfig: AppConfig
+  """"""
+  appConfigChecksum: String
 
   """App ID to update."""
   appID: ID!
 
   """update secret config instructions."""
   secretConfigUpdateInstructions: SecretConfigUpdateInstructionsInput
+  """"""
+  secretConfigUpdateInstructionsChecksum: String
 
   """Resource file updates."""
   updates: [AppResourceUpdate!]

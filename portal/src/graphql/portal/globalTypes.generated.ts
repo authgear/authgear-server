@@ -69,8 +69,10 @@ export type App = Node & {
   nftCollections: Array<NftCollection>;
   planName: Scalars['String']['output'];
   rawAppConfig: Scalars['AppConfig']['output'];
+  rawAppConfigChecksum?: Maybe<Scalars['String']['output']>;
   resources: Array<AppResource>;
   secretConfig: SecretConfig;
+  secretConfigChecksum?: Maybe<Scalars['String']['output']>;
   subscription?: Maybe<Subscription>;
   subscriptionUsage?: Maybe<SubscriptionUsage>;
   tutorialStatus: TutorialStatus;
@@ -789,10 +791,12 @@ export type TutorialStatus = {
 export type UpdateAppInput = {
   /** authgear.yaml in JSON. */
   appConfig?: InputMaybe<Scalars['AppConfig']['input']>;
+  appConfigChecksum?: InputMaybe<Scalars['String']['input']>;
   /** App ID to update. */
   appID: Scalars['ID']['input'];
   /** update secret config instructions. */
   secretConfigUpdateInstructions?: InputMaybe<SecretConfigUpdateInstructionsInput>;
+  secretConfigUpdateInstructionsChecksum?: InputMaybe<Scalars['String']['input']>;
   /** Resource file updates. */
   updates?: InputMaybe<Array<AppResourceUpdate>>;
 };

@@ -18,7 +18,7 @@ export interface AppConfigFormModel<State> {
   setState: (fn: (state: State) => State) => void;
   reload: () => void;
   reset: () => void;
-  save: () => Promise<void>;
+  save: (withChecksum?: boolean) => Promise<void>;
   setCanSave: (canSave?: boolean) => void;
   effectiveConfig: PortalAPIAppConfig;
 }
@@ -58,6 +58,7 @@ export function useAppConfigForm<State>(
     error: loadError,
     effectiveAppConfig,
     rawAppConfig: rawConfig,
+    rawAppConfigChecksum,
     secretConfig,
     refetch: reload,
   } = useAppAndSecretConfigQuery(appID);
@@ -103,53 +104,63 @@ export function useAppConfigForm<State>(
     setIsSubmitted(false);
   }, [isUpdating]);
 
-  // eslint-disable-next-line complexity
-  const save = useCallback(async () => {
-    const allowSave = canSave !== undefined ? canSave : isDirty;
-    if (!rawConfig || !initialState || secretConfig == null) {
-      return;
-    } else if (!allowSave || isUpdating) {
-      return;
-    }
+  const save = useCallback(
+    // eslint-disable-next-line complexity
+    async (withChecksum: boolean = true) => {
+      const allowSave = canSave !== undefined ? canSave : isDirty;
+      if (!rawConfig || !initialState || secretConfig == null) {
+        return;
+      } else if (!allowSave || isUpdating) {
+        return;
+      }
 
-    const err = validate?.(currentState ?? initialState);
-    if (err) {
-      setUpdateError(err);
-      return;
-    }
+      const err = validate?.(currentState ?? initialState);
+      if (err) {
+        setUpdateError(err);
+        return;
+      }
 
-    const newConfig = constructConfig(
+      const newConfig = constructConfig(
+        rawConfig,
+        initialState,
+        currentState ?? initialState,
+        effectiveConfig
+      );
+
+      setIsUpdating(true);
+      setUpdateError(null);
+      try {
+        await updateConfig(
+          newConfig,
+          rawAppConfigChecksum,
+          undefined,
+          undefined,
+          withChecksum
+        );
+        setCurrentState(null);
+        setIsSubmitted(true);
+      } catch (e: unknown) {
+        setUpdateError(e);
+        throw e;
+      } finally {
+        setIsUpdating(false);
+      }
+    },
+    [
+      isDirty,
+      isUpdating,
+      constructConfig,
       rawConfig,
+      rawAppConfigChecksum,
+      effectiveConfig,
       initialState,
-      currentState ?? initialState,
-      effectiveConfig
-    );
-
-    setIsUpdating(true);
-    setUpdateError(null);
-    try {
-      await updateConfig(newConfig, undefined);
-      setCurrentState(null);
-      setIsSubmitted(true);
-    } catch (e: unknown) {
-      setUpdateError(e);
-      throw e;
-    } finally {
-      setIsUpdating(false);
-    }
-  }, [
-    isDirty,
-    isUpdating,
-    constructConfig,
-    rawConfig,
-    effectiveConfig,
-    initialState,
-    currentState,
-    updateConfig,
-    secretConfig,
-    validate,
-    canSave,
-  ]);
+      currentState,
+      updateConfig,
+      secretConfig,
+      validate,
+      canSave,
+    ]
+  );
 
   const state = currentState ?? initialState;
   const setState = useCallback(
