@@ -73,7 +73,7 @@ func (h *SettingsChangeSecondaryPasswordHandler) ServeHTTP(w http.ResponseWriter
 	ctrl.PostAction("", func() error {
 		userID := ctrl.RequireUserID()
 		opts := webapp.SessionOptions{
-			RedirectURI: "/settings",
+			RedirectURI: webapp.DeriveSettingsRedirectURIFromRequest(r, "/settings"),
 		}
 		intent := intents.NewIntentChangeSecondaryPassword(userID)
 

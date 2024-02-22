@@ -504,7 +504,7 @@ func (s *Service2) afterPost(
 			result.NavigationAction = "replace"
 		}
 	}
-	s.Logger.Debugf("interaction: redirect to" + result.RedirectURI)
+	s.Logger.Debugf("interaction: redirect to %s", result.RedirectURI)
 
 	// Collect extras
 	session.Extra = collectExtras(graph.CurrentNode())

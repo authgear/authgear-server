@@ -116,7 +116,7 @@ func (h *SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 			}
 		}
 
-		result := webapp.Result{RedirectURI: "/settings/profile"}
+		result := webapp.Result{RedirectURI: webapp.DeriveSettingsRedirectURIFromRequest(r, "/settings/profile")}
 		result.WriteResponse(w, r)
 		return nil
 	})

@@ -7,6 +7,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
+var reservedRedirectURIs = []string{
+	"authgearsdk://host/path", // For Authgear SDK only, used for closing the webview
+}
+
 func GetRedirectURI(r *http.Request, trustProxy bool, defaultURI string) string {
 	redirectURI, err := httputil.GetRedirectURI(r, trustProxy)
 	if err != nil {
@@ -17,6 +21,42 @@ func GetRedirectURI(r *http.Request, trustProxy bool, defaultURI string) string 
 
 type OAuthClientResolver interface {
 	ResolveClient(clientID string) *config.OAuthClientConfig
+}
+
+func DeriveSettingsRedirectURIFromRequest(r *http.Request, defaultURI string) string {
+	// 1. Redirect URL in query param (must be whitelisted)
+	// 2. Default redirect URL
+	// 3. `/settings`
+	redirectURIFromQuery := func() string {
+		redirectURI := r.URL.Query().Get("redirect_uri")
+		allowed := false
+
+		for _, u := range reservedRedirectURIs {
+			if u == redirectURI {
+				allowed = true
+				break
+			}
+		}
+
+		// 1. Redirect URL in query param (must be whitelisted)
+		if allowed && redirectURI != "" {
+			return redirectURI
+		}
+
+		return ""
+	}()
+
+	if redirectURIFromQuery != "" {
+		return redirectURIFromQuery
+	}
+
+	// 2. Default redirect URL
+	if defaultURI != "" {
+		return defaultURI
+	}
+
+	// 3. `/settings`
+	return "/settings"
 }
 
 func DerivePostLoginRedirectURIFromRequest(r *http.Request, clientResolver OAuthClientResolver, uiConfig *config.UIConfig) string {
@@ -38,7 +78,7 @@ func DerivePostLoginRedirectURIFromRequest(r *http.Request, clientResolver OAuth
 		allowedURIs := client.RedirectURIs
 		allowed := false
 
-		for _, u := range allowedURIs {
+		for _, u := range append(reservedRedirectURIs, allowedURIs...) {
 			if u == redirectURI {
 				allowed = true
 				break
