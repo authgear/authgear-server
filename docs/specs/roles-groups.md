@@ -459,6 +459,13 @@ See [./hook.md#blocking-event-mutations](./hook.md#blocking-event-mutations).
 
 In user listing, it is possible to filter users by group keys.
 
+```graphql
+type Query {
+  # Other arguments are omitted for brevity.
+  users(groupKeys: [String!]): UserConnection
+}
+```
+
 > Filtering users by role keys is not implemented because role keys should be computed from the developer's point of view.
 > If we implemented a filtering by non-computed role keys, the behavior is confusing.
 
