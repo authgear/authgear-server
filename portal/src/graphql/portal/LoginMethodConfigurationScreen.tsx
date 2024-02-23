@@ -1064,7 +1064,7 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     forgotPasswordCodeValidPeriodSeconds,
     passkeyChecked: passkeyIndex != null && passkeyIndex >= 0,
     combineSignupLoginFlowChecked:
-      config.ui?.combine_signup_login_flow ?? false,
+      config.ui?.signup_login_flow_enabled ?? false,
     lockout: {
       isEnabled: isLockoutEnabled,
       maxAttempts: isLockoutEnabled
@@ -1369,7 +1369,7 @@ function constructConfig(
       };
     }
 
-    config.ui.combine_signup_login_flow =
+    config.ui.signup_login_flow_enabled =
       currentState.combineSignupLoginFlowChecked;
 
     clearEmptyObject(config);

@@ -16,7 +16,7 @@ func (h *AuthflowV2SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	flowType := authflow.FlowTypeSignup
 	canSwitchToLogin := true
 	uiVariant := AuthflowV2SignupUIVariantSignup
-	if h.UIConfig.CombineSignupLoginFlow {
+	if h.UIConfig.SignupLoginFlowEnabled {
 		flowType = authflow.FlowTypeSignupLogin
 		canSwitchToLogin = false
 		uiVariant = AuthflowV2SignupUIVariantSignupLogin

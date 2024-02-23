@@ -75,7 +75,7 @@ func (h *AuthflowV2LoginHandler) GetData(w http.ResponseWriter, r *http.Request,
 }
 
 func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if h.UIConfig.CombineSignupLoginFlow {
+	if h.UIConfig.SignupLoginFlowEnabled {
 		// Login will be same as signup
 		h.SignupLoginHandler.ServeHTTP(w, r, AuthflowV2SignupServeOptions{
 			FlowType:         authflow.FlowTypeSignupLogin,

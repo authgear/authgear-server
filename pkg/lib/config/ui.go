@@ -7,7 +7,7 @@ var _ = Schema.Add("UIConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"combine_signup_login_flow": { "type": "boolean" },
+		"signup_login_flow_enabled": { "type": "boolean" },
 		"phone_input": { "$ref": "#/$defs/PhoneInputConfig" },
 		"dark_theme_disabled": { "type": "boolean" },
 		"watermark_disabled": { "type": "boolean" },
@@ -26,7 +26,7 @@ var _ = Schema.Add("UIConfig", `
 `)
 
 type UIConfig struct {
-	CombineSignupLoginFlow bool              `json:"combine_signup_login_flow,omitempty"`
+	SignupLoginFlowEnabled bool              `json:"signup_login_flow_enabled,omitempty"`
 	PhoneInput             *PhoneInputConfig `json:"phone_input,omitempty"`
 	DarkThemeDisabled      bool              `json:"dark_theme_disabled,omitempty"`
 	WatermarkDisabled      bool              `json:"watermark_disabled,omitempty"`
