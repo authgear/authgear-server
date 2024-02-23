@@ -4,10 +4,12 @@
   "version": "0.1.0",
   "scripts": {
     "export-graphql-schema": "node export-graphql-schema.js",
-    "generate-go-timezones": "node generate-go-timezones.js"
+    "generate-go-timezones": "node generate-go-timezones.js",
+    "export-v2-translations": "node export-v2-translations.mjs"
   },
   "devDependencies": {
     "cldr-localenames-modern": "44.0.1",
+    "csv": "6.3.6",
     "graphql": "16.8.1",
     "luxon": "3.4.4",
     "mjml": "4.14.1",
