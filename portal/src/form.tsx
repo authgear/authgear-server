@@ -13,12 +13,13 @@ import {
   ParsedAPIError,
   parseRawError,
 } from "./error/parse";
+import { APIResourceUpdateConflictError } from "./error/resourceUpdateConflict";
 
 export interface FormContext {
   loading: boolean;
   readonly fieldErrors: ReadonlyMap<FormField, ParsedAPIError[]>;
   readonly topErrors: readonly ParsedAPIError[];
-  checksumNotMatch: boolean;
+  readonly conflictErrors: readonly APIResourceUpdateConflictError[];
   registerField(field: FormField): void;
   unregisterField(field: FormField): void;
 }
@@ -65,20 +66,11 @@ export const FormProvider: React.VFC<FormProviderProps> = (props) => {
     };
   }, [fields, rules, fallbackErrorMessageID]);
 
-  const { fieldErrors, topErrors, checksumNotMatch } = useMemo(() => {
-    let apiErrors = parseRawError(error);
-    let checksumNotMatch = false;
-    apiErrors = apiErrors.filter((e) => {
-      if (e.reason === "ResourceUpdateConflict") {
-        checksumNotMatch = true;
-        return false;
-      }
-
-      return true;
-    });
+  const { fieldErrors, topErrors, conflictErrors } = useMemo(() => {
+    const apiErrors = parseRawError(error);
     const { fields, topRules, fallbackErrorMessageID } =
       errorContextRef.current;
-    const { fieldErrors, topErrors } = parseAPIErrors(
+    const { fieldErrors, topErrors, conflictErrors } = parseAPIErrors(
       apiErrors,
       fields,
       topRules,
@@ -87,7 +79,7 @@ export const FormProvider: React.VFC<FormProviderProps> = (props) => {
     return {
       fieldErrors,
       topErrors,
-      checksumNotMatch,
+      conflictErrors,
     };
   }, [error]);
 
@@ -96,7 +88,7 @@ export const FormProvider: React.VFC<FormProviderProps> = (props) => {
       loading,
       fieldErrors,
       topErrors,
-      checksumNotMatch,
+      conflictErrors,
       registerField,
       unregisterField,
     }),
@@ -104,7 +96,7 @@ export const FormProvider: React.VFC<FormProviderProps> = (props) => {
       loading,
       fieldErrors,
       topErrors,
-      checksumNotMatch,
+      conflictErrors,
       registerField,
       unregisterField,
     ]
@@ -186,11 +178,11 @@ export function useFormTopErrors(): readonly ParsedAPIError[] {
   return ctx.topErrors;
 }
 
-export function useFormValidateChecksum(): boolean {
+export function useFormConflictErrors(): readonly APIResourceUpdateConflictError[] {
   const ctx = useContext(context);
   if (!ctx) {
     throw new Error("Attempted to use useFormField outside FormProvider");
   }
 
-  return ctx.checksumNotMatch;
+  return ctx.conflictErrors;
 }

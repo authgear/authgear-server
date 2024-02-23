@@ -13,7 +13,7 @@ import {
 } from "@fluentui/react";
 import PrimaryButton from "./PrimaryButton";
 import DefaultButton from "./DefaultButton";
-import { useFormValidateChecksum } from "./form";
+import { useFormConflictErrors } from "./form";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 interface FormConfirmOverridingDialogProps {
@@ -25,7 +25,8 @@ const FormConfirmOverridingDialog: React.VFC<FormConfirmOverridingDialogProps> =
     const { save } = props;
     const { renderToString } = useContext(Context);
 
-    const checksumNotMatch = useFormValidateChecksum();
+    const errors = useFormConflictErrors();
+    const isConfliced = errors.length !== 0;
     const saveWithoutChecksum = useCallback(() => {
       save(true);
     }, [save]);
@@ -37,8 +38,8 @@ const FormConfirmOverridingDialog: React.VFC<FormConfirmOverridingDialogProps> =
     }, []);
 
     useEffect(() => {
-      setVisible(checksumNotMatch);
-    }, [checksumNotMatch]);
+      setVisible(isConfliced);
+    }, [isConfliced]);
 
     const dialogContentProps: IDialogContentProps = useMemo(
       () => ({
