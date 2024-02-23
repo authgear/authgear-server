@@ -85,6 +85,7 @@ var appResource = graphql.NewObject(graphql.ObjectConfig{
 
 				return crypto.ChecksumString(result.([]byte)), nil
 			},
+			Description: "The checksum of the resource file. It is an opaque string that will be used to detect conflict.",
 		},
 	},
 })

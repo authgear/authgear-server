@@ -33,7 +33,7 @@ var appResourceUpdate = graphql.NewInputObject(graphql.InputObjectConfig{
 		},
 		"checksum": &graphql.InputObjectFieldConfig{
 			Type:        graphql.String,
-			Description: "Checksum of the resource file. Set to null to remove it.",
+			Description: "The checksum of the original resource file. If provided, it will be used to detect conflict.",
 		},
 	},
 })
@@ -184,7 +184,7 @@ var updateAppInput = graphql.NewInputObject(graphql.InputObjectConfig{
 		},
 		"appConfigChecksum": &graphql.InputObjectFieldConfig{
 			Type:        graphql.String,
-			Description: "Checksum of the app config. Set to null to remove it.",
+			Description: "The checksum of appConfig. If provided, it will be used to detect conflict.",
 		},
 		"secretConfigUpdateInstructions": &graphql.InputObjectFieldConfig{
 			Type:        secretConfigUpdateInstructionsInput,
@@ -192,7 +192,7 @@ var updateAppInput = graphql.NewInputObject(graphql.InputObjectConfig{
 		},
 		"secretConfigUpdateInstructionsChecksum": &graphql.InputObjectFieldConfig{
 			Type:        graphql.String,
-			Description: "Checksum of the secret config update instructions. Set to null to remove it.",
+			Description: "The checksum of secretConfig. If provided, it will be used to detect conflict.",
 		},
 	},
 })
