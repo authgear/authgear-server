@@ -33,6 +33,7 @@
     );
 
     --input__password-padding-end: 2.375em; /* 38 / 16 = 2.375 */
+    --input__password-visibility-icon-color: var(--color-neutral-500);
   }
 }
 
@@ -40,6 +41,7 @@
   --input__ring-color: var(--color-neutral-500);
   --input__placeholder-color: var(--color-neutral-400);
   --input__text-color: var(--color-neutral-100);
+  --input__password-visibility-icon-color: var(--color-neutral-300);
 }
 
 .input {
@@ -81,4 +83,10 @@
 
 .input.input__password {
   @apply ltr:pr-[var(--input\_\_password-padding-end)] rtl:pl-[var(--input\_\_password-padding-end)];
+}
+
+.input__password-visibility-icon {
+  @apply material-icons align-middle text-xl;
+
+  color: var(--input__password-visibility-icon-color);
 }
