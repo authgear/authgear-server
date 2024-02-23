@@ -932,9 +932,9 @@ const LocalizationConfigurationScreen: React.VFC =
         resources.reset();
         setSelectedLanguage(config.state.fallbackLanguage);
       },
-      save: async (withChecksum: boolean = true) => {
-        await config.save(withChecksum);
-        await resources.save(withChecksum);
+      save: async (ignoreConflict: boolean = false) => {
+        await config.save(ignoreConflict);
+        await resources.save(ignoreConflict);
       },
     };
 

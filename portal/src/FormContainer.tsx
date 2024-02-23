@@ -19,7 +19,7 @@ export interface FormModel {
   isUpdating: boolean;
   canSave?: boolean;
   reset: () => void;
-  save: (withChecksum?: boolean) => Promise<void>;
+  save: (ignoreConflict?: boolean) => Promise<void>;
 }
 
 export interface SaveButtonProps {
@@ -77,10 +77,10 @@ const FormContainer: React.VFC<FormContainerProps> = function FormContainer(
   const { renderToString } = useContext(Context);
 
   const callSave = useCallback(
-    (withChecksum: boolean = true) => {
+    (ignoreConflict: boolean = false) => {
       beforeSave().then(
         () => {
-          save(withChecksum).then(
+          save(ignoreConflict).then(
             () => afterSave?.(),
             () => {}
           );

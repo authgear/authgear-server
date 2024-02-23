@@ -19,7 +19,7 @@ export function useUpdateAppAndSecretConfigMutation(appID: string): {
     appConfigChecksum?: string,
     secretConfigUpdateInstructions?: PortalAPISecretConfigUpdateInstruction,
     secretConfigUpdateInstructionsChecksum?: string,
-    withChecksum?: boolean
+    ignoreConflict?: boolean
   ) => Promise<PortalAPIApp | null>;
   loading: boolean;
   error: unknown;
@@ -35,15 +35,15 @@ export function useUpdateAppAndSecretConfigMutation(appID: string): {
       appConfigChecksum?: string,
       secretConfigUpdateInstructions?: PortalAPISecretConfigUpdateInstruction,
       secretConfigUpdateInstructionsChecksum?: string,
-      withChecksum: boolean = true
+      ignoreConflict: boolean = false
     ) => {
       const result = await mutationFunction({
         variables: {
           appID,
           appConfig: appConfig,
-          appConfigChecksum: withChecksum ? appConfigChecksum : undefined,
+          appConfigChecksum: !ignoreConflict ? appConfigChecksum : undefined,
           secretConfigUpdateInstructions: secretConfigUpdateInstructions,
-          secretConfigUpdateInstructionsChecksum: withChecksum
+          secretConfigUpdateInstructionsChecksum: !ignoreConflict
             ? secretConfigUpdateInstructionsChecksum
             : undefined,
         },

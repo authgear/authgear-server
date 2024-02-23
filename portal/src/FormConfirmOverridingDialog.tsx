@@ -17,7 +17,7 @@ import { useFormValidateChecksum } from "./form";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 interface FormConfirmOverridingDialogProps {
-  save: (withChecksum: boolean) => void;
+  save: (ignoreConflict: boolean) => void;
 }
 
 const FormConfirmOverridingDialog: React.VFC<FormConfirmOverridingDialogProps> =
@@ -27,7 +27,7 @@ const FormConfirmOverridingDialog: React.VFC<FormConfirmOverridingDialogProps> =
 
     const checksumNotMatch = useFormValidateChecksum();
     const saveWithoutChecksum = useCallback(() => {
-      save(false);
+      save(true);
     }, [save]);
 
     const [visible, setVisible] = useState(false);

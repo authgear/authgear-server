@@ -430,7 +430,7 @@ const SingleSignOnConfigurationScreen1: React.VFC<{
   const sendDataToGTM = useGTMDispatch();
   const gtmEventBase = useAuthgearGTMEventBase();
   const save = useCallback(
-    async (withChecksum: boolean = true) => {
+    async (ignoreConflict: boolean = false) => {
       // compare if there is any newly added providers
       // then send the gtm event
       const initialProvidersKey = config.state.initialProvidersKey;
@@ -443,7 +443,7 @@ const SingleSignOnConfigurationScreen1: React.VFC<{
         (t) => !initialProvidersKey.includes(t)
       );
 
-      await config.save(withChecksum);
+      await config.save(ignoreConflict);
       if (addedProviders.length > 0) {
         const event: AuthgearGTMEvent = {
           ...gtmEventBase,

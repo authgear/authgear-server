@@ -18,7 +18,7 @@ export interface AppSecretConfigFormModel<State> {
   setState: (fn: (state: State) => State) => void;
   reload: () => void;
   reset: () => void;
-  save: (withChecksum?: boolean) => Promise<void>;
+  save: (ignoreConflict?: boolean) => Promise<void>;
 }
 
 export type StateConstructor<State> = (
@@ -133,7 +133,7 @@ export function useAppSecretConfigForm<State>(
   }, [isUpdating, resetError]);
 
   const save = useCallback(
-    async (withChecksum: boolean = true) => {
+    async (ignoreConflict: boolean = false) => {
       if (!rawAppConfig || !currentState) {
         return;
       } else if (!isDirty || isUpdating) {
@@ -165,7 +165,7 @@ export function useAppSecretConfigForm<State>(
           rawAppConfigChecksum,
           secretUpdateInstruction,
           secretConfigChecksum,
-          withChecksum
+          ignoreConflict
         );
         await reload();
         setCurrentState(null);

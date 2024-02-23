@@ -18,7 +18,7 @@ export interface AppConfigFormModel<State> {
   setState: (fn: (state: State) => State) => void;
   reload: () => void;
   reset: () => void;
-  save: (withChecksum?: boolean) => Promise<void>;
+  save: (ignoreConflict?: boolean) => Promise<void>;
   setCanSave: (canSave?: boolean) => void;
   effectiveConfig: PortalAPIAppConfig;
 }
@@ -106,7 +106,7 @@ export function useAppConfigForm<State>(
 
   const save = useCallback(
     // eslint-disable-next-line complexity
-    async (withChecksum: boolean = true) => {
+    async (ignoreConflict: boolean = false) => {
       const allowSave = canSave !== undefined ? canSave : isDirty;
       if (!rawConfig || !initialState || secretConfig == null) {
         return;
@@ -135,7 +135,7 @@ export function useAppConfigForm<State>(
           rawAppConfigChecksum,
           undefined,
           undefined,
-          withChecksum
+          ignoreConflict
         );
         setCurrentState(null);
         setIsSubmitted(true);

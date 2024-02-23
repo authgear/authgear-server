@@ -18,7 +18,7 @@ export interface ResourceFormModel<State> {
   setState: (fn: (state: State) => State) => void;
   reload: () => void;
   reset: () => void;
-  save: (withChecksum?: boolean) => Promise<void>;
+  save: (ignoreConflict?: boolean) => Promise<void>;
   diff: ResourcesDiffResult | null;
 }
 
@@ -80,7 +80,7 @@ export function useResourceForm<State>(
   }, [isUpdating, resetError]);
 
   const save = useCallback(
-    async (withChecksum: boolean = true) => {
+    async (ignoreConflict: boolean = false) => {
       if (!diff) {
         return;
       } else if (!diff.needUpdate) {
@@ -101,7 +101,7 @@ export function useResourceForm<State>(
             ...diff.editedResources,
             ...diff.deletedResources,
           ],
-          withChecksum
+          ignoreConflict
         );
         setCurrentState(null);
       } finally {
