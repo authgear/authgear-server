@@ -81,7 +81,14 @@
   }
 
   :root.dark {
-    /* TODO(newman): Dark mode */
+    --select__text-color: var(--color-neutral-100);
+    --select__dropdown-background-color: var(--color-neutral-600);
+    --select__search-border: 1px solid var(--color-neutral-400);
+    --select__search-input-text-color: var(--color-neutral-100);
+    --select__search-icon-color: var(--color-neutral-200);
+    --select__clear-icon-color: var(--color-neutral-200);
+    --select__option-background-color--active: var(--color-neutral-500);
+    --select__empty-text-color: var(--color-neutral-300);
   }
 
   .select__dropdown {

@@ -29,6 +29,13 @@
     --secondary-btn__ring-color--active: var(--secondary-btn__ring-color);
   }
 
+  :root.dark {
+    --secondary-btn__text-color: var(--color-neutral-100);
+    --secondary-btn__ring-color: var(--color-neutral-500);
+    --secondary-btn__bg-color--hover: var(--color-neutral-500);
+    --secondary-btn__bg-color--active: var(--color-neutral-500);
+  }
+
   .secondary-btn {
     @apply text-center;
     @apply flex justify-center items-center;

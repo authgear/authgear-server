@@ -12,7 +12,8 @@
   }
 
   :root.dark {
-    /* TODO(davis): Dark mode styles */
+    --code-block__bg-color: var(--color-neutral-600);
+    --code-block__text-color: var(--color-neutral-100);
   }
 
   .code-block {

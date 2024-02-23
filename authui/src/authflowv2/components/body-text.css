@@ -61,7 +61,7 @@
   }
 
   :root.dark {
-    /* TODO(davis): Dark mode styles */
+    --body-text__text-color: var(--color-neutral-200);
   }
 
   .body-text--sm {

@@ -25,7 +25,9 @@
   }
 
   :root.dark {
-    /* TODO(newman): Dark mode styles */
+    --alert-message__ring-color: var(--color-neutral-500);
+    --alert-message__text-color: var(--color-neutral-200);
+    --alert-message__icon-text-color: var(--color-neutral-200);
   }
 
   .alert-message {

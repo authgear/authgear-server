@@ -28,7 +28,8 @@
   }
 
   :root.dark {
-    /* TODO(newman): Dark mode */
+    --phone-input__text-color: var(--color-neutral-100);
+    --phone-input__trigger-ring-color: var(--color-neutral-500);
   }
 
   .phone-input {

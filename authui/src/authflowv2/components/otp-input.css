@@ -39,6 +39,13 @@
     --otp-input-resend-button-margin-top: 1rem;
   }
 
+  :root.dark {
+    --otp-input__digit-ring-color: var(--color-neutral-500);
+    /* Not actually using css-masks features, ignoring stylelint false positive */
+    /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
+    --otp-input__digit-mask-color: var(--color-neutral-100);
+  }
+
   .otp-input {
     @apply relative;
     @apply w-full;

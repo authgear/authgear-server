@@ -16,7 +16,7 @@
     --screen-description__text-color: var(--color-neutral-400);
   }
   :root.dark {
-    /* TODO(tung): Dark mode styles */
+    --screen-description__text-color: var(--color-neutral-200);
   }
 
   .screen-description {

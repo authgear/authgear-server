@@ -35,7 +35,7 @@
   }
 
   :root.dark {
-    /* TODO(tung): Dark mode styles */
+    --label-btn__text-color--disabled: var(--color-neutral-400);
   }
 
   .label-btn {

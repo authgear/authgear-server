@@ -12,7 +12,7 @@
   }
 
   :root.dark {
-    /* TODO(newman): Dark mode */
+    --checkbox__ring-color: var(--color-neutral-400);
   }
 
   .checkbox {

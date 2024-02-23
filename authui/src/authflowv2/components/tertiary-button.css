@@ -37,7 +37,12 @@
   }
 
   :root.dark {
-    /* TODO(tung): Dark mode styles */
+    --tertiary-btn__bg-color: var(--color-neutral-100);
+    --tertiary-btn__text-color: var(--color-neutral-700);
+    --tertiary-btn__bg-color--hover: var(--color-neutral-200);
+    --tertiary-btn__bg-color--active: var(--color-neutral-200);
+    --tertiary-btn__bg-color--disabled: var(--color-neutral-400);
+    --tertiary-btn__text-color--disabled: var(--color-neutral-100);
   }
 
   .tertiary-btn {

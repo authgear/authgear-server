@@ -37,7 +37,9 @@
 }
 
 :root.dark {
-  /* TODO(davis): Dark mode styles */
+  --input__ring-color: var(--color-neutral-500);
+  --input__placeholder-color: var(--color-neutral-400);
+  --input__text-color: var(--color-neutral-100);
 }
 
 .input {
