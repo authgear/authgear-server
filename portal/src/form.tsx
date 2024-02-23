@@ -69,7 +69,7 @@ export const FormProvider: React.VFC<FormProviderProps> = (props) => {
     let apiErrors = parseRawError(error);
     let checksumNotMatch = false;
     apiErrors = apiErrors.filter((e) => {
-      if (e.reason === "ChecksumNotEqual") {
+      if (e.reason === "ResourceUpdateConflict") {
         checksumNotMatch = true;
         return false;
       }
