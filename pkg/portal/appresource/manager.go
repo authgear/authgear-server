@@ -17,8 +17,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
+	"github.com/authgear/authgear-server/pkg/util/checksum"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/crypto"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -303,7 +303,7 @@ func (m *Manager) applyUpdates(appID string, appFs resource.Fs, updates []Update
 			return nil, nil, err
 		}
 
-		if u.Checksum != "" && crypto.ChecksumString(resrc.Data) != u.Checksum {
+		if u.Checksum != "" && checksum.CRC32IEEEInHex(resrc.Data) != u.Checksum {
 			return nil, nil, ErrChecksumNotEqual
 		}
 

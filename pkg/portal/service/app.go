@@ -26,8 +26,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
 	"github.com/authgear/authgear-server/pkg/util/blocklist"
+	"github.com/authgear/authgear-server/pkg/util/checksum"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/crypto"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -229,7 +229,7 @@ func (s *AppService) LoadRawAppConfig(app *model.App) (*config.AppConfig, string
 	}
 
 	bytes := result.([]byte)
-	checksum := crypto.ChecksumString(bytes)
+	checksum := checksum.CRC32IEEEInHex(bytes)
 	var cfg *config.AppConfig
 	if err := yaml.Unmarshal(bytes, &cfg); err != nil {
 		return nil, "", err
@@ -251,7 +251,7 @@ func (s *AppService) LoadAppSecretConfig(
 	}
 
 	bytes := result.([]byte)
-	checksum := crypto.ChecksumString(bytes)
+	checksum := checksum.CRC32IEEEInHex(bytes)
 
 	cfg, err := config.ParsePartialSecret(bytes)
 	if err != nil {

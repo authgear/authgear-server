@@ -7,7 +7,7 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/portal/model"
-	"github.com/authgear/authgear-server/pkg/util/crypto"
+	"github.com/authgear/authgear-server/pkg/util/checksum"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -83,7 +83,7 @@ var appResource = graphql.NewObject(graphql.ObjectConfig{
 					return nil, err
 				}
 
-				return crypto.ChecksumString(result.([]byte)), nil
+				return checksum.CRC32IEEEInHex(result.([]byte)), nil
 			},
 			Description: "The checksum of the resource file. It is an opaque string that will be used to detect conflict.",
 		},

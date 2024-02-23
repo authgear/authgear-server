@@ -1,4 +1,4 @@
-package crypto
+package checksum
 
 import (
 	"encoding/binary"
@@ -6,7 +6,7 @@ import (
 	"hash/crc32"
 )
 
-func ChecksumString(data []byte) string {
+func CRC32IEEEInHex(data []byte) string {
 	// Calculate the checksum with crc32 IEEE
 	checksum := crc32.ChecksumIEEE(data)
 	// Turn the 32-bit unsigned checksum into 4 bytes in big endian order.
