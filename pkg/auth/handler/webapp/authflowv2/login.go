@@ -49,16 +49,17 @@ func NewAuthflowLoginViewModel(allowLoginOnly bool) AuthflowLoginViewModel {
 }
 
 type AuthflowV2LoginHandler struct {
-	SignupLoginHandler InternalAuthflowV2SignupLoginHandler
-	UIConfig           *config.UIConfig
-	Controller         *handlerwebapp.AuthflowController
-	BaseViewModel      *viewmodels.BaseViewModeler
-	AuthflowViewModel  *viewmodels.AuthflowViewModeler
-	Renderer           handlerwebapp.Renderer
-	MeterService       handlerwebapp.MeterService
-	TutorialCookie     handlerwebapp.TutorialCookie
-	ErrorCookie        handlerwebapp.ErrorCookie
-	Endpoints          AuthflowLoginEndpointsProvider
+	SignupLoginHandler   InternalAuthflowV2SignupLoginHandler
+	UIConfig             *config.UIConfig
+	AuthenticationConfig *config.AuthenticationConfig
+	Controller           *handlerwebapp.AuthflowController
+	BaseViewModel        *viewmodels.BaseViewModeler
+	AuthflowViewModel    *viewmodels.AuthflowViewModeler
+	Renderer             handlerwebapp.Renderer
+	MeterService         handlerwebapp.MeterService
+	TutorialCookie       handlerwebapp.TutorialCookie
+	ErrorCookie          handlerwebapp.ErrorCookie
+	Endpoints            AuthflowLoginEndpointsProvider
 }
 
 func (h *AuthflowV2LoginHandler) GetData(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse, allowLoginOnly bool) (map[string]interface{}, error) {
@@ -75,7 +76,7 @@ func (h *AuthflowV2LoginHandler) GetData(w http.ResponseWriter, r *http.Request,
 }
 
 func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if h.UIConfig.SignupLoginFlowEnabled {
+	if h.UIConfig.SignupLoginFlowEnabled && !h.AuthenticationConfig.PublicSignupDisabled {
 		// Login will be same as signup
 		h.SignupLoginHandler.ServeHTTP(w, r, AuthflowV2SignupServeOptions{
 			FlowType:         authflow.FlowTypeSignupLogin,
