@@ -28,7 +28,7 @@
   }
 
   :root.dark {
-    /* TODO(newman): Dark mode styles */
+    --link-btn-text-color--disabled: var(--color-neutral-400);
   }
 
   .link-btn {

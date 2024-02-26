@@ -10,7 +10,7 @@
     --screen-title__text-color: var(--color-neutral-700);
   }
   :root.dark {
-    /* TODO(tung): Dark mode styles */
+    --screen-title__text-color: var(--color-neutral-100);
   }
 
   .screen-title {

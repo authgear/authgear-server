@@ -11,7 +11,8 @@
   }
 
   :root.dark {
-    /* TODO(davis): Dark mode styles */
+    --divider__bg-color: var(--color-neutral-400);
+    --divider__text-color: var(--color-neutral-300);
   }
 
   .divider {
