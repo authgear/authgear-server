@@ -23,6 +23,23 @@ func (s *Store) ListGroupsByRoleID(roleID string) ([]*Group, error) {
 	return s.queryGroups(q)
 }
 
+func (s *Store) ListRolesByGroupID(groupID string) ([]*Role, error) {
+	q := s.SQLBuilder.
+		Select(
+			"r.id",
+			"r.created_at",
+			"r.updated_at",
+			"r.key",
+			"r.name",
+			"r.description",
+		).
+		From(s.SQLBuilder.TableName("_auth_group_role"), "gr").
+		Join(s.SQLBuilder.TableName("_auth_role"), "r", "gr.role_id = r.id").
+		Where("gr.group_id = ?", groupID)
+
+	return s.queryRoles(q)
+}
+
 type AddRoleToGroupsOptions struct {
 	RoleKey   string
 	GroupKeys []string

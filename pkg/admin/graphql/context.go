@@ -75,6 +75,7 @@ type RolesGroupsFacade interface {
 	CreateGroup(options *rolesgroups.NewGroupOptions) (string, error)
 	UpdateGroup(options *rolesgroups.UpdateGroupOptions) error
 	DeleteGroup(id string) error
+	ListRolesByGroupID(groupID string) ([]*apimodel.Role, error)
 
 	AddRoleToGroups(options *rolesgroups.AddRoleToGroupsOptions) (string, error)
 	RemoveRoleFromGroups(options *rolesgroups.RemoveRoleFromGroupsOptions) (string, error)

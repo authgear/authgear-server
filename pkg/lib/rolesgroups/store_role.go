@@ -218,28 +218,15 @@ func (s *Store) scanRole(scanner db.Scanner) (*Role, error) {
 
 func (s *Store) GetManyRoles(ids []string) ([]*Role, error) {
 	q := s.selectRoleQuery().Where("id = ANY (?)", pq.Array(ids))
-
-	rows, err := s.SQLExecutor.QueryWith(q)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var roles []*Role
-	for rows.Next() {
-		r, err := s.scanRole(rows)
-		if err != nil {
-			return nil, err
-		}
-		roles = append(roles, r)
-	}
-
-	return roles, nil
+	return s.queryRoles(q)
 }
 
 func (s *Store) GetManyRolesByKeys(keys []string) ([]*Role, error) {
 	q := s.selectRoleQuery().Where("key = ANY (?)", pq.Array(keys))
+	return s.queryRoles(q)
+}
 
+func (s *Store) queryRoles(q db.SelectBuilder) ([]*Role, error) {
 	rows, err := s.SQLExecutor.QueryWith(q)
 	if err != nil {
 		return nil, err

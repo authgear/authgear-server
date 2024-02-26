@@ -20,6 +20,7 @@ type RolesGroupsCommands interface {
 
 type RolesGroupsQueries interface {
 	ListGroupsByRoleID(roleID string) ([]*model.Group, error)
+	ListRolesByGroupID(groupID string) ([]*model.Role, error)
 }
 
 type RolesGroupsFacade struct {
@@ -75,6 +76,10 @@ func (f *RolesGroupsFacade) UpdateGroup(options *rolesgroups.UpdateGroupOptions)
 
 func (f *RolesGroupsFacade) DeleteGroup(id string) (err error) {
 	return f.RolesGroupsCommands.DeleteGroup(id)
+}
+
+func (f *RolesGroupsFacade) ListRolesByGroupID(groupID string) ([]*model.Role, error) {
+	return f.RolesGroupsQueries.ListRolesByGroupID(groupID)
 }
 
 func (f *RolesGroupsFacade) AddRoleToGroups(options *rolesgroups.AddRoleToGroupsOptions) (roleID string, err error) {

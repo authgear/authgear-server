@@ -655,6 +655,9 @@ type Group implements Entity & Node {
   """The optional name of the group."""
   name: String
 
+  """The list of roles this group has."""
+  roles(after: String, before: String, first: Int, last: Int): RoleConnection
+
   """The update time of entity"""
   updatedAt: DateTime!
 }
@@ -983,6 +986,27 @@ type Role implements Entity & Node {
 
   """The update time of entity"""
   updatedAt: DateTime!
+}
+
+"""A connection to a list of items."""
+type RoleConnection {
+  """Information to aid in pagination."""
+  edges: [RoleEdge]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """Total number of nodes in the connection."""
+  totalCount: Int
+}
+
+"""An edge in a connection"""
+type RoleEdge {
+  """ cursor for use in pagination"""
+  cursor: String!
+
+  """The item at the end of the edge"""
+  node: Role
 }
 
 """"""

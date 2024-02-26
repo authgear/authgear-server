@@ -1,11 +1,39 @@
 package graphql
 
 import (
+	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
+
+func init() {
+	// Role and group forms a initialization cycle.
+	// So we break the cycle by using AddFieldConfig.
+	nodeGroup.AddFieldConfig("roles", &graphql.Field{
+		Type:        connRole.ConnectionType,
+		Description: "The list of roles this group has.",
+		Args:        relay.NewConnectionArgs(graphql.FieldConfigArgument{}),
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			source := p.Source.(*model.Group)
+			gqlCtx := GQLContext(p.Context)
+
+			roles, err := gqlCtx.RolesGroupsFacade.ListRolesByGroupID(source.ID)
+			if err != nil {
+				return nil, err
+			}
+
+			roleIfaces := make([]interface{}, len(roles))
+			for i, r := range roles {
+				roleIfaces[i] = r
+			}
+
+			args := relay.NewConnectionArguments(p.Args)
+			return graphqlutil.NewConnectionFromArray(roleIfaces, args), nil
+		},
+	})
+}
 
 const typeGroup = "Group"
 
