@@ -2,9 +2,24 @@ package declarative
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/model"
+	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
+
+type IdentificationData struct {
+	TypedData
+	Options []IdentificationOption `json:"options"`
+}
+
+func NewIdentificationData(d IdentificationData) IdentificationData {
+	d.Type = DataTypeIdentificationData
+	return d
+}
+
+var _ authflow.Data = IdentificationData{}
+
+func (IdentificationData) Data() {}
 
 type IdentificationOption struct {
 	Identification config.AuthenticationFlowIdentification `json:"identification"`
