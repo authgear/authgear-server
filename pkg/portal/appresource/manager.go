@@ -17,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
+	"github.com/authgear/authgear-server/pkg/util/checksum"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
@@ -297,6 +298,11 @@ func (m *Manager) applyUpdates(appID string, appFs resource.Fs, updates []Update
 		resrc, err := m.getFromAppFs(newAppFs, location)
 		if err != nil {
 			return nil, nil, err
+		}
+
+		if u.Checksum != "" && checksum.CRC32IEEEInHex(resrc.Data) != u.Checksum {
+			msg := fmt.Sprintf("resource update conflict: %v", u.Path)
+			return nil, nil, ResourceUpdateConflict.NewWithInfo(msg, apierrors.Details{"path": u.Path})
 		}
 
 		desc, ok := manager.Resolve(u.Path)

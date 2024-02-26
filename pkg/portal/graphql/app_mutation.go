@@ -31,6 +31,10 @@ var appResourceUpdate = graphql.NewInputObject(graphql.InputObjectConfig{
 			Type:        graphql.String,
 			Description: "New data of the resource file. Set to null to remove it.",
 		},
+		"checksum": &graphql.InputObjectFieldConfig{
+			Type:        graphql.String,
+			Description: "The checksum of the original resource file. If provided, it will be used to detect conflict.",
+		},
 	},
 })
 
@@ -178,9 +182,17 @@ var updateAppInput = graphql.NewInputObject(graphql.InputObjectConfig{
 			Type:        AppConfig,
 			Description: "authgear.yaml in JSON.",
 		},
+		"appConfigChecksum": &graphql.InputObjectFieldConfig{
+			Type:        graphql.String,
+			Description: "The checksum of appConfig. If provided, it will be used to detect conflict.",
+		},
 		"secretConfigUpdateInstructions": &graphql.InputObjectFieldConfig{
 			Type:        secretConfigUpdateInstructionsInput,
 			Description: "update secret config instructions.",
+		},
+		"secretConfigUpdateInstructionsChecksum": &graphql.InputObjectFieldConfig{
+			Type:        graphql.String,
+			Description: "The checksum of secretConfig. If provided, it will be used to detect conflict.",
 		},
 	},
 })
@@ -213,7 +225,9 @@ var _ = registerMutationField(
 			appNodeID := input["appID"].(string)
 			updates, _ := input["updates"].([]interface{})
 			appConfigJSONValue := input["appConfig"]
+			appConfigChecksum, _ := input["appConfigChecksum"].(string)
 			secretConfigUpdateInstructionsJSONValue := input["secretConfigUpdateInstructions"]
+			secretConfigUpdateInstructionsChecksum, _ := input["secretConfigUpdateInstructionsChecksum"].(string)
 
 			resolvedNodeID := relay.FromGlobalID(appNodeID)
 			if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
@@ -256,9 +270,12 @@ var _ = registerMutationField(
 					}
 				}
 
+				checksum, _ := f["checksum"].(string)
+
 				resourceUpdates = append(resourceUpdates, appresource.Update{
-					Path: path,
-					Data: data,
+					Path:     path,
+					Data:     data,
+					Checksum: checksum,
 				})
 				auditedUpdatePaths = append(auditedUpdatePaths, path)
 			}
@@ -275,8 +292,9 @@ var _ = registerMutationField(
 				}
 
 				resourceUpdates = append(resourceUpdates, appresource.Update{
-					Path: configsource.AuthgearYAML,
-					Data: appConfigYAML,
+					Path:     configsource.AuthgearYAML,
+					Data:     appConfigYAML,
+					Checksum: appConfigChecksum,
 				})
 			}
 
@@ -288,8 +306,9 @@ var _ = registerMutationField(
 				}
 
 				resourceUpdates = append(resourceUpdates, appresource.Update{
-					Path: configsource.AuthgearSecretYAML,
-					Data: secretConfigUpdateInstructionsJSON,
+					Path:     configsource.AuthgearSecretYAML,
+					Data:     secretConfigUpdateInstructionsJSON,
+					Checksum: secretConfigUpdateInstructionsChecksum,
 				})
 			}
 

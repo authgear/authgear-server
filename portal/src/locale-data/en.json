@@ -1575,6 +1575,11 @@
   "PrimaryAuthenticatorType.oob_otp_email": "Passwordless via Email",
   "PrimaryAuthenticatorType.oob_otp_sms": "Passwordless via SMS",
 
+  "FormConfirmOverridingDialog.title": "The project configuration was edited elsewhere",
+  "FormConfirmOverridingDialog.subtext": "The project was edited in another browser tab or by another user. You can reload this page to use the latest version. Do you want to override the changes?",
+  "FormConfirmOverridingDialog.button.cancel": "Cancel",
+  "FormConfirmOverridingDialog.button.confirm": "Override Changes",
+
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
   "Locales.ar": "Arabic",

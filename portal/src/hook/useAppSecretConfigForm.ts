@@ -18,7 +18,7 @@ export interface AppSecretConfigFormModel<State> {
   setState: (fn: (state: State) => State) => void;
   reload: () => void;
   reset: () => void;
-  save: () => Promise<void>;
+  save: (ignoreConflict?: boolean) => Promise<void>;
 }
 
 export type StateConstructor<State> = (
@@ -64,8 +64,10 @@ export function useAppSecretConfigForm<State>(
     loading: isLoading,
     error: loadError,
     rawAppConfig,
+    rawAppConfigChecksum,
     effectiveAppConfig,
     secretConfig,
+    secretConfigChecksum,
     refetch: reload,
   } = useAppAndSecretConfigQuery(appID, secretVisitToken);
   const {
@@ -130,52 +132,63 @@ export function useAppSecretConfigForm<State>(
     setCurrentState(null);
   }, [isUpdating, resetError]);
 
-  const save = useCallback(async () => {
-    if (!rawAppConfig || !currentState) {
-      return;
-    } else if (!isDirty || isUpdating) {
-      return;
-    }
+  const save = useCallback(
+    async (ignoreConflict: boolean = false) => {
+      if (!rawAppConfig || !currentState) {
+        return;
+      } else if (!isDirty || isUpdating) {
+        return;
+      }
 
-    const newConfig = constructConfig(
-      rawAppConfig,
-      secrets,
-      initialState,
-      currentState,
-      effectiveConfig
-    );
+      const newConfig = constructConfig(
+        rawAppConfig,
+        secrets,
+        initialState,
+        currentState,
+        effectiveConfig
+      );
 
-    // The app and secret config that pass to constructSecretUpdateInstruction
-    // are the updated config that we are going to send to the server
-    const secretUpdateInstruction = constructSecretUpdateInstruction
-      ? constructSecretUpdateInstruction(
+      // The app and secret config that pass to constructSecretUpdateInstruction
+      // are the updated config that we are going to send to the server
+      const secretUpdateInstruction = constructSecretUpdateInstruction
+        ? constructSecretUpdateInstruction(
+            newConfig[0],
+            newConfig[1],
+            currentState
+          )
+        : undefined;
+
+      setIsUpdating(true);
+      try {
+        await updateConfig(
           newConfig[0],
-          newConfig[1],
-          currentState
-        )
-      : undefined;
-
-    setIsUpdating(true);
-    try {
-      await updateConfig(newConfig[0], secretUpdateInstruction);
-      await reload();
-      setCurrentState(null);
-    } finally {
-      setIsUpdating(false);
-    }
-  }, [
-    rawAppConfig,
-    currentState,
-    isDirty,
-    isUpdating,
-    constructConfig,
-    secrets,
-    initialState,
-    effectiveConfig,
-    constructSecretUpdateInstruction,
-    updateConfig,
-    reload,
-  ]);
+          rawAppConfigChecksum,
+          secretUpdateInstruction,
+          secretConfigChecksum,
+          ignoreConflict
+        );
+        await reload();
+        setCurrentState(null);
+      } finally {
+        setIsUpdating(false);
+      }
+    },
+    [
+      rawAppConfig,
+      rawAppConfigChecksum,
+      currentState,
+      isDirty,
+      isUpdating,
+      constructConfig,
+      secrets,
+      secretConfigChecksum,
+      initialState,
+      effectiveConfig,
+      constructSecretUpdateInstruction,
+      updateConfig,
+      reload,
+    ]
+  );
 
   const state = currentState ?? initialState;
   const setState = useCallback(

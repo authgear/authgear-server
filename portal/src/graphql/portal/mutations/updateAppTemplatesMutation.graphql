@@ -13,6 +13,7 @@ mutation updateAppTemplatesMutation(
         languageTag
         data
         effectiveData
+        checksum
       }
       resourceLocales: resources {
         path

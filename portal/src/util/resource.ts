@@ -8,6 +8,7 @@ export interface ResourceUpdate {
   path: string;
   value?: string | null;
   specifier: ResourceSpecifier;
+  checksum?: string | null;
 }
 
 export interface Resource {
@@ -15,6 +16,7 @@ export interface Resource {
   nullableValue?: string | null;
   specifier: ResourceSpecifier;
   effectiveData?: string | null;
+  checksum?: string | null;
 }
 
 export interface ResourceSpecifier {
@@ -203,6 +205,7 @@ export function diffResourceUpdates(
         specifier: r.specifier,
         path: r.path,
         value: r.nullableValue,
+        checksum: initialResource.checksum,
       });
     }
   }
@@ -213,6 +216,7 @@ export function diffResourceUpdates(
         specifier: r.specifier,
         path: r.path,
         value: null,
+        checksum: r.checksum,
       });
     }
   }

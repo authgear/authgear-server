@@ -76,10 +76,16 @@ type App implements Node {
   rawAppConfig: AppConfig!
 
   """"""
+  rawAppConfigChecksum: AppConfig!
+
+  """"""
   resources(paths: [String!]): [AppResource!]!
 
   """"""
   secretConfig(token: String): SecretConfig!
+
+  """"""
+  secretConfigChecksum: AppConfig!
 
   """"""
   subscription: Subscription
@@ -108,6 +114,11 @@ type AppListItem {
 
 """Resource file for an app"""
 type AppResource {
+  """
+  The checksum of the resource file. It is an opaque string that will be used to detect conflict.
+  """
+  checksum: String
+
   """"""
   data: String
 
@@ -123,6 +134,11 @@ type AppResource {
 
 """Update to resource file."""
 input AppResourceUpdate {
+  """
+  The checksum of the original resource file. If provided, it will be used to detect conflict.
+  """
+  checksum: String
+
   """New data of the resource file. Set to null to remove it."""
   data: String
 
@@ -990,11 +1006,21 @@ input UpdateAppInput {
   """authgear.yaml in JSON."""
   appConfig: AppConfig
 
+  """
+  The checksum of appConfig. If provided, it will be used to detect conflict.
+  """
+  appConfigChecksum: String
+
   """App ID to update."""
   appID: ID!
 
   """update secret config instructions."""
   secretConfigUpdateInstructions: SecretConfigUpdateInstructionsInput
+
+  """
+  The checksum of secretConfig. If provided, it will be used to detect conflict.
+  """
+  secretConfigUpdateInstructionsChecksum: String
 
   """Resource file updates."""
   updates: [AppResourceUpdate!]

@@ -916,9 +916,9 @@ const UISettingsScreen: React.VFC = function UISettingsScreen() {
       resources.reset();
       setSelectedLanguage(config.state.fallbackLanguage);
     },
-    save: async () => {
-      await config.save();
-      await resources.save();
+    save: async (ignoreConflict: boolean = false) => {
+      await config.save(ignoreConflict);
+      await resources.save(ignoreConflict);
     },
   };
 

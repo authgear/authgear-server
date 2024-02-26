@@ -418,7 +418,12 @@ const AdminAPIConfigurationScreen1: React.VFC<{
         action: "generate",
       },
     };
-    await updateAppAndSecretConfig(appConfig, generateKeyInstruction);
+    await updateAppAndSecretConfig(
+      appConfig,
+      undefined,
+      generateKeyInstruction,
+      undefined
+    );
     await refetchAppAndSecret();
   }, [queryResult.rawAppConfig, updateAppAndSecretConfig, refetchAppAndSecret]);
 
@@ -436,7 +441,12 @@ const AdminAPIConfigurationScreen1: React.VFC<{
           },
         },
       };
-      await updateAppAndSecretConfig(appConfig, deleteKeyInstruction);
+      await updateAppAndSecretConfig(
+        appConfig,
+        undefined,
+        deleteKeyInstruction,
+        undefined
+      );
       await refetchAppAndSecret();
     },
     [queryResult.rawAppConfig, updateAppAndSecretConfig, refetchAppAndSecret]

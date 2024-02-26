@@ -69,8 +69,10 @@ export type App = Node & {
   nftCollections: Array<NftCollection>;
   planName: Scalars['String']['output'];
   rawAppConfig: Scalars['AppConfig']['output'];
+  rawAppConfigChecksum: Scalars['AppConfig']['output'];
   resources: Array<AppResource>;
   secretConfig: SecretConfig;
+  secretConfigChecksum: Scalars['AppConfig']['output'];
   subscription?: Maybe<Subscription>;
   subscriptionUsage?: Maybe<SubscriptionUsage>;
   tutorialStatus: TutorialStatus;
@@ -104,6 +106,8 @@ export type AppListItem = {
 /** Resource file for an app */
 export type AppResource = {
   __typename?: 'AppResource';
+  /** The checksum of the resource file. It is an opaque string that will be used to detect conflict. */
+  checksum?: Maybe<Scalars['String']['output']>;
   data?: Maybe<Scalars['String']['output']>;
   effectiveData?: Maybe<Scalars['String']['output']>;
   languageTag?: Maybe<Scalars['String']['output']>;
@@ -112,6 +116,8 @@ export type AppResource = {
 
 /** Update to resource file. */
 export type AppResourceUpdate = {
+  /** The checksum of the original resource file. If provided, it will be used to detect conflict. */
+  checksum?: InputMaybe<Scalars['String']['input']>;
   /** New data of the resource file. Set to null to remove it. */
   data?: InputMaybe<Scalars['String']['input']>;
   /** Path of the resource file to update. */
@@ -787,10 +793,14 @@ export type TutorialStatus = {
 export type UpdateAppInput = {
   /** authgear.yaml in JSON. */
   appConfig?: InputMaybe<Scalars['AppConfig']['input']>;
+  /** The checksum of appConfig. If provided, it will be used to detect conflict. */
+  appConfigChecksum?: InputMaybe<Scalars['String']['input']>;
   /** App ID to update. */
   appID: Scalars['ID']['input'];
   /** update secret config instructions. */
   secretConfigUpdateInstructions?: InputMaybe<SecretConfigUpdateInstructionsInput>;
+  /** The checksum of secretConfig. If provided, it will be used to detect conflict. */
+  secretConfigUpdateInstructionsChecksum?: InputMaybe<Scalars['String']['input']>;
   /** Resource file updates. */
   updates?: InputMaybe<Array<AppResourceUpdate>>;
 };

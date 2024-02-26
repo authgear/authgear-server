@@ -429,31 +429,34 @@ const SingleSignOnConfigurationScreen1: React.VFC<{
 
   const sendDataToGTM = useGTMDispatch();
   const gtmEventBase = useAuthgearGTMEventBase();
-  const save = useCallback(async () => {
-    // compare if there is any newly added providers
-    // then send the gtm event
-    const initialProvidersKey = config.state.initialProvidersKey;
-    const currentProvidersKey = config.state.providers
-      .map((p) =>
-        createOAuthSSOProviderItemKey(p.config.type, p.config.app_type)
-      )
-      .filter((key) => config.state.isEnabled[key]);
-    const addedProviders = currentProvidersKey.filter(
-      (t) => !initialProvidersKey.includes(t)
-    );
+  const save = useCallback(
+    async (ignoreConflict: boolean = false) => {
+      // compare if there is any newly added providers
+      // then send the gtm event
+      const initialProvidersKey = config.state.initialProvidersKey;
+      const currentProvidersKey = config.state.providers
+        .map((p) =>
+          createOAuthSSOProviderItemKey(p.config.type, p.config.app_type)
+        )
+        .filter((key) => config.state.isEnabled[key]);
+      const addedProviders = currentProvidersKey.filter(
+        (t) => !initialProvidersKey.includes(t)
+      );
 
-    await config.save();
-    if (addedProviders.length > 0) {
-      const event: AuthgearGTMEvent = {
-        ...gtmEventBase,
-        event: AuthgearGTMEventType.AddedSSOProviders,
-        event_data: {
-          providers: addedProviders,
-        },
-      };
-      sendDataToGTM(event);
-    }
-  }, [config, gtmEventBase, sendDataToGTM]);
+      await config.save(ignoreConflict);
+      if (addedProviders.length > 0) {
+        const event: AuthgearGTMEvent = {
+          ...gtmEventBase,
+          event: AuthgearGTMEventType.AddedSSOProviders,
+          event_data: {
+            providers: addedProviders,
+          },
+        };
+        sendDataToGTM(event);
+      }
+    },
+    [config, gtmEventBase, sendDataToGTM]
+  );
 
   const form: AppSecretConfigFormModel<FormState> = {
     ...config,

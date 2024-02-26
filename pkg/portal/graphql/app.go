@@ -233,7 +233,17 @@ var nodeApp = node(
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					ctx := GQLContext(p.Context)
 					app := p.Source.(*model.App)
-					return ctx.AppService.LoadRawAppConfig(app)
+					config, _, err := ctx.AppService.LoadRawAppConfig(app)
+					return config, err
+				},
+			},
+			"rawAppConfigChecksum": &graphql.Field{
+				Type: graphql.NewNonNull(AppConfig),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					ctx := GQLContext(p.Context)
+					app := p.Source.(*model.App)
+					_, checksum, err := ctx.AppService.LoadRawAppConfig(app)
+					return checksum, err
 				},
 			},
 			"secretConfig": &graphql.Field{
@@ -253,12 +263,31 @@ var nodeApp = node(
 					}
 					app := p.Source.(*model.App)
 					sessionInfo := session.GetValidSessionInfo(p.Context)
-					secretConfig, err := ctx.AppService.LoadAppSecretConfig(app, sessionInfo, token)
+					secretConfig, _, err := ctx.AppService.LoadAppSecretConfig(app, sessionInfo, token)
 					if err != nil {
 						return nil, err
 					}
 
 					return secretConfig, nil
+				},
+			},
+			"secretConfigChecksum": &graphql.Field{
+				Type: graphql.NewNonNull(AppConfig),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					ctx := GQLContext(p.Context)
+					var token string
+					if tokenRaw, ok := p.Args["token"]; ok {
+						if t, ok := tokenRaw.(string); ok {
+							token = t
+						}
+					}
+					app := p.Source.(*model.App)
+					sessionInfo := session.GetValidSessionInfo(p.Context)
+					_, checksum, err := ctx.AppService.LoadAppSecretConfig(app, sessionInfo, token)
+					if err != nil {
+						return nil, err
+					}
+					return checksum, nil
 				},
 			},
 			"effectiveAppConfig": &graphql.Field{

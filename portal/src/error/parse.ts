@@ -8,6 +8,7 @@ import {
   parentChildToJSONPointer,
   matchParentChild,
 } from "../util/jsonpointer";
+import { APIResourceUpdateConflictError } from "./resourceUpdateConflict";
 
 export interface FormField {
   parentJSONPointer: string | RegExp;
@@ -376,6 +377,24 @@ function aggregateRules(
   return rules;
 }
 
+function parseConflictErrors(errors: APIError[]): {
+  conflictErrors: APIResourceUpdateConflictError[];
+  unhandledErrors: APIError[];
+} {
+  const conflictErrors: APIResourceUpdateConflictError[] = [];
+  const unhandledErrors: APIError[] = [];
+
+  for (const error of errors) {
+    if (error.reason === "ResourceUpdateConflict") {
+      conflictErrors.push(error);
+    } else {
+      unhandledErrors.push(error);
+    }
+  }
+
+  return { conflictErrors, unhandledErrors };
+}
+
 function parseValidationErrors(
   errors: APIError[],
   fields: FormField[]
@@ -472,6 +491,7 @@ function parseErrorWithRules(
 export interface ErrorParseResult {
   fieldErrors: Map<FormField, ParsedAPIError[]>;
   topErrors: ParsedAPIError[];
+  conflictErrors: APIResourceUpdateConflictError[];
 }
 
 export function parseAPIErrors(
@@ -481,7 +501,7 @@ export function parseAPIErrors(
   fallbackMessageID?: string
 ): ErrorParseResult {
   if (errors.length === 0) {
-    return { fieldErrors: new Map(), topErrors: [] };
+    return { fieldErrors: new Map(), topErrors: [], conflictErrors: [] };
   }
 
   const rules = aggregateRules(fields, topRules);
@@ -492,10 +512,8 @@ export function parseAPIErrors(
     unhandledErrors: ruleUnhandledErrors,
   } = parseErrorWithRules(errors, rules);
 
-  const { rawFieldCauses, unhandledErrors } = parseValidationErrors(
-    ruleUnhandledErrors,
-    fields
-  );
+  const { rawFieldCauses, unhandledErrors: validationUnhandledErrors } =
+    parseValidationErrors(ruleUnhandledErrors, fields);
 
   // Add rawFieldCauses to fieldErrors
   for (const [field, causes] of rawFieldCauses.entries()) {
@@ -506,6 +524,10 @@ export function parseAPIErrors(
       errors.push(...causes.map(parseCause));
     }
   }
+
+  const { conflictErrors, unhandledErrors } = parseConflictErrors(
+    validationUnhandledErrors
+  );
 
   // Handle fallbackMessageID
   if (unhandledErrors.length > 0) {
@@ -520,5 +542,5 @@ export function parseAPIErrors(
     }
   }
 
-  return { fieldErrors, topErrors };
+  return { fieldErrors, topErrors, conflictErrors };
 }

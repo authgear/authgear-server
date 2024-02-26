@@ -48,8 +48,8 @@ type AppService interface {
 	Create(userID string, id string) (*model.App, error)
 	UpdateResources(app *model.App, updates []appresource.Update) error
 	GetProjectQuota(userID string) (int, error)
-	LoadRawAppConfig(app *model.App) (*config.AppConfig, error)
-	LoadAppSecretConfig(app *model.App, sessionInfo *apimodel.SessionInfo, token string) (*model.SecretConfig, error)
+	LoadRawAppConfig(app *model.App) (*config.AppConfig, string, error)
+	LoadAppSecretConfig(app *model.App, sessionInfo *apimodel.SessionInfo, token string) (*model.SecretConfig, string, error)
 	GenerateSecretVisitToken(
 		app *model.App,
 		sessionInfo *apimodel.SessionInfo,

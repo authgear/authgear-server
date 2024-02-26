@@ -96,6 +96,7 @@ export function useAppTemplatesQuery(
         path,
         nullableValue: value,
         effectiveData: effectiveData,
+        checksum: resource?.checksum,
       });
     }
 

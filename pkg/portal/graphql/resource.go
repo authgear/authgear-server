@@ -7,6 +7,7 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/util/checksum"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -65,6 +66,26 @@ var appResource = graphql.NewObject(graphql.ObjectConfig{
 				}
 				return base64.StdEncoding.EncodeToString(result.([]byte)), nil
 			},
+		},
+		"checksum": &graphql.Field{
+			Type: graphql.String,
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				ctx := GQLContext(p.Context)
+				r := p.Source.(*model.AppResource)
+				resMgr := ctx.AppResMgrFactory.NewManagerWithAppContext(r.Context)
+				result, err := resMgr.ReadAppFile(r.DescriptedPath.Descriptor,
+					&resource.AppFile{
+						Path: r.DescriptedPath.Path,
+					})
+				if errors.Is(err, resource.ErrResourceNotFound) {
+					return nil, nil
+				} else if err != nil {
+					return nil, err
+				}
+
+				return checksum.CRC32IEEEInHex(result.([]byte)), nil
+			},
+			Description: "The checksum of the resource file. It is an opaque string that will be used to detect conflict.",
 		},
 	},
 })

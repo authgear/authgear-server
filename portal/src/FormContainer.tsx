@@ -11,6 +11,7 @@ import { onRenderCommandBarPrimaryButton } from "./CommandBarPrimaryButton";
 import PrimaryButton from "./PrimaryButton";
 import DefaultButton from "./DefaultButton";
 import { useConsumeError } from "./hook/error";
+import FormConfirmOverridingDialog from "./FormConfirmOverridingDialog";
 
 export interface FormModel {
   updateError: unknown;
@@ -18,7 +19,7 @@ export interface FormModel {
   isUpdating: boolean;
   canSave?: boolean;
   reset: () => void;
-  save: () => Promise<void>;
+  save: (ignoreConflict?: boolean) => Promise<void>;
 }
 
 export interface SaveButtonProps {
@@ -75,17 +76,20 @@ const FormContainer: React.VFC<FormContainerProps> = function FormContainer(
   const { themes } = useSystemConfig();
   const { renderToString } = useContext(Context);
 
-  const callSave = useCallback(() => {
-    beforeSave().then(
-      () => {
-        save().then(
-          () => afterSave?.(),
-          () => {}
-        );
-      },
-      () => {}
-    );
-  }, [beforeSave, save, afterSave]);
+  const callSave = useCallback(
+    (ignoreConflict: boolean = false) => {
+      beforeSave().then(
+        () => {
+          save(ignoreConflict).then(
+            () => afterSave?.(),
+            () => {}
+          );
+        },
+        () => {}
+      );
+    },
+    [beforeSave, save, afterSave]
+  );
 
   const onFormSubmit = useCallback(
     (e: React.FormEvent) => {
@@ -201,6 +205,7 @@ const FormContainer: React.VFC<FormContainerProps> = function FormContainer(
         blockNavigation={isDirty}
         onConfirmNavigation={onConfirmNavigation}
       />
+      <FormConfirmOverridingDialog save={callSave} />
     </FormProvider>
   );
 };
