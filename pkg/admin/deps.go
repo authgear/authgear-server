@@ -59,6 +59,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(facade.UserService), new(*libfacade.UserFacade)),
 	wire.Bind(new(facade.UserSearchService), new(*libes.Service)),
 	wire.Bind(new(facade.RolesGroupsCommands), new(*rolesgroups.Commands)),
+	wire.Bind(new(facade.RolesGroupsQueries), new(*rolesgroups.Queries)),
 	wire.Bind(new(facade.IdentityService), new(*identityservice.Service)),
 	wire.Bind(new(facade.AuthenticatorService), new(*authenticatorservice.Service)),
 	wire.Bind(new(facade.InteractionService), new(*service.InteractionService)),

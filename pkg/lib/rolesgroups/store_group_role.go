@@ -6,6 +6,23 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
+func (s *Store) ListGroupsByRoleID(roleID string) ([]*Group, error) {
+	q := s.SQLBuilder.
+		Select(
+			"g.id",
+			"g.created_at",
+			"g.updated_at",
+			"g.key",
+			"g.name",
+			"g.description",
+		).
+		From(s.SQLBuilder.TableName("_auth_group_role"), "gr").
+		Join(s.SQLBuilder.TableName("_auth_group"), "g", "gr.group_id = g.id").
+		Where("gr.role_id = ?", roleID)
+
+	return s.queryGroups(q)
+}
+
 type AddRoleToGroupsOptions struct {
 	RoleKey   string
 	GroupKeys []string

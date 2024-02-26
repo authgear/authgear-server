@@ -659,6 +659,27 @@ type Group implements Entity & Node {
   updatedAt: DateTime!
 }
 
+"""A connection to a list of items."""
+type GroupConnection {
+  """Information to aid in pagination."""
+  edges: [GroupEdge]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """Total number of nodes in the connection."""
+  totalCount: Int
+}
+
+"""An edge in a connection"""
+type GroupEdge {
+  """ cursor for use in pagination"""
+  cursor: String!
+
+  """The item at the end of the edge"""
+  node: Group
+}
+
 """"""
 type Identity implements Entity & Node {
   """"""
@@ -947,6 +968,9 @@ type Role implements Entity & Node {
 
   """The optional description of the role."""
   description: String
+
+  """The list of groups this role is in."""
+  groups(after: String, before: String, first: Int, last: Int): GroupConnection
 
   """The ID of an object"""
   id: ID!

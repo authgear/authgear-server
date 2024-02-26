@@ -4,6 +4,7 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 const typeGroup = "Group"
@@ -39,3 +40,5 @@ var nodeGroup = node(
 		return ctx.Groups.Load(id).Value, nil
 	},
 )
+
+var connGroup = graphqlutil.NewConnectionDef(nodeGroup)

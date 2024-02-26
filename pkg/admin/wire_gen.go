@@ -942,6 +942,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	rolesGroupsFacade := &facade2.RolesGroupsFacade{
 		RolesGroupsCommands: rolesgroupsCommands,
+		RolesGroupsQueries:  rolesgroupsQueries,
 	}
 	auditLogFeatureConfig := featureConfig.AuditLog
 	auditLogFacade := &facade2.AuditLogFacade{

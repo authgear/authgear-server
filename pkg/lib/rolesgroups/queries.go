@@ -35,3 +35,17 @@ func (q *Queries) GetManyGroups(ids []string) ([]*model.Group, error) {
 
 	return groupModels, nil
 }
+
+func (q *Queries) ListGroupsByRoleID(roleID string) ([]*model.Group, error) {
+	groups, err := q.Store.ListGroupsByRoleID(roleID)
+	if err != nil {
+		return nil, err
+	}
+
+	groupModels := make([]*model.Group, len(groups))
+	for i, r := range groups {
+		groupModels[i] = r.ToModel()
+	}
+
+	return groupModels, nil
+}

@@ -18,8 +18,13 @@ type RolesGroupsCommands interface {
 	RemoveRoleFromGroups(options *rolesgroups.RemoveRoleFromGroupsOptions) (*model.Role, error)
 }
 
+type RolesGroupsQueries interface {
+	ListGroupsByRoleID(roleID string) ([]*model.Group, error)
+}
+
 type RolesGroupsFacade struct {
 	RolesGroupsCommands RolesGroupsCommands
+	RolesGroupsQueries  RolesGroupsQueries
 }
 
 func (f *RolesGroupsFacade) CreateRole(options *rolesgroups.NewRoleOptions) (roleID string, err error) {
@@ -43,6 +48,10 @@ func (f *RolesGroupsFacade) UpdateRole(options *rolesgroups.UpdateRoleOptions) (
 
 func (f *RolesGroupsFacade) DeleteRole(id string) (err error) {
 	return f.RolesGroupsCommands.DeleteRole(id)
+}
+
+func (f *RolesGroupsFacade) ListGroupsByRoleID(roleID string) ([]*model.Group, error) {
+	return f.RolesGroupsQueries.ListGroupsByRoleID(roleID)
 }
 
 func (f *RolesGroupsFacade) CreateGroup(options *rolesgroups.NewGroupOptions) (groupID string, err error) {
