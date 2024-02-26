@@ -1,24 +1,10 @@
 import { stringify } from "csv";
-import { readFile, writeFile, mkdir } from "fs/promises";
-import { parseArgs } from "node:util";
-import { join, dirname, resolve } from "node:path";
+import { readFile } from "fs/promises";
+import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { cwd } from "node:process";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-const {
-  values: { "output-file": outputFile },
-} = parseArgs({
-  options: {
-    "output-file": {
-      short: "f",
-      type: "string",
-      default: "output/v2-translations.csv",
-    },
-  },
-});
 
 const supportedLanguages = ["en", "zh-HK", "zh-TW"];
 
@@ -28,9 +14,8 @@ async function main() {
     const filePath = join(
       __dirname,
       "../..",
-      `resources/authgear/templates/${locale}/translation.json`
+      `resources/authgear/templates/${locale}/translation.json`,
     );
-    console.info(`Reading data from ${filePath}`);
     const jsonStr = String(await readFile(filePath));
     const messages = JSON.parse(jsonStr);
     const v2Messages = Object.entries(messages).reduce(
@@ -41,7 +26,7 @@ async function main() {
         msgs[key] = message;
         return msgs;
       },
-      {}
+      {},
     );
 
     messagesByLocale[locale] = v2Messages;
@@ -69,11 +54,8 @@ async function main() {
         console.log(err);
         process.exit(1);
       }
-      const absOutputFile = resolve(cwd(), outputFile);
-      const outputDir = dirname(absOutputFile);
-      await mkdir(`${outputDir}`, { recursive: true });
-      await writeFile(outputFile, output);
-    }
+      process.stdout.write(output);
+    },
   );
 }
 

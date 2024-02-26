@@ -1,5 +1,6 @@
 import { parse } from "csv";
 import { readFile, writeFile } from "fs/promises";
+import { readFileSync } from "fs";
 import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
 import { join, dirname } from "node:path";
@@ -7,25 +8,13 @@ import { join, dirname } from "node:path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const {
-  values: { "input-file": inputFile },
-} = parseArgs({
-  options: {
-    "input-file": {
-      short: "f",
-      type: "string",
-      default: "output/v2-translations.csv",
-    },
-  },
-});
-
 const supportedLanguages = ["en", "zh-HK", "zh-TW"];
 const columns = ["Key", ...supportedLanguages];
 
 async function main() {
   const updatedMessagesByLocale = {};
   supportedLanguages.forEach((lang) => (updatedMessagesByLocale[lang] = {}));
-  const content = await readFile(inputFile);
+  const content = readFileSync(process.stdin.fd);
   const records = parse(content, {
     columns: () => columns,
   });
