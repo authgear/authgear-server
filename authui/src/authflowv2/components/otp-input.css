@@ -53,7 +53,7 @@
     @apply relative;
     @apply w-full;
 
-    height: var(--otp-input\_\_digit-height);
+    height: var(--otp-input__digit-height);
 
     input {
       @apply w-full;
@@ -63,7 +63,7 @@
       @apply caret-white/0;
       /* iOS treats element with `opacity: 0` as not interactable, set text to transparent instead */
       @apply text-transparent;
-      background-color: var(--otp-input\_\_bg-color);
+      background-color: var(--otp-input__bg-color);
     }
   }
 
@@ -82,10 +82,10 @@
     @apply items-center;
     @apply justify-center;
 
-    width: var(--otp-input\_\_digit-width);
-    height: var(--otp-input\_\_digit-height);
-    border-radius: var(--otp-input\_\_digit-border-radius);
-    color: var(--otp-input\_\_digit-color);
+    width: var(--otp-input__digit-width);
+    height: var(--otp-input__digit-height);
+    border-radius: var(--otp-input__digit-border-radius);
+    color: var(--otp-input__digit-color);
 
     @apply ring-inset
       ring-[length:var(--otp-input\_\_digit-ring-width)]
@@ -100,9 +100,9 @@
         @apply -translate-x-1/2;
         @apply rounded-full;
 
-        width: var(--otp-input\_\_digit-mask-size);
-        height: var(--otp-input\_\_digit-mask-size);
-        background-color: var(--otp-input\_\_digit-mask-color);
+        width: var(--otp-input__digit-mask-size);
+        height: var(--otp-input__digit-mask-size);
+        background-color: var(--otp-input__digit-mask-color);
       }
     }
 
