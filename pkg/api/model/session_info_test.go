@@ -51,6 +51,19 @@ func TestSessionInfo(t *testing.T) {
 			})
 		})
 
+		Convey("NewSessionInfoFromHeaders allow missing bool headers", func() {
+			rw := httptest.NewRecorder()
+			rw.Header().Set("X-Authgear-Session-Valid", "true")
+			rw.Header().Set("X-Authgear-User-ID", "user-id")
+
+			expected, err := model.NewSessionInfoFromHeaders(rw.Header())
+			So(err, ShouldBeNil)
+			So(expected, ShouldResemble, &model.SessionInfo{
+				IsValid: true,
+				UserID:  "user-id",
+			})
+		})
+
 		Convey("PopulateHeaders and NewSessionInfoFromHeaders are inverse", func() {
 			test := func(info *model.SessionInfo) {
 				rw := httptest.NewRecorder()
