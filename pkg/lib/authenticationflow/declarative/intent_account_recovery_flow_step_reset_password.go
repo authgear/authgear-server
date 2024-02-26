@@ -13,7 +13,13 @@ func init() {
 }
 
 type IntentAccountRecoveryFlowStepResetPasswordData struct {
+	TypedData
 	PasswordPolicy *PasswordPolicy `json:"password_policy,omitempty"`
+}
+
+func NewIntentAccountRecoveryFlowStepResetPasswordData(d IntentAccountRecoveryFlowStepResetPasswordData) IntentAccountRecoveryFlowStepResetPasswordData {
+	d.Type = DataTypeResetPasswordData
+	return d
 }
 
 var _ authflow.Data = IntentAccountRecoveryFlowStepResetPasswordData{}
@@ -61,10 +67,10 @@ func (i *IntentAccountRecoveryFlowStepResetPassword) ReactTo(ctx context.Context
 }
 
 func (i *IntentAccountRecoveryFlowStepResetPassword) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	return IntentAccountRecoveryFlowStepResetPasswordData{
+	return NewIntentAccountRecoveryFlowStepResetPasswordData(IntentAccountRecoveryFlowStepResetPasswordData{
 		PasswordPolicy: NewPasswordPolicy(
 			deps.FeatureConfig.Authenticator,
 			deps.Config.Authenticator.Password.Policy,
 		),
-	}, nil
+	}), nil
 }

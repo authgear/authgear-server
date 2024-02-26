@@ -14,12 +14,18 @@ func init() {
 }
 
 type IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData struct {
+	TypedData
 	MaskedDisplayName              string                 `json:"masked_display_name"`
 	Channel                        AccountRecoveryChannel `json:"channel"`
 	OTPForm                        AccountRecoveryOTPForm `json:"otp_form"`
 	CodeLength                     int                    `json:"code_length,omitempty"`
 	CanResendAt                    time.Time              `json:"can_resend_at,omitempty"`
 	FailedAttemptRateLimitExceeded bool                   `json:"failed_attempt_rate_limit_exceeded"`
+}
+
+func NewIntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData(d IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData) IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData {
+	d.Type = DataTypeAccountRecoveryVerifyCodeData
+	return d
 }
 
 var _ authflow.Data = IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData{}
@@ -169,14 +175,14 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) OutputData(ctx 
 			dest.ForgotPasswordCodeChannel(),
 			dest.ForgotPasswordCodeKind(),
 		)
-		return IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData{
+		return NewIntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData(IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData{
 			MaskedDisplayName:              dest.MaskedDisplayName,
 			Channel:                        dest.Channel,
 			OTPForm:                        dest.OTPForm,
 			CodeLength:                     codeLength,
 			CanResendAt:                    state.CanResendAt,
 			FailedAttemptRateLimitExceeded: state.TooManyAttempts,
-		}, nil
+		}), nil
 	} else {
 		// MilestoneDoUseAccountRecoveryDestination might not exist, because the flow is restored
 		return nil, nil

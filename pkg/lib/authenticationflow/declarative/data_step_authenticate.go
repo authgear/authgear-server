@@ -5,6 +5,7 @@ import (
 )
 
 type StepAuthenticateData struct {
+	TypedData
 	Options            []AuthenticateOptionForOutput `json:"options"`
 	DeviceTokenEnabled bool                          `json:"device_token_enable"`
 }
@@ -12,3 +13,8 @@ type StepAuthenticateData struct {
 var _ authflow.Data = StepAuthenticateData{}
 
 func (m StepAuthenticateData) Data() {}
+
+func NewStepAuthenticateData(d StepAuthenticateData) StepAuthenticateData {
+	d.Type = DataTypeAuthenticationData
+	return d
+}

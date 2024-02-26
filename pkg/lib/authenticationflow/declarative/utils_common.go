@@ -697,12 +697,12 @@ func getOAuthData(ctx context.Context, deps *authflow.Dependencies, opts GetOAut
 		return
 	}
 
-	data = OAuthData{
+	data = NewOAuthData(OAuthData{
 		Alias:                 opts.Alias,
 		OAuthProviderType:     oauthProvider.Config().Type,
 		OAuthAuthorizationURL: authorizationURL,
 		WechatAppType:         oauthProvider.Config().AppType,
-	}
+	})
 	return
 }
 

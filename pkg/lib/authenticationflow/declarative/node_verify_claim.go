@@ -22,6 +22,7 @@ func init() {
 }
 
 type NodeVerifyClaimData struct {
+	TypedData
 	Channel                        model.AuthenticatorOOBChannel `json:"channel,omitempty"`
 	OTPForm                        otp.Form                      `json:"otp_form,omitempty"`
 	WebsocketURL                   string                        `json:"websocket_url,omitempty"`
@@ -30,6 +31,11 @@ type NodeVerifyClaimData struct {
 	CanResendAt                    time.Time                     `json:"can_resend_at,omitempty"`
 	CanCheck                       bool                          `json:"can_check"`
 	FailedAttemptRateLimitExceeded bool                          `json:"failed_attempt_rate_limit_exceeded"`
+}
+
+func NewNodeVerifyClaimData(d NodeVerifyClaimData) NodeVerifyClaimData {
+	d.Type = DataTypeVerifyOOBOTPData
+	return d
 }
 
 var _ authflow.Data = &NodeVerifyClaimData{}
@@ -152,7 +158,7 @@ func (n *NodeVerifyClaim) OutputData(ctx context.Context, deps *authflow.Depende
 		}
 	}
 
-	return NodeVerifyClaimData{
+	return NewNodeVerifyClaimData(NodeVerifyClaimData{
 		Channel:                        n.Channel,
 		OTPForm:                        n.Form,
 		WebsocketURL:                   websocketURL,
@@ -161,7 +167,7 @@ func (n *NodeVerifyClaim) OutputData(ctx context.Context, deps *authflow.Depende
 		CanResendAt:                    state.CanResendAt,
 		CanCheck:                       state.SubmittedCode != "",
 		FailedAttemptRateLimitExceeded: state.TooManyAttempts,
-	}, nil
+	}), nil
 }
 
 func (n *NodeVerifyClaim) otpKind(deps *authflow.Dependencies) otp.Kind {

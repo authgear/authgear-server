@@ -20,7 +20,13 @@ func init() {
 }
 
 type IntentSignupFlowStepCreateAuthenticatorData struct {
+	TypedData
 	Options []CreateAuthenticatorOption `json:"options,omitempty"`
+}
+
+func NewIntentSignupFlowStepCreateAuthenticatorData(d IntentSignupFlowStepCreateAuthenticatorData) IntentSignupFlowStepCreateAuthenticatorData {
+	d.Type = DataTypeCreateAuthenticatorData
+	return d
 }
 
 var _ authflow.Data = &IntentSignupFlowStepCreateAuthenticatorData{}
@@ -158,9 +164,9 @@ func (i *IntentSignupFlowStepCreateAuthenticator) OutputData(ctx context.Context
 		return nil, err
 	}
 
-	return IntentSignupFlowStepCreateAuthenticatorData{
+	return NewIntentSignupFlowStepCreateAuthenticatorData(IntentSignupFlowStepCreateAuthenticatorData{
 		Options: options,
-	}, nil
+	}), nil
 }
 
 func (*IntentSignupFlowStepCreateAuthenticator) step(o config.AuthenticationFlowObject) *config.AuthenticationFlowSignupFlowStep {

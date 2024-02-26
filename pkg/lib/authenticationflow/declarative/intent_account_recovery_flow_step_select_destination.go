@@ -19,7 +19,13 @@ func init() {
 }
 
 type IntentAccountRecoveryFlowStepSelectDestinationData struct {
+	TypedData
 	Options []AccountRecoveryDestinationOption `json:"options"`
+}
+
+func NewIntentAccountRecoveryFlowStepSelectDestinationData(d IntentAccountRecoveryFlowStepSelectDestinationData) IntentAccountRecoveryFlowStepSelectDestinationData {
+	d.Type = DataTypeAccountRecoverySelectDestinationData
+	return d
 }
 
 var _ authflow.Data = IntentAccountRecoveryFlowStepSelectDestinationData{}
@@ -106,9 +112,9 @@ func (i *IntentAccountRecoveryFlowStepSelectDestination) ReactTo(ctx context.Con
 }
 
 func (i *IntentAccountRecoveryFlowStepSelectDestination) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	return IntentAccountRecoveryFlowStepSelectDestinationData{
+	return NewIntentAccountRecoveryFlowStepSelectDestinationData(IntentAccountRecoveryFlowStepSelectDestinationData{
 		Options: i.getOptions(),
-	}, nil
+	}), nil
 }
 
 func (*IntentAccountRecoveryFlowStepSelectDestination) step(o config.AuthenticationFlowObject) *config.AuthenticationFlowAccountRecoveryFlowStep {

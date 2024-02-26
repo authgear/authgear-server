@@ -25,6 +25,7 @@ func init() {
 }
 
 type NodeAuthenticationOOBData struct {
+	TypedData
 	Channel                        model.AuthenticatorOOBChannel `json:"channel,omitempty"`
 	OTPForm                        otp.Form                      `json:"otp_form,omitempty"`
 	WebsocketURL                   string                        `json:"websocket_url,omitempty"`
@@ -33,6 +34,11 @@ type NodeAuthenticationOOBData struct {
 	CanResendAt                    time.Time                     `json:"can_resend_at,omitempty"`
 	CanCheck                       bool                          `json:"can_check"`
 	FailedAttemptRateLimitExceeded bool                          `json:"failed_attempt_rate_limit_exceeded"`
+}
+
+func NewNodeAuthenticationOOBData(d NodeAuthenticationOOBData) NodeAuthenticationOOBData {
+	d.Type = DataTypeVerifyOOBOTPData
+	return d
 }
 
 var _ authflow.Data = &NodeAuthenticationOOBData{}
@@ -173,7 +179,7 @@ func (n *NodeAuthenticationOOB) OutputData(ctx context.Context, deps *authflow.D
 		}
 	}
 
-	return NodeAuthenticationOOBData{
+	return NewNodeAuthenticationOOBData(NodeAuthenticationOOBData{
 		Channel:                        n.Channel,
 		OTPForm:                        n.Form,
 		WebsocketURL:                   websocketURL,
@@ -182,7 +188,7 @@ func (n *NodeAuthenticationOOB) OutputData(ctx context.Context, deps *authflow.D
 		CanResendAt:                    state.CanResendAt,
 		CanCheck:                       state.SubmittedCode != "",
 		FailedAttemptRateLimitExceeded: state.TooManyAttempts,
-	}, nil
+	}), nil
 }
 
 func (*NodeAuthenticationOOB) otpMessageType(info *authenticator.Info) otp.MessageType {

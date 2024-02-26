@@ -155,9 +155,9 @@ func (i *IntentReauthFlowStepAuthenticate) OutputData(ctx context.Context, deps 
 		options = append(options, o.ToOutput())
 	}
 
-	return StepAuthenticateData{
+	return NewStepAuthenticateData(StepAuthenticateData{
 		Options: options,
-	}, nil
+	}), nil
 }
 
 func (i *IntentReauthFlowStepAuthenticate) getIndex(step *config.AuthenticationFlowReauthFlowStep, am config.AuthenticationFlowAuthentication) (idx int, err error) {

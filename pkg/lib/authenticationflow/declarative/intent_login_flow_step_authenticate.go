@@ -259,10 +259,10 @@ func (i *IntentLoginFlowStepAuthenticate) OutputData(ctx context.Context, deps *
 		options = append(options, o.ToOutput())
 	}
 
-	return StepAuthenticateData{
+	return NewStepAuthenticateData(StepAuthenticateData{
 		Options:            options,
 		DeviceTokenEnabled: deviceTokenEnabled,
-	}, nil
+	}), nil
 }
 
 func (i *IntentLoginFlowStepAuthenticate) getIndex(step *config.AuthenticationFlowLoginFlowStep, am config.AuthenticationFlowAuthentication) (idx int, err error) {

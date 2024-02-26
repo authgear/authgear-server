@@ -18,8 +18,14 @@ func init() {
 }
 
 type IntentAuthenticationOOBData struct {
+	TypedData
 	Channels         []model.AuthenticatorOOBChannel `json:"channels,omitempty"`
 	MaskedClaimValue string                          `json:"masked_claim_value,omitempty"`
+}
+
+func NewIntentAuthenticationOOBData(d IntentAuthenticationOOBData) IntentAuthenticationOOBData {
+	d.Type = DataTypeOOBChannelsData
+	return d
 }
 
 func (IntentAuthenticationOOBData) Data() {}
@@ -102,10 +108,10 @@ func (i *IntentAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.De
 func (i *IntentAuthenticationOOB) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
 	channels := i.getChannels(deps)
 	claimName, claimValue := i.Info.OOBOTP.ToClaimPair()
-	return IntentAuthenticationOOBData{
+	return NewIntentAuthenticationOOBData(IntentAuthenticationOOBData{
 		Channels:         channels,
 		MaskedClaimValue: getMaskedOTPTarget(claimName, claimValue),
-	}, nil
+	}), nil
 }
 
 func (i *IntentAuthenticationOOB) getChannels(deps *authflow.Dependencies) []model.AuthenticatorOOBChannel {

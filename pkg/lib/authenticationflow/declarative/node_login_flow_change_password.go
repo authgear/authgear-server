@@ -14,7 +14,13 @@ func init() {
 }
 
 type NodeLoginFlowChangePasswordData struct {
+	TypedData
 	PasswordPolicy *PasswordPolicy `json:"password_policy,omitempty"`
+}
+
+func NewNodeLoginFlowChangePasswordData(d NodeLoginFlowChangePasswordData) NodeLoginFlowChangePasswordData {
+	d.Type = DataTypeChangePasswordData
+	return d
 }
 
 func (NodeLoginFlowChangePasswordData) Data() {}
@@ -67,10 +73,10 @@ func (n *NodeLoginFlowChangePassword) ReactTo(ctx context.Context, deps *authflo
 }
 
 func (n *NodeLoginFlowChangePassword) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	return NodeLoginFlowChangePasswordData{
+	return NewNodeLoginFlowChangePasswordData(NodeLoginFlowChangePasswordData{
 		PasswordPolicy: NewPasswordPolicy(
 			deps.FeatureConfig.Authenticator,
 			deps.Config.Authenticator.Password.Policy,
 		),
-	}, nil
+	}), nil
 }

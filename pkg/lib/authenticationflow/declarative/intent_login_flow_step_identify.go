@@ -16,7 +16,13 @@ func init() {
 }
 
 type IntentLoginFlowStepIdentifyData struct {
+	TypedData
 	Options []IdentificationOption `json:"options"`
+}
+
+func NewIntentLoginFlowStepIdentifyData(d IntentLoginFlowStepIdentifyData) IntentLoginFlowStepIdentifyData {
+	d.Type = DataTypeIdentificationData
+	return d
 }
 
 var _ authflow.Data = IntentLoginFlowStepIdentifyData{}
@@ -172,9 +178,9 @@ func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *authflo
 }
 
 func (i *IntentLoginFlowStepIdentify) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	return IntentLoginFlowStepIdentifyData{
+	return NewIntentLoginFlowStepIdentifyData(IntentLoginFlowStepIdentifyData{
 		Options: i.Options,
-	}, nil
+	}), nil
 }
 
 func (*IntentLoginFlowStepIdentify) step(o config.AuthenticationFlowObject) *config.AuthenticationFlowLoginFlowStep {
