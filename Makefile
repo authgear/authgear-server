@@ -146,6 +146,14 @@ export-schemas:
 	npm run --silent --prefix ./scripts/npm export-graphql-schema admin > portal/src/graphql/adminapi/schema.graphql
 	npm run --silent --prefix ./scripts/npm export-graphql-schema portal > portal/src/graphql/portal/schema.graphql
 
+.PHONY: export-v2-translations
+export-v2-translations:
+	@npm run --silent --prefix ./scripts/npm export-v2-translations
+
+.PHONY: import-v2-translations
+import-v2-translations:
+	@npm run --silent --prefix ./scripts/npm import-v2-translations
+
 .PHONY:	generate-timezones
 generate-timezones:
 	npm run --silent --prefix ./scripts/npm generate-go-timezones > pkg/util/tzutil/names.go
