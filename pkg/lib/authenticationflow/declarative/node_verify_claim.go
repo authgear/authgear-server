@@ -3,7 +3,6 @@ package declarative
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
@@ -20,27 +19,6 @@ import (
 func init() {
 	authflow.RegisterNode(&NodeVerifyClaim{})
 }
-
-type NodeVerifyClaimData struct {
-	TypedData
-	Channel                        model.AuthenticatorOOBChannel `json:"channel,omitempty"`
-	OTPForm                        otp.Form                      `json:"otp_form,omitempty"`
-	WebsocketURL                   string                        `json:"websocket_url,omitempty"`
-	MaskedClaimValue               string                        `json:"masked_claim_value,omitempty"`
-	CodeLength                     int                           `json:"code_length,omitempty"`
-	CanResendAt                    time.Time                     `json:"can_resend_at,omitempty"`
-	CanCheck                       bool                          `json:"can_check"`
-	FailedAttemptRateLimitExceeded bool                          `json:"failed_attempt_rate_limit_exceeded"`
-}
-
-func NewNodeVerifyClaimData(d NodeVerifyClaimData) NodeVerifyClaimData {
-	d.Type = DataTypeVerifyOOBOTPData
-	return d
-}
-
-var _ authflow.Data = &NodeVerifyClaimData{}
-
-func (m NodeVerifyClaimData) Data() {}
 
 type NodeVerifyClaim struct {
 	JSONPointer          jsonpointer.T                 `json:"json_pointer,omitempty"`
@@ -158,7 +136,7 @@ func (n *NodeVerifyClaim) OutputData(ctx context.Context, deps *authflow.Depende
 		}
 	}
 
-	return NewNodeVerifyClaimData(NodeVerifyClaimData{
+	return NewVerifyOOBOTPData(VerifyOOBOTPData{
 		Channel:                        n.Channel,
 		OTPForm:                        n.Form,
 		WebsocketURL:                   websocketURL,
