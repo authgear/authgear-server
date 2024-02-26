@@ -51,6 +51,10 @@ func (i *SessionInfo) PopulateHeaders(rw http.ResponseWriter) {
 }
 
 func headerParseBool(name string, value string) (b bool, err error) {
+	if value == "" {
+		return
+	}
+
 	b, err = strconv.ParseBool(value)
 	if err != nil {
 		err = fmt.Errorf("session: failed to parse %v: %w", name, err)
