@@ -10,7 +10,7 @@ export type AuditLogEntryQueryQueryVariables = Types.Exact<{
 }>;
 
 
-export type AuditLogEntryQueryQuery = { __typename?: 'Query', node?: { __typename: 'AuditLog', id: string, createdAt: any, activityType: Types.AuditLogActivityType, ipAddress?: string | null, userAgent?: string | null, clientID?: string | null, data?: any | null, user?: { __typename?: 'User', id: string } | null } | { __typename: 'Authenticator' } | { __typename: 'Authorization' } | { __typename: 'Identity' } | { __typename: 'Session' } | { __typename: 'User' } | null };
+export type AuditLogEntryQueryQuery = { __typename?: 'Query', node?: { __typename: 'AuditLog', id: string, createdAt: any, activityType: Types.AuditLogActivityType, ipAddress?: string | null, userAgent?: string | null, clientID?: string | null, data?: any | null, user?: { __typename?: 'User', id: string } | null } | { __typename: 'Authenticator' } | { __typename: 'Authorization' } | { __typename: 'Group' } | { __typename: 'Identity' } | { __typename: 'Role' } | { __typename: 'Session' } | { __typename: 'User' } | null };
 
 export const AuditLogEntryFragmentDoc = gql`
     fragment AuditLogEntry on AuditLog {
