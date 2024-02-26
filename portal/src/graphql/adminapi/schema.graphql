@@ -789,6 +789,9 @@ type Mutation {
   """Generate OOB OTP code for user"""
   generateOOBOTPCode(input: GenerateOOBOTPCodeInput!): GenerateOOBOTPCodePayload!
 
+  """Remove the role from the groups."""
+  removeRoleFromGroups(input: RemoveRoleFromGroupsInput!): RemoveRoleFromGroupsPayload!
+
   """Reset password of user"""
   resetPassword(input: ResetPasswordInput!): ResetPasswordPayload!
 
@@ -881,6 +884,21 @@ type Query {
 
   """All users"""
   users(after: String, before: String, first: Int, last: Int, searchKeyword: String, sortBy: UserSortBy, sortDirection: SortDirection): UserConnection
+}
+
+""""""
+input RemoveRoleFromGroupsInput {
+  """The list of group keys."""
+  groupKeys: [String!]!
+
+  """The key of the role."""
+  roleKey: String!
+}
+
+""""""
+type RemoveRoleFromGroupsPayload {
+  """"""
+  role: Role!
 }
 
 """"""
