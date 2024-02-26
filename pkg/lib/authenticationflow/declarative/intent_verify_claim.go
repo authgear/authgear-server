@@ -15,19 +15,6 @@ func init() {
 	authflow.RegisterIntent(&IntentVerifyClaim{})
 }
 
-type IntentVerifyClaimData struct {
-	TypedData
-	Channels         []model.AuthenticatorOOBChannel `json:"channels,omitempty"`
-	MaskedClaimValue string                          `json:"masked_claim_value,omitempty"`
-}
-
-func NewIntentVerifyClaimData(d IntentVerifyClaimData) IntentVerifyClaimData {
-	d.Type = DataTypeOOBChannelsData
-	return d
-}
-
-func (IntentVerifyClaimData) Data() {}
-
 type IntentVerifyClaim struct {
 	JSONPointer jsonpointer.T   `json:"json_pointer,omitempty"`
 	UserID      string          `json:"user_id,omitempty"`
@@ -106,7 +93,7 @@ func (i *IntentVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependen
 
 func (i *IntentVerifyClaim) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
 	channels := i.getChannels(deps)
-	return NewIntentVerifyClaimData(IntentVerifyClaimData{
+	return NewOOBData(OOBData{
 		Channels:         channels,
 		MaskedClaimValue: getMaskedOTPTarget(i.ClaimName, i.ClaimValue),
 	}), nil

@@ -17,19 +17,6 @@ func init() {
 	authflow.RegisterIntent(&IntentAuthenticationOOB{})
 }
 
-type IntentAuthenticationOOBData struct {
-	TypedData
-	Channels         []model.AuthenticatorOOBChannel `json:"channels,omitempty"`
-	MaskedClaimValue string                          `json:"masked_claim_value,omitempty"`
-}
-
-func NewIntentAuthenticationOOBData(d IntentAuthenticationOOBData) IntentAuthenticationOOBData {
-	d.Type = DataTypeOOBChannelsData
-	return d
-}
-
-func (IntentAuthenticationOOBData) Data() {}
-
 type IntentAuthenticationOOB struct {
 	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
 	UserID         string                                  `json:"user_id,omitempty"`
@@ -108,7 +95,7 @@ func (i *IntentAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.De
 func (i *IntentAuthenticationOOB) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
 	channels := i.getChannels(deps)
 	claimName, claimValue := i.Info.OOBOTP.ToClaimPair()
-	return NewIntentAuthenticationOOBData(IntentAuthenticationOOBData{
+	return NewOOBData(OOBData{
 		Channels:         channels,
 		MaskedClaimValue: getMaskedOTPTarget(claimName, claimValue),
 	}), nil
