@@ -906,6 +906,9 @@ type Query {
     ids: [ID!]!
   ): [Node]!
 
+  """All roles"""
+  roles(after: String, before: String, first: Int, keyPrefix: String, last: Int): RoleConnection
+
   """All users"""
   users(after: String, before: String, first: Int, last: Int, searchKeyword: String, sortBy: UserSortBy, sortDirection: SortDirection): UserConnection
 }

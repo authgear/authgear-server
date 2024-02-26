@@ -3,6 +3,7 @@ package facade
 import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type RolesGroupsCommands interface {
@@ -19,6 +20,7 @@ type RolesGroupsCommands interface {
 }
 
 type RolesGroupsQueries interface {
+	ListRoles(options *rolesgroups.ListRolesOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
 	ListGroupsByRoleID(roleID string) ([]*model.Group, error)
 	ListRolesByGroupID(groupID string) ([]*model.Role, error)
 }
@@ -49,6 +51,18 @@ func (f *RolesGroupsFacade) UpdateRole(options *rolesgroups.UpdateRoleOptions) (
 
 func (f *RolesGroupsFacade) DeleteRole(id string) (err error) {
 	return f.RolesGroupsCommands.DeleteRole(id)
+}
+
+func (f *RolesGroupsFacade) ListRoles(options *rolesgroups.ListRolesOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, *graphqlutil.PageResult, error) {
+	refs, err := f.RolesGroupsQueries.ListRoles(options, pageArgs)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (interface{}, error) {
+		// No need to report the total number of roles. So we return nil here.
+		return nil, nil
+	})), nil
 }
 
 func (f *RolesGroupsFacade) ListGroupsByRoleID(roleID string) ([]*model.Group, error) {

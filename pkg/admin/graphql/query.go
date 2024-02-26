@@ -10,6 +10,7 @@ import (
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -87,6 +88,41 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				for _, ref := range refs {
 					lazyItems = append(lazyItems, graphqlutil.LazyItem{
 						Lazy:   gqlCtx.Users.Load(ref.ID),
+						Cursor: graphqlutil.Cursor(ref.Cursor),
+					})
+				}
+
+				return graphqlutil.NewConnectionFromResult(lazyItems, result)
+			},
+		},
+		"roles": &graphql.Field{
+			Description: "All roles",
+			Type:        connRole.ConnectionType,
+			Args: relay.NewConnectionArgs(graphql.FieldConfigArgument{
+				"keyPrefix": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+			}),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				gqlCtx := GQLContext(p.Context)
+
+				pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
+
+				keyPrefix, _ := p.Args["keyPrefix"].(string)
+
+				options := &rolesgroups.ListRolesOptions{
+					KeyPrefix: keyPrefix,
+				}
+
+				refs, result, err := gqlCtx.RolesGroupsFacade.ListRoles(options, pageArgs)
+				if err != nil {
+					return nil, err
+				}
+
+				var lazyItems []graphqlutil.LazyItem
+				for _, ref := range refs {
+					lazyItems = append(lazyItems, graphqlutil.LazyItem{
+						Lazy:   gqlCtx.Roles.Load(ref.ID),
 						Cursor: graphqlutil.Cursor(ref.Cursor),
 					})
 				}

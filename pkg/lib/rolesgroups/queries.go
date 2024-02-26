@@ -2,6 +2,8 @@ package rolesgroups
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type Queries struct {
@@ -62,4 +64,27 @@ func (q *Queries) ListRolesByGroupID(groupID string) ([]*model.Role, error) {
 	}
 
 	return roleModels, nil
+}
+
+type ListRolesOptions struct {
+	KeyPrefix string
+}
+
+func (q *Queries) ListRoles(options *ListRolesOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error) {
+	roles, offset, err := q.Store.ListRoles(options, pageArgs)
+	if err != nil {
+		return nil, err
+	}
+
+	models := make([]model.PageItemRef, len(roles))
+	for i, r := range roles {
+		pageKey := db.PageKey{Offset: offset + uint64(i)}
+		cursor, err := pageKey.ToPageCursor()
+		if err != nil {
+			return nil, err
+		}
+
+		models[i] = model.PageItemRef{ID: r.ID, Cursor: cursor}
+	}
+	return models, nil
 }

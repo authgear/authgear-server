@@ -7,6 +7,7 @@ import (
 	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -183,6 +184,28 @@ func (s *Store) GetRoleByKey(key string) (*Role, error) {
 	}
 
 	return r, nil
+}
+
+func (s *Store) ListRoles(options *ListRolesOptions, pageArgs graphqlutil.PageArgs) ([]*Role, uint64, error) {
+	q := s.selectRoleQuery().
+		// Sort by key to ensure we have a stable order.
+		OrderBy("key ASC")
+
+	if options.KeyPrefix != "" {
+		q = q.Where("key ILIKE (? || '%')", options.KeyPrefix)
+	}
+
+	q, offset, err := db.ApplyPageArgs(q, pageArgs)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	roles, err := s.queryRoles(q)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return roles, offset, nil
 }
 
 func (s *Store) selectRoleQuery() db.SelectBuilder {
