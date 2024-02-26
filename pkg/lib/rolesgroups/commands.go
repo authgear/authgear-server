@@ -91,3 +91,12 @@ func (c *Commands) UpdateGroup(options *UpdateGroupOptions) (*model.Group, error
 func (c *Commands) DeleteGroup(id string) error {
 	return c.Store.DeleteGroup(id)
 }
+
+func (c *Commands) AddRoleToGroups(options *AddRoleToGroupsOptions) (*model.Role, error) {
+	r, err := c.Store.AddRoleToGroups(options)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ToModel(), nil
+}

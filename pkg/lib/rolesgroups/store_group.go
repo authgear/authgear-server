@@ -166,6 +166,25 @@ func (s *Store) GetGroupByID(id string) (*Group, error) {
 	return r, nil
 }
 
+func (s *Store) GetGroupByKey(key string) (*Group, error) {
+	q := s.selectGroupQuery().Where("key = ?", key)
+
+	row, err := s.SQLExecutor.QueryRowWith(q)
+	if err != nil {
+		return nil, err
+	}
+
+	r, err := s.scanGroup(row)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrGroupNotFound
+		}
+		return nil, err
+	}
+
+	return r, nil
+}
+
 func (s *Store) selectGroupQuery() db.SelectBuilder {
 	return s.SQLBuilder.
 		Select(
@@ -199,6 +218,27 @@ func (s *Store) scanGroup(scanner db.Scanner) (*Group, error) {
 
 func (s *Store) GetManyGroups(ids []string) ([]*Group, error) {
 	q := s.selectGroupQuery().Where("id = ANY (?)", pq.Array(ids))
+
+	rows, err := s.SQLExecutor.QueryWith(q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var groups []*Group
+	for rows.Next() {
+		r, err := s.scanGroup(rows)
+		if err != nil {
+			return nil, err
+		}
+		groups = append(groups, r)
+	}
+
+	return groups, nil
+}
+
+func (s *Store) GetManyGroupsByKeys(keys []string) ([]*Group, error) {
+	q := s.selectGroupQuery().Where("key = ANY (?)", pq.Array(keys))
 
 	rows, err := s.SQLExecutor.QueryWith(q)
 	if err != nil {

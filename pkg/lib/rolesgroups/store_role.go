@@ -166,6 +166,25 @@ func (s *Store) GetRoleByID(id string) (*Role, error) {
 	return r, nil
 }
 
+func (s *Store) GetRoleByKey(key string) (*Role, error) {
+	q := s.selectRoleQuery().Where("key = ?", key)
+
+	row, err := s.SQLExecutor.QueryRowWith(q)
+	if err != nil {
+		return nil, err
+	}
+
+	r, err := s.scanRole(row)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrRoleNotFound
+		}
+		return nil, err
+	}
+
+	return r, nil
+}
+
 func (s *Store) selectRoleQuery() db.SelectBuilder {
 	return s.SQLBuilder.
 		Select(
@@ -199,6 +218,27 @@ func (s *Store) scanRole(scanner db.Scanner) (*Role, error) {
 
 func (s *Store) GetManyRoles(ids []string) ([]*Role, error) {
 	q := s.selectRoleQuery().Where("id = ANY (?)", pq.Array(ids))
+
+	rows, err := s.SQLExecutor.QueryWith(q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var roles []*Role
+	for rows.Next() {
+		r, err := s.scanRole(rows)
+		if err != nil {
+			return nil, err
+		}
+		roles = append(roles, r)
+	}
+
+	return roles, nil
+}
+
+func (s *Store) GetManyRolesByKeys(keys []string) ([]*Role, error) {
+	q := s.selectRoleQuery().Where("key = ANY (?)", pq.Array(keys))
 
 	rows, err := s.SQLExecutor.QueryWith(q)
 	if err != nil {
