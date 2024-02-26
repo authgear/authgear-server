@@ -77,6 +77,7 @@ type RolesGroupsFacade interface {
 	UpdateGroup(options *rolesgroups.UpdateGroupOptions) error
 	DeleteGroup(id string) error
 	ListRolesByGroupID(groupID string) ([]*apimodel.Role, error)
+	ListGroups(options *rolesgroups.ListGroupsOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
 
 	AddRoleToGroups(options *rolesgroups.AddRoleToGroupsOptions) (string, error)
 	RemoveRoleFromGroups(options *rolesgroups.RemoveRoleFromGroupsOptions) (string, error)

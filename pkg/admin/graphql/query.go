@@ -130,6 +130,41 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				return graphqlutil.NewConnectionFromResult(lazyItems, result)
 			},
 		},
+		"groups": &graphql.Field{
+			Description: "All groups",
+			Type:        connGroup.ConnectionType,
+			Args: relay.NewConnectionArgs(graphql.FieldConfigArgument{
+				"keyPrefix": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+			}),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				gqlCtx := GQLContext(p.Context)
+
+				pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
+
+				keyPrefix, _ := p.Args["keyPrefix"].(string)
+
+				options := &rolesgroups.ListGroupsOptions{
+					KeyPrefix: keyPrefix,
+				}
+
+				refs, result, err := gqlCtx.RolesGroupsFacade.ListGroups(options, pageArgs)
+				if err != nil {
+					return nil, err
+				}
+
+				var lazyItems []graphqlutil.LazyItem
+				for _, ref := range refs {
+					lazyItems = append(lazyItems, graphqlutil.LazyItem{
+						Lazy:   gqlCtx.Groups.Load(ref.ID),
+						Cursor: graphqlutil.Cursor(ref.Cursor),
+					})
+				}
+
+				return graphqlutil.NewConnectionFromResult(lazyItems, result)
+			},
+		},
 		"auditLogs": &graphql.Field{
 			Description: "Audit logs",
 			Type:        connAuditLog.ConnectionType,

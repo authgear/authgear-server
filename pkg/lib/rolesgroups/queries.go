@@ -88,3 +88,26 @@ func (q *Queries) ListRoles(options *ListRolesOptions, pageArgs graphqlutil.Page
 	}
 	return models, nil
 }
+
+type ListGroupsOptions struct {
+	KeyPrefix string
+}
+
+func (q *Queries) ListGroups(options *ListGroupsOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error) {
+	groups, offset, err := q.Store.ListGroups(options, pageArgs)
+	if err != nil {
+		return nil, err
+	}
+
+	models := make([]model.PageItemRef, len(groups))
+	for i, r := range groups {
+		pageKey := db.PageKey{Offset: offset + uint64(i)}
+		cursor, err := pageKey.ToPageCursor()
+		if err != nil {
+			return nil, err
+		}
+
+		models[i] = model.PageItemRef{ID: r.ID, Cursor: cursor}
+	}
+	return models, nil
+}

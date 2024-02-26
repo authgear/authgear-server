@@ -7,6 +7,7 @@ import (
 	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -183,6 +184,28 @@ func (s *Store) GetGroupByKey(key string) (*Group, error) {
 	}
 
 	return r, nil
+}
+
+func (s *Store) ListGroups(options *ListGroupsOptions, pageArgs graphqlutil.PageArgs) ([]*Group, uint64, error) {
+	q := s.selectGroupQuery().
+		// Sort by key to ensure we have a stable order.
+		OrderBy("key ASC")
+
+	if options.KeyPrefix != "" {
+		q = q.Where("key ILIKE (? || '%')", options.KeyPrefix)
+	}
+
+	q, offset, err := db.ApplyPageArgs(q, pageArgs)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	groups, err := s.queryGroups(q)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return groups, offset, nil
 }
 
 func (s *Store) selectGroupQuery() db.SelectBuilder {

@@ -21,6 +21,7 @@ type RolesGroupsCommands interface {
 
 type RolesGroupsQueries interface {
 	ListRoles(options *rolesgroups.ListRolesOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
+	ListGroups(options *rolesgroups.ListGroupsOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
 	ListGroupsByRoleID(roleID string) ([]*model.Group, error)
 	ListRolesByGroupID(groupID string) ([]*model.Role, error)
 }
@@ -90,6 +91,18 @@ func (f *RolesGroupsFacade) UpdateGroup(options *rolesgroups.UpdateGroupOptions)
 
 func (f *RolesGroupsFacade) DeleteGroup(id string) (err error) {
 	return f.RolesGroupsCommands.DeleteGroup(id)
+}
+
+func (f *RolesGroupsFacade) ListGroups(options *rolesgroups.ListGroupsOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, *graphqlutil.PageResult, error) {
+	refs, err := f.RolesGroupsQueries.ListGroups(options, pageArgs)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (interface{}, error) {
+		// No need to report the total number of groups. So we return nil here.
+		return nil, nil
+	})), nil
 }
 
 func (f *RolesGroupsFacade) ListRolesByGroupID(groupID string) ([]*model.Role, error) {
