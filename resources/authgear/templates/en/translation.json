@@ -1,11 +1,9 @@
 {
   "app.name": "Authgear",
-
   "email.default.sender": "no-reply@authgear.com",
   "email.default.reply-to": "",
   "email.default.subject": "",
   "sms.default.sender": "Authgear",
-
   "email.forgot-password.subject": "[{AppName}] Reset password instruction",
   "email.forgot-password-oob.subject": "[{AppName}] Reset password",
   "email.verification.subject": "[{AppName}] Email Verification Instruction",
@@ -17,7 +15,6 @@
   "email.authenticate-primary-login-link.subject": "Logging in to {AppName}",
   "email.authenticate-secondary-oob.subject": "Logging in to {AppName}",
   "email.authenticate-secondary-login-link.subject": "Logging in to {AppName}",
-
   "error-unknown": "An unknown error occurred. If the problem persists, please seek assistance in our <a class=\"link\" target=\"_blank\" href=\"https://github.com/orgs/authgear/discussions/categories/get-help\">Community Forum</a> or contact us at <a class=\"link\" target=\"_blank\" href=\"mailto:help@authgear.com\">help@authgear.com</a>",
   "error-login-id-required": "Please enter your {variant, select, phone{phone number} email {email address} username {username} other {email address or username}}.",
   "error-password-required": "Please enter your password.",
@@ -41,12 +38,10 @@
   "error-email-not-allowed": "The email address you entered is disallowed. Please contact the customer support if you think the email address should be valid.",
   "error-username-not-allowed": "The username you entered is disallowed. Please avoid using reserved usernames like `admin`.",
   "error-invalid-web3-network": "Please sign up with {chainID, select, _1{Ethereum Mainnet} _5{Ethereum Goerli} _137{Polygon Mainnet} _80001{Polygon Mumbai} other{}} network.",
-
   "error-account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {This email} phone {This phone number} username {This username} other {This identity} }} oauth {This email} other {This identity} } cannot be found. Please ensure it is correct.",
   "error-account-conflict": "{ IdentityTypeIncoming, select, login_id { { LoginIDTypeIncoming, select, email {This email} phone {This phone number} username {This username} other {This identity} } } oauth {This email} other {This identity} } is associated with an account.",
   "error-suggestion-sign-in": "{ IntentKind, select, IntentAuthenticate {{ IdentityTypeExisting, select, login_id {Do you want to sign in with { LoginIDTypeExisting, select, email {email} phone {phone number} username {username} other {login ID} }?} oauth {Do you want to sign in with { OAuthProviderTypeExisting, select, google {Google} facebook {Facebook} github {GitHub} linkedin {LinkedIn} azureadv2 {Azure AD} azureadb2c {Azure AD B2C} adfs {AD FS} apple {Apple} wechat {Wechat} other {OAuth} }?} other {Do you want to sign in?} }} other {} }",
   "error-suggestion-connect-oauth": "{ IntentKind, select, IntentAuthenticate {{ IdentityTypeExisting, select, login_id {{ IdentityTypeIncoming, select, oauth {You can link it with your { OAuthProviderTypeIncoming, select, google {Google} facebook {Facebook} github {GitHub} linkedin {LinkedIn} azureadv2 {Azure AD} azureadb2c {Azure AD B2C} adfs {AD FS} apple {Apple} wechat {Wechat} other {OAuth} } account via the settings page after signing in.} other {} }} other {} }} other {} }",
-
   "error-invalid-credentials": "{AuthenticationType, select, password{Incorrect password} totp{Incorrect 6-digit code from the authenticator app / device} oob_otp_sms {Incorrect one-time password} oob_otp_email{Incorrect one-time password} recovery_code {Incorrect recovery code} other {Invalid credentials}}",
   "error-max-length": "Expect string with length less than or equal to {expected, plural, one{# character} other{# characters}}",
   "error-type": "Please enter {expected, select, number{a number} integer{an integer} other{}}",
@@ -83,14 +78,12 @@
   "error-account-locked--countdown": "Your account is locked out. Please try again after <span data-date=\"{rfc3339}\" data-date-type=\"luxon-relative-duration\">{datetime, time, long}</span>.",
   "error-account-locked": "Your account is locked out. Please try again.",
   "error-invalid-whatsapp-user": "Failed to deliver WhatsApp message because the phone number is not a valid whatsapp user.",
-
   "error-network": "Your device is offline. Please check your network connection first.",
   "error-server": "Server encountered an internal error.",
   "error-invalid-selected-image": "The selected image is invalid. Try another one.",
   "error-no-passkey": "Passkey is not found on your device. {type, select, password{Sign in with password instead?} oob_otp_email{Sign in with one-time password instead?} oob_otp_sms{Sign in with one-time password instead?} other{Try another device?}}",
   "error-passkey-empty-allow-credentials": "Sign in with passkey is not fully supported on this device.{variant, select, phone{ Please continue with your phone number.} email{ Please continue with your email address.} username{ Please continue with your username.} other{ Please continue with your email address or username.}}",
   "error-passkey-duplicate": "You have a passkey on this device already.",
-
   "error-metamask-unauthorized": "You did not authorize the operation.",
   "error-metamask-unsupported-method": "The requested method is not supported.",
   "error-metamask-disconnected": "The provider is disconnected from the specified chain.",
@@ -99,13 +92,10 @@
   "error-page-not-found-action": "Return to Home",
   "error-app-not-found": "{host} a not valid project",
   "error-app-not-found-action": "Try out authgear.com",
-
   "success-resend-code": "Resent code successfully!",
   "success-resend-login-link": "Login link successfully resent",
-
   "public-signup-disabled-notice": "Please contact the system administrator for creating new accounts.",
   "feature-disabled-notice": "Feature has been disabled.",
-
   "google-play-store-label": "Google Play Store",
   "apple-app-store-label": "Apple App Store",
   "back-button-title": "Back",
@@ -127,18 +117,13 @@
   "activated-label": "Activated",
   "inactive-label": "Inactive",
   "unset-label": "Unset",
-
   "create-device-token-label": "Do not ask again on this device",
-
   "signup-label": "Sign up",
   "login-label": "Log in",
-
   "log-in-to-continue": "Log in to {AppOrClientName}",
   "sign-up-to-continue": "Sign up to {AppOrClientName}",
   "collect-wallet-to-continue": "Connect a Wallet",
-
   "sign-in-with-passkey": "Sign in with Passkey",
-
   "oauth-branding-apple": "Sign in with Apple",
   "oauth-branding-google": "Sign in with Google",
   "oauth-branding-facebook": "Login with Facebook",
@@ -148,18 +133,14 @@
   "oauth-branding-azureadb2c": "Sign in with Microsoft Azure AD B2C",
   "oauth-branding-adfs": "Sign in with Microsoft AD FS",
   "oauth-branding-wechat": "Login with WeChat",
-
   "sso-login-id-separator-both-present": "or",
-
   "or-label": "or",
-
   "phone-number-placeholder": "Phone number",
   "login-id-placeholder": "{variant, select, email {Email address} username {Username} other {Email address or username}}",
   "use-text-login-id-description": "Use {variant, select, email {email address} username {username} other {email address or username}} instead",
   "use-email-login-id-description": "Use email address instead",
   "use-phone-login-id-description": "Use phone number instead",
   "forgot-password-button-label": "Can''t access your account?",
-
   "enter-password-page-title": "Enter password",
   "enter-additional-password-page-title": "Enter additional password",
   "enter-password-page-title-reauth": "Enter password to continue",
@@ -173,7 +154,6 @@
   "v2-password-placeholder": "Current Password",
   "v2-new-password-placeholder": "New Password",
   "v2-confirm-password-placeholder": "Re-enter Password",
-
   "oob-otp-page-title--sms": "SMS one-time password",
   "oob-otp-page-title--email": "Email one-time password",
   "oob-otp-page-title-reauth--sms": "Enter SMS one-time password to continue",
@@ -187,7 +167,6 @@
   "oob-otp-resend-button-label--unit": "Resend (%ds)",
   "oob-otp-sms-is-not-supported": "Sending SMS is not supported. Please contact administrator.",
   "oob-otp-sms-is-not-supported-with-customer-support": "Sending SMS is not supported. Please contact <a class=\"link\" target=\"_blank\" href={customerSupportLink}>customer support</a>.",
-
   "whatsapp-otp-page-title": "WhatsApp Verification",
   "whatsapp-otp-page-title-reauth": "Enter Whatsapp one-time password to continue",
   "whatsapp-otp-description": "We have sent a {length}-character one-time password to {target}. Please enter the one-time password below to continue",
@@ -197,7 +176,6 @@
   "whatsapp-otp-resend-button-rate-limited-hint": "You have exceeded the maximum of attempts for entering the one-time password. Please get a new one-time password. ",
   "whatsapp-otp-resend-button-label": "Resend",
   "whatsapp-otp-resend-button-label--unit": "Resend (%ds)",
-
   "login-link-otp-page-title": "Login link",
   "login-link-otp-page-title-reauth": "Click the login link to continue",
   "login-link-otp-tips-reauth": "This action you are trying to perform requires you to click the login link to continue.",
@@ -208,13 +186,11 @@
   "login-link-otp-resend-button-label": "Resend",
   "login-link-otp-resend-button-label--unit": "Resend (%ds)",
   "login-link-otp-next-button-label": "Next",
-
   "verify-login-link-page-title": "Confirm your login",
   "verify-login-link-initial-description": "Click the button to confirm login for {AppOrClientName}",
   "verify-login-link-invalid-code-description": "This login link is invalid, used or expired. Please request a new one.",
   "verify-login-link-matched-description": "You''re logged into {AppOrClientName}. Go back to the app.\n\nYou can close this window.",
   "verify-login-link-next-button-label": "Approve",
-
   "verify-user-page-title--sms": "SMS verification",
   "verify-user-page-title--email": "Email verification",
   "verify-user-placeholder": "Verification code",
@@ -223,38 +199,28 @@
   "verify-user-resend-button-rate-limited-hint": "You have exceeded the maximum of attempts for entering the one-time password. Please get a new one-time password. ",
   "verify-user-resend-button-label": "Resend",
   "verify-user-resend-button-label--unit": "Resend (%ds)",
-
   "verify-user-success-page-title": "Account verification",
   "verify-user-success-description": "You have successfully verified your account.",
-
   "use-login-id-key": "Use {key, select, email{email address} username{username} phone{phone number} other{{key}}} instead",
-
   "create-password-page-title": "Set up a password",
   "create-additional-password-page-title": "Set up an additional password",
-
   "create-passkey-page-title": "Set up a passkey",
   "create-passkey-label": "Set up passkey",
-
   "web3-provider-metamask": "MetaMask",
   "web3-provider-metamask-install": "Install MetaMask",
-
   "connect-web3-account-page-title": "Account Connected",
   "connect-web3-account-page-description": "Connected with {provider}",
   "connect-web3-account-page-next": "Next",
   "connect-web3-account-page-change-account": "You can change the connected account by opening the MetaMask extension",
-
   "missing-web3-wallet-page-title": "Install Wallet",
   "missing-web3-wallet-page-description": "{provider} is either missing or not supported for your browser.",
-
   "prompt-create-passkey-page-title": "Set up a passkey",
   "prompt-create-passkey-page-description": "Your device supports passkey authentication. Set up a passkey for faster and safer logins. If you use biometrics, we will never see or store your biometric data.",
   "prompt-create-passkey-skip-label": "Not now",
-
   "use-passkey-page-title": "Use passkey",
   "use-passkey-page-title-reauth": "Use passkey to continue",
   "use-passkey-tips-reauth": "This action you are trying to perform requires you to use passkey.",
   "use-passkey-label": "Use passkey",
-
   "password-policy-required-password-strength-label": "Your new password must be",
   "password-policy-title": "Your new password must follow the below rules:",
   "password-policy-minimum-length": "Minimum {length, plural, one{# character} other{# characters}}",
@@ -272,7 +238,6 @@
   "password-policy-password-strength-meter-3": "Fair",
   "password-policy-password-strength-meter-4": "Very unguessable",
   "password-policy-password-strength-meter-5": "Extremely unguessable",
-
   "forgot-password-page-title": "Forgot password",
   "email-placeholder": "Email address",
   "forgot-password-email-description--link": "Enter your email address to get reset password instruction",
@@ -288,7 +253,6 @@
   "forgot-password-success-page-title": "Request received",
   "forgot-password-success-description": "If you have an account, please follow the instruction sent to {target} to reset your password",
   "login-button-label--forgot-password-success-page": "Sign in",
-
   "forgot-password-otp-page-title--sms": "SMS one-time password",
   "forgot-password-otp-page-title--email": "Email one-time password",
   "forgot-password-otp-description": "We have sent a {length}-character one-time password to {target}. Please enter the one-time password below to continue",
@@ -297,7 +261,6 @@
   "forgot-password-otp-resend-button-rate-limited-hint": "You have exceeded the maximum of attempts for entering the one-time password. Please get a new one-time password. ",
   "forgot-password-otp-resend-button-label": "Resend",
   "forgot-password-otp-resend-button-label--unit": "Resend (%ds)",
-
   "forgot-password-whatsapp-otp-page-title": "WhatsApp Verification",
   "forgot-password-whatsapp-otp-description": "We have sent a {length}-character one-time password to {target}. Please enter the one-time password below to continue",
   "forgot-password-whatsapp-otp-placeholder": "One-time password",
@@ -305,37 +268,28 @@
   "forgot-password-whatsapp-otp-resend-button-rate-limited-hint": "You have exceeded the maximum of attempts for entering the one-time password. Please get a new one-time password. ",
   "forgot-password-whatsapp-otp-resend-button-label": "Resend",
   "forgot-password-whatsapp-otp-resend-button-label--unit": "Resend (%ds)",
-
   "forgot-password-alternatives--whatsapp-otp": "Send one-time password via WhatsApp instead",
   "forgot-password-alternatives--sms-otp": "Send one-time password via SMS instead",
-
   "tester-success-page-title": "Login Success",
   "tester-success-page-description": "You have successfully logged in. This is the user profile your application will receive:",
   "tester-button-label--settings-page": "Check out the Pre-Built User Settings Page",
   "tester-button-label--back-to-portal": "Back to Authgear Portal",
-
   "reset-password-page-title": "Reset password",
   "reset-password-description": "Please enter your new password below.",
-
   "reset-password-success-page-title": "Password reset",
   "reset-password-success-description": "You have successfully reset your password. You can now sign in with it.",
   "login-button-label--reset-password-success-page": "Back to log in",
-
   "change-password-page-title": "Change password",
   "change-password-page-description": "Please enter your new password below.",
   "change-password-page-description--force": "Your password does not meet the password policy requirements. Please enter a new password.",
-
   "change-secondary-password-page-title": "Change additional password",
   "change-secondary-password-page-description": "Please enter your new password below.",
   "change-secondary-password-page-description--force": "Your additional password does not meet the password policy requirements. Please enter a new additional password.",
-
   "logout-button-hint": "Click the button to log out",
   "logout-button-label": "Log out",
-
   "confirm-terminate-other-sessions-hint": "You will be logged out in other devices",
   "confirm-terminate-other-sessions-continue-button-label": "Continue",
   "confirm-terminate-other-sessions-cancel-button-label": "Cancel",
-
   "consent-title": "Continue to {clientName}",
   "consent-scopes-label": "<b>{clientName}</b> would like to:",
   "consent-scopes-full-userinfo": "Access full information in your profile such as email address, phone number, name.",
@@ -344,7 +298,6 @@
   "consent-policy-and-tos-link-desc": "See {clientName}’s <a class=\"link\" target=\"_blank\" href={policyURI}>privacy policy</a> and <a class=\"link\" target=\"_blank\" href={tosURI}>terms of service</a>.",
   "consent-policy-link-desc": "See {clientName}’s <a class=\"link\" target=\"_blank\" href={policyURI}>privacy policy</a>.",
   "consent-tos-link-desc": "See {clientName}’s <a class=\"link\" target=\"_blank\" href={tosURI}>terms of service</a>.",
-
   "settings-page-security-section-title": "Security",
   "settings-page-security-section-description": "These can be used to make sure that it''s really you signing in.",
   "settings-page-mfa-section-title": "2-step verification",
@@ -372,7 +325,6 @@
   "settings-page-trusted-devices-title": "Trusted devices",
   "revoke-all-device-tokens-button-label": "Forget all trusted devices that can skip 2-step verification",
   "no-device-tokens-description": "You do not have any trusted devices that can skip 2-step verification.",
-
   "settings-my-profile-title": "My profile",
   "settings-my-profile-empty-label": "Add personal information to complete your profile",
   "settings-my-account-title": "My account",
@@ -392,19 +344,15 @@
   "settings-identity-login-id-username": "Username",
   "settings-identity-login-id-raw": "Username",
   "settings-identity-siwe": "Ethereum Wallet",
-
   "settings-biometric-title": "Biometric logins",
   "settings-biometric-description": "You''ve enabled biometric logins on these devices.",
   "settings-biometric-identity-unknown-name": "Unknown Device",
   "settings-biometric-identity-description": "Created at <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
-
   "settings-totp-title": "Authenticator apps / devices",
   "settings-totp-item-description": "Added at <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
-
   "settings-passkey-title": "Passkey",
   "settings-passkey-item-description": "{name}<br>Added at <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
   "add-passkey-label": "Add passkey",
-
   "settings-sessions-title": "Signed in devices{hasThirdPartyClient, select, true{ and apps} other{}}",
   "settings-sessions-authorized-devices-title": "Devices",
   "settings-sessions-authorized-devices-description": "You’re currently signed in to your account on these devices",
@@ -417,7 +365,6 @@
   "settings-sessions-confirmation-all-desc": "Are you sure to terminate all other sessions?",
   "settings-sessions-confirmation-action-label": "Terminate",
   "settings-sessions-confirmation-cancel-label": "Cancel",
-
   "settings-sessions-authorized-apps-title": "Authorized apps",
   "settings-sessions-authorized-apps-description": "You used your account to sign in to these sites and apps.",
   "settings-sessions-authorized-apps-full-userinfo-access-description": "Has access to full profile",
@@ -428,15 +375,12 @@
   "settings-sessions-authorized-apps-remove-action-label": "Remove",
   "settings-sessions-authorized-apps-remove-cancel-label": "Cancel",
   "settings-sessions-authorized-apps-empty-desc": "No authorized apps",
-
   "settings-oob-otp-email-title": "Channels for verification via email",
   "settings-oob-otp-phone-title": "Channels for verification via phone",
   "settings-oob-otp-item-description": "Added at <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
-
   "enter-login-id-page-title--change": "Change your {key}",
   "enter-login-id-page-title--add": "Enter your {key}",
   "enter-login-id-page-description--change": "Your current {key} is <b>{displayID}</b>. Please enter your new {key}.",
-
   "setup-password-instead": "Set up password instead",
   "setup-secondary-password-instead": "Set up additional password instead",
   "setup-totp-instead": "Set up authenticator app / device instead",
@@ -446,7 +390,6 @@
   "setup-phone-otp-sms-instead": "Send one-time password via SMS instead",
   "setup-phone-otp-whatsapp-instead": "Send one-time password via Whatsapp instead",
   "setup-oob-otp-without-verification": "Sign in with one-time password via {target} next time",
-
   "enter-password-instead": "Enter password instead",
   "enter-secondary-password-instead": "Enter additional password instead",
   "enter-totp-instead": "Enter 6-digit authenticator code instead",
@@ -457,7 +400,6 @@
   "use-email-otp-link-instead": "Send login link to {target} instead",
   "enter-recovery-code-instead-v1": "Having Trouble? <button class=\"btn secondary-btn\" type=\"submit\">Use recovery code</button>",
   "enter-recovery-code-instead-with-customer-support-v1": "Having Trouble? <button class=\"btn secondary-btn\" type=\"submit\">Use recovery code</button> or contact <a class=\"link\" target=\"_blank\" href={customerSupportLink}>customer support</a>",
-
   "setup-primary-email-otp-instead": "Receive one-time password instead",
   "setup-email-otp-instead": "Set up email 2-step verification instead",
   "setup-primary-phone-otp-instead": "Receive one-time password instead",
@@ -473,15 +415,12 @@
   "verify-login-link-otp-instead": "Verify {target} via login link instead",
   "phone-otp-verify-with-sms-instead": "Verify with SMS instead",
   "phone-otp-verify-with-whatsapp-instead": "Verify via WhatsApp instead",
-
   "setup-oob-otp-title--sms": "Set up SMS 2-step verification",
   "setup-oob-otp-title--whatsapp": "Set up WhatsApp 2-step verification",
   "setup-oob-otp-title--email": "Set up email 2-step verification",
-
   "setup-whatsapp-otp-title": "Set up phone 2-step verification",
   "setup-login-link-otp-title": "Set up login link 2-step verification",
   "setup-login-link-otp-email-input-placeholder": "Email address for receiving login links",
-
   "setup-totp-title": "Set up authenticator",
   "setup-totp-code-placeholder": "6-digit code",
   "setup-totp-description": "Scan the QR code or enter the key with your authenticator device / app",
@@ -489,48 +428,37 @@
   "setup-totp-get-google-authenticator-description": "If you don''t have any authenticator device / app, you can get the Google Authenticator App from <a class=\"link\" target=\"_blank\" href=\"https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2\">Google Play Store</a> or <a class=\"link\" target=\"_blank\" href=\"https://apps.apple.com/app/google-authenticator/id388497605\">Apple App Store</a>",
   "setup-totp-use-google-authenticator-description": "In the App, select <b>Set up account</b> and choose <b>Scan barcode</b>",
   "setup-totp-code-description": "After scanning the code, enter the 6-digit code below",
-
   "enter-totp-title": "2-step verification",
   "enter-totp-title-reauth": "Enter the 6-digit code to continue",
   "enter-totp-description": "Enter the 6-digit code you see in the authenticator app / device",
   "enter-totp-tips-reauth": "This action you are trying to perform requires you to re-enter the 6-digit code.",
   "enter-totp-code-placeholder": "6-digit code from the authenticator app / device",
-
   "enter-recovery-code-title": "2-step verification",
   "enter-recovery-code-description": "Enter any unused 10-letter recovery code",
   "enter-recovery-code-placeholder": "10-letter recovery code",
-
   "recovery-code-title": "Recovery code",
   "recovery-code-not-available-description": "You do not have any recovery codes yet. Get new codes by clicking the button below.",
   "recovery-code-storage-description": "If you lost access to your authentication device, use these recovery codes to recover your account. \nKeep them somewhere safe but accessible.",
   "recovery-code-consumption-description": "You can only use each code once",
-
   "show-password-label": "Show password",
   "hide-password-label": "Hide password",
-
   "return-page-title": "Return to where you were",
   "return-page-description": "Please return to where you were to continue. If you were interacting with an mobile app, please switch back to the app. If you were interacting with a website, please switch back to that tab.",
-
   "require-oauth-page-title": "Direct access to this page is disallowed",
   "require-oauth-page-description": "This page can only be accessed via the authorization endpoint.",
-
   "wechat-auth-title": "Login with WeChat",
   "wechat-auth-with-qr-code-description": "Please scan the QR code in your WeChat app to sign in.",
   "wechat-auth-with-app-description": "Click the below button to continue WeChat Login",
   "wechat-open-app": "Open WeChat app to login",
   "wechat-proceed": "Proceed WeChat login",
-
   "toc-pp-footer": "By registering, you agree to our {variant, select, both{<a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a> and <a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>} termsOnly{<a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a>} privacyOnly{<a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>} other{}}",
   "terms-of-service-link": "",
   "privacy-policy-link": "",
-
   "select-account-title": "Continue to {AppOrClientName}",
   "select-account-you-are-using-description": "You are using",
   "select-account-continue-label": "Continue",
   "select-account-use-another-account-label": "Use another account",
-
   "settings-profile-formatted-names-label": "Name",
-
   "settings-profile-edit-title": "Edit {variant, select, name{Name} email{Email} phone_number{Phone Number} preferred_username{Username} profile{Profile URL} picture{Profile Picture} website{Website URL} gender{Gender} birthdate{Birthdate} zoneinfo{Timezone} locale{Preferred Language} address{Address} other{{label}}}",
   "settings-profile-edit-gender-other": "Other (Please specify)",
   "settings-profile-edit-email-placeholder": "No email addresses available",
@@ -542,9 +470,7 @@
   "settings-profile-edit-remove-confirmation-desc": "Are you sure to remove the profile picture?",
   "settings-profile-edit-remove-confirmation-action-label": "Remove",
   "settings-profile-edit-remove-confirmation-cancel-label": "Cancel",
-
   "settings-page-anonymous-user": "Guest",
-
   "standard-attribute-name": "Full Name",
   "standard-attribute-given-name": "Given Name",
   "standard-attribute-family-name": "Family Name",
@@ -566,29 +492,22 @@
   "standard-attribute-postal-code": "Postal Code",
   "standard-attribute-region": "State / Province / Prefecture / Region",
   "standard-attribute-country": "Territory",
-
   "custom-attribute-numeric-hint-minimum": "Please enter a number greater than or equal to {minimum}",
   "custom-attribute-numeric-hint-maximum": "Please enter a number less than or equal to {maximum}",
   "custom-attribute-numeric-hint-minimum-maximum": "Please enter a number between {minimum} and {maximum}",
-
   "account-deletion-delete-account-link-label": "Delete your account",
   "account-deletion-title": "Delete your account",
   "account-deletion-description": "By deleting the account, all data will be permanently deleted and we will not be able to retrieve it. If you continue, your account will be deleted on <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "account-deletion-confirmation-label": "Please type <b>DELETE</b> to confirm",
   "account-deletion-delete-account-button-label": "Delete account",
-
   "account-deletion-success-title": "Account deletion scheduled",
   "account-deletion-success-description": "Your account has been deactivated and the data will be deleted on <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
-
   "account-status-contact-support": "Please contact customer support.",
   "account-status-contact-support-with-link": "Please contact <a class=\"link\" target=\"_blank\" href={customerSupportLink}>customer support</a>.",
-
   "gender-female": "Female",
   "gender-male": "Male",
-
   "tutorial-signup-login": "This is the <b>Signup & Login page</b> of your project. Try sign up and be the first user of your app!",
   "tutorial-settings": "The <b>Account Setting page</b> is ready to go. Your users can manage their security and profile here. Integrate this page to your apps for full auth experience.",
-
   "territory-AC": "Ascension Island",
   "territory-AD": "Andorra",
   "territory-AE": "United Arab Emirates",
@@ -852,7 +771,6 @@
   "territory-ZM": "Zambia",
   "territory-ZW": "Zimbabwe",
   "territory-ZZ": "Unknown Region",
-
   "language-af": "Afrikaans",
   "language-am": "አማርኛ",
   "language-ar": "العربية",
@@ -921,18 +839,15 @@
   "language-zh-HK": "繁體中文(香港)",
   "language-zh-TW": "繁體中文(台灣)",
   "language-zu": "isiZulu",
-
   "v2-sign-up.title": "Sign up for {AppOrClientName}",
   "v2-sign-up.subtitle": "It''s free. No credit card needed.",
   "v2-sign-up.switch-to-login": "Already have an account? <a href=\"{href}\">Log in</a>",
   "v2-sign-up.signup-with-email": "Continue with Email",
   "v2-sign-up.signup-with-username": "Continue with Username",
   "v2-sign-up.signup-with-phone": "Continue with Phone",
-
   "v2-login.title": "Sign in to {AppOrClientName}",
   "v2-login.subtitle": "It''s free. No credit card needed.",
   "v2-login.switch-to-sign-up": "No account? <a href=\"{href}\">Create one</a>",
-
   "v2-or-label": "or",
   "v2-placeholder.login-id": "{variant, select, email {Email address} username {Username} other {Email address or username}}",
   "v2-placeholder.phone": "Phone number",
@@ -947,11 +862,9 @@
   "v2-password-policy-password-strength-meter-5": "Very Strong",
   "v2-no-results-found": "No results found",
   "v2-search-label": "Search",
-
   "v2-continue-with-text-login-id": "Continue with {variant, select, email {Email} username {Username} other {Email / Username}}",
   "v2-continue-with-phone": "Continue with Phone",
   "v2-continue-with-passkey": "Continue with Passkey",
-
   "v2-oauth-branding-apple": "Sign in with Apple",
   "v2-oauth-branding-google": "Sign in with Google",
   "v2-oauth-branding-facebook": "Login with Facebook",
@@ -961,7 +874,6 @@
   "v2-oauth-branding-azureadb2c": "Sign in with Microsoft Azure AD B2C",
   "v2-oauth-branding-adfs": "Sign in with Microsoft AD FS",
   "v2-oauth-branding-wechat": "Login with WeChat",
-
   "v2-error-invalid-email": "Please include '@' in the email address.",
   "v2-error-web-ui-invalid-session-return": "<p>This page is invalid or has expired.</p><p>Please return and retry your request.</p>",
   "v2-error-no-public-signup": "<p>Sign up is disabled.</p><p>Please contact system admin.</p>",
@@ -980,7 +892,6 @@
   "v2-password-policy-alphabet": "Contains an lowercase letter",
   "v2-password-policy-digit": "Contains an digit",
   "v2-password-policy-symbol": "Contains special character",
-
   "v2-oob-otp-page-title": "Verification Code",
   "v2-oob-otp-page-subtitle": "We''ve just sent a {CodeLength}-digit verification code to {MaskedClaimValue}.",
   "v2-oob-otp-page-subtitle-reauth": "For your security, we need to verify it''s you. We''ve just sent a {CodeLength}-digit verification code to {MaskedClaimValue}.",
@@ -1006,16 +917,13 @@
   "v2-enter-additional-password-page-title": "Enter additional password",
   "v2-enter-password-page-description-reauth": "For your security, we need to verify it''s you.",
   "v2-enter-additional-password-page-description-reauth": "For your security, we need your additional password to continue.",
-
   "v2-select-account-title": "Log in to {AppOrClientName}",
   "v2-select-account-description": "You have logged in with {IdentityDisplayName}. Proceed to continue.",
   "v2-select-account-use-another-account": "Use another account",
-
   "v2-setup-oob-otp-page-title": "2-Step Verification",
   "v2-setup-oob-otp-page-subtitle--sms": "You can receive sign-in codes at this number.",
   "v2-setup-oob-otp-page-subtitle--whatsapp": "You can receive sign-in codes at this number.",
   "v2-setup-oob-otp-page-subtitle--email": "You can receive sign-in codes at this email.",
-
   "v2-forgot-password-title": "Forgot password?",
   "v2-forgot-password-description--input-email": "Enter the email address associated with your account, and we''ll send you a email to reset your password.",
   "v2-forgot-password-description--input-phone": "Enter the phone number associated with your account, and we''ll send you a message to reset your password.",
@@ -1023,12 +931,10 @@
   "v2-forgot-password-description--send-phone": "We''ll send you a message to {LoginID} to reset your password.",
   "v2-forgot-password-send-via-phone": "Send via Phone",
   "v2-forgot-password-send-via-email": "Send via Email",
-
   "v2-forgot-password-link-sent-title": "Link Sent",
   "v2-forgot-password-link-sent-description": "A link to reset your password has been sent to {MaskedLoginID}",
   "v2-forgot-password-link-sent-resend": "Resend again",
   "v2-forgot-password-link-sent-resend--unit": "Resend again in %s",
-
   "v2-lockout-title": "Account Unavailable",
   "v2-lockout-subtitle": "Your account has been locked due to too many attempts. Please try again later.",
   "v2-lockout-retry-button-label": "Retry",
@@ -1045,7 +951,6 @@
   "v2-error-account-conflict": "{ IdentityTypeIncoming, select, login_id {{FlowType, select, login {Looks like you used {OAuthProviderNameExisting} for login before.} other {This {LoginIDNameIncoming} is already registered.}}} oauth {Looks like you haven''t linked up with that {OAuthProviderNameIncoming} account yet.} other {This account is already registered} }",
   "v2-error-suggestion-account-conflict-oauth": "{ IdentityTypeIncoming, select, login_id {You can try login with {OAuthProviderNameExisting} or use another {LoginIDNameIncoming} below.} oauth {You can try another {OAuthProviderNameIncoming} account{ IdentityTypeExisting, select, login_id { or use your {LoginIDNameExisting} below.} other {or use another method below.} }} other {You can try another account.} }",
   "v2-error-suggestion-account-conflict-login-id": "Do you want to login?",
-
   "v2-setup-password-instead": "Set up password",
   "v2-setup-secondary-password-instead": "Set up additional password",
   "v2-setup-totp-instead": "Set up Authenticator",
@@ -1055,7 +960,6 @@
   "v2-setup-phone-otp-sms-instead": "Set up phone",
   "v2-setup-phone-otp-whatsapp-instead": "Set up Whatsapp",
   "v2-setup-oob-otp-without-verification": "Sign in with one-time password via {target} next time",
-
   "v2-enter-recovery-code-title": "Enter Recovery Code",
   "v2-enter-recovery-code-description": "Enter an unused 10-character recovery code.",
   "v2-enter-recovery-code-description-reauth": "For your security, we need to verify it''s you. Enter an unused 10-character recovery code.",
@@ -1064,16 +968,13 @@
   "v2-change-password-success-page-title": "Password updated",
   "v2-change-password-success-page-description": "Your password successfully updated!",
   "v2-update-button-label": "Update",
-
   "v2-forgot-password-otp-page-title--sms": "Verification Code",
   "v2-forgot-password-otp-page-title--email": "Verification Code",
   "v2-forgot-password-otp-page-title": "Verification Code",
   "v2-forgot-password-otp-description": "We''ve just sent a {CodeLength}-digit verification code to {MaskedClaimValue}.",
   "v2-forgot-password-otp-description--whatsapp": "We''ve just sent a {CodeLength}-digit verification code to your WhatsApp number at {MaskedClaimValue}.",
-
   "v2-forgot-password-alternatives--sms-otp": "Send via SMS",
   "v2-forgot-password-alternatives--whatsapp-otp": "Send via WhatsApp",
-
   "v2-verify-login-link-title": "Confirm Your Login",
   "v2-verify-login-link-description": "Click the button to confirm login for {AppOrClientName}.",
   "v2-verify-login-link-approve": "Approve",
@@ -1081,16 +982,13 @@
   "v2-verify-login-link-invalid-description": "This link is invalid, used or expired. Please request a new one.",
   "v2-verify-login-link-approved-title": "Approved",
   "v2-verify-login-link-approved-description": "You''ve approved the login for {AppOrClientName}. <br/>You can close this window.",
-
   "v2-prompt-create-passkey-title": "Simplify your sign-in",
   "v2-prompt-create-passkey-description": "With Passkeys you can now use your fingerprint, face, or screen lock to verify it''s really you.",
   "v2-prompt-create-passkey-skip": "Not now",
-
   "v2-use-passkey-title": "Login with Passkey",
   "v2-use-passkey-description": "Log in using the button below.",
   "v2-use-passkey-description-reauth": "For your security, we need to verify it''s you. Log in using the button below.",
   "v2-use-passkey-action": "Use passkey",
-
   "v2-reset-password-page-title": "Update Password",
   "v2-reset-password-page-subtitle": "Create a new password that complies with security requirements.",
   "v2-reset-password-success-page-title": "Password updated",
@@ -1105,7 +1003,6 @@
   "v2-enter-totp-title": "Verification Code",
   "v2-enter-totp-description": "Enter the 6-digit code you see in the authenticator device/app.",
   "v2-enter-totp-description-reauth": "For your security, we need to verify it''s you. Enter the 6-digit code you see in the authenticator device/app.",
-
   "v2-login-link-otp-page-title": "Link Sent",
   "v2-login-link-otp-initial-description": "We''ve just sent a login link to {target}. If not received, please resend.",
   "v2-login-link-otp-initial-description-reauth": "For your security, we need to verify it''s you. We''ve just sent a login link to {target}. If not received, please resend.",
@@ -1114,17 +1011,12 @@
   "v2-login-link-otp-matched-description": "Your email has been successfully verified. Start exploring now.",
   "v2-login-link-otp-resend-button-label": "Resend again",
   "v2-login-link-otp-resend-button-label--unit": "Resend in %s",
-
   "v2-confirm-terminate-other-sessions-title": "Log out other device?",
   "v2-confirm-terminate-other-sessions-description": "You''re logged in on another device. Continuing will log out from other devices.",
   "v2-confirm-terminate-other-sessions-cancel-button-label": "No, don''t log out",
-
   "v2-toc-pp-footer": "By registering, you agree to the {variant, select, both{<a class=\"link-btn\" target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a> and <a class=\"link-btn\" target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>} termsOnly{<a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a>} privacyOnly{<a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>} other{}}",
-
   "v2-error-account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {This email} phone {This phone number} username {This username} other {This identity} }} oauth {This email} other {This identity} } cannot be found. Please ensure it is correct.",
   "v2-login-id-name": "{ LoginIDType, select, email {email} phone {phone number} username {username} other {{ LoginIDKey, select, email {email} phone {phone number} username {username} other {identity} }} }",
   "v2-oauth-provider-name": "{ OAuthProviderType, select, google {Google} facebook {Facebook} github {GitHub} linkedin {LinkedIn} azureadv2 {Azure AD} azureadb2c {Azure AD B2C} adfs {AD FS} apple {Apple} wechat {Wechat} other {OAuth} }",
-
-  "v2-error-network": "There was a problem performing this action. Please try again",
-  "v2-error-server": "Server encountered an internal error."
+  "v2-error-network": "There was a problem performing this action. Please try again"
 }
