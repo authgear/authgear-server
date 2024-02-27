@@ -172,3 +172,12 @@ func (c *Commands) AddUserToRoles(options *AddUserToRolesOptions) error {
 
 	return nil
 }
+
+func (c *Commands) RemoveUserFromRoles(options *RemoveUserFromRolesOptions) error {
+	err := c.Store.RemoveUserFromRoles(options)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

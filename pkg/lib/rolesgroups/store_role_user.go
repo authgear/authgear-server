@@ -152,3 +152,42 @@ func (s *Store) AddUserToRoles(options *AddUserToRolesOptions) error {
 
 	return nil
 }
+
+type RemoveUserFromRolesOptions struct {
+	UserID   string
+	RoleKeys []string
+}
+
+func (s *Store) RemoveUserFromRoles(options *RemoveUserFromRolesOptions) error {
+	u, err := s.GetUserByID(options.UserID)
+	if err != nil {
+		return err
+	}
+
+	rs, err := s.GetManyRolesByKeys(options.RoleKeys)
+	if err != nil {
+		return err
+	}
+
+	var seenKeys []string
+	for _, r := range rs {
+		q := s.SQLBuilder.
+			Delete(s.SQLBuilder.TableName("_auth_user_role")).
+			Where("role_id = ? AND user_id = ?", r.ID, u)
+
+		_, err := s.SQLExecutor.ExecWith(q)
+		if err != nil {
+			return err
+		}
+
+		seenKeys = append(seenKeys, r.Key)
+	}
+
+	missingKeys := slice.ExceptStrings(options.RoleKeys, seenKeys)
+	if len(missingKeys) > 0 {
+		err := RoleUnknownKeys.NewWithInfo("unknown role keys", apierrors.Details{"keys": missingKeys})
+		return err
+	}
+
+	return nil
+}
