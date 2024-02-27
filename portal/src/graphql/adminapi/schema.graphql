@@ -14,6 +14,21 @@ type AddRoleToGroupsPayload {
 }
 
 """"""
+input AddRoleToUsersInput {
+  """The key of the role."""
+  roleKey: String!
+
+  """The list of user ids."""
+  userIDs: [ID!]
+}
+
+""""""
+type AddRoleToUsersPayload {
+  """"""
+  role: Role!
+}
+
+""""""
 input AnonymizeUserInput {
   """Target user ID."""
   userID: ID!
@@ -769,6 +784,9 @@ enum IdentityType {
 type Mutation {
   """Add the role to the groups."""
   addRoleToGroups(input: AddRoleToGroupsInput!): AddRoleToGroupsPayload!
+
+  """Add the role to the users."""
+  addRoleToUsers(input: AddRoleToUsersInput!): AddRoleToUsersPayload!
 
   """Anonymize specified user"""
   anonymizeUser(input: AnonymizeUserInput!): AnonymizeUserPayload!
