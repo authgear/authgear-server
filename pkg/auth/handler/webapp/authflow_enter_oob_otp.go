@@ -57,13 +57,7 @@ func NewAuthflowEnterOOBOTPViewModel(s *webapp.Session, screen *webapp.AuthflowS
 	var resendCooldown int
 
 	switch data := screen.StateTokenFlowResponse.Action.Data.(type) {
-	case declarative.NodeAuthenticationOOBData:
-		channel = data.Channel
-		maskedClaimValue = data.MaskedClaimValue
-		codeLength = data.CodeLength
-		failedAttemptRateLimitExceeded = data.FailedAttemptRateLimitExceeded
-		resendCooldown = int(data.CanResendAt.Sub(now).Seconds())
-	case declarative.NodeVerifyClaimData:
+	case declarative.VerifyOOBOTPData:
 		channel = data.Channel
 		maskedClaimValue = data.MaskedClaimValue
 		codeLength = data.CodeLength

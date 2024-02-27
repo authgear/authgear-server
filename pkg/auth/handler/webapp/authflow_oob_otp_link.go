@@ -39,12 +39,7 @@ func NewAuthflowOOBOTPLinkViewModel(s *webapp.Session, screen *webapp.AuthflowSc
 	var websocketURL string
 
 	switch data := screen.StateTokenFlowResponse.Action.Data.(type) {
-	case declarative.NodeAuthenticationOOBData:
-		maskedClaimValue = data.MaskedClaimValue
-		resendCooldown = int(data.CanResendAt.Sub(now).Seconds())
-		canCheck = data.CanCheck
-		websocketURL = data.WebsocketURL
-	case declarative.NodeVerifyClaimData:
+	case declarative.VerifyOOBOTPData:
 		maskedClaimValue = data.MaskedClaimValue
 		resendCooldown = int(data.CanResendAt.Sub(now).Seconds())
 		canCheck = data.CanCheck

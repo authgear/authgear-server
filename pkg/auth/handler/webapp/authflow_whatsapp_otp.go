@@ -51,12 +51,7 @@ func NewAuthflowWhatsappOTPViewModel(s *webapp.Session, screen *webapp.AuthflowS
 	var resendCooldown int
 
 	switch data := screen.StateTokenFlowResponse.Action.Data.(type) {
-	case declarative.NodeAuthenticationOOBData:
-		maskedClaimValue = data.MaskedClaimValue
-		codeLength = data.CodeLength
-		failedAttemptRateLimitExceeded = data.FailedAttemptRateLimitExceeded
-		resendCooldown = int(data.CanResendAt.Sub(now).Seconds())
-	case declarative.NodeVerifyClaimData:
+	case declarative.VerifyOOBOTPData:
 		maskedClaimValue = data.MaskedClaimValue
 		codeLength = data.CodeLength
 		failedAttemptRateLimitExceeded = data.FailedAttemptRateLimitExceeded
