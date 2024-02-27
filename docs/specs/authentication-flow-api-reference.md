@@ -1556,7 +1556,7 @@ When you are in this step, you will see a response like the following
     "action": {
       "type": "change_password",
       "data": {
-        "type": "change_password_data",
+        "type": "new_password_data",
         "password_policy": {
           "minimum_length": 8,
           "alphabet_required": true,

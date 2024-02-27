@@ -12,20 +12,6 @@ func init() {
 	authflow.RegisterIntent(&IntentAccountRecoveryFlowStepResetPassword{})
 }
 
-type IntentAccountRecoveryFlowStepResetPasswordData struct {
-	TypedData
-	PasswordPolicy *PasswordPolicy `json:"password_policy,omitempty"`
-}
-
-func NewIntentAccountRecoveryFlowStepResetPasswordData(d IntentAccountRecoveryFlowStepResetPasswordData) IntentAccountRecoveryFlowStepResetPasswordData {
-	d.Type = DataTypeResetPasswordData
-	return d
-}
-
-var _ authflow.Data = IntentAccountRecoveryFlowStepResetPasswordData{}
-
-func (IntentAccountRecoveryFlowStepResetPasswordData) Data() {}
-
 type IntentAccountRecoveryFlowStepResetPassword struct {
 	StepName    string        `json:"step_name,omitempty"`
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
@@ -67,7 +53,7 @@ func (i *IntentAccountRecoveryFlowStepResetPassword) ReactTo(ctx context.Context
 }
 
 func (i *IntentAccountRecoveryFlowStepResetPassword) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	return NewIntentAccountRecoveryFlowStepResetPasswordData(IntentAccountRecoveryFlowStepResetPasswordData{
+	return NewNewPasswordData(NewPasswordData{
 		PasswordPolicy: NewPasswordPolicy(
 			deps.FeatureConfig.Authenticator,
 			deps.Config.Authenticator.Password.Policy,

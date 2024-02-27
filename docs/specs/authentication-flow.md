@@ -915,7 +915,7 @@ The data contains information of the totp.
 `secret`: The totp secret.
 `otpauth_uri`: The uri for constructing a QR code image, which can be read by authenticator apps.
 
-#### change_password_data
+#### new_password_data
 
 The data contains requirements of the new password.
 
@@ -943,9 +943,3 @@ The data contains information about the account recovery code verification step.
 `code_length`: The length of the sent code.
 `can_resend_at`: A timestamp. Resend can be triggered after this timestamp.
 `failed_attempt_rate_limit_exceeded`: If `true`, the maximum number of fail attempt has been exceeded, therefore the code becomes invalid. You should request for a new code.
-
-#### reset_password_data
-
-The data contains requirements of the new password.
-
-`password_policy`: The password policy requirements.
