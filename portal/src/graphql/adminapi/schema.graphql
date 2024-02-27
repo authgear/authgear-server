@@ -1,4 +1,19 @@
 """"""
+input AddGroupToRolesInput {
+  """The key of the group."""
+  groupKey: String!
+
+  """The list of role keys."""
+  roleKeys: [String!]!
+}
+
+""""""
+type AddGroupToRolesPayload {
+  """"""
+  group: Group!
+}
+
+""""""
 input AddGroupToUsersInput {
   """The key of the group."""
   groupKey: String!
@@ -797,6 +812,9 @@ enum IdentityType {
 
 """"""
 type Mutation {
+  """Add the group to the roles."""
+  AddGroupToRolesInput(input: AddGroupToRolesInput!): AddGroupToRolesPayload!
+
   """Add the group to the users."""
   addGroupToUsers(input: AddGroupToUsersInput!): AddGroupToUsersPayload!
 

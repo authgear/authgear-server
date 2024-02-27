@@ -145,3 +145,12 @@ func (c *Commands) RemoveGroupFromUsers(options *RemoveGroupFromUsersOptions) (*
 
 	return r.ToModel(), nil
 }
+
+func (c *Commands) AddGroupToRoles(options *AddGroupToRolesOptions) (*model.Group, error) {
+	r, err := c.Store.AddGroupToRoles(options)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ToModel(), nil
+}

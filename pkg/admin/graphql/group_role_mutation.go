@@ -129,3 +129,65 @@ var _ = registerMutationField(
 		},
 	},
 )
+
+var addGroupToRolesInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "AddGroupToRolesInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"groupKey": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.String),
+			Description: "The key of the group.",
+		},
+		"roleKeys": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(graphql.String))),
+			Description: "The list of role keys.",
+		},
+	},
+})
+
+var addGroupToRolesPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "AddGroupToRolesPayload",
+	Fields: graphql.Fields{
+		"group": &graphql.Field{
+			Type: graphql.NewNonNull(nodeGroup),
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"addGroupToRoles",
+	&graphql.Field{
+		Description: "Add the group to the roles.",
+		Type:        graphql.NewNonNull(addGroupToRolesPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(addGroupToRolesInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			input := p.Args["input"].(map[string]interface{})
+
+			groupKey := input["groupKey"].(string)
+
+			roleKeyIfaces := input["roleKeys"].([]interface{})
+			roleKeys := make([]string, len(roleKeyIfaces))
+			for i, v := range roleKeyIfaces {
+				roleKeys[i] = v.(string)
+			}
+
+			options := &rolesgroups.AddGroupToRolesOptions{
+				GroupKey: groupKey,
+				RoleKeys: roleKeys,
+			}
+
+			gqlCtx := GQLContext(p.Context)
+			groupID, err := gqlCtx.RolesGroupsFacade.AddGroupToRoles(options)
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"group": gqlCtx.Groups.Load(groupID),
+			}).Value, nil
+		},
+	},
+)

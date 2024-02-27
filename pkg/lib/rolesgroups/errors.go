@@ -15,3 +15,5 @@ var ErrGroupDuplicateKey = apierrors.BadRequest.WithReason("GroupDuplicateKey").
 var GroupUnknownKeys = apierrors.NotFound.WithReason("GroupUnknownKeys")
 
 var UserUnknownKeys = apierrors.NotFound.WithReason("UserUnknownKeys")
+
+var RoleUnknownKeys = apierrors.NotFound.WithReason("RoleUnknownKeys")
