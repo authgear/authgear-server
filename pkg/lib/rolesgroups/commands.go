@@ -127,3 +127,12 @@ func (c *Commands) RemoveRoleFromUsers(options *RemoveRoleFromUsersOptions) (*mo
 
 	return r.ToModel(), nil
 }
+
+func (c *Commands) AddGroupToUsers(options *AddGroupToUsersOptions) (*model.Group, error) {
+	r, err := c.Store.AddGroupToUsers(options)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ToModel(), nil
+}
