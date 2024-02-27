@@ -59,6 +59,21 @@ type AddRoleToUsersPayload {
 }
 
 """"""
+input AddUserToGroupsInput {
+  """The list of group keys."""
+  groupKeys: [String!]
+
+  """The ID of the user."""
+  userID: ID!
+}
+
+""""""
+type AddUserToGroupsPayload {
+  """"""
+  user: User!
+}
+
+""""""
 input AddUserToRolesInput {
   """The list of role keys."""
   roleKeys: [String!]
@@ -838,6 +853,9 @@ type Mutation {
 
   """Add the role to the users."""
   addRoleToUsers(input: AddRoleToUsersInput!): AddRoleToUsersPayload!
+
+  """Add the user to the groups."""
+  addUserToGroups(input: AddUserToGroupsInput!): AddUserToGroupsPayload!
 
   """Add the user to the roles."""
   addUserToRoles(input: AddUserToRolesInput!): AddUserToRolesPayload!

@@ -93,6 +93,8 @@ type RolesGroupsFacade interface {
 
 	AddUserToRoles(options *rolesgroups.AddUserToRolesOptions) (err error)
 	RemoveUserFromRoles(options *rolesgroups.RemoveUserFromRolesOptions) (err error)
+
+	AddUserToGroups(options *rolesgroups.AddUserToGroupsOptions) (err error)
 }
 
 type IdentityFacade interface {

@@ -127,3 +127,64 @@ var _ = registerMutationField(
 		},
 	},
 )
+
+var addUserToGroupsInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "AddUserToGroupsInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"userID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "The ID of the user.",
+		},
+		"groupKeys": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewList(graphql.NewNonNull(graphql.String)),
+			Description: "The list of group keys.",
+		},
+	},
+})
+
+var addUserToGroupsPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "AddUserToGroupsPayload",
+	Fields: graphql.Fields{
+		"user": &graphql.Field{
+			Type: graphql.NewNonNull(nodeUser),
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"addUserToGroups",
+	&graphql.Field{
+		Description: "Add the user to the groups.",
+		Type:        graphql.NewNonNull(addUserToGroupsPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(addUserToGroupsInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			input := p.Args["input"].(map[string]interface{})
+
+			userID := input["userID"].(string)
+			groupKeyIfaces := input["groupKeys"].([]interface{})
+			groupKeys := make([]string, len(groupKeyIfaces))
+			for i, v := range groupKeyIfaces {
+				groupKeys[i] = v.(string)
+			}
+			gqlCtx := GQLContext(p.Context)
+
+			options := &rolesgroups.AddUserToGroupsOptions{
+				UserID:    userID,
+				GroupKeys: groupKeys,
+			}
+			err := gqlCtx.RolesGroupsFacade.AddUserToGroups(options)
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"user": gqlCtx.Users.Load(userID),
+			}).Value, nil
+
+		},
+	},
+)

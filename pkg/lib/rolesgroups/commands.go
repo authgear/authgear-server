@@ -181,3 +181,12 @@ func (c *Commands) RemoveUserFromRoles(options *RemoveUserFromRolesOptions) erro
 
 	return nil
 }
+
+func (c *Commands) AddUserToGroups(options *AddUserToGroupsOptions) error {
+	err := c.Store.AddUserToGroups(options)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
