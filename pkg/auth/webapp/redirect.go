@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/iawaknahc/originmatcher"
 )
 
 func GetRedirectURI(r *http.Request, trustProxy bool, defaultURI string) string {
@@ -36,15 +35,6 @@ func DeriveSettingsRedirectURIFromRequest(r *http.Request, clientResolver OAuthC
 		}
 
 		allowed := true
-		matcher, err := originmatcher.New(client.SettingsRedirectURIOrigins)
-		if err != nil {
-			return ""
-		}
-
-		if matcher.MatchOrigin(redirectURI) {
-			allowed = true
-		}
-
 		// 1. Redirect URL in query param (must be whitelisted)
 		if allowed && redirectURI != "" {
 			return redirectURI

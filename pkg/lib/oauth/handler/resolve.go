@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/iawaknahc/originmatcher"
 )
 
 type oauthRequest interface {
@@ -122,7 +121,7 @@ func parseAuthzRedirectURI(
 		return nil, protocol.NewErrorResponse("invalid_request", "invalid redirect URI")
 	}
 
-	err = validateSettingsRedirectURI(client, httpProto, httpOrigin, domainWhitelist, redirectURI)
+	err = validateRedirectURI(client, httpProto, httpOrigin, domainWhitelist, redirectURI)
 	if err != nil {
 		return nil, protocol.NewErrorResponse("invalid_request", err.Error())
 	}
@@ -133,30 +132,4 @@ func parseAuthzRedirectURI(
 	}
 
 	return settingsActionURI, nil
-}
-
-func validateSettingsRedirectURI(
-	client *config.OAuthClientConfig,
-	httpProto httputil.HTTPProto,
-	httpOrigin httputil.HTTPOrigin,
-	domainWhitelist []string,
-	redirectURI *url.URL,
-) error {
-	redirectURIString := redirectURI.String()
-
-	matcher, err := originmatcher.New(client.SettingsRedirectURIOrigins)
-	if err != nil {
-		return err
-	}
-
-	if matcher.MatchOrigin(redirectURIString) {
-		return nil
-	}
-
-	err = validateRedirectURI(client, httpProto, httpOrigin, domainWhitelist, redirectURI)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
