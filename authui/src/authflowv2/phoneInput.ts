@@ -197,21 +197,6 @@ export class PhoneInputController extends Controller {
     const asYouType = new AsYouType();
     asYouType.input(value);
     let inputValue = value;
-    const countryCode = asYouType.getCountry() ?? null;
-    if (countryCode != null) {
-      const callingCode = "+" + getCountryCallingCode(countryCode);
-      inputValue = value.replace(callingCode, "");
-    }
-    return [countryCode, inputValue];
-  }
-
-  // phoneInputTarget -> countrySelect AND inputTarget.
-  handleNumberInput(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    const value = target.value;
-    const asYouType = new AsYouType();
-    asYouType.input(value);
-
     let countryCodeFromPartialNumber: CountryCode | undefined;
     const callingCode = asYouType.getCallingCode();
     if (callingCode != null) {
@@ -219,9 +204,31 @@ export class PhoneInputController extends Controller {
         defaultCountryForDuplicatedCountryCodes[callingCode] ??
         CountryCodes[callingCode][0];
     }
-    const maybeCountry = asYouType.getCountry();
-    if (maybeCountry || countryCodeFromPartialNumber) {
-      this.countrySelect!.select(maybeCountry ?? countryCodeFromPartialNumber);
+
+    let countryCode = asYouType.getCountry() ?? null;
+
+    // Determine country code in the following order
+    // 1. asYouType.getCountry()
+    // 2. asYouType.getCallingCode() and map with defaultCountryForDuplicatedCountryCodes
+    if (!countryCode && countryCodeFromPartialNumber) {
+      countryCode = countryCodeFromPartialNumber;
+    }
+
+    if (countryCode) {
+      const callingCode = "+" + getCountryCallingCode(countryCode);
+      inputValue = value.replace(callingCode, "");
+    }
+
+    return [countryCode, inputValue];
+  }
+
+  // phoneInputTarget -> countrySelect AND inputTarget.
+  handleNumberInput(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const value = target.value;
+    const [maybeCountry, _remainings] = this.decomposeValue(value);
+    if (maybeCountry) {
+      this.countrySelect!.select(maybeCountry);
     }
     this.updateValue();
   }
