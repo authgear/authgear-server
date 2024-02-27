@@ -59,6 +59,21 @@ type AddRoleToUsersPayload {
 }
 
 """"""
+input AddUserToRolesInput {
+  """The list of role keys."""
+  roleKeys: [String!]
+
+  """The id of the user."""
+  userID: ID!
+}
+
+""""""
+type AddUserToRolesPayload {
+  """"""
+  user: User!
+}
+
+""""""
 input AnonymizeUserInput {
   """Target user ID."""
   userID: ID!
@@ -823,6 +838,9 @@ type Mutation {
 
   """Add the role to the users."""
   addRoleToUsers(input: AddRoleToUsersInput!): AddRoleToUsersPayload!
+
+  """Add the user to the roles."""
+  addUserToRoles(input: AddUserToRolesInput!): AddUserToRolesPayload!
 
   """Anonymize specified user"""
   anonymizeUser(input: AnonymizeUserInput!): AnonymizeUserPayload!

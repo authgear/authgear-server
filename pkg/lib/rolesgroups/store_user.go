@@ -1,6 +1,9 @@
 package rolesgroups
 
 import (
+	"database/sql"
+	"errors"
+
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/lib/pq"
 )
@@ -17,6 +20,24 @@ func (s *Store) scanUser(scanner db.Scanner) (string, error) {
 
 func (s *Store) selectUserQuery() db.SelectBuilder {
 	return s.SQLBuilder.Select("id").From(s.SQLBuilder.TableName("_auth_user"))
+}
+
+func (s *Store) GetUserByID(id string) (string, error) {
+	q := s.selectUserQuery().Where("id = ?", id)
+	row, err := s.SQLExecutor.QueryRowWith(q)
+	if err != nil {
+		return "", err
+	}
+
+	r, err := s.scanUser(row)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", ErrRoleNotFound
+		}
+		return "", err
+	}
+
+	return r, nil
 }
 
 func (s *Store) GetManyUsersByIds(ids []string) ([]string, error) {
