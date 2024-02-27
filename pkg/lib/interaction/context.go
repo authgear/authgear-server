@@ -23,6 +23,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -194,6 +195,11 @@ type OAuthClientResolver interface {
 	ResolveClient(clientID string) *config.OAuthClientConfig
 }
 
+type OAuthSessions interface {
+	Get(entryID string) (*oauthsession.Entry, error)
+	Save(entry *oauthsession.Entry) (err error)
+}
+
 type ContextValues struct {
 	WebSessionID   string
 	OAuthSessionID string
@@ -241,6 +247,7 @@ type Context struct {
 	Sessions                  SessionProvider
 	SessionManager            SessionManager
 	SessionCookie             session.CookieDef
+	OAuthSessions             OAuthSessions
 	MFADeviceTokenCookie      mfa.CookieDef
 }
 

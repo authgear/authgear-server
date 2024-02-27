@@ -45,10 +45,9 @@ const (
 	AnonymousRequestGrantType = "urn:authgear:params:oauth:grant-type:anonymous-request"
 	BiometricRequestGrantType = "urn:authgear:params:oauth:grant-type:biometric-request"
 	App2AppRequestGrantType   = "urn:authgear:params:oauth:grant-type:app2app-request"
+	IDTokenGrantType          = "urn:authgear:params:oauth:grant-type:id-token"
+	SettingsActionGrantType   = "urn:authgear:params:oauth:grant-type:settings-action"
 )
-
-// nolint: gosec
-const IDTokenGrantType = "urn:authgear:params:oauth:grant-type:id-token"
 
 const AppSessionTokenDuration = duration.Short
 
@@ -59,6 +58,7 @@ var whitelistedGrantTypes = []string{
 	BiometricRequestGrantType,
 	App2AppRequestGrantType,
 	IDTokenGrantType,
+	SettingsActionGrantType,
 }
 
 type IDTokenIssuer interface {
@@ -104,22 +104,23 @@ type TokenHandler struct {
 	OAuthClientCredentials *config.OAuthClientCredentials
 	Logger                 TokenHandlerLogger
 
-	Authorizations      AuthorizationService
-	CodeGrants          oauth.CodeGrantStore
-	OfflineGrants       oauth.OfflineGrantStore
-	AppSessionTokens    oauth.AppSessionTokenStore
-	OfflineGrantService oauth.OfflineGrantService
-	Graphs              GraphService
-	IDTokenIssuer       IDTokenIssuer
-	Clock               clock.Clock
-	TokenService        TokenService
-	Events              EventService
-	SessionManager      SessionManager
-	App2App             App2AppService
-	Challenges          ChallengeProvider
-	CodeGrantService    CodeGrantService
-	ClientResolver      OAuthClientResolver
-	UIInfoResolver      UIInfoResolver
+	Authorizations           AuthorizationService
+	CodeGrants               oauth.CodeGrantStore
+	SettingsActionGrantStore oauth.SettingsActionGrantStore
+	OfflineGrants            oauth.OfflineGrantStore
+	AppSessionTokens         oauth.AppSessionTokenStore
+	OfflineGrantService      oauth.OfflineGrantService
+	Graphs                   GraphService
+	IDTokenIssuer            IDTokenIssuer
+	Clock                    clock.Clock
+	TokenService             TokenService
+	Events                   EventService
+	SessionManager           SessionManager
+	App2App                  App2AppService
+	Challenges               ChallengeProvider
+	CodeGrantService         CodeGrantService
+	ClientResolver           OAuthClientResolver
+	UIInfoResolver           UIInfoResolver
 }
 
 // TODO: Write some tests
@@ -193,6 +194,8 @@ func (h *TokenHandler) doHandle(
 		return h.handleApp2AppRequest(rw, req, client, h.OAuthFeatureConfig, r)
 	case IDTokenGrantType:
 		return h.handleIDToken(rw, req, client, r)
+	case SettingsActionGrantType:
+		return h.handleSettingsActionCode(client, r)
 	default:
 		panic("oauth: unexpected grant type")
 	}
@@ -201,6 +204,8 @@ func (h *TokenHandler) doHandle(
 // nolint:gocognit
 func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.OAuthClientConfig) error {
 	switch r.GrantType() {
+	case SettingsActionGrantType:
+		fallthrough
 	case "authorization_code":
 		if r.Code() == "" {
 			return protocol.NewError("invalid_request", "code is required")
@@ -1258,4 +1263,86 @@ func (h *TokenHandler) translateAccessTokenError(err error) error {
 	}
 
 	return err
+}
+
+func (h *TokenHandler) handleSettingsActionCode(
+	client *config.OAuthClientConfig,
+	r protocol.TokenRequest,
+) (httputil.Result, error) {
+	resp, err := h.IssueTokensForSettingsActionCode(client, r)
+	if err != nil {
+		return nil, err
+	}
+
+	return tokenResultOK{Response: resp}, nil
+}
+
+// nolint:gocognit
+func (h *TokenHandler) IssueTokensForSettingsActionCode(
+	client *config.OAuthClientConfig,
+	r protocol.TokenRequest,
+) (protocol.TokenResponse, error) {
+	codeHash := oauth.HashToken(r.Code())
+	settingsActionGrant, err := h.SettingsActionGrantStore.GetSettingsActionGrant(codeHash)
+	if errors.Is(err, oauth.ErrGrantNotFound) {
+		return nil, errInvalidAuthzCode
+	} else if err != nil {
+		return nil, err
+	}
+
+	// Restore uiparam
+	uiInfo, _, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(client, settingsActionGrant.AuthorizationRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	uiParam := uiInfo.ToUIParam()
+	// Restore uiparam into context.
+	uiparam.WithUIParam(h.Context, &uiParam)
+
+	if h.Clock.NowUTC().After(settingsActionGrant.ExpireAt) {
+		return nil, errInvalidAuthzCode
+	}
+
+	if settingsActionGrant.RedirectURI != r.RedirectURI() {
+		return nil, protocol.NewError("invalid_request", "invalid redirect URI")
+	}
+
+	// verify pkce
+	needVerifyPKCE := client.IsPublic() || settingsActionGrant.AuthorizationRequest.CodeChallenge() != "" || r.CodeVerifier() != ""
+	if needVerifyPKCE {
+		if settingsActionGrant.AuthorizationRequest.CodeChallenge() == "" || r.CodeVerifier() == "" || !pkce.NewS256Verifier(r.CodeVerifier()).Verify(settingsActionGrant.AuthorizationRequest.CodeChallenge()) {
+			return nil, errInvalidAuthzCode
+		}
+	}
+
+	// verify client secret
+	needClientSecret := client.IsConfidential()
+	if needClientSecret {
+		if r.ClientSecret() == "" {
+			return nil, protocol.NewError("invalid_request", "invalid client secret")
+		}
+		credentialsItem, ok := h.OAuthClientCredentials.Lookup(client.ClientID)
+		if !ok {
+			return nil, protocol.NewError("invalid_request", "client secret is not supported for the client")
+		}
+
+		pass := false
+		keys, _ := jwkutil.ExtractOctetKeys(credentialsItem.Set)
+		for _, clientSecret := range keys {
+			if subtle.ConstantTimeCompare([]byte(r.ClientSecret()), clientSecret) == 1 {
+				pass = true
+			}
+		}
+		if !pass {
+			return nil, protocol.NewError("invalid_request", "invalid client secret")
+		}
+	}
+
+	err = h.SettingsActionGrantStore.DeleteSettingsActionGrant(settingsActionGrant)
+	if err != nil {
+		h.Logger.WithError(err).Error("failed to invalidate settings action grant")
+	}
+
+	return protocol.TokenResponse{}, nil
 }

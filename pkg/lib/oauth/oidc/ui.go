@@ -101,12 +101,6 @@ type UIInfoResolver struct {
 }
 
 func (r *UIInfoResolver) SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string {
-	consentURI := r.EndpointsProvider.ConsentEndpointURL().String()
-	// Not redirecting to the consent endpoint.
-	// Do not set anything.
-	if redirectURI != consentURI {
-		return redirectURI
-	}
 	u, err := url.Parse(redirectURI)
 	if err != nil {
 		panic(err)
@@ -251,13 +245,14 @@ func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
 
 type UIURLBuilderAuthUIEndpointsProvider interface {
 	OAuthEntrypointURL() *url.URL
+	SettingsChangePasswordURL() *url.URL
 }
 
 type UIURLBuilder struct {
 	Endpoints UIURLBuilderAuthUIEndpointsProvider
 }
 
-func (b *UIURLBuilder) Build(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, e *oauthsession.Entry) (*url.URL, error) {
+func (b *UIURLBuilder) BuildAuthenticationURL(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, e *oauthsession.Entry) (*url.URL, error) {
 	var endpoint *url.URL
 	if client != nil && client.CustomUIURI != "" {
 		var err error
@@ -297,4 +292,31 @@ func BuildCustomUIEndpoint(base string) (*url.URL, error) {
 	}
 
 	return customUIURL, nil
+}
+
+func (b *UIURLBuilder) BuildSettingsActionURL(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, e *oauthsession.Entry, redirectURI *url.URL) (*url.URL, error) {
+	switch r.SettingsAction() {
+	case "change_password":
+		endpoint := b.Endpoints.SettingsChangePasswordURL()
+		q := endpoint.Query()
+		q.Set(queryNameOAuthSessionID, e.ID)
+		q.Set("client_id", r.ClientID())
+		q.Set("redirect_uri", r.RedirectURI())
+		if r.ColorScheme() != "" {
+			q.Set("x_color_scheme", r.ColorScheme())
+		}
+		if len(r.UILocales()) > 0 {
+			q.Set("ui_locales", strings.Join(r.UILocales(), " "))
+		}
+		if r.State() != "" {
+			q.Set("state", r.State())
+		}
+		if r.XState() != "" {
+			q.Set("x_state", r.XState())
+		}
+		endpoint.RawQuery = q.Encode()
+		return endpoint, nil
+	default:
+		return nil, ErrInvalidSettingsAction.New("invalid settings action")
+	}
 }

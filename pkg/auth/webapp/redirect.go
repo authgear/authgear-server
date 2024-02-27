@@ -5,11 +5,8 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/iawaknahc/originmatcher"
 )
-
-var reservedRedirectURIs = []string{
-	"authgearsdk://host/path", // For Authgear SDK only, used for closing the webview
-}
 
 func GetRedirectURI(r *http.Request, trustProxy bool, defaultURI string) string {
 	redirectURI, err := httputil.GetRedirectURI(r, trustProxy)
@@ -23,19 +20,29 @@ type OAuthClientResolver interface {
 	ResolveClient(clientID string) *config.OAuthClientConfig
 }
 
-func DeriveSettingsRedirectURIFromRequest(r *http.Request, defaultURI string) string {
+func DeriveSettingsRedirectURIFromRequest(r *http.Request, clientResolver OAuthClientResolver, defaultURI string) string {
 	// 1. Redirect URL in query param (must be whitelisted)
 	// 2. Default redirect URL
 	// 3. `/settings`
 	redirectURIFromQuery := func() string {
+		clientID := r.URL.Query().Get("client_id")
 		redirectURI := r.URL.Query().Get("redirect_uri")
-		allowed := false
+		if clientID == "" {
+			return ""
+		}
+		client := clientResolver.ResolveClient(clientID)
+		if client == nil {
+			return ""
+		}
 
-		for _, u := range reservedRedirectURIs {
-			if u == redirectURI {
-				allowed = true
-				break
-			}
+		allowed := true
+		matcher, err := originmatcher.New(client.SettingsRedirectURIOrigins)
+		if err != nil {
+			return ""
+		}
+
+		if matcher.MatchOrigin(redirectURI) {
+			allowed = true
 		}
 
 		// 1. Redirect URL in query param (must be whitelisted)
@@ -75,10 +82,8 @@ func DerivePostLoginRedirectURIFromRequest(r *http.Request, clientResolver OAuth
 			return ""
 		}
 
-		allowedURIs := client.RedirectURIs
 		allowed := false
-
-		for _, u := range append(reservedRedirectURIs, allowedURIs...) {
+		for _, u := range client.RedirectURIs {
 			if u == redirectURI {
 				allowed = true
 				break

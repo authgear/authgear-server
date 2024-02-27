@@ -6,6 +6,10 @@ func codeGrantKey(appID, codeHash string) string {
 	return fmt.Sprintf("app:%s:code-grant:%s", appID, codeHash)
 }
 
+func settingsActionGrantKey(appID, codeHash string) string {
+	return fmt.Sprintf("app:%s:settings-action-grant:%s", appID, codeHash)
+}
+
 func accessGrantKey(appID, tokenHash string) string {
 	return fmt.Sprintf("app:%s:access-grant:%s", appID, tokenHash)
 }

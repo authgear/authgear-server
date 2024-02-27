@@ -117,6 +117,9 @@ func (e *Endpoints) LogoutURL(redirectURI *url.URL) *url.URL {
 func (e *Endpoints) SettingsURL() *url.URL {
 	return e.SettingsEndpointURL()
 }
+func (e *Endpoints) SettingsChangePasswordURL() *url.URL {
+	return e.urlOf("settings/change_password")
+}
 
 func (e *Endpoints) SSOCallbackURL(alias string) *url.URL {
 	u := e.SSOCallbackEndpointURL()

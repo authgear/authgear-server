@@ -45,9 +45,23 @@ func (i *IntentChangePassword) DeriveEdgesForNode(graph *interaction.Graph, node
 			},
 		}, nil
 	case *nodes.NodeChangePasswordEnd:
-		// Password was not changed, ends the interaction
-		return nil, nil
+		return []interaction.Edge{
+			&nodes.EdgeDoEnsureSession{
+				Mode: nodes.EnsureSessionModeNoop,
+			},
+		}, nil
 	case *nodes.NodeDoUpdateAuthenticator:
+		return []interaction.Edge{
+			&nodes.EdgeDoEnsureSession{
+				Mode: nodes.EnsureSessionModeNoop,
+			},
+		}, nil
+	case *nodes.NodeDoEnsureSession:
+		return []interaction.Edge{
+			&nodes.EdgeSettingsActionEnd{},
+		}, nil
+	case *nodes.NodeSettingsActionEnd:
+		// Intent is finished.
 		return nil, nil
 	default:
 		panic(fmt.Errorf("interaction: unexpected node: %T", node))

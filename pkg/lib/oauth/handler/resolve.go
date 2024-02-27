@@ -6,8 +6,10 @@ import (
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/iawaknahc/originmatcher"
 )
 
 type oauthRequest interface {
@@ -97,6 +99,63 @@ func validateRedirectURI(
 
 	if !allowed {
 		return errors.New("redirect URI is not allowed")
+	}
+
+	return nil
+}
+
+func parseAuthzRedirectURI(
+	client *config.OAuthClientConfig,
+	uiURLBuilder UIURLBuilder,
+	httpProto httputil.HTTPProto,
+	httpOrigin httputil.HTTPOrigin,
+	domainWhitelist []string,
+	e *oauthsession.Entry,
+	r protocol.AuthorizationRequest,
+) (*url.URL, protocol.ErrorResponse) {
+	if r.ResponseType() != string(SettingsActonResponseType) {
+		return parseRedirectURI(client, httpProto, httpOrigin, domainWhitelist, r)
+	}
+
+	redirectURI, err := url.Parse(r.RedirectURI())
+	if err != nil {
+		return nil, protocol.NewErrorResponse("invalid_request", "invalid redirect URI")
+	}
+
+	err = validateSettingsRedirectURI(client, httpProto, httpOrigin, domainWhitelist, redirectURI)
+	if err != nil {
+		return nil, protocol.NewErrorResponse("invalid_request", err.Error())
+	}
+
+	settingsActionURI, err := uiURLBuilder.BuildSettingsActionURL(client, r, e, redirectURI)
+	if err != nil {
+		return nil, protocol.NewErrorResponse("invalid_request", err.Error())
+	}
+
+	return settingsActionURI, nil
+}
+
+func validateSettingsRedirectURI(
+	client *config.OAuthClientConfig,
+	httpProto httputil.HTTPProto,
+	httpOrigin httputil.HTTPOrigin,
+	domainWhitelist []string,
+	redirectURI *url.URL,
+) error {
+	redirectURIString := redirectURI.String()
+
+	matcher, err := originmatcher.New(client.SettingsRedirectURIOrigins)
+	if err != nil {
+		return err
+	}
+
+	if matcher.MatchOrigin(redirectURIString) {
+		return nil
+	}
+
+	err = validateRedirectURI(client, httpProto, httpOrigin, domainWhitelist, redirectURI)
+	if err != nil {
+		return err
 	}
 
 	return nil

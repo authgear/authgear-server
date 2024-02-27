@@ -55,6 +55,15 @@ func (s *Store) unmarshalCodeGrant(data []byte) (*oauth.CodeGrant, error) {
 	return &g, nil
 }
 
+func (s *Store) unmarshalSettingsActionGrant(data []byte) (*oauth.SettingsActionGrant, error) {
+	var g oauth.SettingsActionGrant
+	err := json.Unmarshal(data, &g)
+	if err != nil {
+		return nil, err
+	}
+	return &g, nil
+}
+
 func (s *Store) unmarshalAccessGrant(data []byte) (*oauth.AccessGrant, error) {
 	var g oauth.AccessGrant
 	err := json.Unmarshal(data, &g)
@@ -154,6 +163,38 @@ func (s *Store) CreateCodeGrant(grant *oauth.CodeGrant) error {
 func (s *Store) DeleteCodeGrant(grant *oauth.CodeGrant) error {
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
 		return s.del(conn, codeGrantKey(grant.AppID, grant.CodeHash))
+	})
+}
+
+func (s *Store) GetSettingsActionGrant(codeHash string) (*oauth.SettingsActionGrant, error) {
+	var g *oauth.SettingsActionGrant
+	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+		data, err := s.loadData(conn, settingsActionGrantKey(string(s.AppID), codeHash))
+		if err != nil {
+			return err
+		}
+		g, err = s.unmarshalSettingsActionGrant(data)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return g, nil
+}
+
+func (s *Store) CreateSettingsActionGrant(grant *oauth.SettingsActionGrant) error {
+	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+		return s.save(conn, settingsActionGrantKey(grant.AppID, grant.CodeHash), grant, grant.ExpireAt, true)
+	})
+}
+
+func (s *Store) DeleteSettingsActionGrant(grant *oauth.SettingsActionGrant) error {
+	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+		return s.del(conn, settingsActionGrantKey(grant.AppID, grant.CodeHash))
 	})
 }
 

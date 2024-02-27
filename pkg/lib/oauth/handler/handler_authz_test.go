@@ -230,7 +230,7 @@ func TestAuthorizationHandler(t *testing.T) {
 					mockedClient,
 					req,
 				).Times(1).Return(&oidc.UIInfo{}, &oidc.UIInfoByProduct{}, nil)
-				uiURLBuilder.EXPECT().Build(mockedClient, req, gomock.Any()).Times(1).Return(&url.URL{
+				uiURLBuilder.EXPECT().BuildAuthenticationURL(mockedClient, req, gomock.Any()).Times(1).Return(&url.URL{
 					Scheme: "https",
 					Host:   "auth",
 					Path:   "/authenticate",
@@ -404,7 +404,7 @@ func TestAuthorizationHandler(t *testing.T) {
 					mockedClient,
 					req,
 				).Times(1).Return(&oidc.UIInfo{}, &oidc.UIInfoByProduct{}, nil)
-				uiURLBuilder.EXPECT().Build(mockedClient, req, gomock.Any()).Times(1).Return(&url.URL{
+				uiURLBuilder.EXPECT().BuildAuthenticationURL(mockedClient, req, gomock.Any()).Times(1).Return(&url.URL{
 					Scheme: "https",
 					Host:   "auth",
 					Path:   "/authenticate",
