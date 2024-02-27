@@ -839,12 +839,16 @@
   "language-zh-HK": "繁體中文(香港)",
   "language-zh-TW": "繁體中文(台灣)",
   "language-zu": "isiZulu",
-  "v2-sign-up.title": "註冊至{AppOrClientName}",
-  "v2-sign-up.subtitle": "免費。無需信用卡。",
+
+  "v2-sign-up-title": "註冊至{AppOrClientName}",
+  "v2-sign-up-subtitle": "免費。無需信用卡。",
   "v2-sign-up.switch-to-login": "已經有帳戶？ <a href=\"{href}\">登入</a>",
   "v2-sign-up.signup-with-email": "使用電子郵件繼續",
   "v2-sign-up.signup-with-username": "使用用戶名繼續",
   "v2-sign-up.signup-with-phone": "使用電話繼續",
+  "v2-sign-up-login-title": "歡迎來到{AppOrClientName}",
+  "v2-sign-up-login-subtitle": "免費。無需信用卡。",
+
   "v2-login.title": "登入{AppOrClientName}",
   "v2-login.subtitle": "免費。無需信用卡。",
   "v2-login.switch-to-sign-up": "沒有帳號？ <a href=\"{href}\">建立一個</a>",

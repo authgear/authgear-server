@@ -401,6 +401,7 @@ export interface PhoneInputConfig {
 }
 
 export interface UIConfig {
+  signup_login_flow_enabled?: boolean;
   phone_input?: PhoneInputConfig;
   dark_theme_disabled?: boolean;
   watermark_disabled?: boolean;

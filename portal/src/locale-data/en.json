@@ -1566,6 +1566,7 @@
   "LoginMethodConfigurationScreen.second-level.password.title": "Enter password",
   "LoginMethodConfigurationScreen.second-level.password.description": "Enter password to authenticate",
   "LoginMethodConfigurationScreen.passkey.title": "Enable passkey support for compatible devices. {DocLink, react, href{https://docs.authgear.com/strategies/passkeys} children{Learn more about passkey}}",
+  "LoginMethodConfigurationScreen.combineLoginSignup.title": "Automatically signup a new user if a login ID is not found during login",
 
   "LoginIDKeyType.email": "Email address",
   "LoginIDKeyType.phone": "Phone number",

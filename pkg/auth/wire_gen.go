@@ -67547,15 +67547,27 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 	tutorialCookie := &httputil.TutorialCookie{
 		Cookies: cookieManager,
 	}
-	authflowV2LoginHandler := &authflowv2.AuthflowV2LoginHandler{
+	internalAuthflowV2SignupLoginHandler := authflowv2.InternalAuthflowV2SignupLoginHandler{
 		Controller:        authflowController,
 		BaseViewModel:     baseViewModeler,
 		AuthflowViewModel: authflowViewModeler,
 		Renderer:          responseRenderer,
 		MeterService:      meterService,
 		TutorialCookie:    tutorialCookie,
-		ErrorCookie:       errorCookie,
 		Endpoints:         endpointsEndpoints,
+	}
+	authflowV2LoginHandler := &authflowv2.AuthflowV2LoginHandler{
+		SignupLoginHandler:   internalAuthflowV2SignupLoginHandler,
+		UIConfig:             uiConfig,
+		AuthenticationConfig: authenticationConfig,
+		Controller:           authflowController,
+		BaseViewModel:        baseViewModeler,
+		AuthflowViewModel:    authflowViewModeler,
+		Renderer:             responseRenderer,
+		MeterService:         meterService,
+		TutorialCookie:       tutorialCookie,
+		ErrorCookie:          errorCookie,
+		Endpoints:            endpointsEndpoints,
 	}
 	return authflowV2LoginHandler
 }
@@ -69364,7 +69376,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 	tutorialCookie := &httputil.TutorialCookie{
 		Cookies: cookieManager,
 	}
-	authflowV2SignupHandler := &authflowv2.AuthflowV2SignupHandler{
+	internalAuthflowV2SignupLoginHandler := authflowv2.InternalAuthflowV2SignupLoginHandler{
 		Controller:        authflowController,
 		BaseViewModel:     baseViewModeler,
 		AuthflowViewModel: authflowViewModeler,
@@ -69372,6 +69384,10 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		MeterService:      meterService,
 		TutorialCookie:    tutorialCookie,
 		Endpoints:         endpointsEndpoints,
+	}
+	authflowV2SignupHandler := &authflowv2.AuthflowV2SignupHandler{
+		SignupLoginHandler: internalAuthflowV2SignupLoginHandler,
+		UIConfig:           uiConfig,
 	}
 	return authflowV2SignupHandler
 }
