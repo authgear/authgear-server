@@ -813,7 +813,7 @@ enum IdentityType {
 """"""
 type Mutation {
   """Add the group to the roles."""
-  AddGroupToRolesInput(input: AddGroupToRolesInput!): AddGroupToRolesPayload!
+  addGroupToRoles(input: AddGroupToRolesInput!): AddGroupToRolesPayload!
 
   """Add the group to the users."""
   addGroupToUsers(input: AddGroupToUsersInput!): AddGroupToUsersPayload!
@@ -866,6 +866,9 @@ type Mutation {
 
   """Generate OOB OTP code for user"""
   generateOOBOTPCode(input: GenerateOOBOTPCodeInput!): GenerateOOBOTPCodePayload!
+
+  """Remove the group from the roles."""
+  removeGroupFromRoles(input: RemoveGroupFromRolesInput!): RemoveGroupFromRolesPayload!
 
   """Remove the group to the users."""
   removeGroupFromUsers(input: RemoveGroupFromUsersInput!): RemoveGroupToUsersPayload!
@@ -974,6 +977,21 @@ type Query {
 
   """All users"""
   users(after: String, before: String, first: Int, last: Int, searchKeyword: String, sortBy: UserSortBy, sortDirection: SortDirection): UserConnection
+}
+
+""""""
+input RemoveGroupFromRolesInput {
+  """The key of the group."""
+  groupKey: String!
+
+  """The list of role keys."""
+  roleKeys: [String!]!
+}
+
+""""""
+type RemoveGroupFromRolesPayload {
+  """"""
+  group: Group!
 }
 
 """"""

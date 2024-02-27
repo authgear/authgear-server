@@ -191,3 +191,65 @@ var _ = registerMutationField(
 		},
 	},
 )
+
+var removeGroupFromRolesInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "RemoveGroupFromRolesInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"groupKey": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.String),
+			Description: "The key of the group.",
+		},
+		"roleKeys": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(graphql.String))),
+			Description: "The list of role keys.",
+		},
+	},
+})
+
+var removeGroupFromRolesPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "RemoveGroupFromRolesPayload",
+	Fields: graphql.Fields{
+		"group": &graphql.Field{
+			Type: graphql.NewNonNull(nodeGroup),
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"removeGroupFromRoles",
+	&graphql.Field{
+		Description: "Remove the group from the roles.",
+		Type:        graphql.NewNonNull(removeGroupFromRolesPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(removeGroupFromRolesInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			input := p.Args["input"].(map[string]interface{})
+
+			groupKey := input["groupKey"].(string)
+
+			roleKeyIfaces := input["roleKeys"].([]interface{})
+			roleKeys := make([]string, len(roleKeyIfaces))
+			for i, v := range roleKeyIfaces {
+				roleKeys[i] = v.(string)
+			}
+
+			options := &rolesgroups.RemoveGroupFromRolesOptions{
+				GroupKey: groupKey,
+				RoleKeys: roleKeys,
+			}
+
+			gqlCtx := GQLContext(p.Context)
+			groupID, err := gqlCtx.RolesGroupsFacade.RemoveGroupFromRoles(options)
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"group": gqlCtx.Groups.Load(groupID),
+			}).Value, nil
+		},
+	},
+)

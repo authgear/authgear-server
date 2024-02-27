@@ -25,6 +25,7 @@ type RolesGroupsCommands interface {
 	RemoveGroupFromUsers(options *rolesgroups.RemoveGroupFromUsersOptions) (*model.Group, error)
 
 	AddGroupToRoles(options *rolesgroups.AddGroupToRolesOptions) (*model.Group, error)
+	RemoveGroupFromRoles(options *rolesgroups.RemoveGroupFromRolesOptions) (*model.Group, error)
 }
 
 type RolesGroupsQueries interface {
@@ -179,6 +180,16 @@ func (f *RolesGroupsFacade) RemoveGroupFromUsers(options *rolesgroups.RemoveGrou
 
 func (f *RolesGroupsFacade) AddGroupToRoles(options *rolesgroups.AddGroupToRolesOptions) (groupID string, err error) {
 	r, err := f.RolesGroupsCommands.AddGroupToRoles(options)
+	if err != nil {
+		return
+	}
+
+	groupID = r.ID
+	return
+}
+
+func (f *RolesGroupsFacade) RemoveGroupFromRoles(options *rolesgroups.RemoveGroupFromRolesOptions) (groupID string, err error) {
+	r, err := f.RolesGroupsCommands.RemoveGroupFromRoles(options)
 	if err != nil {
 		return
 	}

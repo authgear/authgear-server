@@ -185,3 +185,42 @@ func (s *Store) AddGroupToRoles(options *AddGroupToRolesOptions) (*Group, error)
 
 	return g, nil
 }
+
+type RemoveGroupFromRolesOptions struct {
+	GroupKey string
+	RoleKeys []string
+}
+
+func (s *Store) RemoveGroupFromRoles(options *RemoveGroupFromRolesOptions) (*Group, error) {
+	g, err := s.GetGroupByKey(options.GroupKey)
+	if err != nil {
+		return nil, err
+	}
+
+	rs, err := s.GetManyRolesByKeys(options.RoleKeys)
+	if err != nil {
+		return nil, err
+	}
+
+	var seenKeys []string
+	for _, r := range rs {
+		q := s.SQLBuilder.
+			Delete(s.SQLBuilder.TableName("_auth_group_role")).
+			Where("role_id = ? AND group_id = ?", r.ID, g.ID)
+
+		_, err := s.SQLExecutor.ExecWith(q)
+		if err != nil {
+			return nil, err
+		}
+
+		seenKeys = append(seenKeys, r.Key)
+	}
+
+	missingKeys := slice.ExceptStrings(options.RoleKeys, seenKeys)
+	if len(missingKeys) > 0 {
+		err := GroupUnknownKeys.NewWithInfo("unknown role keys", apierrors.Details{"keys": missingKeys})
+		return nil, err
+	}
+
+	return g, nil
+}
