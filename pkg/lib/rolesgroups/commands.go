@@ -190,3 +190,12 @@ func (c *Commands) AddUserToGroups(options *AddUserToGroupsOptions) error {
 
 	return nil
 }
+
+func (c *Commands) RemoveUserFromGroups(options *RemoveUserFromGroupsOptions) error {
+	err := c.Store.RemoveUserFromGroups(options)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

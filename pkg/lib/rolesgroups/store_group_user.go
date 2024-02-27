@@ -1,8 +1,6 @@
 package rolesgroups
 
 import (
-	"fmt"
-
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
@@ -136,6 +134,45 @@ func (s *Store) AddUserToGroups(options *AddUserToGroupsOptions) error {
 				u,
 				g.ID,
 			).Suffix("ON CONFLICT DO NOTHING")
+
+		_, err := s.SQLExecutor.ExecWith(q)
+		if err != nil {
+			return err
+		}
+
+		seenKeys = append(seenKeys, g.Key)
+	}
+
+	missingKeys := slice.ExceptStrings(options.GroupKeys, seenKeys)
+	if len(missingKeys) > 0 {
+		err := GroupUnknownKeys.NewWithInfo("unknown group keys", apierrors.Details{"keys": missingKeys})
+		return err
+	}
+
+	return nil
+}
+
+type RemoveUserFromGroupsOptions struct {
+	UserID    string
+	GroupKeys []string
+}
+
+func (s *Store) RemoveUserFromGroups(options *RemoveUserFromGroupsOptions) error {
+	u, err := s.GetUserByID(options.UserID)
+	if err != nil {
+		return err
+	}
+
+	gs, err := s.GetManyGroupsByKeys(options.GroupKeys)
+	if err != nil {
+		return err
+	}
+
+	var seenKeys []string
+	for _, g := range gs {
+		q := s.SQLBuilder.
+			Delete(s.SQLBuilder.TableName("_auth_user_group")).
+			Where("group_id = ? AND user_id = ?", g.ID, u)
 
 		_, err := s.SQLExecutor.ExecWith(q)
 		if err != nil {
