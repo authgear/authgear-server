@@ -212,6 +212,7 @@ When you are in this step of this flow, you will see a response like the followi
     "action": {
       "type": "identify",
       "data": {
+        "type": "identification_data",
         "options": [
           {
             "identification": "email"
@@ -345,6 +346,7 @@ After passing this input, you will see a response like this
       "type": "identify",
       "identification": "oauth",
       "data": {
+        "type": "oauth_data",
         "alias": "google",
         "oauth_provider_type": "google",
         "oauth_authorization_url": "<https://google.com/oauth2>"
@@ -394,6 +396,7 @@ When you are in this step, you **MAY** see a response like the following
     "action": {
       "type": "verify",
       "data": {
+        "type": "oob_channels_data",
         "channels": [
           "sms",
           "whatsapp"
@@ -423,6 +426,7 @@ When you are in this step, you WILL see a response like the following if the otp
     "action": {
       "type": "verify",
       "data": {
+        "type": "verify_oob_otp_data",
         "channel": "email",
         "otp_form": "code",
         "masked_claim_value": "john******@example.com",
@@ -465,6 +469,7 @@ Or you WILL see a response like the following if the otp is a link.
     "action": {
       "type": "verify",
       "data": {
+        "type": "verify_oob_otp_data",
         "channel": "email",
         "otp_form": "link",
         "websocket_url": "wss://...",
@@ -521,6 +526,7 @@ When you are in this step, you will see the following response if you are settin
     "action": {
       "type": "create_authenticator",
       "data": {
+        "type": "create_authenticator_data",
         "options": [
           {
             "authentication": "primary_oob_otp_email",
@@ -562,6 +568,7 @@ Or this response if you are setting up 2FA.
     "action": {
       "type": "create_authenticator",
       "data": {
+        "type": "create_authenticator_data",
         "options": [
           {
             "authentication": "secondary_totp"
@@ -659,7 +666,7 @@ The corresponding input is
 
 ```json
 {
-  "authentication": "primary_oob_otp_email"
+  "authentication": "primary_oob_otp_email",
   "channel": "email"
 }
 ```
@@ -799,6 +806,7 @@ After passing the above input, you will see a response like this
       "type": "authenticate",
       "authentication": "secondary_totp",
       "data": {
+        "type": "create_totp_data",
         "secret": "SEURUM6364TM7TRL5SSGDVURZRHZY34O",
         "otpauth_uri": "otpauth://totp/johndoe@example.com?algorithm=SHA1&digits=6&issuer=http%3A%2F%2Flocalhost%3A3100&period=30&secret=SEURUM6364TM7TRL5SSGDVURZRHZY34O"
       }
@@ -831,6 +839,7 @@ When you are in this step of this flow, you will see a response like the followi
     "action": {
       "type": "view_recovery_code",
       "data": {
+        "type": "view_recovery_code_data",
         "recovery_codes": [
           "94X5NST2VM",
           "ZTC1BQJSMX",
@@ -876,6 +885,7 @@ When you are in this step of this flow, you will see a response like the followi
     "action": {
       "type": "prompt_create_passkey",
       "data": {
+        "type": "create_passkey_data",
         "creation_options": {
           "publicKey": {
             "challenge": "muG_Yk_VyupxTyF6A9v1RO3fwBLfYxZ4N1JtVZ6OtlU",
@@ -1110,6 +1120,7 @@ When you are in this step, you will see a response like the following if you are
     "action": {
       "type": "authenticate",
       "data": {
+        "type": "authentication_data",
         "options": [
           {
             "authentication": "primary_passkey",
@@ -1156,6 +1167,7 @@ Or this response if you are performing secondary authentication.
     "action": {
       "type": "authenticate",
       "data": {
+        "type": "authentication_data",
         "options": [
           {
             "authentication": "secondary_totp"
@@ -1544,6 +1556,7 @@ When you are in this step, you will see a response like the following
     "action": {
       "type": "change_password",
       "data": {
+        "type": "change_password_data",
         "password_policy": {
           "minimum_length": 8,
           "alphabet_required": true,
@@ -1586,6 +1599,7 @@ When you are in this step of this flow, you will see a response like the followi
     "action": {
       "type": "identify",
       "data": {
+        "type": "account_recovery_identification_data",
         "options": [
           {
             "identification": "email"
@@ -1653,6 +1667,7 @@ When you are in this step of this flow, you will see a response like the followi
     "action": {
       "type": "select_destination",
       "data": {
+        "type": "account_recovery_select_destination_data",
         "options": [
           {
             "masked_display_name": "+8529876****",
@@ -1704,7 +1719,15 @@ When you are in this step of this flow, you will see a response like the followi
     "name": "default",
     "action": {
       "type": "verify_account_recovery_code",
-      "data": {}
+      "data": {
+        "type": "account_recovery_verify_code_data",
+        "masked_display_name": "+8529876****",
+        "channel": "sms",
+        "otp_form": "code",
+        "code_length": 6,
+        "can_resend_at": "1970-01-01T08:00:00+08:00",
+        "failed_attempt_rate_limit_exceeded": false
+      }
     }
   }
 }
@@ -1749,6 +1772,7 @@ When you are in this step of this flow, you will see a response like the followi
     "action": {
       "type": "reset_password",
       "data": {
+        "type": "reset_password_data",
         "password_policy": {
           "minimum_length": 8,
           "digit_required": true,
