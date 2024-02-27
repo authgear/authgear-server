@@ -228,7 +228,7 @@ export class PhoneInputController extends Controller {
     const value = target.value;
     const [maybeCountry, _remainings] = this.decomposeValue(value);
     if (maybeCountry) {
-      this.countrySelect!.select(maybeCountry);
+      this.setCountrySelectValue(maybeCountry);
     }
     this.updateValue();
   }
@@ -301,11 +301,13 @@ export class PhoneInputController extends Controller {
 
   connect() {
     void this.initPhoneCode();
+    this.phoneInputTarget.addEventListener("blur", this.handleInputBlur);
 
     window.addEventListener("pageshow", this.handlePageShow);
   }
 
   disconnect() {
+    this.phoneInputTarget.removeEventListener("blur", this.handleInputBlur);
     window.removeEventListener("pageshow", this.handlePageShow);
   }
 
@@ -323,6 +325,16 @@ export class PhoneInputController extends Controller {
 
     if (countryCode != null) {
       this.setCountrySelectValue(countryCode);
+    }
+  };
+
+  handleInputBlur = () => {
+    const [maybeCountry, remainings] = this.decomposeValue(
+      this.inputTarget.value
+    );
+    if (maybeCountry) {
+      this.setCountrySelectValue(maybeCountry);
+      this.phoneInputTarget.value = remainings;
     }
   };
 
