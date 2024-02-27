@@ -834,6 +834,9 @@ type Mutation {
   """Remove the role from the groups."""
   removeRoleFromGroups(input: RemoveRoleFromGroupsInput!): RemoveRoleFromGroupsPayload!
 
+  """Remove the role to the users."""
+  removeRoleFromUsers(input: RemoveRoleFromUsersInput!): RemoveRoleFromUsersPayload!
+
   """Reset password of user"""
   resetPassword(input: ResetPasswordInput!): ResetPasswordPayload!
 
@@ -945,6 +948,21 @@ input RemoveRoleFromGroupsInput {
 
 """"""
 type RemoveRoleFromGroupsPayload {
+  """"""
+  role: Role!
+}
+
+""""""
+input RemoveRoleFromUsersInput {
+  """The key of the role."""
+  roleKey: String!
+
+  """The list of user ids."""
+  userIDs: [ID!]
+}
+
+""""""
+type RemoveRoleFromUsersPayload {
   """"""
   role: Role!
 }

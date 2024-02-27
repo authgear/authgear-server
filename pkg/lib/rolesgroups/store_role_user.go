@@ -59,3 +59,42 @@ func (s *Store) AddRoleToUsers(options *AddRoleToUsersOptions) (*Role, error) {
 
 	return r, nil
 }
+
+type RemoveRoleFromUsersOptions struct {
+	RoleKey string
+	UserIDs []string
+}
+
+func (s *Store) RemoveRoleFromUsers(options *RemoveRoleFromUsersOptions) (*Role, error) {
+	r, err := s.GetRoleByKey(options.RoleKey)
+	if err != nil {
+		return nil, err
+	}
+
+	userIds, err := s.GetManyUsersByIds(options.UserIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	var seenKeys []string
+	for _, u := range userIds {
+		q := s.SQLBuilder.
+			Delete(s.SQLBuilder.TableName("_auth_user_role")).
+			Where("role_id = ? AND user_id = ?", r.ID, u)
+
+		_, err := s.SQLExecutor.ExecWith(q)
+		if err != nil {
+			return nil, err
+		}
+
+		seenKeys = append(seenKeys, u)
+	}
+
+	missingKeys := slice.ExceptStrings(options.UserIDs, seenKeys)
+	if len(missingKeys) > 0 {
+		err := UserUnknownKeys.NewWithInfo("unknown user ids", apierrors.Details{"keys": missingKeys})
+		return nil, err
+	}
+
+	return r, nil
+}
