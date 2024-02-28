@@ -39,6 +39,29 @@ func init() {
 			return graphqlutil.NewConnectionFromArray(roleIfaces, args), nil
 		},
 	})
+
+	nodeUser.AddFieldConfig("groups", &graphql.Field{
+		Type:        connGroup.ConnectionType,
+		Description: "The list of groups this user has.",
+		Args:        relay.NewConnectionArgs(graphql.FieldConfigArgument{}),
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			source := p.Source.(*model.User)
+			gqlCtx := GQLContext(p.Context)
+
+			groups, err := gqlCtx.RolesGroupsFacade.ListGroupsByUserID(source.ID)
+			if err != nil {
+				return nil, err
+			}
+
+			groupIfaces := make([]interface{}, len(groups))
+			for i, r := range groups {
+				groupIfaces[i] = r
+			}
+
+			args := relay.NewConnectionArguments(p.Args)
+			return graphqlutil.NewConnectionFromArray(groupIfaces, args), nil
+		},
+	})
 }
 
 var nodeUser = node(

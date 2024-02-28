@@ -40,6 +40,7 @@ type RolesGroupsQueries interface {
 	ListGroupsByRoleID(roleID string) ([]*model.Group, error)
 	ListRolesByGroupID(groupID string) ([]*model.Role, error)
 	ListRolesByUserID(userID string) ([]*model.Role, error)
+	ListGroupsByUserID(userID string) ([]*model.Group, error)
 }
 
 type RolesGroupsFacade struct {
@@ -243,4 +244,8 @@ func (f *RolesGroupsFacade) RemoveUserFromGroups(options *rolesgroups.RemoveUser
 
 func (f *RolesGroupsFacade) ListRolesByUserID(userID string) ([]*model.Role, error) {
 	return f.RolesGroupsQueries.ListRolesByUserID(userID)
+}
+
+func (f *RolesGroupsFacade) ListGroupsByUserID(userID string) ([]*model.Group, error) {
+	return f.RolesGroupsQueries.ListGroupsByUserID(userID)
 }

@@ -125,3 +125,17 @@ func (q *Queries) ListRolesByUserID(userID string) ([]*model.Role, error) {
 
 	return roleModels, nil
 }
+
+func (q *Queries) ListGroupsByUserID(userID string) ([]*model.Group, error) {
+	groups, err := q.Store.ListGroupsByUserID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	groupModels := make([]*model.Group, len(groups))
+	for i, r := range groups {
+		groupModels[i] = r.ToModel()
+	}
+
+	return groupModels, nil
+}

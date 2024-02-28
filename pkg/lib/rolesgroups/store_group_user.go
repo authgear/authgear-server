@@ -6,6 +6,22 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
+func (s *Store) ListGroupsByUserID(userID string) ([]*Group, error) {
+	q := s.SQLBuilder.Select(
+		"g.id",
+		"g.created_at",
+		"g.updated_at",
+		"g.key",
+		"g.name",
+		"g.description",
+	).
+		From(s.SQLBuilder.TableName("_auth_user_group"), "ug").
+		Join(s.SQLBuilder.TableName("_auth_group"), "g", "ug.group_id = g.id").
+		Where("ug.user_id = ?", userID)
+
+	return s.queryGroups(q)
+}
+
 type AddGroupToUsersOptions struct {
 	GroupKey string
 	UserIDs  []string

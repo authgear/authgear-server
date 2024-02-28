@@ -1492,6 +1492,9 @@ type User implements Entity & Node {
   """The user's formatted name"""
   formattedName: String
 
+  """The list of groups this user has."""
+  groups(after: String, before: String, first: Int, last: Int): GroupConnection
+
   """The ID of an object"""
   id: ID!
 
