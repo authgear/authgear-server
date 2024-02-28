@@ -45,8 +45,9 @@ const (
 	AnonymousRequestGrantType = "urn:authgear:params:oauth:grant-type:anonymous-request"
 	BiometricRequestGrantType = "urn:authgear:params:oauth:grant-type:biometric-request"
 	App2AppRequestGrantType   = "urn:authgear:params:oauth:grant-type:app2app-request"
-	IDTokenGrantType          = "urn:authgear:params:oauth:grant-type:id-token"
-	SettingsActionGrantType   = "urn:authgear:params:oauth:grant-type:settings-action"
+	// nolint:gosec
+	IDTokenGrantType        = "urn:authgear:params:oauth:grant-type:id-token"
+	SettingsActionGrantType = "urn:authgear:params:oauth:grant-type:settings-action"
 )
 
 const AppSessionTokenDuration = duration.Short

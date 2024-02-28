@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"errors"
+
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 )
@@ -25,16 +27,17 @@ func (n *NodeSettingsActionEnd) GetEffects() ([]interaction.Effect, error) {
 	return []interaction.Effect{
 		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			entry, err := ctx.OAuthSessions.Get(ctx.OAuthSessionID)
-			if err != nil {
+			if errors.Is(err, oauthsession.ErrNotFound) {
+				return nil
+			} else if err != nil {
 				return err
 			}
 
-			if entry.T.AuthorizationRequest.ResponseType() != "settings_action" {
-				return nil
-			}
-
 			entry.T.SettingsActionResult = oauthsession.NewSettingsActionResult()
-			ctx.OAuthSessions.Save(entry)
+			err = ctx.OAuthSessions.Save(entry)
+			if err != nil {
+				return err
+			}
 
 			return nil
 		}),

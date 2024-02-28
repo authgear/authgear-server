@@ -19,43 +19,6 @@ type OAuthClientResolver interface {
 	ResolveClient(clientID string) *config.OAuthClientConfig
 }
 
-func DeriveSettingsRedirectURIFromRequest(r *http.Request, clientResolver OAuthClientResolver, defaultURI string) string {
-	// 1. Redirect URL in query param (must be whitelisted)
-	// 2. Default redirect URL
-	// 3. `/settings`
-	redirectURIFromQuery := func() string {
-		clientID := r.URL.Query().Get("client_id")
-		redirectURI := r.URL.Query().Get("redirect_uri")
-		if clientID == "" {
-			return ""
-		}
-		client := clientResolver.ResolveClient(clientID)
-		if client == nil {
-			return ""
-		}
-
-		allowed := true
-		// 1. Redirect URL in query param (must be whitelisted)
-		if allowed && redirectURI != "" {
-			return redirectURI
-		}
-
-		return ""
-	}()
-
-	if redirectURIFromQuery != "" {
-		return redirectURIFromQuery
-	}
-
-	// 2. Default redirect URL
-	if defaultURI != "" {
-		return defaultURI
-	}
-
-	// 3. `/settings`
-	return "/settings"
-}
-
 func DerivePostLoginRedirectURIFromRequest(r *http.Request, clientResolver OAuthClientResolver, uiConfig *config.UIConfig) string {
 	// 1. Redirect URL in query param (must be whitelisted)
 	// 2. Default redirect URL of the client
@@ -72,8 +35,10 @@ func DerivePostLoginRedirectURIFromRequest(r *http.Request, clientResolver OAuth
 			return ""
 		}
 
+		allowedURIs := client.RedirectURIs
 		allowed := false
-		for _, u := range client.RedirectURIs {
+
+		for _, u := range allowedURIs {
 			if u == redirectURI {
 				allowed = true
 				break

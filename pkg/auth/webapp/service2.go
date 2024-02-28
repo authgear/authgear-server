@@ -15,22 +15,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
-	"github.com/authgear/authgear-server/pkg/lib/oauth"
-	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
-	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
-	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
-	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
-	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
 
 type UIInfoResolver interface {
 	SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string
-	ResolveForAuthorizationEndpoint(
-		client *config.OAuthClientConfig,
-		req protocol.AuthorizationRequest,
-	) (*oidc.UIInfo, *oidc.UIInfoByProduct, error)
 }
 
 type SessionStore interface {
@@ -59,22 +49,19 @@ func NewServiceLogger(lf *log.Factory) ServiceLogger {
 }
 
 type Service2 struct {
-	Logger                     ServiceLogger
-	Request                    *http.Request
-	Sessions                   SessionStore
-	SessionCookie              SessionCookieDef
-	SignedUpCookie             SignedUpCookieDef
-	MFADeviceTokenCookie       mfa.CookieDef
-	ErrorCookie                *ErrorCookie
-	Cookies                    CookieManager
-	OAuthConfig                *config.OAuthConfig
-	UIConfig                   *config.UIConfig
-	TrustProxy                 config.TrustProxy
-	UIInfoResolver             UIInfoResolver
-	OAuthClientResolver        OAuthClientResolver
-	OAuthSessions              oauthsession.StoreRedis
-	SettingsActionGrantService handler.SettingsActionGrantService
-	Authorizations             handler.AuthorizationService
+	Logger               ServiceLogger
+	Request              *http.Request
+	Sessions             SessionStore
+	SessionCookie        SessionCookieDef
+	SignedUpCookie       SignedUpCookieDef
+	MFADeviceTokenCookie mfa.CookieDef
+	ErrorCookie          *ErrorCookie
+	Cookies              CookieManager
+	OAuthConfig          *config.OAuthConfig
+	UIConfig             *config.UIConfig
+	TrustProxy           config.TrustProxy
+	UIInfoResolver       UIInfoResolver
+	OAuthClientResolver  OAuthClientResolver
 
 	Graph GraphService
 }
@@ -551,16 +538,6 @@ func (s *Service2) afterPost(
 func (s *Service2) deriveFinishRedirectURI(session *Session, graph *interaction.Graph) (redirectURI string) {
 	defer func() {
 		if e, ok := graph.GetAuthenticationInfoEntry(); ok {
-			code, err := s.generateSettingsActionGrant(redirectURI, e)
-			if err != nil {
-				panic(err)
-			}
-
-			if code != "" {
-				e = &authenticationinfo.Entry{
-					ID: code,
-				}
-			}
 			redirectURI = s.UIInfoResolver.SetAuthenticationInfoInQuery(redirectURI, e)
 		}
 	}()
@@ -585,68 +562,6 @@ func (s *Service2) deriveFinishRedirectURI(session *Session, graph *interaction.
 	postLoginRedirectURI := DerivePostLoginRedirectURIFromRequest(s.Request, s.OAuthClientResolver, s.UIConfig)
 	redirectURI = GetRedirectURI(s.Request, bool(s.TrustProxy), postLoginRedirectURI)
 	return
-}
-
-func (s *Service2) generateSettingsActionGrant(redirectURI string, e *authenticationinfo.Entry) (string, error) {
-	entry, err := s.OAuthSessions.Get(e.OAuthSessionID)
-	if err != nil {
-		return "", err
-	}
-
-	req := entry.T.AuthorizationRequest
-	if req.ResponseType() != "settings_action" {
-		return "", nil
-	}
-
-	result := entry.T.SettingsActionResult
-	if result == nil {
-		return "", nil
-	}
-
-	client := s.OAuthClientResolver.ResolveClient(entry.T.AuthorizationRequest.ClientID())
-
-	// Assume prompt=none for settings action
-	_, uiInfoByProduct, err := s.UIInfoResolver.ResolveForAuthorizationEndpoint(client, req)
-	if err != nil {
-		return "", err
-	}
-	idTokenHintSID := uiInfoByProduct.IDTokenHintSID
-
-	authenticationInfo := e.T
-	autoGrantAuthz := client.IsFirstParty()
-	var authz *oauth.Authorization
-	r := entry.T.AuthorizationRequest
-	if autoGrantAuthz {
-		authz, err = s.Authorizations.CheckAndGrant(
-			r.ClientID(),
-			authenticationInfo.UserID,
-			r.Scope(),
-		)
-	} else {
-		authz, err = s.Authorizations.Check(
-			r.ClientID(),
-			authenticationInfo.UserID,
-			r.Scope(),
-		)
-	}
-	if err != nil {
-		return "", err
-	}
-
-	ss := session.GetSession(s.Request.Context())
-	code, _, err := s.SettingsActionGrantService.CreateSettingsActionGrant(&handler.CreateSettingsActionGrantOptions{
-		Authorization:        authz,
-		IDPSessionID:         ss.SessionID(),
-		AuthenticationInfo:   authenticationInfo,
-		IDTokenHintSID:       idTokenHintSID,
-		RedirectURI:          req.RedirectURI(),
-		AuthorizationRequest: req,
-	})
-	if err != nil {
-		return "", err
-	}
-
-	return code, nil
 }
 
 func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {

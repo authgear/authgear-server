@@ -101,6 +101,12 @@ type UIInfoResolver struct {
 }
 
 func (r *UIInfoResolver) SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string {
+	consentURI := r.EndpointsProvider.ConsentEndpointURL().String()
+	// Not redirecting to the consent endpoint.
+	// Do not set anything.
+	if redirectURI != consentURI {
+		return redirectURI
+	}
 	u, err := url.Parse(redirectURI)
 	if err != nil {
 		panic(err)

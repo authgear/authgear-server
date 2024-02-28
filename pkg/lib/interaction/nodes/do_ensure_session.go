@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 )
@@ -221,21 +220,6 @@ func (n *NodeDoEnsureSession) GetEffects() ([]interaction.Effect, error) {
 					return err
 				}
 			}
-
-			return nil
-		}),
-		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-			entry, err := ctx.OAuthSessions.Get(ctx.OAuthSessionID)
-			if err != nil {
-				return err
-			}
-
-			if entry.T.AuthorizationRequest.ResponseType() != "settings_action" {
-				return nil
-			}
-
-			entry.T.SettingsActionResult = oauthsession.NewSettingsActionResult()
-			ctx.OAuthSessions.Save(entry)
 
 			return nil
 		}),

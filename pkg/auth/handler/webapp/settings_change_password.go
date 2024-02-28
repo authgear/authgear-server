@@ -30,11 +30,10 @@ func ConfigureSettingsChangePasswordRoute(route httproute.Route) httproute.Route
 }
 
 type SettingsChangePasswordHandler struct {
-	ControllerFactory   ControllerFactory
-	BaseViewModel       *viewmodels.BaseViewModeler
-	Renderer            Renderer
-	PasswordPolicy      PasswordPolicy
-	OAuthClientResolver WebappOAuthClientResolver
+	ControllerFactory ControllerFactory
+	BaseViewModel     *viewmodels.BaseViewModeler
+	Renderer          Renderer
+	PasswordPolicy    PasswordPolicy
 }
 
 func (h *SettingsChangePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -76,7 +75,7 @@ func (h *SettingsChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http
 	ctrl.PostAction("", func() error {
 		userID := ctrl.RequireUserID()
 		opts := webapp.SessionOptions{
-			RedirectURI: webapp.DeriveSettingsRedirectURIFromRequest(r, h.OAuthClientResolver, "/settings"),
+			RedirectURI: ctrl.RedirectURI(),
 		}
 		intent := intents.NewIntentChangePrimaryPassword(userID)
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {

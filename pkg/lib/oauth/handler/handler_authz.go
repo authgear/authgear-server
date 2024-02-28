@@ -28,7 +28,7 @@ import (
 const (
 	CodeResponseType          = "code"
 	NoneResponseType          = "none"
-	SettingsActonResponseType = "settings_action"
+	SettingsActonResponseType = "urn:authgear:params:oauth:response-type:settings-action"
 )
 
 // whiteslistedResponseTypes is a list of response types that would be always allowed
@@ -126,7 +126,6 @@ func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.
 		}
 	}
 
-	// create oauth session and redirect to the web app
 	oauthSessionEntry := oauthsession.NewEntry(oauthsession.T{
 		AuthorizationRequest: r,
 	})
@@ -137,7 +136,6 @@ func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.
 			Response:     protocol.NewErrorResponse("server_error", "internal server error"),
 		}
 	}
-	// FIXME: remove settings action code
 	redirectURI, errResp := parseAuthzRedirectURI(client, h.UIURLBuilder, h.HTTPProto, h.HTTPOrigin, h.AppDomains, oauthSessionEntry, r)
 	if errResp != nil {
 		return authorizationResultError{
@@ -499,13 +497,19 @@ func (h *AuthorizationHandler) finish(
 
 	resp := protocol.AuthorizationResponse{}
 	switch r.ResponseType() {
-	case "code":
+	case SettingsActonResponseType:
+		err = h.generateSettingsActionResponse(redirectURI.String(), idpSessionID, authenticationInfo, idTokenHintSID, r, authz, resp)
+		if err != nil {
+			return nil, err
+		}
+
+	case CodeResponseType:
 		err = h.generateCodeResponse(redirectURI.String(), idpSessionID, authenticationInfo, idTokenHintSID, r, authz, resp)
 		if err != nil {
 			return nil, err
 		}
 
-	case "none":
+	case NoneResponseType:
 		break
 
 	default:
@@ -591,9 +595,9 @@ func (h *AuthorizationHandler) validateRequest(
 	}
 
 	switch r.ResponseType() {
-	case "settings_action":
+	case SettingsActonResponseType:
 		fallthrough
-	case "code":
+	case CodeResponseType:
 		if client.IsPublic() {
 			if r.CodeChallenge() == "" {
 				return protocol.NewError("invalid_request", "PKCE code challenge is required for public clients")
@@ -602,7 +606,7 @@ func (h *AuthorizationHandler) validateRequest(
 		if r.CodeChallenge() != "" && r.CodeChallengeMethod() != pkce.CodeChallengeMethodS256 {
 			return protocol.NewError("invalid_request", "only 'S256' PKCE transform is supported")
 		}
-	case "none":
+	case NoneResponseType:
 		break
 	default:
 		return protocol.NewError("unsupported_response_type", "only 'code' response type is supported")
@@ -640,70 +644,27 @@ func (h *AuthorizationHandler) generateCodeResponse(
 	return nil
 }
 
-func (h *AuthorizationHandler) generateSettingsActionGrant(
-	client *config.OAuthClientConfig,
+func (h *AuthorizationHandler) generateSettingsActionResponse(
+	redirectURI string,
+	idpSessionID string,
+	authenticationInfo authenticationinfo.T,
+	idTokenHintSID string,
 	r protocol.AuthorizationRequest,
-) (string, protocol.ErrorResponse) {
-	if r.ResponseType() != string(SettingsActonResponseType) {
-		return "", nil
-	}
-
-	var err error
-
-	// Require login_hint for settings action
-	_, loginHintOk := r.LoginHint()
-	if !loginHintOk {
-		return "", protocol.NewErrorResponse("login_required", "authentication required")
-	}
-
-	// Assume prompt=none for settings action
-	_, uiInfoByProduct, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(client, r)
-	if err != nil {
-		return "", protocol.NewErrorResponse("server_error", err.Error())
-	}
-	idToken := uiInfoByProduct.IDToken
-	idTokenHintSID := uiInfoByProduct.IDTokenHintSID
-
-	var idpSession session.Session
-	if s := session.GetSession(h.Context); s != nil && s.SessionType() == session.TypeIdentityProvider {
-		idpSession = s
-	}
-	if idpSession == nil || (idToken != nil && idpSession.GetAuthenticationInfo().UserID != idToken.Subject()) {
-		return "", protocol.NewErrorResponse("login_required", "authentication required")
-	}
-
-	authenticationInfo := idpSession.GetAuthenticationInfo()
-	autoGrantAuthz := client.IsFirstParty()
-
-	var authz *oauth.Authorization
-	if autoGrantAuthz {
-		authz, err = h.Authorizations.CheckAndGrant(
-			r.ClientID(),
-			authenticationInfo.UserID,
-			r.Scope(),
-		)
-	} else {
-		authz, err = h.Authorizations.Check(
-			r.ClientID(),
-			authenticationInfo.UserID,
-			r.Scope(),
-		)
-	}
-	if err != nil {
-		return "", protocol.NewErrorResponse("server_error", err.Error())
-	}
-
+	authz *oauth.Authorization,
+	resp protocol.AuthorizationResponse,
+) error {
 	code, _, err := h.SettingsActionGrantService.CreateSettingsActionGrant(&CreateSettingsActionGrantOptions{
 		Authorization:        authz,
-		IDPSessionID:         idpSession.SessionID(),
+		IDPSessionID:         idpSessionID,
 		AuthenticationInfo:   authenticationInfo,
 		IDTokenHintSID:       idTokenHintSID,
-		RedirectURI:          r.RedirectURI(),
+		RedirectURI:          redirectURI,
 		AuthorizationRequest: r,
 	})
 	if err != nil {
-		return "", protocol.NewErrorResponse("server_error", err.Error())
+		return err
 	}
 
-	return code, nil
+	resp.Code(code)
+	return nil
 }
