@@ -8,6 +8,55 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
+func (s *Store) ListComputedRolesByUserID(userID string) ([]*Role, error) {
+	roleFromGroupsQuery := s.SQLBuilder.Select(
+		"r.id",
+		"r.created_at",
+		"r.updated_at",
+		"r.key",
+		"r.name",
+		"r.description",
+	).
+		From(s.SQLBuilder.TableName("_auth_user"), "u").
+		Join(s.SQLBuilder.TableName("_auth_user_group"), "ug", "u.id = ug.user_id").
+		Join(s.SQLBuilder.TableName("_auth_group_role"), "gr", "ug.group_id = gr.group_id").
+		Join(s.SQLBuilder.TableName("_auth_role"), "r", "r.id = gr.role_id").
+		Where("ug.user_id = ?", userID)
+
+	roleFromUserQuery := s.SQLBuilder.Select(
+		"r.id",
+		"r.created_at",
+		"r.updated_at",
+		"r.key",
+		"r.name",
+		"r.description",
+	).
+		From(s.SQLBuilder.TableName("_auth_user_role"), "ur").
+		Join(s.SQLBuilder.TableName("_auth_role"), "r", "ur.role_id = r.id").
+		Where("ur.user_id = ?", userID)
+
+	roleFromGroups, err := s.queryRoles(roleFromGroupsQuery)
+	if err != nil {
+		return nil, err
+	}
+	roleFromUser, err := s.queryRoles(roleFromUserQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	mergedList := append(roleFromGroups, roleFromUser...)
+	deduplicatedList := make([]*Role, 0)
+	check := make(map[string]bool, len(mergedList))
+	for i := range mergedList {
+		if !check[mergedList[i].Key] {
+			deduplicatedList = append(deduplicatedList, mergedList[i])
+			check[mergedList[i].Key] = true
+		}
+	}
+
+	return deduplicatedList, nil
+}
+
 func (s *Store) ListRolesByUserID(userID string) ([]*Role, error) {
 	q := s.SQLBuilder.Select(
 		"r.id",

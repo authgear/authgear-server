@@ -1478,6 +1478,9 @@ type User implements Entity & Node {
   """The list of biometric registrations"""
   biometricRegistrations: [Identity!]!
 
+  """The list of computed role keys this user has."""
+  computedRoleKeys(after: String, before: String, first: Int, last: Int): [String!]
+
   """The creation time of entity"""
   createdAt: DateTime!
 
