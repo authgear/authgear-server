@@ -32,7 +32,7 @@ The input is a JSON document. Here is an example.
 {
   "upsert": true,
   "identifier": "email",
-  "users": [
+  "records": [
     {
       "preferred_username": "louischan",
       "email": "louischan@oursky.com",
@@ -92,7 +92,7 @@ The input is a JSON document. Here is an example.
 }
 ```
 
-- `upsert` is an optional boolean. It is false by default. If it is true, then the user is updated. The [update behavior](#update-behavior) of each attribute will be explained below. If it is false, then the user is skipped when it exists already.
+- `upsert` is an optional boolean. It is false by default. If it is true, then the user is updated. The [update behavior](#update-behavior) of each attribute will be explained below. If it is false, then the record is skipped when it exists already.
 - `identifier` is **required**. Valid values are `preferred_username`, `email`, and `phone_number`. It tells Authgear which attribute to use in the input to identify an existing user.
 
 ### Update behavior
@@ -110,12 +110,12 @@ The input is a JSON document. Here is an example.
 |All other standard attributes|**UPDATED_IF_PRESENT_AND_REMOVED_IF_NULL**|In particular, `address` IS NOT merged with the existing value, but REPLACES the existing `address` value.|
 |`custom_attributes.*`|**UPDATED_IF_PRESENT_AND_REMOVED_IF_NULL**|For each attribute in `custom_attributes`, the update behavior applies individually. So an absent custom attribute in an upsert does not change the existing value.|
 |`roles`, `groups`|**UPDATED_IF_PRESENT**|If present, the roles and groups of the user will match the value. For example, supposed the user originally has `["role_a", "role_b"]`. `roles` is `["role_a", "role_c"]`. `role_b` is removed and `role_c` is added.|
-|`disabled`|**UPDATED_IF_PRESENT**|Re-importing a user without specifying `disabled` WILL NOT accidentally alter the disabled state previously set by other means.|
-|`password`|**IGNORED**|If it was not provided when the user was first imported, subsequent import CANNOT add it back.|
+|`disabled`|**UPDATED_IF_PRESENT**|Re-importing a record without specifying `disabled` WILL NOT accidentally alter the disabled state previously set by other means.|
+|`password`|**IGNORED**|If it was not provided when the record was first imported, subsequent import CANNOT add it back.|
 |`mfa.email`|**UPDATED_IF_PRESENT_AND_REMOVED_IF_NULL**|If provided, the user can perform 2FA with email OTP.|
 |`mfa.phone_number`|**UPDATED_IF_PRESENT_AND_REMOVED_IF_NULL**|If provided, the user can perform 2FA with phone OTP.|
-|`mfa.password`|**IGNORED**|If it was not provided when the user was first imported, subsequent import CANNOT add it back.|
-|`mfa.totp`|**IGNORED**|If it was not provided when the user was first imported, subsequent import CANNOT add it back.|
+|`mfa.password`|**IGNORED**|If it was not provided when the record was first imported, subsequent import CANNOT add it back.|
+|`mfa.totp`|**IGNORED**|If it was not provided when the record was first imported, subsequent import CANNOT add it back.|
 
 ## Supported password format
 
@@ -152,18 +152,38 @@ Sensitive values are redacted in the response.
     "total": 100,
     "inserted": 50,
     "updated": 49,
+    "skipped": 0,
     "failed": 1
   },
-  "errors": [
+  "details": [
     {
-      "user": {
+      "index": 0,
+      "record": {
+        "preferred_username": "johndoe",
+        "email": "johndoe@example.com"
+        "password": {
+          "type": "bcrypt",
+          "password_hash": "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy"
+        }
+      },
+      "warnings": [
+        {
+          "message": "password is ignored because the user exists already."
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "record": {
         "preferred_username": "louischan",
         "email": "louischan@oursky.com"
       },
-      "error": {
-        "reason": "DuplicatedIdentity",
-        "message": "identity already exists"
-      }
+      "errors": [
+        {
+          "reason": "DuplicatedIdentity",
+          "message": "identity already exists"
+        }
+      ]
     }
   ]
 }
