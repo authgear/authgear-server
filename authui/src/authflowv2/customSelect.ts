@@ -340,7 +340,15 @@ export class CustomSelectController extends Controller {
 
     const fragment = document.createDocumentFragment();
 
-    this.filteredOptions.forEach((item, index) => {
+    const filteredOptionsValues = this.filteredOptions.reduce<Set<string>>(
+      (valuesSet, option, _idx, _arr): Set<string> => {
+        valuesSet.add(option.value);
+        return valuesSet;
+      },
+      new Set()
+    );
+
+    this.optionsValue.forEach((item, index) => {
       const clone = document.importNode(template, true);
       const option = clone.querySelector("li");
       const selected = this.keyword ? index === 0 : item.value === this.value;
@@ -364,6 +372,9 @@ export class CustomSelectController extends Controller {
       option!.dataset.index = index.toString();
       option!.setAttribute("data-value", item.value);
       option!.setAttribute("aria-selected", selected.toString());
+      if (!filteredOptionsValues.has(item.value)) {
+        option!.classList.add("hidden");
+      }
       fragment.appendChild(clone);
     });
 
