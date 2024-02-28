@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	// Role and group forms a initialization cycle.
+	// Role and group, user and group forms a initialization cycle.
 	// So we break the cycle by using AddFieldConfig.
 	nodeGroup.AddFieldConfig("roles", &graphql.Field{
 		Type:        connRole.ConnectionType,
@@ -33,6 +33,33 @@ func init() {
 			return graphqlutil.NewConnectionFromArray(roleIfaces, args), nil
 		},
 	})
+
+	nodeGroup.AddFieldConfig("users", &graphql.Field{
+		Type:        connUser.ConnectionType,
+		Description: "The list of users in the group.",
+		Args:        relay.NewConnectionArgs(graphql.FieldConfigArgument{}),
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			source := p.Source.(*model.Group)
+			gqlCtx := GQLContext(p.Context)
+			pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
+
+			refs, result, err := gqlCtx.RolesGroupsFacade.ListUserIDsByGroupID(source.ID, pageArgs)
+			if err != nil {
+				return nil, err
+			}
+
+			var lazyItems []graphqlutil.LazyItem
+			for _, ref := range refs {
+				lazyItems = append(lazyItems, graphqlutil.LazyItem{
+					Lazy:   gqlCtx.Users.Load(ref.ID),
+					Cursor: graphqlutil.Cursor(ref.Cursor),
+				})
+			}
+
+			return graphqlutil.NewConnectionFromResult(lazyItems, result)
+		},
+	})
+
 }
 
 const typeGroup = "Group"

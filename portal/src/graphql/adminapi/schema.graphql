@@ -735,6 +735,9 @@ type Group implements Entity & Node {
 
   """The update time of entity"""
   updatedAt: DateTime!
+
+  """The list of users in the group."""
+  users(after: String, before: String, first: Int, last: Int): UserConnection
 }
 
 """A connection to a list of items."""
