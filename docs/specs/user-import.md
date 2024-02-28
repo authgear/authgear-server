@@ -72,16 +72,16 @@ The input is a JSON document. Here is an example.
       "disabled": false,
 
       "password": {
-        "type": "plain",
-        "plain_password": "secret"
+        "type": "bcrypt",
+        "password_hash": "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy"
       },
 
       "mfa": {
         "email": "louischan@oursky.com",
         "phone_number": "+85251388325",
         "password": {
-          "type": "plain",
-          "plain_password": "secret"
+          "type": "bcrypt",
+          "password_hash": "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy"
         },
         "totp": {
           "secret": "secret"
@@ -118,15 +118,6 @@ The input is a JSON document. Here is an example.
 |`mfa.totp`|**IGNORED**|If it was not provided when the user was first imported, subsequent import CANNOT add it back.|
 
 ## Supported password format
-
-### Plain password
-
-```
-{
-  "type": "plain",
-  "plain_password": "secret"
-}
-```
 
 ### Bcrypt password
 
