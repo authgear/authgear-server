@@ -207,7 +207,7 @@ func newAuthflowScreenSignupPromote(flowResponse *authflow.FlowResponse, previou
 		}
 	case config.AuthenticationFlowStepTypeVerify:
 		// verify MAY contain branches.
-		if _, ok := flowResponse.Action.Data.(declarative.IntentVerifyClaimData); ok {
+		if _, ok := flowResponse.Action.Data.(declarative.SelectOOBOTPChannelsData); ok {
 			screen.BranchStateToken = state
 		}
 	case config.AuthenticationFlowStepTypeFillInUserProfile:
@@ -496,7 +496,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 							flowResponse.Action.Authentication == option.Authentication
 					}
 					takenChannel := channel
-					if d, ok := flowResponse.Action.Data.(declarative.NodeVerifyClaimData); ok {
+					if d, ok := flowResponse.Action.Data.(declarative.VerifyOOBOTPData); ok {
 						takenChannel = d.Channel
 					}
 
@@ -518,7 +518,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 		}
 	case config.AuthenticationFlowStepTypeVerify:
 		// If we ever reach here, this means we have to choose channels.
-		data := s.StateTokenFlowResponse.Action.Data.(declarative.IntentVerifyClaimData)
+		data := s.StateTokenFlowResponse.Action.Data.(declarative.SelectOOBOTPChannelsData)
 		if channel == "" {
 			channel = data.Channels[0]
 		}
@@ -541,7 +541,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 					return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowSignupFlowStepTypeVerify)
 				}
 				takenChannel := channel
-				if d, ok := flowResponse.Action.Data.(declarative.NodeVerifyClaimData); ok {
+				if d, ok := flowResponse.Action.Data.(declarative.VerifyOOBOTPData); ok {
 					takenChannel = d.Channel
 				}
 				screen := s.makeScreenForTakenBranch(flowResponse, input, nilIndex, takenChannel, isContinuation)
@@ -609,9 +609,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(index int, channel mode
 					}
 					takenChannel := channel
 					switch d := flowResponse.Action.Data.(type) {
-					case declarative.NodeVerifyClaimData:
-						takenChannel = d.Channel
-					case declarative.NodeAuthenticationOOBData:
+					case declarative.VerifyOOBOTPData:
 						takenChannel = d.Channel
 					default:
 						// Skip if we do not have the channel.
@@ -683,9 +681,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchReauth(index int, channel mod
 					}
 					takenChannel := channel
 					switch d := flowResponse.Action.Data.(type) {
-					case declarative.NodeVerifyClaimData:
-						takenChannel = d.Channel
-					case declarative.NodeAuthenticationOOBData:
+					case declarative.VerifyOOBOTPData:
 						takenChannel = d.Channel
 					default:
 						// Skip if we do not have the channel.

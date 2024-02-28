@@ -17,13 +17,7 @@ var phoneRegexp = regexp.MustCompile(`^\+[0-9]*$`)
 func GetIdentificationOptions(f *authflow.FlowResponse) []declarative.IdentificationOption {
 	var options []declarative.IdentificationOption
 	switch data := f.Action.Data.(type) {
-	case declarative.IntentLoginFlowStepIdentifyData:
-		options = data.Options
-	case declarative.IntentSignupFlowStepIdentifyData:
-		options = data.Options
-	case declarative.IntentPromoteFlowStepIdentifyData:
-		options = data.Options
-	case declarative.IntentSignupLoginFlowStepIdentifyData:
+	case declarative.IdentificationData:
 		options = data.Options
 	default:
 		panic(fmt.Errorf("unexpected type of data: %T", f.Action.Data))

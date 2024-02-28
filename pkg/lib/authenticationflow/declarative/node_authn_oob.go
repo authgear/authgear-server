@@ -3,7 +3,6 @@ package declarative
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
@@ -23,21 +22,6 @@ import (
 func init() {
 	authflow.RegisterNode(&NodeAuthenticationOOB{})
 }
-
-type NodeAuthenticationOOBData struct {
-	Channel                        model.AuthenticatorOOBChannel `json:"channel,omitempty"`
-	OTPForm                        otp.Form                      `json:"otp_form,omitempty"`
-	WebsocketURL                   string                        `json:"websocket_url,omitempty"`
-	MaskedClaimValue               string                        `json:"masked_claim_value,omitempty"`
-	CodeLength                     int                           `json:"code_length,omitempty"`
-	CanResendAt                    time.Time                     `json:"can_resend_at,omitempty"`
-	CanCheck                       bool                          `json:"can_check"`
-	FailedAttemptRateLimitExceeded bool                          `json:"failed_attempt_rate_limit_exceeded"`
-}
-
-var _ authflow.Data = &NodeAuthenticationOOBData{}
-
-func (m NodeAuthenticationOOBData) Data() {}
 
 type NodeAuthenticationOOB struct {
 	JSONPointer          jsonpointer.T                           `json:"json_pointer,omitempty"`
@@ -173,7 +157,7 @@ func (n *NodeAuthenticationOOB) OutputData(ctx context.Context, deps *authflow.D
 		}
 	}
 
-	return NodeAuthenticationOOBData{
+	return NewVerifyOOBOTPData(VerifyOOBOTPData{
 		Channel:                        n.Channel,
 		OTPForm:                        n.Form,
 		WebsocketURL:                   websocketURL,
@@ -182,7 +166,7 @@ func (n *NodeAuthenticationOOB) OutputData(ctx context.Context, deps *authflow.D
 		CanResendAt:                    state.CanResendAt,
 		CanCheck:                       state.SubmittedCode != "",
 		FailedAttemptRateLimitExceeded: state.TooManyAttempts,
-	}, nil
+	}), nil
 }
 
 func (*NodeAuthenticationOOB) otpMessageType(info *authenticator.Info) otp.MessageType {

@@ -48,7 +48,7 @@ func (h *AuthflowResetPasswordHandler) GetData(w http.ResponseWriter, r *http.Re
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.IntentAccountRecoveryFlowStepResetPasswordData)
+	screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.NewPasswordData)
 
 	passwordPolicyViewModel := viewmodels.NewPasswordPolicyViewModelFromAuthflow(
 		screenData.PasswordPolicy,

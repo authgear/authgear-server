@@ -396,7 +396,7 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 				FlowAction: &authflow.FlowAction{
 					Type:           authflow.FlowActionTypeFromStepType(config.AuthenticationFlowStepTypeAuthenticate),
 					Authentication: config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
-					Data: declarative.NodeVerifyClaimData{
+					Data: declarative.VerifyOOBOTPData{
 						OTPForm: otp.FormCode,
 					},
 				},

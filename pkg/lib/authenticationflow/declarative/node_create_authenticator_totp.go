@@ -23,8 +23,14 @@ func init() {
 }
 
 type NodeCreateAuthenticatorTOTPData struct {
+	TypedData
 	Secret     string `json:"secret"`
 	OTPAuthURI string `json:"otpauth_uri"`
+}
+
+func NewNodeCreateAuthenticatorTOTPData(d NodeCreateAuthenticatorTOTPData) NodeCreateAuthenticatorTOTPData {
+	d.Type = DataTypeCreateTOTPData
+	return d
 }
 
 var _ authflow.Data = NodeCreateAuthenticatorTOTPData{}
@@ -131,10 +137,10 @@ func (n *NodeCreateAuthenticatorTOTP) OutputData(ctx context.Context, deps *auth
 	}
 	otpauthURI := secretcode.NewTOTPFromSecret(secret).GetURI(opts).String()
 
-	return NodeCreateAuthenticatorTOTPData{
+	return NewNodeCreateAuthenticatorTOTPData(NodeCreateAuthenticatorTOTPData{
 		Secret:     secret,
 		OTPAuthURI: otpauthURI,
-	}, nil
+	}), nil
 }
 
 func (n *NodeCreateAuthenticatorTOTP) authenticatorKind() model.AuthenticatorKind {

@@ -17,14 +17,6 @@ func init() {
 	authflow.RegisterIntent(&IntentSignupFlowStepIdentify{})
 }
 
-type IntentSignupFlowStepIdentifyData struct {
-	Options []IdentificationOption `json:"options"`
-}
-
-var _ authflow.Data = IntentSignupFlowStepIdentifyData{}
-
-func (IntentSignupFlowStepIdentifyData) Data() {}
-
 type IntentSignupFlowStepIdentify struct {
 	JSONPointer jsonpointer.T          `json:"json_pointer,omitempty"`
 	StepName    string                 `json:"step_name,omitempty"`
@@ -197,9 +189,9 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 }
 
 func (i *IntentSignupFlowStepIdentify) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	return IntentSignupFlowStepIdentifyData{
+	return NewIdentificationData(IdentificationData{
 		Options: i.Options,
-	}, nil
+	}), nil
 }
 
 func (*IntentSignupFlowStepIdentify) step(o config.AuthenticationFlowObject) *config.AuthenticationFlowSignupFlowStep {

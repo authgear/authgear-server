@@ -6,6 +6,7 @@ import (
 )
 
 type OAuthData struct {
+	TypedData
 	Alias                 string                       `json:"alias,omitempty"`
 	OAuthProviderType     config.OAuthSSOProviderType  `json:"oauth_provider_type,omitempty"`
 	OAuthAuthorizationURL string                       `json:"oauth_authorization_url,omitempty"`
@@ -15,3 +16,8 @@ type OAuthData struct {
 var _ authflow.Data = OAuthData{}
 
 func (OAuthData) Data() {}
+
+func NewOAuthData(d OAuthData) OAuthData {
+	d.Type = DataTypeOAuthData
+	return d
+}

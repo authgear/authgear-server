@@ -13,7 +13,13 @@ func init() {
 }
 
 type IntentSignupFlowStepViewRecoveryCodeData struct {
+	TypedData
 	RecoveryCodes []string `json:"recovery_codes"`
+}
+
+func NewIntentSignupFlowStepViewRecoveryCodeData(d IntentSignupFlowStepViewRecoveryCodeData) IntentSignupFlowStepViewRecoveryCodeData {
+	d.Type = DataTypeViewRecoveryCodeData
+	return d
 }
 
 var _ authflow.Data = IntentSignupFlowStepViewRecoveryCodeData{}
@@ -65,7 +71,7 @@ func (i *IntentSignupFlowStepViewRecoveryCode) ReactTo(ctx context.Context, deps
 }
 
 func (i *IntentSignupFlowStepViewRecoveryCode) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	return IntentSignupFlowStepViewRecoveryCodeData{
+	return NewIntentSignupFlowStepViewRecoveryCodeData(IntentSignupFlowStepViewRecoveryCodeData{
 		RecoveryCodes: i.RecoveryCodes,
-	}, nil
+	}), nil
 }
