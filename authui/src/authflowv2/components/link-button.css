@@ -29,6 +29,9 @@
 
   :root.dark {
     --link-btn-text-color--disabled: var(--color-neutral-400);
+
+    --link-btn-text-color--hover: var(--color-primary-theme-tertiary);
+    --link-btn-text-color--active: var(--color-primary-theme-tertiary);
   }
 
   .link-btn {

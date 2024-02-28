@@ -36,6 +36,9 @@
 
   :root.dark {
     --label-btn__text-color--disabled: var(--color-neutral-400);
+
+    --label-btn__text-color--hover: var(--color-primary-theme-tertiary);
+    --label-btn__text-color--active: var(--color-primary-theme-tertiary);
   }
 
   .label-btn {

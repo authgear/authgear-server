@@ -46,10 +46,10 @@
     /* --color-primary-theme-dark-alt: #1460da; */
     --color-primary-theme-primary: #176df3;
     /* --color-primary-theme-secondary: #317bf4; */
-    /* --color-primary-theme-tertiary: #70a4f7; */
-    /* --color-primary-theme-light: #b7d1fb;
-    --color-primary-theme-lighter: #d8e6fd;
-    --color-primary-theme-lighter-alt: #f5f9fe; */
+    --color-primary-theme-tertiary: #70a4f7;
+    /* --color-primary-theme-light: #b7d1fb; */
+    /* --color-primary-theme-lighter: #d8e6fd; */
+    /* --color-primary-theme-lighter-alt: #f5f9fe; */
 
     /* Neutral colors is tonal palette */
     /* https://m3.material.io/styles/color/system/how-the-system-works#395813c8-b314-48d1-bb55-266f421eb3a4 */
@@ -78,15 +78,15 @@
     */
 
     /* primary */
-    /* --color-primary-theme-darker: #88b4f9; */
-    --color-primary-theme-dark: #5f99f7;
-    /* --color-primary-theme-dark-alt: #4387f6; */
+    /* --color-primary-theme-darker: #1a4589; */
+    --color-primary-theme-dark: #235dba;
+    /* --color-primary-theme-dark-alt: #2a6edc; */
     --color-primary-theme-primary: #2f7bf4;
-    /* --color-primary-theme-secondary: 	#296cd7; */
-    /* --color-primary-theme-tertiary: #1c4a93; */
-    /* --color-primary-theme-light: #0e2549;
-    --color-primary-theme-lighter: #071427;
-    --color-primary-theme-lighter-alt: #02050a; */
+    /* --color-primary-theme-secondary: #478af6; */
+    --color-primary-theme-tertiary: #80aef9;
+    /* --color-primary-theme-light: #bfd6fc; */
+    /* --color-primary-theme-lighter: #dde9fd; */
+    /* --color-primary-theme-lighter-alt: #f6faff; */
 
     /* Neutral colors is tonal palette */
     /* https://m3.material.io/styles/color/system/how-the-system-works#395813c8-b314-48d1-bb55-266f421eb3a4 */
