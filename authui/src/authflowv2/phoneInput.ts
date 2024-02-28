@@ -3,6 +3,7 @@ import {
   CountryCode,
   getCountryCallingCode,
   AsYouType,
+  default as parsePhoneNumber,
 } from "libphonenumber-js";
 import defaultTerritories from "cldr-localenames-full/main/en/territories.json";
 import { getEmojiFlag } from "./getEmojiFlag";
@@ -178,17 +179,22 @@ export class PhoneInputController extends Controller {
   updateValue(): void {
     const countryValue = this.countrySelect?.value;
     const rawValue = this.phoneInputTarget.value;
+    let combinedValue: string = rawValue;
 
     if (rawValue.startsWith("+")) {
-      this.value = rawValue;
+      combinedValue = rawValue;
     } else if (countryValue != null) {
-      const newValue = `+${getCountryCallingCode(
+      combinedValue = `+${getCountryCallingCode(
         countryValue as CountryCode
       )}${rawValue}`;
-      this.value = newValue;
-    } else {
-      this.value = rawValue;
     }
+
+    const parsed = parsePhoneNumber(combinedValue);
+    if (parsed != null) {
+      combinedValue = parsed.format("E.164");
+    }
+
+    this.value = combinedValue;
   }
 
   decomposeValue(
