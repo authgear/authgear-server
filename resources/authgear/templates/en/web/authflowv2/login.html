@@ -45,19 +45,23 @@
     {{ $show_text_input = true }}
   {{ end }}{{ end }}{{ end }}
 
+  {{ $appName := (include "app.name" nil) }}
+  {{ $clientName := or $.ClientName "null" }}
+
   <div class="flex-1-0-auto">
     <div class="flex flex-col gap-4">
       {{ template "authflowv2/__header.html" . }}
       <h1 class="screen-title">
-        {{ if $.ClientName }}
-        {{ template "v2-login.title" (dict "AppOrClientName" $.ClientName) }}
-        {{ else }}
-        {{ $appName := (include "app.name" nil) }}
-        {{ template "v2-login.title" (dict "AppOrClientName" $appName) }}
-        {{ end }}
+        {{ template "v2-login.title" (dict
+          "AppName" $appName
+          "ClientName" $clientName)
+        }}
       </h1>
       <h2 class="screen-description">
-        {{ template "v2-login.subtitle" }}
+        {{ template "v2-login.subtitle" (dict
+          "AppName" $appName
+          "ClientName" $clientName)
+        }}
       </h2>
       {{ template "authflowv2/__alert_message.html"
         (dict

@@ -848,7 +848,7 @@
   "v2-sign-up-login-title": "歡迎",
   "v2-sign-up-login-subtitle": "註冊或登入至 {AppName}",
   "v2-login.title": "歡迎",
-  "v2-login.subtitle": "登入 {AppName} 以繼續至 {ClientName}",
+  "v2-login.subtitle": "{ClientName, select, null {登入 {AppName}} other {登入 {AppName} 以繼續至 {ClientName}}}",
   "v2-login.switch-to-sign-up": "沒有帳戶？ <a href=\"{href}\">立即註冊</a>",
   "v2-or-label": "或",
   "v2-placeholder.login-id": "{variant, select, email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}}",
