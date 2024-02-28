@@ -6,6 +6,22 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
+func (s *Store) ListRolesByUserID(userID string) ([]*Role, error) {
+	q := s.SQLBuilder.Select(
+		"r.id",
+		"r.created_at",
+		"r.updated_at",
+		"r.key",
+		"r.name",
+		"r.description",
+	).
+		From(s.SQLBuilder.TableName("_auth_user_role"), "ur").
+		Join(s.SQLBuilder.TableName("_auth_role"), "r", "ur.role_id = r.id").
+		Where("ur.user_id = ?", userID)
+
+	return s.queryRoles(q)
+}
+
 type AddRoleToUsersOptions struct {
 	RoleKey string
 	UserIDs []string

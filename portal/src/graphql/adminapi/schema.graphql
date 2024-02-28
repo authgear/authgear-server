@@ -1531,6 +1531,9 @@ type User implements Entity & Node {
   """The primary password authenticator"""
   primaryPassword: Authenticator
 
+  """The list of roles this user has."""
+  roles(after: String, before: String, first: Int, last: Int): RoleConnection
+
   """The list of secondary passwordless via email authenticators"""
   secondaryOOBOTPEmailAuthenticators: [Authenticator!]!
 

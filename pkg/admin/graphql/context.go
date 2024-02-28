@@ -96,6 +96,8 @@ type RolesGroupsFacade interface {
 
 	AddUserToGroups(options *rolesgroups.AddUserToGroupsOptions) (err error)
 	RemoveUserFromGroups(options *rolesgroups.RemoveUserFromGroupsOptions) (err error)
+
+	ListRolesByUserID(userID string) ([]*apimodel.Role, error)
 }
 
 type IdentityFacade interface {

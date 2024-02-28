@@ -39,6 +39,7 @@ type RolesGroupsQueries interface {
 	ListGroups(options *rolesgroups.ListGroupsOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
 	ListGroupsByRoleID(roleID string) ([]*model.Group, error)
 	ListRolesByGroupID(groupID string) ([]*model.Role, error)
+	ListRolesByUserID(userID string) ([]*model.Role, error)
 }
 
 type RolesGroupsFacade struct {
@@ -238,4 +239,8 @@ func (f *RolesGroupsFacade) RemoveUserFromGroups(options *rolesgroups.RemoveUser
 	}
 
 	return
+}
+
+func (f *RolesGroupsFacade) ListRolesByUserID(userID string) ([]*model.Role, error) {
+	return f.RolesGroupsQueries.ListRolesByUserID(userID)
 }

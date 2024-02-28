@@ -111,3 +111,17 @@ func (q *Queries) ListGroups(options *ListGroupsOptions, pageArgs graphqlutil.Pa
 	}
 	return models, nil
 }
+
+func (q *Queries) ListRolesByUserID(userID string) ([]*model.Role, error) {
+	roles, err := q.Store.ListRolesByUserID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	roleModels := make([]*model.Role, len(roles))
+	for i, r := range roles {
+		roleModels[i] = r.ToModel()
+	}
+
+	return roleModels, nil
+}

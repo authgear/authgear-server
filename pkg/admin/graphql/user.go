@@ -14,6 +14,33 @@ import (
 
 const typeUser = "User"
 
+func init() {
+	// Role and user, group and user forms a initialization cycle.
+	// So we break the cycle by using AddFieldConfig.
+	nodeUser.AddFieldConfig("roles", &graphql.Field{
+		Type:        connRole.ConnectionType,
+		Description: "The list of roles this user has.",
+		Args:        relay.NewConnectionArgs(graphql.FieldConfigArgument{}),
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			source := p.Source.(*model.User)
+			gqlCtx := GQLContext(p.Context)
+
+			roles, err := gqlCtx.RolesGroupsFacade.ListRolesByUserID(source.ID)
+			if err != nil {
+				return nil, err
+			}
+
+			roleIfaces := make([]interface{}, len(roles))
+			for i, r := range roles {
+				roleIfaces[i] = r
+			}
+
+			args := relay.NewConnectionArguments(p.Args)
+			return graphqlutil.NewConnectionFromArray(roleIfaces, args), nil
+		},
+	})
+}
+
 var nodeUser = node(
 	graphql.NewObject(graphql.ObjectConfig{
 		Name:        typeUser,
