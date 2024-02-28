@@ -93,6 +93,7 @@ type UserCommands interface {
 
 type RolesGroupsCommands interface {
 	DeleteUserGroup(userID string) error
+	DeleteUserRole(userID string) error
 }
 
 type PasswordHistoryStore interface {
@@ -455,6 +456,16 @@ func (c *Coordinator) UserDelete(userID string, isScheduledDeletion bool) error 
 
 	// Groups:
 	if err = c.RolesGroupsCommands.DeleteUserGroup(userID); err != nil {
+		return err
+	}
+
+	// Roles:
+	if err = c.RolesGroupsCommands.DeleteUserRole(userID); err != nil {
+		return err
+	}
+
+	// Roles:
+	if err = c.RolesGroupsCommands.DeleteUserRole(userID); err != nil {
 		return err
 	}
 
@@ -838,6 +849,11 @@ func (c *Coordinator) UserAnonymize(userID string, IsScheduledAnonymization bool
 
 	// Groups:
 	if err = c.RolesGroupsCommands.DeleteUserGroup(userID); err != nil {
+		return err
+	}
+
+	// Roles:
+	if err = c.RolesGroupsCommands.DeleteUserRole(userID); err != nil {
 		return err
 	}
 

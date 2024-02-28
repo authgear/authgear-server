@@ -208,3 +208,12 @@ func (c *Commands) DeleteUserGroup(userID string) error {
 
 	return nil
 }
+
+func (c *Commands) DeleteUserRole(userID string) error {
+	err := c.Store.DeleteUserRole(userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

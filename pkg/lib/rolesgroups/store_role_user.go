@@ -8,6 +8,19 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
+func (s *Store) DeleteUserRole(userID string) error {
+	q := s.SQLBuilder.Delete(s.SQLBuilder.TableName("_auth_user_role")).
+		Where("user_id = ?", userID)
+
+	_, err := s.SQLExecutor.ExecWith(q)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
 func (s *Store) ListComputedRolesByUserID(userID string) ([]*Role, error) {
 	roleFromGroupsQuery := s.SQLBuilder.Select(
 		"r.id",
