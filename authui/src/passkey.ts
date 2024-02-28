@@ -129,11 +129,13 @@ function isSafariTimeout(err: unknown) {
   );
 }
 
-function isSafariAndroidError(err: unknown) {
+function isOperationFailError(err: unknown) {
   // This happens when the user chooses to use Android phone to scan QR code.
   // And the passkey is not found on that Android phone.
   // If security key is used, the error message is shown in the modal dialog and the dialog will not close.
   // Thus we cannot detect security key error.
+
+  // This error also happens when using passkey api in webview
   return (
     err instanceof DOMException &&
     err.name === "NotAllowedError" &&
@@ -208,7 +210,7 @@ function handleError(err: unknown) {
     }
   }
 
-  if (isSafariAndroidError(err)) {
+  if (isOperationFailError(err)) {
     showErrorMessage("error-message-no-passkey");
     return;
   }
@@ -347,6 +349,64 @@ export class PasskeyRequestController extends Controller {
   }
 }
 
+export class AuthflowPasskeyErrorController extends Controller {
+  connect(): void {
+    document.addEventListener("passkey:error", this.onPasskeyError);
+  }
+
+  disconnect(): void {
+    document.removeEventListener("passkey:error", this.onPasskeyError);
+  }
+
+  onPasskeyError = (e: Event) => {
+    handleError((e as CustomEvent).detail);
+  };
+}
+
+export class AuthflowV2PasskeyErrorController extends Controller {
+  connect(): void {
+    document.addEventListener("passkey:error", this.onPasskeyError);
+  }
+
+  disconnect(): void {
+    document.removeEventListener("passkey:error", this.onPasskeyError);
+  }
+
+  onPasskeyError = (event: Event) => {
+    const err: unknown = (event as CustomEvent).detail;
+    const errorThatCanSimplyBeIgnored = [
+      isSafariCancel,
+      isSafariTimeout,
+      isChromeCancelOrTimeout,
+      isFirefoxCancel,
+      // Firefox timeout was not observed.
+      isAbortControllerError,
+    ];
+    for (const p of errorThatCanSimplyBeIgnored) {
+      if (p(err)) {
+        return;
+      }
+    }
+    let errMessage = "data-passkey-not-supported";
+    if (isOperationFailError(err)) {
+      errMessage = "data-invalid-passkey-or-not-supported";
+    }
+
+    if (isFirefoxSecurityKeyError(err)) {
+      errMessage = "data-no-passkey";
+    }
+
+    if (isSafariDuplicateError(err) || isChromeDuplicateError(err)) {
+      errMessage = "data-passkey-duplicate";
+    }
+    document.dispatchEvent(
+      new CustomEvent("alert-message:show-message", {
+        detail: { id: errMessage },
+      })
+    );
+  };
+}
+
 export class AuthflowPasskeyRequestController extends Controller {
   static targets = ["button", "submit", "input"];
   static values = {
@@ -360,11 +420,14 @@ export class AuthflowPasskeyRequestController extends Controller {
 
   declare optionsValue: string;
   declare autoValue: string;
+  declare hasButtonTarget: boolean;
 
   connect() {
     // Disable the button if PublicKeyCredential is unavailable.
     if (!passkeyIsAvailable()) {
-      this.buttonTarget.disabled = true;
+      if (this.hasButtonTarget) {
+        this.buttonTarget.disabled = true;
+      }
       return;
     }
 
@@ -381,6 +444,14 @@ export class AuthflowPasskeyRequestController extends Controller {
   }
 
   async _use() {
+    if (!passkeyIsAvailable()) {
+      document.dispatchEvent(
+        new CustomEvent("passkey:error", {
+          detail: new Error("passkey is not available"),
+        })
+      );
+      return;
+    }
     try {
       const optionsJSON = JSON.parse(this.optionsValue);
       const options = deserializeRequestOptions(optionsJSON);
@@ -396,7 +467,11 @@ export class AuthflowPasskeyRequestController extends Controller {
         this.submitTarget.click();
       }
     } catch (e: unknown) {
-      handleError(e);
+      document.dispatchEvent(
+        new CustomEvent("passkey:error", {
+          detail: e,
+        })
+      );
     }
   }
 }
@@ -410,13 +485,16 @@ export class AuthflowPasskeyCreationController extends Controller {
   declare buttonTarget: HTMLButtonElement;
   declare submitTarget: HTMLButtonElement;
   declare inputTarget: HTMLInputElement;
+  declare hasButtonTarget: boolean;
 
   declare optionsValue: string;
 
   connect() {
     // Disable the button if PublicKeyCredential is unavailable.
     if (!passkeyIsAvailable()) {
-      this.buttonTarget.disabled = true;
+      if (this.hasButtonTarget) {
+        this.buttonTarget.disabled = true;
+      }
       return;
     }
   }
@@ -429,6 +507,14 @@ export class AuthflowPasskeyCreationController extends Controller {
   }
 
   async _create() {
+    if (!passkeyIsAvailable()) {
+      document.dispatchEvent(
+        new CustomEvent("passkey:error", {
+          detail: new Error("passkey is not available"),
+        })
+      );
+      return;
+    }
     try {
       const optionsJSON = JSON.parse(this.optionsValue);
       const options = deserializeCreationOptions(optionsJSON);
@@ -444,7 +530,11 @@ export class AuthflowPasskeyCreationController extends Controller {
         this.submitTarget.click();
       }
     } catch (e: unknown) {
-      handleError(e);
+      document.dispatchEvent(
+        new CustomEvent("passkey:error", {
+          detail: e,
+        })
+      );
     }
   }
 }

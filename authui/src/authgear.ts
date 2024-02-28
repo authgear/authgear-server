@@ -34,6 +34,7 @@ import {
   AuthflowPasskeyRequestController,
   AuthflowPasskeyCreationController,
   PasskeyAutofillController,
+  AuthflowPasskeyErrorController,
 } from "./passkey";
 import { WalletConfirmationController, WalletIconController } from "./web3";
 import { init as SentryInit } from "@sentry/browser";
@@ -111,6 +112,7 @@ Stimulus.register(
   "authflow-passkey-creation",
   AuthflowPasskeyCreationController
 );
+Stimulus.register("authflow-passkey-error", AuthflowPasskeyErrorController);
 
 Stimulus.register("web3-wallet-confirmation", WalletConfirmationController);
 Stimulus.register("web3-wallet-icon", WalletIconController);
