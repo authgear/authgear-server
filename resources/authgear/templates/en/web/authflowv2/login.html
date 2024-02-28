@@ -150,34 +150,6 @@
     {{ if $has_alternatives }}
       {{ template "authflowv2/__divider.html" (dict "Classname" "my-8")  }}
       <section class="flex flex-col gap-4">
-        {{ if $.PasskeyEnabled }}
-          <div class="block w-full"
-            data-controller="authflow-passkey-request"
-            data-authflow-passkey-request-options-value="{{ $.PasskeyRequestOptionsJSON }}"
-            data-authflow-passkey-request-auto-value="false">
-            <button class="secondary-btn w-full"
-              type="button"
-              data-action="click->authflow-passkey-request#use"
-              data-authflow-passkey-request-target="button"
-              data-authgear-event="authgear.button.use_passkey">
-              <div class="flex gap-2">
-                <i class="alternative-icon material-icons">
-                  passkey
-                </i>
-                <span>
-                  {{ template "v2-continue-with-passkey" }}
-                </span>
-              </div>
-              </span>
-            </button>
-            <form class="hidden" method="post" novalidate>
-              {{ $.CSRFField }}
-              <input type="hidden" name="x_assertion_response" data-authflow-passkey-request-target="input">
-              <button type="submit" class="hidden" name="x_action" value="passkey" data-authflow-passkey-request-target="submit"></button>
-            </form>
-          </div>
-        {{ end }}
-
         {{ if $show_use_text_login_id_option }}
           <a
             class="secondary-btn w-full"
@@ -208,37 +180,65 @@
         {{ end }}
         {{ range .IdentityCandidates }}
           {{ if eq .type "oauth" }}
-          {{ $skip := false }}
-          {{- if (and (eq .provider_type "wechat") (eq .provider_app_type "mobile") (not $.IsNativePlatform)) -}}
-            {{ $skip = true }}
-          {{ end }}
-          {{- if (and (eq .provider_type "wechat") (eq .provider_app_type "web") ($.IsNativePlatform)) -}}
-            {{ $skip = true }}
-          {{ end }}
+            {{ $skip := false }}
+            {{- if (and (eq .provider_type "wechat") (eq .provider_app_type "mobile") (not $.IsNativePlatform)) -}}
+              {{ $skip = true }}
+            {{ end }}
+            {{- if (and (eq .provider_type "wechat") (eq .provider_app_type "web") ($.IsNativePlatform)) -}}
+              {{ $skip = true }}
+            {{ end }}
 
-          {{- if not $skip -}}
-            <form class="block" method="post" data-turbo="false" novalidate>
-              {{ $.CSRFField }}
-              <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
-              <button
-                class="secondary-btn w-full"
-                type="submit"
-                name="x_action"
-                value="oauth"
-                data-turbo="false"
-                data-authgear-event="authgear.button.oauth"
-              >
-                {{- $icon_class := printf "%s-icon" .provider_type -}}
-                <div class="flex gap-2">
-                  <i class="sso-icon {{ $icon_class }}"></i>
-                  <span>
-                    {{ include (printf "v2-oauth-branding-%s" .provider_type) nil }}
-                  </span>
-                </div>
-              </button>
-            </form>
+            {{- if not $skip -}}
+              <form class="block" method="post" data-turbo="false" novalidate>
+                {{ $.CSRFField }}
+                <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
+                <button
+                  class="secondary-btn w-full"
+                  type="submit"
+                  name="x_action"
+                  value="oauth"
+                  data-turbo="false"
+                  data-authgear-event="authgear.button.oauth"
+                >
+                  {{- $icon_class := printf "%s-icon" .provider_type -}}
+                  <div class="flex gap-2">
+                    <i class="sso-icon {{ $icon_class }}"></i>
+                    <span>
+                      {{ include (printf "v2-oauth-branding-%s" .provider_type) nil }}
+                    </span>
+                  </div>
+                </button>
+              </form>
+            {{ end }}
           {{ end }}
         {{ end }}
+
+        {{ if $.PasskeyEnabled }}
+          <div class="block w-full"
+            data-controller="authflow-passkey-request"
+            data-authflow-passkey-request-options-value="{{ $.PasskeyRequestOptionsJSON }}"
+            data-authflow-passkey-request-auto-value="false">
+            <button class="secondary-btn w-full"
+              type="button"
+              data-action="click->authflow-passkey-request#use"
+              data-authflow-passkey-request-target="button"
+              data-authgear-event="authgear.button.use_passkey">
+              <div class="flex gap-2">
+                <i class="alternative-icon material-icons">
+                  passkey
+                </i>
+                <span>
+                  {{ template "v2-continue-with-passkey" }}
+                </span>
+              </div>
+              </span>
+            </button>
+            <form class="hidden" method="post" novalidate>
+              {{ $.CSRFField }}
+              <input type="hidden" name="x_assertion_response" data-authflow-passkey-request-target="input">
+              <button type="submit" class="hidden" name="x_action" value="passkey" data-authflow-passkey-request-target="submit"></button>
+            </form>
+          </div>
         {{ end }}
       </section>
     {{ end }}

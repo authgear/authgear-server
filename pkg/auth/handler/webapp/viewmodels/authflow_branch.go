@@ -1,6 +1,8 @@
 package viewmodels
 
 import (
+	"slices"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
@@ -55,12 +57,31 @@ func NewAuthflowBranchViewModel(
 		branches = filter(branches)
 	}
 
+	branches = reorderBranches(branches)
+
 	return AuthflowBranchViewModel{
 		FlowType:           screen.StateTokenFlowResponse.Type,
 		ActionType:         screen.StateTokenFlowResponse.Action.Type,
 		DeviceTokenEnabled: deviceTokenEnabled,
 		Branches:           branches,
 	}
+}
+
+func reorderBranches(branches []AuthflowBranch) []AuthflowBranch {
+	// Put passkey branches at the end
+	result := []AuthflowBranch{}
+	for idx := range branches {
+		b := branches[len(branches)-idx-1]
+		if b.Authentication == config.AuthenticationFlowAuthenticationPrimaryPasskey {
+			// Put to the beginning of the reversed slice
+			result = append([]AuthflowBranch{b}, result...)
+		} else {
+			result = append(result, b)
+		}
+	}
+
+	slices.Reverse(result)
+	return result
 }
 
 func newAuthflowBranchViewModelStepAuthenticate(screen *webapp.AuthflowScreenWithFlowResponse, branchData declarative.StepAuthenticateData) []AuthflowBranch {
