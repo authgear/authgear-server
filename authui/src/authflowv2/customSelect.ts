@@ -340,7 +340,9 @@ export class CustomSelectController extends Controller {
 
     const fragment = document.createDocumentFragment();
 
-    const filteredOptionsValues = this.filteredOptions.reduce<Set<string>>(
+    const filteredOptions = this.filteredOptions;
+
+    const filteredOptionsValues = filteredOptions.reduce<Set<string>>(
       (valuesSet, option, _idx, _arr): Set<string> => {
         valuesSet.add(option.value);
         return valuesSet;
@@ -351,7 +353,12 @@ export class CustomSelectController extends Controller {
     this.optionsValue.forEach((item, index) => {
       const clone = document.importNode(template, true);
       const option = clone.querySelector("li");
-      const selected = this.keyword ? index === 0 : item.value === this.value;
+      let selected = item.value === this.value;
+      if (this.keyword && filteredOptions.length > 0) {
+        // We select the first item in the options when searching
+        selected = item.value === filteredOptions[0].value;
+      }
+
       const prefixEl = option!.querySelector<HTMLElement>(
         '[data-label="prefix"]'
       );
@@ -378,7 +385,7 @@ export class CustomSelectController extends Controller {
       fragment.appendChild(clone);
     });
 
-    if (this.filteredOptions.length === 0 && this.emptyTemplateTarget) {
+    if (filteredOptions.length === 0 && this.emptyTemplateTarget) {
       const emptyTemplate = this.emptyTemplateTarget.content;
       const clone = document.importNode(emptyTemplate, true);
       fragment.appendChild(clone);
