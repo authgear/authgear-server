@@ -45,6 +45,19 @@ func (s *Store) ListUserIDsByGroupID(groupID string, pageArgs graphqlutil.PageAr
 	return userIDs, offset, nil
 }
 
+func (s *Store) DeleteUserGroup(userID string) error {
+	q := s.SQLBuilder.Delete(s.SQLBuilder.TableName("_auth_user_group")).
+		Where("user_id = ?", userID)
+
+	_, err := s.SQLExecutor.ExecWith(q)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
 type AddGroupToUsersOptions struct {
 	GroupKey string
 	UserIDs  []string

@@ -91,6 +91,10 @@ type UserCommands interface {
 	Anonymize(userID string) error
 }
 
+type RolesGroupsCommands interface {
+	DeleteUserGroup(userID string) error
+}
+
 type PasswordHistoryStore interface {
 	ResetPasswordHistory(userID string) error
 }
@@ -130,6 +134,7 @@ type Coordinator struct {
 	MFA                        MFAService
 	UserCommands               UserCommands
 	UserQueries                UserQueries
+	RolesGroupsCommands        RolesGroupsCommands
 	StdAttrsService            StdAttrsService
 	PasswordHistory            PasswordHistoryStore
 	OAuth                      OAuthService
@@ -445,6 +450,11 @@ func (c *Coordinator) UserDelete(userID string, isScheduledDeletion bool) error 
 
 	// Sessions:
 	if err = c.terminateAllSessions(userID); err != nil {
+		return err
+	}
+
+	// Groups:
+	if err = c.RolesGroupsCommands.DeleteUserGroup(userID); err != nil {
 		return err
 	}
 
@@ -823,6 +833,11 @@ func (c *Coordinator) UserAnonymize(userID string, IsScheduledAnonymization bool
 
 	// Sessions:
 	if err = c.terminateAllSessions(userID); err != nil {
+		return err
+	}
+
+	// Groups:
+	if err = c.RolesGroupsCommands.DeleteUserGroup(userID); err != nil {
 		return err
 	}
 

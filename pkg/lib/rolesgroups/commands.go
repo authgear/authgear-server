@@ -199,3 +199,12 @@ func (c *Commands) RemoveUserFromGroups(options *RemoveUserFromGroupsOptions) er
 
 	return nil
 }
+
+func (c *Commands) DeleteUserGroup(userID string) error {
+	err := c.Store.DeleteUserGroup(userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

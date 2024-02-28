@@ -271,6 +271,7 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		rolesgroups.DependencySet,
+		wire.Bind(new(facade.RolesGroupsCommands), new(*rolesgroups.Commands)),
 	),
 
 	wire.NewSet(

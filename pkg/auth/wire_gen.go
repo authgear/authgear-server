@@ -76,6 +76,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -1748,6 +1749,14 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -1775,6 +1784,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -4436,6 +4446,14 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -4463,6 +4481,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -5311,6 +5330,14 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -5382,6 +5409,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -6108,6 +6136,14 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -6179,6 +6215,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -7081,6 +7118,14 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -7121,6 +7166,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -7949,6 +7995,14 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -7989,6 +8043,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -8816,6 +8871,14 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -8856,6 +8919,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -9671,6 +9735,14 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -9711,6 +9783,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -10521,6 +10594,14 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -10561,6 +10642,7 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -11304,6 +11386,14 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -11388,6 +11478,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -12343,6 +12434,14 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -12383,6 +12482,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -13183,6 +13283,14 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -13223,6 +13331,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -14027,6 +14136,14 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -14067,6 +14184,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -14873,6 +14991,14 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -14913,6 +15039,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -15717,6 +15844,14 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -15757,6 +15892,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -16559,6 +16695,14 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -16599,6 +16743,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -17403,6 +17548,14 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -17443,6 +17596,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -18248,6 +18402,14 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -18288,6 +18450,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -19092,6 +19255,14 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -19132,6 +19303,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -19936,6 +20108,14 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -19976,6 +20156,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -20782,6 +20963,14 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -20822,6 +21011,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -21626,6 +21816,14 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -21666,6 +21864,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -22470,6 +22669,14 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -22510,6 +22717,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -23318,6 +23526,14 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -23358,6 +23574,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -24162,6 +24379,14 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -24202,6 +24427,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -25010,6 +25236,14 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -25050,6 +25284,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -25854,6 +26089,14 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -25894,6 +26137,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -26706,6 +26950,14 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -26746,6 +26998,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -27572,6 +27825,14 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -27612,6 +27873,7 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -28427,6 +28689,14 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -28467,6 +28737,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -29271,6 +29542,14 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -29311,6 +29590,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -30111,6 +30391,14 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -30151,6 +30439,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -30955,6 +31244,14 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -30995,6 +31292,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -31795,6 +32093,14 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -31835,6 +32141,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -32645,6 +32952,14 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -32685,6 +33000,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -33485,6 +33801,14 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -33525,6 +33849,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -34327,6 +34652,14 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -34367,6 +34700,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -35167,6 +35501,14 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -35207,6 +35549,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -36039,6 +36382,14 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -36079,6 +36430,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -36890,6 +37242,14 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -36930,6 +37290,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -37754,6 +38115,14 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -37794,6 +38163,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -38602,6 +38972,14 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -38642,6 +39020,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -39443,6 +39822,14 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -39483,6 +39870,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -40292,6 +40680,14 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -40332,6 +40728,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -41133,6 +41530,14 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -41173,6 +41578,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -41974,6 +42380,14 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -42014,6 +42428,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -42815,6 +43230,14 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -42855,6 +43278,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -43657,6 +44081,14 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -43697,6 +44129,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -44518,6 +44951,14 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -44558,6 +44999,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -45359,6 +45801,14 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -45399,6 +45849,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -46200,6 +46651,14 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -46240,6 +46699,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -47041,6 +47501,14 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -47081,6 +47549,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -47882,6 +48351,14 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -47922,6 +48399,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -48730,6 +49208,14 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -48770,6 +49256,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -49572,6 +50059,14 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -49612,6 +50107,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -50412,6 +50908,14 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -50452,6 +50956,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -51268,6 +51773,14 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -51308,6 +51821,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -52108,6 +52622,14 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -52148,6 +52670,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -52881,6 +53404,14 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -52965,6 +53496,7 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -53833,6 +54365,14 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -53873,6 +54413,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -54673,6 +55214,14 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -54713,6 +55262,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -55531,6 +56081,14 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -55571,6 +56129,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -56335,6 +56894,14 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -56375,6 +56942,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -57138,6 +57706,14 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -57178,6 +57754,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -57988,6 +58565,14 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -58028,6 +58613,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -58829,6 +59415,14 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -58869,6 +59463,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -59669,6 +60264,14 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -59709,6 +60312,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -60529,6 +61133,14 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -60617,6 +61229,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -61316,6 +61929,14 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -61406,6 +62027,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -62098,6 +62720,14 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -62188,6 +62818,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -62917,6 +63548,14 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -63005,6 +63644,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -63706,6 +64346,14 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -63794,6 +64442,7 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -64537,6 +65186,14 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -64625,6 +65282,7 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -65359,6 +66017,14 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -65449,6 +66115,7 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -66231,6 +66898,14 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -66315,6 +66990,7 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -67140,6 +67816,14 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -67224,6 +67908,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -68061,6 +68746,14 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -68145,6 +68838,7 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -68969,6 +69663,14 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -69053,6 +69755,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -69881,6 +70584,14 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -69965,6 +70676,7 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -70772,6 +71484,14 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -70856,6 +71576,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -71663,6 +72384,14 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -71747,6 +72476,7 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -72548,6 +73278,14 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -72632,6 +73370,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -73433,6 +74172,14 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -73517,6 +74264,7 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -74320,6 +75068,14 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -74404,6 +75160,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -75207,6 +75964,14 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -75291,6 +76056,7 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -76092,6 +76858,14 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -76176,6 +76950,7 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -76977,6 +77752,14 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -77061,6 +77844,7 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -77862,6 +78646,14 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -77946,6 +78738,7 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -78747,6 +79540,14 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -78831,6 +79632,7 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -79632,6 +80434,14 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -79716,6 +80526,7 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -80517,6 +81328,14 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -80601,6 +81420,7 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -81402,6 +82222,14 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -81486,6 +82314,7 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -82287,6 +83116,14 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -82371,6 +83208,7 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -83174,6 +84012,14 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -83258,6 +84104,7 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -84061,6 +84908,14 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -84145,6 +85000,7 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -84947,6 +85803,14 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -85031,6 +85895,7 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -85832,6 +86697,14 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -85916,6 +86789,7 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -86718,6 +87592,14 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -86802,6 +87684,7 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -87603,6 +88486,14 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -87687,6 +88578,7 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -88488,6 +89380,14 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -88572,6 +89472,7 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -89373,6 +90274,14 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -89457,6 +90366,7 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -90258,6 +91168,14 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -90342,6 +91260,7 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -91143,6 +92062,14 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -91227,6 +92154,7 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -92028,6 +92956,14 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -92112,6 +93048,7 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -92913,6 +93850,14 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -92997,6 +93942,7 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -93798,6 +94744,14 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -93882,6 +94836,7 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -94683,6 +95638,14 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -94767,6 +95730,7 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -95568,6 +96532,14 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -95652,6 +96624,7 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -96453,6 +97426,14 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -96537,6 +97518,7 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -97338,6 +98320,14 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -97422,6 +98412,7 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -98223,6 +99214,14 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -98307,6 +99306,7 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -99108,6 +100108,14 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -99192,6 +100200,7 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -99995,6 +101004,14 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -100079,6 +101096,7 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -100882,6 +101900,14 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -100966,6 +101992,7 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -101767,6 +102794,14 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -101851,6 +102886,7 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -102720,6 +103756,14 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -102760,6 +103804,7 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -103491,6 +104536,14 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -103575,6 +104628,7 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -104347,6 +105401,14 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -104431,6 +105493,7 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -105203,6 +106266,14 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -105287,6 +106358,7 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -106088,6 +107160,14 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -106172,6 +107252,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -106973,6 +108054,14 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -107057,6 +108146,7 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -107858,6 +108948,14 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -107942,6 +109040,7 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -109031,6 +110130,14 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -109115,6 +110222,7 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -109916,6 +111024,14 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -110000,6 +111116,7 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -111946,6 +113063,14 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -111986,6 +113111,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -113180,6 +114306,14 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -113270,6 +114404,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,

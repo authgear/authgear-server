@@ -663,6 +663,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -752,6 +755,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -936,9 +940,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Users:              userFacade,
 		StandardAttributes: serviceNoEvent,
 		Interaction:        serviceInteractionService,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	rolesGroupsFacade := &facade2.RolesGroupsFacade{
 		RolesGroupsCommands: rolesgroupsCommands,
