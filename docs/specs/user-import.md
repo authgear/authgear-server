@@ -94,23 +94,28 @@ The input is a JSON document. Here is an example.
 
 - `upsert` is an optional boolean. It is false by default. If it is true, then the user is updated. The [update behavior](#update-behavior) of each attribute will be explained below. If it is false, then the user is skipped when it exists already.
 - `identifier` is **required**. Valid values are `preferred_username`, `email`, and `phone_number`. It tells Authgear which attribute to use in the input to identify an existing user.
-- `preferred_username`, `email`, `phone_number`: If it is not `identifier`, then the update behavior is **UPDATED_IF_PRESENT_AND_REMOVED_IF_NULL**. The corresponding Login ID will be created, updated or removed as needed.
-- `email_verified`, `phone_number_verified`: The update behavior is **UPDATED_IF_PRESENT**. For example, in the first import, if `email_verified` is absent, then email is marked as unverified.
-- The update behavior of other standard attributes is **UPDATED_IF_PRESENT_AND_REMOVED_IF_NULL**. In particular, `address` IS NOT merged with the existing value, but REPLACES the existing `address` value.
-- `custom_attributes.*`: For each attribute in `custom_attributes`, the update behavior is **UPDATED_IF_PRESENT_AND_REMOVED_IF_NULL**.
-- `roles` and `groups`: The update behavior is **UPDATED_IF_PRESENT`.
-- `disabled`: The update behavior is **UPDATED_IF_PRESENT**. So re-importing a user without specifying `disabled` WILL NOT accidentally alter the disabled state previously set by other means.
-- `password`: The update behavior is **IGNORED**. If `password` was not provided when the user was first imported, subsequent import CANNOT add password.
-- `mfa.email`: The update behavior is **UPDATED_IF_PRESENT_AND_REMOVED_IF_NULL**. The user can perform 2FA with email OTP.
-- `mfa.phone_number`: The update behavior is **UPDATED_IF_PRESENT_AND_REMOVED_IF_NULL**. The user can perform 1FA with phone OTP.
-- `mfa.password`: The update behavior is **IGNORED**. If `mfa.password` was not provided when the user was first imported, subsequent import CANNOT add additional password.
-- `mfa.totp`: The update behavior is **IGNORED**. If `mfa.totp` was not provided when the user was first imported, subsequent import CANNOT add TOTP.
 
-## Update behavior
+### Update behavior
 
 - **UPDATED_IF_PRESENT_AND_REMOVED_IF_NULL**: If the field is present and the value is not null, then it is updated. If the field is present and the value is null, then it is removed. If the field is absent, no operation is done.
 - **UPDATED_IF_PRESENT**: If the field is present, then it is updated. If the field is absent, no operation is done.
 - **IGNORED**: If the user exists already, then the field is ignored. If the field is absent, no operation is done.
+
+### Update behavior of each field
+
+|Item|Update Behavior|Description|
+|---|---|---|
+|`preferred_username`, `email`, `phone_number`|**UPDATED_IF_PRESENT_AND_REMOVED_IF_NULL**|If it is not `identifier`, then the update behavior applies. The corresponding Login ID will be created, updated or removed as needed.|
+|`email_verified`, `phone_number_verified`|**UPDATED_IF_PRESENT**|For example, in the first import, if `email_verified` is absent, then email is marked as unverified.|
+|All other standard attributes|**UPDATED_IF_PRESENT_AND_REMOVED_IF_NULL**|In particular, `address` IS NOT merged with the existing value, but REPLACES the existing `address` value.|
+|`custom_attributes.*`|**UPDATED_IF_PRESENT_AND_REMOVED_IF_NULL**|For each attribute in `custom_attributes`, the update behavior applies individually. So an absent custom attribute in an upsert does not change the existing value.|
+|`roles`, `groups`|**UPDATED_IF_PRESENT**|If present, the roles and groups of the user will match the value. For example, supposed the user originally has `["role_a", "role_b"]`. `roles` is `["role_a", "role_c"]`. `role_b` is removed and `role_c` is added.|
+|`disabled`|**UPDATED_IF_PRESENT**|Re-importing a user without specifying `disabled` WILL NOT accidentally alter the disabled state previously set by other means.|
+|`password`|**IGNORED**|If it was not provided when the user was first imported, subsequent import CANNOT add it back.|
+|`mfa.email`|**UPDATED_IF_PRESENT_AND_REMOVED_IF_NULL**|If provided, the user can perform 2FA with email OTP.|
+|`mfa.phone_number`|**UPDATED_IF_PRESENT_AND_REMOVED_IF_NULL**|If provided, the user can perform 2FA with phone OTP.|
+|`mfa.password`|**IGNORED**|If it was not provided when the user was first imported, subsequent import CANNOT add it back.|
+|`mfa.totp`|**IGNORED**|If it was not provided when the user was first imported, subsequent import CANNOT add it back.|
 
 ## Supported password format
 
