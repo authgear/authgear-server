@@ -2,6 +2,8 @@ package rolesgroups
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -20,6 +22,27 @@ func (s *Store) ListRolesByUserID(userID string) ([]*Role, error) {
 		Where("ur.user_id = ?", userID)
 
 	return s.queryRoles(q)
+}
+
+func (s *Store) ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageArgs) ([]string, uint64, error) {
+	q := s.SQLBuilder.Select(
+		"u.id",
+	).
+		From(s.SQLBuilder.TableName("_auth_user_role"), "ur").
+		Join(s.SQLBuilder.TableName("_auth_user"), "u", "ur.user_id = u.id").
+		Where("ur.role_id = ?", roleID)
+
+	q, offset, err := db.ApplyPageArgs(q, pageArgs)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	userIDs, err := s.queryUsers(q)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return userIDs, offset, nil
 }
 
 type AddRoleToUsersOptions struct {

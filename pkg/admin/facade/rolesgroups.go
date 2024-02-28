@@ -41,6 +41,9 @@ type RolesGroupsQueries interface {
 	ListRolesByGroupID(groupID string) ([]*model.Role, error)
 	ListRolesByUserID(userID string) ([]*model.Role, error)
 	ListGroupsByUserID(userID string) ([]*model.Group, error)
+	ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
+	ListUserIDsByGroupID(groupID string, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
+	ListComputedRolesByUserID(userID string) ([]*model.Role, error)
 }
 
 type RolesGroupsFacade struct {
@@ -248,4 +251,16 @@ func (f *RolesGroupsFacade) ListRolesByUserID(userID string) ([]*model.Role, err
 
 func (f *RolesGroupsFacade) ListGroupsByUserID(userID string) ([]*model.Group, error) {
 	return f.RolesGroupsQueries.ListGroupsByUserID(userID)
+}
+
+func (f *RolesGroupsFacade) ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, *graphqlutil.PageResult, error) {
+	refs, err := f.RolesGroupsQueries.ListUserIDsByRoleID(roleID, pageArgs)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (interface{}, error) {
+		// No need to report the total number of groups. So we return nil here.
+		return nil, nil
+	})), nil
 }

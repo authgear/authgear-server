@@ -1172,6 +1172,9 @@ type Role implements Entity & Node {
 
   """The update time of entity"""
   updatedAt: DateTime!
+
+  """The list of users who has this role."""
+  users(after: String, before: String, first: Int, last: Int): UserConnection
 }
 
 """A connection to a list of items."""

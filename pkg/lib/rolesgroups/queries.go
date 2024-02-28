@@ -139,3 +139,22 @@ func (q *Queries) ListGroupsByUserID(userID string) ([]*model.Group, error) {
 
 	return groupModels, nil
 }
+
+func (q *Queries) ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error) {
+	userIDs, offset, err := q.Store.ListUserIDsByRoleID(roleID, pageArgs)
+	if err != nil {
+		return nil, err
+	}
+
+	models := make([]model.PageItemRef, len(userIDs))
+	for i, r := range userIDs {
+		pageKey := db.PageKey{Offset: offset + uint64(i)}
+		cursor, err := pageKey.ToPageCursor()
+		if err != nil {
+			return nil, err
+		}
+
+		models[i] = model.PageItemRef{ID: r, Cursor: cursor}
+	}
+	return models, nil
+}
