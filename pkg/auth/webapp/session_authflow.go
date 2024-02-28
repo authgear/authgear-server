@@ -207,7 +207,7 @@ func newAuthflowScreenSignupPromote(flowResponse *authflow.FlowResponse, previou
 		}
 	case config.AuthenticationFlowStepTypeVerify:
 		// verify MAY contain branches.
-		if _, ok := flowResponse.Action.Data.(declarative.OOBData); ok {
+		if _, ok := flowResponse.Action.Data.(declarative.SelectOOBOTPChannelsData); ok {
 			screen.BranchStateToken = state
 		}
 	case config.AuthenticationFlowStepTypeFillInUserProfile:
@@ -518,7 +518,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 		}
 	case config.AuthenticationFlowStepTypeVerify:
 		// If we ever reach here, this means we have to choose channels.
-		data := s.StateTokenFlowResponse.Action.Data.(declarative.OOBData)
+		data := s.StateTokenFlowResponse.Action.Data.(declarative.SelectOOBOTPChannelsData)
 		if channel == "" {
 			channel = data.Channels[0]
 		}

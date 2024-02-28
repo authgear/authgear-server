@@ -882,7 +882,7 @@ The data contains recovery codes of the user.
 
 `recovery_codes`: The recovery codes of the user.
 
-#### oob_channels_data
+#### select_oob_otp_channels_data
 
 The data contains usable channels of the oob authenticator, with information of the selected oob authenticator.
 

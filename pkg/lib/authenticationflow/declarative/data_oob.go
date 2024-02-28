@@ -5,17 +5,17 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 )
 
-type OOBData struct {
+type SelectOOBOTPChannelsData struct {
 	TypedData
 	Channels         []model.AuthenticatorOOBChannel `json:"channels,omitempty"`
 	MaskedClaimValue string                          `json:"masked_claim_value,omitempty"`
 }
 
-func NewOOBData(d OOBData) OOBData {
-	d.Type = DataTypeOOBChannelsData
+func NewOOBData(d SelectOOBOTPChannelsData) SelectOOBOTPChannelsData {
+	d.Type = DataTypeSelectOOBOTPChannelsData
 	return d
 }
 
-func (OOBData) Data() {}
+func (SelectOOBOTPChannelsData) Data() {}
 
-var _ authflow.Data = OOBData{}
+var _ authflow.Data = SelectOOBOTPChannelsData{}

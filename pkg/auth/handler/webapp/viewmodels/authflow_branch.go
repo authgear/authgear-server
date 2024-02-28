@@ -46,7 +46,7 @@ func NewAuthflowBranchViewModel(
 			branches = newAuthflowBranchViewModelStepAuthenticate(screen, branchData)
 		case declarative.IntentSignupFlowStepCreateAuthenticatorData:
 			branches = newAuthflowBranchViewModelStepCreateAuthenticator(screen, branchData)
-		case declarative.OOBData:
+		case declarative.SelectOOBOTPChannelsData:
 			branches = newAuthflowBranchViewModelVerify(screen, branchData)
 		}
 	}
@@ -204,7 +204,7 @@ func newAuthflowBranchViewModelStepCreateAuthenticator(screen *webapp.AuthflowSc
 	return branches
 }
 
-func newAuthflowBranchViewModelVerify(screen *webapp.AuthflowScreenWithFlowResponse, branchData declarative.OOBData) []AuthflowBranch {
+func newAuthflowBranchViewModelVerify(screen *webapp.AuthflowScreenWithFlowResponse, branchData declarative.SelectOOBOTPChannelsData) []AuthflowBranch {
 	takenBranch := AuthflowBranch{
 		Channel: screen.Screen.TakenChannel,
 	}

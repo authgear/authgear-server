@@ -396,7 +396,7 @@ When you are in this step, you **MAY** see a response like the following
     "action": {
       "type": "verify",
       "data": {
-        "type": "oob_channels_data",
+        "type": "select_oob_otp_channels_data",
         "channels": [
           "sms",
           "whatsapp"

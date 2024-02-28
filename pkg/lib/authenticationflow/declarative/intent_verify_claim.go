@@ -93,7 +93,7 @@ func (i *IntentVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependen
 
 func (i *IntentVerifyClaim) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
 	channels := i.getChannels(deps)
-	return NewOOBData(OOBData{
+	return NewOOBData(SelectOOBOTPChannelsData{
 		Channels:         channels,
 		MaskedClaimValue: getMaskedOTPTarget(i.ClaimName, i.ClaimValue),
 	}), nil

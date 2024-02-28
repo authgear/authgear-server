@@ -95,7 +95,7 @@ func (i *IntentAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.De
 func (i *IntentAuthenticationOOB) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
 	channels := i.getChannels(deps)
 	claimName, claimValue := i.Info.OOBOTP.ToClaimPair()
-	return NewOOBData(OOBData{
+	return NewOOBData(SelectOOBOTPChannelsData{
 		Channels:         channels,
 		MaskedClaimValue: getMaskedOTPTarget(claimName, claimValue),
 	}), nil

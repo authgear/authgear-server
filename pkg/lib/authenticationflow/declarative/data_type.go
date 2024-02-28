@@ -8,7 +8,7 @@ const (
 	DataTypeOAuthData                            DataType = "oauth_data"
 	DataTypeCreateAuthenticatorData              DataType = "create_authenticator_data"
 	DataTypeViewRecoveryCodeData                 DataType = "view_recovery_code_data"
-	DataTypeOOBChannelsData                      DataType = "oob_channels_data"
+	DataTypeSelectOOBOTPChannelsData             DataType = "select_oob_otp_channels_data"
 	DataTypeVerifyOOBOTPData                     DataType = "verify_oob_otp_data"
 	DataTypeCreatePasskeyData                    DataType = "create_passkey_data"
 	DataTypeCreateTOTPData                       DataType = "create_totp_data"
