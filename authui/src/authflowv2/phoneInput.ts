@@ -3,6 +3,7 @@ import {
   CountryCode,
   getCountryCallingCode,
   AsYouType,
+  default as parsePhoneNumber,
 } from "libphonenumber-js";
 import defaultTerritories from "cldr-localenames-full/main/en/territories.json";
 import { getEmojiFlag } from "./getEmojiFlag";
@@ -178,17 +179,22 @@ export class PhoneInputController extends Controller {
   updateValue(): void {
     const countryValue = this.countrySelect?.value;
     const rawValue = this.phoneInputTarget.value;
+    let combinedValue: string = rawValue;
 
     if (rawValue.startsWith("+")) {
-      this.value = rawValue;
+      combinedValue = rawValue;
     } else if (countryValue != null) {
-      const newValue = `+${getCountryCallingCode(
+      combinedValue = `+${getCountryCallingCode(
         countryValue as CountryCode
       )}${rawValue}`;
-      this.value = newValue;
-    } else {
-      this.value = rawValue;
     }
+
+    const parsed = parsePhoneNumber(combinedValue);
+    if (parsed != null) {
+      combinedValue = parsed.format("E.164");
+    }
+
+    this.value = combinedValue;
   }
 
   decomposeValue(
@@ -197,21 +203,6 @@ export class PhoneInputController extends Controller {
     const asYouType = new AsYouType();
     asYouType.input(value);
     let inputValue = value;
-    const countryCode = asYouType.getCountry() ?? null;
-    if (countryCode != null) {
-      const callingCode = "+" + getCountryCallingCode(countryCode);
-      inputValue = value.replace(callingCode, "");
-    }
-    return [countryCode, inputValue];
-  }
-
-  // phoneInputTarget -> countrySelect AND inputTarget.
-  handleNumberInput(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    const value = target.value;
-    const asYouType = new AsYouType();
-    asYouType.input(value);
-
     let countryCodeFromPartialNumber: CountryCode | undefined;
     const callingCode = asYouType.getCallingCode();
     if (callingCode != null) {
@@ -219,9 +210,31 @@ export class PhoneInputController extends Controller {
         defaultCountryForDuplicatedCountryCodes[callingCode] ??
         CountryCodes[callingCode][0];
     }
-    const maybeCountry = asYouType.getCountry();
-    if (maybeCountry || countryCodeFromPartialNumber) {
-      this.countrySelect!.select(maybeCountry ?? countryCodeFromPartialNumber);
+
+    let countryCode = asYouType.getCountry() ?? null;
+
+    // Determine country code in the following order
+    // 1. asYouType.getCountry()
+    // 2. asYouType.getCallingCode() and map with defaultCountryForDuplicatedCountryCodes
+    if (!countryCode && countryCodeFromPartialNumber) {
+      countryCode = countryCodeFromPartialNumber;
+    }
+
+    if (countryCode) {
+      const callingCode = "+" + getCountryCallingCode(countryCode);
+      inputValue = value.replace(callingCode, "");
+    }
+
+    return [countryCode, inputValue];
+  }
+
+  // phoneInputTarget -> countrySelect AND inputTarget.
+  handleNumberInput(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const value = target.value;
+    const [maybeCountry, _remainings] = this.decomposeValue(value);
+    if (maybeCountry) {
+      this.setCountrySelectValue(maybeCountry);
     }
     this.updateValue();
   }
@@ -294,11 +307,13 @@ export class PhoneInputController extends Controller {
 
   connect() {
     void this.initPhoneCode();
+    this.phoneInputTarget.addEventListener("blur", this.handleInputBlur);
 
     window.addEventListener("pageshow", this.handlePageShow);
   }
 
   disconnect() {
+    this.phoneInputTarget.removeEventListener("blur", this.handleInputBlur);
     window.removeEventListener("pageshow", this.handlePageShow);
   }
 
@@ -316,6 +331,16 @@ export class PhoneInputController extends Controller {
 
     if (countryCode != null) {
       this.setCountrySelectValue(countryCode);
+    }
+  };
+
+  handleInputBlur = () => {
+    const [maybeCountry, remainings] = this.decomposeValue(
+      this.inputTarget.value
+    );
+    if (maybeCountry) {
+      this.setCountrySelectValue(maybeCountry);
+      this.phoneInputTarget.value = remainings;
     }
   };
 

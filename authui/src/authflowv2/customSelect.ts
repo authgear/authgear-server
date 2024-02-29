@@ -41,9 +41,23 @@ export class CustomSelectController extends Controller {
   declare readonly optionsValue: SearchSelectOption[];
   declare readonly initialValueValue: string;
 
+  private _highlightIndex: number = 0;
+  private set highlightIndex(value: number) {
+    this._highlightIndex = Math.max(
+      0,
+      Math.min(value, this.filteredOptions.length - 1)
+    );
+  }
+  private get highlightIndex(): number {
+    return this._highlightIndex;
+  }
+
   private isInitialized: boolean = false;
 
   get filteredOptions(): SearchSelectOption[] {
+    if (!this.keyword) {
+      return this.optionsValue;
+    }
     return this.optionsValue.filter((option) => {
       return `${option.label} ${option.value} ${option.searchLabel}`
         .toLocaleLowerCase()
@@ -67,10 +81,12 @@ export class CustomSelectController extends Controller {
     return this.searchTarget.value;
   }
 
-  get focusedValue() {
-    return this.optionsTarget.querySelector<HTMLLIElement>(
-      '[aria-selected="true"]'
-    )?.dataset.value;
+  get highlightedValue() {
+    return (
+      this.filteredOptions[this.highlightIndex] as
+        | undefined
+        | SearchSelectOption
+    )?.value;
   }
 
   _computePositionCleanup = () => {};
@@ -119,6 +135,7 @@ export class CustomSelectController extends Controller {
     this.dropdownTarget.classList.remove("hidden");
     this.triggerTarget.setAttribute("aria-expanded", "true");
 
+    this.resetHightlightIndex();
     this.clearSearch();
     this.resetScroll();
 
@@ -135,6 +152,16 @@ export class CustomSelectController extends Controller {
     this.triggerTarget.focus();
   }
 
+  private resetHightlightIndex() {
+    if (this.keyword) {
+      this.highlightIndex = 0;
+    } else {
+      this.highlightIndex = this.optionsValue.findIndex(
+        (o) => o.value === this.value
+      );
+    }
+  }
+
   toggle() {
     const willExpand = this.dropdownTarget.classList.contains("hidden");
     if (willExpand) {
@@ -145,6 +172,7 @@ export class CustomSelectController extends Controller {
   }
 
   search() {
+    this.resetHightlightIndex();
     this.renderItems();
     this.resetScroll();
   }
@@ -158,23 +186,17 @@ export class CustomSelectController extends Controller {
 
   resetScroll() {
     const item = this.optionsTarget.querySelector<HTMLLIElement>(
-      `[data-value="${this.focusedValue ?? this.value}"]`
+      `[data-value="${this.highlightedValue ?? this.value}"]`
     );
     if (item) {
       item.scrollIntoView({ block: "center" });
     }
   }
 
-  navigate(stepFn: (index: number) => number) {
-    const currentIndex = this.filteredOptions.findIndex(
-      (option) => option.value === (this.focusedValue ?? this.value)
-    );
-    const step = stepFn(currentIndex);
-    const newIndex =
-      (currentIndex + step + this.filteredOptions.length) %
-      this.filteredOptions.length;
+  navigate(indexFn: (index: number) => number) {
+    this.highlightIndex = indexFn(this.highlightIndex);
     const item = this.optionsTarget.querySelector<HTMLLIElement>(
-      `[data-index="${newIndex}"]`
+      `[data-value="${this.highlightedValue}"]`
     );
 
     if (!item) return;
@@ -194,25 +216,25 @@ export class CustomSelectController extends Controller {
     let preventAndStop = true;
     switch (event.key) {
       case "ArrowDown":
-        this.navigate(() => 1);
+        this.navigate((idx) => idx + 1);
         break;
       case "ArrowUp":
-        this.navigate(() => -1);
+        this.navigate((idx) => idx - 1);
         break;
       case "PageDown":
-        this.navigate(() => 10);
+        this.navigate((idx) => idx + 10);
         break;
       case "PageUp":
-        this.navigate(() => -10);
+        this.navigate((idx) => idx - 10);
         break;
       case "Home":
-        this.navigate((idx) => -idx);
+        this.navigate((_idx) => 0);
         break;
       case "End":
-        this.navigate((idx) => this.filteredOptions.length - 1 - idx);
+        this.navigate((_idx) => this.filteredOptions.length - 1);
         break;
       case "Enter":
-        this._selectValue(this.focusedValue ?? this.value);
+        this._selectValue(this.highlightedValue ?? this.value);
         break;
       case "Escape":
         this.close();
@@ -340,10 +362,21 @@ export class CustomSelectController extends Controller {
 
     const fragment = document.createDocumentFragment();
 
-    this.filteredOptions.forEach((item, index) => {
+    const visibleOptions = this.filteredOptions;
+
+    const visibleOptionsIndexByValue = visibleOptions.reduce<
+      Map<string, number>
+    >((result, option, idx, _arr): Map<string, number> => {
+      result.set(option.value, idx);
+      return result;
+    }, new Map());
+
+    this.optionsValue.forEach((item, index) => {
       const clone = document.importNode(template, true);
       const option = clone.querySelector("li");
-      const selected = this.keyword ? index === 0 : item.value === this.value;
+      const isVisible = visibleOptionsIndexByValue.get(item.value) != null;
+      const selected =
+        visibleOptionsIndexByValue.get(item.value) === this.highlightIndex;
       const prefixEl = option!.querySelector<HTMLElement>(
         '[data-label="prefix"]'
       );
@@ -364,10 +397,13 @@ export class CustomSelectController extends Controller {
       option!.dataset.index = index.toString();
       option!.setAttribute("data-value", item.value);
       option!.setAttribute("aria-selected", selected.toString());
+      if (!isVisible) {
+        option!.classList.add("hidden");
+      }
       fragment.appendChild(clone);
     });
 
-    if (this.filteredOptions.length === 0 && this.emptyTemplateTarget) {
+    if (visibleOptions.length === 0 && this.emptyTemplateTarget) {
       const emptyTemplate = this.emptyTemplateTarget.content;
       const clone = document.importNode(emptyTemplate, true);
       fragment.appendChild(clone);
