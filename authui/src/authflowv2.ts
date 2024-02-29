@@ -30,6 +30,7 @@ import { AuthflowPollingController } from "./authflow_polling";
 import {
   AuthflowPasskeyRequestController,
   AuthflowPasskeyCreationController,
+  AuthflowV2PasskeyErrorController,
 } from "./passkey";
 import { NewPasswordFieldController } from "./authflowv2/new-password-field";
 import { AlertMessageController } from "./authflowv2/alert-message";
@@ -88,6 +89,7 @@ Stimulus.register(
   "authflow-passkey-creation",
   AuthflowPasskeyCreationController
 );
+Stimulus.register("authflow-passkey-error", AuthflowV2PasskeyErrorController);
 Stimulus.register("alert-message", AlertMessageController);
 
 injectCSSAttrs(document.documentElement);
