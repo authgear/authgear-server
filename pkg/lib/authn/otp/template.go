@@ -31,43 +31,43 @@ type messageTemplateContext struct {
 var (
 	TemplateMessageVerificationSMSTXT    = template.RegisterPlainText("messages/verification_sms.txt")
 	TemplateMessageVerificationEmailTXT  = template.RegisterPlainText("messages/verification_email.txt")
-	TemplateMessageVerificationEmailHTML = template.RegisterHTML("messages/verification_email.html")
+	TemplateMessageVerificationEmailHTML = template.RegisterAppOverridableHTML("messages/verification_email.html")
 
 	TemplateMessageSetupPrimaryOOBSMSTXT    = template.RegisterPlainText("messages/setup_primary_oob_sms.txt")
 	TemplateMessageSetupPrimaryOOBEmailTXT  = template.RegisterPlainText("messages/setup_primary_oob_email.txt")
-	TemplateMessageSetupPrimaryOOBEmailHTML = template.RegisterHTML("messages/setup_primary_oob_email.html")
+	TemplateMessageSetupPrimaryOOBEmailHTML = template.RegisterAppOverridableHTML("messages/setup_primary_oob_email.html")
 
 	TemplateMessageSetupSecondaryOOBSMSTXT    = template.RegisterPlainText("messages/setup_secondary_oob_sms.txt")
 	TemplateMessageSetupSecondaryOOBEmailTXT  = template.RegisterPlainText("messages/setup_secondary_oob_email.txt")
-	TemplateMessageSetupSecondaryOOBEmailHTML = template.RegisterHTML("messages/setup_secondary_oob_email.txt")
+	TemplateMessageSetupSecondaryOOBEmailHTML = template.RegisterAppOverridableHTML("messages/setup_secondary_oob_email.txt")
 
 	TemplateMessageAuthenticatePrimaryOOBSMSTXT    = template.RegisterPlainText("messages/authenticate_primary_oob_sms.txt")
 	TemplateMessageAuthenticatePrimaryOOBEmailTXT  = template.RegisterPlainText("messages/authenticate_primary_oob_email.txt")
-	TemplateMessageAuthenticatePrimaryOOBEmailHTML = template.RegisterHTML("messages/authenticate_primary_oob_email.html")
+	TemplateMessageAuthenticatePrimaryOOBEmailHTML = template.RegisterAppOverridableHTML("messages/authenticate_primary_oob_email.html")
 
 	TemplateMessageAuthenticatePrimaryLoginLinkEmailTXT  = template.RegisterPlainText("messages/authenticate_primary_login_link.txt")
-	TemplateMessageAuthenticatePrimaryLoginLinkEmailHTML = template.RegisterHTML("messages/authenticate_primary_login_link.html")
+	TemplateMessageAuthenticatePrimaryLoginLinkEmailHTML = template.RegisterAppOverridableHTML("messages/authenticate_primary_login_link.html")
 
 	TemplateMessageAuthenticateSecondaryOOBSMSTXT    = template.RegisterPlainText("messages/authenticate_secondary_oob_sms.txt")
 	TemplateMessageAuthenticateSecondaryOOBEmailTXT  = template.RegisterPlainText("messages/authenticate_secondary_oob_email.txt")
-	TemplateMessageAuthenticateSecondaryOOBEmailHTML = template.RegisterHTML("messages/authenticate_secondary_oob_email.html")
+	TemplateMessageAuthenticateSecondaryOOBEmailHTML = template.RegisterAppOverridableHTML("messages/authenticate_secondary_oob_email.html")
 
 	TemplateMessageSetupPrimaryLoginLinkEmailTXT  = template.RegisterPlainText("messages/setup_primary_login_link.txt")
-	TemplateMessageSetupPrimaryLoginLinkEmailHTML = template.RegisterHTML("messages/setup_primary_login_link.html")
+	TemplateMessageSetupPrimaryLoginLinkEmailHTML = template.RegisterAppOverridableHTML("messages/setup_primary_login_link.html")
 
 	TemplateMessageSetupSecondaryLoginLinkEmailTXT  = template.RegisterPlainText("messages/setup_secondary_login_link.txt")
-	TemplateMessageSetupSecondaryLoginLinkEmailHTML = template.RegisterHTML("messages/setup_secondary_login_link.html")
+	TemplateMessageSetupSecondaryLoginLinkEmailHTML = template.RegisterAppOverridableHTML("messages/setup_secondary_login_link.html")
 
 	TemplateMessageAuthenticateSecondaryLoginLinkEmailTXT  = template.RegisterPlainText("messages/authenticate_secondary_login_link.txt")
-	TemplateMessageAuthenticateSecondaryLoginLinkEmailHTML = template.RegisterHTML("messages/authenticate_secondary_login_link.html")
+	TemplateMessageAuthenticateSecondaryLoginLinkEmailHTML = template.RegisterAppOverridableHTML("messages/authenticate_secondary_login_link.html")
 
 	TemplateMessageForgotPasswordLinkSMSTXT    = template.RegisterPlainText("messages/forgot_password_sms.txt")
 	TemplateMessageForgotPasswordLinkEmailTXT  = template.RegisterPlainText("messages/forgot_password_email.txt")
-	TemplateMessageForgotPasswordLinkEmailHTML = template.RegisterHTML("messages/forgot_password_email.html")
+	TemplateMessageForgotPasswordLinkEmailHTML = template.RegisterAppOverridableHTML("messages/forgot_password_email.html")
 
 	TemplateMessageForgotPasswordOOBSMSTXT    = template.RegisterPlainText("messages/forgot_password_oob_sms.txt")
 	TemplateMessageForgotPasswordOOBEmailTXT  = template.RegisterPlainText("messages/forgot_password_oob_email.txt")
-	TemplateMessageForgotPasswordOOBEmailHTML = template.RegisterHTML("messages/forgot_password_oob_email.html")
+	TemplateMessageForgotPasswordOOBEmailHTML = template.RegisterAppOverridableHTML("messages/forgot_password_oob_email.html")
 
 	TemplateWhatsappOTPCodeTXT = template.RegisterPlainText("messages/whatsapp_otp_code.txt")
 )

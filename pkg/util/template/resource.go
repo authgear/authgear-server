@@ -25,6 +25,9 @@ type HTML struct {
 	Name string
 	// ComponentDependencies is the HTML component templates this template depends on.
 	ComponentDependencies []*HTML
+	// IsFindAllowedInFs returns an boolean indicating if the Fs can be used to find this resources
+	// For example, if you don't want a html inside the app fs to be used, it should return false.
+	IsFindAllowedInFs FsFilter
 }
 
 var _ resource.Descriptor = &HTML{}
@@ -36,6 +39,12 @@ func (t *HTML) MatchResource(path string) (*resource.Match, bool) {
 }
 
 func (t *HTML) FindResources(fs resource.Fs) ([]resource.Location, error) {
+	if t.IsFindAllowedInFs != nil {
+		allowed := t.IsFindAllowedInFs(fs)
+		if !allowed {
+			return []resource.Location{}, nil
+		}
+	}
 	return readTemplates(fs, t.Name)
 }
 
@@ -81,10 +90,18 @@ func (t *PlainText) UpdateResource(_ context.Context, _ []resource.ResourceFile,
 	}, nil
 }
 
-func RegisterHTML(name string, dependencies ...*HTML) *HTML {
-	desc := &HTML{Name: name, ComponentDependencies: dependencies}
+func registerHTML(name string, dependencies []*HTML, isFindAllowedInFs FsFilter) *HTML {
+	desc := &HTML{Name: name, ComponentDependencies: dependencies, IsFindAllowedInFs: isFindAllowedInFs}
 	resource.RegisterResource(desc)
 	return desc
+}
+
+func RegisterHTML(name string, dependencies ...*HTML) *HTML {
+	return registerHTML(name, dependencies, ExcludeAppFs)
+}
+
+func RegisterAppOverridableHTML(name string, dependencies ...*HTML) *HTML {
+	return registerHTML(name, dependencies, AnyFs)
 }
 
 func RegisterPlainText(name string, dependencies ...*PlainText) *PlainText {
