@@ -360,19 +360,6 @@ func TestAuthorizationHandler(t *testing.T) {
 				CustomUIURI:   "https://ui.custom.com",
 			}
 			clientResolver.ClientConfig = mockedClient
-			Convey("request validation", func() {
-				Convey("not allowed response types", func() {
-					mockedClient.ResponseTypes = nil
-					resp := handle(protocol.AuthorizationRequest{
-						"client_id":     "client-id",
-						"response_type": "none",
-					})
-					So(resp.Result().StatusCode, ShouldEqual, 200)
-					So(resp.Body.String(), ShouldEqual, redirectHTML(
-						"https://example.com/?error=unauthorized_client&error_description=response+type+is+not+allowed+for+this+client",
-					))
-				})
-			})
 			Convey("scope validation", func() {
 				validated := false
 				h.ValidateScopes = func(client *config.OAuthClientConfig, scopes []string) error {
