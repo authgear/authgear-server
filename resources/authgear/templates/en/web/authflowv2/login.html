@@ -1,9 +1,14 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
 
-  {{ $display_error := false }}
-  {{ if .Error }}
-    {{ $display_error = true }}
+  {{ $display_input_error := false }}
+  {{ if and .Error (not .OAuthError) }}
+    {{ $display_input_error = true }}
+  {{ end }}
+
+  {{ $oauth_error_message := "" }}
+  {{ if .OAuthError }}
+    {{ $oauth_error_message = (include "authflowv2/__error.html" .) }}
   {{ end }}
 
   {{ $has_oauth := false }}
@@ -67,6 +72,7 @@
         (dict
           "Type" "error"
           "Classname" "mt-4"
+          "Message" $oauth_error_message
         )
       }}
     </div>
@@ -85,7 +91,7 @@
             {{ template "authflowv2/__phone_input.html"
               (dict
                 "Placeholder" (include "v2-placeholder-phone" nil)
-                "IsError" $display_error
+                "IsError" $display_input_error
                 "AutoFocus" $.ShouldFocusInput
                 "PhoneInputAttrs" `
                   data-text-field-target="input"
@@ -104,7 +110,7 @@
           {{ if $show_text_input }}
             <input
               data-text-field-target="input"
-              class="block input w-full {{ if $display_error }}input--error{{end}}"
+              class="block input w-full {{ if $display_input_error }}input--error{{end}}"
               {{ if $.ShouldFocusInput }}autofocus{{ end }}
               type="{{ $.NonPhoneLoginIDInputType }}"
               autocomplete="username webauthn"
@@ -119,7 +125,7 @@
             <!-- This field is for Chrome and Safari to consider the above field as username for autocomplete -->
             <input class="hidden" aria-hidden="true" type="password" autocomplete="current-password" name="">
           {{ end }}
-          {{ if $display_error }}
+          {{ if $display_input_error }}
             <p class="input__error-message" data-text-field-target="errorMessage">
               {{ template "authflowv2/__error.html" $ }}
             </p>

@@ -1,9 +1,14 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
 
-  {{ $display_error := false }}
-  {{ if .Error }}
-    {{ $display_error = true }}
+  {{ $display_input_error := false }}
+  {{ if and .Error (not .OAuthError) }}
+    {{ $display_input_error = true }}
+  {{ end }}
+
+  {{ $oauth_error_message := "" }}
+  {{ if .OAuthError }}
+    {{ $oauth_error_message = (include "authflowv2/__error.html" .) }}
   {{ end }}
 
   {{ $has_oauth := false }}
@@ -57,6 +62,7 @@
       (dict
         "Type" "error"
         "Classname" "mt-4"
+        "Message" $oauth_error_message
       )
     }}
   </div>
@@ -76,7 +82,7 @@
           {{ template "authflowv2/__phone_input.html"
             (dict
               "Placeholder" (include "v2-placeholder-phone" nil)
-              "IsError" $display_error
+              "IsError" $display_input_error
               "AutoFocus" $.ShouldFocusInput
               "PhoneInputAttrs" `
                 data-text-field-target="input"
@@ -94,7 +100,7 @@
           <input
             data-text-field-target="input"
             {{ if $.ShouldFocusInput }}autofocus{{ end }}
-            class="block input w-full {{ if $display_error }}input--error{{end}}"
+            class="block input w-full {{ if $display_input_error }}input--error{{end}}"
             type="{{ $.NonPhoneLoginIDInputType }}"
             name="q_login_id"
             autocomplete="username"
@@ -106,7 +112,7 @@
             data-retain-form-form-name-param="text"
           >
         {{ end }}
-        {{ if $display_error }}
+        {{ if $display_input_error }}
           <p class="input__error-message" data-text-field-target="errorMessage">
             {{ template "authflowv2/__error.html" $ }}
           </p>
