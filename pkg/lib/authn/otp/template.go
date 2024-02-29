@@ -39,7 +39,7 @@ var (
 
 	TemplateMessageSetupSecondaryOOBSMSTXT    = template.RegisterPlainText("messages/setup_secondary_oob_sms.txt")
 	TemplateMessageSetupSecondaryOOBEmailTXT  = template.RegisterPlainText("messages/setup_secondary_oob_email.txt")
-	TemplateMessageSetupSecondaryOOBEmailHTML = template.RegisterAppOverridableHTML("messages/setup_secondary_oob_email.txt")
+	TemplateMessageSetupSecondaryOOBEmailHTML = template.RegisterAppOverridableHTML("messages/setup_secondary_oob_email.html")
 
 	TemplateMessageAuthenticatePrimaryOOBSMSTXT    = template.RegisterPlainText("messages/authenticate_primary_oob_sms.txt")
 	TemplateMessageAuthenticatePrimaryOOBEmailTXT  = template.RegisterPlainText("messages/authenticate_primary_oob_email.txt")
