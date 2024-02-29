@@ -987,10 +987,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets: oAuthKeyMaterials,
-		BaseURL: endpointsEndpoints,
-		Users:   queries,
-		Clock:   clockClock,
+		Secrets:        oAuthKeyMaterials,
+		BaseURL:        endpointsEndpoints,
+		Users:          queries,
+		RolesAndGroups: rolesgroupsQueries,
+		Clock:          clockClock,
 	}
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
 		Secrets:    oAuthKeyMaterials,
