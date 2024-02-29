@@ -199,7 +199,7 @@
 
   .select__clear-icon {
     grid-area: clear;
-    @apply flex;
+    @apply hidden tablet:flex;
     @apply items-center;
     @apply justify-center;
 
