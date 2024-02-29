@@ -13,10 +13,13 @@ const columns = ["Key", ...supportedLanguages];
 
 async function main() {
   const updatedMessagesByLocale = {};
-  supportedLanguages.forEach((lang) => (updatedMessagesByLocale[lang] = {}));
+  supportedLanguages.forEach((lang) => {
+    updatedMessagesByLocale[lang] = {};
+  });
   const content = readFileSync(process.stdin.fd);
   const records = parse(content, {
     columns: () => columns,
+    relaxColumnCount: true,
   });
   for await (const record of records) {
     for (const lang of supportedLanguages) {
@@ -28,7 +31,7 @@ async function main() {
     const filePath = join(
       __dirname,
       "../..",
-      `resources/authgear/templates/${locale}/translation.json`,
+      `resources/authgear/templates/${locale}/translation.json`
     );
     console.info(`Reading data from ${filePath}`);
     const jsonStr = String(await readFile(filePath));
@@ -38,7 +41,7 @@ async function main() {
         msgs[key] = message;
         return msgs;
       },
-      {},
+      {}
     );
 
     const newMessages = {

@@ -20,17 +20,17 @@
       {{ end }}
       {{ if $general_policy_error }}
         <span>
-          {{ template "v2-error.error-password-policy-violated" }}
+          {{ template "v2-error-password-policy-violated" }}
         </span>
       {{ else if $contain_excluded_keywords_policy_error }}
         <span>
-          {{ template "v2-error.error-password-policy-banned-words" }}
+          {{ template "v2-error-password-policy-disallowed-keywords" }}
         </span>
       {{ else if $reused_error }}
         {{ range .PasswordPolicies }}
           {{ if eq .Name "PasswordReused" }}
             <span>
-              {{ template "v2-error.error-password-policy-reuse" (dict "size" .Info.history_size "day" .Info.history_days) }}
+              {{ template "v2-error-password-policy-reuse" (dict "size" .Info.history_size "day" .Info.history_days) }}
             </span>
           {{ end }}
         {{ end }}

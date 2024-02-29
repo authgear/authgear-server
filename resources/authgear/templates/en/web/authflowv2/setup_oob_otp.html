@@ -48,7 +48,7 @@
       {{- if eq $.OOBAuthenticatorType "oob_otp_sms" }}
       {{ template "authflowv2/__phone_input.html"
         (dict
-          "Placeholder" (include "v2-placeholder.phone" nil)
+          "Placeholder" (include "v2-placeholder-phone" nil)
           "IsError" $display_otp_input_error
           "AutoFocus" $.ShouldFocusInput
           "InputName" "x_target"
@@ -64,7 +64,7 @@
         name="x_target"
         autocomplete="email"
         autocapitalize="none"
-        placeholder="{{ template "v2-placeholder.email" }}"
+        placeholder="{{ template "v2-placeholder-email" }}"
       >
       {{- end }}
 
@@ -80,7 +80,7 @@
         name="x_action"
         value=""
         data-authgear-event="authgear.button.setup_oob_otp"
-      >{{ template "v2-button.continue" }}</button>
+      >{{ template "v2-button-label-continue" }}</button>
     </form>
 
     {{ template "authflowv2/__authflow_branch.html" $ }}

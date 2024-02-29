@@ -45,19 +45,23 @@
     {{ $show_text_input = true }}
   {{ end }}{{ end }}{{ end }}
 
+  {{ $appName := (include "app.name" nil) }}
+  {{ $clientName := or $.ClientName "null" }}
+
   <div class="flex-1-0-auto">
     <div class="flex flex-col gap-4">
       {{ template "authflowv2/__header.html" . }}
       <h1 class="screen-title">
-        {{ if $.ClientName }}
-        {{ template "v2-login.title" (dict "AppOrClientName" $.ClientName) }}
-        {{ else }}
-        {{ $appName := (include "app.name" nil) }}
-        {{ template "v2-login.title" (dict "AppOrClientName" $appName) }}
-        {{ end }}
+        {{ template "v2-login-title" (dict
+          "AppName" $appName
+          "ClientName" $clientName)
+        }}
       </h1>
       <h2 class="screen-description">
-        {{ template "v2-login.subtitle" }}
+        {{ template "v2-login-subtitle" (dict
+          "AppName" $appName
+          "ClientName" $clientName)
+        }}
       </h2>
       {{ template "authflowv2/__alert_message.html"
         (dict
@@ -80,7 +84,7 @@
           {{ if $show_phone_input }}
             {{ template "authflowv2/__phone_input.html"
               (dict
-                "Placeholder" (include "v2-placeholder.phone" nil)
+                "Placeholder" (include "v2-placeholder-phone" nil)
                 "IsError" $display_error
                 "AutoFocus" $.ShouldFocusInput
                 "PhoneInputAttrs" `
@@ -106,7 +110,7 @@
               autocomplete="username webauthn"
               autocapitalize="none"
               name="x_login_id"
-              placeholder="{{ template "v2-placeholder.login-id" (dict "variant" $.NonPhoneLoginIDType) }}"
+              placeholder="{{ template "v2-placeholder-login-id" (dict "variant" $.NonPhoneLoginIDType) }}"
               data-controller="retain-form-input"
               data-action="input->retain-form-input#input retain-form-input:input->retain-form-form#input"
               data-retain-form-form-target="input"
@@ -136,14 +140,14 @@
           {{/* Then the next page can use modal mediation normally. */}}
           data-turbo="false"
           data-authgear-event="authgear.button.sign_in"
-        >{{ template "v2-button.login" }}</button>
+        >{{ template "v2-button-label-login" }}</button>
       {{ end }}
     </form>
 
     {{ if (not $is_login_only) }}
       <p class="body-text--md mt-4">
         {{ $signupHref := call $.MakeURL "/signup" "q_login_id_input_type" $.LoginIDInputType "x_step" "" }}
-        {{ template "v2-login.switch-to-sign-up" (dict "href" $signupHref )}}
+        {{ template "v2-login-switch-to-signup" (dict "href" $signupHref )}}
       </p>
     {{ end }}
 
