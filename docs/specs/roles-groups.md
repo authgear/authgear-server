@@ -77,8 +77,10 @@ The following schema snippets describes the addition to the Admin API GraphQL sc
 
 ```graphql
 type Query {
-  roles(after: String, before: String, first: Int, last: Int): RoleConnection
-  groups(after: String, before: String, first: Int, last: Int): GroupConnection
+  # Roles can be searched by the prefix of name or key.
+  roles(searchKeyword: String, after: String, before: String, first: Int, last: Int): RoleConnection
+  # Groups can be searched by the prefix of name or key.
+  groups(searchKeyword: String, after: String, before: String, first: Int, last: Int): GroupConnection
 }
 
 type User {
@@ -362,6 +364,7 @@ CREATE TABLE _auth_role (
 CREATE UNIQUE INDEX _auth_role_key_unique ON _auth_role USING btree (app_id, key);
 -- This index supports typeahead search for roles within a project.
 CREATE INDEX _auth_role_key_typeahead ON _auth_role USING btree (app_id, key text_pattern_ops);
+CREATE INDEX _auth_role_name_typeahead ON _auth_role USING btree (app_id, name text_pattern_ops);
 
 -- Groups
 CREATE TABLE _auth_group (
@@ -377,6 +380,7 @@ CREATE TABLE _auth_group (
 CREATE UNIQUE INDEX _auth_group_key_unique ON _auth_group USING btree (app_id, key);
 -- This index supports typeahead search for groups within a project.
 CREATE INDEX _auth_group_key_typeahead ON _auth_group USING btree (app_id, key text_pattern_ops);
+CREATE INDEX _auth_group_name_typeahead ON _auth_group USING btree (app_id, name text_pattern_ops);
 
 -- Roles and Groups
 CREATE TABLE _auth_group_role (
