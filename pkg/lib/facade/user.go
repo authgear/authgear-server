@@ -10,7 +10,7 @@ type UserProvider interface {
 	Create(userID string) (*user.User, error)
 	GetRaw(id string) (*user.User, error)
 	Count() (uint64, error)
-	QueryPage(sortOption user.SortOption, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, error)
+	QueryPage(listOption user.ListOption, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, error)
 }
 
 type UserFacade struct {

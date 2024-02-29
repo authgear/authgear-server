@@ -53,7 +53,7 @@ type AuditLogFacade interface {
 }
 
 type UserFacade interface {
-	ListPage(sortOption libuser.SortOption, args graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
+	ListPage(listOption libuser.ListOption, args graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
 	SearchPage(searchKeyword string, sortOption libuser.SortOption, args graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
 	Create(identityDef model.IdentityDef, password string) (string, error)
 	ResetPassword(id string, password string) error

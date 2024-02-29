@@ -47,6 +47,9 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 			Description: "All users",
 			Type:        connUser.ConnectionType,
 			Args: relay.NewConnectionArgs(graphql.FieldConfigArgument{
+				"groupKeys": &graphql.ArgumentConfig{
+					Type: graphql.NewList(graphql.NewNonNull(graphql.String)),
+				},
 				"searchKeyword": &graphql.ArgumentConfig{
 					Type: graphql.String,
 				},
@@ -72,11 +75,22 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					SortDirection: sortDirection,
 				}
 
+				groupKeyIfaces, _ := p.Args["groupKeys"].([]interface{})
+				groupKeys := make([]string, len(groupKeyIfaces))
+				for i := range groupKeyIfaces {
+					groupKeys[i] = groupKeyIfaces[i].(string)
+				}
+
+				listOption := libuser.ListOption{
+					GroupKeys:  groupKeys,
+					SortOption: sortOption,
+				}
+
 				var refs []apimodel.PageItemRef
 				var result *graphqlutil.PageResult
 				var err error
 				if searchKeyword == "" {
-					refs, result, err = gqlCtx.UserFacade.ListPage(sortOption, pageArgs)
+					refs, result, err = gqlCtx.UserFacade.ListPage(listOption, pageArgs)
 				} else {
 					refs, result, err = gqlCtx.UserFacade.SearchPage(searchKeyword, sortOption, pageArgs)
 				}

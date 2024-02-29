@@ -11,6 +11,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 )
 
+type ListOption struct {
+	GroupKeys  []string
+	SortOption SortOption
+}
+
 type SortBy string
 
 const (
