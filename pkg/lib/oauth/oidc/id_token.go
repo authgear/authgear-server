@@ -282,11 +282,21 @@ func (ti *IDTokenIssuer) GetUserInfo(userID string, clientLike *oauth.ClientLike
 		return nil, err
 	}
 
+	roles, err := ti.RolesAndGroups.ListComputedRolesByUserID(userID)
+	if err != nil {
+		return nil, err
+	}
+	roleKeys := make([]string, len(roles))
+	for i := range roles {
+		roleKeys[i] = roles[i].Key
+	}
+
 	out := make(map[string]interface{})
 	out[jwt.SubjectKey] = userID
 	out[string(model.ClaimUserIsAnonymous)] = user.IsAnonymous
 	out[string(model.ClaimUserIsVerified)] = user.IsVerified
 	out[string(model.ClaimUserCanReauthenticate)] = user.CanReauthenticate
+	out[string(model.ClaimEffectiveRoles)] = roleKeys 
 
 	nonPIIUserClaimsOnly := true
 	// When the client is first party
