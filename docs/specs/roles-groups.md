@@ -1,6 +1,6 @@
 - [Roles and Groups](#roles-and-groups)
 - [Role key and Group key](#role-key-and-group-key)
-- [The computed roles of a user](#the-computed-roles-of-a-user)
+- [The effective roles of a user](#the-effective-roles-of-a-user)
 - [CRUD of Roles and Groups](#crud-of-roles-and-groups)
 - [The database schema of Roles and Groups](#the-database-schema-of-roles-and-groups)
 - [The omission of the support of roles / groups assignment at Admin API user creation](#the-omission-of-the-support-of-roles--groups-assignment-at-admin-api-user-creation)
@@ -38,9 +38,9 @@ Here are some example of invalid keys:
 - `store-manager` (because it contains `-` which is not an allowed character.)
 - `authgear:admin` (because it starts with a reserved prefix `authgear:`.)
 
-# The computed roles of a user
+# The effective roles of a user
 
-The computed roles of a user is the union of
+The effective roles of a user is the union of
 
 - The roles added directly to the user.
 - The roles of the groups which the user is a member.
@@ -64,10 +64,10 @@ The group `manager` has these roles:
 - `store_manager`
 - `salesperson`
 
-User John has the role `salesperson` and is in the group `newcomer`. The computed roles of John is `salesperson`.
-User Jane has no roles, and is in the group `manager`. The computed roles of Jane is `store_manager` and `salesperson`.
+User John has the role `salesperson` and is in the group `newcomer`. The effective roles of John is `salesperson`.
+User Jane has no roles, and is in the group `manager`. The effective roles of Jane is `store_manager` and `salesperson`.
 
-The order of the computed roles of a user is unspecified.
+The order of the effective roles of a user is unspecified.
 
 # CRUD of Roles and Groups
 
@@ -82,7 +82,7 @@ type Query {
 }
 
 type User {
-  computedRoleKeys: [String!]!
+  effectiveRoles(after: String, before: String, first: Int, last: Int): RoleConnection
   roles(after: String, before: String, first: Int, last: Int): RoleConnection
   groups(after: String, before: String, first: Int, last: Int): GroupConnection
 }
@@ -436,14 +436,14 @@ and then we can add support for roles / groups assignment.
 
 # Changes in JWT access token
 
-The computed role keys of a user will appear as `roles` in the JWT access token.
-`roles` is an array of strings, for example, `["store_manager", "salesperson"]`.
+The effective role keys of a user will appear as `https://authgear.com/claims/user/effective_roles` in the JWT access token.
+It is an array of strings, for example, `["store_manager", "salesperson"]`.
 The order is unspecified.
 
 # Changes in User Info
 
-The computed role keys of a user will appear as `roles` in the User Info.
-`roles` is an array of strings, for example, `["store_manager", "salesperson"]`.
+The effective role keys of a user will appear as `https://authgear.com/claims/user/effective_roles` in the User Info.
+It is an array of strings, for example, `["store_manager", "salesperson"]`.
 The order is unspecified.
 
 # Changes in the headers of resolver
@@ -467,7 +467,7 @@ type Query {
 ```
 
 > Filtering users by role keys is not implemented because role keys should be computed from the developer's point of view.
-> If we implemented a filtering by non-computed role keys, the behavior is confusing.
+> If we implemented a filtering by non-effective role keys, the behavior is confusing.
 
 Group keys are NOT indexed in Elasticsearch. So any changes on group and role assignments DO NOT trigger reindexing.
 Searching with keyword is mutually exclusive with filtering with group keys.
