@@ -1118,3 +1118,8 @@ func newPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 	}
 	return presignImagesUploadHandler
 }
+
+func newUserImportHandler(p *deps.RequestProvider) http.Handler {
+	userImportHandler := &transport.UserImportHandler{}
+	return userImportHandler
+}
