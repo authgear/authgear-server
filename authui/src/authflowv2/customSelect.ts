@@ -45,7 +45,7 @@ export class CustomSelectController extends Controller {
 
   get filteredOptions(): SearchSelectOption[] {
     return this.optionsValue.filter((option) => {
-      return `${option.label} ${option.value} ${option.prefix} ${option.searchLabel}`
+      return `${option.label} ${option.value} ${option.searchLabel}`
         .toLocaleLowerCase()
         .includes(this.keyword.toLocaleLowerCase());
     });

@@ -244,7 +244,7 @@ export class PhoneInputController extends Controller {
           return {
             triggerLabel: `${country.flagEmoji} +${country.phone}`,
             prefix: `${country.flagEmoji} +${country.phone}`,
-            searchLabel: country.name,
+            searchLabel: `${country.phone} ${country.name}`,
             label: country.localizedName,
             value: country.iso2,
           };
