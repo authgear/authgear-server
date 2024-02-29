@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
+	v2viewmodels "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
@@ -68,6 +69,7 @@ func (h *InternalAuthflowV2SignupLoginHandler) GetData(w http.ResponseWriter, r 
 	viewmodels.Embed(data, baseViewModel)
 	authflowViewModel := h.AuthflowViewModel.NewWithAuthflow(screen.StateTokenFlowResponse, r)
 	viewmodels.Embed(data, authflowViewModel)
+	viewmodels.Embed(data, v2viewmodels.NewOAuthErrorViewModel(baseViewModel.RawError))
 
 	signupViewModel := AuthflowV2SignupViewModel{
 		CanSwitchToLogin: options.CanSwitchToLogin,
