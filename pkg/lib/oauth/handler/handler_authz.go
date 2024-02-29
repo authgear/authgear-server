@@ -188,7 +188,8 @@ func (h *AuthorizationHandler) HandleConsentWithUserCancel(req *http.Request) ht
 			RedirectURI: nil,
 		}
 		if errors.As(err, &oauthError) {
-			resultErr.Response = oauthError.Response
+			resultErr := h.prepareErrInvalidOAuthResponse(req, *oauthError)
+			return resultErr
 		} else {
 			h.Logger.WithError(err).Error("authz handler failed")
 			resultErr.Response = protocol.NewErrorResponse("server_error", "internal server error")
@@ -241,7 +242,8 @@ func (h *AuthorizationHandler) doHandleConsent(req *http.Request, withUserConsen
 			RedirectURI: nil,
 		}
 		if errors.As(err, &oauthError) {
-			resultErr.Response = oauthError.Response
+			resultErr := h.prepareErrInvalidOAuthResponse(req, *oauthError)
+			return resultErr, nil
 		} else {
 			h.Logger.WithError(err).Error("authz handler failed")
 			resultErr.Response = protocol.NewErrorResponse("server_error", "internal server error")
@@ -667,4 +669,36 @@ func (h *AuthorizationHandler) generateSettingsActionResponse(
 
 	resp.Code(code)
 	return nil
+}
+
+func (h *AuthorizationHandler) prepareErrInvalidOAuthResponse(req *http.Request, oauthError protocol.OAuthProtocolError) httputil.Result {
+	resultErr := authorizationResultError{
+		Response:    oauthError.Response,
+		RedirectURI: nil,
+	}
+
+	// Only redirect if oauth session is expired / not found
+	// It mostly happens when user refresh the page or go back to the page after authenication
+	if oauthError.Type() != "invalid_request" {
+		return resultErr
+	}
+
+	redirectURI, err := url.Parse(req.URL.Query().Get("redirect_uri"))
+	if err != nil {
+		return resultErr
+	}
+
+	client := h.ClientResolver.ResolveClient(req.URL.Query().Get("client_id"))
+	if client == nil {
+		return resultErr
+	}
+
+	err = validateRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, redirectURI)
+	if err != nil {
+		return resultErr
+	}
+
+	resultErr.RedirectURI = redirectURI
+
+	return resultErr
 }

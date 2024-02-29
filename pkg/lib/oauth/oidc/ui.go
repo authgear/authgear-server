@@ -101,21 +101,27 @@ type UIInfoResolver struct {
 }
 
 func (r *UIInfoResolver) SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string {
-	consentURI := r.EndpointsProvider.ConsentEndpointURL().String()
-	// Not redirecting to the consent endpoint.
-	// Do not set anything.
-	if redirectURI != consentURI {
-		return redirectURI
-	}
-	u, err := url.Parse(redirectURI)
+	consentURL := r.EndpointsProvider.ConsentEndpointURL()
+
+	url, err := url.Parse(redirectURI)
 	if err != nil {
 		panic(err)
 	}
 
-	q := u.Query()
+	// Not redirecting to the consent endpoint.
+	// Do not set anything.
+	if SameEndpoint(url, consentURL) {
+		return redirectURI
+	}
+
+	q := url.Query()
 	q.Set("code", e.ID)
-	u.RawQuery = q.Encode()
-	return u.String()
+	url.RawQuery = q.Encode()
+	return url.String()
+}
+
+func SameEndpoint(urlA *url.URL, urlB *url.URL) bool {
+	return urlA.Scheme == urlB.Scheme && urlA.Host == urlB.Host && urlA.Path == urlB.Path
 }
 
 func (r *UIInfoResolver) GetAuthenticationInfoID(req *http.Request) (string, bool) {
@@ -186,7 +192,13 @@ func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
 	client *config.OAuthClientConfig,
 	req protocol.AuthorizationRequest,
 ) (*UIInfo, *UIInfoByProduct, error) {
-	redirectURI := r.EndpointsProvider.ConsentEndpointURL().String()
+	redirectURI := r.EndpointsProvider.ConsentEndpointURL()
+
+	// Add client_id and redirect_uri to URL as hint when oauth session expires / not found
+	q := redirectURI.Query()
+	q.Add("client_id", req.ClientID())
+	q.Add("redirect_uri", req.RedirectURI())
+	redirectURI.RawQuery = q.Encode()
 
 	idToken, sidSession, err := r.IDTokenHintResolver.ResolveIDTokenHint(client, req)
 	if err != nil {
@@ -228,7 +240,7 @@ func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
 
 	info := &UIInfo{
 		ClientID:                   req.ClientID(),
-		RedirectURI:                redirectURI,
+		RedirectURI:                redirectURI.String(),
 		Prompt:                     prompt,
 		UserIDHint:                 userIDHint,
 		CanUseIntentReauthenticate: canUseIntentReauthenticate,
