@@ -175,6 +175,8 @@ export class PhoneInputController extends Controller {
     this.inputTarget.value = newValue;
   }
 
+  private isReady: boolean = false;
+
   // countrySelect, phoneInputTarget -> inputTarget
   updateValue(): void {
     const countryValue = this.countrySelect?.value;
@@ -287,6 +289,8 @@ export class PhoneInputController extends Controller {
           this.phoneInputTarget.value = inputValue;
         }
 
+        this.isReady = true;
+
         // countryCode is still null.
         if (countryCode == null && geoIPCountryCode != null) {
           countryCode = geoIPCountryCode;
@@ -345,6 +349,9 @@ export class PhoneInputController extends Controller {
   };
 
   private setCountrySelectValue(newValue: string) {
+    if (!this.isReady) {
+      return;
+    }
     if (this.countrySelect != null) {
       this.countrySelect.select(newValue);
     } else {

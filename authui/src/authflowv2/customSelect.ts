@@ -274,14 +274,17 @@ export class CustomSelectController extends Controller {
   };
 
   _selectValue(value: string | undefined) {
-    const item = this.optionsTarget.querySelector<HTMLLIElement>(
-      `[data-value="${value}"]`
-    );
-    if (item == null) {
+    const option = this.optionsValue.find((o) => o.value === value);
+    if (option == null) {
       console.warn("Trying to select an option which does not exist");
       return;
     }
-    this._updateAriaSelected(item);
+    const optionEl = this.optionsTarget.querySelector<HTMLLIElement>(
+      `[data-value="${option.value}"]`
+    );
+    if (optionEl != null) {
+      this._updateAriaSelected(optionEl);
+    }
     this.inputTarget.value = value ?? "";
     this.inputTarget.dispatchEvent(new Event("input", { bubbles: true }));
 
