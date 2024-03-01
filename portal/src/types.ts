@@ -401,6 +401,7 @@ export interface PhoneInputConfig {
 }
 
 export interface UIConfig {
+  implementation?: UIImplementation;
   signup_login_flow_enabled?: boolean;
   phone_input?: PhoneInputConfig;
   dark_theme_disabled?: boolean;
@@ -980,3 +981,5 @@ export interface TutorialStatusData {
     invite?: boolean;
   };
 }
+
+export type UIImplementation = "interaction" | "authflow" | "authflowv2";
