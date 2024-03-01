@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
+	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/portal/appsecret"
 	"github.com/authgear/authgear-server/pkg/portal/model"
@@ -59,6 +60,16 @@ func (*NoopAttributesService) UpdateAllCustomAttributes(role accesscontrol.Role,
 	return nil
 }
 
+type NoopRolesAndGroupsService struct{}
+
+func (*NoopRolesAndGroupsService) UpdateUserRole(options *rolesgroups.UpdateUserRoleOptions) error {
+	return nil
+}
+
+func (*NoopRolesAndGroupsService) UpdateUserGroup(options *rolesgroups.UpdateUserGroupOptions) error {
+	return nil
+}
+
 var AuthgearDependencySet = wire.NewSet(
 	wire.FieldsOf(new(*model.App),
 		"Context",
@@ -68,6 +79,7 @@ var AuthgearDependencySet = wire.NewSet(
 		"Config",
 	),
 	wire.Value(&NoopAttributesService{}),
+	wire.Value(&NoopRolesAndGroupsService{}),
 
 	deps.ConfigDeps,
 	clock.DependencySet,
@@ -78,4 +90,5 @@ var AuthgearDependencySet = wire.NewSet(
 	wire.Bind(new(hook.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(hook.StandardAttributesServiceNoEvent), new(*NoopAttributesService)),
 	wire.Bind(new(hook.CustomAttributesServiceNoEvent), new(*NoopAttributesService)),
+	wire.Bind(new(hook.RolesAndGroupsServiceNoEvent), new(*NoopRolesAndGroupsService)),
 )

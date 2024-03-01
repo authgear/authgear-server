@@ -590,6 +590,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -598,6 +601,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -626,7 +630,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -637,7 +641,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -662,9 +666,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -753,9 +754,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service4,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -942,7 +943,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Interaction:        serviceInteractionService,
 	}
 	rolesGroupsFacade := &facade2.RolesGroupsFacade{
-		RolesGroupsCommands: rolesgroupsCommands,
+		RolesGroupsCommands: commands,
 		RolesGroupsQueries:  rolesgroupsQueries,
 	}
 	auditLogFeatureConfig := featureConfig.AuditLog

@@ -112,6 +112,63 @@ type AddRoleToUsersOptions struct {
 	UserIDs []string
 }
 
+type UpdateUserRoleOptions struct {
+	UserID   string
+	RoleKeys []string
+}
+
+func (s *Store) UpdateUserRole(options *UpdateUserRoleOptions) error {
+	currentRoles, err := s.ListRolesByUserID(options.UserID)
+	if err != nil {
+		return err
+	}
+	roleKeysMap := make(map[string]int)
+	keysToAdd := make([]string, 0)
+	keysToDelete := make([]string, 0)
+	// -1: delete, 0: no ops, 1: add
+	for _, v := range currentRoles {
+		roleKeysMap[v.Key] = -1
+	}
+	for _, v := range options.RoleKeys {
+		if roleKeysMap[v] == -1 {
+			roleKeysMap[v] = 0
+		} else {
+			roleKeysMap[v] = 1
+		}
+	}
+
+	for k, v := range roleKeysMap {
+		if v == -1 {
+			keysToDelete = append(keysToDelete, k)
+		}
+		if v == 1 {
+			keysToAdd = append(keysToAdd, k)
+		}
+	}
+
+	if len(keysToDelete) != 0 {
+		err := s.RemoveUserFromRoles(&RemoveUserFromRolesOptions{
+			UserID:   options.UserID,
+			RoleKeys: keysToDelete,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(keysToAdd) != 0 {
+		err := s.AddUserToRoles(&AddUserToRolesOptions{
+			UserID:   options.UserID,
+			RoleKeys: keysToAdd,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (s *Store) AddRoleToUsers(options *AddRoleToUsersOptions) (*Role, error) {
 	r, err := s.GetRoleByKey(options.RoleKey)
 	if err != nil {

@@ -531,6 +531,14 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -539,6 +547,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
@@ -572,7 +581,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Database: handle,
 	}
 	eventService := event.NewService(ctx, configAppID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -583,7 +592,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -608,14 +617,6 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -705,9 +706,9 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,

@@ -1689,6 +1689,14 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -1697,6 +1705,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -1757,7 +1766,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Store: userStore,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -1766,14 +1775,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -1800,9 +1801,9 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -1919,7 +1920,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -2532,6 +2533,14 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -2540,6 +2549,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -3852,6 +3862,14 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -3860,6 +3878,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -4408,6 +4427,14 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -4416,6 +4443,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -4476,7 +4504,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Store: userStore,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -4485,14 +4513,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -4519,9 +4539,9 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -4638,7 +4658,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -5296,6 +5316,14 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -5304,6 +5332,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -5364,7 +5393,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Store: userStore,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -5373,14 +5402,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -5451,9 +5472,9 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -5570,7 +5591,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -6106,6 +6127,14 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -6114,6 +6143,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -6174,7 +6204,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Store: userStore,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -6183,14 +6213,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -6261,9 +6283,9 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -6380,7 +6402,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -7101,6 +7123,9 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -7109,6 +7134,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -7169,7 +7195,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -7178,9 +7204,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -7220,9 +7243,9 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -7338,7 +7361,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -7982,6 +8005,9 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -7990,6 +8016,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -8050,7 +8077,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -8059,9 +8086,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -8101,9 +8125,9 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -8219,7 +8243,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -8862,6 +8886,9 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -8870,6 +8897,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -8930,7 +8958,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -8939,9 +8967,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -8981,9 +9006,9 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -9099,7 +9124,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -9730,6 +9755,9 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -9738,6 +9766,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -9798,7 +9827,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -9807,9 +9836,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -9849,9 +9875,9 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -9967,7 +9993,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -10593,6 +10619,9 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -10601,6 +10630,7 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -10661,7 +10691,7 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -10670,9 +10700,6 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -10712,9 +10739,9 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -10830,7 +10857,7 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -11380,6 +11407,14 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -11388,6 +11423,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -11421,7 +11457,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -11432,7 +11468,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -11457,14 +11493,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -11548,9 +11576,9 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -12441,6 +12469,9 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -12449,6 +12480,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -12509,7 +12541,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -12518,9 +12550,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -12560,9 +12589,9 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -12678,7 +12707,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -13294,6 +13323,9 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -13302,6 +13334,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -13362,7 +13395,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -13371,9 +13404,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -13413,9 +13443,9 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -13531,7 +13561,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -14151,6 +14181,9 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -14159,6 +14192,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -14219,7 +14253,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -14228,9 +14262,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -14270,9 +14301,9 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -14388,7 +14419,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -15010,6 +15041,9 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -15018,6 +15052,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -15078,7 +15113,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -15087,9 +15122,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -15129,9 +15161,9 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -15247,7 +15279,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -15867,6 +15899,9 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -15875,6 +15910,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -15935,7 +15971,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -15944,9 +15980,6 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -15986,9 +16019,9 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -16104,7 +16137,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -16722,6 +16755,9 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -16730,6 +16766,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -16790,7 +16827,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -16799,9 +16836,6 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -16841,9 +16875,9 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -16959,7 +16993,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -17579,6 +17613,9 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -17587,6 +17624,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -17647,7 +17685,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -17656,9 +17694,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -17698,9 +17733,9 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -17816,7 +17851,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -18437,6 +18472,9 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -18445,6 +18483,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -18505,7 +18544,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -18514,9 +18553,6 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -18556,9 +18592,9 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -18674,7 +18710,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -19294,6 +19330,9 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -19302,6 +19341,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -19362,7 +19402,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -19371,9 +19411,6 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -19413,9 +19450,9 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -19531,7 +19568,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -20151,6 +20188,9 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -20159,6 +20199,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -20219,7 +20260,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -20228,9 +20269,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -20270,9 +20308,9 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -20388,7 +20426,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -21010,6 +21048,9 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -21018,6 +21059,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -21078,7 +21120,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -21087,9 +21129,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -21129,9 +21168,9 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -21247,7 +21286,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -21867,6 +21906,9 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -21875,6 +21917,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -21935,7 +21978,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -21944,9 +21987,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -21986,9 +22026,9 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -22104,7 +22144,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -22724,6 +22764,9 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -22732,6 +22775,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -22792,7 +22836,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -22801,9 +22845,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -22843,9 +22884,9 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -22961,7 +23002,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -23585,6 +23626,9 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -23593,6 +23637,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -23653,7 +23698,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -23662,9 +23707,6 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -23704,9 +23746,9 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -23822,7 +23864,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -24442,6 +24484,9 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -24450,6 +24495,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -24510,7 +24556,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -24519,9 +24565,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -24561,9 +24604,9 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -24679,7 +24722,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -25303,6 +25346,9 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -25311,6 +25357,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -25371,7 +25418,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -25380,9 +25427,6 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -25422,9 +25466,9 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -25540,7 +25584,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -26160,6 +26204,9 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -26168,6 +26215,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -26228,7 +26276,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -26237,9 +26285,6 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -26279,9 +26324,9 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -26397,7 +26442,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -27025,6 +27070,9 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -27033,6 +27081,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -27093,7 +27142,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -27102,9 +27151,6 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -27144,9 +27190,9 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -27262,7 +27308,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -27904,6 +27950,9 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -27912,6 +27961,7 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -27972,7 +28022,7 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -27981,9 +28031,6 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -28023,9 +28070,9 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -28141,7 +28188,7 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -28772,6 +28819,9 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -28780,6 +28830,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -28840,7 +28891,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -28849,9 +28900,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -28891,9 +28939,9 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -29009,7 +29057,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -29629,6 +29677,9 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -29637,6 +29688,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -29697,7 +29749,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -29706,9 +29758,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -29748,9 +29797,9 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -29866,7 +29915,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -30482,6 +30531,9 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -30490,6 +30542,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -30550,7 +30603,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -30559,9 +30612,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -30601,9 +30651,9 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -30719,7 +30769,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -31339,6 +31389,9 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -31347,6 +31400,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -31407,7 +31461,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -31416,9 +31470,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -31458,9 +31509,9 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -31576,7 +31627,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -32192,6 +32243,9 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -32200,6 +32254,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -32260,7 +32315,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -32269,9 +32324,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -32311,9 +32363,9 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -32429,7 +32481,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -33055,6 +33107,9 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -33063,6 +33118,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -33123,7 +33179,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -33132,9 +33188,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -33174,9 +33227,9 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -33292,7 +33345,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -33908,6 +33961,9 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -33916,6 +33972,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -33976,7 +34033,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -33985,9 +34042,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -34027,9 +34081,9 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -34145,7 +34199,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -34763,6 +34817,9 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -34771,6 +34828,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -34831,7 +34889,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -34840,9 +34898,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -34882,9 +34937,9 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -35000,7 +35055,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -35616,6 +35671,9 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -35624,6 +35682,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -35684,7 +35743,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -35693,9 +35752,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -35735,9 +35791,9 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -35853,7 +35909,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -36501,6 +36557,9 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -36509,6 +36568,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -36569,7 +36629,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -36578,9 +36638,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -36620,9 +36677,9 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -36738,7 +36795,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -37365,6 +37422,9 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -37373,6 +37433,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -37433,7 +37494,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -37442,9 +37503,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -37484,9 +37542,9 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -37602,7 +37660,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -38242,6 +38300,9 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -38250,6 +38311,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -38310,7 +38372,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -38319,9 +38381,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -38361,9 +38420,9 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -38479,7 +38538,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -39103,6 +39162,9 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -39111,6 +39173,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -39171,7 +39234,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -39180,9 +39243,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -39222,9 +39282,9 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -39340,7 +39400,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -39957,6 +40017,9 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -39965,6 +40028,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -40025,7 +40089,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -40034,9 +40098,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -40076,9 +40137,9 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -40194,7 +40255,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -40819,6 +40880,9 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -40827,6 +40891,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -40887,7 +40952,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -40896,9 +40961,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -40938,9 +41000,9 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -41056,7 +41118,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -41673,6 +41735,9 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -41681,6 +41746,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -41741,7 +41807,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -41750,9 +41816,6 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -41792,9 +41855,9 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -41910,7 +41973,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -42527,6 +42590,9 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -42535,6 +42601,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -42595,7 +42662,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -42604,9 +42671,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -42646,9 +42710,9 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -42764,7 +42828,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -43381,6 +43445,9 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -43389,6 +43456,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -43449,7 +43517,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -43458,9 +43526,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -43500,9 +43565,9 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -43618,7 +43683,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -44236,6 +44301,9 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -44244,6 +44312,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -44304,7 +44373,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -44313,9 +44382,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -44355,9 +44421,9 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -44473,7 +44539,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -45110,6 +45176,9 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -45118,6 +45187,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -45178,7 +45248,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -45187,9 +45257,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -45229,9 +45296,9 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -45347,7 +45414,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -45964,6 +46031,9 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -45972,6 +46042,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -46032,7 +46103,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -46041,9 +46112,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -46083,9 +46151,9 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -46201,7 +46269,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -46818,6 +46886,9 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -46826,6 +46897,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -46886,7 +46958,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -46895,9 +46967,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -46937,9 +47006,9 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -47055,7 +47124,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -47672,6 +47741,9 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -47680,6 +47752,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -47740,7 +47813,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -47749,9 +47822,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -47791,9 +47861,9 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -47909,7 +47979,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -48526,6 +48596,9 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -48534,6 +48607,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -48594,7 +48668,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -48603,9 +48677,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -48645,9 +48716,9 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -48763,7 +48834,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -49387,6 +49458,9 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -49395,6 +49469,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -49455,7 +49530,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -49464,9 +49539,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -49506,9 +49578,9 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -49624,7 +49696,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -50242,6 +50314,9 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -50250,6 +50325,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -50310,7 +50386,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -50319,9 +50395,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -50361,9 +50434,9 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -50479,7 +50552,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -51095,6 +51168,9 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -51103,6 +51179,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -51163,7 +51240,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -51172,9 +51249,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -51214,9 +51288,9 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -51332,7 +51406,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -51964,6 +52038,9 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -51972,6 +52049,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -52032,7 +52110,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -52041,9 +52119,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -52083,9 +52158,9 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -52201,7 +52276,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -52817,6 +52892,9 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -52825,6 +52903,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -52885,7 +52964,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -52894,9 +52973,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -52936,9 +53012,9 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -53054,7 +53130,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -53594,6 +53670,14 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -53602,6 +53686,7 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -53635,7 +53720,7 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -53646,7 +53731,7 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -53671,14 +53756,6 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -53762,9 +53839,9 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -54568,6 +54645,9 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -54576,6 +54656,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -54636,7 +54717,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -54645,9 +54726,6 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -54687,9 +54765,9 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -54805,7 +54883,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -55421,6 +55499,9 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -55429,6 +55510,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -55489,7 +55571,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -55498,9 +55580,6 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -55540,9 +55619,9 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -55658,7 +55737,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -56292,6 +56371,9 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -56300,6 +56382,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -56360,7 +56443,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -56369,9 +56452,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -56411,9 +56491,9 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -56529,7 +56609,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -57109,6 +57189,9 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -57117,6 +57200,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -57177,7 +57261,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -57186,9 +57270,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -57228,9 +57309,9 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -57346,7 +57427,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -57925,6 +58006,9 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -57933,6 +58017,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -57993,7 +58078,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -58002,9 +58087,6 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -58044,9 +58126,9 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -58162,7 +58244,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -58788,6 +58870,9 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -58796,6 +58881,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -58856,7 +58942,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -58865,9 +58951,6 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -58907,9 +58990,9 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -59025,7 +59108,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -59642,6 +59725,9 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -59650,6 +59736,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -59710,7 +59797,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -59719,9 +59806,6 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -59761,9 +59845,9 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -59879,7 +59963,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -60495,6 +60579,9 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -60503,6 +60590,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -60563,7 +60651,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -60572,9 +60660,6 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -60614,9 +60699,9 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -60732,7 +60817,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -61359,6 +61444,14 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -61367,6 +61460,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -61400,7 +61494,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -61411,7 +61505,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -61436,14 +61530,6 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -61531,9 +61617,9 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -62159,6 +62245,14 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -62167,6 +62261,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -62200,7 +62295,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -62211,7 +62306,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -62236,14 +62331,6 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -62333,9 +62420,9 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -62954,6 +63041,14 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -62962,6 +63057,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -62995,7 +63091,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -63006,7 +63102,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -63031,14 +63127,6 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -63128,9 +63216,9 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -63786,6 +63874,14 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -63794,6 +63890,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -63827,7 +63924,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -63838,7 +63935,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -63863,14 +63960,6 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -63958,9 +64047,9 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -64588,6 +64677,14 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -64596,6 +64693,7 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -64629,7 +64727,7 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -64640,7 +64738,7 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -64665,14 +64763,6 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -64760,9 +64850,9 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -65432,6 +65522,14 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -65440,6 +65538,7 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -65473,7 +65572,7 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -65484,7 +65583,7 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -65509,14 +65608,6 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -65604,9 +65695,9 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -66267,6 +66358,14 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -66275,6 +66374,7 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -66308,7 +66408,7 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -66319,7 +66419,7 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -66344,14 +66444,6 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -66441,9 +66533,9 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -67152,6 +67244,14 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -67160,6 +67260,7 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -67193,7 +67294,7 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -67204,7 +67305,7 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -67229,14 +67330,6 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -67320,9 +67413,9 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -68074,6 +68167,14 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -68082,6 +68183,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -68115,7 +68217,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -68126,7 +68228,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -68151,14 +68253,6 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -68242,9 +68336,9 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -69008,6 +69102,14 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -69016,6 +69118,7 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -69049,7 +69152,7 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -69060,7 +69163,7 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -69085,14 +69188,6 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -69176,9 +69271,9 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -69929,6 +70024,14 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -69937,6 +70040,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -69970,7 +70074,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -69981,7 +70085,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -70006,14 +70110,6 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -70097,9 +70193,9 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -70854,6 +70950,14 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -70862,6 +70966,7 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -70895,7 +71000,7 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -70906,7 +71011,7 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -70931,14 +71036,6 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -71022,9 +71119,9 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -71758,6 +71855,14 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -71766,6 +71871,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -71799,7 +71905,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -71810,7 +71916,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -71835,14 +71941,6 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -71926,9 +72024,9 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -72662,6 +72760,14 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -72670,6 +72776,7 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -72703,7 +72810,7 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -72714,7 +72821,7 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -72739,14 +72846,6 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -72830,9 +72929,9 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -73560,6 +73659,14 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -73568,6 +73675,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -73601,7 +73709,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -73612,7 +73720,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -73637,14 +73745,6 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -73728,9 +73828,9 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -74458,6 +74558,14 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -74466,6 +74574,7 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -74499,7 +74608,7 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -74510,7 +74619,7 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -74535,14 +74644,6 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -74626,9 +74727,9 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -75358,6 +75459,14 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -75366,6 +75475,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -75399,7 +75509,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -75410,7 +75520,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -75435,14 +75545,6 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -75526,9 +75628,9 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -76258,6 +76360,14 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -76266,6 +76376,7 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -76299,7 +76410,7 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -76310,7 +76421,7 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -76335,14 +76446,6 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -76426,9 +76529,9 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -77156,6 +77259,14 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -77164,6 +77275,7 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -77197,7 +77309,7 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -77208,7 +77320,7 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -77233,14 +77345,6 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -77324,9 +77428,9 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -78054,6 +78158,14 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -78062,6 +78174,7 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -78095,7 +78208,7 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -78106,7 +78219,7 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -78131,14 +78244,6 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -78222,9 +78327,9 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -78952,6 +79057,14 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -78960,6 +79073,7 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -78993,7 +79107,7 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -79004,7 +79118,7 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -79029,14 +79143,6 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -79120,9 +79226,9 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -79850,6 +79956,14 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -79858,6 +79972,7 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -79891,7 +80006,7 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -79902,7 +80017,7 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -79927,14 +80042,6 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -80018,9 +80125,9 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -80748,6 +80855,14 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -80756,6 +80871,7 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -80789,7 +80905,7 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -80800,7 +80916,7 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -80825,14 +80941,6 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -80916,9 +81024,9 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -81646,6 +81754,14 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -81654,6 +81770,7 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -81687,7 +81804,7 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -81698,7 +81815,7 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -81723,14 +81840,6 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -81814,9 +81923,9 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -82544,6 +82653,14 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -82552,6 +82669,7 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -82585,7 +82703,7 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -82596,7 +82714,7 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -82621,14 +82739,6 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -82712,9 +82822,9 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -83442,6 +83552,14 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -83450,6 +83568,7 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -83483,7 +83602,7 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -83494,7 +83613,7 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -83519,14 +83638,6 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -83610,9 +83721,9 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -84342,6 +84453,14 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -84350,6 +84469,7 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -84383,7 +84503,7 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -84394,7 +84514,7 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -84419,14 +84539,6 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -84510,9 +84622,9 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -85242,6 +85354,14 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -85250,6 +85370,7 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -85283,7 +85404,7 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -85294,7 +85415,7 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -85319,14 +85440,6 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -85410,9 +85523,9 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -86141,6 +86254,14 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -86149,6 +86270,7 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -86182,7 +86304,7 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -86193,7 +86315,7 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -86218,14 +86340,6 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -86309,9 +86423,9 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -87039,6 +87153,14 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -87047,6 +87169,7 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -87080,7 +87203,7 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -87091,7 +87214,7 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -87116,14 +87239,6 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -87207,9 +87322,9 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -87938,6 +88053,14 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -87946,6 +88069,7 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -87979,7 +88103,7 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -87990,7 +88114,7 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -88015,14 +88139,6 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -88106,9 +88222,9 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -88836,6 +88952,14 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -88844,6 +88968,7 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -88877,7 +89002,7 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -88888,7 +89013,7 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -88913,14 +89038,6 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -89004,9 +89121,9 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -89734,6 +89851,14 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -89742,6 +89867,7 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -89775,7 +89901,7 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -89786,7 +89912,7 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -89811,14 +89937,6 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -89902,9 +90020,9 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -90632,6 +90750,14 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -90640,6 +90766,7 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -90673,7 +90800,7 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -90684,7 +90811,7 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -90709,14 +90836,6 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -90800,9 +90919,9 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -91530,6 +91649,14 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -91538,6 +91665,7 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -91571,7 +91699,7 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -91582,7 +91710,7 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -91607,14 +91735,6 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -91698,9 +91818,9 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -92428,6 +92548,14 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -92436,6 +92564,7 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -92469,7 +92598,7 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -92480,7 +92609,7 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -92505,14 +92634,6 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -92596,9 +92717,9 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -93326,6 +93447,14 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -93334,6 +93463,7 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -93367,7 +93497,7 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -93378,7 +93508,7 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -93403,14 +93533,6 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -93494,9 +93616,9 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -94224,6 +94346,14 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -94232,6 +94362,7 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -94265,7 +94396,7 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -94276,7 +94407,7 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -94301,14 +94432,6 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -94392,9 +94515,9 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -95122,6 +95245,14 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -95130,6 +95261,7 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -95163,7 +95295,7 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -95174,7 +95306,7 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -95199,14 +95331,6 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -95290,9 +95414,9 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -96020,6 +96144,14 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -96028,6 +96160,7 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -96061,7 +96194,7 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -96072,7 +96205,7 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -96097,14 +96230,6 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -96188,9 +96313,9 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -96918,6 +97043,14 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -96926,6 +97059,7 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -96959,7 +97093,7 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -96970,7 +97104,7 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -96995,14 +97129,6 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -97086,9 +97212,9 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -97816,6 +97942,14 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -97824,6 +97958,7 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -97857,7 +97992,7 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -97868,7 +98003,7 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -97893,14 +98028,6 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -97984,9 +98111,9 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -98714,6 +98841,14 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -98722,6 +98857,7 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -98755,7 +98891,7 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -98766,7 +98902,7 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -98791,14 +98927,6 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -98882,9 +99010,9 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -99612,6 +99740,14 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -99620,6 +99756,7 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -99653,7 +99790,7 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -99664,7 +99801,7 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -99689,14 +99826,6 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -99780,9 +99909,9 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -100510,6 +100639,14 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -100518,6 +100655,7 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -100551,7 +100689,7 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -100562,7 +100700,7 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -100587,14 +100725,6 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -100678,9 +100808,9 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -101410,6 +101540,14 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -101418,6 +101556,7 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -101451,7 +101590,7 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -101462,7 +101601,7 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -101487,14 +101626,6 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -101578,9 +101709,9 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -102310,6 +102441,14 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -102318,6 +102457,7 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -102351,7 +102491,7 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -102362,7 +102502,7 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -102387,14 +102527,6 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -102478,9 +102610,9 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -103208,6 +103340,14 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -103216,6 +103356,7 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -103249,7 +103390,7 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -103260,7 +103401,7 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -103285,14 +103426,6 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -103376,9 +103509,9 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -104183,6 +104316,9 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -104191,6 +104327,7 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -104251,7 +104388,7 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -104260,9 +104397,6 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -104302,9 +104436,9 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -104420,7 +104554,7 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -104958,6 +105092,14 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -104966,6 +105108,7 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -104999,7 +105142,7 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -105010,7 +105153,7 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -105035,14 +105178,6 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -105126,9 +105261,9 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -105827,6 +105962,14 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -105835,6 +105978,7 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -105868,7 +106012,7 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -105879,7 +106023,7 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -105904,14 +106048,6 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -105995,9 +106131,9 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -106696,6 +106832,14 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -106704,6 +106848,7 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -106737,7 +106882,7 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -106748,7 +106893,7 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -106773,14 +106918,6 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -106864,9 +107001,9 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -107594,6 +107731,14 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -107602,6 +107747,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -107635,7 +107781,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -107646,7 +107792,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -107671,14 +107817,6 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -107762,9 +107900,9 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -108492,6 +108630,14 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -108500,6 +108646,7 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -108533,7 +108680,7 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -108544,7 +108691,7 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -108569,14 +108716,6 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -108660,9 +108799,9 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -109390,6 +109529,14 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -109398,6 +109545,7 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -109431,7 +109579,7 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -109442,7 +109590,7 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -109467,14 +109615,6 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -109558,9 +109698,9 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -110576,6 +110716,14 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -110584,6 +110732,7 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -110617,7 +110766,7 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -110628,7 +110777,7 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -110653,14 +110802,6 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -110744,9 +110885,9 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -111474,6 +111615,14 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -111482,6 +111631,7 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -111515,7 +111665,7 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		Database: appdbHandle,
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -111526,7 +111676,7 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
@@ -111551,14 +111701,6 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -111642,9 +111784,9 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -112948,6 +113090,9 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -112956,6 +113101,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -113535,6 +113681,9 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -113543,6 +113692,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -113603,7 +113753,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -113612,9 +113762,6 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -113654,9 +113801,9 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,
@@ -113772,7 +113919,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock: clockClock,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
+		Commands: userCommands,
 		Queries:  queries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -114782,6 +114929,14 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -114790,6 +114945,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -114850,7 +115006,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Store: store,
 		Clock: clockClock,
 	}
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -114859,14 +115015,6 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsCommands := &rolesgroups.Commands{
-		Store: rolesgroupsStore,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -114956,9 +115104,9 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
+		UserCommands:               userCommands,
 		UserQueries:                queries,
-		RolesGroupsCommands:        rolesgroupsCommands,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,

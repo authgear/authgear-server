@@ -45,6 +45,63 @@ func (s *Store) ListUserIDsByGroupID(groupID string, pageArgs graphqlutil.PageAr
 	return userIDs, offset, nil
 }
 
+type UpdateUserGroupOptions struct {
+	UserID    string
+	GroupKeys []string
+}
+
+func (s *Store) UpdateUserGroup(options *UpdateUserGroupOptions) error {
+	currentGroups, err := s.ListGroupsByUserID(options.UserID)
+	if err != nil {
+		return err
+	}
+	groupKeysMap := make(map[string]int)
+	keysToAdd := make([]string, 0)
+	keysToDelete := make([]string, 0)
+	// -1: delete, 0: no ops, 1: add
+	for _, v := range currentGroups {
+		groupKeysMap[v.Key] = -1
+	}
+	for _, v := range options.GroupKeys {
+		if groupKeysMap[v] == -1 {
+			groupKeysMap[v] = 0
+		} else {
+			groupKeysMap[v] = 1
+		}
+	}
+
+	for k, v := range groupKeysMap {
+		if v == -1 {
+			keysToDelete = append(keysToDelete, k)
+		}
+		if v == 1 {
+			keysToAdd = append(keysToAdd, k)
+		}
+	}
+
+	if len(keysToDelete) != 0 {
+		err := s.RemoveUserFromGroups(&RemoveUserFromGroupsOptions{
+			UserID:    options.UserID,
+			GroupKeys: keysToDelete,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(keysToAdd) != 0 {
+		err := s.AddUserToGroups(&AddUserToGroupsOptions{
+			UserID:    options.UserID,
+			GroupKeys: keysToAdd,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (s *Store) DeleteUserGroup(userID string) error {
 	q := s.SQLBuilder.Delete(s.SQLBuilder.TableName("_auth_user_group")).
 		Where("user_id = ?", userID)
