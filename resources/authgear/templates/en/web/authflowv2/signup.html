@@ -117,6 +117,10 @@
             {{ template "authflowv2/__error.html" $ }}
           </p>
         {{ end }}
+
+        <!-- This field is for Chrome and Safari to consider the above field as username for autocomplete -->
+        <!-- both `class="hidden"` and `display:none` do not work for iOS autofill -->
+        <input style="position: absolute; width: 0; height: 0;" aria-hidden="true" type="password" autocomplete="current-password" name="">
       </div>
     {{ end }}{{ end }}
     {{ end }}

@@ -86,9 +86,11 @@
 					data-retain-form-form-target="input"
 					data-retain-form-form-name-param="text"
 				>
-				<!-- This field is for Chrome and Safari to consider the above field as username for autocomplete -->
-				<input style="display: none" aria-hidden="true" type="password" autocomplete="current-password" name="">
 				{{ end }}{{ end }}{{ end }}
+
+				<!-- This field is for Chrome and Safari to consider the above field as username for autocomplete -->
+				<!-- both `class="hidden"` and `display:none` do not work for iOS autofill -->
+				<input style="position: absolute; width: 0; height: 0;" aria-hidden="true" type="password" autocomplete="current-password" name="">
 
 				{{ if $.LoginIDInputType }}{{ if eq $.LoginIDInputType "phone" }}{{ if (or $.EmailLoginIDEnabled $.UsernameLoginIDEnabled) }}
 				<a class="link text-sm self-start block" href="{{ call $.MakeURL "" "q_login_id_input_type" $.NonPhoneLoginIDInputType }}" data-turbo-action="replace">{{ template "use-text-login-id-description" (dict "variant" $.NonPhoneLoginIDType) }}</a>
