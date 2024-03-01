@@ -296,7 +296,7 @@ func (ti *IDTokenIssuer) GetUserInfo(userID string, clientLike *oauth.ClientLike
 	out[string(model.ClaimUserIsAnonymous)] = user.IsAnonymous
 	out[string(model.ClaimUserIsVerified)] = user.IsVerified
 	out[string(model.ClaimUserCanReauthenticate)] = user.CanReauthenticate
-	out[string(model.ClaimEffectiveRoles)] = roleKeys 
+	out[string(model.ClaimEffectiveRoles)] = roleKeys
 
 	nonPIIUserClaimsOnly := true
 	// When the client is first party

@@ -1035,12 +1035,21 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsQueries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
 	resolveHandler := &handler.ResolveHandler{
-		Database:     handle,
-		Identities:   serviceService,
-		Verification: verificationService,
-		Logger:       resolveHandlerLogger,
-		Users:        queries,
+		Database:       handle,
+		Identities:     serviceService,
+		Verification:   verificationService,
+		Logger:         resolveHandlerLogger,
+		Users:          queries,
+		RolesAndGroups: rolesgroupsQueries,
 	}
 	return resolveHandler
 }
