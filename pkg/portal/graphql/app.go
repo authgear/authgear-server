@@ -207,11 +207,7 @@ var nodeApp = node(
 					app := p.Source.(*model.App)
 					appResMgr := ctx.AppResMgrFactory.NewManagerWithAppContext(app.Context)
 					if len(paths) == 0 {
-						var err error
-						paths, err = appResMgr.List()
-						if err != nil {
-							return nil, err
-						}
+						return []*model.AppResource{}, nil
 					}
 					descriptedPaths, err := appResMgr.AssociateDescriptor(paths...)
 					if err != nil {

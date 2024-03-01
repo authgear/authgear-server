@@ -15,10 +15,6 @@ mutation updateAppTemplatesMutation(
         effectiveData
         checksum
       }
-      resourceLocales: resources {
-        path
-        languageTag
-      }
     }
   }
 }
