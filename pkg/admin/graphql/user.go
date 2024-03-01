@@ -63,25 +63,26 @@ func init() {
 		},
 	})
 
-	nodeUser.AddFieldConfig("computedRoleKeys", &graphql.Field{
-		Type:        graphql.NewList(graphql.NewNonNull(graphql.String)),
-		Description: "The list of computed role keys this user has.",
+	nodeUser.AddFieldConfig("effectiveRoles", &graphql.Field{
+		Type:        connRole.ConnectionType,
+		Description: "The list of computed roles this user has.",
 		Args:        relay.NewConnectionArgs(graphql.FieldConfigArgument{}),
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			source := p.Source.(*model.User)
 			gqlCtx := GQLContext(p.Context)
 
-			roles, err := gqlCtx.RolesGroupsFacade.ListComputedRolesByUserID(source.ID)
+			roles, err := gqlCtx.RolesGroupsFacade.ListEffectiveRolesByUserID(source.ID)
 			if err != nil {
 				return nil, err
 			}
 
-			roleKeys := make([]interface{}, len(roles))
+			roleIfaces := make([]interface{}, len(roles))
 			for i, r := range roles {
-				roleKeys[i] = r.Key
+				roleIfaces[i] = r
 			}
 
-			return roleKeys, nil
+			args := relay.NewConnectionArguments(p.Args)
+			return graphqlutil.NewConnectionFromArray(roleIfaces, args), nil
 		},
 	})
 }

@@ -43,7 +43,7 @@ type RolesGroupsQueries interface {
 	ListGroupsByUserID(userID string) ([]*model.Group, error)
 	ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
 	ListUserIDsByGroupID(groupID string, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
-	ListComputedRolesByUserID(userID string) ([]*model.Role, error)
+	ListEffectiveRolesByUserID(userID string) ([]*model.Role, error)
 }
 
 type RolesGroupsFacade struct {
@@ -277,6 +277,6 @@ func (f *RolesGroupsFacade) ListUserIDsByGroupID(groupID string, pageArgs graphq
 	})), nil
 }
 
-func (f *RolesGroupsFacade) ListComputedRolesByUserID(userID string) ([]*model.Role, error) {
-	return f.RolesGroupsQueries.ListComputedRolesByUserID(userID)
+func (f *RolesGroupsFacade) ListEffectiveRolesByUserID(userID string) ([]*model.Role, error) {
+	return f.RolesGroupsQueries.ListEffectiveRolesByUserID(userID)
 }

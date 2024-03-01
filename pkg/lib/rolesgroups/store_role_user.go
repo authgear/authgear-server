@@ -21,7 +21,7 @@ func (s *Store) DeleteUserRole(userID string) error {
 
 }
 
-func (s *Store) ListComputedRolesByUserID(userID string) ([]*Role, error) {
+func (s *Store) ListEffectiveRolesByUserID(userID string) ([]*Role, error) {
 	roleFromGroupsQuery := s.SQLBuilder.Select(
 		"r.id",
 		"r.created_at",
