@@ -493,7 +493,15 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -502,9 +510,10 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -530,11 +539,6 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -570,7 +574,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	elasticsearchService := elasticsearch.Service{
 		AppID:     configAppID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: noopTaskQueue,
@@ -590,10 +594,11 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -707,7 +712,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,

@@ -507,7 +507,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -516,20 +524,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
-	userLoader := loader.NewUserLoader(queries)
+	userLoader := loader.NewUserLoader(userQueries)
 	identityLoader := loader.NewIdentityLoader(serviceService)
 	authenticatorLoader := loader.NewAuthenticatorLoader(service4)
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
-	roleLoader := loader.NewRoleLoader(rolesgroupsQueries)
-	groupLoader := loader.NewGroupLoader(rolesgroupsQueries)
+	roleLoader := loader.NewRoleLoader(queries)
+	groupLoader := loader.NewGroupLoader(queries)
 	readHandle := appProvider.AuditReadDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
@@ -549,7 +550,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := &elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -563,7 +564,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -619,7 +620,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	service5 := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -639,10 +640,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -755,7 +757,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -944,7 +946,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	rolesGroupsFacade := &facade2.RolesGroupsFacade{
 		RolesGroupsCommands: commands,
-		RolesGroupsQueries:  rolesgroupsQueries,
+		RolesGroupsQueries:  queries,
 	}
 	auditLogFeatureConfig := featureConfig.AuditLog
 	auditLogFacade := &facade2.AuditLogFacade{
@@ -990,8 +992,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
@@ -1015,7 +1017,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenIssuer:   accessTokenEncoding,
 		GenerateToken:       tokenGenerator,
 		Clock:               clockClock,
-		Users:               queries,
+		Users:               userQueries,
 	}
 	oAuthFacade := &facade2.OAuthFacade{
 		Config:              oAuthConfig,

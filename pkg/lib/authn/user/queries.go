@@ -45,6 +45,13 @@ type Web3Service interface {
 	GetWeb3Info(identities []*identity.Info) (*model.UserWeb3Info, error)
 }
 
+type RolesAndGroupsService interface {
+	ListRolesByUserID(userID string) ([]*model.Role, error)
+	ListGroupsByUserID(userID string) ([]*model.Group, error)
+	ListRolesByUserIDs(userIDs []string) (map[string][]*model.Role, error)
+	ListGroupsByUserIDs(userIDs []string) (map[string][]*model.Group, error)
+}
+
 type Queries struct {
 	*RawQueries
 	Store              store
@@ -54,6 +61,7 @@ type Queries struct {
 	StandardAttributes StandardAttributesService
 	CustomAttributes   CustomAttributesService
 	Web3               Web3Service
+	RolesAndGroups     RolesAndGroupsService
 }
 
 func (p *Queries) Get(id string, role accesscontrol.Role) (*model.User, error) {
@@ -118,6 +126,15 @@ func (p *Queries) GetMany(ids []string, role accesscontrol.Role) (users []*model
 		return nil, err
 	}
 
+	rolesByUserID, err := p.RolesAndGroups.ListRolesByUserIDs(userIDs)
+	if err != nil {
+		return nil, err
+	}
+	groupsByUserID, err := p.RolesAndGroups.ListGroupsByUserIDs(userIDs)
+	if err != nil {
+		return nil, err
+	}
+
 	for _, rawUser := range rawUsers {
 		if rawUser == nil {
 			users = append(users, nil)
@@ -131,6 +148,17 @@ func (p *Queries) GetMany(ids []string, role accesscontrol.Role) (users []*model
 			if web3err != nil {
 				return nil, err
 			}
+			roles := rolesByUserID[rawUser.ID]
+			roleKeys := make([]string, len(roles))
+			for i, v := range roles {
+				roleKeys[i] = v.Key
+			}
+
+			groups := groupsByUserID[rawUser.ID]
+			groupKeys := make([]string, len(groups))
+			for i, v := range groups {
+				groupKeys[i] = v.Key
+			}
 			u := newUserModel(
 				rawUser,
 				identities,
@@ -139,6 +167,8 @@ func (p *Queries) GetMany(ids []string, role accesscontrol.Role) (users []*model
 				stdAttrs,
 				customAttrs,
 				web3Info,
+				roleKeys,
+				groupKeys,
 			)
 
 			users = append(users, u)

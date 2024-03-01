@@ -6,7 +6,25 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
+	"github.com/lib/pq"
 )
+
+func (s *Store) ListGroupsByUserIDs(userIDs []string) (map[string][]*Group, error) {
+	q := s.SQLBuilder.Select(
+		"ug.user_id",
+		"g.id",
+		"g.created_at",
+		"g.updated_at",
+		"g.key",
+		"g.name",
+		"g.description",
+	).
+		From(s.SQLBuilder.TableName("_auth_user_group"), "ug").
+		Join(s.SQLBuilder.TableName("_auth_group"), "g", "ug.group_id = g.id").
+		Where("ug.user_id = ANY (?)", pq.Array(userIDs))
+
+	return s.queryGroupsWithUserID(q)
+}
 
 func (s *Store) ListGroupsByUserID(userID string) ([]*Group, error) {
 	q := s.SQLBuilder.Select(

@@ -6,7 +6,25 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
+	"github.com/lib/pq"
 )
+
+func (s *Store) ListRolesByUserIDs(userIDs []string) (map[string][]*Role, error) {
+	q := s.SQLBuilder.Select(
+		"ur.user_id",
+		"r.id",
+		"r.created_at",
+		"r.updated_at",
+		"r.key",
+		"r.name",
+		"r.description",
+	).
+		From(s.SQLBuilder.TableName("_auth_user_role"), "ur").
+		Join(s.SQLBuilder.TableName("_auth_role"), "r", "ur.role_id = r.id").
+		Where("ur.user_id = ANY (?)", pq.Array(userIDs))
+
+	return s.queryRolesWithUserID(q)
+}
 
 func (s *Store) DeleteUserRole(userID string) error {
 	q := s.SQLBuilder.Delete(s.SQLBuilder.TableName("_auth_user_role")).

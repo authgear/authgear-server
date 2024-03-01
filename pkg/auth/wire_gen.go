@@ -486,7 +486,15 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -495,20 +503,13 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -1022,7 +1023,15 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -1031,20 +1040,13 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -1651,7 +1653,15 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              userStore,
 		Identities:         serviceService,
@@ -1660,9 +1670,10 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -1688,11 +1699,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -1728,7 +1734,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -1775,6 +1781,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -1802,7 +1809,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -1921,7 +1928,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -1980,14 +1987,11 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Store:   interactionStoreRedis,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
@@ -2011,7 +2015,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenIssuer:   accessTokenEncoding,
 		GenerateToken:       tokenGenerator,
 		Clock:               clockClock,
-		Users:               queries,
+		Users:               userQueries,
 	}
 	app2appProvider := &app2app.Provider{
 		Clock: clockClock,
@@ -2495,7 +2499,15 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              userStore,
 		Identities:         serviceService,
@@ -2504,9 +2516,10 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -2532,11 +2545,6 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -2572,7 +2580,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -2979,7 +2987,15 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -2988,20 +3004,13 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	jwksHandler := &oauth.JWKSHandler{
@@ -3364,7 +3373,15 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -3373,20 +3390,13 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	oAuthConfig := appConfig.OAuth
@@ -3824,7 +3834,15 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              userStore,
 		Identities:         serviceService,
@@ -3833,9 +3851,10 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -3861,11 +3880,6 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -3901,7 +3915,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -4389,7 +4403,15 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              userStore,
 		Identities:         serviceService,
@@ -4398,9 +4420,10 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -4426,11 +4449,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -4466,7 +4484,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -4513,6 +4531,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -4540,7 +4559,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -4659,7 +4678,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -4718,14 +4737,11 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Store:   interactionStoreRedis,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
@@ -4749,7 +4765,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenIssuer:   accessTokenEncoding,
 		GenerateToken:       tokenGenerator,
 		Clock:               clockClock,
-		Users:               queries,
+		Users:               userQueries,
 	}
 	app2appProvider := &app2app.Provider{
 		Clock: clockClock,
@@ -5278,7 +5294,15 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              userStore,
 		Identities:         serviceService,
@@ -5287,9 +5311,10 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -5315,11 +5340,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -5355,7 +5375,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -5402,6 +5422,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -5473,7 +5494,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -5592,7 +5613,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -5657,14 +5678,11 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		OAuthSessionManager: sessionManager,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
@@ -5688,7 +5706,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenIssuer:   accessTokenEncoding,
 		GenerateToken:       tokenGenerator,
 		Clock:               clockClock,
-		Users:               queries,
+		Users:               userQueries,
 	}
 	anonymousUserHandler := &handler.AnonymousUserHandler{
 		AppID:               appID,
@@ -5698,7 +5716,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Authorizations:      authorizationService,
 		Clock:               clockClock,
 		TokenService:        tokenService,
-		UserProvider:        queries,
+		UserProvider:        userQueries,
 		AnonymousIdentities: anonymousProvider,
 		PromotionCodes:      anonymousStoreRedis,
 		OAuthClientResolver: resolver,
@@ -6089,7 +6107,15 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              userStore,
 		Identities:         serviceService,
@@ -6098,9 +6124,10 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -6126,11 +6153,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -6166,7 +6188,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -6213,6 +6235,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -6284,7 +6307,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -6403,7 +6426,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -6468,14 +6491,11 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		OAuthSessionManager: sessionManager,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
@@ -6499,7 +6519,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		AccessTokenIssuer:   accessTokenEncoding,
 		GenerateToken:       tokenGenerator,
 		Clock:               clockClock,
-		Users:               queries,
+		Users:               userQueries,
 	}
 	anonymousUserHandler := &handler.AnonymousUserHandler{
 		AppID:               appID,
@@ -6509,7 +6529,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Authorizations:      authorizationService,
 		Clock:               clockClock,
 		TokenService:        tokenService,
-		UserProvider:        queries,
+		UserProvider:        userQueries,
 		AnonymousIdentities: anonymousProvider,
 		PromotionCodes:      anonymousStoreRedis,
 		OAuthClientResolver: resolver,
@@ -7008,7 +7028,15 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -7017,20 +7045,13 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -7096,7 +7117,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -7157,7 +7178,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -7204,6 +7225,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -7244,7 +7266,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -7362,7 +7384,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -7890,7 +7912,15 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -7899,20 +7929,13 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -7978,7 +8001,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -8039,7 +8062,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -8086,6 +8109,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -8126,7 +8150,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -8244,7 +8268,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -8771,7 +8795,15 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -8780,20 +8812,13 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -8859,7 +8884,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -8920,7 +8945,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -8967,6 +8992,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -9007,7 +9033,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -9125,7 +9151,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -9640,7 +9666,15 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -9649,20 +9683,13 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -9728,7 +9755,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -9789,7 +9816,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -9836,6 +9863,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -9876,7 +9904,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -9994,7 +10022,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -10120,7 +10148,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Renderer:                  responseRenderer,
 		AuthenticationConfig:      authenticationConfig,
 		SignedUpCookie:            signedUpCookieDef,
-		Users:                     queries,
+		Users:                     userQueries,
 		Identities:                serviceService,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		UIInfoResolver:            uiInfoResolver,
@@ -10504,7 +10532,15 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -10513,20 +10549,13 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -10592,7 +10621,7 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -10653,7 +10682,7 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -10700,6 +10729,7 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -10740,7 +10770,7 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -10858,7 +10888,7 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -10984,7 +11014,7 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		Renderer:                  responseRenderer,
 		AuthenticationConfig:      authenticationConfig,
 		SignedUpCookie:            signedUpCookieDef,
-		Users:                     queries,
+		Users:                     userQueries,
 		Identities:                serviceService,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		UIInfoResolver:            uiInfoResolver,
@@ -11369,7 +11399,15 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -11378,9 +11416,10 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -11406,11 +11445,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -11446,7 +11480,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -11466,10 +11500,11 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -11577,7 +11612,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -11737,7 +11772,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -11753,14 +11788,11 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -12354,7 +12386,15 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -12363,20 +12403,13 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -12442,7 +12475,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -12503,7 +12536,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -12550,6 +12583,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -12590,7 +12624,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -12708,7 +12742,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -13208,7 +13242,15 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -13217,20 +13259,13 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -13296,7 +13331,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -13357,7 +13392,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -13404,6 +13439,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -13444,7 +13480,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -13562,7 +13598,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -14066,7 +14102,15 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -14075,20 +14119,13 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -14154,7 +14191,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -14215,7 +14252,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -14262,6 +14299,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -14302,7 +14340,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -14420,7 +14458,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -14926,7 +14964,15 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -14935,20 +14981,13 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -15014,7 +15053,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -15075,7 +15114,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -15122,6 +15161,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -15162,7 +15202,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -15280,7 +15320,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -15784,7 +15824,15 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -15793,20 +15841,13 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -15872,7 +15913,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -15933,7 +15974,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -15980,6 +16021,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -16020,7 +16062,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -16138,7 +16180,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -16640,7 +16682,15 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -16649,20 +16699,13 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -16728,7 +16771,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -16789,7 +16832,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -16836,6 +16879,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -16876,7 +16920,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -16994,7 +17038,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -17498,7 +17542,15 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -17507,20 +17559,13 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -17586,7 +17631,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -17647,7 +17692,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -17694,6 +17739,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -17734,7 +17780,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -17852,7 +17898,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -18357,7 +18403,15 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -18366,20 +18420,13 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -18445,7 +18492,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -18506,7 +18553,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -18553,6 +18600,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -18593,7 +18641,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -18711,7 +18759,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -19215,7 +19263,15 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -19224,20 +19280,13 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -19303,7 +19352,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -19364,7 +19413,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -19411,6 +19460,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -19451,7 +19501,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -19569,7 +19619,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -20073,7 +20123,15 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -20082,20 +20140,13 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -20161,7 +20212,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -20222,7 +20273,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -20269,6 +20320,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -20309,7 +20361,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -20427,7 +20479,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -20933,7 +20985,15 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -20942,20 +21002,13 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -21021,7 +21074,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -21082,7 +21135,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -21129,6 +21182,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -21169,7 +21223,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -21287,7 +21341,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -21791,7 +21845,15 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -21800,20 +21862,13 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -21879,7 +21934,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -21940,7 +21995,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -21987,6 +22042,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -22027,7 +22083,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -22145,7 +22201,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -22649,7 +22705,15 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -22658,20 +22722,13 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -22737,7 +22794,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -22798,7 +22855,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -22845,6 +22902,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -22885,7 +22943,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -23003,7 +23061,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -23511,7 +23569,15 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -23520,20 +23586,13 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -23599,7 +23658,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -23660,7 +23719,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -23707,6 +23766,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -23747,7 +23807,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -23865,7 +23925,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -24369,7 +24429,15 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -24378,20 +24446,13 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -24457,7 +24518,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -24518,7 +24579,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -24565,6 +24626,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -24605,7 +24667,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -24723,7 +24785,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -25231,7 +25293,15 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -25240,20 +25310,13 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -25319,7 +25382,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -25380,7 +25443,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -25427,6 +25490,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -25467,7 +25531,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -25585,7 +25649,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -26089,7 +26153,15 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -26098,20 +26170,13 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -26177,7 +26242,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -26238,7 +26303,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -26285,6 +26350,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -26325,7 +26391,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -26443,7 +26509,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -26955,7 +27021,15 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -26964,20 +27038,13 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -27043,7 +27110,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -27104,7 +27171,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -27151,6 +27218,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -27191,7 +27259,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -27309,7 +27377,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -27835,7 +27903,15 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -27844,20 +27920,13 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -27923,7 +27992,7 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -27984,7 +28053,7 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -28031,6 +28100,7 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -28071,7 +28141,7 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -28189,7 +28259,7 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -28704,7 +28774,15 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -28713,20 +28791,13 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -28792,7 +28863,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -28853,7 +28924,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -28900,6 +28971,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -28940,7 +29012,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -29058,7 +29130,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -29562,7 +29634,15 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -29571,20 +29651,13 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -29650,7 +29723,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -29711,7 +29784,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -29758,6 +29831,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -29798,7 +29872,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -29916,7 +29990,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -30416,7 +30490,15 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -30425,20 +30507,13 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -30504,7 +30579,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -30565,7 +30640,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -30612,6 +30687,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -30652,7 +30728,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -30770,7 +30846,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -31274,7 +31350,15 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -31283,20 +31367,13 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -31362,7 +31439,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -31423,7 +31500,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -31470,6 +31547,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -31510,7 +31588,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -31628,7 +31706,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -32128,7 +32206,15 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -32137,20 +32223,13 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -32216,7 +32295,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -32277,7 +32356,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -32324,6 +32403,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -32364,7 +32444,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -32482,7 +32562,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -32992,7 +33072,15 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -33001,20 +33089,13 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -33080,7 +33161,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -33141,7 +33222,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -33188,6 +33269,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -33228,7 +33310,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -33346,7 +33428,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -33846,7 +33928,15 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -33855,20 +33945,13 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -33934,7 +34017,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -33995,7 +34078,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -34042,6 +34125,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -34082,7 +34166,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -34200,7 +34284,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -34702,7 +34786,15 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -34711,20 +34803,13 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -34790,7 +34875,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -34851,7 +34936,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -34898,6 +34983,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -34938,7 +35024,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -35056,7 +35142,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -35556,7 +35642,15 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -35565,20 +35659,13 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -35644,7 +35731,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -35705,7 +35792,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -35752,6 +35839,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -35792,7 +35880,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -35910,7 +35998,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -36047,7 +36135,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	settingsProfileViewModeler := &viewmodels.SettingsProfileViewModeler{
 		Localization:      localizationConfig,
 		UserProfileConfig: userProfileConfig,
-		Users:             queries,
+		Users:             userQueries,
 		Identities:        facadeIdentityFacade,
 		Clock:             clockClock,
 	}
@@ -36442,7 +36530,15 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -36451,20 +36547,13 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -36530,7 +36619,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -36591,7 +36680,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -36638,6 +36727,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -36678,7 +36768,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -36796,7 +36886,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -36922,7 +37012,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	settingsProfileViewModeler := &viewmodels.SettingsProfileViewModeler{
 		Localization:      localizationConfig,
 		UserProfileConfig: userProfileConfig,
-		Users:             queries,
+		Users:             userQueries,
 		Identities:        facadeIdentityFacade,
 		Clock:             clockClock,
 	}
@@ -37307,7 +37397,15 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -37316,20 +37414,13 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -37395,7 +37486,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -37456,7 +37547,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -37503,6 +37594,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -37543,7 +37635,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -37661,7 +37753,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -37787,7 +37879,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	settingsProfileViewModeler := &viewmodels.SettingsProfileViewModeler{
 		Localization:      localizationConfig,
 		UserProfileConfig: userProfileConfig,
-		Users:             queries,
+		Users:             userQueries,
 		Identities:        facadeIdentityFacade,
 		Clock:             clockClock,
 	}
@@ -38185,7 +38277,15 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -38194,20 +38294,13 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -38273,7 +38366,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -38334,7 +38427,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -38381,6 +38474,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -38421,7 +38515,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -38539,7 +38633,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -39047,7 +39141,15 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -39056,20 +39158,13 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -39135,7 +39230,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -39196,7 +39291,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -39243,6 +39338,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -39283,7 +39379,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -39401,7 +39497,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -39902,7 +39998,15 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -39911,20 +40015,13 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -39990,7 +40087,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -40051,7 +40148,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -40098,6 +40195,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -40138,7 +40236,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -40256,7 +40354,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -40765,7 +40863,15 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -40774,20 +40880,13 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -40853,7 +40952,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -40914,7 +41013,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -40961,6 +41060,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -41001,7 +41101,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -41119,7 +41219,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -41620,7 +41720,15 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -41629,20 +41737,13 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -41708,7 +41809,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -41769,7 +41870,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -41816,6 +41917,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -41856,7 +41958,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -41974,7 +42076,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -42475,7 +42577,15 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -42484,20 +42594,13 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -42563,7 +42666,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -42624,7 +42727,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -42671,6 +42774,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -42711,7 +42815,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -42829,7 +42933,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -43330,7 +43434,15 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -43339,20 +43451,13 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -43418,7 +43523,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -43479,7 +43584,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -43526,6 +43631,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -43566,7 +43672,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -43684,7 +43790,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -44186,7 +44292,15 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -44195,20 +44309,13 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -44274,7 +44381,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -44335,7 +44442,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -44382,6 +44489,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -44422,7 +44530,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -44540,7 +44648,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -45061,7 +45169,15 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -45070,20 +45186,13 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -45149,7 +45258,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -45210,7 +45319,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -45257,6 +45366,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -45297,7 +45407,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -45415,7 +45525,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -45916,7 +46026,15 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -45925,20 +46043,13 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -46004,7 +46115,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -46065,7 +46176,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -46112,6 +46223,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -46152,7 +46264,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -46270,7 +46382,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -46771,7 +46883,15 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -46780,20 +46900,13 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -46859,7 +46972,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -46920,7 +47033,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -46967,6 +47080,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -47007,7 +47121,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -47125,7 +47239,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -47626,7 +47740,15 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -47635,20 +47757,13 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -47714,7 +47829,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -47775,7 +47890,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -47822,6 +47937,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -47862,7 +47978,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -47980,7 +48096,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -48481,7 +48597,15 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -48490,20 +48614,13 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -48569,7 +48686,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -48630,7 +48747,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -48677,6 +48794,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -48717,7 +48835,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -48835,7 +48953,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -49343,7 +49461,15 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -49352,20 +49478,13 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -49431,7 +49550,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -49492,7 +49611,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -49539,6 +49658,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -49579,7 +49699,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -49697,7 +49817,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -50199,7 +50319,15 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -50208,20 +50336,13 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -50287,7 +50408,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -50348,7 +50469,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -50395,6 +50516,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -50435,7 +50557,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -50553,7 +50675,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -51053,7 +51175,15 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -51062,20 +51192,13 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -51141,7 +51264,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -51202,7 +51325,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -51249,6 +51372,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -51289,7 +51413,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -51407,7 +51531,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -51923,7 +52047,15 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -51932,20 +52064,13 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -52011,7 +52136,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -52072,7 +52197,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -52119,6 +52244,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -52159,7 +52285,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -52277,7 +52403,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -52777,7 +52903,15 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -52786,20 +52920,13 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -52865,7 +52992,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -52926,7 +53053,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -52973,6 +53100,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -53013,7 +53141,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -53131,7 +53259,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -53632,7 +53760,15 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -53641,9 +53777,10 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -53669,11 +53806,6 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -53709,7 +53841,7 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -53729,10 +53861,11 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -53840,7 +53973,7 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -54000,7 +54133,7 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -54016,14 +54149,11 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -54530,7 +54660,15 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -54539,20 +54677,13 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -54618,7 +54749,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -54679,7 +54810,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -54726,6 +54857,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -54766,7 +54898,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -54884,7 +55016,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -55384,7 +55516,15 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -55393,20 +55533,13 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -55472,7 +55605,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -55533,7 +55666,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -55580,6 +55713,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -55620,7 +55754,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -55738,7 +55872,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -56256,7 +56390,15 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -56265,20 +56407,13 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -56344,7 +56479,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -56405,7 +56540,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -56452,6 +56587,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -56492,7 +56628,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -56610,7 +56746,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -56689,7 +56825,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -57074,7 +57210,15 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -57083,20 +57227,13 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -57162,7 +57299,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -57223,7 +57360,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -57270,6 +57407,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -57310,7 +57448,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -57428,7 +57566,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -57891,7 +58029,15 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -57900,20 +58046,13 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -57979,7 +58118,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -58040,7 +58179,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -58087,6 +58226,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -58127,7 +58267,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -58245,7 +58385,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -58755,7 +58895,15 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -58764,20 +58912,13 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -58843,7 +58984,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -58904,7 +59045,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -58951,6 +59092,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -58991,7 +59133,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -59109,7 +59251,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -59610,7 +59752,15 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -59619,20 +59769,13 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -59698,7 +59841,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -59759,7 +59902,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -59806,6 +59949,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -59846,7 +59990,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -59964,7 +60108,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -60464,7 +60608,15 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -60473,20 +60625,13 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -60552,7 +60697,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -60613,7 +60758,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -60660,6 +60805,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -60700,7 +60846,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -60818,7 +60964,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -60974,7 +61120,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenIssuer:   accessTokenEncoding,
 		GenerateToken:       tokenGenerator,
 		Clock:               clockClock,
-		Users:               queries,
+		Users:               userQueries,
 	}
 	app2appProvider := &app2app.Provider{
 		Clock: clockClock,
@@ -61406,7 +61552,15 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -61415,9 +61569,10 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -61443,11 +61598,6 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -61483,7 +61633,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -61503,10 +61653,11 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -61618,7 +61769,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -61801,14 +61952,11 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	idTokenHintResolver := &oidc.IDTokenHintResolver{
@@ -62207,7 +62355,15 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -62216,9 +62372,10 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -62244,11 +62401,6 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -62284,7 +62436,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -62304,10 +62456,11 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -62421,7 +62574,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -62604,14 +62757,11 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	idTokenHintResolver := &oidc.IDTokenHintResolver{
@@ -63003,7 +63153,15 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -63012,9 +63170,10 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -63040,11 +63199,6 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -63080,7 +63234,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -63100,10 +63254,11 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -63217,7 +63372,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -63400,14 +63555,11 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	idTokenHintResolver := &oidc.IDTokenHintResolver{
@@ -63836,7 +63988,15 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -63845,9 +64005,10 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -63873,11 +64034,6 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -63913,7 +64069,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -63933,10 +64089,11 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -64048,7 +64205,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -64231,14 +64388,11 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	idTokenHintResolver := &oidc.IDTokenHintResolver{
@@ -64639,7 +64793,15 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -64648,9 +64810,10 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -64676,11 +64839,6 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -64716,7 +64874,7 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -64736,10 +64894,11 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -64851,7 +65010,7 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -65011,7 +65170,7 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -65027,14 +65186,11 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -65484,7 +65640,15 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -65493,9 +65657,10 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -65521,11 +65686,6 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -65561,7 +65721,7 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -65581,10 +65741,11 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -65696,7 +65857,7 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -65856,7 +66017,7 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -65872,14 +66033,11 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -66320,7 +66478,15 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -66329,9 +66495,10 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -66357,11 +66524,6 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -66397,7 +66559,7 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -66417,10 +66579,11 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -66534,7 +66697,7 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -66694,7 +66857,7 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -66710,14 +66873,11 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -67206,7 +67366,15 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -67215,9 +67383,10 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -67243,11 +67412,6 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -67283,7 +67447,7 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -67303,10 +67467,11 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -67414,7 +67579,7 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -67574,7 +67739,7 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -67590,14 +67755,11 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -68129,7 +68291,15 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -68138,9 +68308,10 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -68166,11 +68337,6 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -68206,7 +68372,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -68226,10 +68392,11 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -68337,7 +68504,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -68497,7 +68664,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -68513,14 +68680,11 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -69064,7 +69228,15 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -69073,9 +69245,10 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -69101,11 +69274,6 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -69141,7 +69309,7 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -69161,10 +69329,11 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -69272,7 +69441,7 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -69432,7 +69601,7 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -69448,14 +69617,11 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -69986,7 +70152,15 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -69995,9 +70169,10 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -70023,11 +70198,6 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -70063,7 +70233,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -70083,10 +70253,11 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -70194,7 +70365,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -70354,7 +70525,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -70370,14 +70541,11 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -70912,7 +71080,15 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -70921,9 +71097,10 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -70949,11 +71126,6 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -70989,7 +71161,7 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -71009,10 +71181,11 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -71120,7 +71293,7 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -71280,7 +71453,7 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -71296,14 +71469,11 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -71817,7 +71987,15 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -71826,9 +72004,10 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -71854,11 +72033,6 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -71894,7 +72068,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -71914,10 +72088,11 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -72025,7 +72200,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -72185,7 +72360,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -72201,14 +72376,11 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -72722,7 +72894,15 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -72731,9 +72911,10 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -72759,11 +72940,6 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -72799,7 +72975,7 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -72819,10 +72995,11 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -72930,7 +73107,7 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -73090,7 +73267,7 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -73106,14 +73283,11 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -73621,7 +73795,15 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -73630,9 +73812,10 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -73658,11 +73841,6 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -73698,7 +73876,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -73718,10 +73896,11 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -73829,7 +74008,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -73989,7 +74168,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -74005,14 +74184,11 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -74520,7 +74696,15 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -74529,9 +74713,10 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -74557,11 +74742,6 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -74597,7 +74777,7 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -74617,10 +74797,11 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -74728,7 +74909,7 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -74888,7 +75069,7 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -74904,14 +75085,11 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -75421,7 +75599,15 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -75430,9 +75616,10 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -75458,11 +75645,6 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -75498,7 +75680,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -75518,10 +75700,11 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -75629,7 +75812,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -75789,7 +75972,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -75805,14 +75988,11 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -76322,7 +76502,15 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -76331,9 +76519,10 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -76359,11 +76548,6 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -76399,7 +76583,7 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -76419,10 +76603,11 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -76530,7 +76715,7 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -76690,7 +76875,7 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -76706,14 +76891,11 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -77221,7 +77403,15 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -77230,9 +77420,10 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -77258,11 +77449,6 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -77298,7 +77484,7 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -77318,10 +77504,11 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -77429,7 +77616,7 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -77589,7 +77776,7 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -77605,14 +77792,11 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -78120,7 +78304,15 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -78129,9 +78321,10 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -78157,11 +78350,6 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -78197,7 +78385,7 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -78217,10 +78405,11 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -78328,7 +78517,7 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -78488,7 +78677,7 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -78504,14 +78693,11 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -79019,7 +79205,15 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -79028,9 +79222,10 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -79056,11 +79251,6 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -79096,7 +79286,7 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -79116,10 +79306,11 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -79227,7 +79418,7 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -79387,7 +79578,7 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -79403,14 +79594,11 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -79918,7 +80106,15 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -79927,9 +80123,10 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -79955,11 +80152,6 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -79995,7 +80187,7 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -80015,10 +80207,11 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -80126,7 +80319,7 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -80286,7 +80479,7 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -80302,14 +80495,11 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -80817,7 +81007,15 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -80826,9 +81024,10 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -80854,11 +81053,6 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -80894,7 +81088,7 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -80914,10 +81108,11 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -81025,7 +81220,7 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -81185,7 +81380,7 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -81201,14 +81396,11 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -81716,7 +81908,15 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -81725,9 +81925,10 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -81753,11 +81954,6 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -81793,7 +81989,7 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -81813,10 +82009,11 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -81924,7 +82121,7 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -82084,7 +82281,7 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -82100,14 +82297,11 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -82615,7 +82809,15 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -82624,9 +82826,10 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -82652,11 +82855,6 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -82692,7 +82890,7 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -82712,10 +82910,11 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -82823,7 +83022,7 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -82983,7 +83182,7 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -82999,14 +83198,11 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -83514,7 +83710,15 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -83523,9 +83727,10 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -83551,11 +83756,6 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -83591,7 +83791,7 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -83611,10 +83811,11 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -83722,7 +83923,7 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -83882,7 +84083,7 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -83898,14 +84099,11 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -84415,7 +84613,15 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -84424,9 +84630,10 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -84452,11 +84659,6 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -84492,7 +84694,7 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -84512,10 +84714,11 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -84623,7 +84826,7 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -84783,7 +84986,7 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -84799,14 +85002,11 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -85316,7 +85516,15 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -85325,9 +85533,10 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -85353,11 +85562,6 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -85393,7 +85597,7 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -85413,10 +85617,11 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -85524,7 +85729,7 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -85684,7 +85889,7 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -85700,14 +85905,11 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -86216,7 +86418,15 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -86225,9 +86435,10 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -86253,11 +86464,6 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -86293,7 +86499,7 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -86313,10 +86519,11 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -86424,7 +86631,7 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -86584,7 +86791,7 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -86600,14 +86807,11 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -87115,7 +87319,15 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -87124,9 +87336,10 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -87152,11 +87365,6 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -87192,7 +87400,7 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -87212,10 +87420,11 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -87323,7 +87532,7 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -87483,7 +87692,7 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -87499,14 +87708,11 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -88015,7 +88221,15 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -88024,9 +88238,10 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -88052,11 +88267,6 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -88092,7 +88302,7 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -88112,10 +88322,11 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -88223,7 +88434,7 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -88383,7 +88594,7 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -88399,14 +88610,11 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -88914,7 +89122,15 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -88923,9 +89139,10 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -88951,11 +89168,6 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -88991,7 +89203,7 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -89011,10 +89223,11 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -89122,7 +89335,7 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -89282,7 +89495,7 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -89298,14 +89511,11 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -89813,7 +90023,15 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -89822,9 +90040,10 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -89850,11 +90069,6 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -89890,7 +90104,7 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -89910,10 +90124,11 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -90021,7 +90236,7 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -90181,7 +90396,7 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -90197,14 +90412,11 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -90712,7 +90924,15 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -90721,9 +90941,10 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -90749,11 +90970,6 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -90789,7 +91005,7 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -90809,10 +91025,11 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -90920,7 +91137,7 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -91080,7 +91297,7 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -91096,14 +91313,11 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -91611,7 +91825,15 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -91620,9 +91842,10 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -91648,11 +91871,6 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -91688,7 +91906,7 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -91708,10 +91926,11 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -91819,7 +92038,7 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -91979,7 +92198,7 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -91995,14 +92214,11 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -92510,7 +92726,15 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -92519,9 +92743,10 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -92547,11 +92772,6 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -92587,7 +92807,7 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -92607,10 +92827,11 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -92718,7 +92939,7 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -92878,7 +93099,7 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -92894,14 +93115,11 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -93409,7 +93627,15 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -93418,9 +93644,10 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -93446,11 +93673,6 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -93486,7 +93708,7 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -93506,10 +93728,11 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -93617,7 +93840,7 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -93777,7 +94000,7 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -93793,14 +94016,11 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -94308,7 +94528,15 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -94317,9 +94545,10 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -94345,11 +94574,6 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -94385,7 +94609,7 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -94405,10 +94629,11 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -94516,7 +94741,7 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -94676,7 +94901,7 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -94692,14 +94917,11 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -95207,7 +95429,15 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -95216,9 +95446,10 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -95244,11 +95475,6 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -95284,7 +95510,7 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -95304,10 +95530,11 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -95415,7 +95642,7 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -95575,7 +95802,7 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -95591,14 +95818,11 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -96106,7 +96330,15 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -96115,9 +96347,10 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -96143,11 +96376,6 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -96183,7 +96411,7 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -96203,10 +96431,11 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -96314,7 +96543,7 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -96474,7 +96703,7 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -96490,14 +96719,11 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -97005,7 +97231,15 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -97014,9 +97248,10 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -97042,11 +97277,6 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -97082,7 +97312,7 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -97102,10 +97332,11 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -97213,7 +97444,7 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -97373,7 +97604,7 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -97389,14 +97620,11 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -97904,7 +98132,15 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -97913,9 +98149,10 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -97941,11 +98178,6 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -97981,7 +98213,7 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -98001,10 +98233,11 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -98112,7 +98345,7 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -98272,7 +98505,7 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -98288,14 +98521,11 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -98803,7 +99033,15 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -98812,9 +99050,10 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -98840,11 +99079,6 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -98880,7 +99114,7 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -98900,10 +99134,11 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -99011,7 +99246,7 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -99171,7 +99406,7 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -99187,14 +99422,11 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -99702,7 +99934,15 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -99711,9 +99951,10 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -99739,11 +99980,6 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -99779,7 +100015,7 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -99799,10 +100035,11 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -99910,7 +100147,7 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -100070,7 +100307,7 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -100086,14 +100323,11 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -100601,7 +100835,15 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -100610,9 +100852,10 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -100638,11 +100881,6 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -100678,7 +100916,7 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -100698,10 +100936,11 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -100809,7 +101048,7 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -100969,7 +101208,7 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -100985,14 +101224,11 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -101502,7 +101738,15 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -101511,9 +101755,10 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -101539,11 +101784,6 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -101579,7 +101819,7 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -101599,10 +101839,11 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -101710,7 +101951,7 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -101870,7 +102111,7 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -101886,14 +102127,11 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -102403,7 +102641,15 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -102412,9 +102658,10 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -102440,11 +102687,6 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -102480,7 +102722,7 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -102500,10 +102742,11 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -102611,7 +102854,7 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -102771,7 +103014,7 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -102787,14 +103030,11 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -103302,7 +103542,15 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -103311,9 +103559,10 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -103339,11 +103588,6 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -103379,7 +103623,7 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -103399,10 +103643,11 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -103510,7 +103755,7 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -103670,7 +103915,7 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -103686,14 +103931,11 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -104201,7 +104443,15 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -104210,20 +104460,13 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -104289,7 +104532,7 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -104350,7 +104593,7 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -104397,6 +104640,7 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -104437,7 +104681,7 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -104555,7 +104799,7 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -105054,7 +105298,15 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -105063,9 +105315,10 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -105091,11 +105344,6 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -105131,7 +105379,7 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -105151,10 +105399,11 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -105262,7 +105511,7 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -105422,7 +105671,7 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -105438,14 +105687,11 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -105924,7 +106170,15 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -105933,9 +106187,10 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -105961,11 +106216,6 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -106001,7 +106251,7 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -106021,10 +106271,11 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -106132,7 +106383,7 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -106292,7 +106543,7 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -106308,14 +106559,11 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -106794,7 +107042,15 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -106803,9 +107059,10 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -106831,11 +107088,6 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -106871,7 +107123,7 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -106891,10 +107143,11 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -107002,7 +107255,7 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -107162,7 +107415,7 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -107178,14 +107431,11 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -107693,7 +107943,15 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -107702,9 +107960,10 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -107730,11 +107989,6 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -107770,7 +108024,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -107790,10 +108044,11 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -107901,7 +108156,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -108061,7 +108316,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -108077,14 +108332,11 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -108592,7 +108844,15 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -108601,9 +108861,10 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -108629,11 +108890,6 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -108669,7 +108925,7 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -108689,10 +108945,11 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -108800,7 +109057,7 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -108960,7 +109217,7 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -108976,14 +109233,11 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -109491,7 +109745,15 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -109500,9 +109762,10 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -109528,11 +109791,6 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -109568,7 +109826,7 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -109588,10 +109846,11 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -109699,7 +109958,7 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -109859,7 +110118,7 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -109875,14 +110134,11 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -110678,7 +110934,15 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -110687,9 +110951,10 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -110715,11 +110980,6 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -110755,7 +111015,7 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -110775,10 +111035,11 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -110886,7 +111147,7 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -111046,7 +111307,7 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -111062,14 +111323,11 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -111577,7 +111835,15 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -111586,9 +111852,10 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -111614,11 +111881,6 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -111654,7 +111916,7 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -111674,10 +111936,11 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -111785,7 +112048,7 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -111945,7 +112208,7 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 	}
 	creationOptionsService := &passkey2.CreationOptionsService{
 		ConfigService:   configService,
-		UserService:     queries,
+		UserService:     userQueries,
 		IdentityService: serviceService,
 		Store:           store2,
 	}
@@ -111961,14 +112224,11 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
-	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	dependencies := &authenticationflow.Dependencies{
@@ -113034,7 +113294,15 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              userStore,
 		Identities:         serviceService,
@@ -113043,27 +113311,20 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	eventLogger := event.NewLogger(factory)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -113124,7 +113385,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -113185,7 +113446,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		IDPSessionResolver:         resolver,
 		AccessTokenSessionResolver: oauthResolver,
 		AccessEvents:               eventProvider,
-		Users:                      queries,
+		Users:                      userQueries,
 		Database:                   appdbHandle,
 		Logger:                     middlewareLogger,
 		MeterService:               meterService,
@@ -113566,7 +113827,15 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -113575,20 +113844,13 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -113654,7 +113916,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -113715,7 +113977,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -113762,6 +114024,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -113802,7 +114065,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
@@ -113920,7 +114183,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
-		Queries:  queries,
+		Queries:  userQueries,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
@@ -114382,7 +114645,15 @@ func newWebAppUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -114391,20 +114662,13 @@ func newWebAppUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clockClock,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
@@ -114891,7 +115155,15 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -114900,9 +115172,10 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -114928,11 +115201,6 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		DenoHook:        denoHook,
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
@@ -114968,7 +115236,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -115015,6 +115283,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -115105,7 +115374,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               userCommands,
-		UserQueries:                queries,
+		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,

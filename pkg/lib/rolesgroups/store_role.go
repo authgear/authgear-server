@@ -239,6 +239,26 @@ func (s *Store) scanRole(scanner db.Scanner) (*Role, error) {
 	return r, nil
 }
 
+func (s *Store) scanRoleWithUserID(scanner db.Scanner) (string, *Role, error) {
+	u := ""
+	r := &Role{}
+
+	err := scanner.Scan(
+		&u,
+		&r.ID,
+		&r.CreatedAt,
+		&r.UpdatedAt,
+		&r.Key,
+		&r.Name,
+		&r.Description,
+	)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return u, r, nil
+}
+
 func (s *Store) GetManyRoles(ids []string) ([]*Role, error) {
 	q := s.selectRoleQuery().Where("id = ANY (?)", pq.Array(ids))
 	return s.queryRoles(q)
@@ -266,4 +286,23 @@ func (s *Store) queryRoles(q db.SelectBuilder) ([]*Role, error) {
 	}
 
 	return roles, nil
+}
+
+func (s *Store) queryRolesWithUserID(q db.SelectBuilder) (map[string][]*Role, error) {
+	rows, err := s.SQLExecutor.QueryWith(q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	rolesByUserID := make(map[string][]*Role)
+	for rows.Next() {
+		u, r, err := s.scanRoleWithUserID(rows)
+		if err != nil {
+			return nil, err
+		}
+		rolesByUserID[u] = append(rolesByUserID[u], r)
+	}
+
+	return rolesByUserID, nil
 }

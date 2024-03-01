@@ -274,6 +274,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(facade.RolesGroupsCommands), new(*rolesgroups.Commands)),
 		wire.Bind(new(oidc.RolesAndGroupsProvider), new(*rolesgroups.Queries)),
 		wire.Bind(new(hook.RolesAndGroupsServiceNoEvent), new(*rolesgroups.Commands)),
+		wire.Bind(new(user.RolesAndGroupsService), new(*rolesgroups.Queries)),
 	),
 
 	wire.NewSet(

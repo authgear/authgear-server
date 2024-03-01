@@ -239,6 +239,26 @@ func (s *Store) scanGroup(scanner db.Scanner) (*Group, error) {
 	return r, nil
 }
 
+func (s *Store) scanGroupWithUserID(scanner db.Scanner) (string, *Group, error) {
+	u := ""
+	g := &Group{}
+
+	err := scanner.Scan(
+		&u,
+		&g.ID,
+		&g.CreatedAt,
+		&g.UpdatedAt,
+		&g.Key,
+		&g.Name,
+		&g.Description,
+	)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return u, g, nil
+}
+
 func (s *Store) GetManyGroups(ids []string) ([]*Group, error) {
 	q := s.selectGroupQuery().Where("id = ANY (?)", pq.Array(ids))
 	return s.queryGroups(q)
@@ -266,4 +286,23 @@ func (s *Store) queryGroups(q db.SelectBuilder) ([]*Group, error) {
 	}
 
 	return groups, nil
+}
+
+func (s *Store) queryGroupsWithUserID(q db.SelectBuilder) (map[string][]*Group, error) {
+	rows, err := s.SQLExecutor.QueryWith(q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	groupsByUserID := make(map[string][]*Group)
+	for rows.Next() {
+		u, r, err := s.scanGroupWithUserID(rows)
+		if err != nil {
+			return nil, err
+		}
+		groupsByUserID[u] = append(groupsByUserID[u], r)
+	}
+
+	return groupsByUserID, nil
 }

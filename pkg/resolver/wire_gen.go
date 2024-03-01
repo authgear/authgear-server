@@ -516,7 +516,15 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              userStore,
 		Identities:         serviceService,
@@ -525,27 +533,20 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:        oAuthKeyMaterials,
 		BaseURL:        endpointsEndpoints,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 		Clock:          clock,
 	}
 	eventLogger := event.NewLogger(factory)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -606,7 +607,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -667,7 +668,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		IDPSessionResolver:         resolver,
 		AccessTokenSessionResolver: oauthResolver,
 		AccessEvents:               eventProvider,
-		Users:                      queries,
+		Users:                      userQueries,
 		Database:                   appdbHandle,
 		Logger:                     middlewareLogger,
 		MeterService:               meterService,
@@ -1029,7 +1030,15 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              userStore,
 		Identities:         serviceService,
@@ -1038,22 +1047,15 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
-	}
-	rolesgroupsStore := &rolesgroups.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rolesgroupsQueries := &rolesgroups.Queries{
-		Store: rolesgroupsStore,
+		RolesAndGroups:     queries,
 	}
 	resolveHandler := &handler.ResolveHandler{
 		Database:       handle,
 		Identities:     serviceService,
 		Verification:   verificationService,
 		Logger:         resolveHandlerLogger,
-		Users:          queries,
-		RolesAndGroups: rolesgroupsQueries,
+		Users:          userQueries,
+		RolesAndGroups: queries,
 	}
 	return resolveHandler
 }

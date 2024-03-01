@@ -126,6 +126,22 @@ func (q *Queries) ListRolesByUserID(userID string) ([]*model.Role, error) {
 	return roleModels, nil
 }
 
+func (q *Queries) ListRolesByUserIDs(userIDs []string) (map[string][]*model.Role, error) {
+	rolesByUserID, err := q.Store.ListRolesByUserIDs(userIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	roleModelsByUserID := make(map[string][]*model.Role)
+	for k, v := range rolesByUserID {
+		for _, r := range v {
+			roleModelsByUserID[k] = append(roleModelsByUserID[k], r.ToModel())
+		}
+	}
+
+	return roleModelsByUserID, nil
+}
+
 func (q *Queries) ListGroupsByUserID(userID string) ([]*model.Group, error) {
 	groups, err := q.Store.ListGroupsByUserID(userID)
 	if err != nil {
@@ -138,6 +154,22 @@ func (q *Queries) ListGroupsByUserID(userID string) ([]*model.Group, error) {
 	}
 
 	return groupModels, nil
+}
+
+func (q *Queries) ListGroupsByUserIDs(userIDs []string) (map[string][]*model.Group, error) {
+	groupsByUserID, err := q.Store.ListGroupsByUserIDs(userIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	groupModelsByUserID := make(map[string][]*model.Group)
+	for k, v := range groupsByUserID {
+		for _, g := range v {
+			groupModelsByUserID[k] = append(groupModelsByUserID[k], g.ToModel())
+		}
+	}
+
+	return groupModelsByUserID, nil
 }
 
 func (q *Queries) ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error) {

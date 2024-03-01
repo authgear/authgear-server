@@ -258,6 +258,8 @@ func newUserModel(
 	derivedStandardAttributes map[string]interface{},
 	customAttributes map[string]interface{},
 	web3Info *model.UserWeb3Info,
+	roles []string,
+	groups []string,
 ) *model.User {
 	isAnonymous := false
 	for _, i := range identities {
@@ -296,5 +298,7 @@ func newUserModel(
 		StandardAttributes: derivedStandardAttributes,
 		CustomAttributes:   customAttributes,
 		Web3:               web3Info,
+		Roles:              roles,
+		Groups:             groups,
 	}
 }
