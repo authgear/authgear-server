@@ -94,7 +94,10 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 	loggerFactory := p.LoggerFactory.ReplaceHooks(
 		log.NewDefaultMaskLogHook(),
 		config.NewSecretMaskLogHook(cfg.SecretConfig),
-		sentry.NewLogHookFromContext(ctx),
+		// NewAppProvider is used in 2 places.
+		// 1. Process normal incoming HTTP requests. In this case, sentry middleware will inject a more detailed sentry.Hub in the context.
+		// 2. Process async tasks. In this case, there is no sentry middleware and the context is context.Background(), so we need to fallback to use p.SentryHub.
+		sentry.NewLogHookFromContextOrFallback(ctx, p.SentryHub),
 	)
 	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
 	appDatabase := appdb.NewHandle(
