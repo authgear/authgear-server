@@ -44,7 +44,7 @@ type UserProvider interface {
 }
 
 type RolesAndGroupsProvider interface {
-	ListComputedRolesByUserID(userID string) ([]*model.Role, error)
+	ListEffectiveRolesByUserID(userID string) ([]*model.Role, error)
 }
 
 type ResolveHandler struct {
@@ -109,7 +109,7 @@ func (h *ResolveHandler) resolve(r *http.Request) (*model.SessionInfo, error) {
 
 		userCanReauthenticate := user.CanReauthenticate
 
-		roles, err := h.RolesAndGroups.ListComputedRolesByUserID(*userID)
+		roles, err := h.RolesAndGroups.ListEffectiveRolesByUserID(*userID)
 		roleKeys := make([]string, len(roles))
 		for i := range roles {
 			roleKeys[i] = roles[i].Key

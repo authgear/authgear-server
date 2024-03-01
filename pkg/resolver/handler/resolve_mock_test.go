@@ -187,17 +187,17 @@ func (m *MockRolesAndGroupsProvider) EXPECT() *MockRolesAndGroupsProviderMockRec
 	return m.recorder
 }
 
-// ListComputedRolesByUserID mocks base method.
-func (m *MockRolesAndGroupsProvider) ListComputedRolesByUserID(userID string) ([]*model.Role, error) {
+// ListEffectiveRolesByUserID mocks base method.
+func (m *MockRolesAndGroupsProvider) ListEffectiveRolesByUserID(userID string) ([]*model.Role, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListComputedRolesByUserID", userID)
+	ret := m.ctrl.Call(m, "ListEffectiveRolesByUserID", userID)
 	ret0, _ := ret[0].([]*model.Role)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ListComputedRolesByUserID indicates an expected call of ListComputedRolesByUserID.
-func (mr *MockRolesAndGroupsProviderMockRecorder) ListComputedRolesByUserID(userID interface{}) *gomock.Call {
+// ListEffectiveRolesByUserID indicates an expected call of ListEffectiveRolesByUserID.
+func (mr *MockRolesAndGroupsProviderMockRecorder) ListEffectiveRolesByUserID(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListComputedRolesByUserID", reflect.TypeOf((*MockRolesAndGroupsProvider)(nil).ListComputedRolesByUserID), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListEffectiveRolesByUserID", reflect.TypeOf((*MockRolesAndGroupsProvider)(nil).ListEffectiveRolesByUserID), userID)
 }

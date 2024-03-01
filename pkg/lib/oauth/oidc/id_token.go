@@ -46,7 +46,7 @@ type UserProvider interface {
 }
 
 type RolesAndGroupsProvider interface {
-	ListComputedRolesByUserID(userID string) ([]*model.Role, error)
+	ListEffectiveRolesByUserID(userID string) ([]*model.Role, error)
 }
 
 type BaseURLProvider interface {
@@ -249,7 +249,7 @@ func (ti *IDTokenIssuer) PopulateUserClaims(token jwt.Token, userID string, nonP
 		return err
 	}
 
-	roles, err := ti.RolesAndGroups.ListComputedRolesByUserID(userID)
+	roles, err := ti.RolesAndGroups.ListEffectiveRolesByUserID(userID)
 	if err != nil {
 		return err
 	}
@@ -282,7 +282,7 @@ func (ti *IDTokenIssuer) GetUserInfo(userID string, clientLike *oauth.ClientLike
 		return nil, err
 	}
 
-	roles, err := ti.RolesAndGroups.ListComputedRolesByUserID(userID)
+	roles, err := ti.RolesAndGroups.ListEffectiveRolesByUserID(userID)
 	if err != nil {
 		return nil, err
 	}
