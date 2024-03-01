@@ -1160,7 +1160,7 @@
   "SubscriptionPlanCard.plan.features.line.0.startups": "1 Custom Domain",
   "SubscriptionPlanCard.plan.features.line.1.startups": "10 Webhooks",
   "SubscriptionPlanCard.plan.features.line.2.startups": "30 Days Log Retention",
-  "SubscriptionPlanCard.plan.features.line.3.startups": "3 Admins",
+  "SubscriptionPlanCard.plan.features.line.3.startups": "5 Admins",
 
   "SubscriptionPlanCard.plan.tagline.business": "Manage up to 10,000 MAUs",
   "SubscriptionPlanCard.plan.mau-restriction.business": "Up to 10,000 MAUs",
