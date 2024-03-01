@@ -919,8 +919,8 @@ export type QueryGroupsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  keyPrefix?: InputMaybe<Scalars['String']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
+  searchKeyword?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -938,8 +938,8 @@ export type QueryRolesArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  keyPrefix?: InputMaybe<Scalars['String']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
+  searchKeyword?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -1311,8 +1311,6 @@ export type User = Entity & Node & {
   authorizations?: Maybe<AuthorizationConnection>;
   /** The list of biometric registrations */
   biometricRegistrations: Array<Identity>;
-  /** The list of computed role keys this user has. */
-  computedRoleKeys?: Maybe<Array<Scalars['String']['output']>>;
   /** The creation time of entity */
   createdAt: Scalars['DateTime']['output'];
   /** The user's custom attributes */
@@ -1321,6 +1319,8 @@ export type User = Entity & Node & {
   deleteAt?: Maybe<Scalars['DateTime']['output']>;
   /** The reason of disabled */
   disableReason?: Maybe<Scalars['String']['output']>;
+  /** The list of computed roles this user has. */
+  effectiveRoles?: Maybe<RoleConnection>;
   /** The end user account id constructed based on user's personal data. (e.g. email, phone...etc) */
   endUserAccountID?: Maybe<Scalars['String']['output']>;
   /** The user's formatted name */
@@ -1397,7 +1397,7 @@ export type UserAuthorizationsArgs = {
 
 
 /** Authgear user */
-export type UserComputedRoleKeysArgs = {
+export type UserEffectiveRolesArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
