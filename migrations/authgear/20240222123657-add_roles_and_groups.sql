@@ -12,6 +12,7 @@ CREATE TABLE _auth_role (
 CREATE UNIQUE INDEX _auth_role_key_unique ON _auth_role USING btree (app_id, key);
 -- This index supports typeahead search for roles within a project.
 CREATE INDEX _auth_role_key_typeahead ON _auth_role USING btree (app_id, key text_pattern_ops);
+CREATE INDEX _auth_role_name_typeahead ON _auth_role USING btree (app_id, name text_pattern_ops);
 
 CREATE TABLE _auth_group (
   id text PRIMARY KEY,
@@ -26,6 +27,7 @@ CREATE TABLE _auth_group (
 CREATE UNIQUE INDEX _auth_group_key_unique ON _auth_group USING btree (app_id, key);
 -- This index supports typeahead search for groups within a project.
 CREATE INDEX _auth_group_key_typeahead ON _auth_group USING btree (app_id, key text_pattern_ops);
+CREATE INDEX _auth_group_name_typeahead ON _auth_group USING btree (app_id, name text_pattern_ops);
 
 CREATE TABLE _auth_group_role (
   id text PRIMARY KEY,
