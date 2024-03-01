@@ -464,11 +464,6 @@ func (c *Coordinator) UserDelete(userID string, isScheduledDeletion bool) error 
 		return err
 	}
 
-	// Roles:
-	if err = c.RolesGroupsCommands.DeleteUserRole(userID); err != nil {
-		return err
-	}
-
 	userModel, err := c.UserQueries.Get(userID, accesscontrol.RoleGreatest)
 	if err != nil {
 		return err

@@ -105,7 +105,7 @@ func (s *Store) AddGroupToUsers(options *AddGroupToUsersOptions) (*Group, error)
 
 	missingKeys := slice.ExceptStrings(options.UserIDs, seenKeys)
 	if len(missingKeys) > 0 {
-		err := UserUnknownKeys.NewWithInfo("unknown user ids", apierrors.Details{"keys": missingKeys})
+		err := UserUnknownKeys.NewWithInfo("unknown user ids", apierrors.Details{"ids": missingKeys})
 		return nil, err
 	}
 
@@ -143,7 +143,7 @@ func (s *Store) RemoveGroupFromUsers(options *RemoveGroupFromUsersOptions) (*Gro
 
 	missingKeys := slice.ExceptStrings(options.UserIDs, seenKeys)
 	if len(missingKeys) > 0 {
-		err := UserUnknownKeys.NewWithInfo("unknown group keys", apierrors.Details{"keys": missingKeys})
+		err := UserUnknownKeys.NewWithInfo("unknown user ids", apierrors.Details{"ids": missingKeys})
 		return nil, err
 	}
 

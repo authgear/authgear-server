@@ -154,7 +154,7 @@ func (s *Store) AddRoleToUsers(options *AddRoleToUsersOptions) (*Role, error) {
 
 	missingKeys := slice.ExceptStrings(options.UserIDs, seenKeys)
 	if len(missingKeys) > 0 {
-		err := UserUnknownKeys.NewWithInfo("unknown user ids", apierrors.Details{"keys": missingKeys})
+		err := UserUnknownKeys.NewWithInfo("unknown user ids", apierrors.Details{"ids": missingKeys})
 		return nil, err
 	}
 
@@ -193,7 +193,7 @@ func (s *Store) RemoveRoleFromUsers(options *RemoveRoleFromUsersOptions) (*Role,
 
 	missingKeys := slice.ExceptStrings(options.UserIDs, seenKeys)
 	if len(missingKeys) > 0 {
-		err := UserUnknownKeys.NewWithInfo("unknown user ids", apierrors.Details{"keys": missingKeys})
+		err := UserUnknownKeys.NewWithInfo("unknown user ids", apierrors.Details{"ids": missingKeys})
 		return nil, err
 	}
 

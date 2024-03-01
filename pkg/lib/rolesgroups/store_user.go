@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/lib/pq"
 )
@@ -32,7 +33,7 @@ func (s *Store) GetUserByID(id string) (string, error) {
 	r, err := s.scanUser(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "", ErrRoleNotFound
+			return "", api.ErrUserNotFound
 		}
 		return "", err
 	}
