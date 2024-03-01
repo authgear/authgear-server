@@ -1,8 +1,10 @@
 package graphql
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
+	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 )
 
@@ -44,9 +46,17 @@ var _ = registerMutationField(
 
 			groupKey := input["groupKey"].(string)
 			userIDIfaces := input["userIDs"].([]interface{})
-			userIDs := make([]string, len(userIDIfaces))
+			userNodeIDs := make([]string, len(userIDIfaces))
 			for i, v := range userIDIfaces {
-				userIDs[i] = v.(string)
+				userNodeIDs[i] = v.(string)
+			}
+			userIDs := make([]string, len(userIDIfaces))
+			for i, v := range userNodeIDs {
+				resolvedNodeID := relay.FromGlobalID(v)
+				if resolvedNodeID == nil || resolvedNodeID.Type != typeUser {
+					return nil, apierrors.NewInvalid("invalid user ID")
+				}
+				userIDs[i] = resolvedNodeID.ID
 			}
 			gqlCtx := GQLContext(p.Context)
 
@@ -105,9 +115,17 @@ var _ = registerMutationField(
 
 			groupKey := input["groupKey"].(string)
 			userIDIfaces := input["userIDs"].([]interface{})
-			userIDs := make([]string, len(userIDIfaces))
+			userNodeIDs := make([]string, len(userIDIfaces))
 			for i, v := range userIDIfaces {
-				userIDs[i] = v.(string)
+				userNodeIDs[i] = v.(string)
+			}
+			userIDs := make([]string, len(userIDIfaces))
+			for i, v := range userNodeIDs {
+				resolvedNodeID := relay.FromGlobalID(v)
+				if resolvedNodeID == nil || resolvedNodeID.Type != typeUser {
+					return nil, apierrors.NewInvalid("invalid user ID")
+				}
+				userIDs[i] = resolvedNodeID.ID
 			}
 			gqlCtx := GQLContext(p.Context)
 
@@ -164,7 +182,12 @@ var _ = registerMutationField(
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			input := p.Args["input"].(map[string]interface{})
 
-			userID := input["userID"].(string)
+			userNodeID := input["userID"].(string)
+			resolvedNodeID := relay.FromGlobalID(userNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeUser {
+				return nil, apierrors.NewInvalid("invalid user ID")
+			}
+			userID := resolvedNodeID.ID
 			groupKeyIfaces := input["groupKeys"].([]interface{})
 			groupKeys := make([]string, len(groupKeyIfaces))
 			for i, v := range groupKeyIfaces {
@@ -225,7 +248,12 @@ var _ = registerMutationField(
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			input := p.Args["input"].(map[string]interface{})
 
-			userID := input["userID"].(string)
+			userNodeID := input["userID"].(string)
+			resolvedNodeID := relay.FromGlobalID(userNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeUser {
+				return nil, apierrors.NewInvalid("invalid user ID")
+			}
+			userID := resolvedNodeID.ID
 			groupKeyIfaces := input["groupKeys"].([]interface{})
 			groupKeys := make([]string, len(groupKeyIfaces))
 			for i, v := range groupKeyIfaces {
