@@ -26,6 +26,7 @@ var TemplateWebTermsOfServiceAndPrivacyPolicyFooterHTML = template.RegisterHTML(
 var TemplateWebAuthflowBranchHTML = template.RegisterHTML("web/__authflow_branch.html")
 var TemplateWebAuthflowForgotPasswordAlternativesHTML = template.RegisterHTML("web/__authflow_forgot_password_alternatives.html")
 
+// TODO: This file could be overridable per app, depends on the project plan in future
 var TemplateWebAuthflowV2LayoutHTML = template.RegisterHTML("web/authflowv2/layout.html")
 
 var TemplateWebAuthflowV2HTMLHeadHTML = template.RegisterHTML("web/authflowv2/__html_head.html")
