@@ -883,7 +883,7 @@
   "v2-error-screen-title": "Unexpected Issues",
   "v2-error-no-available-authenticator": "Your account has no available authentication methods. Please contact system admin.",
   "v2-error-passkey-not-supported": "Passkey is not supported in your browser. Please select another authentication method.",
-  "v2-error-invalid-passkey-or-not-supported": "Invalid passkey, or passkey is not supported in this device. Please select another authentication method.",
+  "v2-error-invalid-passkey-or-not-supported": "Passkey is not supported in this device, or invalid passkey. Please select another authentication method.",
   "v2-error-no-passkey": "Passkey is not found on your device. Please select another authentication method.",
   "v2-error-passkey-duplicate": "You have a passkey on this device already.",
   "v2-error-password-policy-violated": "Invalid password format.",
