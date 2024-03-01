@@ -27,7 +27,7 @@ type HTML struct {
 	ComponentDependencies []*HTML
 	// IsFindAllowedInFs returns an boolean indicating if the Fs can be used to find this resources
 	// For example, if you don't want a html inside the app fs to be used, it should return false.
-	IsFindAllowedInFs FsFilter
+	IsFindAllowedInFs FindResourcesFsFilter
 }
 
 var _ resource.Descriptor = &HTML{}
@@ -90,7 +90,7 @@ func (t *PlainText) UpdateResource(_ context.Context, _ []resource.ResourceFile,
 	}, nil
 }
 
-func registerHTML(name string, dependencies []*HTML, isFindAllowedInFs FsFilter) *HTML {
+func registerHTML(name string, dependencies []*HTML, isFindAllowedInFs FindResourcesFsFilter) *HTML {
 	desc := &HTML{Name: name, ComponentDependencies: dependencies, IsFindAllowedInFs: isFindAllowedInFs}
 	resource.RegisterResource(desc)
 	return desc

@@ -2,7 +2,7 @@ package template
 
 import "github.com/authgear/authgear-server/pkg/util/resource"
 
-type FsFilter = func(fs resource.Fs) bool
+type FindResourcesFsFilter = func(fs resource.Fs) bool
 
 var AnyFs = func(fs resource.Fs) bool {
 	return true
