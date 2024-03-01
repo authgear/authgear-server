@@ -99,7 +99,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 			Description: "All roles",
 			Type:        connRole.ConnectionType,
 			Args: relay.NewConnectionArgs(graphql.FieldConfigArgument{
-				"keyPrefix": &graphql.ArgumentConfig{
+				"searchKeyword": &graphql.ArgumentConfig{
 					Type: graphql.String,
 				},
 			}),
@@ -108,10 +108,10 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 
 				pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
 
-				keyPrefix, _ := p.Args["keyPrefix"].(string)
+				searchKeyword, _ := p.Args["searchKeyword"].(string)
 
 				options := &rolesgroups.ListRolesOptions{
-					KeyPrefix: keyPrefix,
+					SearchKeyword: searchKeyword,
 				}
 
 				refs, result, err := gqlCtx.RolesGroupsFacade.ListRoles(options, pageArgs)
@@ -134,7 +134,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 			Description: "All groups",
 			Type:        connGroup.ConnectionType,
 			Args: relay.NewConnectionArgs(graphql.FieldConfigArgument{
-				"keyPrefix": &graphql.ArgumentConfig{
+				"searchKeyword": &graphql.ArgumentConfig{
 					Type: graphql.String,
 				},
 			}),
@@ -143,10 +143,10 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 
 				pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
 
-				keyPrefix, _ := p.Args["keyPrefix"].(string)
+				searchKeyword, _ := p.Args["searchKeyword"].(string)
 
 				options := &rolesgroups.ListGroupsOptions{
-					KeyPrefix: keyPrefix,
+					SearchKeyword: searchKeyword,
 				}
 
 				refs, result, err := gqlCtx.RolesGroupsFacade.ListGroups(options, pageArgs)

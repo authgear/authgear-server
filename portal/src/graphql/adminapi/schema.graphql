@@ -1003,7 +1003,7 @@ type Query {
   auditLogs(activityTypes: [AuditLogActivityType!], after: String, before: String, first: Int, last: Int, rangeFrom: DateTime, rangeTo: DateTime, sortDirection: SortDirection, userIDs: [ID!]): AuditLogConnection
 
   """All groups"""
-  groups(after: String, before: String, first: Int, keyPrefix: String, last: Int): GroupConnection
+  groups(after: String, before: String, first: Int, last: Int, searchKeyword: String): GroupConnection
 
   """Fetches an object given its ID"""
   node(
@@ -1018,7 +1018,7 @@ type Query {
   ): [Node]!
 
   """All roles"""
-  roles(after: String, before: String, first: Int, keyPrefix: String, last: Int): RoleConnection
+  roles(after: String, before: String, first: Int, last: Int, searchKeyword: String): RoleConnection
 
   """All users"""
   users(after: String, before: String, first: Int, last: Int, searchKeyword: String, sortBy: UserSortBy, sortDirection: SortDirection): UserConnection
@@ -1478,9 +1478,6 @@ type User implements Entity & Node {
   """The list of biometric registrations"""
   biometricRegistrations: [Identity!]!
 
-  """The list of computed role keys this user has."""
-  computedRoleKeys(after: String, before: String, first: Int, last: Int): [String!]
-
   """The creation time of entity"""
   createdAt: DateTime!
 
@@ -1492,6 +1489,9 @@ type User implements Entity & Node {
 
   """The reason of disabled"""
   disableReason: String
+
+  """The list of computed roles this user has."""
+  effectiveRoles(after: String, before: String, first: Int, last: Int): RoleConnection
 
   """
   The end user account id constructed based on user's personal data. (e.g. email, phone...etc)

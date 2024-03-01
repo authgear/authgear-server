@@ -191,8 +191,8 @@ func (s *Store) ListRoles(options *ListRolesOptions, pageArgs graphqlutil.PageAr
 		// Sort by key to ensure we have a stable order.
 		OrderBy("key ASC")
 
-	if options.KeyPrefix != "" {
-		q = q.Where("key ILIKE (? || '%')", options.KeyPrefix)
+	if options.SearchKeyword != "" {
+		q = q.Where("key ILIKE (? || '%') OR name ILIKE (? || '%')", options.SearchKeyword, options.SearchKeyword)
 	}
 
 	q, offset, err := db.ApplyPageArgs(q, pageArgs)
