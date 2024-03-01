@@ -44,6 +44,7 @@ import {
   AuthenticatorEmailOTPMode,
   AuthenticatorOOBEmailConfig,
   RateLimitConfig,
+  UIImplementation,
 } from "../../types";
 import {
   DEFAULT_TEMPLATE_LOCALE,
@@ -472,6 +473,7 @@ function controlListSwap<T>(
 //       max_failed_attempts_revoke_otp: 0
 
 interface ConfigFormState {
+  uiImplementation: UIImplementation | undefined;
   identitiesControl: ControlList<IdentityType>;
   primaryAuthenticatorsControl: ControlList<PrimaryAuthenticatorType>;
   loginIDKeyConfigsControl: ControlList<LoginIDKeyConfig>;
@@ -961,6 +963,7 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     (config.authentication?.lockout?.max_attempts ?? 0) > 0;
 
   const state: ConfigFormState = {
+    uiImplementation: config.ui?.implementation,
     identitiesControl: controlListOf(
       (a, b) => a === b,
       IDENTITY_TYPES,
@@ -1651,6 +1654,7 @@ interface LoginMethodChooserProps {
   showFreePlanWarning: boolean;
   phoneLoginIDDisabled: boolean;
   passkeyChecked: boolean;
+  displayCombineSignupLoginFlowToggle: boolean;
   combineSignupLoginFlowChecked: boolean;
   appID: string;
   onChangeLoginMethod: (loginMethod: LoginMethod) => void;
@@ -1667,6 +1671,7 @@ function LoginMethodChooser(props: LoginMethodChooserProps) {
     onChangeLoginMethod,
     passkeyChecked,
     onChangePasskeyChecked,
+    displayCombineSignupLoginFlowToggle,
     combineSignupLoginFlowChecked,
     onChangeCombineSignupLoginFlowCheckedChecked,
   } = props;
@@ -1810,14 +1815,16 @@ function LoginMethodChooser(props: LoginMethodChooserProps) {
           </div>
         </>
       ) : null}
-      <Toggle
-        inlineLabel={true}
-        label={
-          <FormattedMessage id="LoginMethodConfigurationScreen.combineLoginSignup.title" />
-        }
-        checked={combineSignupLoginFlowChecked}
-        onChange={onChangeCombineSignupLoginFlowCheckedChecked}
-      />
+      {displayCombineSignupLoginFlowToggle ? (
+        <Toggle
+          inlineLabel={true}
+          label={
+            <FormattedMessage id="LoginMethodConfigurationScreen.combineLoginSignup.title" />
+          }
+          checked={combineSignupLoginFlowChecked}
+          onChange={onChangeCombineSignupLoginFlowCheckedChecked}
+        />
+      ) : null}
       {loginMethod === "oauth" ? (
         <LinkToOAuth appID={appID} />
       ) : (
@@ -2995,6 +3002,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
     const { renderToString } = useContext(Context);
 
     const {
+      uiImplementation,
       identitiesControl,
       primaryAuthenticatorsControl,
       loginIDKeyConfigsControl,
@@ -3208,6 +3216,9 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
             phoneLoginIDDisabled={phoneLoginIDDisabled}
             passkeyChecked={passkeyChecked}
             onChangePasskeyChecked={onChangePasskeyChecked}
+            displayCombineSignupLoginFlowToggle={
+              uiImplementation === "authflowv2"
+            }
             combineSignupLoginFlowChecked={combineSignupLoginFlowChecked}
             onChangeCombineSignupLoginFlowCheckedChecked={
               onChangeCombineSignupLoginFlowChecked
