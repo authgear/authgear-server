@@ -6,7 +6,6 @@ import (
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -101,35 +100,4 @@ func validateRedirectURI(
 	}
 
 	return nil
-}
-
-func parseAuthzRedirectURI(
-	client *config.OAuthClientConfig,
-	uiURLBuilder UIURLBuilder,
-	httpProto httputil.HTTPProto,
-	httpOrigin httputil.HTTPOrigin,
-	domainWhitelist []string,
-	e *oauthsession.Entry,
-	r protocol.AuthorizationRequest,
-) (*url.URL, protocol.ErrorResponse) {
-	if r.ResponseType() != string(SettingsActonResponseType) {
-		return parseRedirectURI(client, httpProto, httpOrigin, domainWhitelist, r)
-	}
-
-	redirectURI, err := url.Parse(r.RedirectURI())
-	if err != nil {
-		return nil, protocol.NewErrorResponse("invalid_request", "invalid redirect URI")
-	}
-
-	err = validateRedirectURI(client, httpProto, httpOrigin, domainWhitelist, redirectURI)
-	if err != nil {
-		return nil, protocol.NewErrorResponse("invalid_request", err.Error())
-	}
-
-	settingsActionURI, err := uiURLBuilder.BuildSettingsActionURL(client, r, e, redirectURI)
-	if err != nil {
-		return nil, protocol.NewErrorResponse("invalid_request", err.Error())
-	}
-
-	return settingsActionURI, nil
 }

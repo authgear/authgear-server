@@ -126,17 +126,7 @@ func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.
 		}
 	}
 
-	oauthSessionEntry := oauthsession.NewEntry(oauthsession.T{
-		AuthorizationRequest: r,
-	})
-	err := h.OAuthSessionService.Save(oauthSessionEntry)
-	if err != nil {
-		return authorizationResultError{
-			ResponseMode: r.ResponseMode(),
-			Response:     protocol.NewErrorResponse("server_error", "internal server error"),
-		}
-	}
-	redirectURI, errResp := parseAuthzRedirectURI(client, h.UIURLBuilder, h.HTTPProto, h.HTTPOrigin, h.AppDomains, oauthSessionEntry, r)
+	redirectURI, errResp := parseRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, r)
 	if errResp != nil {
 		return authorizationResultError{
 			ResponseMode: r.ResponseMode(),
@@ -392,6 +382,22 @@ func (h *AuthorizationHandler) doHandle(
 		return nil, err
 	}
 
+	// create oauth session and redirect to the web app
+	oauthSessionEntry := oauthsession.NewEntry(oauthsession.T{
+		AuthorizationRequest: r,
+	})
+	err = h.OAuthSessionService.Save(oauthSessionEntry)
+	if err != nil {
+		return nil, err
+	}
+
+	if r.ResponseType() == string(SettingsActonResponseType) {
+		redirectURI, err = h.UIURLBuilder.BuildSettingsActionURL(client, r, oauthSessionEntry, redirectURI)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	loginHintString, loginHintOk := r.LoginHint()
 	// Handle app session token here, and return here.
 	// Anonymous user promotion is handled by the normal flow below.
@@ -419,15 +425,6 @@ func (h *AuthorizationHandler) doHandle(
 	}
 	idToken := uiInfoByProduct.IDToken
 	idTokenHintSID := uiInfoByProduct.IDTokenHintSID
-
-	// create oauth session and redirect to the web app
-	oauthSessionEntry := oauthsession.NewEntry(oauthsession.T{
-		AuthorizationRequest: r,
-	})
-	err = h.OAuthSessionService.Save(oauthSessionEntry)
-	if err != nil {
-		return nil, err
-	}
 
 	// Handle prompt!=none
 	// We must return here.
