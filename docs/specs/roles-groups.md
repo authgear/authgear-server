@@ -440,13 +440,13 @@ and then we can add support for roles / groups assignment.
 
 # Changes in JWT access token
 
-The effective role keys of a user will appear as `https://authgear.com/claims/user/effective_roles` in the JWT access token.
+The effective role keys of a user will appear as `https://authgear.com/claims/user/roles` in the JWT access token.
 It is an array of strings, for example, `["store_manager", "salesperson"]`.
 The order is unspecified.
 
 # Changes in User Info
 
-The effective role keys of a user will appear as `https://authgear.com/claims/user/effective_roles` in the User Info.
+The effective role keys of a user will appear as `https://authgear.com/claims/user/roles` in the User Info.
 It is an array of strings, for example, `["store_manager", "salesperson"]`.
 The order is unspecified.
 
