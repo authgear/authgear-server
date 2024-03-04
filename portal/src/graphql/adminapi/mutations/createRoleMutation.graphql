@@ -1,0 +1,14 @@
+mutation createRoleMutation(
+  $key: String!
+  $name: String!
+  $description: String
+) {
+  createRole(input: { key: $key, name: $name, description: $description }) {
+    role {
+      id
+      key
+      name
+      description
+    }
+  }
+}
