@@ -1,0 +1,14 @@
+mutation createGroupMutation(
+  $key: String!
+  $name: String!
+  $description: String
+) {
+  createGroup(input: { key: $key, name: $name, description: $description }) {
+    group {
+      id
+      key
+      name
+      description
+    }
+  }
+}
