@@ -182,19 +182,21 @@ func (h *AuthorizationHandler) HandleConsentWithUserCancel(req *http.Request) ht
 	consentRequest, err := h.prepareConsentRequest(req)
 	if err != nil {
 		var oauthError *protocol.OAuthProtocolError
-		resultErr := authorizationResultError{
-			// Don't redirect for those unexpected errors
-			// e.g. oauth session expire or invalid client_id, redirect_uri
-			RedirectURI: nil,
-		}
+		var resultErr httputil.Result
+
 		if errors.As(err, &oauthError) {
-			resultErr := h.prepareErrInvalidOAuthResponse(req, *oauthError)
-			return resultErr
+			resultErr = h.prepareErrInvalidOAuthResponse(req, *oauthError)
 		} else {
 			h.Logger.WithError(err).Error("authz handler failed")
-			resultErr.Response = protocol.NewErrorResponse("server_error", "internal server error")
-			resultErr.InternalError = true
+			resultErr = authorizationResultError{
+				// Don't redirect for those unexpected errors
+				// e.g. oauth session expire or invalid client_id, redirect_uri
+				RedirectURI:   nil,
+				Response:      protocol.NewErrorResponse("server_error", "internal server error"),
+				InternalError: true,
+			}
 		}
+
 		return resultErr
 	}
 
@@ -236,19 +238,21 @@ func (h *AuthorizationHandler) doHandleConsent(req *http.Request, withUserConsen
 
 	if err != nil {
 		var oauthError *protocol.OAuthProtocolError
-		resultErr := authorizationResultError{
-			// Don't redirect for those unexpected errors
-			// e.g. oauth session expire or invalid client_id, redirect_uri
-			RedirectURI: nil,
-		}
+		var resultErr httputil.Result
+
 		if errors.As(err, &oauthError) {
-			resultErr := h.prepareErrInvalidOAuthResponse(req, *oauthError)
-			return resultErr, nil
+			resultErr = h.prepareErrInvalidOAuthResponse(req, *oauthError)
 		} else {
 			h.Logger.WithError(err).Error("authz handler failed")
-			resultErr.Response = protocol.NewErrorResponse("server_error", "internal server error")
-			resultErr.InternalError = true
+			resultErr = authorizationResultError{
+				// Don't redirect for those unexpected errors
+				// e.g. oauth session expire or invalid client_id, redirect_uri
+				RedirectURI:   nil,
+				Response:      protocol.NewErrorResponse("server_error", "internal server error"),
+				InternalError: true,
+			}
 		}
+
 		return resultErr, nil
 	}
 
