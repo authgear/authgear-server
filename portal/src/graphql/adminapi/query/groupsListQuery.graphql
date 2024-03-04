@@ -1,0 +1,23 @@
+fragment GroupsList on GroupConnection {
+  edges {
+    node {
+      id
+      createdAt
+      key
+      name
+      description
+    }
+    cursor
+  }
+  totalCount
+}
+
+query GroupsListQuery(
+  $searchKeyword: String!
+  $pageSize: Int!
+  $cursor: String
+) {
+  groups(first: $pageSize, after: $cursor, searchKeyword: $searchKeyword) {
+    ...GroupsList
+  }
+}
