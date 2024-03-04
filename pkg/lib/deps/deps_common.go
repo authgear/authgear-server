@@ -28,7 +28,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
-	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/captcha"
@@ -44,6 +43,7 @@ import (
 	infracaptcha "github.com/authgear/authgear-server/pkg/lib/infra/captcha"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/searchdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	infrawhatsapp "github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -60,6 +60,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/search"
+	searchreindex "github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -79,6 +81,7 @@ var CommonDependencySet = wire.NewSet(
 
 	appdb.DependencySet,
 	auditdb.DependencySet,
+	searchdb.DependencySet,
 	template.DependencySet,
 
 	healthz.DependencySet,
@@ -97,7 +100,7 @@ var CommonDependencySet = wire.NewSet(
 	),
 
 	wire.NewSet(
-		libes.DependencySet,
+		search.DependencySet,
 	),
 
 	wire.NewSet(
@@ -265,7 +268,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oauthhandler.TokenHandlerUserFacade), new(*user.Queries)),
 		wire.Bind(new(oauthhandler.UserProvider), new(*user.Queries)),
 		wire.Bind(new(event.ResolverUserQueries), new(*user.Queries)),
-		wire.Bind(new(libes.UserQueries), new(*user.Queries)),
+		wire.Bind(new(searchreindex.UserQueries), new(*user.Queries)),
 	),
 
 	wire.NewSet(

@@ -8,6 +8,7 @@ package elasticsearch
 
 import (
 	"context"
+	"github.com/authgear/authgear-server/cmd/authgear/search"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -61,14 +62,17 @@ func NewReindexer(ctx context.Context, pool *db.Pool, databaseCredentials *confi
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	reindexer := &Reindexer{
+	reindexer := &search.Reindexer{
 		Handle:  handle,
 		AppID:   appID,
 		Users:   store,
 		OAuth:   oauthStore,
 		LoginID: loginidStore,
 	}
-	return reindexer
+	elasticsearchReindexer := &Reindexer{
+		Reindexer: reindexer,
+	}
+	return elasticsearchReindexer
 }
 
 var (

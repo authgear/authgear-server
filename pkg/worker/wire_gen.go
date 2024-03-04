@@ -10,11 +10,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/searchdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task/executor"
 	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
+	"github.com/authgear/authgear-server/pkg/lib/search/pgsearch"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/worker/tasks"
 )
@@ -145,11 +147,20 @@ func newReindexUserTask(p *deps.TaskProvider) task.Task {
 	secretConfig := config.SecretConfig
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	handle := appProvider.SearchDatabase
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	sqlBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	context := p.Context
+	sqlExecutor := searchdb.NewSQLExecutor(context, handle)
+	store := pgsearch.NewStore(appID, handle, sqlBuilder, sqlExecutor)
 	factory := appProvider.LoggerFactory
 	reindexUserLogger := tasks.NewReindexUserLogger(factory)
 	reindexUserTask := &tasks.ReindexUserTask{
-		Client: client,
-		Logger: reindexUserLogger,
+		ElasticsearchClient: client,
+		PGStore:             store,
+		Logger:              reindexUserLogger,
 	}
 	return reindexUserTask
 }

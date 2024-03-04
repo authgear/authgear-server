@@ -46,6 +46,7 @@ var rootDeps = wire.NewSet(
 		"EnvironmentConfig",
 		"ConfigSourceConfig",
 		"DatabasePool",
+		"SearchDatabasePool",
 		"EmbeddedResources",
 	),
 
@@ -65,6 +66,7 @@ var appRootDeps = wire.NewSet(
 		"RootProvider",
 		"LoggerFactory",
 		"AppDatabase",
+		"SearchDatabase",
 		"AuditReadDatabase",
 		"AuditWriteDatabase",
 		"Redis",
@@ -145,6 +147,7 @@ var BackgroundDependencySet = wire.NewSet(
 		"LoggerFactory",
 		"SentryHub",
 		"DatabasePool",
+		"SearchDatabasePool",
 		"RedisPool",
 		"RedisHub",
 		"BaseResources",

@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/searchdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
@@ -29,6 +30,7 @@ type RootProvider struct {
 	LoggerFactory      *log.Factory
 	SentryHub          *getsentry.Hub
 	DatabasePool       *db.Pool
+	SearchDatabasePool *searchdb.Pool
 	RedisPool          *redis.Pool
 	RedisHub           *redis.Hub
 	TaskQueueFactory   TaskQueueFactory
@@ -62,6 +64,7 @@ func NewRootProvider(
 	)
 
 	dbPool := db.NewPool()
+	searchDBPool := searchdb.NewPool()
 	redisPool := redis.NewPool()
 	redisHub := redis.NewHub(redisPool, loggerFactory)
 
@@ -76,6 +79,7 @@ func NewRootProvider(
 		LoggerFactory:      loggerFactory,
 		SentryHub:          sentryHub,
 		DatabasePool:       dbPool,
+		SearchDatabasePool: searchDBPool,
 		RedisPool:          redisPool,
 		RedisHub:           redisHub,
 		TaskQueueFactory:   taskQueueFactory,
@@ -105,6 +109,17 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		p.DatabasePool,
 		&p.EnvironmentConfig.DatabaseConfig,
 		cfg.SecretConfig.LookupData(config.DatabaseCredentialsKey).(*config.DatabaseCredentials),
+		loggerFactory,
+	)
+	var searchDatabaseCredentials *config.SearchDatabaseCredentials
+	if s := cfg.SecretConfig.LookupData(config.SearchDatabaseCredentialsKey); s != nil {
+		searchDatabaseCredentials = s.(*config.SearchDatabaseCredentials)
+	}
+	searchDatabase := searchdb.NewHandle(
+		ctx,
+		p.SearchDatabasePool,
+		&p.EnvironmentConfig.DatabaseConfig,
+		searchDatabaseCredentials,
 		loggerFactory,
 	)
 	var auditDatabaseCredentials *config.AuditDatabaseCredentials
@@ -155,6 +170,7 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		Context:            ctx,
 		LoggerFactory:      loggerFactory,
 		AppDatabase:        appDatabase,
+		SearchDatabase:     searchDatabase,
 		AuditReadDatabase:  auditReadDatabase,
 		AuditWriteDatabase: auditWriteDatabase,
 		Redis:              redis,
@@ -210,6 +226,7 @@ type AppProvider struct {
 	Context            context.Context
 	LoggerFactory      *log.Factory
 	AppDatabase        *appdb.Handle
+	SearchDatabase     *searchdb.Handle
 	AuditReadDatabase  *auditdb.ReadHandle
 	AuditWriteDatabase *auditdb.WriteHandle
 	Redis              *appredis.Handle
@@ -253,6 +270,7 @@ type BackgroundProvider struct {
 	LoggerFactory      *log.Factory
 	SentryHub          *getsentry.Hub
 	DatabasePool       *db.Pool
+	SearchDatabasePool *searchdb.Pool
 	RedisPool          *redis.Pool
 	RedisHub           *redis.Hub
 	BaseResources      *resource.Manager
@@ -284,6 +302,7 @@ func NewBackgroundProvider(
 	)
 
 	dbPool := db.NewPool()
+	searchDBPool := searchdb.NewPool()
 	redisPool := redis.NewPool()
 	redisHub := redis.NewHub(redisPool, loggerFactory)
 
@@ -298,6 +317,7 @@ func NewBackgroundProvider(
 		LoggerFactory:      loggerFactory,
 		SentryHub:          sentryHub,
 		DatabasePool:       dbPool,
+		SearchDatabasePool: searchDBPool,
 		RedisPool:          redisPool,
 		RedisHub:           redisHub,
 		BaseResources: resource.NewManagerWithDir(

@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
+	"github.com/authgear/authgear-server/pkg/lib/search/pgsearch"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -36,6 +37,7 @@ func NewService(
 	hookSink *hook.Sink,
 	auditSink *audit.Sink,
 	elasticSearchSink *elasticsearch.Sink,
+	pgSearchSink *pgsearch.Sink,
 ) *Service {
 	return &Service{
 		Context:         ctx,
@@ -52,6 +54,7 @@ func NewService(
 			hookSink,
 			auditSink,
 			elasticSearchSink,
+			pgSearchSink,
 		},
 	}
 }

@@ -10,27 +10,16 @@ import (
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
-	identityloginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
-	identityoauth "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/task"
-	"github.com/authgear/authgear-server/pkg/lib/tasks"
-	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+	"github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
-
-type UserQueries interface {
-	Get(userID string, role accesscontrol.Role) (*model.User, error)
-}
 
 type Service struct {
 	AppID     config.AppID
 	Client    *elasticsearch.Client
-	Users     UserQueries
-	OAuth     *identityoauth.Store
-	LoginID   *identityloginid.Store
-	TaskQueue task.Queue
+	Reindexer *reindex.Reindexer
 }
 
 type queryUserResponse struct {
@@ -39,69 +28,14 @@ type queryUserResponse struct {
 			Value int `json:"value"`
 		} `json:"total"`
 		Hits []struct {
-			Source model.ElasticsearchUserSource `json:"_source"`
-			Sort   interface{}                   `json:"sort"`
+			Source model.SearchUserSource `json:"_source"`
+			Sort   interface{}            `json:"sort"`
 		} `json:"hits"`
 	} `json:"hits"`
 }
 
 func (s *Service) ReindexUser(userID string, isDelete bool) (err error) {
-	if isDelete {
-		s.TaskQueue.Enqueue(&tasks.ReindexUserParam{
-			DeleteUserAppID: string(s.AppID),
-			DeleteUserID:    userID,
-		})
-		return nil
-	}
-
-	u, err := s.Users.Get(userID, accesscontrol.RoleGreatest)
-	if err != nil {
-		return
-	}
-	oauthIdentities, err := s.OAuth.List(u.ID)
-	if err != nil {
-		return
-	}
-	loginIDIdentities, err := s.LoginID.List(u.ID)
-	if err != nil {
-		return
-	}
-
-	raw := &model.ElasticsearchUserRaw{
-		ID:                 u.ID,
-		AppID:              string(s.AppID),
-		CreatedAt:          u.CreatedAt,
-		UpdatedAt:          u.UpdatedAt,
-		LastLoginAt:        u.LastLoginAt,
-		IsDisabled:         u.IsDisabled,
-		StandardAttributes: u.StandardAttributes,
-	}
-
-	var arrClaims []map[model.ClaimName]string
-	for _, oauthI := range oauthIdentities {
-		arrClaims = append(arrClaims, oauthI.ToInfo().IdentityAwareStandardClaims())
-		raw.OAuthSubjectID = append(raw.OAuthSubjectID, oauthI.ProviderSubjectID)
-	}
-	for _, loginIDI := range loginIDIdentities {
-		arrClaims = append(arrClaims, loginIDI.ToInfo().IdentityAwareStandardClaims())
-	}
-
-	for _, claims := range arrClaims {
-		if email, ok := claims[model.ClaimEmail]; ok {
-			raw.Email = append(raw.Email, email)
-		}
-		if phoneNumber, ok := claims[model.ClaimPhoneNumber]; ok {
-			raw.PhoneNumber = append(raw.PhoneNumber, phoneNumber)
-		}
-		if preferredUsername, ok := claims[model.ClaimPreferredUsername]; ok {
-			raw.PreferredUsername = append(raw.PreferredUsername, preferredUsername)
-		}
-	}
-
-	s.TaskQueue.Enqueue(&tasks.ReindexUserParam{
-		User: RawToSource(raw),
-	})
-	return nil
+	return s.Reindexer.ReindexUser(config.SearchImplementationElasticsearch, userID, isDelete)
 }
 
 func (s *Service) QueryUser(

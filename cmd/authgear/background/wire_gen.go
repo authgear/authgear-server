@@ -43,6 +43,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/searchdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/lockout"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -50,6 +51,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/search/pgsearch"
+	"github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -557,20 +560,41 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	noopTaskQueue := NewNoopTaskQueue()
-	elasticsearchService := elasticsearch.Service{
+	reindexer := &reindex.Reindexer{
 		AppID:     configAppID,
-		Client:    client,
 		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: noopTaskQueue,
+	}
+	elasticsearchService := elasticsearch.Service{
+		AppID:     configAppID,
+		Client:    client,
+		Reindexer: reindexer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(ctx, configAppID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	pgsearchLogger := pgsearch.NewLogger(factory)
+	searchdbPool := p.SearchDatabasePool
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbHandle := searchdb.NewHandle(ctx, searchdbPool, databaseEnvironmentConfig, searchDatabaseCredentials, factory)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(ctx, searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(configAppID, searchdbHandle, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := pgsearch.Service{
+		AppID:     configAppID,
+		Store:     pgsearchStore,
+		Reindexer: reindexer,
+	}
+	pgsearchSink := &pgsearch.Sink{
+		Logger:   pgsearchLogger,
+		Service:  pgsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(ctx, configAppID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink, pgsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
