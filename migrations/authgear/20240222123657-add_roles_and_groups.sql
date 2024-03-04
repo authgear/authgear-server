@@ -10,9 +10,13 @@ CREATE TABLE _auth_role (
 );
 -- Each project has its own set of roles. The role keys are unique within a project.
 CREATE UNIQUE INDEX _auth_role_key_unique ON _auth_role USING btree (app_id, key);
--- This index supports typeahead search for roles within a project.
-CREATE INDEX _auth_role_key_typeahead ON _auth_role USING btree (app_id, key text_pattern_ops);
-CREATE INDEX _auth_role_name_typeahead ON _auth_role USING btree (app_id, name text_pattern_ops);
+-- This index supports listing roles of a project.
+-- We previously had indices on (app_id, key) and (app_id, name)
+-- but our query is key ILIKE ($1 || '%') OR name ILIKE ($1 || '%')
+-- PostgreSQL in this case does not use the indices.
+-- Given that the number of roles and the number of groups in a project should be small (<1000)
+-- Those indices are removed.
+CREATE INDEX _auth_role_app_id ON _auth_role USING btree (app_id);
 
 CREATE TABLE _auth_group (
   id text PRIMARY KEY,
@@ -25,9 +29,13 @@ CREATE TABLE _auth_group (
 );
 -- Each project has its own set of groups. The group keys are unique within a project.
 CREATE UNIQUE INDEX _auth_group_key_unique ON _auth_group USING btree (app_id, key);
--- This index supports typeahead search for groups within a project.
-CREATE INDEX _auth_group_key_typeahead ON _auth_group USING btree (app_id, key text_pattern_ops);
-CREATE INDEX _auth_group_name_typeahead ON _auth_group USING btree (app_id, name text_pattern_ops);
+-- This index supports listing groups of a project.
+-- We previously had indices on (app_id, key) and (app_id, name)
+-- but our query is key ILIKE ($1 || '%') OR name ILIKE ($1 || '%')
+-- PostgreSQL in this case does not use the indices.
+-- Given that the number of roles and the number of groups in a project should be small (<1000)
+-- Those indices are removed.
+CREATE INDEX _auth_group_app_id ON _auth_group USING btree (app_id);
 
 CREATE TABLE _auth_group_role (
   id text PRIMARY KEY,
