@@ -31,9 +31,9 @@ const (
 	SettingsActonResponseType = "urn:authgear:params:oauth:response-type:settings-action"
 )
 
-// whiteslistedResponseTypes is a list of response types that would be always allowed
+// whitelistedResponseTypes is a list of response types that would be always allowed
 // to all clients.
-var whiteslistedResponseTypes = []string{
+var whitelistedResponseTypes = []string{
 	CodeResponseType,
 	NoneResponseType,
 	SettingsActonResponseType,
@@ -566,14 +566,8 @@ func (h *AuthorizationHandler) validateRequest(
 	client *config.OAuthClientConfig,
 	r protocol.AuthorizationRequest,
 ) error {
-	allowedResponseTypes := client.ResponseTypes
-	if len(allowedResponseTypes) == 0 {
-		allowedResponseTypes = []string{"code"}
-	}
-	allowedResponseTypes = append(allowedResponseTypes, whiteslistedResponseTypes...)
-
 	ok := false
-	for _, respType := range allowedResponseTypes {
+	for _, respType := range whitelistedResponseTypes {
 		if respType == r.ResponseType() {
 			ok = true
 			break
