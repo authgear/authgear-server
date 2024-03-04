@@ -17,6 +17,7 @@
     + [acr_values](#acr_values)
     + [code_challenge_method](#code_challenge_method)
     + [nonce](#nonce)
+    + [x_settings_action](#x_settings_action)
   * [Token Request](#token-request)
     + [grant_type](#grant_type)
     + [id_token_hint](#id_token_hint-1)
@@ -62,6 +63,7 @@
     + [Consent Screen](#consent-screen)
     + [Authorized Apps page](#authorized-apps-page)
     + [App Session Token](#app-session-token)
+    + [Settings Action](#settings-action)
   * [How to construct authentication request to achieve different scenarios](#how-to-construct-authentication-request-to-achieve-different-scenarios)
     + [The user has NOT signed in yet in my mobile app. I want to authenticate any user.](#the-user-has-not-signed-in-yet-in-my-mobile-app-i-want-to-authenticate-any-user)
     + [The user has NOT signed in yet in my mobile app. I want to authenticate any user. Possibly reuse any previous signed in sessions.](#the-user-has-not-signed-in-yet-in-my-mobile-app-i-want-to-authenticate-any-user-possibly-reuse-any-previous-signed-in-sessions)
@@ -219,6 +221,12 @@ Only `S256` is supported. `plain` is not supported.
 
 To mitigate replay attacks, provide a `nonce` in the authentication request. Authgear will include the `nonce` Claim in the ID Token, and the client must verify that the `nonce` claim value is equal to the value of the `nonce` parameter sent in the authentication request. The `nonce` is recommended but it is optional. The `nonce` value is a case sensitive string. Reference: [Authentication Request](https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.3.1.2.1).
 
+### x_settings_action
+
+When it is specified, the user will be redirected to the corresponding auth ui pages of the settings action. After completing the action, the user will be redirected back to the app through redirect URI.
+
+Supported values: `change_password`.
+
 ## Token Request
 
 ### grant_type
@@ -229,10 +237,13 @@ To mitigate replay attacks, provide a `nonce` in the authentication request. Aut
 - `urn:authgear:params:oauth:grant-type:biometric-request`
 - `urn:authgear:params:oauth:grant-type:id-token`
 - `urn:authgear:params:oauth:grant-type:authorization_code`
+- `urn:authgear:params:oauth:grant-type:settings-action`
 
 `urn:authgear:params:oauth:grant-type:anonymous-request` is for authenticating and issuing tokens directly for anonymous user.
 
 `urn:authgear:params:oauth:grant-type:biometric-request` is for authenticating and issuing tokens directly for users with Biometric identity.
+
+`urn:authgear:params:oauth:grant-type:settings-action` is issued upon completion of a settings action, such as change password.
 
 ### id_token_hint
 
@@ -630,6 +641,67 @@ When the app session token is consumed:
 - The session cookie would contain a token referencing the refresh token,
   instead of IdP sessions. Therefore, the lifetime of session cookie is bound
   to refresh token instead of IdP session.
+
+### Settings Action
+
+For first-party clients, user may want to perform specific account settings action (e.g. verify email) in the app.
+
+Settings action will be started via authorization endpoint. Authentication is needed for performing settings action. Both IdP session or App session are accepted. If the login hint (app session token) is provided in the authorization endpoint, the app session cookie will be set when redirecting to the settings action ui. If the login hint is not provided, user will be redirected to the settings action ui directly and the IdP session will be used.
+
+The redirect URI of the settings action should be registered in client settings `redirect_uris`.
+
+After redirecting back to the app, An code of grant type `urn:ietf:params:oauth:grant-type:settings-action` will be returned to the app. The app can exchange the code to prove the completion of the settings action.
+
+The following flow charts show how the settings actions work.
+
+```mermaid
+flowchart LR
+    subgraph /oauth2/authorize
+        authz[authz endpoint]
+    end
+    subgraph settings[e.g. /settings/change_password]
+        settings_action[settings action endpoints]
+    end
+    subgraph app[e.g. com.app://host/after-change-password]
+        app_callback[app callback]
+    end
+
+    SDK --app session token--> /oauth2/authorize
+    /oauth2/authorize --app session token--> settings
+    settings --settings action code--> app
+```
+
+```mermaid
+flowchart LR
+    subgraph /oauth2/token
+        token[token endpoint]
+    end
+    app --settings action code--> /oauth2/token
+```
+
+#### Authentication request of settings actions
+
+```
+GET /oauth2/authorize?client_id=<Client ID>&prompt=none&response_type=settings_action
+    &login_hint=https%3A%2F%2Fauthgear.com%2Flogin_hint%3Ftype%3Dapp_session_token%26app_session_token%3D<app session token>
+    &id_token_hint=<ID token>
+    &code_challenge=<code challenge>
+    &code_challenge_method=S256
+    &x_settings_action=<change_password>
+    &redirect_uri=<redirect URI of the client app> HTTP/1.1
+Host: accounts.example.com
+
+---
+HTTP/1.1 302 Found
+Set-Cookie: <session cookie>
+Location: <auth ui of specific settings action>
+```
+
+Remarks:
+- `response_type=settings_action` is required to issue a code of grant type `urn:ietf:params:oauth:grant-type:settings-action`.
+- `x_settings_action` is a custom parameter to indicate the settings action.
+- `login_hint` is required to set the app session cookie.
+-  `prompt` query parameter is ignored. The user will be redirected to the settings action ui directly.
 
 ## How to construct authentication request to achieve different scenarios
 

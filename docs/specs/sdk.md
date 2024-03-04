@@ -271,3 +271,47 @@ await authgear.authorize({ ... });
 const enabled = await authgear.isBiometricEnabled();
 assert(enabled === false);
 ```
+
+## Perform settings action
+
+Allow the user performs specific settings action from the app. e.g. change password. The action is only resolved when the user has completed the action.
+
+```typescript
+// In mobile sdk
+interface ChangePasswordOptions {
+  redirectURI: string;
+  uiLocales?: string[];
+  colorScheme?: ColorScheme;
+}
+
+function changePassword(options: ChangePasswordOptions): Promise<Void>;
+
+// In web sdk
+interface ChangePasswordOptions {
+  redirectURI: string;
+  uiLocales?: string[];
+  colorScheme?: ColorScheme;
+}
+
+function startChangingPassword(options: ChangePasswordOptions): Promise<Void>;
+
+function finishChangingPassword(): Promise<Void>;
+```
+
+### Intended usage
+
+```typescript
+const userInfo = authgear.fetchUserInfo();
+
+try {
+  await authgear.startChangingPassword({
+    redirectURI: "com.app://host/after-changing-password",
+  })
+} catch (e) {
+  // The user declined.
+  return;
+}
+
+// In the callback page
+await authgear.finishChangingPassword();
+```
