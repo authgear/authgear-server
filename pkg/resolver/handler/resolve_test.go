@@ -25,11 +25,13 @@ func TestResolveHandler(t *testing.T) {
 		verificationService := NewMockVerificationService(ctrl)
 		database := &db.MockHandle{}
 		user := NewMockUserProvider(ctrl)
+		roleAndGroup := NewMockRolesAndGroupsProvider(ctrl)
 		h := &ResolveHandler{
-			Database:     database,
-			Identities:   identities,
-			Verification: verificationService,
-			Users:        user,
+			Database:       database,
+			Identities:     identities,
+			Verification:   verificationService,
+			Users:          user,
+			RolesAndGroups: roleAndGroup,
 		}
 
 		Convey("should attach headers for valid sessions", func() {
@@ -52,6 +54,8 @@ func TestResolveHandler(t *testing.T) {
 					CanReauthenticate: true,
 				}
 				user.EXPECT().Get("user-id", accesscontrol.RoleGreatest).Return(&userInfo, nil)
+				roles := []*model.Role{}
+				roleAndGroup.EXPECT().ListEffectiveRolesByUserID("user-id").Return(roles, nil)
 				rw := httptest.NewRecorder()
 				h.ServeHTTP(rw, r)
 
@@ -64,6 +68,7 @@ func TestResolveHandler(t *testing.T) {
 					"X-Authgear-User-Anonymous":          []string{"false"},
 					"X-Authgear-Session-Amr":             []string{""},
 					"X-Authgear-User-Can-Reauthenticate": []string{"true"},
+					"X-Authgear-User-Effective-Roles":    []string{""},
 				})
 			})
 
@@ -78,6 +83,8 @@ func TestResolveHandler(t *testing.T) {
 					CanReauthenticate: false,
 				}
 				user.EXPECT().Get("user-id", accesscontrol.RoleGreatest).Return(&userInfo, nil)
+				roles := []*model.Role{}
+				roleAndGroup.EXPECT().ListEffectiveRolesByUserID("user-id").Return(roles, nil)
 				rw := httptest.NewRecorder()
 				h.ServeHTTP(rw, r)
 
@@ -90,6 +97,7 @@ func TestResolveHandler(t *testing.T) {
 					"X-Authgear-User-Verified":           []string{"false"},
 					"X-Authgear-Session-Amr":             []string{""},
 					"X-Authgear-User-Can-Reauthenticate": []string{"false"},
+					"X-Authgear-User-Effective-Roles":    []string{""},
 				})
 			})
 		})

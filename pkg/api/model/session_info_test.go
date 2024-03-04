@@ -36,6 +36,7 @@ func TestSessionInfo(t *testing.T) {
 					SessionAMR:            []string{"pwd", "mfa", "otp"},
 					AuthenticatedAt:       time.Date(2006, 1, 2, 3, 4, 5, 0, time.UTC),
 					UserCanReauthenticate: true,
+					EffectiveRoles:        []string{"role"},
 				}
 
 				i.PopulateHeaders(rw)
@@ -47,6 +48,7 @@ func TestSessionInfo(t *testing.T) {
 					"X-Authgear-Session-Amr":              []string{"pwd mfa otp"},
 					"X-Authgear-Session-Authenticated-At": []string{"1136171045"},
 					"X-Authgear-User-Can-Reauthenticate":  []string{"true"},
+					"X-Authgear-User-Effective-Roles":     []string{"role"},
 				})
 			})
 		})
