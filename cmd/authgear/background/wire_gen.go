@@ -50,6 +50,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -608,6 +609,14 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsCommands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -698,6 +707,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		MFA:                        mfaService,
 		UserCommands:               commands,
 		UserQueries:                queries,
+		RolesGroupsCommands:        rolesgroupsCommands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,

@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
@@ -32,6 +33,14 @@ type IdentityLoader interface {
 }
 
 type AuthenticatorLoader interface {
+	graphqlutil.DataLoaderInterface
+}
+
+type RoleLoader interface {
+	graphqlutil.DataLoaderInterface
+}
+
+type GroupLoader interface {
 	graphqlutil.DataLoaderInterface
 }
 
@@ -55,6 +64,44 @@ type UserFacade interface {
 	ScheduleAnonymization(id string) error
 	UnscheduleAnonymization(id string) error
 	Anonymize(id string) error
+}
+
+type RolesGroupsFacade interface {
+	CreateRole(options *rolesgroups.NewRoleOptions) (string, error)
+	UpdateRole(options *rolesgroups.UpdateRoleOptions) error
+	DeleteRole(id string) error
+	ListGroupsByRoleID(roleID string) ([]*apimodel.Group, error)
+	ListRoles(options *rolesgroups.ListRolesOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
+
+	CreateGroup(options *rolesgroups.NewGroupOptions) (string, error)
+	UpdateGroup(options *rolesgroups.UpdateGroupOptions) error
+	DeleteGroup(id string) error
+	ListRolesByGroupID(groupID string) ([]*apimodel.Role, error)
+	ListGroups(options *rolesgroups.ListGroupsOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
+
+	AddRoleToGroups(options *rolesgroups.AddRoleToGroupsOptions) (string, error)
+	RemoveRoleFromGroups(options *rolesgroups.RemoveRoleFromGroupsOptions) (string, error)
+
+	AddRoleToUsers(options *rolesgroups.AddRoleToUsersOptions) (string, error)
+	RemoveRoleFromUsers(options *rolesgroups.RemoveRoleFromUsersOptions) (string, error)
+
+	AddGroupToUsers(options *rolesgroups.AddGroupToUsersOptions) (groupID string, err error)
+	RemoveGroupFromUsers(options *rolesgroups.RemoveGroupFromUsersOptions) (groupID string, err error)
+
+	AddGroupToRoles(options *rolesgroups.AddGroupToRolesOptions) (groupID string, err error)
+	RemoveGroupFromRoles(options *rolesgroups.RemoveGroupFromRolesOptions) (groupID string, err error)
+
+	AddUserToRoles(options *rolesgroups.AddUserToRolesOptions) (err error)
+	RemoveUserFromRoles(options *rolesgroups.RemoveUserFromRolesOptions) (err error)
+
+	AddUserToGroups(options *rolesgroups.AddUserToGroupsOptions) (err error)
+	RemoveUserFromGroups(options *rolesgroups.RemoveUserFromGroupsOptions) (err error)
+
+	ListRolesByUserID(userID string) ([]*apimodel.Role, error)
+	ListGroupsByUserID(userID string) ([]*apimodel.Group, error)
+	ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
+	ListUserIDsByGroupID(groupID string, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
+	ListEffectiveRolesByUserID(userID string) ([]*apimodel.Role, error)
 }
 
 type IdentityFacade interface {
@@ -134,9 +181,12 @@ type Context struct {
 	Users          UserLoader
 	Identities     IdentityLoader
 	Authenticators AuthenticatorLoader
+	Roles          RoleLoader
+	Groups         GroupLoader
 	AuditLogs      AuditLogLoader
 
 	UserFacade          UserFacade
+	RolesGroupsFacade   RolesGroupsFacade
 	AuditLogFacade      AuditLogFacade
 	IdentityFacade      IdentityFacade
 	AuthenticatorFacade AuthenticatorFacade
