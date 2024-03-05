@@ -21,7 +21,7 @@ type store interface {
 	Get(userID string) (*User, error)
 	GetByIDs(userIDs []string) ([]*User, error)
 	Count() (uint64, error)
-	QueryPage(listOption ListOption, pageArgs graphqlutil.PageArgs) ([]*User, uint64, error)
+	QueryPage(listOption ListOptions, pageArgs graphqlutil.PageArgs) ([]*User, uint64, error)
 	UpdateLoginTime(userID string, loginAt time.Time) error
 	UpdateAccountStatus(userID string, status AccountStatus) error
 	UpdateStandardAttributes(userID string, stdAttrs map[string]interface{}) error
@@ -241,7 +241,7 @@ func (s *Store) Count() (uint64, error) {
 	return count, nil
 }
 
-func (s *Store) QueryPage(listOption ListOption, pageArgs graphqlutil.PageArgs) ([]*User, uint64, error) {
+func (s *Store) QueryPage(listOption ListOptions, pageArgs graphqlutil.PageArgs) ([]*User, uint64, error) {
 	query := s.selectQuery("u")
 
 	if len(listOption.GroupKeys) != 0 {

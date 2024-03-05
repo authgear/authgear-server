@@ -81,7 +81,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					groupKeys[i] = groupKeyIfaces[i].(string)
 				}
 
-				listOption := libuser.ListOption{
+				listOption := libuser.ListOptions{
 					GroupKeys:  groupKeys,
 					SortOption: sortOption,
 				}

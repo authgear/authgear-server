@@ -22,7 +22,7 @@ func (p *RawQueries) Count() (uint64, error) {
 	return p.Store.Count()
 }
 
-func (p *RawQueries) QueryPage(listOption ListOption, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error) {
+func (p *RawQueries) QueryPage(listOption ListOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error) {
 	users, offset, err := p.Store.QueryPage(listOption, pageArgs)
 	if err != nil {
 		return nil, err
