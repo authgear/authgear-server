@@ -1,0 +1,10 @@
+mutation addRoleToGroupsMutation($roleKey: String!, $groupKeys: [String!]!) {
+  addRoleToGroups(input: { roleKey: $roleKey, groupKeys: $groupKeys }) {
+    role {
+      id
+      key
+      name
+      description
+    }
+  }
+}
