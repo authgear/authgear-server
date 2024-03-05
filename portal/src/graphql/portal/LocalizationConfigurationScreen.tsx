@@ -17,6 +17,7 @@ import EditTemplatesWidget, {
 import { AuthenticatorEmailOTPMode, PortalAPIAppConfig } from "../../types";
 import {
   ALL_LANGUAGES_TEMPLATES,
+  DEFAULT_TEMPLATE_LOCALE,
   RESOURCE_AUTHENTICATE_PRIMARY_LOGIN_LINK_HTML,
   RESOURCE_AUTHENTICATE_PRIMARY_LOGIN_LINK_TXT,
   RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML,
@@ -257,12 +258,23 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
 
     const getValue = useCallback(
       (def: ResourceDefinition) => {
-        return getValueFromState(
+        const selectedValue = getValueFromState(
           state.resources,
           state.selectedLanguage,
           state.fallbackLanguage,
           def,
-          (res) => res?.nullableValue
+          (res) => res?.nullableValue ?? res?.effectiveData
+        );
+        if (selectedValue) {
+          return selectedValue;
+        }
+
+        return getValueFromState(
+          state.resources,
+          DEFAULT_TEMPLATE_LOCALE,
+          state.fallbackLanguage,
+          def,
+          (res) => res?.effectiveData
         );
       },
       [
@@ -324,8 +336,27 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
           RESOURCE_TRANSLATION_JSON,
           (res) => res?.effectiveData
         );
-        const jsonValue = JSON.parse(effTranslationJSONStr);
-        return jsonValue[key] ?? "";
+        try {
+          const translationJSON = JSON.parse(effTranslationJSONStr);
+          return translationJSON[key] ?? "";
+        } catch (_e: unknown) {
+          // if failed to decode the translation.json, use the effective data
+        }
+        // fallback to en
+        const enTranslationJSONStr = getValueFromState(
+          state.resources,
+          DEFAULT_TEMPLATE_LOCALE,
+          state.fallbackLanguage,
+          RESOURCE_TRANSLATION_JSON,
+          (res) => res?.effectiveData
+        );
+        try {
+          const translationJSON = JSON.parse(enTranslationJSONStr);
+          return translationJSON[key] ?? "";
+        } catch (_e: unknown) {
+          // if failed to decode the translation.json, return empty string
+        }
+        return "";
       },
       [
         state.resources,
@@ -873,7 +904,13 @@ const LocalizationConfigurationScreen: React.VFC =
 
     const specifiers = useMemo<ResourceSpecifier[]>(() => {
       const specifiers = [];
-      for (const locale of initialSupportedLanguages) {
+
+      const supportedLanguages = [...initialSupportedLanguages];
+      if (!supportedLanguages.includes(DEFAULT_TEMPLATE_LOCALE)) {
+        supportedLanguages.push(DEFAULT_TEMPLATE_LOCALE);
+      }
+
+      for (const locale of supportedLanguages) {
         for (const def of ALL_LANGUAGES_TEMPLATES) {
           specifiers.push({
             def,
