@@ -48,7 +48,7 @@ func TestSessionInfo(t *testing.T) {
 					"X-Authgear-Session-Amr":              []string{"pwd mfa otp"},
 					"X-Authgear-Session-Authenticated-At": []string{"1136171045"},
 					"X-Authgear-User-Can-Reauthenticate":  []string{"true"},
-					"X-Authgear-User-Effective-Roles":     []string{"role"},
+					"X-Authgear-User-Roles":               []string{"role"},
 				})
 			})
 		})

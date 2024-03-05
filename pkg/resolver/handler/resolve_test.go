@@ -68,7 +68,6 @@ func TestResolveHandler(t *testing.T) {
 					"X-Authgear-User-Anonymous":          []string{"false"},
 					"X-Authgear-Session-Amr":             []string{""},
 					"X-Authgear-User-Can-Reauthenticate": []string{"true"},
-					"X-Authgear-User-Effective-Roles":    []string{""},
 				})
 			})
 
@@ -97,7 +96,6 @@ func TestResolveHandler(t *testing.T) {
 					"X-Authgear-User-Verified":           []string{"false"},
 					"X-Authgear-Session-Amr":             []string{""},
 					"X-Authgear-User-Can-Reauthenticate": []string{"false"},
-					"X-Authgear-User-Effective-Roles":    []string{""},
 				})
 			})
 		})
