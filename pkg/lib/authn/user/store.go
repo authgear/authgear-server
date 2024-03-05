@@ -247,8 +247,7 @@ func (s *Store) QueryPage(listOption ListOptions, pageArgs graphqlutil.PageArgs)
 	if len(listOption.GroupKeys) != 0 {
 		query = query.
 			Join(s.SQLBuilder.TableName("_auth_user_group"), "ug", "u.id = ug.user_id").
-			Join(s.SQLBuilder.TableName("_auth_group"), "g", "g.id = ug.group_id").
-			Where("g.key = ANY (?)", pq.Array(listOption.GroupKeys))
+			Join(s.SQLBuilder.TableName("_auth_group"), "g", "g.id = ug.group_id AND g.key = ANY (?)", pq.Array(listOption.GroupKeys))
 	}
 
 	query = listOption.SortOption.Apply(query)
