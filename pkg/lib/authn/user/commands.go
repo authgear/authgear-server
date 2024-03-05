@@ -24,6 +24,7 @@ type Commands struct {
 	StandardAttributes StandardAttributesService
 	CustomAttributes   CustomAttributesService
 	Web3               Web3Service
+	RolesAndGroups     RolesAndGroupsService
 }
 
 func (c *Commands) AfterCreate(
@@ -52,7 +53,25 @@ func (c *Commands) AfterCreate(
 		return err
 	}
 
-	userModel := newUserModel(user, identities, authenticators, isVerified, stdAttrs, customAttrs, web3Info)
+	roles, err := c.RolesAndGroups.ListRolesByUserID(user.ID)
+	if err != nil {
+		return err
+	}
+	roleKeys := make([]string, len(roles))
+	for i, v := range roles {
+		roleKeys[i] = v.Key
+	}
+
+	groups, err := c.RolesAndGroups.ListGroupsByUserID(user.ID)
+	if err != nil {
+		return err
+	}
+	groupKeys := make([]string, len(groups))
+	for i, v := range groups {
+		groupKeys[i] = v.Key
+	}
+
+	userModel := newUserModel(user, identities, authenticators, isVerified, stdAttrs, customAttrs, web3Info, roleKeys, groupKeys)
 	var identityModels []model.Identity
 	for _, i := range identities {
 		identityModels = append(identityModels, i.ToModel())

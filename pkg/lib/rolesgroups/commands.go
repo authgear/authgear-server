@@ -217,3 +217,21 @@ func (c *Commands) DeleteUserRole(userID string) error {
 
 	return nil
 }
+
+func (c *Commands) ResetUserGroup(options *ResetUserGroupOptions) error {
+	err := c.Store.ResetUserGroup(options)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Commands) ResetUserRole(options *ResetUserRoleOptions) error {
+	err := c.Store.ResetUserRole(options)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

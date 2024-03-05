@@ -6,7 +6,25 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
+	"github.com/lib/pq"
 )
+
+func (s *Store) ListRolesByUserIDs(userIDs []string) (map[string][]*Role, error) {
+	q := s.SQLBuilder.Select(
+		"ur.user_id",
+		"r.id",
+		"r.created_at",
+		"r.updated_at",
+		"r.key",
+		"r.name",
+		"r.description",
+	).
+		From(s.SQLBuilder.TableName("_auth_user_role"), "ur").
+		Join(s.SQLBuilder.TableName("_auth_role"), "r", "ur.role_id = r.id").
+		Where("ur.user_id = ANY (?)", pq.Array(userIDs))
+
+	return s.queryRolesWithUserID(q)
+}
 
 func (s *Store) DeleteUserRole(userID string) error {
 	q := s.SQLBuilder.Delete(s.SQLBuilder.TableName("_auth_user_role")).
@@ -110,6 +128,45 @@ func (s *Store) ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageArgs
 type AddRoleToUsersOptions struct {
 	RoleKey string
 	UserIDs []string
+}
+
+type ResetUserRoleOptions struct {
+	UserID   string
+	RoleKeys []string
+}
+
+func (s *Store) ResetUserRole(options *ResetUserRoleOptions) error {
+	currentRoles, err := s.ListRolesByUserID(options.UserID)
+	if err != nil {
+		return err
+	}
+	originalKeys := make([]string, len(currentRoles))
+	for i, v := range currentRoles {
+		originalKeys[i] = v.Key
+	}
+	keysToAdd, keysToRemove := computeKeyDifference(originalKeys, options.RoleKeys)
+
+	if len(keysToRemove) != 0 {
+		err := s.RemoveUserFromRoles(&RemoveUserFromRolesOptions{
+			UserID:   options.UserID,
+			RoleKeys: keysToRemove,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(keysToAdd) != 0 {
+		err := s.AddUserToRoles(&AddUserToRolesOptions{
+			UserID:   options.UserID,
+			RoleKeys: keysToAdd,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (s *Store) AddRoleToUsers(options *AddRoleToUsersOptions) (*Role, error) {

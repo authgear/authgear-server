@@ -19,6 +19,8 @@ type User struct {
 	StandardAttributes map[string]interface{} `json:"standard_attributes,omitempty"`
 	CustomAttributes   map[string]interface{} `json:"custom_attributes,omitempty"`
 	Web3               *UserWeb3Info          `json:"x_web3,omitempty"`
+	Roles              []string               `json:"roles,omitempty"`
+	Groups             []string               `json:"groups,omitempty"`
 }
 
 func (u *User) EndUserAccountID() string {

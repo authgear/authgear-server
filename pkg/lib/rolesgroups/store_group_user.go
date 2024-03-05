@@ -6,7 +6,25 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
+	"github.com/lib/pq"
 )
+
+func (s *Store) ListGroupsByUserIDs(userIDs []string) (map[string][]*Group, error) {
+	q := s.SQLBuilder.Select(
+		"ug.user_id",
+		"g.id",
+		"g.created_at",
+		"g.updated_at",
+		"g.key",
+		"g.name",
+		"g.description",
+	).
+		From(s.SQLBuilder.TableName("_auth_user_group"), "ug").
+		Join(s.SQLBuilder.TableName("_auth_group"), "g", "ug.group_id = g.id").
+		Where("ug.user_id = ANY (?)", pq.Array(userIDs))
+
+	return s.queryGroupsWithUserID(q)
+}
 
 func (s *Store) ListGroupsByUserID(userID string) ([]*Group, error) {
 	q := s.SQLBuilder.Select(
@@ -43,6 +61,46 @@ func (s *Store) ListUserIDsByGroupID(groupID string, pageArgs graphqlutil.PageAr
 	}
 
 	return userIDs, offset, nil
+}
+
+type ResetUserGroupOptions struct {
+	UserID    string
+	GroupKeys []string
+}
+
+func (s *Store) ResetUserGroup(options *ResetUserGroupOptions) error {
+	currentGroups, err := s.ListGroupsByUserID(options.UserID)
+	if err != nil {
+		return err
+	}
+
+	originalKeys := make([]string, len(currentGroups))
+	for i, v := range currentGroups {
+		originalKeys[i] = v.Key
+	}
+	keysToAdd, keysToRemove := computeKeyDifference(originalKeys, options.GroupKeys)
+
+	if len(keysToRemove) != 0 {
+		err := s.RemoveUserFromGroups(&RemoveUserFromGroupsOptions{
+			UserID:    options.UserID,
+			GroupKeys: keysToRemove,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(keysToAdd) != 0 {
+		err := s.AddUserToGroups(&AddUserToGroupsOptions{
+			UserID:    options.UserID,
+			GroupKeys: keysToAdd,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (s *Store) DeleteUserGroup(userID string) error {
