@@ -111,32 +111,32 @@ func (m *MockRolesAndGroupsServiceNoEvent) EXPECT() *MockRolesAndGroupsServiceNo
 	return m.recorder
 }
 
-// UpdateUserGroup mocks base method.
-func (m *MockRolesAndGroupsServiceNoEvent) UpdateUserGroup(options *rolesgroups.UpdateUserGroupOptions) error {
+// ResetUserGroup mocks base method.
+func (m *MockRolesAndGroupsServiceNoEvent) ResetUserGroup(options *rolesgroups.ResetUserGroupOptions) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUserGroup", options)
+	ret := m.ctrl.Call(m, "ResetUserGroup", options)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdateUserGroup indicates an expected call of UpdateUserGroup.
-func (mr *MockRolesAndGroupsServiceNoEventMockRecorder) UpdateUserGroup(options interface{}) *gomock.Call {
+// ResetUserGroup indicates an expected call of ResetUserGroup.
+func (mr *MockRolesAndGroupsServiceNoEventMockRecorder) ResetUserGroup(options interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserGroup", reflect.TypeOf((*MockRolesAndGroupsServiceNoEvent)(nil).UpdateUserGroup), options)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetUserGroup", reflect.TypeOf((*MockRolesAndGroupsServiceNoEvent)(nil).ResetUserGroup), options)
 }
 
-// UpdateUserRole mocks base method.
-func (m *MockRolesAndGroupsServiceNoEvent) UpdateUserRole(options *rolesgroups.UpdateUserRoleOptions) error {
+// ResetUserRole mocks base method.
+func (m *MockRolesAndGroupsServiceNoEvent) ResetUserRole(options *rolesgroups.ResetUserRoleOptions) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUserRole", options)
+	ret := m.ctrl.Call(m, "ResetUserRole", options)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdateUserRole indicates an expected call of UpdateUserRole.
-func (mr *MockRolesAndGroupsServiceNoEventMockRecorder) UpdateUserRole(options interface{}) *gomock.Call {
+// ResetUserRole indicates an expected call of ResetUserRole.
+func (mr *MockRolesAndGroupsServiceNoEventMockRecorder) ResetUserRole(options interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserRole", reflect.TypeOf((*MockRolesAndGroupsServiceNoEvent)(nil).UpdateUserRole), options)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetUserRole", reflect.TypeOf((*MockRolesAndGroupsServiceNoEvent)(nil).ResetUserRole), options)
 }
 
 // MockEventWebHook is a mock of EventWebHook interface.

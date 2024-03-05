@@ -60,8 +60,8 @@ func PerformEffectsOnUser(ctx event.MutationsEffectContext, userID string, userM
 		}
 	}
 	if userMutations.Roles != nil {
-		err := ctx.RolesAndGroups.UpdateUserRole(
-			&rolesgroups.UpdateUserRoleOptions{
+		err := ctx.RolesAndGroups.ResetUserRole(
+			&rolesgroups.ResetUserRoleOptions{
 				UserID:   userID,
 				RoleKeys: userMutations.Roles,
 			},
@@ -71,8 +71,8 @@ func PerformEffectsOnUser(ctx event.MutationsEffectContext, userID string, userM
 		}
 	}
 	if userMutations.Groups != nil {
-		err := ctx.RolesAndGroups.UpdateUserGroup(
-			&rolesgroups.UpdateUserGroupOptions{
+		err := ctx.RolesAndGroups.ResetUserGroup(
+			&rolesgroups.ResetUserGroupOptions{
 				UserID:    userID,
 				GroupKeys: userMutations.Groups,
 			},

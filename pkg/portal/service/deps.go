@@ -62,11 +62,11 @@ func (*NoopAttributesService) UpdateAllCustomAttributes(role accesscontrol.Role,
 
 type NoopRolesAndGroupsService struct{}
 
-func (*NoopRolesAndGroupsService) UpdateUserRole(options *rolesgroups.UpdateUserRoleOptions) error {
+func (*NoopRolesAndGroupsService) ResetUserRole(options *rolesgroups.ResetUserRoleOptions) error {
 	return nil
 }
 
-func (*NoopRolesAndGroupsService) UpdateUserGroup(options *rolesgroups.UpdateUserGroupOptions) error {
+func (*NoopRolesAndGroupsService) ResetUserGroup(options *rolesgroups.ResetUserGroupOptions) error {
 	return nil
 }
 

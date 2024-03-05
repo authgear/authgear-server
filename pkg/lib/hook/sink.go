@@ -28,8 +28,8 @@ type CustomAttributesServiceNoEvent interface {
 }
 
 type RolesAndGroupsServiceNoEvent interface {
-	UpdateUserRole(options *rolesgroups.UpdateUserRoleOptions) error
-	UpdateUserGroup(options *rolesgroups.UpdateUserGroupOptions) error
+	ResetUserRole(options *rolesgroups.ResetUserRoleOptions) error
+	ResetUserGroup(options *rolesgroups.ResetUserGroupOptions) error
 }
 
 type EventWebHook interface {

@@ -130,12 +130,12 @@ type AddRoleToUsersOptions struct {
 	UserIDs []string
 }
 
-type UpdateUserRoleOptions struct {
+type ResetUserRoleOptions struct {
 	UserID   string
 	RoleKeys []string
 }
 
-func (s *Store) UpdateUserRole(options *UpdateUserRoleOptions) error {
+func (s *Store) ResetUserRole(options *ResetUserRoleOptions) error {
 	currentRoles, err := s.ListRolesByUserID(options.UserID)
 	if err != nil {
 		return err

@@ -63,12 +63,12 @@ func (s *Store) ListUserIDsByGroupID(groupID string, pageArgs graphqlutil.PageAr
 	return userIDs, offset, nil
 }
 
-type UpdateUserGroupOptions struct {
+type ResetUserGroupOptions struct {
 	UserID    string
 	GroupKeys []string
 }
 
-func (s *Store) UpdateUserGroup(options *UpdateUserGroupOptions) error {
+func (s *Store) ResetUserGroup(options *ResetUserGroupOptions) error {
 	currentGroups, err := s.ListGroupsByUserID(options.UserID)
 	if err != nil {
 		return err
