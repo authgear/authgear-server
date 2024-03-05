@@ -263,7 +263,7 @@ func (ti *IDTokenIssuer) PopulateUserClaims(token jwt.Token, userID string, nonP
 	_ = token.Set(string(model.ClaimUserIsAnonymous), user.IsAnonymous)
 	_ = token.Set(string(model.ClaimUserIsVerified), user.IsVerified)
 	_ = token.Set(string(model.ClaimUserCanReauthenticate), user.CanReauthenticate)
-	_ = token.Set(string(model.ClaimEffectiveRoles), roleKeys)
+	_ = token.Set(string(model.ClaimAuthgearRoles), roleKeys)
 
 	if !nonPIIUserClaimsOnly {
 		for k, v := range user.StandardAttributes {
@@ -296,7 +296,7 @@ func (ti *IDTokenIssuer) GetUserInfo(userID string, clientLike *oauth.ClientLike
 	out[string(model.ClaimUserIsAnonymous)] = user.IsAnonymous
 	out[string(model.ClaimUserIsVerified)] = user.IsVerified
 	out[string(model.ClaimUserCanReauthenticate)] = user.CanReauthenticate
-	out[string(model.ClaimEffectiveRoles)] = roleKeys
+	out[string(model.ClaimAuthgearRoles)] = roleKeys
 
 	nonPIIUserClaimsOnly := true
 	// When the client is first party

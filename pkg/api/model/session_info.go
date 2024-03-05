@@ -28,7 +28,7 @@ const (
 	headerSessionAmr             = "X-Authgear-Session-Amr"
 	headerSessionAuthenticatedAt = "X-Authgear-Session-Authenticated-At"
 	headerUserCanReauthenticate  = "X-Authgear-User-Can-Reauthenticate"
-	headerUserEffectiveRoles     = "X-Authgear-User-Effective-Roles"
+	headerUserRoles              = "X-Authgear-User-Roles"
 )
 
 func (i *SessionInfo) PopulateHeaders(rw http.ResponseWriter) {
@@ -45,7 +45,7 @@ func (i *SessionInfo) PopulateHeaders(rw http.ResponseWriter) {
 	rw.Header().Set(headerUserAnonymous, strconv.FormatBool(i.UserAnonymous))
 	rw.Header().Set(headerUserVerified, strconv.FormatBool(i.UserVerified))
 	rw.Header().Set(headerUserCanReauthenticate, strconv.FormatBool(i.UserCanReauthenticate))
-	rw.Header().Set(headerUserEffectiveRoles, strings.Join(i.EffectiveRoles, ","))
+	rw.Header().Set(headerUserRoles, strings.Join(i.EffectiveRoles, ","))
 
 	rw.Header().Set(headerSessionAmr, strings.Join(i.SessionAMR, " "))
 	if !i.AuthenticatedAt.IsZero() {
