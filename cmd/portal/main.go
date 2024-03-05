@@ -22,7 +22,12 @@ import (
 func main() {
 	debug.TrapSIGQUIT()
 
-	err := godotenv.Load()
+	var envFile = os.Getenv("AUTHGEAR_ENV_FILE")
+	if envFile == "" {
+		envFile = ".env"
+	}
+
+	err := godotenv.Load(envFile)
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		log.Printf("failed to load .env file: %s", err)
 	}
