@@ -163,3 +163,41 @@ func (mr *MockUserProviderMockRecorder) Get(id, role interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockUserProvider)(nil).Get), id, role)
 }
+
+// MockRolesAndGroupsProvider is a mock of RolesAndGroupsProvider interface.
+type MockRolesAndGroupsProvider struct {
+	ctrl     *gomock.Controller
+	recorder *MockRolesAndGroupsProviderMockRecorder
+}
+
+// MockRolesAndGroupsProviderMockRecorder is the mock recorder for MockRolesAndGroupsProvider.
+type MockRolesAndGroupsProviderMockRecorder struct {
+	mock *MockRolesAndGroupsProvider
+}
+
+// NewMockRolesAndGroupsProvider creates a new mock instance.
+func NewMockRolesAndGroupsProvider(ctrl *gomock.Controller) *MockRolesAndGroupsProvider {
+	mock := &MockRolesAndGroupsProvider{ctrl: ctrl}
+	mock.recorder = &MockRolesAndGroupsProviderMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockRolesAndGroupsProvider) EXPECT() *MockRolesAndGroupsProviderMockRecorder {
+	return m.recorder
+}
+
+// ListEffectiveRolesByUserID mocks base method.
+func (m *MockRolesAndGroupsProvider) ListEffectiveRolesByUserID(userID string) ([]*model.Role, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListEffectiveRolesByUserID", userID)
+	ret0, _ := ret[0].([]*model.Role)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListEffectiveRolesByUserID indicates an expected call of ListEffectiveRolesByUserID.
+func (mr *MockRolesAndGroupsProviderMockRecorder) ListEffectiveRolesByUserID(userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListEffectiveRolesByUserID", reflect.TypeOf((*MockRolesAndGroupsProvider)(nil).ListEffectiveRolesByUserID), userID)
+}

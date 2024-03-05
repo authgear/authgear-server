@@ -10,6 +10,7 @@ import (
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -46,6 +47,9 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 			Description: "All users",
 			Type:        connUser.ConnectionType,
 			Args: relay.NewConnectionArgs(graphql.FieldConfigArgument{
+				"groupKeys": &graphql.ArgumentConfig{
+					Type: graphql.NewList(graphql.NewNonNull(graphql.String)),
+				},
 				"searchKeyword": &graphql.ArgumentConfig{
 					Type: graphql.String,
 				},
@@ -71,11 +75,22 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					SortDirection: sortDirection,
 				}
 
+				groupKeyIfaces, _ := p.Args["groupKeys"].([]interface{})
+				groupKeys := make([]string, len(groupKeyIfaces))
+				for i := range groupKeyIfaces {
+					groupKeys[i] = groupKeyIfaces[i].(string)
+				}
+
+				listOption := libuser.ListOptions{
+					GroupKeys:  groupKeys,
+					SortOption: sortOption,
+				}
+
 				var refs []apimodel.PageItemRef
 				var result *graphqlutil.PageResult
 				var err error
 				if searchKeyword == "" {
-					refs, result, err = gqlCtx.UserFacade.ListPage(sortOption, pageArgs)
+					refs, result, err = gqlCtx.UserFacade.ListPage(listOption, pageArgs)
 				} else {
 					refs, result, err = gqlCtx.UserFacade.SearchPage(searchKeyword, sortOption, pageArgs)
 				}
@@ -87,6 +102,76 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				for _, ref := range refs {
 					lazyItems = append(lazyItems, graphqlutil.LazyItem{
 						Lazy:   gqlCtx.Users.Load(ref.ID),
+						Cursor: graphqlutil.Cursor(ref.Cursor),
+					})
+				}
+
+				return graphqlutil.NewConnectionFromResult(lazyItems, result)
+			},
+		},
+		"roles": &graphql.Field{
+			Description: "All roles",
+			Type:        connRole.ConnectionType,
+			Args: relay.NewConnectionArgs(graphql.FieldConfigArgument{
+				"searchKeyword": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+			}),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				gqlCtx := GQLContext(p.Context)
+
+				pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
+
+				searchKeyword, _ := p.Args["searchKeyword"].(string)
+
+				options := &rolesgroups.ListRolesOptions{
+					SearchKeyword: searchKeyword,
+				}
+
+				refs, result, err := gqlCtx.RolesGroupsFacade.ListRoles(options, pageArgs)
+				if err != nil {
+					return nil, err
+				}
+
+				var lazyItems []graphqlutil.LazyItem
+				for _, ref := range refs {
+					lazyItems = append(lazyItems, graphqlutil.LazyItem{
+						Lazy:   gqlCtx.Roles.Load(ref.ID),
+						Cursor: graphqlutil.Cursor(ref.Cursor),
+					})
+				}
+
+				return graphqlutil.NewConnectionFromResult(lazyItems, result)
+			},
+		},
+		"groups": &graphql.Field{
+			Description: "All groups",
+			Type:        connGroup.ConnectionType,
+			Args: relay.NewConnectionArgs(graphql.FieldConfigArgument{
+				"searchKeyword": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+			}),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				gqlCtx := GQLContext(p.Context)
+
+				pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
+
+				searchKeyword, _ := p.Args["searchKeyword"].(string)
+
+				options := &rolesgroups.ListGroupsOptions{
+					SearchKeyword: searchKeyword,
+				}
+
+				refs, result, err := gqlCtx.RolesGroupsFacade.ListGroups(options, pageArgs)
+				if err != nil {
+					return nil, err
+				}
+
+				var lazyItems []graphqlutil.LazyItem
+				for _, ref := range refs {
+					lazyItems = append(lazyItems, graphqlutil.LazyItem{
+						Lazy:   gqlCtx.Groups.Load(ref.ID),
 						Cursor: graphqlutil.Cursor(ref.Cursor),
 					})
 				}

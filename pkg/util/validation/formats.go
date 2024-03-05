@@ -18,6 +18,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/util/phone"
+	"github.com/authgear/authgear-server/pkg/util/rolesgroupsutil"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 	"github.com/authgear/authgear-server/pkg/util/territoryutil"
 
@@ -48,6 +49,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["x_duration_string"] = FormatDurationString{}
 	jsonschemaformat.DefaultChecker["x_base64_url"] = FormatBase64URL{}
 	jsonschemaformat.DefaultChecker["x_re2_regex"] = FormatRe2Regex{}
+	jsonschemaformat.DefaultChecker["x_role_group_key"] = rolesgroupsutil.FormatKey{}
 }
 
 // FormatPhone checks if input is a phone number in E.164 format.

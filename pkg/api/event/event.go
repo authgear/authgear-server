@@ -1,6 +1,7 @@
 package event
 
 import (
+	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
 
@@ -14,9 +15,15 @@ type CustomAttributesServiceNoEvent interface {
 	UpdateAllCustomAttributes(role accesscontrol.Role, userID string, reprForm map[string]interface{}) error
 }
 
+type RolesAndGroupsServiceNoEvent interface {
+	ResetUserRole(options *rolesgroups.ResetUserRoleOptions) error
+	ResetUserGroup(options *rolesgroups.ResetUserGroupOptions) error
+}
+
 type MutationsEffectContext struct {
 	StandardAttributes StandardAttributesServiceNoEvent
 	CustomAttributes   CustomAttributesServiceNoEvent
+	RolesAndGroups     RolesAndGroupsServiceNoEvent
 }
 
 type Payload interface {

@@ -49,7 +49,7 @@ type Reindexer struct {
 }
 
 func (q *Reindexer) QueryPage(after model.PageCursor, first uint64) ([]Item, error) {
-	users, offset, err := q.Users.QueryPage(user.SortOption{}, graphqlutil.PageArgs{
+	users, offset, err := q.Users.QueryPage(user.ListOptions{}, graphqlutil.PageArgs{
 		First: &first,
 		After: graphqlutil.Cursor(after),
 	})

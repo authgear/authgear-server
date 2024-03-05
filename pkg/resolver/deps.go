@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
+	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/resolver/handler"
 )
@@ -28,6 +29,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handler.IdentityService), new(*identityservice.Service)),
 	wire.Bind(new(handler.VerificationService), new(*verification.Service)),
 	wire.Bind(new(handler.UserProvider), new(*user.Queries)),
+	wire.Bind(new(handler.RolesAndGroupsProvider), new(*rolesgroups.Queries)),
 
 	wire.NewSet(
 		endpoints.DependencySet,

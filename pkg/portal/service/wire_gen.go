@@ -74,6 +74,7 @@ func newHookSink(ctx context.Context, app *model.App, denoEndpoint config.DenoEn
 		AsyncDenoClient: asyncDenoClient,
 	}
 	noopAttributesService := _wireNoopAttributesServiceValue
+	noopRolesAndGroupsService := _wireNoopRolesAndGroupsServiceValue
 	sink := &hook.Sink{
 		Logger:             logger,
 		Config:             hookConfig,
@@ -82,11 +83,13 @@ func newHookSink(ctx context.Context, app *model.App, denoEndpoint config.DenoEn
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: noopAttributesService,
 		CustomAttributes:   noopAttributesService,
+		RolesAndGroups:     noopRolesAndGroupsService,
 	}
 	return sink
 }
 
 var (
-	_wireSystemClockValue           = clock.NewSystemClock()
-	_wireNoopAttributesServiceValue = &NoopAttributesService{}
+	_wireSystemClockValue               = clock.NewSystemClock()
+	_wireNoopAttributesServiceValue     = &NoopAttributesService{}
+	_wireNoopRolesAndGroupsServiceValue = &NoopRolesAndGroupsService{}
 )

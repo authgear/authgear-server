@@ -60,6 +60,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -266,6 +267,14 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oauthhandler.UserProvider), new(*user.Queries)),
 		wire.Bind(new(event.ResolverUserQueries), new(*user.Queries)),
 		wire.Bind(new(libes.UserQueries), new(*user.Queries)),
+	),
+
+	wire.NewSet(
+		rolesgroups.DependencySet,
+		wire.Bind(new(facade.RolesGroupsCommands), new(*rolesgroups.Commands)),
+		wire.Bind(new(oidc.RolesAndGroupsProvider), new(*rolesgroups.Queries)),
+		wire.Bind(new(hook.RolesAndGroupsServiceNoEvent), new(*rolesgroups.Commands)),
+		wire.Bind(new(user.RolesAndGroupsService), new(*rolesgroups.Queries)),
 	),
 
 	wire.NewSet(

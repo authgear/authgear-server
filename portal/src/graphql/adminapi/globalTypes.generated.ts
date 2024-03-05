@@ -28,6 +28,78 @@ export type Scalars = {
   Web3Claims: { input: GQL_Web3Claims; output: GQL_Web3Claims; }
 };
 
+export type AddGroupToRolesInput = {
+  /** The key of the group. */
+  groupKey: Scalars['String']['input'];
+  /** The list of role keys. */
+  roleKeys: Array<Scalars['String']['input']>;
+};
+
+export type AddGroupToRolesPayload = {
+  __typename?: 'AddGroupToRolesPayload';
+  group: Group;
+};
+
+export type AddGroupToUsersInput = {
+  /** The key of the group. */
+  groupKey: Scalars['String']['input'];
+  /** The list of user ids. */
+  userIDs?: InputMaybe<Array<Scalars['ID']['input']>>;
+};
+
+export type AddGroupToUsersPayload = {
+  __typename?: 'AddGroupToUsersPayload';
+  group: Group;
+};
+
+export type AddRoleToGroupsInput = {
+  /** The list of group keys. */
+  groupKeys: Array<Scalars['String']['input']>;
+  /** The key of the role. */
+  roleKey: Scalars['String']['input'];
+};
+
+export type AddRoleToGroupsPayload = {
+  __typename?: 'AddRoleToGroupsPayload';
+  role: Role;
+};
+
+export type AddRoleToUsersInput = {
+  /** The key of the role. */
+  roleKey: Scalars['String']['input'];
+  /** The list of user ids. */
+  userIDs?: InputMaybe<Array<Scalars['ID']['input']>>;
+};
+
+export type AddRoleToUsersPayload = {
+  __typename?: 'AddRoleToUsersPayload';
+  role: Role;
+};
+
+export type AddUserToGroupsInput = {
+  /** The list of group keys. */
+  groupKeys?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** The ID of the user. */
+  userID: Scalars['ID']['input'];
+};
+
+export type AddUserToGroupsPayload = {
+  __typename?: 'AddUserToGroupsPayload';
+  user: User;
+};
+
+export type AddUserToRolesInput = {
+  /** The list of role keys. */
+  roleKeys?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** The id of the user. */
+  userID: Scalars['ID']['input'];
+};
+
+export type AddUserToRolesPayload = {
+  __typename?: 'AddUserToRolesPayload';
+  user: User;
+};
+
 export type AnonymizeUserInput = {
   /** Target user ID. */
   userID: Scalars['ID']['input'];
@@ -245,6 +317,20 @@ export type Claim = {
   value: Scalars['String']['output'];
 };
 
+export type CreateGroupInput = {
+  /** The optional description of the group. */
+  description?: InputMaybe<Scalars['String']['input']>;
+  /** The key of the group. */
+  key: Scalars['String']['input'];
+  /** The optional name of the group. */
+  name?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type CreateGroupPayload = {
+  __typename?: 'CreateGroupPayload';
+  group: Group;
+};
+
 export type CreateIdentityInput = {
   /** Definition of the new identity. */
   definition: IdentityDefinition;
@@ -258,6 +344,20 @@ export type CreateIdentityPayload = {
   __typename?: 'CreateIdentityPayload';
   identity: Identity;
   user: User;
+};
+
+export type CreateRoleInput = {
+  /** The optional description of the role. */
+  description?: InputMaybe<Scalars['String']['input']>;
+  /** The key of the role. */
+  key: Scalars['String']['input'];
+  /** The optional name of the role. */
+  name?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type CreateRolePayload = {
+  __typename?: 'CreateRolePayload';
+  role: Role;
 };
 
 export type CreateSessionInput = {
@@ -305,6 +405,16 @@ export type DeleteAuthorizationPayload = {
   user: User;
 };
 
+export type DeleteGroupInput = {
+  /** The ID of the group. */
+  id: Scalars['ID']['input'];
+};
+
+export type DeleteGroupPayload = {
+  __typename?: 'DeleteGroupPayload';
+  ok?: Maybe<Scalars['Boolean']['output']>;
+};
+
 export type DeleteIdentityInput = {
   /** Target identity ID. */
   identityID: Scalars['ID']['input'];
@@ -313,6 +423,16 @@ export type DeleteIdentityInput = {
 export type DeleteIdentityPayload = {
   __typename?: 'DeleteIdentityPayload';
   user: User;
+};
+
+export type DeleteRoleInput = {
+  /** The ID of the role. */
+  id: Scalars['ID']['input'];
+};
+
+export type DeleteRolePayload = {
+  __typename?: 'DeleteRolePayload';
+  ok?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type DeleteUserInput = {
@@ -344,6 +464,65 @@ export type GenerateOobotpCodeInput = {
 export type GenerateOobotpCodePayload = {
   __typename?: 'GenerateOOBOTPCodePayload';
   code: Scalars['String']['output'];
+};
+
+/** Authgear group */
+export type Group = Entity & Node & {
+  __typename?: 'Group';
+  /** The creation time of entity */
+  createdAt: Scalars['DateTime']['output'];
+  /** The optional description of the group. */
+  description?: Maybe<Scalars['String']['output']>;
+  /** The ID of an object */
+  id: Scalars['ID']['output'];
+  /** The key of the group. */
+  key: Scalars['String']['output'];
+  /** The optional name of the group. */
+  name?: Maybe<Scalars['String']['output']>;
+  /** The list of roles this group has. */
+  roles?: Maybe<RoleConnection>;
+  /** The update time of entity */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The list of users in the group. */
+  users?: Maybe<UserConnection>;
+};
+
+
+/** Authgear group */
+export type GroupRolesArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+/** Authgear group */
+export type GroupUsersArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** A connection to a list of items. */
+export type GroupConnection = {
+  __typename?: 'GroupConnection';
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<GroupEdge>>>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+  /** Total number of nodes in the connection. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection */
+export type GroupEdge = {
+  __typename?: 'GroupEdge';
+  /**  cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<Group>;
 };
 
 export type Identity = Entity & Node & {
@@ -407,10 +586,26 @@ export enum IdentityType {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  /** Add the group to the roles. */
+  addGroupToRoles: AddGroupToRolesPayload;
+  /** Add the group to the users. */
+  addGroupToUsers: AddGroupToUsersPayload;
+  /** Add the role to the groups. */
+  addRoleToGroups: AddRoleToGroupsPayload;
+  /** Add the role to the users. */
+  addRoleToUsers: AddRoleToUsersPayload;
+  /** Add the user to the groups. */
+  addUserToGroups: AddUserToGroupsPayload;
+  /** Add the user to the roles. */
+  addUserToRoles: AddUserToRolesPayload;
   /** Anonymize specified user */
   anonymizeUser: AnonymizeUserPayload;
+  /** Create a new group. */
+  createGroup: CreateGroupPayload;
   /** Create new identity for user */
   createIdentity: CreateIdentityPayload;
+  /** Create a new role. */
+  createRole: CreateRolePayload;
   /** Create a session of a given user */
   createSession: CreateSessionPayload;
   /** Create new user */
@@ -419,12 +614,28 @@ export type Mutation = {
   deleteAuthenticator: DeleteAuthenticatorPayload;
   /** Delete authorization */
   deleteAuthorization: DeleteAuthorizationPayload;
+  /** Delete an existing group. The associations between the group with other roles and other users will also be deleted. */
+  deleteGroup: DeleteGroupPayload;
   /** Delete identity of user */
   deleteIdentity: DeleteIdentityPayload;
+  /** Delete an existing role. The associations between the role with other groups and other users will also be deleted. */
+  deleteRole: DeleteRolePayload;
   /** Delete specified user */
   deleteUser: DeleteUserPayload;
   /** Generate OOB OTP code for user */
   generateOOBOTPCode: GenerateOobotpCodePayload;
+  /** Remove the group from the roles. */
+  removeGroupFromRoles: RemoveGroupFromRolesPayload;
+  /** Remove the group to the users. */
+  removeGroupFromUsers: RemoveGroupToUsersPayload;
+  /** Remove the role from the groups. */
+  removeRoleFromGroups: RemoveRoleFromGroupsPayload;
+  /** Remove the role to the users. */
+  removeRoleFromUsers: RemoveRoleFromUsersPayload;
+  /** Remove the user from the groups. */
+  removeUserFromGroups: RemoveUserFromGroupsPayload;
+  /** Remove the user from the roles. */
+  removeUserFromRoles: RemoveUserFromRolesPayload;
   /** Reset password of user */
   resetPassword: ResetPasswordPayload;
   /** Revoke all sessions of user */
@@ -445,10 +656,44 @@ export type Mutation = {
   unscheduleAccountAnonymization: UnscheduleAccountAnonymizationPayload;
   /** Unschedule account deletion */
   unscheduleAccountDeletion: UnscheduleAccountDeletionPayload;
+  /** Update an existing group. */
+  updateGroup: UpdateGroupPayload;
   /** Update an existing identity of user */
   updateIdentity: UpdateIdentityPayload;
+  /** Update an existing role. */
+  updateRole: UpdateRolePayload;
   /** Update user */
   updateUser: UpdateUserPayload;
+};
+
+
+export type MutationAddGroupToRolesArgs = {
+  input: AddGroupToRolesInput;
+};
+
+
+export type MutationAddGroupToUsersArgs = {
+  input: AddGroupToUsersInput;
+};
+
+
+export type MutationAddRoleToGroupsArgs = {
+  input: AddRoleToGroupsInput;
+};
+
+
+export type MutationAddRoleToUsersArgs = {
+  input: AddRoleToUsersInput;
+};
+
+
+export type MutationAddUserToGroupsArgs = {
+  input: AddUserToGroupsInput;
+};
+
+
+export type MutationAddUserToRolesArgs = {
+  input: AddUserToRolesInput;
 };
 
 
@@ -457,8 +702,18 @@ export type MutationAnonymizeUserArgs = {
 };
 
 
+export type MutationCreateGroupArgs = {
+  input: CreateGroupInput;
+};
+
+
 export type MutationCreateIdentityArgs = {
   input: CreateIdentityInput;
+};
+
+
+export type MutationCreateRoleArgs = {
+  input: CreateRoleInput;
 };
 
 
@@ -482,8 +737,18 @@ export type MutationDeleteAuthorizationArgs = {
 };
 
 
+export type MutationDeleteGroupArgs = {
+  input: DeleteGroupInput;
+};
+
+
 export type MutationDeleteIdentityArgs = {
   input: DeleteIdentityInput;
+};
+
+
+export type MutationDeleteRoleArgs = {
+  input: DeleteRoleInput;
 };
 
 
@@ -494,6 +759,36 @@ export type MutationDeleteUserArgs = {
 
 export type MutationGenerateOobotpCodeArgs = {
   input: GenerateOobotpCodeInput;
+};
+
+
+export type MutationRemoveGroupFromRolesArgs = {
+  input: RemoveGroupFromRolesInput;
+};
+
+
+export type MutationRemoveGroupFromUsersArgs = {
+  input: RemoveGroupFromUsersInput;
+};
+
+
+export type MutationRemoveRoleFromGroupsArgs = {
+  input: RemoveRoleFromGroupsInput;
+};
+
+
+export type MutationRemoveRoleFromUsersArgs = {
+  input: RemoveRoleFromUsersInput;
+};
+
+
+export type MutationRemoveUserFromGroupsArgs = {
+  input: RemoveUserFromGroupsInput;
+};
+
+
+export type MutationRemoveUserFromRolesArgs = {
+  input: RemoveUserFromRolesInput;
 };
 
 
@@ -547,8 +842,18 @@ export type MutationUnscheduleAccountDeletionArgs = {
 };
 
 
+export type MutationUpdateGroupArgs = {
+  input: UpdateGroupInput;
+};
+
+
 export type MutationUpdateIdentityArgs = {
   input: UpdateIdentityInput;
+};
+
+
+export type MutationUpdateRoleArgs = {
+  input: UpdateRoleInput;
 };
 
 
@@ -584,10 +889,14 @@ export type Query = {
   __typename?: 'Query';
   /** Audit logs */
   auditLogs?: Maybe<AuditLogConnection>;
+  /** All groups */
+  groups?: Maybe<GroupConnection>;
   /** Fetches an object given its ID */
   node?: Maybe<Node>;
   /** Lookup nodes by a list of IDs. */
   nodes: Array<Maybe<Node>>;
+  /** All roles */
+  roles?: Maybe<RoleConnection>;
   /** All users */
   users?: Maybe<UserConnection>;
 };
@@ -606,6 +915,15 @@ export type QueryAuditLogsArgs = {
 };
 
 
+export type QueryGroupsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  searchKeyword?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type QueryNodeArgs = {
   id: Scalars['ID']['input'];
 };
@@ -616,14 +934,96 @@ export type QueryNodesArgs = {
 };
 
 
-export type QueryUsersArgs = {
+export type QueryRolesArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
   searchKeyword?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryUsersArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  groupKeys?: InputMaybe<Array<Scalars['String']['input']>>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  searchKeyword?: InputMaybe<Scalars['String']['input']>;
   sortBy?: InputMaybe<UserSortBy>;
   sortDirection?: InputMaybe<SortDirection>;
+};
+
+export type RemoveGroupFromRolesInput = {
+  /** The key of the group. */
+  groupKey: Scalars['String']['input'];
+  /** The list of role keys. */
+  roleKeys: Array<Scalars['String']['input']>;
+};
+
+export type RemoveGroupFromRolesPayload = {
+  __typename?: 'RemoveGroupFromRolesPayload';
+  group: Group;
+};
+
+export type RemoveGroupFromUsersInput = {
+  /** The key of the group. */
+  groupKey: Scalars['String']['input'];
+  /** The list of user ids. */
+  userIDs?: InputMaybe<Array<Scalars['ID']['input']>>;
+};
+
+export type RemoveGroupToUsersPayload = {
+  __typename?: 'RemoveGroupToUsersPayload';
+  group: Group;
+};
+
+export type RemoveRoleFromGroupsInput = {
+  /** The list of group keys. */
+  groupKeys: Array<Scalars['String']['input']>;
+  /** The key of the role. */
+  roleKey: Scalars['String']['input'];
+};
+
+export type RemoveRoleFromGroupsPayload = {
+  __typename?: 'RemoveRoleFromGroupsPayload';
+  role: Role;
+};
+
+export type RemoveRoleFromUsersInput = {
+  /** The key of the role. */
+  roleKey: Scalars['String']['input'];
+  /** The list of user ids. */
+  userIDs?: InputMaybe<Array<Scalars['ID']['input']>>;
+};
+
+export type RemoveRoleFromUsersPayload = {
+  __typename?: 'RemoveRoleFromUsersPayload';
+  role: Role;
+};
+
+export type RemoveUserFromGroupsInput = {
+  /** The list of group keys. */
+  groupKeys?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** The ID of the user. */
+  userID: Scalars['ID']['input'];
+};
+
+export type RemoveUserFromGroupsPayload = {
+  __typename?: 'RemoveUserFromGroupsPayload';
+  user: User;
+};
+
+export type RemoveUserFromRolesInput = {
+  /** The list of role keys. */
+  roleKeys?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** The id of the user. */
+  userID: Scalars['ID']['input'];
+};
+
+export type RemoveUserFromRolesPayload = {
+  __typename?: 'RemoveUserFromRolesPayload';
+  user: User;
 };
 
 export type ResetPasswordInput = {
@@ -656,6 +1056,65 @@ export type RevokeSessionInput = {
 export type RevokeSessionPayload = {
   __typename?: 'RevokeSessionPayload';
   user: User;
+};
+
+/** Authgear role */
+export type Role = Entity & Node & {
+  __typename?: 'Role';
+  /** The creation time of entity */
+  createdAt: Scalars['DateTime']['output'];
+  /** The optional description of the role. */
+  description?: Maybe<Scalars['String']['output']>;
+  /** The list of groups this role is in. */
+  groups?: Maybe<GroupConnection>;
+  /** The ID of an object */
+  id: Scalars['ID']['output'];
+  /** The key of the role. */
+  key: Scalars['String']['output'];
+  /** The optional name of the role. */
+  name?: Maybe<Scalars['String']['output']>;
+  /** The update time of entity */
+  updatedAt: Scalars['DateTime']['output'];
+  /** The list of users who has this role. */
+  users?: Maybe<UserConnection>;
+};
+
+
+/** Authgear role */
+export type RoleGroupsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+/** Authgear role */
+export type RoleUsersArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** A connection to a list of items. */
+export type RoleConnection = {
+  __typename?: 'RoleConnection';
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<RoleEdge>>>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+  /** Total number of nodes in the connection. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection */
+export type RoleEdge = {
+  __typename?: 'RoleEdge';
+  /**  cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<Role>;
 };
 
 export type ScheduleAccountAnonymizationInput = {
@@ -781,6 +1240,22 @@ export type UnscheduleAccountDeletionPayload = {
   user: User;
 };
 
+export type UpdateGroupInput = {
+  /** The new description of the group. Pass null if you do not need to update the description. Pass an empty string to remove the description. */
+  description?: InputMaybe<Scalars['String']['input']>;
+  /** The ID of the group. */
+  id: Scalars['ID']['input'];
+  /** The new key of the group. Pass null if you do not need to update the key. */
+  key?: InputMaybe<Scalars['String']['input']>;
+  /** The new name of the group. Pass null if you do not need to update the name. Pass an empty string to remove the name. */
+  name?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateGroupPayload = {
+  __typename?: 'UpdateGroupPayload';
+  group: Group;
+};
+
 export type UpdateIdentityInput = {
   /** New definition of the identity. */
   definition: IdentityDefinition;
@@ -794,6 +1269,22 @@ export type UpdateIdentityPayload = {
   __typename?: 'UpdateIdentityPayload';
   identity: Identity;
   user: User;
+};
+
+export type UpdateRoleInput = {
+  /** The new description of the role. Pass null if you do not need to update the description. Pass an empty string to remove the description. */
+  description?: InputMaybe<Scalars['String']['input']>;
+  /** The ID of the role. */
+  id: Scalars['ID']['input'];
+  /** The new key of the role. Pass null if you do not need to update the key. */
+  key?: InputMaybe<Scalars['String']['input']>;
+  /** The new name of the role. Pass null if you do not need to update the name. Pass an empty string to remove the name. */
+  name?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateRolePayload = {
+  __typename?: 'UpdateRolePayload';
+  role: Role;
 };
 
 export type UpdateUserInput = {
@@ -829,10 +1320,14 @@ export type User = Entity & Node & {
   deleteAt?: Maybe<Scalars['DateTime']['output']>;
   /** The reason of disabled */
   disableReason?: Maybe<Scalars['String']['output']>;
+  /** The list of computed roles this user has. */
+  effectiveRoles?: Maybe<RoleConnection>;
   /** The end user account id constructed based on user's personal data. (e.g. email, phone...etc) */
   endUserAccountID?: Maybe<Scalars['String']['output']>;
   /** The user's formatted name */
   formattedName?: Maybe<Scalars['String']['output']>;
+  /** The list of groups this user has. */
+  groups?: Maybe<GroupConnection>;
   /** The ID of an object */
   id: Scalars['ID']['output'];
   /** The list of identities */
@@ -859,6 +1354,8 @@ export type User = Entity & Node & {
   primaryOOBOTPSMSAuthenticator?: Maybe<Authenticator>;
   /** The primary password authenticator */
   primaryPassword?: Maybe<Authenticator>;
+  /** The list of roles this user has. */
+  roles?: Maybe<RoleConnection>;
   /** The list of secondary passwordless via email authenticators */
   secondaryOOBOTPEmailAuthenticators: Array<Authenticator>;
   /** The list of secondary passwordless via phone authenticators */
@@ -901,11 +1398,38 @@ export type UserAuthorizationsArgs = {
 
 
 /** Authgear user */
+export type UserEffectiveRolesArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+/** Authgear user */
+export type UserGroupsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+/** Authgear user */
 export type UserIdentitiesArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
   identityType?: InputMaybe<IdentityType>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+/** Authgear user */
+export type UserRolesArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
 };
 

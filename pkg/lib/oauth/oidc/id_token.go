@@ -45,15 +45,20 @@ type UserProvider interface {
 	Get(id string, role accesscontrol.Role) (*model.User, error)
 }
 
+type RolesAndGroupsProvider interface {
+	ListEffectiveRolesByUserID(userID string) ([]*model.Role, error)
+}
+
 type BaseURLProvider interface {
 	BaseURL() *url.URL
 }
 
 type IDTokenIssuer struct {
-	Secrets *config.OAuthKeyMaterials
-	BaseURL BaseURLProvider
-	Users   UserProvider
-	Clock   clock.Clock
+	Secrets        *config.OAuthKeyMaterials
+	BaseURL        BaseURLProvider
+	Users          UserProvider
+	RolesAndGroups RolesAndGroupsProvider
+	Clock          clock.Clock
 }
 
 // IDTokenValidDuration is the valid period of ID token.
@@ -244,11 +249,21 @@ func (ti *IDTokenIssuer) PopulateUserClaims(token jwt.Token, userID string, nonP
 		return err
 	}
 
+	roles, err := ti.RolesAndGroups.ListEffectiveRolesByUserID(userID)
+	if err != nil {
+		return err
+	}
+	roleKeys := make([]string, len(roles))
+	for i := range roles {
+		roleKeys[i] = roles[i].Key
+	}
+
 	_ = token.Set(jwt.IssuerKey, ti.Iss())
 	_ = token.Set(jwt.SubjectKey, userID)
 	_ = token.Set(string(model.ClaimUserIsAnonymous), user.IsAnonymous)
 	_ = token.Set(string(model.ClaimUserIsVerified), user.IsVerified)
 	_ = token.Set(string(model.ClaimUserCanReauthenticate), user.CanReauthenticate)
+	_ = token.Set(string(model.ClaimAuthgearRoles), roleKeys)
 
 	if !nonPIIUserClaimsOnly {
 		for k, v := range user.StandardAttributes {
@@ -267,11 +282,21 @@ func (ti *IDTokenIssuer) GetUserInfo(userID string, clientLike *oauth.ClientLike
 		return nil, err
 	}
 
+	roles, err := ti.RolesAndGroups.ListEffectiveRolesByUserID(userID)
+	if err != nil {
+		return nil, err
+	}
+	roleKeys := make([]string, len(roles))
+	for i := range roles {
+		roleKeys[i] = roles[i].Key
+	}
+
 	out := make(map[string]interface{})
 	out[jwt.SubjectKey] = userID
 	out[string(model.ClaimUserIsAnonymous)] = user.IsAnonymous
 	out[string(model.ClaimUserIsVerified)] = user.IsVerified
 	out[string(model.ClaimUserCanReauthenticate)] = user.CanReauthenticate
+	out[string(model.ClaimAuthgearRoles)] = roleKeys
 
 	nonPIIUserClaimsOnly := true
 	// When the client is first party
@@ -290,6 +315,7 @@ func (ti *IDTokenIssuer) GetUserInfo(userID string, clientLike *oauth.ClientLike
 		return out, nil
 	}
 
+	// todo add role
 	// Populate userinfo claims
 	for k, v := range user.StandardAttributes {
 		out[k] = v

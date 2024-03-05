@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	event "github.com/authgear/authgear-server/pkg/api/event"
+	rolesgroups "github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	accesscontrol "github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -85,6 +86,57 @@ func (m *MockCustomAttributesServiceNoEvent) UpdateAllCustomAttributes(role acce
 func (mr *MockCustomAttributesServiceNoEventMockRecorder) UpdateAllCustomAttributes(role, userID, reprForm interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAllCustomAttributes", reflect.TypeOf((*MockCustomAttributesServiceNoEvent)(nil).UpdateAllCustomAttributes), role, userID, reprForm)
+}
+
+// MockRolesAndGroupsServiceNoEvent is a mock of RolesAndGroupsServiceNoEvent interface.
+type MockRolesAndGroupsServiceNoEvent struct {
+	ctrl     *gomock.Controller
+	recorder *MockRolesAndGroupsServiceNoEventMockRecorder
+}
+
+// MockRolesAndGroupsServiceNoEventMockRecorder is the mock recorder for MockRolesAndGroupsServiceNoEvent.
+type MockRolesAndGroupsServiceNoEventMockRecorder struct {
+	mock *MockRolesAndGroupsServiceNoEvent
+}
+
+// NewMockRolesAndGroupsServiceNoEvent creates a new mock instance.
+func NewMockRolesAndGroupsServiceNoEvent(ctrl *gomock.Controller) *MockRolesAndGroupsServiceNoEvent {
+	mock := &MockRolesAndGroupsServiceNoEvent{ctrl: ctrl}
+	mock.recorder = &MockRolesAndGroupsServiceNoEventMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockRolesAndGroupsServiceNoEvent) EXPECT() *MockRolesAndGroupsServiceNoEventMockRecorder {
+	return m.recorder
+}
+
+// ResetUserGroup mocks base method.
+func (m *MockRolesAndGroupsServiceNoEvent) ResetUserGroup(options *rolesgroups.ResetUserGroupOptions) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ResetUserGroup", options)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ResetUserGroup indicates an expected call of ResetUserGroup.
+func (mr *MockRolesAndGroupsServiceNoEventMockRecorder) ResetUserGroup(options interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetUserGroup", reflect.TypeOf((*MockRolesAndGroupsServiceNoEvent)(nil).ResetUserGroup), options)
+}
+
+// ResetUserRole mocks base method.
+func (m *MockRolesAndGroupsServiceNoEvent) ResetUserRole(options *rolesgroups.ResetUserRoleOptions) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ResetUserRole", options)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ResetUserRole indicates an expected call of ResetUserRole.
+func (mr *MockRolesAndGroupsServiceNoEventMockRecorder) ResetUserRole(options interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetUserRole", reflect.TypeOf((*MockRolesAndGroupsServiceNoEvent)(nil).ResetUserRole), options)
 }
 
 // MockEventWebHook is a mock of EventWebHook interface.

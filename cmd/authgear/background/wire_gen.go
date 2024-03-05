@@ -50,6 +50,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -492,7 +493,15 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
 	}
-	queries := &user.Queries{
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
@@ -501,9 +510,10 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
-		Users: queries,
+		Users: userQueries,
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
@@ -530,6 +540,9 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		SyncDenoClient:  syncDenoClient,
 		AsyncDenoClient: asyncDenoClient,
 	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
@@ -538,6 +551,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
 	}
 	auditLogger := audit.NewLogger(factory)
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
@@ -560,7 +574,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	elasticsearchService := elasticsearch.Service{
 		AppID:     configAppID,
 		Client:    client,
-		Users:     queries,
+		Users:     userQueries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: noopTaskQueue,
@@ -571,7 +585,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Database: handle,
 	}
 	eventService := event.NewService(ctx, configAppID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
-	commands := &user.Commands{
+	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
 		Events:             eventService,
@@ -580,10 +594,11 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
-		Commands: commands,
-		Queries:  queries,
+		Commands: userCommands,
+		Queries:  userQueries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -696,8 +711,9 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		UserCommands:               commands,
-		UserQueries:                queries,
+		UserCommands:               userCommands,
+		UserQueries:                userQueries,
+		RolesGroupsCommands:        commands,
 		StdAttrsService:            stdattrsService,
 		PasswordHistory:            historyStore,
 		OAuth:                      authorizationStore,

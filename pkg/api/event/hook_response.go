@@ -70,6 +70,8 @@ type Mutations struct {
 type UserMutations struct {
 	StandardAttributes map[string]interface{} `json:"standard_attributes,omitempty"`
 	CustomAttributes   map[string]interface{} `json:"custom_attributes,omitempty"`
+	Roles              []string               `json:"roles,omitempty"`
+	Groups             []string               `json:"groups,omitempty"`
 }
 
 type JWTMutations struct {

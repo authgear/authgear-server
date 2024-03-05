@@ -43,12 +43,17 @@ type UserProvider interface {
 	Get(id string, role accesscontrol.Role) (*model.User, error)
 }
 
+type RolesAndGroupsProvider interface {
+	ListEffectiveRolesByUserID(userID string) ([]*model.Role, error)
+}
+
 type ResolveHandler struct {
-	Database     Database
-	Identities   IdentityService
-	Verification VerificationService
-	Logger       ResolveHandlerLogger
-	Users        UserProvider
+	Database       Database
+	Identities     IdentityService
+	Verification   VerificationService
+	Logger         ResolveHandlerLogger
+	Users          UserProvider
+	RolesAndGroups RolesAndGroupsProvider
 }
 
 func (h *ResolveHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
@@ -104,7 +109,16 @@ func (h *ResolveHandler) resolve(r *http.Request) (*model.SessionInfo, error) {
 
 		userCanReauthenticate := user.CanReauthenticate
 
-		info = session.NewInfo(s, isAnonymous, isVerified, userCanReauthenticate)
+		roles, err := h.RolesAndGroups.ListEffectiveRolesByUserID(*userID)
+		roleKeys := make([]string, len(roles))
+		for i := range roles {
+			roleKeys[i] = roles[i].Key
+		}
+		if err != nil {
+			return nil, err
+		}
+
+		info = session.NewInfo(s, isAnonymous, isVerified, userCanReauthenticate, roleKeys)
 	} else if !valid {
 		info = &model.SessionInfo{IsValid: false}
 	}

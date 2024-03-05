@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -24,6 +25,11 @@ type StandardAttributesServiceNoEvent interface {
 
 type CustomAttributesServiceNoEvent interface {
 	UpdateAllCustomAttributes(role accesscontrol.Role, userID string, reprForm map[string]interface{}) error
+}
+
+type RolesAndGroupsServiceNoEvent interface {
+	ResetUserRole(options *rolesgroups.ResetUserRoleOptions) error
+	ResetUserGroup(options *rolesgroups.ResetUserGroupOptions) error
 }
 
 type EventWebHook interface {
@@ -46,6 +52,7 @@ type Sink struct {
 	EventDenoHook      EventDenoHook
 	StandardAttributes StandardAttributesServiceNoEvent
 	CustomAttributes   CustomAttributesServiceNoEvent
+	RolesAndGroups     RolesAndGroupsServiceNoEvent
 }
 
 func (s *Sink) ReceiveBlockingEvent(e *event.Event) (err error) {
@@ -123,6 +130,7 @@ func (s *Sink) DeliverBlockingEvent(e *event.Event) error {
 		err := e.PerformEffects(event.MutationsEffectContext{
 			StandardAttributes: s.StandardAttributes,
 			CustomAttributes:   s.CustomAttributes,
+			RolesAndGroups:     s.RolesAndGroups,
 		})
 		if err != nil {
 			return err

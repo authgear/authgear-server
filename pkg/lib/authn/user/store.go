@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/Masterminds/squirrel"
@@ -20,7 +21,7 @@ type store interface {
 	Get(userID string) (*User, error)
 	GetByIDs(userIDs []string) ([]*User, error)
 	Count() (uint64, error)
-	QueryPage(sortOption SortOption, pageArgs graphqlutil.PageArgs) ([]*User, uint64, error)
+	QueryPage(listOption ListOptions, pageArgs graphqlutil.PageArgs) ([]*User, uint64, error)
 	UpdateLoginTime(userID string, loginAt time.Time) error
 	UpdateAccountStatus(userID string, status AccountStatus) error
 	UpdateStandardAttributes(userID string, stdAttrs map[string]interface{}) error
@@ -97,24 +98,46 @@ func (s *Store) Create(u *User) (err error) {
 	return nil
 }
 
-func (s *Store) selectQuery() db.SelectBuilder {
+func (s *Store) selectQuery(alias string) db.SelectBuilder {
+	if alias == "" {
+		return s.SQLBuilder.
+			Select(
+				"id",
+				"created_at",
+				"updated_at",
+				"login_at",
+				"last_login_at",
+				"is_disabled",
+				"disable_reason",
+				"is_deactivated",
+				"delete_at",
+				"is_anonymized",
+				"anonymize_at",
+				"standard_attributes",
+				"custom_attributes",
+			).
+			From(s.SQLBuilder.TableName("_auth_user"))
+	}
+	fieldWithAlias := func(field string) string {
+		return fmt.Sprintf("%s.%s", alias, field)
+	}
 	return s.SQLBuilder.
 		Select(
-			"id",
-			"created_at",
-			"updated_at",
-			"login_at",
-			"last_login_at",
-			"is_disabled",
-			"disable_reason",
-			"is_deactivated",
-			"delete_at",
-			"is_anonymized",
-			"anonymize_at",
-			"standard_attributes",
-			"custom_attributes",
+			fieldWithAlias("id"),
+			fieldWithAlias("created_at"),
+			fieldWithAlias("updated_at"),
+			fieldWithAlias("login_at"),
+			fieldWithAlias("last_login_at"),
+			fieldWithAlias("is_disabled"),
+			fieldWithAlias("disable_reason"),
+			fieldWithAlias("is_deactivated"),
+			fieldWithAlias("delete_at"),
+			fieldWithAlias("is_anonymized"),
+			fieldWithAlias("anonymize_at"),
+			fieldWithAlias("standard_attributes"),
+			fieldWithAlias("custom_attributes"),
 		).
-		From(s.SQLBuilder.TableName("_auth_user"))
+		From(s.SQLBuilder.TableName("_auth_user"), alias)
 }
 
 func (s *Store) scan(scn db.Scanner) (*User, error) {
@@ -164,7 +187,7 @@ func (s *Store) scan(scn db.Scanner) (*User, error) {
 }
 
 func (s *Store) Get(userID string) (*User, error) {
-	builder := s.selectQuery().Where("id = ?", userID)
+	builder := s.selectQuery("").Where("id = ?", userID)
 	scanner, err := s.SQLExecutor.QueryRowWith(builder)
 	if err != nil {
 		return nil, err
@@ -181,7 +204,7 @@ func (s *Store) Get(userID string) (*User, error) {
 }
 
 func (s *Store) GetByIDs(userIDs []string) ([]*User, error) {
-	builder := s.selectQuery().Where("id = ANY (?)", pq.Array(userIDs))
+	builder := s.selectQuery("").Where("id = ANY (?)", pq.Array(userIDs))
 
 	rows, err := s.SQLExecutor.QueryWith(builder)
 	if err != nil {
@@ -218,10 +241,16 @@ func (s *Store) Count() (uint64, error) {
 	return count, nil
 }
 
-func (s *Store) QueryPage(sortOption SortOption, pageArgs graphqlutil.PageArgs) ([]*User, uint64, error) {
-	query := s.selectQuery()
+func (s *Store) QueryPage(listOption ListOptions, pageArgs graphqlutil.PageArgs) ([]*User, uint64, error) {
+	query := s.selectQuery("u")
 
-	query = sortOption.Apply(query)
+	if len(listOption.GroupKeys) != 0 {
+		query = query.
+			Join(s.SQLBuilder.TableName("_auth_user_group"), "ug", "u.id = ug.user_id").
+			Join(s.SQLBuilder.TableName("_auth_group"), "g", "g.id = ug.group_id AND g.key = ANY (?)", pq.Array(listOption.GroupKeys))
+	}
+
+	query = listOption.SortOption.Apply(query)
 
 	query, offset, err := db.ApplyPageArgs(query, pageArgs)
 	if err != nil {
