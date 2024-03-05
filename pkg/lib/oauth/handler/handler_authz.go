@@ -175,7 +175,7 @@ func (h *AuthorizationHandler) HandleConsentWithUserCancel(req *http.Request) ht
 		var resultErr httputil.Result
 
 		if errors.As(err, &oauthError) {
-			resultErr = h.prepareErrInvalidOAuthResponse(req, *oauthError)
+			resultErr = h.prepareConsentErrInvalidOAuthResponse(consentRequest, *oauthError)
 		} else {
 			h.Logger.WithError(err).Error("authz handler failed")
 			resultErr = authorizationResultError{
@@ -225,13 +225,12 @@ type ConsentRequired struct {
 
 func (h *AuthorizationHandler) doHandleConsent(req *http.Request, withUserConsent bool) (httputil.Result, *ConsentRequired) {
 	consentRequest, err := h.prepareConsentRequest(req)
-
 	if err != nil {
 		var oauthError *protocol.OAuthProtocolError
 		var resultErr httputil.Result
 
 		if errors.As(err, &oauthError) {
-			resultErr = h.prepareErrInvalidOAuthResponse(req, *oauthError)
+			resultErr = h.prepareConsentErrInvalidOAuthResponse(consentRequest, *oauthError)
 		} else {
 			h.Logger.WithError(err).Error("authz handler failed")
 			resultErr = authorizationResultError{
@@ -666,10 +665,10 @@ func (h *AuthorizationHandler) generateSettingsActionResponse(
 	return nil
 }
 
-func (h *AuthorizationHandler) prepareErrInvalidOAuthResponse(req *http.Request, oauthError protocol.OAuthProtocolError) httputil.Result {
+func (h *AuthorizationHandler) prepareConsentErrInvalidOAuthResponse(consent *consentRequest, oauthError protocol.OAuthProtocolError) httputil.Result {
 	resultErr := authorizationResultError{
 		Response:    oauthError.Response,
-		RedirectURI: nil,
+		RedirectURI: consent.RedirectURI,
 	}
 
 	// Only redirect if oauth session is expired / not found
@@ -678,22 +677,15 @@ func (h *AuthorizationHandler) prepareErrInvalidOAuthResponse(req *http.Request,
 		return resultErr
 	}
 
-	redirectURI, err := url.Parse(req.URL.Query().Get("redirect_uri"))
-	if err != nil {
-		return resultErr
-	}
-
-	client := h.ClientResolver.ResolveClient(req.URL.Query().Get("client_id"))
+	client := h.ClientResolver.ResolveClient(consent.Client.ClientID)
 	if client == nil {
 		return resultErr
 	}
 
-	err = validateRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, redirectURI)
+	err := validateRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, consent.RedirectURI)
 	if err != nil {
 		return resultErr
 	}
-
-	resultErr.RedirectURI = redirectURI
 
 	return resultErr
 }
