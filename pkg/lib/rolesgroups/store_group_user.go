@@ -73,34 +73,17 @@ func (s *Store) ResetUserGroup(options *ResetUserGroupOptions) error {
 	if err != nil {
 		return err
 	}
-	groupKeysMap := make(map[string]int)
-	keysToAdd := make([]string, 0)
-	keysToDelete := make([]string, 0)
-	// -1: delete, 0: no ops, 1: add
-	for _, v := range currentGroups {
-		groupKeysMap[v.Key] = -1
-	}
-	for _, v := range options.GroupKeys {
-		if groupKeysMap[v] == -1 {
-			groupKeysMap[v] = 0
-		} else {
-			groupKeysMap[v] = 1
-		}
-	}
 
-	for k, v := range groupKeysMap {
-		if v == -1 {
-			keysToDelete = append(keysToDelete, k)
-		}
-		if v == 1 {
-			keysToAdd = append(keysToAdd, k)
-		}
+	originalKeys := make([]string, len(currentGroups))
+	for i, v := range currentGroups {
+		originalKeys[i] = v.Key
 	}
+	keysToAdd, keysToRemove := computeKeyDifference(originalKeys, options.GroupKeys)
 
-	if len(keysToDelete) != 0 {
+	if len(keysToRemove) != 0 {
 		err := s.RemoveUserFromGroups(&RemoveUserFromGroupsOptions{
 			UserID:    options.UserID,
-			GroupKeys: keysToDelete,
+			GroupKeys: keysToRemove,
 		})
 		if err != nil {
 			return err

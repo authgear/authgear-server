@@ -140,34 +140,16 @@ func (s *Store) ResetUserRole(options *ResetUserRoleOptions) error {
 	if err != nil {
 		return err
 	}
-	roleKeysMap := make(map[string]int)
-	keysToAdd := make([]string, 0)
-	keysToDelete := make([]string, 0)
-	// -1: delete, 0: no ops, 1: add
-	for _, v := range currentRoles {
-		roleKeysMap[v.Key] = -1
+	originalKeys := make([]string, len(currentRoles))
+	for i, v := range currentRoles {
+		originalKeys[i] = v.Key
 	}
-	for _, v := range options.RoleKeys {
-		if roleKeysMap[v] == -1 {
-			roleKeysMap[v] = 0
-		} else {
-			roleKeysMap[v] = 1
-		}
-	}
+	keysToAdd, keysToRemove := computeKeyDifference(originalKeys, options.RoleKeys)
 
-	for k, v := range roleKeysMap {
-		if v == -1 {
-			keysToDelete = append(keysToDelete, k)
-		}
-		if v == 1 {
-			keysToAdd = append(keysToAdd, k)
-		}
-	}
-
-	if len(keysToDelete) != 0 {
+	if len(keysToRemove) != 0 {
 		err := s.RemoveUserFromRoles(&RemoveUserFromRolesOptions{
 			UserID:   options.UserID,
-			RoleKeys: keysToDelete,
+			RoleKeys: keysToRemove,
 		})
 		if err != nil {
 			return err
