@@ -6,6 +6,7 @@ import (
 
 	"golang.org/x/exp/constraints"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -312,3 +313,36 @@ var RequestSchema = validation.NewSimpleSchema(`
 	"required": ["identifier", "records"]
 }
 `)
+
+type Options struct {
+	Upsert     bool
+	Identifier string
+}
+
+type Warning struct {
+	Message string `json:"message,omitempty"`
+}
+
+type Outcome string
+
+const (
+	OutcomeInserted Outcome = "inserted"
+	OutcomeUpdated  Outcome = "updated"
+	OutcomeSkipped  Outcome = "skipped"
+	OutcomeFailed   Outcome = "failed"
+)
+
+type Summary struct {
+	Total    int `json:"total"`
+	Inserted int `json:"inserted"`
+	Updated  int `json:"updated"`
+	Skipped  int `json:"skipped"`
+	Failed   int `json:"failed"`
+}
+
+type Detail struct {
+	Index    int                   `json:"index"`
+	Record   json.RawMessage       `json:"record"`
+	Warnings []Warning             `json:"warnings,omitempty"`
+	Errors   []*apierrors.APIError `json:"errors,omitempty"`
+}

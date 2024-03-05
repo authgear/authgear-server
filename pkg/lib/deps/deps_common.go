@@ -69,6 +69,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
+	"github.com/authgear/authgear-server/pkg/lib/userimport"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -494,5 +495,9 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oidc.UIInfoClientResolver), new(*oauthclient.Resolver)),
 		wire.Bind(new(webapp.WebappOAuthClientResolver), new(*oauthclient.Resolver)),
 		wire.Bind(new(interaction.OAuthClientResolver), new(*oauthclient.Resolver)),
+	),
+
+	wire.NewSet(
+		userimport.DependencySet,
 	),
 )

@@ -74,6 +74,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
+	"github.com/authgear/authgear-server/pkg/lib/userimport"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -1120,6 +1121,16 @@ func newPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 }
 
 func newUserImportHandler(p *deps.RequestProvider) http.Handler {
-	userImportHandler := &transport.UserImportHandler{}
+	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
+	jsonResponseWriter := &httputil.JSONResponseWriter{
+		Logger: jsonResponseWriterLogger,
+	}
+	userImportService := &userimport.UserImportService{}
+	userImportHandler := &transport.UserImportHandler{
+		JSON:              jsonResponseWriter,
+		UserImportService: userImportService,
+	}
 	return userImportHandler
 }

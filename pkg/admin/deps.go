@@ -34,6 +34,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
+	"github.com/authgear/authgear-server/pkg/lib/userimport"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
@@ -113,6 +114,7 @@ var DependencySet = wire.NewSet(
 	transport.DependencySet,
 	wire.Bind(new(transport.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
 	wire.Bind(new(transport.PresignProvider), new(*presign.Provider)),
+	wire.Bind(new(transport.UserImportService), new(*userimport.UserImportService)),
 
 	adminauthz.DependencySet,
 )
