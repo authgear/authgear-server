@@ -13,6 +13,7 @@ const RolesScreen = lazy(async () => import("./graphql/adminapi/RolesScreen"));
 const GroupsScreen = lazy(
   async () => import("./graphql/adminapi/GroupsScreen")
 );
+const UsersRedirectScreen = lazy(async () => import("./UsersRedirectScreen"));
 const UsersScreen = lazy(async () => import("./graphql/adminapi/UsersScreen"));
 const AddUserScreen = lazy(
   async () => import("./graphql/adminapi/AddUserScreen")
@@ -201,6 +202,14 @@ const AppRoot: React.VFC = function AppRoot() {
                 }
               />
             </Route>
+            <Route
+              path="users/*"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <UsersRedirectScreen />
+                </Suspense>
+              }
+            ></Route>
 
             <Route path="user-management">
               <Route path="roles">
