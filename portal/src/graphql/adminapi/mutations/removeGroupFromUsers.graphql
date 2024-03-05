@@ -1,0 +1,10 @@
+mutation removeGroupFromUsersMutation($groupKey: String!, $userIDs: [ID!]!) {
+  removeGroupFromUsers(input: { groupKey: $groupKey, userIDs: $userIDs }) {
+    group {
+      id
+      key
+      name
+      description
+    }
+  }
+}
