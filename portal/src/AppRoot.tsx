@@ -10,6 +10,9 @@ import CookieLifetimeConfigurationScreen from "./graphql/portal/CookieLifetimeCo
 import { AppContext } from "./context/AppContext";
 
 const RolesScreen = lazy(async () => import("./graphql/adminapi/RolesScreen"));
+const AddRolesScreen = lazy(
+  async () => import("./graphql/adminapi/AddRolesScreen")
+);
 const GroupsScreen = lazy(
   async () => import("./graphql/adminapi/GroupsScreen")
 );
@@ -218,6 +221,14 @@ const AppRoot: React.VFC = function AppRoot() {
                   element={
                     <Suspense fallback={<ShowLoading />}>
                       <RolesScreen />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="add-roles"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <AddRolesScreen />
                     </Suspense>
                   }
                 />
