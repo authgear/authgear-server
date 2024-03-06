@@ -1,5 +1,0 @@
-mutation deleteGroupMutation($id: ID!) {
-  deleteGroup(input: { id: $id }) {
-    ok
-  }
-}

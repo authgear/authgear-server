@@ -1,8 +1,0 @@
-mutation addUserToGroupsMutation($userID: ID!, $groupKeys: [String!]!) {
-  addUserToGroups(input: { userID: $userID, groupKeys: $groupKeys }) {
-    user {
-      id
-      formattedName
-    }
-  }
-}

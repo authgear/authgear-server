@@ -161,26 +161,9 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
           ]
         : []),
       {
-        type: "group" as const,
-        textKey: "ScreenNav.user-management",
-        urlPrefix: `/project/${appID}/user-management`,
-        children: [
-          {
-            type: "link" as const,
-            textKey: "ScreenNav.users",
-            url: `/project/${appID}/user-management/users`,
-          },
-          {
-            type: "link" as const,
-            textKey: "ScreenNav.roles",
-            url: `/project/${appID}/user-management/roles`,
-          },
-          {
-            type: "link" as const,
-            textKey: "ScreenNav.groups",
-            url: `/project/${appID}/user-management/groups`,
-          },
-        ],
+        type: "link" as const,
+        textKey: "ScreenNav.users",
+        url: `/project/${appID}/users`,
       },
       {
         type: "group" as const,
