@@ -9,7 +9,7 @@ export function useCreateRoleMutation(): {
   createRole: (
     key: string,
     name: string,
-    description?: string
+    description?: string | null
   ) => Promise<string | null>;
   loading: boolean;
   error: unknown;
@@ -18,12 +18,12 @@ export function useCreateRoleMutation(): {
     useMutation<CreateRoleMutationMutation>(CreateRoleMutationDocument);
 
   const createRole = useCallback(
-    async (key: string, name: string, description?: string) => {
+    async (key: string, name: string, description?: string | null) => {
       const result = await mutateFunction({
         variables: {
           key,
           name,
-          description,
+          description: description == null ? null : description,
         },
       });
       const roleID = result.data?.createRole.role.id ?? null;

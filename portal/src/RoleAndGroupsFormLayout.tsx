@@ -14,7 +14,7 @@ export const RoleAndGroupsFormLayout: React.VFC<
   const { onSubmit } = useFormContainerBaseContext();
 
   return (
-    <form onSubmit={onSubmit} className={styles.root}>
+    <form onSubmit={onSubmit} noValidate={true} className={styles.root}>
       <NavBreadcrumb className={styles.header} items={breadcrumbs} />
       <section className={styles.content}>{children}</section>
       {Footer != null ? (

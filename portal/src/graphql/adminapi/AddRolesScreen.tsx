@@ -11,6 +11,10 @@ import FormTextField from "../../FormTextField";
 import WidgetDescription from "../../WidgetDescription";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
+import { useCreateRoleMutation } from "./mutations/createRoleMutation";
+import { APIError } from "../../error/error";
+import { makeLocalValidationError } from "../../error/validation";
+import { sanitizeRole, validateRole } from "../../model/role";
 
 interface FormState {
   roleKey: string;
@@ -27,13 +31,42 @@ const defaultState: FormState = {
 const AddRolesScreen: React.VFC = function AddRolesScreen() {
   const { renderToString } = useContext(MessageContext);
 
-  const submit = useCallback(async () => {}, []);
+  const { createRole } = useCreateRoleMutation();
+
+  const validate = useCallback((rawState: FormState): APIError | null => {
+    const errors = validateRole({
+      key: rawState.roleKey,
+      name: rawState.roleName,
+      description: rawState.roleDescription,
+    });
+    if (errors.length > 0) {
+      return makeLocalValidationError(errors);
+    }
+    return null;
+  }, []);
+
+  const submit = useCallback(
+    async (rawState: FormState) => {
+      const sanitizedRole = sanitizeRole({
+        key: rawState.roleKey,
+        name: rawState.roleName,
+        description: rawState.roleDescription,
+      });
+      return createRole(
+        sanitizedRole.key,
+        sanitizedRole.name,
+        sanitizedRole.description
+      );
+    },
+    [createRole]
+  );
 
   const form = useSimpleForm({
     stateMode:
       "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
     defaultState,
     submit,
+    validate,
   });
 
   const { state: formState, setState: setFormState } = form;
