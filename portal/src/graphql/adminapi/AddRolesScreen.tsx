@@ -1,6 +1,9 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { useSimpleForm } from "../../hook/useSimpleForm";
 import { FormContainerBase } from "../../FormContainerBase";
+import { RoleAndGroupsFormLayout } from "../../RoleAndGroupsFormLayout";
+import { BreadcrumbItem } from "../../NavBreadcrumb";
+import { FormattedMessage } from "@oursky/react-messageformat";
 
 interface FormState {}
 
@@ -16,7 +19,23 @@ const AddRolesScreen: React.VFC = function AddRolesScreen() {
     submit,
   });
 
-  return <FormContainerBase form={form}></FormContainerBase>;
+  const breadcrumbs = useMemo<BreadcrumbItem[]>(() => {
+    return [
+      {
+        to: "~/user-management/roles",
+        label: <FormattedMessage id="RolesScreen.title" />,
+      },
+      { to: ".", label: <FormattedMessage id="AddRolesScreen.title" /> },
+    ];
+  }, []);
+
+  return (
+    <FormContainerBase form={form}>
+      <RoleAndGroupsFormLayout
+        breadcrumbs={breadcrumbs}
+      ></RoleAndGroupsFormLayout>
+    </FormContainerBase>
+  );
 };
 
 export default AddRolesScreen;

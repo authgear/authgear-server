@@ -175,6 +175,8 @@
   "RolesScreen.empty-state.subtitle": "Create roles to represent the types of users that access your applications.",
   "RolesScreen.empty-state.button": "Create Role",
 
+  "AddRolesScreen.title": "Create Role",
+
   "UsersScreen.title": "Users",
   "UsersScreen.add-user": "Add User",
   "UsersScreen.search.resultLimited": "Only showing top 10 results, please refine the search query if you can't find what you want.",
