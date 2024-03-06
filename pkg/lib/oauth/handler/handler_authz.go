@@ -175,7 +175,7 @@ func (h *AuthorizationHandler) HandleConsentWithUserCancel(req *http.Request) ht
 		var resultErr httputil.Result
 
 		if errors.As(err, &oauthError) {
-			resultErr = h.prepareConsentErrInvalidOAuthResponse(consentRequest, *oauthError)
+			resultErr = h.prepareConsentErrInvalidOAuthResponse(req, *oauthError)
 		} else {
 			h.Logger.WithError(err).Error("authz handler failed")
 			resultErr = authorizationResultError{
@@ -230,7 +230,7 @@ func (h *AuthorizationHandler) doHandleConsent(req *http.Request, withUserConsen
 		var resultErr httputil.Result
 
 		if errors.As(err, &oauthError) {
-			resultErr = h.prepareConsentErrInvalidOAuthResponse(consentRequest, *oauthError)
+			resultErr = h.prepareConsentErrInvalidOAuthResponse(req, *oauthError)
 		} else {
 			h.Logger.WithError(err).Error("authz handler failed")
 			resultErr = authorizationResultError{
@@ -665,26 +665,23 @@ func (h *AuthorizationHandler) generateSettingsActionResponse(
 	return nil
 }
 
-func (h *AuthorizationHandler) prepareConsentErrInvalidOAuthResponse(consent *consentRequest, oauthError protocol.OAuthProtocolError) httputil.Result {
+func (h *AuthorizationHandler) prepareConsentErrInvalidOAuthResponse(req *http.Request, oauthError protocol.OAuthProtocolError) httputil.Result {
 	resultErr := authorizationResultError{
-		Response:    oauthError.Response,
-		RedirectURI: consent.RedirectURI,
+		Response: oauthError.Response,
 	}
+
+	client := h.ClientResolver.ResolveClient(req.URL.Query().Get("client_id"))
 
 	// Only redirect if oauth session is expired / not found
 	// It mostly happens when user refresh the page or go back to the page after authenication
-	if oauthError.Type() != "invalid_request" {
-		return resultErr
-	}
-
-	client := h.ClientResolver.ResolveClient(consent.Client.ClientID)
-	if client == nil {
-		return resultErr
-	}
-
-	err := validateRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, consent.RedirectURI)
-	if err != nil {
-		return resultErr
+	if oauthError.Type() == "invalid_request" && client != nil {
+		redirectURI, err := url.Parse(req.URL.Query().Get("redirect_uri"))
+		if err == nil {
+			err = validateRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, redirectURI)
+			if err == nil {
+				resultErr.RedirectURI = redirectURI
+			}
+		}
 	}
 
 	return resultErr
