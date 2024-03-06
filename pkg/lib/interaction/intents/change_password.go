@@ -45,12 +45,14 @@ func (i *IntentChangePassword) DeriveEdgesForNode(graph *interaction.Graph, node
 			},
 		}, nil
 	case *nodes.NodeChangePasswordEnd:
+		// We rely on NodeDoEnsureSession to write authentication info.
 		return []interaction.Edge{
 			&nodes.EdgeDoEnsureSession{
 				Mode: nodes.EnsureSessionModeNoop,
 			},
 		}, nil
 	case *nodes.NodeDoUpdateAuthenticator:
+		// We rely on NodeDoEnsureSession to write authentication info.
 		return []interaction.Edge{
 			&nodes.EdgeDoEnsureSession{
 				Mode: nodes.EnsureSessionModeNoop,
