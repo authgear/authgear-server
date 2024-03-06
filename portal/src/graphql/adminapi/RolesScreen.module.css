@@ -1,0 +1,39 @@
+.content {
+  margin-top: 44px;
+}
+
+.widget {
+  grid-column: 1 / span 12;
+  @apply tablet:col-span-full;
+}
+
+.emptyStateContainer {
+  margin-top: 28px;
+  padding: 24px 0;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.emptyStateIcon {
+  height: 64px;
+  width: 64px;
+}
+
+.emptyStateTitle {
+  margin-top: 24px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.emptyStateSubtitle {
+  margin-top: 16px;
+  font-size: 16px;
+  font-weight: 400;
+  max-width: 480px;
+  text-align: center;
+}
+
+.emptyStateButton {
+  margin-top: 32px;
+}

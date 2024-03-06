@@ -170,6 +170,11 @@
   "AppsScreen.create-app": "Create Project",
   "AppsScreen.project-quota-reached": "You have reached the maximum number of projects in your account, please apply for an increase by completing{ExternalLink, react, href{https://go.authgear.com/portal-support} children{this form}}.",
 
+  "RolesScreen.title": "Roles",
+  "RolesScreen.empty-state.title": "You don't have any roles yet.",
+  "RolesScreen.empty-state.subtitle": "Create roles to represent the types of users that access your applications.",
+  "RolesScreen.empty-state.button": "Create Role",
+
   "UsersScreen.title": "Users",
   "UsersScreen.add-user": "Add User",
   "UsersScreen.search.resultLimited": "Only showing top 10 results, please refine the search query if you can't find what you want.",
