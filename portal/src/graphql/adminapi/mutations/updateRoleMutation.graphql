@@ -1,0 +1,17 @@
+mutation updateRoleMutation(
+  $id: ID!
+  $key: String
+  $name: String
+  $description: String
+) {
+  updateRole(
+    input: { id: $id, key: $key, name: $name, description: $description }
+  ) {
+    role {
+      id
+      key
+      name
+      description
+    }
+  }
+}

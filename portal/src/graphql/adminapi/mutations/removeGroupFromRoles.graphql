@@ -1,0 +1,13 @@
+mutation removeGroupFromRolesMutation(
+  $groupKey: String!
+  $roleKeys: [String!]!
+) {
+  removeGroupFromRoles(input: { groupKey: $groupKey, roleKeys: $roleKeys }) {
+    group {
+      id
+      key
+      name
+      description
+    }
+  }
+}

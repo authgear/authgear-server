@@ -1,0 +1,10 @@
+mutation addRoleToUsersMutation($roleKey: String!, $userIDs: [ID!]!) {
+  addRoleToUsers(input: { roleKey: $roleKey, userIDs: $userIDs }) {
+    role {
+      id
+      key
+      name
+      description
+    }
+  }
+}

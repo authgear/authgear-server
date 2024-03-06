@@ -1,0 +1,10 @@
+mutation addGroupToUsersMutation($groupKey: String!, $userIDs: [ID!]!) {
+  addGroupToUsers(input: { groupKey: $groupKey, userIDs: $userIDs }) {
+    group {
+      id
+      key
+      name
+      description
+    }
+  }
+}

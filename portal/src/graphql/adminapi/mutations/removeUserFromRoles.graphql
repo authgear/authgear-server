@@ -1,0 +1,8 @@
+mutation removeUserFromRolesMutation($userID: ID!, $roleKeys: [String!]!) {
+  removeUserFromRoles(input: { userID: $userID, roleKeys: $roleKeys }) {
+    user {
+      id
+      formattedName
+    }
+  }
+}

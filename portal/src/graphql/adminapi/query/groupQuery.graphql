@@ -1,0 +1,33 @@
+fragment GroupQueryNode on Group {
+  id
+  key
+  name
+  description
+  roles {
+    edges {
+      node {
+        id
+        key
+        name
+        description
+      }
+    }
+  }
+  users {
+    edges {
+      node {
+        id
+        formattedName
+      }
+    }
+  }
+  createdAt
+  updatedAt
+}
+
+query groupQuery($groupID: ID!) {
+  node(id: $groupID) {
+    __typename
+    ...GroupQueryNode
+  }
+}
