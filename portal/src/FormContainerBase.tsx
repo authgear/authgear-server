@@ -9,7 +9,6 @@ export interface FormModel {
   updateError: unknown;
   isDirty: boolean;
   isUpdating: boolean;
-  canSave?: boolean;
   reset: () => void;
   save: (ignoreConflict?: boolean) => Promise<void>;
 }
@@ -26,8 +25,8 @@ export interface FormContainerBaseProps {
 }
 
 export interface FormContainerBaseValues {
-  isFormDisabled: boolean;
-  isSaveDisabled: boolean;
+  canReset: boolean;
+  canSave: boolean;
   isUpdating: boolean;
   isDirty: boolean;
   onReset: () => void;
@@ -41,17 +40,10 @@ const FormContainerBaseContext = createContext<
 
 export const FormContainerBase: React.VFC<FormContainerBaseProps> =
   function FormContainerBase(props) {
-    const {
-      updateError,
-      isDirty,
-      isUpdating,
-      reset,
-      save,
-      canSave: formCanSave,
-    } = props.form;
+    const { updateError, isDirty, isUpdating, reset, save } = props.form;
     const {
       children,
-      canSave = true,
+      canSave: propCanSave = true,
       localError,
       errorRules,
       fallbackErrorMessageID,
@@ -84,9 +76,8 @@ export const FormContainerBase: React.VFC<FormContainerBaseProps> =
       [callSave]
     );
 
-    const allowSave = formCanSave !== undefined ? formCanSave : isDirty;
-    const isFormDisabled = isUpdating || !allowSave;
-    const isSaveDisabled = isFormDisabled || !canSave;
+    const isResetDisabled = isUpdating || !isDirty;
+    const isSaveDisabled = isUpdating || !isDirty || !propCanSave;
 
     const onConfirmNavigation = useCallback(() => {
       reset();
@@ -94,8 +85,8 @@ export const FormContainerBase: React.VFC<FormContainerBaseProps> =
 
     const value = useMemo<FormContainerBaseValues>(() => {
       return {
-        isFormDisabled,
-        isSaveDisabled,
+        canReset: !isResetDisabled,
+        canSave: !isSaveDisabled,
         isUpdating,
         isDirty,
         onReset: reset,
@@ -105,7 +96,7 @@ export const FormContainerBase: React.VFC<FormContainerBaseProps> =
     }, [
       callSave,
       isDirty,
-      isFormDisabled,
+      isResetDisabled,
       isSaveDisabled,
       isUpdating,
       onFormSubmit,

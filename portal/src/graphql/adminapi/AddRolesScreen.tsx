@@ -1,6 +1,9 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import { useSimpleForm } from "../../hook/useSimpleForm";
-import { FormContainerBase } from "../../FormContainerBase";
+import {
+  FormContainerBase,
+  useFormContainerBaseContext,
+} from "../../FormContainerBase";
 import { RoleAndGroupsFormLayout } from "../../RoleAndGroupsFormLayout";
 import { BreadcrumbItem } from "../../NavBreadcrumb";
 import {
@@ -15,6 +18,7 @@ import { useCreateRoleMutation } from "./mutations/createRoleMutation";
 import { APIError } from "../../error/error";
 import { makeLocalValidationError } from "../../error/validation";
 import { sanitizeRole, validateRole } from "../../model/role";
+import { useNavigate } from "react-router-dom";
 
 interface FormState {
   roleKey: string;
@@ -30,8 +34,18 @@ const defaultState: FormState = {
 
 const AddRolesScreen: React.VFC = function AddRolesScreen() {
   const { renderToString } = useContext(MessageContext);
+  const navigate = useNavigate();
 
   const { createRole } = useCreateRoleMutation();
+
+  const afterSave = useCallback(() => {
+    // TODO(tung): Should navigate to the edit screen of the created role
+    navigate("..", { replace: true });
+  }, [navigate]);
+
+  const cancel = useCallback(() => {
+    navigate("..", { replace: true });
+  }, [navigate]);
 
   const validate = useCallback((rawState: FormState): APIError | null => {
     const errors = validateRole({
@@ -98,21 +112,10 @@ const AddRolesScreen: React.VFC = function AddRolesScreen() {
   }, [setFormState]);
 
   return (
-    <FormContainerBase form={form}>
+    <FormContainerBase form={form} afterSave={afterSave}>
       <RoleAndGroupsFormLayout
         breadcrumbs={breadcrumbs}
-        Footer={
-          <>
-            <PrimaryButton
-              type="submit"
-              text={<FormattedMessage id="create" />}
-            />
-            <DefaultButton
-              type="button"
-              text={<FormattedMessage id="cancel" />}
-            />
-          </>
-        }
+        Footer={<AddRolesScreenFooter onCancel={cancel} />}
       >
         <div>
           <FormTextField
@@ -160,3 +163,23 @@ const AddRolesScreen: React.VFC = function AddRolesScreen() {
 };
 
 export default AddRolesScreen;
+
+function AddRolesScreenFooter({ onCancel }: { onCancel: () => void }) {
+  const { canSave, isUpdating } = useFormContainerBaseContext();
+
+  return (
+    <>
+      <PrimaryButton
+        disabled={!canSave || isUpdating}
+        type="submit"
+        text={<FormattedMessage id="create" />}
+      />
+      <DefaultButton
+        disabled={isUpdating}
+        type="button"
+        onClick={onCancel}
+        text={<FormattedMessage id="cancel" />}
+      />
+    </>
+  );
+}

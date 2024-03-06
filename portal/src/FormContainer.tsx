@@ -42,14 +42,8 @@ const FormContainer_: React.VFC<FormContainerProps> = function FormContainer_(
     renderHeaderContent,
   } = props;
 
-  const {
-    isFormDisabled,
-    isSaveDisabled,
-    isUpdating,
-    onReset,
-    onSave,
-    onSubmit,
-  } = useFormContainerBaseContext();
+  const { canReset, canSave, isUpdating, onReset, onSave, onSubmit } =
+    useFormContainerBaseContext();
   const { themes } = useSystemConfig();
   const { renderToString } = useContext(Context);
 
@@ -73,7 +67,7 @@ const FormContainer_: React.VFC<FormContainerProps> = function FormContainer_(
         key: "save",
         text: renderToString(saveButtonProps.labelId),
         iconProps: { iconName: saveButtonProps.iconName },
-        disabled: isSaveDisabled,
+        disabled: !canSave,
         onClick: () => {
           onSave();
         },
@@ -88,7 +82,7 @@ const FormContainer_: React.VFC<FormContainerProps> = function FormContainer_(
     renderToString,
     saveButtonProps.labelId,
     saveButtonProps.iconName,
-    isSaveDisabled,
+    canSave,
     primaryItems,
     onSave,
   ]);
@@ -99,8 +93,8 @@ const FormContainer_: React.VFC<FormContainerProps> = function FormContainer_(
         key: "reset",
         text: renderToString("discard-changes"),
         iconProps: { iconName: "Refresh" },
-        disabled: isFormDisabled,
-        theme: isFormDisabled ? themes.main : themes.destructive,
+        disabled: !canReset,
+        theme: !canReset ? themes.main : themes.destructive,
         onClick: () => setIsResetDialogVisible(true),
       },
     ];
@@ -110,7 +104,7 @@ const FormContainer_: React.VFC<FormContainerProps> = function FormContainer_(
     return farItems;
   }, [
     renderToString,
-    isFormDisabled,
+    canReset,
     themes.main,
     themes.destructive,
     secondaryItems,
