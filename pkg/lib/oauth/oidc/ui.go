@@ -103,25 +103,23 @@ type UIInfoResolver struct {
 func (r *UIInfoResolver) SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string {
 	consentURL := r.EndpointsProvider.ConsentEndpointURL()
 
-	url, err := url.Parse(redirectURI)
+	u, err := url.Parse(redirectURI)
 	if err != nil {
 		panic(err)
 	}
 
-	// Not redirecting to the consent endpoint.
-	// Do not set anything.
-	if SameEndpoint(url, consentURL) {
+	// When redirectURI is consentURL, it will have client_id and redirect_uri in it,
+	// so we have to compare them WITHOUT query nor fragment.
+	// When we are not redirecting to consentURL, we do not set code.
+	equalWithoutQueryNorFragment := u.Scheme == consentURL.Scheme && u.Host == consentURL.Host && u.Path == consentURL.Path
+	if !equalWithoutQueryNorFragment {
 		return redirectURI
 	}
 
-	q := url.Query()
+	q := u.Query()
 	q.Set("code", e.ID)
-	url.RawQuery = q.Encode()
-	return url.String()
-}
-
-func SameEndpoint(urlA *url.URL, urlB *url.URL) bool {
-	return urlA.Scheme == urlB.Scheme && urlA.Host == urlB.Host && urlA.Path == urlB.Path
+	u.RawQuery = q.Encode()
+	return u.String()
 }
 
 func (r *UIInfoResolver) GetAuthenticationInfoID(req *http.Request) (string, bool) {
