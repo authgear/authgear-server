@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
-import FormContainer from "../../FormContainer";
 import { useSimpleForm } from "../../hook/useSimpleForm";
+import { FormContainerBase } from "../../FormContainerBase";
 
 interface FormState {}
 
@@ -16,7 +16,7 @@ const AddRolesScreen: React.VFC = function AddRolesScreen() {
     submit,
   });
 
-  return <FormContainer form={form} hideCommandBar={true}></FormContainer>;
+  return <FormContainerBase form={form}></FormContainerBase>;
 };
 
 export default AddRolesScreen;
