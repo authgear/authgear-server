@@ -176,6 +176,11 @@
   "RolesScreen.empty-state.button": "Create Role",
 
   "AddRolesScreen.title": "Create Role",
+  "AddRolesScreen.roleKey.title": "Role Key",
+  "AddRolesScreen.roleKey.description": "The Role Key will be included in the UserInfo and JWT token of the user. e.g. app_a_admin.",
+  "AddRolesScreen.roleName.title": "Name",
+  "AddRolesScreen.roleName.description": "A display name of this role in the portal.",
+  "AddRolesScreen.roleDescription.title": "Description",
 
   "UsersScreen.title": "Users",
   "UsersScreen.add-user": "Add User",
