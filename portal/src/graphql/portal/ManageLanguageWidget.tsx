@@ -36,7 +36,8 @@ interface ManageLanguageWidgetProps {
   className?: string;
 
   // The supported languages.
-  supportedLanguages: LanguageTag[];
+  supportedLanguagesForDropdown: LanguageTag[];
+  supportedLanguagesForEditing: LanguageTag[];
 
   // The selected language.
   selectedLanguage: LanguageTag;
@@ -293,7 +294,8 @@ const ManageLanguageWidget: React.VFC<ManageLanguageWidgetProps> =
   function ManageLanguageWidget(props: ManageLanguageWidgetProps) {
     const {
       className,
-      supportedLanguages,
+      supportedLanguagesForEditing,
+      supportedLanguagesForDropdown,
       selectedLanguage,
       onChangeSelectedLanguage,
       fallbackLanguage,
@@ -321,7 +323,7 @@ const ManageLanguageWidget: React.VFC<ManageLanguageWidgetProps> =
 
     const templateLocaleOptions = useMemo(() => {
       const options = [];
-      for (const locale of supportedLanguages) {
+      for (const locale of supportedLanguagesForDropdown) {
         options.push({
           key: locale,
           text: displayTemplateLocale(locale),
@@ -332,7 +334,11 @@ const ManageLanguageWidget: React.VFC<ManageLanguageWidgetProps> =
       }
 
       return options;
-    }, [supportedLanguages, displayTemplateLocale, fallbackLanguage]);
+    }, [
+      supportedLanguagesForDropdown,
+      displayTemplateLocale,
+      fallbackLanguage,
+    ]);
 
     const onChangeTemplateLocale = useCallback(
       (_e: unknown, option?: IDropdownOption) => {
@@ -383,7 +389,7 @@ const ManageLanguageWidget: React.VFC<ManageLanguageWidgetProps> =
         <ManageLanguageWidgetDialog
           presented={isDialogPresented}
           onDismiss={dismissDialog}
-          supportedLanguages={supportedLanguages}
+          supportedLanguages={supportedLanguagesForEditing}
           fallbackLanguage={fallbackLanguage}
           onChangeLanguages={onChangeLanguages}
         />

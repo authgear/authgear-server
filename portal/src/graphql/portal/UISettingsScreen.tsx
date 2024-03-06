@@ -191,13 +191,14 @@ interface FormModel {
 
 interface ResourcesConfigurationContentProps {
   form: FormModel;
-  supportedLanguages: LanguageTag[];
+  initialSupportedLanguages: string[];
 }
 
 const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProps> =
   function ResourcesConfigurationContent(props) {
+    const { initialSupportedLanguages } = props;
     const { state, setState } = props.form;
-    const { supportedLanguages } = props;
+    const { supportedLanguages } = state;
 
     const { renderToString } = useContext(Context);
 
@@ -665,7 +666,8 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             <FormattedMessage id="UISettingsScreen.title" />
           </ScreenTitle>
           <ManageLanguageWidget
-            supportedLanguages={supportedLanguages}
+            supportedLanguagesForDropdown={initialSupportedLanguages}
+            supportedLanguagesForEditing={supportedLanguages}
             selectedLanguage={state.selectedLanguage}
             fallbackLanguage={state.fallbackLanguage}
             onChangeSelectedLanguage={setSelectedLanguage}
@@ -984,7 +986,7 @@ const UISettingsScreen: React.VFC = function UISettingsScreen() {
     <FormContainer form={form} canSave={true} errorRules={errorRules}>
       <ResourcesConfigurationContent
         form={form}
-        supportedLanguages={config.state.supportedLanguages}
+        initialSupportedLanguages={initialSupportedLanguages}
       />
     </FormContainer>
   );

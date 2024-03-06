@@ -132,7 +132,7 @@ interface FormModel {
 
 interface ResourcesConfigurationContentProps {
   form: FormModel;
-  supportedLanguages: LanguageTag[];
+  initialSupportedLanguages: string[];
   passwordlessViaEmailEnabled: boolean;
   passwordlessViaSMSEnabled: boolean;
   passwordlessViaEmailOTPMode: AuthenticatorEmailOTPMode;
@@ -161,12 +161,13 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
   function ResourcesConfigurationContent(props) {
     const { state, setState } = props.form;
     const {
-      supportedLanguages,
+      initialSupportedLanguages,
       passwordlessViaEmailEnabled,
       passwordlessViaSMSEnabled,
       passwordlessViaEmailOTPMode,
       verificationEnabled,
     } = props;
+    const { supportedLanguages } = state;
     const { renderToString } = useContext(Context);
     const { gitCommitHash } = useSystemConfig();
 
@@ -773,7 +774,8 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             <FormattedMessage id="LocalizationConfigurationScreen.title" />
           </ScreenTitle>
           <ManageLanguageWidget
-            supportedLanguages={supportedLanguages}
+            supportedLanguagesForDropdown={initialSupportedLanguages}
+            supportedLanguagesForEditing={supportedLanguages}
             selectedLanguage={state.selectedLanguage}
             onChangeSelectedLanguage={setSelectedLanguage}
             fallbackLanguage={state.fallbackLanguage}
@@ -987,7 +989,7 @@ const LocalizationConfigurationScreen: React.VFC =
       <FormContainer form={form} canSave={true}>
         <ResourcesConfigurationContent
           form={form}
-          supportedLanguages={config.state.supportedLanguages}
+          initialSupportedLanguages={initialSupportedLanguages}
           passwordlessViaEmailEnabled={passwordlessViaEmailEnabled}
           passwordlessViaSMSEnabled={passwordlessViaSMSEnabled}
           passwordlessViaEmailOTPMode={passwordlessViaEmailOTPMode}
