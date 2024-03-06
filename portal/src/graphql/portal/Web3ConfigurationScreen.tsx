@@ -23,7 +23,7 @@ import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import ScreenDescription from "../../ScreenDescription";
 import Widget from "../../Widget";
-import FormContainer, { FormModel } from "../../FormContainer";
+import FormContainer from "../../FormContainer";
 
 import styles from "./Web3ConfigurationScreen.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
@@ -54,6 +54,7 @@ import { useProbeNFTCollectionMutation } from "./mutations/probeNFTCollectionMut
 import Web3ConfigurationTokenTrackingDialog from "./Web3ConfigurationTokenTrackingDialog";
 import { truncateAddress } from "../../util/hex";
 import Web3ConfigurationNetworkChangeDialog from "./Web3ConfigurationNetworkChangeDialog";
+import { FormModel } from "../../FormContainerBase";
 
 export interface CollectionItem extends NftCollection {
   status: "pending" | "active";
