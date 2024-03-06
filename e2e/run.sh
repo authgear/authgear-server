@@ -4,8 +4,7 @@
 
 function setup {
     echo "[ ] Starting services..."
-    # docker compose build --up
-    # docker compose build authgear
+    # docker compose build
     docker compose up -d
     sleep 5
 
@@ -24,12 +23,12 @@ function setup {
     fi
 
     echo "[ ] DB migration..."
-    docker-compose exec authgear bash -c "
+    docker compose exec authgear bash -c "
         authgear database migrate up
         authgear audit database migrate up
         authgear images database migrate up
     "
-    docker-compose exec portal bash -c "
+    docker compose exec portal bash -c "
         authgear-portal database migrate up
     "
 
@@ -37,7 +36,7 @@ function setup {
     [ -d ./fixtures ] && for f in ./fixtures/*; do
         if [ -d "$f" ]; then
             echo "[ ] Creating config source for $f..."
-            docker-compose exec portal bash -c "
+            docker compose exec portal bash -c "
                 authgear-portal internal configsource create $f \
                     --database-schema=\"$DATABASE_SCHEMA\" \
                     --database-url=\"$DATABASE_URL\"
