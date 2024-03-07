@@ -10,6 +10,106 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
+var RecordSchemaForIdentifierEmail *validation.SimpleSchema
+var RecordSchemaForIdentifierPhoneNumber *validation.SimpleSchema
+var RecordSchemaForIdentifierPreferredUsername *validation.SimpleSchema
+
+func init() {
+	nullString := validation.SchemaBuilder{}.
+		Types(validation.TypeString, validation.TypeNull)
+	str := validation.SchemaBuilder{}.
+		Type(validation.TypeString)
+
+	makeBase := func() validation.SchemaBuilder {
+		boolean := validation.SchemaBuilder{}.
+			Type(validation.TypeBoolean)
+
+		nullObject := validation.SchemaBuilder{}.
+			Types(validation.TypeObject, validation.TypeNull)
+
+		customAttributes := validation.SchemaBuilder{}.
+			Type(validation.TypeObject)
+
+		rolesOrGroups := validation.SchemaBuilder{}.
+			Type(validation.TypeArray).
+			Items(str)
+
+		password := validation.SchemaBuilder{}.
+			Type(validation.TypeObject).
+			Required("type", "password_hash")
+		password.Properties().
+			Property("type", validation.SchemaBuilder{}.Type(validation.TypeString).Enum("bcrypt")).
+			Property("password_hash", str)
+
+		totp := validation.SchemaBuilder{}.
+			Type(validation.TypeObject).
+			Required("secret")
+		totp.Properties().
+			Property("secret", str)
+
+		mfa := validation.SchemaBuilder{}.
+			Type(validation.TypeObject)
+		mfa.Properties().
+			Property("email", nullString).
+			Property("phone_number", nullString).
+			Property("password", password).
+			Property("totp", totp)
+
+		baseSchema := validation.SchemaBuilder{}.
+			Type(validation.TypeObject).
+			AdditionalPropertiesFalse()
+
+		baseSchema.Properties().
+			Property("disabled", boolean).
+			Property("email_verified", boolean).
+			Property("phone_number_verified", boolean).
+			Property("name", nullString).
+			Property("given_name", nullString).
+			Property("family_name", nullString).
+			Property("middle_name", nullString).
+			Property("nickname", nullString).
+			Property("profile", nullString).
+			Property("picture", nullString).
+			Property("website", nullString).
+			Property("gender", nullString).
+			Property("birthdate", nullString).
+			Property("zoneinfo", nullString).
+			Property("locale", nullString).
+			Property("address", nullObject).
+			Property("custom_attributes", customAttributes).
+			Property("roles", rolesOrGroups).
+			Property("groups", rolesOrGroups).
+			Property("password", password).
+			Property("mfa", mfa)
+
+		return baseSchema
+	}
+
+	email := makeBase().
+		Required("email")
+	email.Properties().
+		Property("email", str).
+		Property("phone_number", nullString).
+		Property("preferred_username", nullString)
+	RecordSchemaForIdentifierEmail = email.ToSimpleSchema()
+
+	phoneNumber := makeBase().
+		Required("phone_number")
+	phoneNumber.Properties().
+		Property("phone_number", str).
+		Property("email", nullString).
+		Property("preferred_username", nullString)
+	RecordSchemaForIdentifierPhoneNumber = phoneNumber.ToSimpleSchema()
+
+	preferredUsername := makeBase().
+		Required("preferred_username")
+	preferredUsername.Properties().
+		Property("preferred_username", str).
+		Property("email", nullString).
+		Property("phone_number", nullString)
+	RecordSchemaForIdentifierPreferredUsername = preferredUsername.ToSimpleSchema()
+}
+
 var standardAttributeKeys []string = []string{
 	"preferred_username",
 	"email",
@@ -205,84 +305,6 @@ func (m Record) MFA() (map[string]interface{}, bool) {
 	return mapGetNonNullMap[Record, map[string]interface{}](m, "mfa")
 }
 
-var RecordSchema = validation.NewSimpleSchema(`
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"preferred_username": { "type": ["string", "null"] },
-		"email": { "type": ["string", "null"] },
-		"phone_number": { "type": ["string", "null"] },
-
-		"disabled": { "type": "boolean" },
-
-		"email_verified": { "type": "boolean" },
-		"phone_number_verified": { "type": "boolean" },
-
-		"name": { "type": ["string", "null"] },
-		"given_name": { "type": ["string", "null"] },
-		"family_name": { "type": ["string", "null"] },
-		"middle_name": { "type": ["string", "null"] },
-		"nickname": { "type": ["string", "null"] },
-		"profile": { "type": ["string", "null"] },
-		"picture": { "type": ["string", "null"] },
-		"website": { "type": ["string", "null"] },
-		"gender": { "type": ["string", "null"] },
-		"birthdate": { "type": ["string", "null"] },
-		"zoneinfo": { "type": ["string", "null"] },
-		"locale": { "type": ["string", "null"] },
-		"address": { "type": ["object", "null"] },
-
-		"custom_attributes": { "type": "object" },
-
-		"roles": { "type": "array", "items": { "type": "string" } },
-		"groups": { "type": "array", "items": { "type": "string" } },
-
-		"password": {
-			"type": "object",
-			"properties": {
-				"type": {
-					"type": "string",
-					"enum": ["bcrypt"]
-				},
-				"password_hash": {
-					"type": "string"
-				}
-			},
-			"required": ["type", "password_hash"]
-		},
-
-		"mfa": {
-			"type": "object",
-			"properties": {
-				"email": { "type": ["string", "null"] },
-				"phone_number": { "type": ["string", "null"] },
-				"password": {
-					"type": "object",
-					"properties": {
-						"type": {
-							"type": "string",
-							"enum": ["bcrypt"]
-						},
-						"password_hash": {
-							"type": "string"
-						}
-					},
-					"required": ["type", "password_hash"]
-				},
-				"totp": {
-					"type": "object",
-					"properties": {
-						"secret": { "type": "string" }
-					},
-					"required": ["secret"]
-				}
-			}
-		}
-	}
-}
-`)
-
 type Request struct {
 	Upsert     bool   `json:"upsert,omitempty"`
 	Identifier string `json:"identifier,omitempty"`
@@ -317,6 +339,19 @@ var RequestSchema = validation.NewSimpleSchema(`
 type Options struct {
 	Upsert     bool
 	Identifier string
+}
+
+func (o *Options) RecordSchema() *validation.SimpleSchema {
+	switch o.Identifier {
+	case IdentifierEmail:
+		return RecordSchemaForIdentifierEmail
+	case IdentifierPhoneNumber:
+		return RecordSchemaForIdentifierPhoneNumber
+	case IdentifierPreferredUsername:
+		return RecordSchemaForIdentifierPreferredUsername
+	default:
+		panic(fmt.Errorf("unknown identifier: %v", o.Identifier))
+	}
 }
 
 type Warning struct {

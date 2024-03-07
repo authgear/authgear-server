@@ -61,7 +61,8 @@ func (s *UserImportService) ImportRecords(ctx context.Context, request *Request)
 
 func (s *UserImportService) ImportRecord(ctx context.Context, options *Options, rawMessage json.RawMessage) (outcome Outcome, warnings []Warning, err error) {
 	var record Record
-	err = RecordSchema.Validator().ParseJSONRawMessage(rawMessage, &record)
+
+	err = options.RecordSchema().Validator().ParseJSONRawMessage(rawMessage, &record)
 	if err != nil {
 		return
 	}

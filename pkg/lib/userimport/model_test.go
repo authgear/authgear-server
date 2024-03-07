@@ -601,8 +601,7 @@ func TestMFA(t *testing.T) {
 }
 
 func TestRecordSchema(t *testing.T) {
-	Convey("Record JSON Schema", t, func() {
-		recordString := `
+	recordString := `
 {
 	"preferred_username": "johndoe",
 	"email": "johndoe@example.com",
@@ -660,51 +659,55 @@ func TestRecordSchema(t *testing.T) {
 }
 		`
 
+	Convey("Record JSON Schema for email", t, func() {
 		test := func(recordString string, errorString string) {
 			var record Record
 			r, _ := http.NewRequest("POST", "/", strings.NewReader(recordString))
 			r.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
 
-			err := httputil.BindJSONBody(r, w, RecordSchema.Validator(), &record)
+			err := httputil.BindJSONBody(r, w, RecordSchemaForIdentifierEmail.Validator(), &record)
 			if errorString == "" {
 				So(err, ShouldBeNil)
 			} else {
 				So(err, ShouldBeError, errorString)
 			}
 		}
-
 		test(recordString, "")
 
+		test(`{}`, `invalid request body:
+<root>: required
+  map[actual:<nil> expected:[email] missing:[email]]`)
+
 		allNulls := `
-{
-	"preferred_username": null,
-	"email": null,
-	"phone_number": null,
+		{
+			"email": "user@example.com",
 
-	"name": null,
-	"given_name": null,
-	"family_name": null,
-	"middle_name": null,
-	"nickname": null,
-	"profile": null,
-	"picture": null,
-	"website": null,
-	"gender": null,
-	"birthdate": null,
-	"zoneinfo": null,
-	"locale": null,
-	"address": null,
+				"name": null,
+				"given_name": null,
+				"family_name": null,
+				"middle_name": null,
+				"nickname": null,
+				"profile": null,
+				"picture": null,
+				"website": null,
+				"gender": null,
+				"birthdate": null,
+				"zoneinfo": null,
+				"locale": null,
+				"address": null,
 
-	"mfa": {
-		"email": null,
-		"phone_number": null
-	}
-}
-`
+				"mfa": {
+					"email": null,
+					"phone_number": null
+				}
+		}
+		`
 		test(allNulls, "")
 
 		test(`{
+			"email": "user@example.com",
+			"password": {},
 			"mfa": {
 				"password": {},
 				"totp": {}
@@ -713,6 +716,132 @@ func TestRecordSchema(t *testing.T) {
 /mfa/password: required
   map[actual:<nil> expected:[password_hash type] missing:[password_hash type]]
 /mfa/totp: required
-  map[actual:<nil> expected:[secret] missing:[secret]]`)
+  map[actual:<nil> expected:[secret] missing:[secret]]
+/password: required
+  map[actual:<nil> expected:[password_hash type] missing:[password_hash type]]`)
+	})
+
+	Convey("Record JSON Schema for phone_number", t, func() {
+		test := func(recordString string, errorString string) {
+			var record Record
+			r, _ := http.NewRequest("POST", "/", strings.NewReader(recordString))
+			r.Header.Set("Content-Type", "application/json")
+			w := httptest.NewRecorder()
+
+			err := httputil.BindJSONBody(r, w, RecordSchemaForIdentifierPhoneNumber.Validator(), &record)
+			if errorString == "" {
+				So(err, ShouldBeNil)
+			} else {
+				So(err, ShouldBeError, errorString)
+			}
+		}
+		test(recordString, "")
+
+		test(`{}`, `invalid request body:
+<root>: required
+  map[actual:<nil> expected:[phone_number] missing:[phone_number]]`)
+
+		allNulls := `
+		{
+			"phone_number": "+85298765432",
+
+				"name": null,
+				"given_name": null,
+				"family_name": null,
+				"middle_name": null,
+				"nickname": null,
+				"profile": null,
+				"picture": null,
+				"website": null,
+				"gender": null,
+				"birthdate": null,
+				"zoneinfo": null,
+				"locale": null,
+				"address": null,
+
+				"mfa": {
+					"email": null,
+					"phone_number": null
+				}
+		}
+		`
+		test(allNulls, "")
+
+		test(`{
+			"phone_number": "+85298765432",
+			"password": {},
+			"mfa": {
+				"password": {},
+				"totp": {}
+			}
+		}`, `invalid request body:
+/mfa/password: required
+  map[actual:<nil> expected:[password_hash type] missing:[password_hash type]]
+/mfa/totp: required
+  map[actual:<nil> expected:[secret] missing:[secret]]
+/password: required
+  map[actual:<nil> expected:[password_hash type] missing:[password_hash type]]`)
+	})
+
+	Convey("Record JSON Schema for preferred_username", t, func() {
+		test := func(recordString string, errorString string) {
+			var record Record
+			r, _ := http.NewRequest("POST", "/", strings.NewReader(recordString))
+			r.Header.Set("Content-Type", "application/json")
+			w := httptest.NewRecorder()
+
+			err := httputil.BindJSONBody(r, w, RecordSchemaForIdentifierPreferredUsername.Validator(), &record)
+			if errorString == "" {
+				So(err, ShouldBeNil)
+			} else {
+				So(err, ShouldBeError, errorString)
+			}
+		}
+		test(recordString, "")
+
+		test(`{}`, `invalid request body:
+<root>: required
+  map[actual:<nil> expected:[preferred_username] missing:[preferred_username]]`)
+
+		allNulls := `
+		{
+			"preferred_username": "johndoe",
+
+				"name": null,
+				"given_name": null,
+				"family_name": null,
+				"middle_name": null,
+				"nickname": null,
+				"profile": null,
+				"picture": null,
+				"website": null,
+				"gender": null,
+				"birthdate": null,
+				"zoneinfo": null,
+				"locale": null,
+				"address": null,
+
+				"mfa": {
+					"email": null,
+					"phone_number": null
+				}
+		}
+		`
+		test(allNulls, "")
+
+		test(`{
+			"preferred_username": "johndoe",
+			"password": {},
+			"mfa": {
+				"password": {},
+				"totp": {}
+			}
+		}`, `invalid request body:
+/mfa/password: required
+  map[actual:<nil> expected:[password_hash type] missing:[password_hash type]]
+/mfa/totp: required
+  map[actual:<nil> expected:[secret] missing:[secret]]
+/password: required
+  map[actual:<nil> expected:[password_hash type] missing:[password_hash type]]`)
 	})
 }
