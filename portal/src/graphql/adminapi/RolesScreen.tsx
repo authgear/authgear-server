@@ -15,6 +15,7 @@ import { FormattedMessage } from "@oursky/react-messageformat";
 import iconBadge from "../../images/badge.svg";
 import PrimaryButton from "../../PrimaryButton";
 import { useLocation } from "react-router-dom";
+import RolesList from "./RolesList";
 
 const pageSize = 10;
 
@@ -90,8 +91,14 @@ const RolesScreen: React.VFC = function RolesScreen() {
       {isEmpty ? (
         <RolesScreenEmptyState className={styles.widget} />
       ) : (
-        // TODO: implement list view
-        <RolesScreenEmptyState className={styles.widget} />
+        <RolesList
+          className={styles.widget}
+          isSearch={isSearch}
+          loading={loading}
+          offset={offset}
+          pageSize={pageSize}
+          roles={data?.roles ?? null}
+        />
       )}
     </ScreenContent>
   );

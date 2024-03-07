@@ -183,6 +183,12 @@
   "AddRolesScreen.roleName.description": "A display name of this role in the portal.",
   "AddRolesScreen.roleDescription.title": "Description",
 
+  "RolesList.column.name": "Name",
+  "RolesList.column.key": "Role Key",
+  "RolesList.column.description": "Description",
+  "RolesList.column.action": "Action",
+  "RolesList.delete-role": "Delete Role",
+
   "UsersScreen.title": "Users",
   "UsersScreen.add-user": "Add User",
   "UsersScreen.search.resultLimited": "Only showing top 10 results, please refine the search query if you can't find what you want.",
