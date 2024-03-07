@@ -225,7 +225,7 @@ const AppRoot: React.VFC = function AppRoot() {
                   }
                 />
                 <Route
-                  path="add-roles"
+                  path="add-role"
                   element={
                     <Suspense fallback={<ShowLoading />}>
                       <AddRolesScreen />
