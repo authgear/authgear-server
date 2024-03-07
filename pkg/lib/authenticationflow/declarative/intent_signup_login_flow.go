@@ -49,10 +49,6 @@ func (i *IntentSignupLoginFlow) CanReactTo(ctx context.Context, deps *authflow.D
 }
 
 func (i *IntentSignupLoginFlow) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
-	if deps.Config.Authentication.PublicSignupDisabled {
-		return nil, ErrNoPublicSignup
-	}
-
 	switch {
 	case len(flows.Nearest.Nodes) == 0:
 		return authflow.NewSubFlow(&IntentSignupLoginFlowSteps{
