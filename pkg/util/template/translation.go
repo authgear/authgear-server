@@ -81,18 +81,44 @@ func (t *translationJSON) ViewResources(resources []resource.ResourceFile, rawVi
 func (t *translationJSON) UpdateResource(_ context.Context, all []resource.ResourceFile, fileToUpdate *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
 	path := fileToUpdate.Location.Path
 
-	// Compute requestedLangTag
+	requestedLangTag, err := t.computeRequestedLangTag(path)
+	if err != nil {
+		return nil, err
+	}
+
+	defaultTranslationObj, err := t.getDefaultTranslationObj(all, fileToUpdate, requestedLangTag)
+	if err != nil {
+		return nil, err
+	}
+
+	var appTranslationData []byte
+	if data != nil {
+		appTranslationData, err = t.processAppTranslationData(data, defaultTranslationObj)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &resource.ResourceFile{
+		Location: fileToUpdate.Location,
+		Data:     appTranslationData,
+	}, nil
+}
+
+func (t *translationJSON) computeRequestedLangTag(path string) (string, error) {
 	matches := templateLanguageTagRegex.FindStringSubmatch(path)
 	if len(matches) < 2 {
-		return nil, resource.ErrResourceNotFound
+		return "", resource.ErrResourceNotFound
 	}
-	requestedLangTag := matches[1]
+	return matches[1], nil
+}
+
+func (t *translationJSON) getDefaultTranslationObj(all []resource.ResourceFile, fileToUpdate *resource.ResourceFile, requestedLangTag string) (map[string]string, error) {
+	defaultTranslationObj := make(map[string]string)
 
 	// View translation.json on all Fss but the app FS.
 	// That is, the default translation.json.
-	defaultTranslationObj := make(map[string]string)
 	for _, r := range all {
-		// Skip the app FS.
 		if r.Location.Fs.GetFsLevel() == fileToUpdate.Location.Fs.GetFsLevel() {
 			continue
 		}
@@ -117,7 +143,10 @@ func (t *translationJSON) UpdateResource(_ context.Context, all []resource.Resou
 			defaultTranslationObj[key] = value
 		}
 	}
+	return defaultTranslationObj, nil
+}
 
+func (t *translationJSON) processAppTranslationData(data []byte, defaultTranslationObj map[string]string) ([]byte, error) {
 	appTranslationRaw := make(map[string]interface{})
 	err := json.Unmarshal(data, &appTranslationRaw)
 	if err != nil {
@@ -144,18 +173,15 @@ func (t *translationJSON) UpdateResource(_ context.Context, all []resource.Resou
 
 	// If the translation is empty, delete the file instead.
 	if len(appTranslationObj) <= 0 {
-		data = nil
-	} else {
-		data, err = json.Marshal(appTranslationObj)
-		if err != nil {
-			return nil, err
-		}
+		return nil, nil
 	}
 
-	return &resource.ResourceFile{
-		Location: fileToUpdate.Location,
-		Data:     data,
-	}, nil
+	appTranslationData, err := json.Marshal(appTranslationObj)
+	if err != nil {
+		return nil, err
+	}
+
+	return appTranslationData, nil
 }
 
 func (t *translationJSON) viewValidateResource(resources []resource.ResourceFile, view resource.ValidateResourceView) (interface{}, error) {

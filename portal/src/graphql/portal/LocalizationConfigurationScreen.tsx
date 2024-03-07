@@ -17,6 +17,7 @@ import EditTemplatesWidget, {
 import { AuthenticatorEmailOTPMode, PortalAPIAppConfig } from "../../types";
 import {
   ALL_LANGUAGES_TEMPLATES,
+  DEFAULT_TEMPLATE_LOCALE,
   RESOURCE_AUTHENTICATE_PRIMARY_LOGIN_LINK_HTML,
   RESOURCE_AUTHENTICATE_PRIMARY_LOGIN_LINK_TXT,
   RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML,
@@ -131,7 +132,7 @@ interface FormModel {
 
 interface ResourcesConfigurationContentProps {
   form: FormModel;
-  supportedLanguages: LanguageTag[];
+  initialSupportedLanguages: string[];
   passwordlessViaEmailEnabled: boolean;
   passwordlessViaSMSEnabled: boolean;
   passwordlessViaEmailOTPMode: AuthenticatorEmailOTPMode;
@@ -160,12 +161,13 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
   function ResourcesConfigurationContent(props) {
     const { state, setState } = props.form;
     const {
-      supportedLanguages,
+      initialSupportedLanguages,
       passwordlessViaEmailEnabled,
       passwordlessViaSMSEnabled,
       passwordlessViaEmailOTPMode,
       verificationEnabled,
     } = props;
+    const { supportedLanguages } = state;
     const { renderToString } = useContext(Context);
     const { gitCommitHash } = useSystemConfig();
 
@@ -233,7 +235,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
         getValueFn: (
           resource: Resource | undefined
         ) => string | undefined | null
-      ) => {
+      ): string | undefined | null => {
         const specifier: ResourceSpecifier = {
           def,
           locale: selectedLanguage,
@@ -247,7 +249,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             locale: fallbackLanguage,
             extension: null,
           };
-          return getValueFn(resources[specifierId(specifier)]) ?? "";
+          return getValueFn(resources[specifierId(specifier)]);
         }
 
         return value;
@@ -257,12 +259,25 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
 
     const getValue = useCallback(
       (def: ResourceDefinition) => {
-        return getValueFromState(
+        const selectedValue = getValueFromState(
           state.resources,
           state.selectedLanguage,
           state.fallbackLanguage,
           def,
-          (res) => res?.nullableValue
+          (res) => res?.nullableValue ?? res?.effectiveData
+        );
+        if (selectedValue != null) {
+          return selectedValue;
+        }
+
+        return (
+          getValueFromState(
+            state.resources,
+            DEFAULT_TEMPLATE_LOCALE,
+            state.fallbackLanguage,
+            def,
+            (res) => res?.effectiveData
+          ) ?? ""
         );
       },
       [
@@ -309,13 +324,16 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
           (res) => res?.nullableValue
         );
         try {
-          const translationJSON = JSON.parse(translationJSONStr);
-          if (translationJSON[key] != null) {
-            return translationJSON[key];
+          if (translationJSONStr != null) {
+            const translationJSON = JSON.parse(translationJSONStr);
+            if (translationJSON[key] != null) {
+              return translationJSON[key];
+            }
           }
         } catch (_e: unknown) {
           // if failed to decode the translation.json, use the effective data
         }
+
         // fallback to the effective data
         const effTranslationJSONStr = getValueFromState(
           state.resources,
@@ -324,8 +342,33 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
           RESOURCE_TRANSLATION_JSON,
           (res) => res?.effectiveData
         );
-        const jsonValue = JSON.parse(effTranslationJSONStr);
-        return jsonValue[key] ?? "";
+        try {
+          if (effTranslationJSONStr != null) {
+            const translationJSON = JSON.parse(effTranslationJSONStr);
+            return translationJSON[key] ?? "";
+          }
+        } catch (_e: unknown) {
+          // if failed to decode the translation.json, use English.
+        }
+
+        // fallback to en
+        const enTranslationJSONStr = getValueFromState(
+          state.resources,
+          DEFAULT_TEMPLATE_LOCALE,
+          state.fallbackLanguage,
+          RESOURCE_TRANSLATION_JSON,
+          (res) => res?.effectiveData
+        );
+        try {
+          if (enTranslationJSONStr != null) {
+            const translationJSON = JSON.parse(enTranslationJSONStr);
+            return translationJSON[key] ?? "";
+          }
+        } catch (_e: unknown) {
+          // if failed to decode the translation.json, return empty string
+        }
+
+        return "";
       },
       [
         state.resources,
@@ -353,20 +396,25 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
               (res) => res?.nullableValue
             );
 
-            let resultTranslationJSON;
-            try {
-              const translationJSON = JSON.parse(translationJSONStr);
-              if (value) {
-                translationJSON[key] = value;
-              } else {
-                delete translationJSON[key];
-              }
-              resultTranslationJSON = JSON.stringify(translationJSON, null, 2);
-            } catch (error: unknown) {
-              // if failed to decode the translation.json, don't update it
-              console.error(error);
-              return prev;
+            // By default, create a new translation.json
+            let translationJSON: Record<string, string> = {};
+            // If translation.json exists, use it.
+            if (translationJSONStr != null) {
+              translationJSON = JSON.parse(translationJSONStr);
             }
+
+            // Update the value.
+            if (value) {
+              translationJSON[key] = value;
+            } else {
+              delete translationJSON[key];
+            }
+
+            const resultTranslationJSON = JSON.stringify(
+              translationJSON,
+              null,
+              2
+            );
 
             // get the translation JSON effective data, decode and alter
             const effTranslationJSONStr = getValueFromState(
@@ -376,12 +424,20 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
               RESOURCE_TRANSLATION_JSON,
               (res) => res?.effectiveData
             );
-            const effTranslationJSON = JSON.parse(effTranslationJSONStr);
+
+            // By default, create a new translation.json
+            let effTranslationJSON: Record<string, string> = {};
+            if (effTranslationJSONStr != null) {
+              effTranslationJSON = JSON.parse(effTranslationJSONStr);
+            }
+
+            // Update the value.
             if (value) {
               effTranslationJSON[key] = value;
             } else {
               delete effTranslationJSON[key];
             }
+
             const resultEffTranslationJSON = JSON.stringify(
               effTranslationJSON,
               null,
@@ -742,7 +798,8 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             <FormattedMessage id="LocalizationConfigurationScreen.title" />
           </ScreenTitle>
           <ManageLanguageWidget
-            supportedLanguages={supportedLanguages}
+            supportedLanguagesForDropdown={initialSupportedLanguages}
+            supportedLanguagesForEditing={supportedLanguages}
             selectedLanguage={state.selectedLanguage}
             onChangeSelectedLanguage={setSelectedLanguage}
             fallbackLanguage={state.fallbackLanguage}
@@ -873,7 +930,13 @@ const LocalizationConfigurationScreen: React.VFC =
 
     const specifiers = useMemo<ResourceSpecifier[]>(() => {
       const specifiers = [];
-      for (const locale of initialSupportedLanguages) {
+
+      const supportedLanguages = [...initialSupportedLanguages];
+      if (!supportedLanguages.includes(DEFAULT_TEMPLATE_LOCALE)) {
+        supportedLanguages.push(DEFAULT_TEMPLATE_LOCALE);
+      }
+
+      for (const locale of supportedLanguages) {
         for (const def of ALL_LANGUAGES_TEMPLATES) {
           specifiers.push({
             def,
@@ -950,7 +1013,7 @@ const LocalizationConfigurationScreen: React.VFC =
       <FormContainer form={form} canSave={true}>
         <ResourcesConfigurationContent
           form={form}
-          supportedLanguages={config.state.supportedLanguages}
+          initialSupportedLanguages={initialSupportedLanguages}
           passwordlessViaEmailEnabled={passwordlessViaEmailEnabled}
           passwordlessViaSMSEnabled={passwordlessViaSMSEnabled}
           passwordlessViaEmailOTPMode={passwordlessViaEmailOTPMode}
