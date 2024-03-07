@@ -66,6 +66,7 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
       fieldName: "name",
       name: renderToString("RolesList.column.name"),
       minWidth: 260,
+      maxWidth: 260,
       columnActionsMode: ColumnActionsMode.disabled,
     },
     {
@@ -73,6 +74,7 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
       fieldName: "key",
       name: renderToString("RolesList.column.key"),
       minWidth: 260,
+      maxWidth: 260,
       columnActionsMode: ColumnActionsMode.disabled,
     },
     {
@@ -87,6 +89,7 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
       fieldName: "action",
       name: renderToString("RolesList.column.action"),
       minWidth: 67,
+      maxWidth: 67,
       columnActionsMode: ColumnActionsMode.disabled,
     },
   ];
