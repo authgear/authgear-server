@@ -235,7 +235,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
         getValueFn: (
           resource: Resource | undefined
         ) => string | undefined | null
-      ) => {
+      ): string | undefined | null => {
         const specifier: ResourceSpecifier = {
           def,
           locale: selectedLanguage,
@@ -249,7 +249,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             locale: fallbackLanguage,
             extension: null,
           };
-          return getValueFn(resources[specifierId(specifier)]) ?? "";
+          return getValueFn(resources[specifierId(specifier)]);
         }
 
         return value;
@@ -266,16 +266,18 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
           def,
           (res) => res?.nullableValue ?? res?.effectiveData
         );
-        if (selectedValue) {
+        if (selectedValue != null) {
           return selectedValue;
         }
 
-        return getValueFromState(
-          state.resources,
-          DEFAULT_TEMPLATE_LOCALE,
-          state.fallbackLanguage,
-          def,
-          (res) => res?.effectiveData
+        return (
+          getValueFromState(
+            state.resources,
+            DEFAULT_TEMPLATE_LOCALE,
+            state.fallbackLanguage,
+            def,
+            (res) => res?.effectiveData
+          ) ?? ""
         );
       },
       [
@@ -322,13 +324,16 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
           (res) => res?.nullableValue
         );
         try {
-          const translationJSON = JSON.parse(translationJSONStr);
-          if (translationJSON[key] != null) {
-            return translationJSON[key];
+          if (translationJSONStr != null) {
+            const translationJSON = JSON.parse(translationJSONStr);
+            if (translationJSON[key] != null) {
+              return translationJSON[key];
+            }
           }
         } catch (_e: unknown) {
           // if failed to decode the translation.json, use the effective data
         }
+
         // fallback to the effective data
         const effTranslationJSONStr = getValueFromState(
           state.resources,
@@ -338,11 +343,14 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
           (res) => res?.effectiveData
         );
         try {
-          const translationJSON = JSON.parse(effTranslationJSONStr);
-          return translationJSON[key] ?? "";
+          if (effTranslationJSONStr != null) {
+            const translationJSON = JSON.parse(effTranslationJSONStr);
+            return translationJSON[key] ?? "";
+          }
         } catch (_e: unknown) {
-          // if failed to decode the translation.json, use the effective data
+          // if failed to decode the translation.json, use English.
         }
+
         // fallback to en
         const enTranslationJSONStr = getValueFromState(
           state.resources,
@@ -352,11 +360,14 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
           (res) => res?.effectiveData
         );
         try {
-          const translationJSON = JSON.parse(enTranslationJSONStr);
-          return translationJSON[key] ?? "";
+          if (enTranslationJSONStr != null) {
+            const translationJSON = JSON.parse(enTranslationJSONStr);
+            return translationJSON[key] ?? "";
+          }
         } catch (_e: unknown) {
           // if failed to decode the translation.json, return empty string
         }
+
         return "";
       },
       [
@@ -385,20 +396,25 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
               (res) => res?.nullableValue
             );
 
-            let resultTranslationJSON;
-            try {
-              const translationJSON = JSON.parse(translationJSONStr);
-              if (value) {
-                translationJSON[key] = value;
-              } else {
-                delete translationJSON[key];
-              }
-              resultTranslationJSON = JSON.stringify(translationJSON, null, 2);
-            } catch (error: unknown) {
-              // if failed to decode the translation.json, don't update it
-              console.error(error);
-              return prev;
+            // By default, create a new translation.json
+            let translationJSON: Record<string, string> = {};
+            // If translation.json exists, use it.
+            if (translationJSONStr != null) {
+              translationJSON = JSON.parse(translationJSONStr);
             }
+
+            // Update the value.
+            if (value) {
+              translationJSON[key] = value;
+            } else {
+              delete translationJSON[key];
+            }
+
+            const resultTranslationJSON = JSON.stringify(
+              translationJSON,
+              null,
+              2
+            );
 
             // get the translation JSON effective data, decode and alter
             const effTranslationJSONStr = getValueFromState(
@@ -408,12 +424,20 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
               RESOURCE_TRANSLATION_JSON,
               (res) => res?.effectiveData
             );
-            const effTranslationJSON = JSON.parse(effTranslationJSONStr);
+
+            // By default, create a new translation.json
+            let effTranslationJSON: Record<string, string> = {};
+            if (effTranslationJSONStr != null) {
+              effTranslationJSON = JSON.parse(effTranslationJSONStr);
+            }
+
+            // Update the value.
             if (value) {
               effTranslationJSON[key] = value;
             } else {
               delete effTranslationJSON[key];
             }
+
             const resultEffTranslationJSON = JSON.stringify(
               effTranslationJSON,
               null,
