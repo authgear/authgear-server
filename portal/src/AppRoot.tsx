@@ -13,6 +13,9 @@ const RolesScreen = lazy(async () => import("./graphql/adminapi/RolesScreen"));
 const AddRolesScreen = lazy(
   async () => import("./graphql/adminapi/AddRolesScreen")
 );
+const RoleDetailsScreen = lazy(
+  async () => import("./graphql/adminapi/RoleDetailsScreen")
+);
 const GroupsScreen = lazy(
   async () => import("./graphql/adminapi/GroupsScreen")
 );
@@ -232,6 +235,22 @@ const AppRoot: React.VFC = function AppRoot() {
                     </Suspense>
                   }
                 />
+                <Route path=":roleID">
+                  <Route
+                    index={true}
+                    element={<Navigate to="details" replace={true} />}
+                  />
+                  <Route path="details">
+                    <Route
+                      index={true}
+                      element={
+                        <Suspense fallback={<ShowLoading />}>
+                          <RoleDetailsScreen />
+                        </Suspense>
+                      }
+                    />
+                  </Route>
+                </Route>
               </Route>
 
               <Route path="groups">
