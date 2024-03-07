@@ -108,7 +108,7 @@ func (r *UIInfoResolver) SetAuthenticationInfoInQuery(redirectURI string, e *aut
 		panic(err)
 	}
 
-	// When redirectURI is consentURL, it will have client_id and redirect_uri in it,
+	// When redirectURI is consentURL, it will have client_id, redirect_uri, state in it,
 	// so we have to compare them WITHOUT query nor fragment.
 	// When we are not redirecting to consentURL, we do not set code.
 	equalWithoutQueryNorFragment := u.Scheme == consentURL.Scheme && u.Host == consentURL.Host && u.Path == consentURL.Path
@@ -192,10 +192,13 @@ func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
 ) (*UIInfo, *UIInfoByProduct, error) {
 	redirectURI := r.EndpointsProvider.ConsentEndpointURL()
 
-	// Add client_id and redirect_uri to URL as hint when oauth session expires / not found
+	// Add client_id, redirect_uri, state to URL as hint when oauth session expires / not found
 	q := redirectURI.Query()
 	q.Add("client_id", req.ClientID())
 	q.Add("redirect_uri", req.RedirectURI())
+	if state := req.State(); state != "" {
+		q.Add("state", state)
+	}
 	redirectURI.RawQuery = q.Encode()
 
 	idToken, sidSession, err := r.IDTokenHintResolver.ResolveIDTokenHint(client, req)

@@ -670,6 +670,11 @@ func (h *AuthorizationHandler) prepareConsentErrInvalidOAuthResponse(req *http.R
 		Response: oauthError.Response,
 	}
 
+	state := req.URL.Query().Get("state")
+	if state != "" {
+		resultErr.Response.State(state)
+	}
+
 	client := h.ClientResolver.ResolveClient(req.URL.Query().Get("client_id"))
 
 	// Only redirect if oauth session is expired / not found
