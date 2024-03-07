@@ -25,6 +25,7 @@ import { RoleAndGroupsFormContainer } from "./RoleAndGroupsFormContainer";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import { useUpdateRoleMutation } from "./mutations/updateRoleMutation";
 
 interface FormState {
   roleKey: string;
@@ -130,6 +131,8 @@ function RoleDetailsScreenSettingsFormContainer({
 }: {
   role: RoleQueryNodeFragment;
 }) {
+  const { updateRole } = useUpdateRoleMutation();
+
   const validate = useCallback((rawState: FormState): APIError | null => {
     const [_, errors] = validateRole({
       key: rawState.roleKey,
@@ -142,17 +145,25 @@ function RoleDetailsScreenSettingsFormContainer({
     return null;
   }, []);
 
-  const submit = useCallback(async (rawState: FormState) => {
-    const [_, errors] = validateRole({
-      key: rawState.roleKey,
-      name: rawState.roleName,
-      description: rawState.roleDescription,
-    });
-    if (errors.length > 0) {
-      throw new Error("unexpected validation errors");
-    }
-    // TODO: Call api
-  }, []);
+  const submit = useCallback(
+    async (rawState: FormState) => {
+      const [sanitizedRole, errors] = validateRole({
+        key: rawState.roleKey,
+        name: rawState.roleName,
+        description: rawState.roleDescription,
+      });
+      if (errors.length > 0) {
+        throw new Error("unexpected validation errors");
+      }
+      await updateRole({
+        id: role.id,
+        key: sanitizedRole.key,
+        name: sanitizedRole.name,
+        description: sanitizedRole.description,
+      });
+    },
+    [role.id, updateRole]
+  );
 
   const defaultState = useMemo((): FormState => {
     return {
@@ -163,8 +174,7 @@ function RoleDetailsScreenSettingsFormContainer({
   }, [role]);
 
   const form = useSimpleForm({
-    stateMode:
-      "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
+    stateMode: "UpdateInitialStateWithUseEffect",
     defaultState,
     submit,
     validate,
@@ -177,24 +187,26 @@ function RoleDetailsScreenSettingsFormContainer({
   );
 }
 
-const RoleDetailsScreenLoaded: React.VFC<{ role: RoleQueryNodeFragment }> =
-  function RoleDetailsScreenLoaded({ role }) {
-    const breadcrumbs = useMemo<BreadcrumbItem[]>(() => {
-      return [
-        {
-          to: "~/user-management/roles",
-          label: <FormattedMessage id="RolesScreen.title" />,
-        },
-        { to: ".", label: role.name ?? role.key },
-      ];
-    }, [role]);
+const RoleDetailsScreenLoaded: React.VFC<{
+  role: RoleQueryNodeFragment;
+  reload: ReturnType<typeof useRoleQuery>["refetch"];
+}> = function RoleDetailsScreenLoaded({ role }) {
+  const breadcrumbs = useMemo<BreadcrumbItem[]>(() => {
+    return [
+      {
+        to: "~/user-management/roles",
+        label: <FormattedMessage id="RolesScreen.title" />,
+      },
+      { to: ".", label: role.name ?? role.key },
+    ];
+  }, [role]);
 
-    return (
-      <RoleAndGroupsLayout breadcrumbs={breadcrumbs}>
-        <RoleDetailsScreenSettingsFormContainer role={role} />
-      </RoleAndGroupsLayout>
-    );
-  };
+  return (
+    <RoleAndGroupsLayout breadcrumbs={breadcrumbs}>
+      <RoleDetailsScreenSettingsFormContainer role={role} />
+    </RoleAndGroupsLayout>
+  );
+};
 
 const RoleDetailsScreen: React.VFC = function RoleDetailsScreen() {
   const { roleID } = useParams() as { roleID: string };
@@ -212,7 +224,7 @@ const RoleDetailsScreen: React.VFC = function RoleDetailsScreen() {
     return <ShowLoading />;
   }
 
-  return <RoleDetailsScreenLoaded role={role} />;
+  return <RoleDetailsScreenLoaded role={role} reload={refetch} />;
 };
 
 export default RoleDetailsScreen;

@@ -63,11 +63,11 @@ const AddRolesScreen: React.VFC = function AddRolesScreen() {
       if (errors.length > 0) {
         throw new Error("unexpected validation errors");
       }
-      return createRole(
-        sanitizedRole.key,
-        sanitizedRole.name,
-        sanitizedRole.description
-      );
+      return createRole({
+        key: sanitizedRole.key,
+        name: sanitizedRole.name,
+        description: sanitizedRole.description,
+      });
     },
     [createRole]
   );
