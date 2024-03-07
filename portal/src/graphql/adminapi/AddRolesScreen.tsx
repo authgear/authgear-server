@@ -1,10 +1,11 @@
 import React, { useCallback, useContext, useEffect, useMemo } from "react";
-import { useSimpleForm } from "../../hook/useSimpleForm";
+import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
 import {
-  FormContainerBase,
-  useFormContainerBaseContext,
-} from "../../FormContainerBase";
-import { RoleAndGroupsFormLayout } from "../../RoleAndGroupsFormLayout";
+  RoleAndGroupsFormFooter,
+  RoleAndGroupsLayout,
+  RoleAndGroupsVeriticalFormLayout,
+} from "../../RoleAndGroupsLayout";
 import { BreadcrumbItem } from "../../NavBreadcrumb";
 import {
   Context as MessageContext,
@@ -17,8 +18,11 @@ import DefaultButton from "../../DefaultButton";
 import { useCreateRoleMutation } from "./mutations/createRoleMutation";
 import { APIError } from "../../error/error";
 import { makeLocalValidationError } from "../../error/validation";
-import { sanitizeRole, validateRole } from "../../model/role";
+import { validateRole } from "../../model/role";
 import { useNavigate } from "react-router-dom";
+import { useErrorMessageBarContext } from "../../ErrorMessageBar";
+import { useFormTopErrors } from "../../form";
+import { RoleAndGroupsFormContainer } from "./RoleAndGroupsFormContainer";
 
 interface FormState {
   roleKey: string;
@@ -33,17 +37,12 @@ const defaultState: FormState = {
 };
 
 const AddRolesScreen: React.VFC = function AddRolesScreen() {
-  const { renderToString } = useContext(MessageContext);
   const navigate = useNavigate();
 
   const { createRole } = useCreateRoleMutation();
 
-  const cancel = useCallback(() => {
-    navigate("..", { replace: true });
-  }, [navigate]);
-
   const validate = useCallback((rawState: FormState): APIError | null => {
-    const errors = validateRole({
+    const [_, errors] = validateRole({
       key: rawState.roleKey,
       name: rawState.roleName,
       description: rawState.roleDescription,
@@ -56,11 +55,14 @@ const AddRolesScreen: React.VFC = function AddRolesScreen() {
 
   const submit = useCallback(
     async (rawState: FormState) => {
-      const sanitizedRole = sanitizeRole({
+      const [sanitizedRole, errors] = validateRole({
         key: rawState.roleKey,
         name: rawState.roleName,
         description: rawState.roleDescription,
       });
+      if (errors.length > 0) {
+        throw new Error("unexpected validation errors");
+      }
       return createRole(
         sanitizedRole.key,
         sanitizedRole.name,
@@ -78,8 +80,6 @@ const AddRolesScreen: React.VFC = function AddRolesScreen() {
     validate,
   });
 
-  const { state: formState, setState: setFormState } = form;
-
   const breadcrumbs = useMemo<BreadcrumbItem[]>(() => {
     return [
       {
@@ -89,6 +89,40 @@ const AddRolesScreen: React.VFC = function AddRolesScreen() {
       { to: ".", label: <FormattedMessage id="AddRolesScreen.title" /> },
     ];
   }, []);
+
+  useEffect(() => {
+    if (form.submissionResult != null) {
+      const roleID = form.submissionResult;
+      navigate(`../${encodeURIComponent(roleID)}/details`, { replace: true });
+    }
+  }, [form.submissionResult, navigate]);
+
+  return (
+    <RoleAndGroupsLayout breadcrumbs={breadcrumbs}>
+      <RoleAndGroupsFormContainer form={form}>
+        <AddRolesScreenForm />
+      </RoleAndGroupsFormContainer>
+    </RoleAndGroupsLayout>
+  );
+};
+
+function AddRolesScreenForm() {
+  const {
+    form: { state: formState, setState: setFormState },
+    canSave,
+    isUpdating,
+  } = useFormContainerBaseContext<SimpleFormModel<FormState, string | null>>();
+  const navigate = useNavigate();
+
+  const errors = useFormTopErrors();
+  const { setErrors } = useErrorMessageBarContext();
+  useEffect(() => {
+    setErrors(errors);
+  }, [errors, setErrors]);
+
+  const cancel = useCallback(() => {
+    navigate("..", { replace: true });
+  }, [navigate]);
 
   const onFormStateChangeCallbacks = useMemo(() => {
     const createCallback = (key: keyof FormState) => {
@@ -106,19 +140,11 @@ const AddRolesScreen: React.VFC = function AddRolesScreen() {
     };
   }, [setFormState]);
 
-  useEffect(() => {
-    if (form.submissionResult != null) {
-      const roleID = form.submissionResult;
-      navigate(`../${encodeURIComponent(roleID)}/details`, { replace: true });
-    }
-  }, [form.submissionResult, navigate]);
+  const { renderToString } = useContext(MessageContext);
 
   return (
-    <FormContainerBase form={form}>
-      <RoleAndGroupsFormLayout
-        breadcrumbs={breadcrumbs}
-        Footer={<AddRolesScreenFooter onCancel={cancel} />}
-      >
+    <div>
+      <RoleAndGroupsVeriticalFormLayout>
         <div>
           <FormTextField
             required={true}
@@ -159,29 +185,22 @@ const AddRolesScreen: React.VFC = function AddRolesScreen() {
           value={formState.roleDescription}
           onChange={onFormStateChangeCallbacks.roleDescription}
         />
-      </RoleAndGroupsFormLayout>
-    </FormContainerBase>
-  );
-};
-
-export default AddRolesScreen;
-
-function AddRolesScreenFooter({ onCancel }: { onCancel: () => void }) {
-  const { canSave, isUpdating } = useFormContainerBaseContext();
-
-  return (
-    <>
-      <PrimaryButton
-        disabled={!canSave || isUpdating}
-        type="submit"
-        text={<FormattedMessage id="create" />}
-      />
-      <DefaultButton
-        disabled={isUpdating}
-        type="button"
-        onClick={onCancel}
-        text={<FormattedMessage id="cancel" />}
-      />
-    </>
+      </RoleAndGroupsVeriticalFormLayout>
+      <RoleAndGroupsFormFooter className="mt-12">
+        <PrimaryButton
+          disabled={!canSave || isUpdating}
+          type="submit"
+          text={<FormattedMessage id="create" />}
+        />
+        <DefaultButton
+          disabled={isUpdating}
+          type="button"
+          onClick={cancel}
+          text={<FormattedMessage id="cancel" />}
+        />
+      </RoleAndGroupsFormFooter>
+    </div>
   );
 }
+
+export default AddRolesScreen;

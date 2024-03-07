@@ -13,8 +13,8 @@ export interface FormModel {
   save: (ignoreConflict?: boolean) => Promise<void>;
 }
 
-export interface FormContainerBaseProps {
-  form: FormModel;
+export interface FormContainerBaseProps<Form = FormModel> {
+  form: Form;
   canSave?: boolean;
   localError?: unknown;
   errorRules?: ErrorParseRule[];
@@ -24,7 +24,8 @@ export interface FormContainerBaseProps {
   children?: React.ReactNode;
 }
 
-export interface FormContainerBaseValues {
+export interface FormContainerBaseValues<Form = FormModel> {
+  form: Form;
   canReset: boolean;
   canSave: boolean;
   isUpdating: boolean;
@@ -39,17 +40,17 @@ const FormContainerBaseContext = createContext<
 >(undefined);
 
 export const FormContainerBase: React.VFC<FormContainerBaseProps> =
-  function FormContainerBase(props) {
-    const { updateError, isDirty, isUpdating, reset, save } = props.form;
-    const {
-      children,
-      canSave: propCanSave = true,
-      localError,
-      errorRules,
-      fallbackErrorMessageID,
-      beforeSave = async () => Promise.resolve(),
-      afterSave,
-    } = props;
+  function FormContainerBase({
+    form,
+    children,
+    canSave: propCanSave = true,
+    localError,
+    errorRules,
+    fallbackErrorMessageID,
+    beforeSave = async () => Promise.resolve(),
+    afterSave,
+  }) {
+    const { updateError, isDirty, isUpdating, reset, save } = form;
 
     const contextError = useConsumeError();
 
@@ -85,6 +86,7 @@ export const FormContainerBase: React.VFC<FormContainerBaseProps> =
 
     const value = useMemo<FormContainerBaseValues>(() => {
       return {
+        form,
         canReset: !isResetDisabled,
         canSave: !isSaveDisabled,
         isUpdating,
@@ -94,6 +96,7 @@ export const FormContainerBase: React.VFC<FormContainerBaseProps> =
         onSubmit: onFormSubmit,
       };
     }, [
+      form,
       callSave,
       isDirty,
       isResetDisabled,
@@ -122,10 +125,12 @@ export const FormContainerBase: React.VFC<FormContainerBaseProps> =
     );
   };
 
-export function useFormContainerBaseContext(): FormContainerBaseValues {
+export function useFormContainerBaseContext<
+  Form = FormModel
+>(): FormContainerBaseValues<Form> {
   const ctx = useContext(FormContainerBaseContext);
   if (ctx === undefined) {
     throw new Error("FormContainerBaseContext is not provided");
   }
-  return ctx;
+  return ctx as FormContainerBaseValues<Form>;
 }
