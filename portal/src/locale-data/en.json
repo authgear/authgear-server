@@ -175,6 +175,7 @@
   "RolesScreen.empty-state.title": "You don't have any roles yet.",
   "RolesScreen.empty-state.subtitle": "Create roles to represent the types of users that access your applications.",
   "RolesScreen.empty-state.button": "Create Role",
+  "RolesScreen.empty.search": "No results matched your search.",
 
   "AddRolesScreen.title": "Create Role",
   "AddRolesScreen.roleKey.title": "Role Key",

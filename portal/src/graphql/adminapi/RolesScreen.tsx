@@ -22,8 +22,10 @@ import iconBadge from "../../images/badge.svg";
 import PrimaryButton from "../../PrimaryButton";
 import { useLocation } from "react-router-dom";
 import RolesList from "./RolesList";
+import useDelayedValue from "../../hook/useDelayedValue";
 
 const pageSize = 10;
+const searchResultSize = -1;
 
 interface LocalSearchBoxProps {
   className?: ISearchBoxProps["className"];
@@ -87,6 +89,7 @@ const RolesScreen: React.VFC = function RolesScreen() {
   const [searchKeyword, setSearchKeyword] = useState("");
 
   const isSearch = searchKeyword !== "";
+  const debouncedSearchKey = useDelayedValue(searchKeyword, 500);
 
   const [offset, setOffset] = useState(0);
   // after: is exclusive so if we pass it "offset:0",
@@ -141,8 +144,8 @@ const RolesScreen: React.VFC = function RolesScreen() {
     RolesListQueryQueryVariables
   >(RolesListQueryDocument, {
     variables: {
-      searchKeyword,
-      pageSize,
+      pageSize: isSearch ? searchResultSize : pageSize,
+      searchKeyword: debouncedSearchKey,
       cursor,
     },
     fetchPolicy: "network-only",
@@ -169,7 +172,7 @@ const RolesScreen: React.VFC = function RolesScreen() {
         {isEmpty ? (
           isSearch ? (
             <MessageBar className={cn(styles.widget, styles.message)}>
-              <FormattedMessage id="UsersList.empty.search" />
+              <FormattedMessage id="RolesScreen.empty.search" />
             </MessageBar>
           ) : (
             <RolesScreenEmptyState className={styles.widget} />
