@@ -90,7 +90,8 @@ const RolesScreen: React.VFC = function RolesScreen() {
       {isEmpty ? (
         <RolesScreenEmptyState className={styles.widget} />
       ) : (
-        "TODO: list view"
+        // TODO: implement list view
+        <RolesScreenEmptyState className={styles.widget} />
       )}
     </ScreenContent>
   );
