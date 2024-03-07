@@ -35,3 +35,14 @@
 .emptyStateButton {
   @apply mt-8;
 }
+
+.searchBox {
+  align-self: center;
+  width: 300px;
+
+  @apply mobile:w-auto;
+}
+
+.message {
+  @apply mt-5;
+}

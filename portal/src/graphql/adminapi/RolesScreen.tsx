@@ -1,7 +1,13 @@
 import { useQuery } from "@apollo/client";
-import React, { useMemo, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 import cn from "classnames";
-import { Text } from "@fluentui/react";
+import { Text, ISearchBoxProps, SearchBox, MessageBar } from "@fluentui/react";
 import {
   RolesListQueryDocument,
   RolesListQueryQuery,
@@ -11,13 +17,31 @@ import styles from "./RolesScreen.module.css";
 import { encodeOffsetToCursor } from "../../util/pagination";
 import ScreenContent from "../../ScreenContent";
 import NavBreadcrumb from "../../NavBreadcrumb";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import iconBadge from "../../images/badge.svg";
 import PrimaryButton from "../../PrimaryButton";
 import { useLocation } from "react-router-dom";
 import RolesList from "./RolesList";
 
 const pageSize = 10;
+
+interface LocalSearchBoxProps {
+  className?: ISearchBoxProps["className"];
+  placeholder?: ISearchBoxProps["placeholder"];
+  value?: ISearchBoxProps["value"];
+  onChange?: ISearchBoxProps["onChange"];
+  onClear?: ISearchBoxProps["onClear"];
+}
+
+const LocalSearchBoxContext = createContext<LocalSearchBoxProps | null>(null);
+
+function LocalSearchBox() {
+  const value = useContext(LocalSearchBoxContext);
+  if (value == null) {
+    return null;
+  }
+  return <SearchBox {...value} />;
+}
 
 interface RolesScreenEmptyStateProps {
   className?: string;
@@ -47,11 +71,12 @@ const RolesScreenEmptyState: React.VFC<RolesScreenEmptyStateProps> =
   };
 
 const RolesScreen: React.VFC = function RolesScreen() {
-  const [searchKeyword, _setSearchKeyword] = useState("");
+  const { renderToString } = useContext(Context);
+  const [searchKeyword, setSearchKeyword] = useState("");
 
   const isSearch = searchKeyword !== "";
 
-  const [offset, _setOffset] = useState(0);
+  const [offset, setOffset] = useState(0);
   // after: is exclusive so if we pass it "offset:0",
   // The first item is excluded.
   // Therefore we have adjust it by -1.
@@ -65,7 +90,37 @@ const RolesScreen: React.VFC = function RolesScreen() {
     }
     return encodeOffsetToCursor(offset - 1);
   }, [isSearch, offset]);
-  const { data, loading } = useQuery<
+
+  const onChangeSearchKeyword = useCallback((_e, value) => {
+    if (value != null) {
+      setSearchKeyword(value);
+      // Reset offset when search keyword was changed.
+      setOffset(0);
+    }
+  }, []);
+
+  const onClearSearchKeyword = useCallback((_e) => {
+    setSearchKeyword("");
+    // Reset offset when search keyword was changed.
+    setOffset(0);
+  }, []);
+
+  const localSearchBoxProps: LocalSearchBoxProps = useMemo(() => {
+    return {
+      className: styles.searchBox,
+      placeholder: renderToString("search"),
+      value: searchKeyword,
+      onChange: onChangeSearchKeyword,
+      onClear: onClearSearchKeyword,
+    };
+  }, [
+    renderToString,
+    searchKeyword,
+    onChangeSearchKeyword,
+    onClearSearchKeyword,
+  ]);
+
+  const { data, loading, previousData } = useQuery<
     RolesListQueryQuery,
     RolesListQueryQueryVariables
   >(RolesListQueryDocument, {
@@ -77,30 +132,41 @@ const RolesScreen: React.VFC = function RolesScreen() {
     fetchPolicy: "network-only",
   });
 
+  const isInitialLoading = loading && previousData == null;
+
   const items = useMemo(() => {
     return [{ to: ".", label: <FormattedMessage id="RolesScreen.title" /> }];
   }, []);
 
-  const isEmpty = !loading && data?.roles?.edges?.length === 0;
+  const isEmpty = !isInitialLoading && (data?.roles?.edges?.length ?? 0) === 0;
 
   return (
-    <ScreenContent className={styles.content} layout="list">
-      <div className={styles.widget}>
-        <NavBreadcrumb className="block" items={items} />
-      </div>
-      {isEmpty ? (
-        <RolesScreenEmptyState className={styles.widget} />
-      ) : (
-        <RolesList
-          className={styles.widget}
-          isSearch={isSearch}
-          loading={loading}
-          offset={offset}
-          pageSize={pageSize}
-          roles={data?.roles ?? null}
-        />
-      )}
-    </ScreenContent>
+    <LocalSearchBoxContext.Provider value={localSearchBoxProps}>
+      <ScreenContent className={styles.content} layout="list">
+        <div className={styles.widget}>
+          <NavBreadcrumb className="block" items={items} />
+        </div>
+        <LocalSearchBox />
+        {isEmpty ? (
+          isSearch ? (
+            <MessageBar className={cn(styles.widget, styles.message)}>
+              <FormattedMessage id="UsersList.empty.search" />
+            </MessageBar>
+          ) : (
+            <RolesScreenEmptyState className={styles.widget} />
+          )
+        ) : (
+          <RolesList
+            className={styles.widget}
+            isSearch={isSearch}
+            loading={isInitialLoading}
+            offset={offset}
+            pageSize={pageSize}
+            roles={data?.roles ?? null}
+          />
+        )}
+      </ScreenContent>
+    </LocalSearchBoxContext.Provider>
   );
 };
 
