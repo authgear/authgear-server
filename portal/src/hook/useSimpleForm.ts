@@ -67,7 +67,8 @@ export function useSimpleForm<State, Result = unknown>(
     const err = validate?.(currentState);
     if (err) {
       setError(err);
-      return;
+      // eslint-disable-next-line @typescript-eslint/no-throw-literal
+      throw err;
     }
 
     setIsLoading(true);
