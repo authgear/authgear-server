@@ -43,6 +43,24 @@ function LocalSearchBox() {
   return <SearchBox {...value} />;
 }
 
+interface CreateRoleButtonProps {
+  className?: string;
+}
+
+const CreateRoleButton: React.VFC<CreateRoleButtonProps> =
+  function CreateRoleButton(props) {
+    const { className } = props;
+    const location = useLocation();
+    return (
+      <PrimaryButton
+        href={`${location.pathname}/add-role`}
+        className={className}
+        text={<FormattedMessage id={"RolesScreen.empty-state.button"} />}
+        iconProps={{ iconName: "Add" }}
+      />
+    );
+  };
+
 interface RolesScreenEmptyStateProps {
   className?: string;
 }
@@ -50,7 +68,6 @@ interface RolesScreenEmptyStateProps {
 const RolesScreenEmptyState: React.VFC<RolesScreenEmptyStateProps> =
   function RolesScreenEmptyState(props) {
     const { className } = props;
-    const location = useLocation();
     return (
       <div className={cn(className, styles.emptyStateContainer)}>
         <img className={styles.emptyStateIcon} src={iconBadge} />
@@ -60,12 +77,7 @@ const RolesScreenEmptyState: React.VFC<RolesScreenEmptyStateProps> =
         <Text className={styles.emptyStateSubtitle}>
           <FormattedMessage id="RolesScreen.empty-state.subtitle" />
         </Text>
-        <PrimaryButton
-          href={`${location.pathname}/add-role`}
-          className={styles.emptyStateButton}
-          text={<FormattedMessage id={"RolesScreen.empty-state.button"} />}
-          iconProps={{ iconName: "Add" }}
-        />
+        <CreateRoleButton className={styles.emptyStateButton} />
       </div>
     );
   };
@@ -143,8 +155,9 @@ const RolesScreen: React.VFC = function RolesScreen() {
   return (
     <LocalSearchBoxContext.Provider value={localSearchBoxProps}>
       <ScreenContent className={styles.content} layout="list">
-        <div className={styles.widget}>
+        <div className={cn(styles.widget, styles.titleContainer)}>
           <NavBreadcrumb className="block" items={items} />
+          {!isEmpty ? <CreateRoleButton /> : null}
         </div>
         <LocalSearchBox />
         {isEmpty ? (

@@ -7,6 +7,13 @@
   @apply tablet:col-span-full;
 }
 
+.titleContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .emptyStateContainer {
   @apply mt-7 py-6;
   display: flex;
