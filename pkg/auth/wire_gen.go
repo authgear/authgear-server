@@ -624,26 +624,33 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clock,
 		CodeGrants:    redisStore,
 	}
+	settingsActionGrantService := handler.SettingsActionGrantService{
+		AppID:                appID,
+		CodeGenerator:        tokenGenerator,
+		Clock:                clock,
+		SettingsActionGrants: redisStore,
+	}
 	authorizationHandler := &handler.AuthorizationHandler{
-		Context:                   contextContext,
-		AppID:                     appID,
-		Config:                    oAuthConfig,
-		HTTPConfig:                httpConfig,
-		HTTPProto:                 httpProto,
-		HTTPOrigin:                httpOrigin,
-		AppDomains:                appDomains,
-		Logger:                    authorizationHandlerLogger,
-		UIURLBuilder:              uiurlBuilder,
-		UIInfoResolver:            uiInfoResolver,
-		Authorizations:            authorizationService,
-		ValidateScopes:            scopesValidator,
-		AppSessionTokenService:    appSessionTokenService,
-		AuthenticationInfoService: authenticationinfoStoreRedis,
-		Clock:                     clock,
-		Cookies:                   cookieManager,
-		OAuthSessionService:       oauthsessionStoreRedis,
-		CodeGrantService:          codeGrantService,
-		ClientResolver:            oauthclientResolver,
+		Context:                    contextContext,
+		AppID:                      appID,
+		Config:                     oAuthConfig,
+		HTTPConfig:                 httpConfig,
+		HTTPProto:                  httpProto,
+		HTTPOrigin:                 httpOrigin,
+		AppDomains:                 appDomains,
+		Logger:                     authorizationHandlerLogger,
+		UIURLBuilder:               uiurlBuilder,
+		UIInfoResolver:             uiInfoResolver,
+		Authorizations:             authorizationService,
+		ValidateScopes:             scopesValidator,
+		AppSessionTokenService:     appSessionTokenService,
+		AuthenticationInfoService:  authenticationinfoStoreRedis,
+		Clock:                      clock,
+		Cookies:                    cookieManager,
+		OAuthSessionService:        oauthsessionStoreRedis,
+		CodeGrantService:           codeGrantService,
+		SettingsActionGrantService: settingsActionGrantService,
+		ClientResolver:             oauthclientResolver,
 	}
 	authorizeHandler := &oauth.AuthorizeHandler{
 		Logger:       authorizeHandlerLogger,
@@ -1161,26 +1168,33 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		CodeGrants:    redisStore,
 	}
+	settingsActionGrantService := handler.SettingsActionGrantService{
+		AppID:                appID,
+		CodeGenerator:        tokenGenerator,
+		Clock:                clockClock,
+		SettingsActionGrants: redisStore,
+	}
 	authorizationHandler := &handler.AuthorizationHandler{
-		Context:                   contextContext,
-		AppID:                     appID,
-		Config:                    oAuthConfig,
-		HTTPConfig:                httpConfig,
-		HTTPProto:                 httpProto,
-		HTTPOrigin:                httpOrigin,
-		AppDomains:                appDomains,
-		Logger:                    authorizationHandlerLogger,
-		UIURLBuilder:              uiurlBuilder,
-		UIInfoResolver:            uiInfoResolver,
-		Authorizations:            authorizationService,
-		ValidateScopes:            scopesValidator,
-		AppSessionTokenService:    appSessionTokenService,
-		AuthenticationInfoService: authenticationinfoStoreRedis,
-		Clock:                     clockClock,
-		Cookies:                   cookieManager,
-		OAuthSessionService:       oauthsessionStoreRedis,
-		CodeGrantService:          codeGrantService,
-		ClientResolver:            oauthclientResolver,
+		Context:                    contextContext,
+		AppID:                      appID,
+		Config:                     oAuthConfig,
+		HTTPConfig:                 httpConfig,
+		HTTPProto:                  httpProto,
+		HTTPOrigin:                 httpOrigin,
+		AppDomains:                 appDomains,
+		Logger:                     authorizationHandlerLogger,
+		UIURLBuilder:               uiurlBuilder,
+		UIInfoResolver:             uiInfoResolver,
+		Authorizations:             authorizationService,
+		ValidateScopes:             scopesValidator,
+		AppSessionTokenService:     appSessionTokenService,
+		AuthenticationInfoService:  authenticationinfoStoreRedis,
+		Clock:                      clockClock,
+		Cookies:                    cookieManager,
+		OAuthSessionService:        oauthsessionStoreRedis,
+		CodeGrantService:           codeGrantService,
+		SettingsActionGrantService: settingsActionGrantService,
+		ClientResolver:             oauthclientResolver,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
@@ -1940,6 +1954,11 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -1975,6 +1994,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        provider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            mfaCookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -2044,32 +2064,33 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		ClientResolver:      resolver,
 	}
 	tokenHandler := &handler.TokenHandler{
-		Context:                contextContext,
-		AppID:                  appID,
-		Config:                 oAuthConfig,
-		AppDomains:             appDomains,
-		HTTPProto:              httpProto,
-		HTTPOrigin:             httpOrigin,
-		OAuthFeatureConfig:     oAuthFeatureConfig,
-		IdentityFeatureConfig:  identityFeatureConfig,
-		OAuthClientCredentials: oAuthClientCredentials,
-		Logger:                 handlerTokenHandlerLogger,
-		Authorizations:         authorizationService,
-		CodeGrants:             store,
-		OfflineGrants:          store,
-		AppSessionTokens:       store,
-		OfflineGrantService:    offlineGrantService,
-		Graphs:                 interactionService,
-		IDTokenIssuer:          idTokenIssuer,
-		Clock:                  clockClock,
-		TokenService:           tokenService,
-		Events:                 eventService,
-		SessionManager:         manager2,
-		App2App:                app2appProvider,
-		Challenges:             challengeProvider,
-		CodeGrantService:       codeGrantService,
-		ClientResolver:         resolver,
-		UIInfoResolver:         uiInfoResolver,
+		Context:                  contextContext,
+		AppID:                    appID,
+		Config:                   oAuthConfig,
+		AppDomains:               appDomains,
+		HTTPProto:                httpProto,
+		HTTPOrigin:               httpOrigin,
+		OAuthFeatureConfig:       oAuthFeatureConfig,
+		IdentityFeatureConfig:    identityFeatureConfig,
+		OAuthClientCredentials:   oAuthClientCredentials,
+		Logger:                   handlerTokenHandlerLogger,
+		Authorizations:           authorizationService,
+		CodeGrants:               store,
+		SettingsActionGrantStore: store,
+		OfflineGrants:            store,
+		AppSessionTokens:         store,
+		OfflineGrantService:      offlineGrantService,
+		Graphs:                   interactionService,
+		IDTokenIssuer:            idTokenIssuer,
+		Clock:                    clockClock,
+		TokenService:             tokenService,
+		Events:                   eventService,
+		SessionManager:           manager2,
+		App2App:                  app2appProvider,
+		Challenges:               challengeProvider,
+		CodeGrantService:         codeGrantService,
+		ClientResolver:           resolver,
+		UIInfoResolver:           uiInfoResolver,
 	}
 	oauthTokenHandler := &oauth.TokenHandler{
 		Logger:       tokenHandlerLogger,
@@ -4690,6 +4711,11 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -4725,6 +4751,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        provider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            mfaCookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -4794,32 +4821,33 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		ClientResolver:      resolver,
 	}
 	tokenHandler := &handler.TokenHandler{
-		Context:                contextContext,
-		AppID:                  appID,
-		Config:                 oAuthConfig,
-		AppDomains:             appDomains,
-		HTTPProto:              httpProto,
-		HTTPOrigin:             httpOrigin,
-		OAuthFeatureConfig:     oAuthFeatureConfig,
-		IdentityFeatureConfig:  identityFeatureConfig,
-		OAuthClientCredentials: oAuthClientCredentials,
-		Logger:                 tokenHandlerLogger,
-		Authorizations:         authorizationService,
-		CodeGrants:             store,
-		OfflineGrants:          store,
-		AppSessionTokens:       store,
-		OfflineGrantService:    offlineGrantService,
-		Graphs:                 interactionService,
-		IDTokenIssuer:          idTokenIssuer,
-		Clock:                  clockClock,
-		TokenService:           tokenService,
-		Events:                 eventService,
-		SessionManager:         manager2,
-		App2App:                app2appProvider,
-		Challenges:             challengeProvider,
-		CodeGrantService:       codeGrantService,
-		ClientResolver:         resolver,
-		UIInfoResolver:         uiInfoResolver,
+		Context:                  contextContext,
+		AppID:                    appID,
+		Config:                   oAuthConfig,
+		AppDomains:               appDomains,
+		HTTPProto:                httpProto,
+		HTTPOrigin:               httpOrigin,
+		OAuthFeatureConfig:       oAuthFeatureConfig,
+		IdentityFeatureConfig:    identityFeatureConfig,
+		OAuthClientCredentials:   oAuthClientCredentials,
+		Logger:                   tokenHandlerLogger,
+		Authorizations:           authorizationService,
+		CodeGrants:               store,
+		SettingsActionGrantStore: store,
+		OfflineGrants:            store,
+		AppSessionTokens:         store,
+		OfflineGrantService:      offlineGrantService,
+		Graphs:                   interactionService,
+		IDTokenIssuer:            idTokenIssuer,
+		Clock:                    clockClock,
+		TokenService:             tokenService,
+		Events:                   eventService,
+		SessionManager:           manager2,
+		App2App:                  app2appProvider,
+		Challenges:               challengeProvider,
+		CodeGrantService:         codeGrantService,
+		ClientResolver:           resolver,
+		UIInfoResolver:           uiInfoResolver,
 	}
 	appSessionTokenHandler := &oauth.AppSessionTokenHandler{
 		Database:         handle,
@@ -5625,6 +5653,11 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -5660,6 +5693,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            mfaCookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -6438,6 +6472,11 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -6473,6 +6512,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            mfaCookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -7396,6 +7436,11 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -7430,6 +7475,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -8280,6 +8326,11 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -8314,6 +8365,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -9163,6 +9215,11 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -9197,6 +9254,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -10034,6 +10092,11 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -10068,6 +10131,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -10900,6 +10964,11 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -10934,6 +11003,7 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -11933,6 +12003,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            mfaCookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -12754,6 +12825,11 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -12788,6 +12864,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -13610,6 +13687,11 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -13644,6 +13726,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -14470,6 +14553,11 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -14504,6 +14592,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -15332,6 +15421,11 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -15366,6 +15460,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -16192,6 +16287,11 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -16226,6 +16326,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -17050,6 +17151,11 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -17084,6 +17190,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -17910,6 +18017,11 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -17944,6 +18056,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -18771,6 +18884,11 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -18805,6 +18923,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -19631,6 +19750,11 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -19665,6 +19789,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -20491,6 +20616,11 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -20525,6 +20655,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -21353,6 +21484,11 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -21387,6 +21523,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -22213,6 +22350,11 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -22247,6 +22389,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -23073,6 +23216,11 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -23107,6 +23255,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -23937,6 +24086,11 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -23971,6 +24125,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -24797,6 +24952,11 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -24831,6 +24991,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -25661,6 +25822,11 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -25695,6 +25861,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -26521,6 +26688,11 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -26555,6 +26727,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -27389,6 +27562,11 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -27423,6 +27601,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -28271,6 +28450,11 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -28305,6 +28489,7 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -29142,6 +29327,11 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -29176,6 +29366,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -30002,6 +30193,11 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -30036,6 +30232,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -30858,6 +31055,11 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -30892,6 +31094,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -31718,6 +31921,11 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -31752,6 +31960,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -32574,6 +32783,11 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -32608,6 +32822,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -33440,6 +33655,11 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -33474,6 +33694,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -34296,6 +34517,11 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -34330,6 +34556,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -35154,6 +35381,11 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -35188,6 +35420,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -36010,6 +36243,11 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -36044,6 +36282,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -36898,6 +37137,11 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -36932,6 +37176,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -37765,6 +38010,11 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -37799,6 +38049,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -38645,6 +38896,11 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -38679,6 +38935,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -39509,6 +39766,11 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -39543,6 +39805,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -40366,6 +40629,11 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -40400,6 +40668,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -41231,6 +41500,11 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -41265,6 +41539,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -42088,6 +42363,11 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -42122,6 +42402,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -42945,6 +43226,11 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -42979,6 +43265,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -43802,6 +44089,11 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -43836,6 +44128,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -44660,6 +44953,11 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -44694,6 +44992,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -45537,6 +45836,11 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -45571,6 +45875,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -46394,6 +46699,11 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -46428,6 +46738,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -47251,6 +47562,11 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -47285,6 +47601,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -48108,6 +48425,11 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -48142,6 +48464,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -48965,6 +49288,11 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -48999,6 +49327,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -49829,6 +50158,11 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -49863,6 +50197,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -50687,6 +51022,11 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -50721,6 +51061,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -51543,6 +51884,11 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -51577,6 +51923,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -52415,6 +52762,11 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -52449,6 +52801,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -53271,6 +53624,11 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -53305,6 +53663,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -55028,6 +55387,11 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -55062,6 +55426,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -55884,6 +56249,11 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -55918,6 +56288,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -56758,6 +57129,11 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -56792,6 +57168,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -57578,6 +57955,11 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -57612,6 +57994,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -58397,6 +58780,11 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -58431,6 +58819,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -59263,6 +59652,11 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -59297,6 +59691,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -60120,6 +60515,11 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -60154,6 +60554,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -60976,6 +61377,11 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -61010,6 +61416,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -61132,32 +61539,33 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		CodeGrants:    redisStore,
 	}
 	tokenHandler := &handler.TokenHandler{
-		Context:                contextContext,
-		AppID:                  appID,
-		Config:                 oAuthConfig,
-		AppDomains:             appDomains,
-		HTTPProto:              httpProto,
-		HTTPOrigin:             httpOrigin,
-		OAuthFeatureConfig:     oAuthFeatureConfig,
-		IdentityFeatureConfig:  identityFeatureConfig,
-		OAuthClientCredentials: oAuthClientCredentials,
-		Logger:                 tokenHandlerLogger,
-		Authorizations:         authorizationService,
-		CodeGrants:             redisStore,
-		OfflineGrants:          redisStore,
-		AppSessionTokens:       redisStore,
-		OfflineGrantService:    offlineGrantService,
-		Graphs:                 interactionService,
-		IDTokenIssuer:          idTokenIssuer,
-		Clock:                  clockClock,
-		TokenService:           tokenService,
-		Events:                 eventService,
-		SessionManager:         manager2,
-		App2App:                app2appProvider,
-		Challenges:             challengeProvider,
-		CodeGrantService:       codeGrantService,
-		ClientResolver:         oauthclientResolver,
-		UIInfoResolver:         uiInfoResolver,
+		Context:                  contextContext,
+		AppID:                    appID,
+		Config:                   oAuthConfig,
+		AppDomains:               appDomains,
+		HTTPProto:                httpProto,
+		HTTPOrigin:               httpOrigin,
+		OAuthFeatureConfig:       oAuthFeatureConfig,
+		IdentityFeatureConfig:    identityFeatureConfig,
+		OAuthClientCredentials:   oAuthClientCredentials,
+		Logger:                   tokenHandlerLogger,
+		Authorizations:           authorizationService,
+		CodeGrants:               redisStore,
+		SettingsActionGrantStore: redisStore,
+		OfflineGrants:            redisStore,
+		AppSessionTokens:         redisStore,
+		OfflineGrantService:      offlineGrantService,
+		Graphs:                   interactionService,
+		IDTokenIssuer:            idTokenIssuer,
+		Clock:                    clockClock,
+		TokenService:             tokenService,
+		Events:                   eventService,
+		SessionManager:           manager2,
+		App2App:                  app2appProvider,
+		Challenges:               challengeProvider,
+		CodeGrantService:         codeGrantService,
+		ClientResolver:           oauthclientResolver,
+		UIInfoResolver:           uiInfoResolver,
 	}
 	oauthOfflineGrantService := &oauth2.OfflineGrantService{
 		OAuthConfig:    oAuthConfig,
@@ -104811,6 +105219,11 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -104845,6 +105258,7 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -114195,6 +114609,11 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -114229,6 +114648,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef2,
+		OAuthSessions:                   oauthsessionStoreRedis,
 		MFADeviceTokenCookie:            cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -114255,11 +114675,6 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		UIInfoResolver:       uiInfoResolver,
 		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
-	}
-	oauthsessionStoreRedis := &oauthsession.StoreRedis{
-		Context: contextContext,
-		Redis:   handle,
-		AppID:   appID,
 	}
 	sessionMiddleware := &webapp2.SessionMiddleware{
 		Sessions:       webappService2,

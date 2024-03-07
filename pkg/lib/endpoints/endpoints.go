@@ -23,7 +23,20 @@ func (e *Endpoints) Origin() *url.URL {
 }
 
 func (e *Endpoints) BaseURL() *url.URL {
-	return e.Origin()
+	base := e.Origin()
+	// If we do not set Path = "/", then in urlOf,
+	// Path will have no leading /.
+	// It is problematic when Path is used in comparison.
+	//
+	// u, _ := url.Parse("https://example.com/path")
+	// // u.Path is "/path"
+	// uu := endpoints.urlOf("path")
+	// // uu.Path is "path"
+	// So direct comparison will yield a surprising result.
+	// More confusing is that u.String() == uu.String()
+	// Because String() will add leading / to make the URL legal.
+	base.Path = "/"
+	return base
 }
 
 func (e *Endpoints) urlOf(relPath string) *url.URL {
@@ -116,6 +129,9 @@ func (e *Endpoints) LogoutURL(redirectURI *url.URL) *url.URL {
 
 func (e *Endpoints) SettingsURL() *url.URL {
 	return e.SettingsEndpointURL()
+}
+func (e *Endpoints) SettingsChangePasswordURL() *url.URL {
+	return e.urlOf("settings/change_password")
 }
 
 func (e *Endpoints) SSOCallbackURL(alias string) *url.URL {

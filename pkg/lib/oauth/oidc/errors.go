@@ -5,3 +5,4 @@ import (
 )
 
 var ErrInvalidCustomURI = apierrors.Invalid.WithReason("WebUIInvalidCustomURI")
+var ErrInvalidSettingsAction = apierrors.Invalid.WithReason("WebUIInvalidSettingsAction")

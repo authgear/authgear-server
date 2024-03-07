@@ -101,15 +101,19 @@ type UIInfoResolver struct {
 }
 
 func (r *UIInfoResolver) SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string {
-	consentURI := r.EndpointsProvider.ConsentEndpointURL().String()
-	// Not redirecting to the consent endpoint.
-	// Do not set anything.
-	if redirectURI != consentURI {
-		return redirectURI
-	}
+	consentURL := r.EndpointsProvider.ConsentEndpointURL()
+
 	u, err := url.Parse(redirectURI)
 	if err != nil {
 		panic(err)
+	}
+
+	// When redirectURI is consentURL, it will have client_id and redirect_uri in it,
+	// so we have to compare them WITHOUT query nor fragment.
+	// When we are not redirecting to consentURL, we do not set code.
+	equalWithoutQueryNorFragment := u.Scheme == consentURL.Scheme && u.Host == consentURL.Host && u.Path == consentURL.Path
+	if !equalWithoutQueryNorFragment {
+		return redirectURI
 	}
 
 	q := u.Query()
@@ -186,7 +190,13 @@ func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
 	client *config.OAuthClientConfig,
 	req protocol.AuthorizationRequest,
 ) (*UIInfo, *UIInfoByProduct, error) {
-	redirectURI := r.EndpointsProvider.ConsentEndpointURL().String()
+	redirectURI := r.EndpointsProvider.ConsentEndpointURL()
+
+	// Add client_id and redirect_uri to URL as hint when oauth session expires / not found
+	q := redirectURI.Query()
+	q.Add("client_id", req.ClientID())
+	q.Add("redirect_uri", req.RedirectURI())
+	redirectURI.RawQuery = q.Encode()
 
 	idToken, sidSession, err := r.IDTokenHintResolver.ResolveIDTokenHint(client, req)
 	if err != nil {
@@ -228,7 +238,7 @@ func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
 
 	info := &UIInfo{
 		ClientID:                   req.ClientID(),
-		RedirectURI:                redirectURI,
+		RedirectURI:                redirectURI.String(),
 		Prompt:                     prompt,
 		UserIDHint:                 userIDHint,
 		CanUseIntentReauthenticate: canUseIntentReauthenticate,
@@ -251,13 +261,14 @@ func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
 
 type UIURLBuilderAuthUIEndpointsProvider interface {
 	OAuthEntrypointURL() *url.URL
+	SettingsChangePasswordURL() *url.URL
 }
 
 type UIURLBuilder struct {
 	Endpoints UIURLBuilderAuthUIEndpointsProvider
 }
 
-func (b *UIURLBuilder) Build(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, e *oauthsession.Entry) (*url.URL, error) {
+func (b *UIURLBuilder) BuildAuthenticationURL(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, e *oauthsession.Entry) (*url.URL, error) {
 	var endpoint *url.URL
 	if client != nil && client.CustomUIURI != "" {
 		var err error
@@ -297,4 +308,31 @@ func BuildCustomUIEndpoint(base string) (*url.URL, error) {
 	}
 
 	return customUIURL, nil
+}
+
+func (b *UIURLBuilder) BuildSettingsActionURL(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, e *oauthsession.Entry, redirectURI *url.URL) (*url.URL, error) {
+	switch r.SettingsAction() {
+	case "change_password":
+		endpoint := b.Endpoints.SettingsChangePasswordURL()
+		q := endpoint.Query()
+		q.Set(queryNameOAuthSessionID, e.ID)
+		q.Set("client_id", r.ClientID())
+		q.Set("redirect_uri", r.RedirectURI())
+		if r.ColorScheme() != "" {
+			q.Set("x_color_scheme", r.ColorScheme())
+		}
+		if len(r.UILocales()) > 0 {
+			q.Set("ui_locales", strings.Join(r.UILocales(), " "))
+		}
+		if r.State() != "" {
+			q.Set("state", r.State())
+		}
+		if r.XState() != "" {
+			q.Set("x_state", r.XState())
+		}
+		endpoint.RawQuery = q.Encode()
+		return endpoint, nil
+	default:
+		return nil, ErrInvalidSettingsAction.New("invalid settings action")
+	}
 }

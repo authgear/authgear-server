@@ -12,6 +12,12 @@ type CodeGrantStore interface {
 	DeleteCodeGrant(*CodeGrant) error
 }
 
+type SettingsActionGrantStore interface {
+	GetSettingsActionGrant(codeHash string) (*SettingsActionGrant, error)
+	CreateSettingsActionGrant(*SettingsActionGrant) error
+	DeleteSettingsActionGrant(*SettingsActionGrant) error
+}
+
 type OfflineGrantStore interface {
 	GetOfflineGrant(id string) (*OfflineGrant, error)
 	CreateOfflineGrant(offlineGrant *OfflineGrant, expireAt time.Time) error

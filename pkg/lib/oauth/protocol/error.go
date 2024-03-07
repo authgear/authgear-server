@@ -62,3 +62,4 @@ func NewErrorWithErrorResponse(resp ErrorResponse) error {
 }
 
 func (e *OAuthProtocolError) Error() string { return e.Response["error_description"] }
+func (e *OAuthProtocolError) Type() string  { return e.Response["error"] }
