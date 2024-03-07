@@ -893,6 +893,7 @@
   "v2-create-password-page-title": "創建密碼",
   "v2-password-policy-strength": "密碼強度",
   "v2-password-policy-minimum-length": "最少 {length, plural, other{# 位}}",
+  "v2-password-policy-lowercase-and-uppercase": "",
   "v2-password-policy-uppercase": "請輸入最少一個大寫英文字母",
   "v2-password-policy-lowercase": "請輸入最少一個小寫英文字母",
   "v2-password-policy-alphabet": "請輸入最少一個英文字母",

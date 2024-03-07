@@ -6,6 +6,7 @@ enum PasswordPolicyName {
   Length = "length",
   Uppercase = "uppercase",
   Lowercase = "lowercase",
+  UppercaseLowercase = "uppercase-lowercase",
   Alphabet = "alphabet",
   Digit = "digit",
   Symbol = "symbol",
@@ -62,6 +63,23 @@ function checkPasswordLowercase(
   }
   return {
     policy: PasswordPolicyName.Lowercase,
+    isViolated,
+  };
+}
+
+function checkPasswordUppercaseLowercase(
+  value: string,
+  el: HTMLElement
+): ValidationResult {
+  let isViolated = false;
+  if (/[a-z]/.test(value) && /[A-Z]/.test(value)) {
+    el.setAttribute("data-state", "pass");
+  } else {
+    el.setAttribute("data-state", "fail");
+    isViolated = true;
+  }
+  return {
+    policy: PasswordPolicyName.UppercaseLowercase,
     isViolated,
   };
 }
@@ -188,6 +206,13 @@ export class PasswordPolicyController extends Controller {
         }
         case PasswordPolicyName.Lowercase: {
           const result = checkPasswordLowercase(value, e);
+          if (result.isViolated) {
+            violatedPolicies.push(result.policy);
+          }
+          break;
+        }
+        case PasswordPolicyName.UppercaseLowercase: {
+          const result = checkPasswordUppercaseLowercase(value, e);
           if (result.isViolated) {
             violatedPolicies.push(result.policy);
           }

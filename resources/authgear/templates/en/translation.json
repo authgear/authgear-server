@@ -893,6 +893,7 @@
   "v2-create-password-page-title": "Create Password",
   "v2-password-policy-strength": "Password strength:",
   "v2-password-policy-minimum-length": "At least {length, plural, one{# character} other{# characters}}",
+  "v2-password-policy-lowercase-and-uppercase": "",
   "v2-password-policy-uppercase": "Contains an uppercase letter",
   "v2-password-policy-lowercase": "Contains an lowercase letter",
   "v2-password-policy-alphabet": "Contains an alphabet",

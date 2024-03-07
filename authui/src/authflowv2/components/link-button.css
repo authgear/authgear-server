@@ -49,6 +49,7 @@
       ring-[length:var(--link-btn-ring-width)]
       ring-[color:var(--link-btn-ring-color)];
     padding: var(--link-btn-py) var(--link-btn-px);
+    text-decoration: var(--link-btn-text-decoration);
 
     &:hover {
       background-color: var(--link-btn-bg-color--hover);
