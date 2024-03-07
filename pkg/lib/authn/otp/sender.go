@@ -19,7 +19,7 @@ type SendOptions struct {
 }
 
 type EndpointsProvider interface {
-	BaseURL() *neturl.URL
+	Origin() *neturl.URL
 	LoginLinkVerificationEndpointURL(uiImpl config.UIImplementation) *neturl.URL
 	ResetPasswordEndpointURL(uiImpl config.UIImplementation) *neturl.URL
 }
@@ -117,7 +117,7 @@ func (s *MessageSender) setupTemplateContext(msg *PreparedMessage, opts SendOpti
 		Code:  opts.OTP,
 		URL:   url,
 		Link:  url,
-		Host:  s.Endpoints.BaseURL().Host,
+		Host:  s.Endpoints.Origin().Host,
 	})
 	if opts.AdditionalContext != nil {
 		template.Embed(ctx, opts.AdditionalContext)

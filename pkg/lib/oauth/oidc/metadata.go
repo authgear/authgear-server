@@ -48,7 +48,7 @@ type MetadataProvider struct {
 }
 
 func (p *MetadataProvider) PopulateMetadata(meta map[string]interface{}) {
-	meta["issuer"] = p.Endpoints.BaseURL().String()
+	meta["issuer"] = p.Endpoints.Origin().String()
 	meta["scopes_supported"] = AllowedScopes
 	meta["subject_types_supported"] = []string{"public"}
 	meta["id_token_signing_alg_values_supported"] = []string{"RS256"}

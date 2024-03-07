@@ -22,7 +22,6 @@ import (
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
-	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
@@ -121,7 +120,6 @@ var DependencySet = wire.NewSet(
 		wire.Bind(new(oidc.EndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(oidc.UIURLBuilderAuthUIEndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(oidc.BaseURLProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(sso.EndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(otp.EndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(oidchandler.WebAppURLsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(tester.EndpointsProvider), new(*endpoints.Endpoints)),

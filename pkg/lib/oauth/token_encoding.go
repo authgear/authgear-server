@@ -25,7 +25,7 @@ type UserClaimsProvider interface {
 }
 
 type BaseURLProvider interface {
-	BaseURL() *url.URL
+	Origin() *url.URL
 }
 
 type EventService interface {
@@ -52,7 +52,7 @@ func (e *AccessTokenEncoding) EncodeAccessToken(client *config.OAuthClientConfig
 		return "", err
 	}
 
-	_ = claims.Set(jwt.AudienceKey, e.BaseURL.BaseURL().String())
+	_ = claims.Set(jwt.AudienceKey, e.BaseURL.Origin().String())
 	_ = claims.Set(jwt.IssuedAtKey, grant.CreatedAt.Unix())
 	_ = claims.Set(jwt.ExpirationKey, grant.ExpireAt.Unix())
 	_ = claims.Set("client_id", client.ClientID)
@@ -122,7 +122,7 @@ func (e *AccessTokenEncoding) DecodeAccessToken(encodedToken string) (tok string
 
 	err = jwt.Validate(token,
 		jwt.WithClock(&jwtClock{e.Clock}),
-		jwt.WithAudience(e.BaseURL.BaseURL().String()),
+		jwt.WithAudience(e.BaseURL.Origin().String()),
 	)
 	if err != nil {
 		return "", false, err
