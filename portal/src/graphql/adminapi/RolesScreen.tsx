@@ -103,6 +103,10 @@ const RolesScreen: React.VFC = function RolesScreen() {
     return encodeOffsetToCursor(offset - 1);
   }, [isSearch, offset]);
 
+  const onChangeOffset = useCallback((offset) => {
+    setOffset(offset);
+  }, []);
+
   const onChangeSearchKeyword = useCallback((_e, value) => {
     if (value != null) {
       setSearchKeyword(value);
@@ -155,11 +159,13 @@ const RolesScreen: React.VFC = function RolesScreen() {
   return (
     <LocalSearchBoxContext.Provider value={localSearchBoxProps}>
       <ScreenContent className={styles.content} layout="list">
-        <div className={cn(styles.widget, styles.titleContainer)}>
-          <NavBreadcrumb className="block" items={items} />
-          {!isEmpty ? <CreateRoleButton /> : null}
+        <div className={styles.widget}>
+          <div className={styles.titleContainer}>
+            <NavBreadcrumb className="block" items={items} />
+            {!isEmpty ? <CreateRoleButton /> : null}
+          </div>
+          <LocalSearchBox />
         </div>
-        <LocalSearchBox />
         {isEmpty ? (
           isSearch ? (
             <MessageBar className={cn(styles.widget, styles.message)}>
@@ -176,6 +182,8 @@ const RolesScreen: React.VFC = function RolesScreen() {
             offset={offset}
             pageSize={pageSize}
             roles={data?.roles ?? null}
+            totalCount={data?.roles?.totalCount ?? undefined}
+            onChangeOffset={onChangeOffset}
           />
         )}
       </ScreenContent>

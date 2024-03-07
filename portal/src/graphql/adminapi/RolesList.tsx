@@ -18,6 +18,7 @@ import { useParams } from "react-router-dom";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import Link from "../../Link";
 import ActionButton from "../../ActionButton";
+import PaginationWidget from "../../PaginationWidget";
 
 interface RolesListProps {
   className?: string;
@@ -45,7 +46,15 @@ const isRoleListItem = (value: unknown): value is RoleListItem => {
 };
 
 const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
-  const { className, loading: rawLoading } = props;
+  const {
+    className,
+    loading: rawLoading,
+    isSearch,
+    offset,
+    pageSize,
+    totalCount,
+    onChangeOffset,
+  } = props;
   const edges = props.roles?.edges;
   const loading = useDelayedValue(rawLoading, 500);
   const { renderToString } = useContext(Context);
@@ -179,6 +188,15 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
             columns={columns}
           />
         </div>
+        {!isSearch ? (
+          <PaginationWidget
+            className={cn(styles.pagination)}
+            offset={offset}
+            pageSize={pageSize}
+            totalCount={totalCount}
+            onChangeOffset={onChangeOffset}
+          />
+        ) : null}
       </div>
     </>
   );

@@ -1,5 +1,6 @@
 .content {
   @apply mt-11;
+  height: 100%;
 }
 
 .widget {
@@ -47,9 +48,9 @@
   align-self: center;
   width: 300px;
 
-  @apply mobile:w-auto;
+  @apply mt-12 mobile:w-auto;
 }
 
 .message {
-  @apply mt-5;
+  @apply mt-5 h-min;
 }
