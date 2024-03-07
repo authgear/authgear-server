@@ -24,10 +24,6 @@
   font-size: 12px;
 }
 
-/* .actionButtonLabel { */
-/*   margin: 0; */
-/* } */
-
 .cell {
   display: flex;
   width: 100%;
@@ -47,12 +43,4 @@
   text-wrap: wrap;
   font-size: 12px;
   line-height: 16px;
-}
-
-.anonymousUserLabel {
-  font-style: italic;
-}
-
-.anonymizedUserLabel {
-  font-style: italic;
 }
