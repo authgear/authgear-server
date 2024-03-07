@@ -53,5 +53,7 @@ export const RoleAndGroupsVeriticalFormLayout: React.VFC<
 export const RoleAndGroupsFormFooter: React.VFC<
   React.PropsWithChildren<{ className?: string }>
 > = function RoleAndGroupsFormFooter({ children, className }) {
-  return <div className={cn(styles.formFooter, className)}>{children}</div>;
+  return (
+    <footer className={cn(styles.formFooter, className)}>{children}</footer>
+  );
 };

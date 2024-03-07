@@ -1,12 +1,10 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import {
+  RoleAndGroupsFormFooter,
   RoleAndGroupsLayout,
   RoleAndGroupsVeriticalFormLayout,
 } from "../../RoleAndGroupsLayout";
-import {
-  FormContainerBase,
-  useFormContainerBaseContext,
-} from "../../FormContainerBase";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
 import { BreadcrumbItem } from "../../NavBreadcrumb";
 import {
   Context as MessageContext,
@@ -23,6 +21,10 @@ import { makeLocalValidationError } from "../../error/validation";
 import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
 import WidgetDescription from "../../WidgetDescription";
 import FormTextField from "../../FormTextField";
+import { RoleAndGroupsFormContainer } from "./RoleAndGroupsFormContainer";
+import PrimaryButton from "../../PrimaryButton";
+import DefaultButton from "../../DefaultButton";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 
 interface FormState {
   roleKey: string;
@@ -31,11 +33,13 @@ interface FormState {
 }
 
 function RoleDetailsScreenSettingsForm() {
+  const { themes } = useSystemConfig();
   const { renderToString } = useContext(MessageContext);
 
   const {
-    onSubmit,
     form: { state: formState, setState: setFormState },
+    isUpdating,
+    canSave,
   } = useFormContainerBaseContext<SimpleFormModel<FormState, string | null>>();
 
   const onFormStateChangeCallbacks = useMemo(() => {
@@ -54,8 +58,12 @@ function RoleDetailsScreenSettingsForm() {
     };
   }, [setFormState]);
 
+  const deleteRole = useCallback(() => {
+    // TODO
+  }, []);
+
   return (
-    <form onSubmit={onSubmit} noValidate={true}>
+    <div>
       <RoleAndGroupsVeriticalFormLayout>
         <div>
           <FormTextField
@@ -98,7 +106,22 @@ function RoleDetailsScreenSettingsForm() {
           onChange={onFormStateChangeCallbacks.roleDescription}
         />
       </RoleAndGroupsVeriticalFormLayout>
-    </form>
+
+      <RoleAndGroupsFormFooter className="mt-12">
+        <PrimaryButton
+          disabled={!canSave || isUpdating}
+          type="submit"
+          text={<FormattedMessage id="save" />}
+        />
+        <DefaultButton
+          disabled={isUpdating}
+          theme={themes.destructive}
+          type="button"
+          onClick={deleteRole}
+          text={<FormattedMessage id="RoleDetailsScreen.button.deleteRole" />}
+        />
+      </RoleAndGroupsFormFooter>
+    </div>
   );
 }
 
@@ -148,9 +171,9 @@ function RoleDetailsScreenSettingsFormContainer({
   });
 
   return (
-    <FormContainerBase form={form}>
+    <RoleAndGroupsFormContainer form={form}>
       <RoleDetailsScreenSettingsForm />
-    </FormContainerBase>
+    </RoleAndGroupsFormContainer>
   );
 }
 

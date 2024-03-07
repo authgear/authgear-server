@@ -177,6 +177,8 @@
   "RolesScreen.empty-state.button": "Create Role",
   "RolesScreen.empty.search": "No results matched your search.",
 
+  "RoleDetailsScreen.button.deleteRole": "Delete Role",
+
   "AddRolesScreen.title": "Create Role",
   "AddRolesScreen.roleKey.title": "Role Key",
   "AddRolesScreen.roleKey.description": "The Role Key will be included in the UserInfo and JWT token of the user. e.g. app_a_admin.",
