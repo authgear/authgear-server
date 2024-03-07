@@ -51,3 +51,8 @@ a {
 select {
   appearance: none;
 }
+
+/* Some shared configs */
+:root {
+  --screen-header-height: 48px;
+}

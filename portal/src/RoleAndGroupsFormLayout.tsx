@@ -23,12 +23,14 @@ export const RoleAndGroupsFormLayout: React.VFC<
 
   return (
     <div className={styles.root}>
-      <ProgressIndicator
-        styles={progressIndicatorStyles}
-        className={!isUpdating ? "hidden" : ""}
-        barHeight={4}
-      />
-      <FormErrorMessageBar />
+      <div className={styles.topBar}>
+        <ProgressIndicator
+          styles={progressIndicatorStyles}
+          className={!isUpdating ? "hidden" : ""}
+          barHeight={4}
+        />
+        <FormErrorMessageBar />
+      </div>
       <form onSubmit={onSubmit} noValidate={true} className={styles.main}>
         <NavBreadcrumb className={styles.header} items={breadcrumbs} />
         <section className={styles.content}>{children}</section>

@@ -13,11 +13,11 @@
 .quickStartColumn {
   grid-column: 6 / span 3;
   position: sticky;
-  /* 48px is height of header */
+  /* var(--screen-header-height) is height of header */
   /* 47px is height of command bar */
   /* 24px is padding of ScreenContent */
   /* 16px is distance between command bar and the pane */
-  height: calc(100vh - 47px - 48px - 24px - 16px);
+  height: calc(100vh - 47px - var(--screen-header-height) - 24px - 16px);
   top: 16px;
 
   @apply tablet:static tablet:col-span-full tablet:row-start-2 tablet:h-auto tablet:top-auto;

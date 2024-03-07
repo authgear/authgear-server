@@ -17,6 +17,12 @@
   grid-auto-rows: min-content;
 }
 
+.topBar {
+  @apply sticky top-0 z-10;
+
+  @apply mobile:top-[var(--screen-header-height)];
+}
+
 .header {
   @apply self-stretch;
 }
