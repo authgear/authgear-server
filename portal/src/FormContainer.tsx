@@ -58,9 +58,6 @@ const FormContainer_: React.VFC<FormContainerProps> = function FormContainer_(
     setTimeout(() => setIsResetDialogVisible(false), 0);
   }, [onReset]);
 
-  // const allowSave = formCanSave !== undefined ? formCanSave : isDirty;
-  // const disabled = isUpdating || !allowSave;
-
   const items: ICommandBarItemProps[] = useMemo(() => {
     let items: ICommandBarItemProps[] = [
       {
