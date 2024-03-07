@@ -1,5 +1,5 @@
 .content {
-  margin-top: 44px;
+  @apply mt-11;
 }
 
 .widget {
@@ -8,32 +8,30 @@
 }
 
 .emptyStateContainer {
-  margin-top: 28px;
-  padding: 24px 0;
+  @apply mt-7 py-6;
   display: flex;
   align-items: center;
   flex-direction: column;
 }
 
 .emptyStateIcon {
-  height: 64px;
-  width: 64px;
+  @apply h-16 w-16;
 }
 
 .emptyStateTitle {
-  margin-top: 24px;
-  font-size: 20px;
+  @apply mt-6;
+  font-size: 1.25rem;
   font-weight: 600;
 }
 
 .emptyStateSubtitle {
-  margin-top: 16px;
-  font-size: 16px;
+  @apply mt-4;
+  font-size: 1rem;
   font-weight: 400;
   max-width: 480px;
   text-align: center;
 }
 
 .emptyStateButton {
-  margin-top: 32px;
+  @apply mt-8;
 }
