@@ -177,6 +177,8 @@
   "RolesScreen.empty-state.button": "Create Role",
   "RolesScreen.empty.search": "No results matched your search.",
 
+  "RoleDetailsScreen.tabs.settings": "Settings",
+  "RoleDetailsScreen.tabs.groups": "Groups",
   "RoleDetailsScreen.button.deleteRole": "Delete Role",
 
   "AddRolesScreen.title": "Create Role",

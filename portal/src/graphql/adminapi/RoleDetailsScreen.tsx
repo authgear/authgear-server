@@ -26,12 +26,17 @@ import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useUpdateRoleMutation } from "./mutations/updateRoleMutation";
+import { usePivotNavigation } from "../../hook/usePivot";
+import { Pivot, PivotItem } from "@fluentui/react";
 
 interface FormState {
   roleKey: string;
   roleName: string;
   roleDescription: string;
 }
+
+const SETTINGS_KEY = "settings";
+const GROUPS_KEY = "groups";
 
 function RoleDetailsScreenSettingsForm() {
   const { themes } = useSystemConfig();
@@ -191,6 +196,13 @@ const RoleDetailsScreenLoaded: React.VFC<{
   role: RoleQueryNodeFragment;
   reload: ReturnType<typeof useRoleQuery>["refetch"];
 }> = function RoleDetailsScreenLoaded({ role }) {
+  const { renderToString } = useContext(MessageContext);
+
+  const { selectedKey, onLinkClick } = usePivotNavigation([
+    SETTINGS_KEY,
+    GROUPS_KEY,
+  ]);
+
   const breadcrumbs = useMemo<BreadcrumbItem[]>(() => {
     return [
       {
@@ -203,7 +215,26 @@ const RoleDetailsScreenLoaded: React.VFC<{
 
   return (
     <RoleAndGroupsLayout breadcrumbs={breadcrumbs}>
-      <RoleDetailsScreenSettingsFormContainer role={role} />
+      <Pivot
+        overflowBehavior="menu"
+        selectedKey={selectedKey}
+        onLinkClick={onLinkClick}
+        className="mb-8"
+      >
+        <PivotItem
+          itemKey={SETTINGS_KEY}
+          headerText={renderToString("RoleDetailsScreen.tabs.settings")}
+        />
+        <PivotItem
+          itemKey={GROUPS_KEY}
+          headerText={renderToString("RoleDetailsScreen.tabs.groups")}
+        />
+      </Pivot>
+      {selectedKey === GROUPS_KEY ? (
+        <>{/* TODO */}</>
+      ) : (
+        <RoleDetailsScreenSettingsFormContainer role={role} />
+      )}
     </RoleAndGroupsLayout>
   );
 };
