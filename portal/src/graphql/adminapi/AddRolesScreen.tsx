@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useContext, useEffect, useMemo } from "react";
 import { useSimpleForm } from "../../hook/useSimpleForm";
 import {
   FormContainerBase,
@@ -37,11 +37,6 @@ const AddRolesScreen: React.VFC = function AddRolesScreen() {
   const navigate = useNavigate();
 
   const { createRole } = useCreateRoleMutation();
-
-  const afterSave = useCallback(() => {
-    // TODO(tung): Should navigate to the edit screen of the created role
-    navigate("..", { replace: true });
-  }, [navigate]);
 
   const cancel = useCallback(() => {
     navigate("..", { replace: true });
@@ -111,8 +106,15 @@ const AddRolesScreen: React.VFC = function AddRolesScreen() {
     };
   }, [setFormState]);
 
+  useEffect(() => {
+    if (form.submissionResult != null) {
+      const roleID = form.submissionResult;
+      navigate(`../${encodeURIComponent(roleID)}/details`, { replace: true });
+    }
+  }, [form.submissionResult, navigate]);
+
   return (
-    <FormContainerBase form={form} afterSave={afterSave}>
+    <FormContainerBase form={form}>
       <RoleAndGroupsFormLayout
         breadcrumbs={breadcrumbs}
         Footer={<AddRolesScreenFooter onCancel={cancel} />}
