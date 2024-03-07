@@ -850,7 +850,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,

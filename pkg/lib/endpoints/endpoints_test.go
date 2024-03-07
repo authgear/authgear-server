@@ -19,12 +19,6 @@ func TestEndpoints(t *testing.T) {
 			Host:   "example.com",
 		})
 
-		So(endpoints.BaseURL(), ShouldResemble, &url.URL{
-			Scheme: "https",
-			Host:   "example.com",
-			Path:   "/",
-		})
-
 		So(endpoints.AuthorizeEndpointURL().String(), ShouldEqual, "https://example.com/oauth2/authorize")
 		So(endpoints.ConsentEndpointURL().String(), ShouldEqual, "https://example.com/oauth2/consent")
 		So(endpoints.TokenEndpointURL().String(), ShouldEqual, "https://example.com/oauth2/token")

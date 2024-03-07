@@ -1,8 +1,6 @@
 package sso
 
 import (
-	"net/url"
-
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -55,16 +53,11 @@ type OpenIDConnectProvider interface {
 	OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error)
 }
 
-type EndpointsProvider interface {
-	BaseURL() *url.URL
-}
-
 type StandardAttributesNormalizer interface {
 	Normalize(stdattrs.T) error
 }
 
 type OAuthProviderFactory struct {
-	Endpoints                    EndpointsProvider
 	IdentityConfig               *config.IdentityConfig
 	Credentials                  *config.OAuthSSOProviderCredentials
 	Clock                        clock.Clock

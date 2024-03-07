@@ -27,13 +27,20 @@ type EndpointsProvider struct {
 	OriginProvider OriginProvider
 }
 
-func (p *EndpointsProvider) BaseURL() *url.URL {
-	return p.OriginProvider.Origin()
-}
-
 func (p *EndpointsProvider) urlOf(relPath string) *url.URL {
-	u := p.BaseURL()
-	u.Path = path.Join(u.Path, relPath)
+	// If we do not set Path = "/", then in urlOf,
+	// Path will have no leading /.
+	// It is problematic when Path is used in comparison.
+	//
+	// u, _ := url.Parse("https://example.com/path")
+	// // u.Path is "/path"
+	// uu := endpoints.urlOf("path")
+	// // uu.Path is "path"
+	// So direct comparison will yield a surprising result.
+	// More confusing is that u.String() == uu.String()
+	// Because String() will add leading / to make the URL legal.
+	u := p.OriginProvider.Origin()
+	u.Path = path.Join("/", relPath)
 	return u
 }
 

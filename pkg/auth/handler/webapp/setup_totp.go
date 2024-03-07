@@ -54,7 +54,7 @@ type SetupTOTPNode interface {
 }
 
 type SetupTOTPEndpointsProvider interface {
-	BaseURL() *url.URL
+	Origin() *url.URL
 }
 type SetupTOTPHandler struct {
 	ControllerFactory         ControllerFactory
@@ -75,7 +75,7 @@ func (h *SetupTOTPHandler) MakeViewModel(session *webapp.Session, graph *interac
 	secret := a.TOTP.Secret
 	totp := secretcode.NewTOTPFromSecret(secret)
 
-	issuer := h.Endpoints.BaseURL().String()
+	issuer := h.Endpoints.Origin().String()
 	// FIXME(mfa): decide a proper account name.
 	// We cannot use graph.MustGetUserLastIdentity because
 	// In settings, the interaction may not have identity.

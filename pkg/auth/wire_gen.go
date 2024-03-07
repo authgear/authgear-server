@@ -1910,7 +1910,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -4667,7 +4666,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -5609,7 +5607,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -6428,7 +6425,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -7392,7 +7388,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -8282,7 +8277,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -9171,7 +9165,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -10048,7 +10041,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -10920,7 +10912,6 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -11829,7 +11820,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -12781,7 +12771,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -13643,7 +13632,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -14509,7 +14497,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -15377,7 +15364,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -16243,7 +16229,6 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -17107,7 +17092,6 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -17973,7 +17957,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -18840,7 +18823,6 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -19706,7 +19688,6 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -20572,7 +20553,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -21440,7 +21420,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -22306,7 +22285,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -23172,7 +23150,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -24042,7 +24019,6 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -24908,7 +24884,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -25778,7 +25753,6 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -26644,7 +26618,6 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -27518,7 +27491,6 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -28406,7 +28378,6 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -29283,7 +29254,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -30149,7 +30119,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -31011,7 +30980,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -31877,7 +31845,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -32739,7 +32706,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -33611,7 +33577,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -34473,7 +34438,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -35337,7 +35301,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -36199,7 +36162,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -37093,7 +37055,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -37966,7 +37927,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -38852,7 +38812,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -39722,7 +39681,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -40585,7 +40543,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -41456,7 +41413,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -42319,7 +42275,6 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -43182,7 +43137,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -44045,7 +43999,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -44909,7 +44862,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -45792,7 +45744,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -46655,7 +46606,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -47518,7 +47468,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -48381,7 +48330,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -49244,7 +49192,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -50114,7 +50061,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -50978,7 +50924,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -51840,7 +51785,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -52718,7 +52662,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -53580,7 +53523,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -54479,7 +54421,6 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -55343,7 +55284,6 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -56205,7 +56145,6 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -57085,7 +57024,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -57911,7 +57849,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -58736,7 +58673,6 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -59608,7 +59544,6 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -60471,7 +60406,6 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -61333,7 +61267,6 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -65565,7 +65498,6 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -66412,7 +66344,6 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -67252,7 +67183,6 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -68134,7 +68064,6 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -69059,7 +68988,6 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -69996,7 +69924,6 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -70920,7 +70847,6 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -71848,7 +71774,6 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -72755,7 +72680,6 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -73662,7 +73586,6 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -74563,7 +74486,6 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -75464,7 +75386,6 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -76367,7 +76288,6 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -77270,7 +77190,6 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -78171,7 +78090,6 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -79072,7 +78990,6 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -79973,7 +79890,6 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -80874,7 +80790,6 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -81775,7 +81690,6 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -82676,7 +82590,6 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -83577,7 +83490,6 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -84478,7 +84390,6 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -85381,7 +85292,6 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -86284,7 +86194,6 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -87186,7 +87095,6 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -88087,7 +87995,6 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -88989,7 +88896,6 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -89890,7 +89796,6 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -90791,7 +90696,6 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -91692,7 +91596,6 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -92593,7 +92496,6 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -93494,7 +93396,6 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -94395,7 +94296,6 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -95296,7 +95196,6 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -96197,7 +96096,6 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -97098,7 +96996,6 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -97999,7 +97896,6 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -98900,7 +98796,6 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -99801,7 +99696,6 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -100702,7 +100596,6 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -101603,7 +101496,6 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -102506,7 +102398,6 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -103409,7 +103300,6 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -104310,7 +104200,6 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -105175,7 +105064,6 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -106072,7 +105960,6 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -106944,7 +106831,6 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -107816,7 +107702,6 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -108717,7 +108602,6 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -109618,7 +109502,6 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -110519,7 +110402,6 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -111708,7 +111590,6 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -112609,7 +112490,6 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
@@ -114565,7 +114445,6 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,

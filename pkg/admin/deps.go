@@ -13,7 +13,6 @@ import (
 	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
-	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
@@ -103,7 +102,6 @@ var DependencySet = wire.NewSet(
 
 	wire.NewSet(
 		endpoints.DependencySet,
-		wire.Bind(new(sso.EndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(otp.EndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(oauth.EndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(oauth.BaseURLProvider), new(*endpoints.Endpoints)),

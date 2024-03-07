@@ -50,7 +50,7 @@ type RolesAndGroupsProvider interface {
 }
 
 type BaseURLProvider interface {
-	BaseURL() *url.URL
+	Origin() *url.URL
 }
 
 type IDTokenIssuer struct {
@@ -112,7 +112,7 @@ func (ti *IDTokenIssuer) GetPublicKeySet() (jwk.Set, error) {
 }
 
 func (ti *IDTokenIssuer) Iss() string {
-	return ti.BaseURL.BaseURL().String()
+	return ti.BaseURL.Origin().String()
 }
 
 func (ti *IDTokenIssuer) updateTimeClaims(token jwt.Token) {
