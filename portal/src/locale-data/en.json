@@ -122,6 +122,7 @@
   "errors.bad-nft-collection": "This NFT collection is either not supported or is from another network.",
   "errors.alchemy-protocol": "We have some problem with this NFT collection. Please contact us at {ExternalLink, react, children{hello@authgear.com} href{mailto:hello@authgear.com}}.",
   "errors.deno-hook.typecheck": "{pre, react, children{{message}}}",
+  "errors.roles.key.validation.format": "Invalid role key. Only english alphbets, digits, colons (:) and underscores (_) are accepted, and the first character must be alphabet.",
 
   "warnings.free-plan": "To avoid spam content, free plans are limited to send 5 SMS and Whatsapp messsage by default. To be eligible for 100 free SMS/Whatsapp per mo, please complete{ExternalLink, react, href{https://go.authgear.com/portal-support} children{the application form}}.",
 
@@ -174,6 +175,13 @@
   "RolesScreen.empty-state.title": "You don't have any roles yet.",
   "RolesScreen.empty-state.subtitle": "Create roles to represent the types of users that access your applications.",
   "RolesScreen.empty-state.button": "Create Role",
+
+  "AddRolesScreen.title": "Create Role",
+  "AddRolesScreen.roleKey.title": "Role Key",
+  "AddRolesScreen.roleKey.description": "The Role Key will be included in the UserInfo and JWT token of the user. e.g. app_a_admin.",
+  "AddRolesScreen.roleName.title": "Name",
+  "AddRolesScreen.roleName.description": "A display name of this role in the portal.",
+  "AddRolesScreen.roleDescription.title": "Description",
 
   "UsersScreen.title": "Users",
   "UsersScreen.add-user": "Add User",

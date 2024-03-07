@@ -1,0 +1,44 @@
+.root {
+  @apply flex-1;
+  @apply flex flex-col;
+  @apply min-h-0;
+  @apply overflow-auto;
+
+  /* Let body to scroll in mobile */
+  @apply mobile:overflow-visible mobile:flex-1-0-auto mobile:min-h-min;
+}
+
+.main {
+  @apply flex-1-0-auto;
+  @apply p-6;
+
+  @apply grid gap-12;
+  grid-template-columns: 1fr;
+  grid-auto-rows: min-content;
+}
+
+.topBar {
+  @apply sticky top-0 z-10;
+
+  @apply mobile:top-[var(--screen-header-height)];
+}
+
+.header {
+  @apply self-stretch;
+}
+
+.content {
+  @apply self-start w-full max-w-[360px];
+  @apply grid gap-8;
+  grid-template-columns: 1fr;
+  grid-auto-rows: min-content;
+
+  @apply mobile:max-w-none;
+}
+
+.footer {
+  @apply self-stretch;
+  @apply grid grid-flow-col gap-4;
+  grid-template-rows: min-content;
+  grid-auto-columns: min-content;
+}
