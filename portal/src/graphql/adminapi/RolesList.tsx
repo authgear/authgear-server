@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import { RolesListFragment } from "./query/rolesListQuery.generated";
 import useDelayedValue from "../../hook/useDelayedValue";
@@ -19,6 +19,7 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import Link from "../../Link";
 import ActionButton from "../../ActionButton";
 import PaginationWidget from "../../PaginationWidget";
+import DeleteRoleDialog from "./DeleteRoleDialog";
 
 interface RolesListProps {
   className?: string;
@@ -135,6 +136,22 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
     );
   }, [themes.destructive]);
 
+  const [isDeleteRoleDialogHidden, setIsDeleteRoleDialogHidden] =
+    useState(true);
+  const [deleteRoleDialogData, setDeleteRoleDialogData] = useState<string>("");
+  const onClickDeleteRole = useCallback(
+    (e: React.MouseEvent<unknown>, item: RoleListItem) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDeleteRoleDialogData(item.id);
+      setIsDeleteRoleDialogHidden(false);
+    },
+    []
+  );
+  const dismissDeleteRoleDialog = useCallback(() => {
+    setIsDeleteRoleDialogHidden(true);
+  }, []);
+
   const onRenderRoleItemColumn = useCallback(
     (item: RoleListItem, _index?: number, column?: IColumn) => {
       switch (column?.key) {
@@ -154,9 +171,7 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
                 className={styles.actionButton}
                 theme={themes.destructive}
                 onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  alert("TODO");
+                  onClickDeleteRole(e, item);
                 }}
               />
             </div>
@@ -172,7 +187,7 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
           );
       }
     },
-    [themes.destructive, onRenderTextActionButtonText]
+    [onRenderTextActionButtonText, themes.destructive, onClickDeleteRole]
   );
   return (
     <>
@@ -198,6 +213,11 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
             onChangeOffset={onChangeOffset}
           />
         ) : null}
+        <DeleteRoleDialog
+          isHidden={isDeleteRoleDialogHidden}
+          onDismiss={dismissDeleteRoleDialog}
+          roleID={deleteRoleDialogData}
+        />
       </div>
     </>
   );
