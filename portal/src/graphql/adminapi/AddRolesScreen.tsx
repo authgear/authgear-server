@@ -120,20 +120,6 @@ const AddRolesScreen: React.VFC = function AddRolesScreen() {
         <div>
           <FormTextField
             required={true}
-            fieldName="key"
-            parentJSONPointer=""
-            type="text"
-            label={renderToString("AddRolesScreen.roleKey.title")}
-            value={formState.roleKey}
-            onChange={onFormStateChangeCallbacks.roleKey}
-          />
-          <WidgetDescription className="mt-2">
-            <FormattedMessage id="AddRolesScreen.roleKey.description" />
-          </WidgetDescription>
-        </div>
-        <div>
-          <FormTextField
-            required={true}
             fieldName="name"
             parentJSONPointer=""
             type="text"
@@ -143,6 +129,20 @@ const AddRolesScreen: React.VFC = function AddRolesScreen() {
           />
           <WidgetDescription className="mt-2">
             <FormattedMessage id="AddRolesScreen.roleName.description" />
+          </WidgetDescription>
+        </div>
+        <div>
+          <FormTextField
+            required={true}
+            fieldName="key"
+            parentJSONPointer=""
+            type="text"
+            label={renderToString("AddRolesScreen.roleKey.title")}
+            value={formState.roleKey}
+            onChange={onFormStateChangeCallbacks.roleKey}
+          />
+          <WidgetDescription className="mt-2">
+            <FormattedMessage id="AddRolesScreen.roleKey.description" />
           </WidgetDescription>
         </div>
         <FormTextField
