@@ -22,8 +22,7 @@ func (e *Endpoints) Origin() *url.URL {
 	}
 }
 
-func (e *Endpoints) BaseURL() *url.URL {
-	base := e.Origin()
+func (e *Endpoints) urlOf(relPath string) *url.URL {
 	// If we do not set Path = "/", then in urlOf,
 	// Path will have no leading /.
 	// It is problematic when Path is used in comparison.
@@ -35,13 +34,8 @@ func (e *Endpoints) BaseURL() *url.URL {
 	// So direct comparison will yield a surprising result.
 	// More confusing is that u.String() == uu.String()
 	// Because String() will add leading / to make the URL legal.
-	base.Path = "/"
-	return base
-}
-
-func (e *Endpoints) urlOf(relPath string) *url.URL {
-	u := e.BaseURL()
-	u.Path = path.Join(u.Path, relPath)
+	u := e.Origin()
+	u.Path = path.Join("/", relPath)
 	return u
 }
 
