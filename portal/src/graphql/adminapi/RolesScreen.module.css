@@ -23,28 +23,6 @@
   @apply mt-7;
 }
 
-.emptyStateIcon {
-  @apply h-16 w-16;
-}
-
-.emptyStateTitle {
-  @apply mt-6;
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
-.emptyStateSubtitle {
-  @apply mt-4;
-  font-size: 1rem;
-  font-weight: 400;
-  max-width: 480px;
-  text-align: center;
-}
-
-.emptyStateButton {
-  @apply mt-8;
-}
-
 .searchBox {
   align-self: center;
   width: 300px;
