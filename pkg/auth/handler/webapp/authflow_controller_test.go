@@ -54,13 +54,16 @@ func TestAuthflowControllerGetOrCreateWebSession(t *testing.T) {
 		mockSessionStore := NewMockAuthflowControllerSessionStore(ctrl)
 		mockCookieManager := NewMockAuthflowControllerCookieManager(ctrl)
 		mockNavigator := NewNoopAuthflowNavigator()
+		mockNavigatorV2 := NewMockAuthflowNavigatorV2(ctrl)
 
 		c := &AuthflowController{
 			Clock:         clock.NewMockClockAt("2006-01-02T03:04:05Z"),
 			Cookies:       mockCookieManager,
 			Sessions:      mockSessionStore,
 			SessionCookie: webapp.NewSessionCookieDef(),
-			Navigator:     mockNavigator,
+			NavigatorV1:   mockNavigator,
+			NavigatorV2:   mockNavigatorV2,
+			UIConfig:      &config.UIConfig{},
 		}
 
 		Convey("Create new if not in context", func() {
@@ -105,10 +108,13 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 
 		mockAuthflows := NewMockAuthflowControllerAuthflowService(ctrl)
 		mockNavigator := NewNoopAuthflowNavigator()
+		mockNavigatorV2 := NewNoopAuthflowNavigator()
 
 		c := &AuthflowController{
-			Authflows: mockAuthflows,
-			Navigator: mockNavigator,
+			Authflows:   mockAuthflows,
+			NavigatorV1: mockNavigator,
+			NavigatorV2: mockNavigatorV2,
+			UIConfig:    &config.UIConfig{},
 		}
 
 		Convey("return ErrFlowNotFound if session has no authflow", func() {
@@ -206,12 +212,15 @@ func TestAuthflowControllerCreateScreen(t *testing.T) {
 		mockSessionStore := NewMockAuthflowControllerSessionStore(ctrl)
 		mockClock := clock.NewMockClockAt("2006-01-02T03:04:05Z")
 		mockNavigator := NewNoopAuthflowNavigator()
+		mockNavigatorV2 := NewNoopAuthflowNavigator()
 
 		c := &AuthflowController{
-			Clock:     mockClock,
-			Authflows: mockAuthflows,
-			Sessions:  mockSessionStore,
-			Navigator: mockNavigator,
+			Clock:       mockClock,
+			Authflows:   mockAuthflows,
+			Sessions:    mockSessionStore,
+			NavigatorV1: mockNavigator,
+			NavigatorV2: mockNavigatorV2,
+			UIConfig:    &config.UIConfig{},
 		}
 
 		Convey("create screen", func() {
@@ -255,12 +264,15 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 		mockSessionStore := NewMockAuthflowControllerSessionStore(ctrl)
 		mockClock := clock.NewMockClockAt("2006-01-02T03:04:05Z")
 		mockNavigator := &webapp.AuthflowNavigator{}
+		mockNavigatorV2 := &webapp.AuthflowNavigator{}
 
 		c := AuthflowController{
-			Clock:     mockClock,
-			Authflows: mockAuthflows,
-			Sessions:  mockSessionStore,
-			Navigator: mockNavigator,
+			Clock:       mockClock,
+			Authflows:   mockAuthflows,
+			Sessions:    mockSessionStore,
+			NavigatorV1: mockNavigator,
+			NavigatorV2: mockNavigatorV2,
+			UIConfig:    &config.UIConfig{},
 		}
 
 		Convey("the branch does not require input to take", func() {

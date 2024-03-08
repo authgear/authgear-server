@@ -419,3 +419,76 @@ func (mr *MockAuthflowNavigatorMockRecorder) NavigateSelectAccount(result interf
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NavigateSelectAccount", reflect.TypeOf((*MockAuthflowNavigator)(nil).NavigateSelectAccount), result)
 }
+
+// MockAuthflowNavigatorV2 is a mock of AuthflowNavigatorV2 interface.
+type MockAuthflowNavigatorV2 struct {
+	ctrl     *gomock.Controller
+	recorder *MockAuthflowNavigatorV2MockRecorder
+}
+
+// MockAuthflowNavigatorV2MockRecorder is the mock recorder for MockAuthflowNavigatorV2.
+type MockAuthflowNavigatorV2MockRecorder struct {
+	mock *MockAuthflowNavigatorV2
+}
+
+// NewMockAuthflowNavigatorV2 creates a new mock instance.
+func NewMockAuthflowNavigatorV2(ctrl *gomock.Controller) *MockAuthflowNavigatorV2 {
+	mock := &MockAuthflowNavigatorV2{ctrl: ctrl}
+	mock.recorder = &MockAuthflowNavigatorV2MockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAuthflowNavigatorV2) EXPECT() *MockAuthflowNavigatorV2MockRecorder {
+	return m.recorder
+}
+
+// Navigate mocks base method.
+func (m *MockAuthflowNavigatorV2) Navigate(screen *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Navigate", screen, r, webSessionID, result)
+}
+
+// Navigate indicates an expected call of Navigate.
+func (mr *MockAuthflowNavigatorV2MockRecorder) Navigate(screen, r, webSessionID, result interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Navigate", reflect.TypeOf((*MockAuthflowNavigatorV2)(nil).Navigate), screen, r, webSessionID, result)
+}
+
+// NavigateNonRecoverableError mocks base method.
+func (m *MockAuthflowNavigatorV2) NavigateNonRecoverableError(r *http.Request, u *url.URL, e error) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "NavigateNonRecoverableError", r, u, e)
+}
+
+// NavigateNonRecoverableError indicates an expected call of NavigateNonRecoverableError.
+func (mr *MockAuthflowNavigatorV2MockRecorder) NavigateNonRecoverableError(r, u, e interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NavigateNonRecoverableError", reflect.TypeOf((*MockAuthflowNavigatorV2)(nil).NavigateNonRecoverableError), r, u, e)
+}
+
+// NavigateResetPasswordSuccessPage mocks base method.
+func (m *MockAuthflowNavigatorV2) NavigateResetPasswordSuccessPage() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NavigateResetPasswordSuccessPage")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// NavigateResetPasswordSuccessPage indicates an expected call of NavigateResetPasswordSuccessPage.
+func (mr *MockAuthflowNavigatorV2MockRecorder) NavigateResetPasswordSuccessPage() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NavigateResetPasswordSuccessPage", reflect.TypeOf((*MockAuthflowNavigatorV2)(nil).NavigateResetPasswordSuccessPage))
+}
+
+// NavigateSelectAccount mocks base method.
+func (m *MockAuthflowNavigatorV2) NavigateSelectAccount(result *webapp.Result) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "NavigateSelectAccount", result)
+}
+
+// NavigateSelectAccount indicates an expected call of NavigateSelectAccount.
+func (mr *MockAuthflowNavigatorV2MockRecorder) NavigateSelectAccount(result interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NavigateSelectAccount", reflect.TypeOf((*MockAuthflowNavigatorV2)(nil).NavigateSelectAccount), result)
+}

@@ -86,6 +86,10 @@ type AuthflowNavigator interface {
 	NavigateResetPasswordSuccessPage() string
 }
 
+type AuthflowNavigatorV2 interface {
+	AuthflowNavigator
+}
+
 type AuthflowControllerLogger struct{ *log.Logger }
 
 func NewAuthflowControllerLogger(lf *log.Factory) AuthflowControllerLogger {
@@ -125,7 +129,17 @@ type AuthflowController struct {
 	UIConfig            *config.UIConfig
 	OAuthClientResolver AuthflowControllerOAuthClientResolver
 
-	Navigator AuthflowNavigator
+	NavigatorV1 AuthflowNavigator
+	NavigatorV2 AuthflowNavigatorV2
+}
+
+func (c *AuthflowController) deriveNavigator() AuthflowNavigator {
+	switch c.UIConfig.Implementation {
+	case config.UIImplementationAuthflowV2:
+		return c.NavigatorV2
+	default:
+		return c.NavigatorV1
+	}
 }
 
 func (c *AuthflowController) HandleStartOfFlow(
@@ -483,7 +497,7 @@ func (c *AuthflowController) Restart(s *webapp.Session) (result *webapp.Result, 
 			"x_step": struct{}{},
 		},
 	}
-	c.Navigator.NavigateSelectAccount(result)
+	c.deriveNavigator().NavigateSelectAccount(result)
 	return
 }
 
@@ -599,7 +613,7 @@ func (c *AuthflowController) AdvanceWithInputs(
 		}
 	}
 
-	currentScreen.Navigate(c.Navigator, r, s.ID, result)
+	currentScreen.Navigate(c.deriveNavigator(), r, s.ID, result)
 
 	return result, nil
 }
@@ -682,7 +696,7 @@ func (c *AuthflowController) UpdateWithInput(r *http.Request, s *webapp.Session,
 		result.Cookies = append(result.Cookies, output.Cookies...)
 	}
 
-	newScreen.Navigate(c.Navigator, r, s.ID, result)
+	newScreen.Navigate(c.deriveNavigator(), r, s.ID, result)
 	return
 }
 
@@ -759,7 +773,7 @@ func (c *AuthflowController) feedInput(stateToken string, input interface{}) (*a
 func (c *AuthflowController) deriveAuthflowFinishPath(flowType authflow.FlowType) string {
 	switch flowType {
 	case authflow.FlowTypeAccountRecovery:
-		return c.Navigator.NavigateResetPasswordSuccessPage()
+		return c.deriveNavigator().NavigateResetPasswordSuccessPage()
 	}
 	return ""
 }
@@ -919,7 +933,7 @@ func (c *AuthflowController) takeBranch(w http.ResponseWriter, r *http.Request, 
 		return err
 	}
 
-	newScreen.Navigate(c.Navigator, r, s.ID, result)
+	newScreen.Navigate(c.deriveNavigator(), r, s.ID, result)
 	result.WriteResponse(w, r)
 	return nil
 }
@@ -967,7 +981,7 @@ func (c *AuthflowController) makeErrorResult(w http.ResponseWriter, r *http.Requ
 	case apierrors.IsKind(err, webapp.WebUIInvalidSession):
 		fallthrough
 	case r.Method == http.MethodGet:
-		c.Navigator.NavigateNonRecoverableError(r, &u, err)
+		c.deriveNavigator().NavigateNonRecoverableError(r, &u, err)
 		return nonRecoverable()
 	default:
 		return recoverable()
@@ -982,7 +996,7 @@ func (c *AuthflowController) checkPath(w http.ResponseWriter, r *http.Request, s
 	// We derive the intended path of the screen,
 	// and check if the paths match.
 	result := &webapp.Result{}
-	screen.Navigate(c.Navigator, r, s.ID, result)
+	screen.Navigate(c.deriveNavigator(), r, s.ID, result)
 	redirectURI := result.RedirectURI
 
 	if redirectURI == "" {
