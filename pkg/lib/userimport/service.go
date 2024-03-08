@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
@@ -30,12 +31,18 @@ type IdentityService interface {
 	ListByClaim(name string, value string) ([]*identity.Info, error)
 }
 
+type VerifiedClaimService interface {
+	NewVerifiedClaim(userID string, claimName string, claimValue string) *verification.Claim
+	MarkClaimVerified(claim *verification.Claim) error
+}
+
 type UserImportService struct {
-	AppDatabase   *appdb.Handle
-	LoginIDConfig *config.LoginIDConfig
-	Identities    IdentityService
-	UserCommands  UserCommands
-	Logger        Logger
+	AppDatabase    *appdb.Handle
+	LoginIDConfig  *config.LoginIDConfig
+	Identities     IdentityService
+	UserCommands   UserCommands
+	VerifiedClaims VerifiedClaimService
+	Logger         Logger
 }
 
 type Logger struct{ *log.Logger }
@@ -158,16 +165,18 @@ func (s *UserImportService) insertRecordInTxn(ctx context.Context, result *impor
 		return
 	}
 
-	err = s.insertIdentitiesInTxn(ctx, result, record, userID)
+	infos, err := s.insertIdentitiesInTxn(ctx, result, record, userID)
 	if err != nil {
 		return
 	}
+
+	err = s.insertVerifiedClaimsInTxn(ctx, result, record, userID, infos)
 
 	result.Outcome = OutcomeInserted
 	return
 }
 
-func (s *UserImportService) insertIdentitiesInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+func (s *UserImportService) insertIdentitiesInTxn(ctx context.Context, result *importResult, record Record, userID string) (infos []*identity.Info, err error) {
 	var specs []*identity.Spec
 
 	if emailPtr, ok := record.Email(); ok {
@@ -246,7 +255,6 @@ func (s *UserImportService) insertIdentitiesInTxn(ctx context.Context, result *i
 		}
 	}
 
-	var infos []*identity.Info
 	for _, spec := range specs {
 		var info *identity.Info
 		info, err = s.Identities.New(userID, spec, identity.NewIdentityOptions{
@@ -263,6 +271,70 @@ func (s *UserImportService) insertIdentitiesInTxn(ctx context.Context, result *i
 		err = s.Identities.Create(info)
 		if err != nil {
 			return
+		}
+	}
+
+	return
+}
+
+func (s *UserImportService) insertVerifiedClaimsInTxn(ctx context.Context, result *importResult, record Record, userID string, infos []*identity.Info) (err error) {
+	if emailVerified, emailVerifiedOK := record.EmailVerified(); emailVerifiedOK {
+		if !emailVerified {
+			result.Warnings = append(result.Warnings, Warning{
+				Message: "email_verified = false has no effect in insert.",
+			})
+		} else {
+			var email string
+			var emailOK bool
+			for _, info := range infos {
+				claims := info.AllStandardClaims()
+				email, emailOK = claims["email"].(string)
+				if emailOK {
+					break
+				}
+			}
+
+			if !emailOK {
+				result.Warnings = append(result.Warnings, Warning{
+					Message: "email_verified = true has no effect when email is absent.",
+				})
+			} else {
+				claim := s.VerifiedClaims.NewVerifiedClaim(userID, "email", email)
+				err = s.VerifiedClaims.MarkClaimVerified(claim)
+				if err != nil {
+					return
+				}
+			}
+		}
+	}
+
+	if phoneNumberVerified, phoneNumberVerifiedOK := record.PhoneNumberVerified(); phoneNumberVerifiedOK {
+		if !phoneNumberVerified {
+			result.Warnings = append(result.Warnings, Warning{
+				Message: "phone_number_verified = false has no effect in insert.",
+			})
+		} else {
+			var phoneNumber string
+			var phoneNumberOK bool
+			for _, info := range infos {
+				claims := info.AllStandardClaims()
+				phoneNumber, phoneNumberOK = claims["phone_number"].(string)
+				if phoneNumberOK {
+					break
+				}
+			}
+
+			if !phoneNumberOK {
+				result.Warnings = append(result.Warnings, Warning{
+					Message: "phone_number_verified = true has no effect when phone_number is absent.",
+				})
+			} else {
+				claim := s.VerifiedClaims.NewVerifiedClaim(userID, "phone_number", phoneNumber)
+				err = s.VerifiedClaims.MarkClaimVerified(claim)
+				if err != nil {
+					return
+				}
+			}
 		}
 	}
 

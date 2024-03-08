@@ -22,6 +22,7 @@ import (
 	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
+	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/nonce"
@@ -117,6 +118,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(transport.UserImportService), new(*userimport.UserImportService)),
 	wire.Bind(new(userimport.IdentityService), new(*identityservice.Service)),
 	wire.Bind(new(userimport.UserCommands), new(*user.RawCommands)),
+	wire.Bind(new(userimport.VerifiedClaimService), new(*verification.Service)),
 
 	adminauthz.DependencySet,
 )

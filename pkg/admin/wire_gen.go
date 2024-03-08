@@ -1314,13 +1314,26 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 		Store: userStore,
 		Clock: clockClock,
 	}
+	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
+	storePQ := &verification.StorePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	verificationService := &verification.Service{
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		Clock:             clockClock,
+		ClaimStore:        storePQ,
+	}
 	userimportLogger := userimport.NewLogger(factory)
 	userImportService := &userimport.UserImportService{
-		AppDatabase:   handle,
-		LoginIDConfig: loginIDConfig,
-		Identities:    serviceService,
-		UserCommands:  rawCommands,
-		Logger:        userimportLogger,
+		AppDatabase:    handle,
+		LoginIDConfig:  loginIDConfig,
+		Identities:     serviceService,
+		UserCommands:   rawCommands,
+		VerifiedClaims: verificationService,
+		Logger:         userimportLogger,
 	}
 	userImportHandler := &transport.UserImportHandler{
 		JSON:              jsonResponseWriter,
