@@ -116,6 +116,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(transport.PresignProvider), new(*presign.Provider)),
 	wire.Bind(new(transport.UserImportService), new(*userimport.UserImportService)),
 	wire.Bind(new(userimport.IdentityService), new(*identityservice.Service)),
+	wire.Bind(new(userimport.UserCommands), new(*user.RawCommands)),
 
 	adminauthz.DependencySet,
 )

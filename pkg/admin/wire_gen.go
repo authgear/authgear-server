@@ -1131,8 +1131,9 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 	appContext := appProvider.AppContext
 	configConfig := appContext.Config
 	appConfig := configConfig.AppConfig
-	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
+	loginIDConfig := identityConfig.LoginID
+	authenticationConfig := appConfig.Authentication
 	featureConfig := configConfig.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := configConfig.SecretConfig
@@ -1150,7 +1151,6 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	loginIDConfig := identityConfig.LoginID
 	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		Config:    loginIDConfig,
@@ -1305,11 +1305,22 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:               passkeyProvider,
 		SIWE:                  siweProvider,
 	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rawCommands := &user.RawCommands{
+		Store: userStore,
+		Clock: clockClock,
+	}
 	userimportLogger := userimport.NewLogger(factory)
 	userImportService := &userimport.UserImportService{
-		AppDatabase: handle,
-		Identities:  serviceService,
-		Logger:      userimportLogger,
+		AppDatabase:   handle,
+		LoginIDConfig: loginIDConfig,
+		Identities:    serviceService,
+		UserCommands:  rawCommands,
+		Logger:        userimportLogger,
 	}
 	userImportHandler := &transport.UserImportHandler{
 		JSON:              jsonResponseWriter,
