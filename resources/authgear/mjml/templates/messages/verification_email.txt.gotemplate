@@ -2,6 +2,6 @@
 
 [[plaintext .T.VerificationEmailTXT.Body]]
 
-[[plaintext .T.VerificationEmailTXT.CodeInstruction]]
+[[plaintext .T.VerificationEmailTXT.Code]]
 
 [[plaintext .T.VerificationEmailTXT.Disclaimer]]

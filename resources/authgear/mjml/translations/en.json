@@ -3,12 +3,12 @@
     "Title": "Use this link to sign in {{ template \"app.name\" }}",
     "Body": "Please click the button below to sign in to {{ template \"app.name\" }}.",
     "Button": "Sign into {{ template \"app.name\" }}",
-    "Footer": "If you didn't trigger a login, please ignore this email."
+    "Disclaimer": "If you didn't trigger a login, please ignore this email."
   },
   "PrimaryOOBEmail": {
     "Title": "Log in to {{ template \"app.name\" }}",
     "Body": "Please use the following one-time password to complete the log in process.",
-    "CodeInstruction": "{{ .Code }}",
+    "Code": "{{ .Code }}",
     "Disclaimer": "Don't share it with anyone. If you didn't trigger a login, please ignore this email."
   },
   "SecondaryLoginLink": {
@@ -20,7 +20,7 @@
   "SecondaryOOBEmail": {
     "Title": "Log in to {{ template \"app.name\" }}",
     "Body": "Please use the following one-time password to complete the log in process.",
-    "CodeInstruction": "{{ .Code }}",
+    "Code": "{{ .Code }}",
     "Disclaimer": "Don't share it with anyone. If you didn't login, please ignore this email."
   },
   "ForgotPassword": {
@@ -32,7 +32,7 @@
   "ForgotPasswordOOBEmail": {
     "Title": "Reset Password",
     "Body": "Please use the following one-time password to reset your password on {{ template \"app.name\" }}.",
-    "CodeInstruction": "{{ .Code }}",
+    "Code": "{{ .Code }}",
     "Disclaimer": "Don't share it with anyone. If you didn't request a reset, please ignore this email."
   },
   "SetupPrimaryLoginLink": {
@@ -43,8 +43,8 @@
   },
   "SetupPrimaryOOBEmail": {
     "Title": "Sign up on {{ template \"app.name\" }}",
-    "Body": "Please use the following one-time-password to complete the sign up process.",
-    "CodeInstruction": "{{ .Code }}",
+    "Body": "Please use the following one-time password to complete the sign up process.",
+    "Code": "{{ .Code }}",
     "Disclaimer": "Don't share it with anyone. If you didn't sign up, please ignore this email."
   },
   "SetupSecondaryLoginLink": {
@@ -56,25 +56,25 @@
   "SetupSecondaryOOBEmail": {
     "Title": "Setup Two-Step Verification on {{ template \"app.name\" }}",
     "Body": "The textbox below contains a one-time password generated to setup two-step verification.",
-    "CodeInstruction": "{{ .Code }}",
+    "Code": "{{ .Code }}",
     "Disclaimer": "Don't share it with anyone. If you didn't trigger this setup, please ignore this email."
   },
   "VerificationEmail": {
     "Title": "Email Verification",
     "Body": "This email is sent to verify {{ .Email }} on {{ template \"app.name\" }}. Use this code in the verification page.",
-    "CodeInstruction": "{{ .Code }}",
+    "Code": "{{ .Code }}",
     "Disclaimer": "Don't share it with anyone. If you didn't sign in or sign up, please ignore this email."
   },
   "PrimaryLoginLinkTXT": {
     "Title": "Log in to {{ template \"app.name\" }}",
     "Body": "Please follow the link below to sign in to {{ template \"app.name\" }}.",
-    "URLInstruction": "{{ .URL }}",
+    "URL": "{{ .URL }}",
     "Disclaimer": "If you didn't trigger a login, please ignore this email."
   },
   "PrimaryOOBEmailTXT": {
     "Title": "Log in to {{ template \"app.name\" }}",
     "Body": "Please use the following one-time password to complete the log in process.",
-    "CodeInstruction": "{{ .Code }}",
+    "Code": "{{ .Code }}",
     "Disclaimer": "Don't share it with anyone. If you didn't trigger a login, please ignore this email."
   },
   "PrimaryOOBSMSTXT": {
@@ -121,13 +121,13 @@
   "SetupPrimaryLoginLinkTXT": {
     "Title": "Verify your email on {{ template \"app.name\" }}",
     "Body": "Please visit the link below to complete your sign up process on {{ template \"app.name\" }}.",
-    "URLInstruction": "{{ .URL }}",
+    "URL": "{{ .URL }}",
     "Disclaimer": "If you didn't trigger this setup, please ignore this email."
   },
   "SetupPrimaryOOBEmailTXT": {
     "Title": "Sign up on {{ template \"app.name\" }}",
     "Body": "Please use the following one-time password to complete the sign up process on {{ template \"app.name\" }}.",
-    "CodeInstruction": "{{ .Code }}",
+    "Code": "{{ .Code }}",
     "Disclaimer": "Don't share it with anyone. If you didn't sign up, please ignore this email."
   },
   "SetupPrimaryOOBSMSTXT": {
@@ -137,13 +137,13 @@
   "SetupSecondaryLoginLinkTXT": {
     "Title": "Verify your email and setup 2-step verification on {{ template \"app.name\" }}",
     "Body": "Please click the link below to setup 2-step verification on {{ template \"app.name\" }}.",
-    "URLInstruction": "{{ .URL }}",
+    "URL": "{{ .URL }}",
     "Disclaimer": "If you didn't trigger this setup, please ignore this email."
   },
   "SetupSecondaryOOBEmailTXT": {
     "Title": "Setup Two-Step Verification on {{ template \"app.name\" }}",
     "Body": "The textbox below contains a one-time password generated to setup two-step verification on {{ template \"app.name\" }}.",
-    "CodeInstruction": "{{ .Code }}",
+    "Code": "{{ .Code }}",
     "Disclaimer": "Don't share it with anyone. If you didn't trigger this setup, please ignore this email."
   },
   "SetupSecondaryOOBSMSTXT": {
@@ -153,11 +153,11 @@
   "VerificationEmailTXT": {
     "Title": "Email Verification",
     "Body": "This email is sent to verify {{ .Email }} on {{ template \"app.name\" }}. Use this code in the verification page.\n{{ .Code }}",
-    "CodeInstruction": "{{ .Code }}",
+    "Code": "{{ .Code }}",
     "Disclaimer": "Don't share it with anyone. If you didn't sign in or sign up, please ignore this email."
   },
   "VerificationSMSTXT": {
-    "CodeInstruction": "{{ .Code }} is your {{ template \"app.name\" }} verification code.",
+    "Code": "{{ .Code }} is your {{ template \"app.name\" }} verification code.",
     "Disclaimer": "Don't share it with anyone.."
   }
 }

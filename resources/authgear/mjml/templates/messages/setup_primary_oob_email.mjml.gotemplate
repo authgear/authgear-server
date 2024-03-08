@@ -15,7 +15,7 @@
   </mj-section>
   <mj-section padding="0 20px">
     <mj-column width="320px" background-color="#f1f4f5">
-      <mj-text font-size="32px" font-weight="heavy" font-family="monospace" letter-spacing="12px" padding="24px 24px 24px 40px">[[plaintext .T.SetupPrimaryOOBEmail.CodeInstruction]]</mj-text>
+      <mj-text font-size="32px" font-weight="heavy" font-family="monospace" letter-spacing="12px" padding="24px 24px 24px 40px">[[plaintext .T.SetupPrimaryOOBEmail.Code]]</mj-text>
     </mj-column>
   </mj-section>
   <mj-section>

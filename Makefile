@@ -119,6 +119,9 @@ html-email:
 
 	for t in $$(find resources -name '*.mjml'); do \
 		./scripts/npm/node_modules/.bin/mjml -l strict "$$t" > "$${t%.mjml}.html"; \
+		if echo "$$t" | grep -q "^resources/authgear/templates"; then \
+			rm "$$t"; \
+		fi; \
 	done
 
 .PHONY: authui

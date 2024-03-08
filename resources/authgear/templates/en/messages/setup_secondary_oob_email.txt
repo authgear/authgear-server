@@ -1,7 +1,7 @@
 Setup Two-Step Verification on {{ template "app.name" }}
 
-Please use the following one-time-password to setup two-step verification.
+The textbox below contains a one-time password generated to setup two-step verification on {{ template "app.name" }}.
 
 {{ .Code }}
 
-If you didn't trigger this setup, please ignore this email.
+Don't share it with anyone. If you didn't trigger this setup, please ignore this email.

@@ -21,7 +21,7 @@
   </mj-section>
   <mj-section>
     <mj-column>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">[[plaintext .T.PrimaryLoginLink.Footer]]</mj-text>
+      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">[[plaintext .T.PrimaryLoginLink.Disclaimer]]</mj-text>
     </mj-column>
   </mj-section>
 </mjml>

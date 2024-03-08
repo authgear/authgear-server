@@ -1,3 +1,3 @@
-Log in to {{ template "app.name" }} with this one-time password {{ .Code }}.
+{{ .Code }} is your {{ template "app.name" }} one-time password.
 
-Ignore this if you are not logging in.
+Don't share it with anyone.

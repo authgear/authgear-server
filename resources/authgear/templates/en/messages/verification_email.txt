@@ -1,7 +1,8 @@
 Email Verification
 
 This email is sent to verify {{ .Email }} on {{ template "app.name" }}. Use this code in the verification page.
+{{ .Code }}
 
 {{ .Code }}
 
-If you didn't sign in or sign up please ignore this email.
+Don't share it with anyone. If you didn't sign in or sign up, please ignore this email.

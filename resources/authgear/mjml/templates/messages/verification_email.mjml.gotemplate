@@ -13,7 +13,7 @@
       <mj-text font-size="16px" align="left" line-height="24px">
         [[plaintext .T.VerificationEmail.Body]]
       </mj-text>
-      <mj-text font-size="32px" font-weight="heavy" font-family="monospace" letter-spacing="12px" padding="24px 24px 24px 40px">[[plaintext .T.VerificationEmail.CodeInstruction]]</mj-text>
+      <mj-text font-size="32px" font-weight="heavy" font-family="monospace" letter-spacing="12px" padding="24px 24px 24px 40px">[[plaintext .T.VerificationEmail.Code]]</mj-text>
       <mj-text font-size="14px" color="#555555" font-weight="light" align="left">[[plaintext .T.VerificationEmail.Disclaimer]]</mj-text>
     </mj-column>
   </mj-section>
