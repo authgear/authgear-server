@@ -1,0 +1,68 @@
+{
+  "PrimaryLoginLink": {
+    "Title": "Use this link to sign in {{ template \"app.name\" }}",
+    "Body": "Please follow the link below to sign in to {{ template \"app.name\" }}.",
+    "Button": "Sign into {{ template \"app.name\" }}",
+    "Footer": "If you didn't trigger a login, please ignore this email."
+  },
+  "PrimaryOOBEmail": {
+    "Title": "Log in to {{ template \"app.name\" }}",
+    "Body": "A one-time password has been generated for you to sign in. Simply copy it from the below textbox.",
+    "CodeInstruction": "{{ .Code }}",
+    "Disclaimer": "If you didn't trigger a login, please ignore this email."
+  },
+  "SecondaryLoginLink": {
+    "Title": "Use this link to sign in {{ template \"app.name\" }}",
+    "Instruction": "Please follow the link below to sign in to {{ template \"app.name\" }}.",
+    "ButtonText": "Sign into {{ template \"app.name\" }}",
+    "Disclaimer": "If you didn't trigger a login, please ignore this email."
+  },
+  "SecondaryOOBEmail": {
+    "Title": "Log in to {{ template \"app.name\" }}",
+    "Body": "A one-time password has been generated for you to sign in. Simply copy it from the below textbox.",
+    "CodeInstruction": "{{ .Code }}",
+    "Disclaimer": "If you didn't trigger a login, please ignore this email."
+  },
+  "ForgotPassword": {
+    "Title": "Reset Password",
+    "Body": "A password reset was requested for {{ .Email }} on {{ template \"app.name\" }}. To do so, please click the button below.",
+    "Button": "Reset Password",
+    "Disclaimer": "If you didn't request a reset, please ignore this email."
+  },
+  "ForgotPasswordOOBEmail": {
+    "Title": "Reset Password",
+    "Body": "A one-time password has been generated for you to reset your password. Simply copy it from the below textbox.",
+    "CodeInstruction": "{{ .Code }}",
+    "Disclaimer": "If you didn't request a reset, please ignore this email."
+  },
+  "SetupPrimaryLoginLink": {
+    "Title": "Setup Two-Step Verification on {{ template \"app.name\" }}",
+    "Body": "Please visit the link below to complete your sign up process.",
+    "Button": "Verify Email",
+    "Disclaimer": "If you didn't trigger this setup, please ignore this email."
+  },
+  "SetupPrimaryOOBEmail": {
+    "Title": "Sign up on {{ template \"app.name\" }}",
+    "Body": "The textbox below contains a one-time password generated to complete your sign up process.",
+    "CodeInstruction": "{{ .Code }}",
+    "Disclaimer": "If you didn't trigger a sign up, please ignore this email."
+  },
+  "SetupSecondaryLoginLink": {
+    "Title": "Verify your email and setup 2-step verification on {{ template \"app.name\" }}",
+    "Body": "Please follow the link below to setup 2-step verification.",
+    "Button": "Verify Email",
+    "Disclaimer": "If you didn't trigger this setup, please ignore this email."
+  },
+  "SetupSecondaryOOBEmail": {
+    "Title": "Setup Two-Step Verification on {{ template \"app.name\" }}",
+    "Body": "The textbox below contains a one-time password generated to setup two-step verification.",
+    "CodeInstruction": "{{ .Code }}",
+    "Disclaimer": "If you didn't trigger this setup, please ignore this email."
+  },
+  "VerificationEmail": {
+    "Title": "Email Verification",
+    "Body": "This email is sent to verify {{ .Email }} on {{ template \"app.name\" }}. Use this code in the verification page.",
+    "CodeInstruction": "{{ .Code }}",
+    "Disclaimer": "If you didn't sign in or sign up, please ignore this email."
+  }
+}
