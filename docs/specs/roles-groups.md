@@ -23,8 +23,7 @@
 
 - The key must be nonempty.
 - The key must be between 1 and 40 characters long.
-- The valid characters are `[a-zA-Z0-9:_]`.
-- The first character must be alphabet or underscore `[a-zA-Z_]`.
+- The key must satisfy this regex `[a-zA-Z_][a-zA-Z0-9:_]*`. That is, the valid characters of the key are alphanumeric, a colon, or an underscore. The first character must be an alphabet or an underscore.
 - The prefix `authgear:` is reserved for future use.
 
 Here are some example of valid keys:
