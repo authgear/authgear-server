@@ -195,7 +195,7 @@
   "RolesList.delete-role": "Delete Role",
 
   "DeleteRoleDialog.title": "Delete Role",
-  "DeleteRoleDialog.description": "Are you sure you want to delete the role \"Human Resources Director\"?",
+  "DeleteRoleDialog.description": "Are you sure you want to delete the role \"{roleName}\"?",
   "DeleteRoleDialog.button.confirm": "Delete Role",
 
   "UsersScreen.title": "Users",

@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  useRef,
+} from "react";
 import {
   RoleAndGroupsFormFooter,
   RoleAndGroupsLayout,
@@ -10,7 +16,7 @@ import {
   Context as MessageContext,
   FormattedMessage,
 } from "@oursky/react-messageformat";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import { useRoleQuery } from "./query/roleQuery";
@@ -28,6 +34,7 @@ import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useUpdateRoleMutation } from "./mutations/updateRoleMutation";
 import { usePivotNavigation } from "../../hook/usePivot";
 import { Pivot, PivotItem } from "@fluentui/react";
+import DeleteRoleDialog, { DeleteRoleDialogData } from "./DeleteRoleDialog";
 
 interface FormState {
   roleKey: string;
@@ -38,7 +45,11 @@ interface FormState {
 const SETTINGS_KEY = "settings";
 const GROUPS_KEY = "groups";
 
-function RoleDetailsScreenSettingsForm() {
+function RoleDetailsScreenSettingsForm({
+  onClickDeleteRole,
+}: {
+  onClickDeleteRole: () => void;
+}) {
   const { themes } = useSystemConfig();
   const { renderToString } = useContext(MessageContext);
 
@@ -63,10 +74,6 @@ function RoleDetailsScreenSettingsForm() {
       roleDescription: createCallback("roleDescription"),
     };
   }, [setFormState]);
-
-  const deleteRole = useCallback(() => {
-    // TODO
-  }, []);
 
   return (
     <div>
@@ -123,7 +130,7 @@ function RoleDetailsScreenSettingsForm() {
           disabled={isUpdating}
           theme={themes.destructive}
           type="button"
-          onClick={deleteRole}
+          onClick={onClickDeleteRole}
           text={<FormattedMessage id="RoleDetailsScreen.button.deleteRole" />}
         />
       </RoleAndGroupsFormFooter>
@@ -136,7 +143,11 @@ function RoleDetailsScreenSettingsFormContainer({
 }: {
   role: RoleQueryNodeFragment;
 }) {
+  const { appID } = useParams() as { appID: string };
   const { updateRole } = useUpdateRoleMutation();
+  const navigate = useNavigate();
+
+  const isDeletedRef = useRef(false);
 
   const validate = useCallback((rawState: FormState): APIError | null => {
     const [_, errors] = validateRole({
@@ -185,10 +196,38 @@ function RoleDetailsScreenSettingsFormContainer({
     validate,
   });
 
+  const [deleteRoleDialogData, setDeleteRoleDialogData] =
+    useState<DeleteRoleDialogData | null>(null);
+  const onClickDeleteRole = useCallback(() => {
+    setDeleteRoleDialogData({
+      roleID: role.id,
+      roleKey: role.key,
+      roleName: role.name ?? null,
+    });
+  }, [role.id, role.key, role.name]);
+  const dismissDeleteRoleDialog = useCallback((isDeleted: boolean) => {
+    setDeleteRoleDialogData(null);
+    isDeletedRef.current = isDeleted;
+  }, []);
+
+  const exitIfDeleted = useCallback(() => {
+    if (isDeletedRef.current) {
+      navigate(`/project/${appID}/user-management/roles`, { replace: true });
+    }
+  }, [navigate, appID]);
+
   return (
-    <RoleAndGroupsFormContainer form={form}>
-      <RoleDetailsScreenSettingsForm />
-    </RoleAndGroupsFormContainer>
+    <>
+      <RoleAndGroupsFormContainer form={form}>
+        <RoleDetailsScreenSettingsForm onClickDeleteRole={onClickDeleteRole} />
+      </RoleAndGroupsFormContainer>
+
+      <DeleteRoleDialog
+        onDismiss={dismissDeleteRoleDialog}
+        onDismissed={exitIfDeleted}
+        data={deleteRoleDialogData}
+      />
+    </>
   );
 }
 
