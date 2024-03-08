@@ -1,24 +1,26 @@
-import React from "react";
+import React, { MouseEventHandler } from "react";
 import cn from "classnames";
 import { Text } from "@fluentui/react";
 import styles from "./RolesAndGroupsEmptyView.module.css";
 import PrimaryButton from "../../PrimaryButton";
 
-const CreateButton: React.VFC<{
+function CreateButton(props: {
   className?: string;
   href?: string;
+  onClick?: MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>;
   text: React.ReactNode;
-}> = function CreateButton(props) {
-  const { className, href, text } = props;
+}) {
+  const { className, href, onClick, text } = props;
   return (
     <PrimaryButton
       href={href}
+      onClick={onClick}
       className={className}
       text={text}
       iconProps={{ iconName: "Add" }}
     />
   );
-};
+}
 
 const RolesAndGroupsEmptyView_: React.VFC<{
   className?: string;

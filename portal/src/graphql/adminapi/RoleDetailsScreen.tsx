@@ -35,6 +35,7 @@ import { useUpdateRoleMutation } from "./mutations/updateRoleMutation";
 import { usePivotNavigation } from "../../hook/usePivot";
 import { Pivot, PivotItem } from "@fluentui/react";
 import DeleteRoleDialog, { DeleteRoleDialogData } from "./DeleteRoleDialog";
+import { GroupsEmptyView } from "../../components/roles-and-groups/GroupsEmptyView";
 
 interface FormState {
   roleKey: string;
@@ -231,6 +232,12 @@ function RoleDetailsScreenSettingsFormContainer({
   );
 }
 
+function RoleDetailsScreenGroupListContainer({}: {
+  role: RoleQueryNodeFragment;
+}) {
+  return <GroupsEmptyView />;
+}
+
 const RoleDetailsScreenLoaded: React.VFC<{
   role: RoleQueryNodeFragment;
   reload: ReturnType<typeof useRoleQuery>["refetch"];
@@ -270,7 +277,7 @@ const RoleDetailsScreenLoaded: React.VFC<{
         />
       </Pivot>
       {selectedKey === GROUPS_KEY ? (
-        <>{/* TODO */}</>
+        <RoleDetailsScreenGroupListContainer role={role} />
       ) : (
         <RoleDetailsScreenSettingsFormContainer role={role} />
       )}

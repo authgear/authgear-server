@@ -11,36 +11,34 @@ function isModifiedEvent(event: React.MouseEvent) {
   return !!(event.metaKey || event.altKey || event.ctrlKey || event.shiftKey);
 }
 
-export interface ReactRouterLinkProps
-  extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, "href"> {
+interface ReactRouterLinkPropsBase {
   replace?: boolean;
   state?: any;
   preserveDefault?: boolean;
-  component?: React.ElementType;
   to: To;
 }
 
-// ReactRouterLink is identical to Link from react-router-dom,
-// except that it supports the `component` prop.
-// In react-router-dom@5, the Link component does support the `component` prop.
-// However, the support is gone in react-router-dom@6 :(
-export const ReactRouterLink = React.forwardRef<
-  HTMLAnchorElement,
-  ReactRouterLinkProps
->(function LinkWithRef(
-  {
-    onClick,
-    replace: replaceProp = false,
-    state,
-    target,
-    to,
-    component,
-    preserveDefault,
-    ...rest
-  },
-  ref
-) {
-  const href = useHref(to);
+export interface ReactRouterLinkProps
+  extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, "href">,
+    ReactRouterLinkPropsBase {
+  component?: React.ElementType;
+}
+
+function useHandleClick({
+  to,
+  onClick,
+  target,
+  preserveDefault,
+  replace: replaceProp,
+  state,
+}: {
+  to: To;
+  onClick?: (e: React.MouseEvent<any>) => void;
+  target?: React.HTMLAttributeAnchorTarget;
+  preserveDefault?: boolean;
+  replace?: boolean;
+  state?: unknown;
+}) {
   const navigate = useNavigate();
   const location = useLocation();
   const path = useResolvedPath(to);
@@ -79,6 +77,22 @@ export const ReactRouterLink = React.forwardRef<
       state,
     ]
   );
+  return handleClick;
+}
+
+// ReactRouterLink is identical to Link from react-router-dom,
+// except that it supports the `component` prop.
+// In react-router-dom@5, the Link component does support the `component` prop.
+// However, the support is gone in react-router-dom@6 :(
+export const ReactRouterLink = React.forwardRef<
+  HTMLAnchorElement,
+  ReactRouterLinkProps
+>(function LinkWithRef(props, ref) {
+  const { onClick, state, target, to, component, preserveDefault, ...rest } =
+    props;
+  const href = useHref(to);
+
+  const handleClick = useHandleClick(props);
 
   const C = component ? component : "a";
 
@@ -87,4 +101,23 @@ export const ReactRouterLink = React.forwardRef<
   );
 });
 
-export default ReactRouterLink;
+interface BasicComponentProps {
+  onClick?: ((ev: React.MouseEvent<any>) => void) | undefined;
+  href?: string | undefined;
+}
+
+// Typesafe implementation of using a non-anchor based custom component
+function CustomComponent<P extends BasicComponentProps>(
+  props: P & ReactRouterLinkPropsBase & { component: React.ComponentType<P> }
+): React.ReactElement | null {
+  const { onClick, state, to, component, preserveDefault, ...rest } = props;
+  const href = useHref(to);
+
+  const handleClick = useHandleClick(props);
+
+  const Component = component as React.ComponentType<any>;
+
+  return <Component {...rest} href={href} onClick={handleClick} />;
+}
+
+export default Object.assign(ReactRouterLink, { CustomComponent });
