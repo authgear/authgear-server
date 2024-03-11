@@ -194,7 +194,7 @@ func (c *AuthflowController) HandleOAuthCallback(w http.ResponseWriter, r *http.
 		return
 	}
 
-	s, err := c.getWebSession(r)
+	s, err := c.Sessions.Get(state.WebSessionID)
 	if err != nil {
 		if !apierrors.IsKind(err, webapp.WebUIInvalidSession) {
 			c.Logger.WithError(err).Errorf("failed to get web session")
