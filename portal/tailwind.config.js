@@ -11,6 +11,7 @@ module.exports = {
     },
     extend: {
       flex: {
+        1: "1 1 0", // The default 1 1 0% doesn't work in some cases, change to 0
         "1-0-auto": "1 0 auto",
       },
       colors: {

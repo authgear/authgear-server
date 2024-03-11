@@ -286,9 +286,13 @@ function RoleDetailsScreenGroupListContainer({
     }) ?? [];
 
   return (
-    <section className="flex-1-0-auto">
+    <section className="flex-1 flex flex-col">
       <header className="h-9 mb-8">{/* TODO */}</header>
-      <RoleGroupsList role={role} groups={roleGroups} />
+      <RoleGroupsList
+        className="flex-1 min-h-0"
+        role={role}
+        groups={roleGroups}
+      />
     </section>
   );
 }

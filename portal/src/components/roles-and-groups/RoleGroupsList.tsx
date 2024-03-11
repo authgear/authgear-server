@@ -90,7 +90,6 @@ export const RoleGroupsList: React.VFC<RoleGroupsListProps> =
           name: renderToString("RoleGroupsList.column.name"),
           minWidth: 100,
           maxWidth: 300,
-          targetWidthProportion: 1,
           isResizable: true,
           columnActionsMode: ColumnActionsMode.disabled,
         },
