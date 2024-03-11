@@ -79,7 +79,13 @@ const StyledTagPicker: React.VFC<StyledPickerProps> = function StyledTagPicker(
     <div ref={tagPickerRef} className={styles.tagPickerContainer}>
       <TagPicker
         {...rest}
-        styles={fixTagPickerStyles}
+        styles={{
+          ...fixTagPickerStyles,
+          itemsWrapper: {
+            // padding of input field
+            maxWidth: "calc(100% - 32px)",
+          },
+        }}
         className={cn(styles.tagPicker, className)}
         inputProps={{
           value,
@@ -91,8 +97,6 @@ const StyledTagPicker: React.VFC<StyledPickerProps> = function StyledTagPicker(
         pickerCalloutProps={{
           className: styles.pickerCallout,
           target: tagPickerRef,
-          calloutMaxHeight: 152,
-          calloutMaxWidth: 510,
         }}
         onChange={_onChange}
         selectedItems={selectedItems}

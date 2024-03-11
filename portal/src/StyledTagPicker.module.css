@@ -14,6 +14,8 @@
 
 .pickerCallout {
   @apply w-full;
+  max-height: 152px;
+  max-width: 510px;
 }
 
 .pickerSuggestions {
