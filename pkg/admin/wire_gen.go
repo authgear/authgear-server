@@ -1343,6 +1343,11 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
+	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
+		Config:      userProfileConfig,
+		UserQueries: rawQueries,
+		UserStore:   userStore,
+	}
 	userimportLogger := userimport.NewLogger(factory)
 	userImportService := &userimport.UserImportService{
 		AppDatabase:        handle,
@@ -1351,6 +1356,7 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 		UserCommands:       rawCommands,
 		VerifiedClaims:     verificationService,
 		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 		Logger:             userimportLogger,
 	}
 	userImportHandler := &transport.UserImportHandler{

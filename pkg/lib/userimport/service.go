@@ -7,6 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -41,6 +42,10 @@ type StandardAttributesService interface {
 	UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
 }
 
+type CustomAttributesService interface {
+	UpdateCustomAttributesWithList(role accesscontrol.Role, userID string, l attrs.List) error
+}
+
 type UserImportService struct {
 	AppDatabase        *appdb.Handle
 	LoginIDConfig      *config.LoginIDConfig
@@ -48,6 +53,7 @@ type UserImportService struct {
 	UserCommands       UserCommands
 	VerifiedClaims     VerifiedClaimService
 	StandardAttributes StandardAttributesService
+	CustomAttributes   CustomAttributesService
 	Logger             Logger
 }
 
@@ -182,6 +188,11 @@ func (s *UserImportService) insertRecordInTxn(ctx context.Context, result *impor
 	}
 
 	err = s.insertStandardAttributesInTxn(ctx, result, record, userID)
+	if err != nil {
+		return
+	}
+
+	err = s.insertCustomAttributesInTxn(ctx, result, record, userID)
 	if err != nil {
 		return
 	}
@@ -362,6 +373,16 @@ func (s *UserImportService) insertStandardAttributesInTxn(ctx context.Context, r
 	}
 
 	err = s.StandardAttributes.UpdateStandardAttributes(accesscontrol.RoleGreatest, userID, stdAttrs)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (s *UserImportService) insertCustomAttributesInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+	customAttrsList := record.CustomAttributesList()
+	err = s.CustomAttributes.UpdateCustomAttributesWithList(accesscontrol.RoleGreatest, userID, customAttrsList)
 	if err != nil {
 		return
 	}

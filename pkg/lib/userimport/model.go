@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 	"golang.org/x/exp/constraints"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -285,8 +287,24 @@ func (m Record) StandardAttributes() (map[string]interface{}, bool) {
 	return nil, false
 }
 
-func (m Record) CustomAttributes() (map[string]interface{}, bool) {
+func (m Record) customAttributes() (map[string]interface{}, bool) {
 	return mapGetNonNullMap[Record, map[string]interface{}](m, "custom_attributes")
+}
+
+func (m Record) CustomAttributesList() (attrsList attrs.List) {
+	customAttrs, ok := m.customAttributes()
+	if !ok {
+		return
+	}
+
+	for key, value := range customAttrs {
+		ptr := jsonpointer.T{key}.String()
+		attrsList = append(attrsList, attrs.T{
+			Pointer: ptr,
+			Value:   value,
+		})
+	}
+	return
 }
 
 func (m Record) Roles() ([]string, bool) {

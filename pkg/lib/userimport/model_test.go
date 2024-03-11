@@ -360,24 +360,23 @@ func TestRecord(t *testing.T) {
 		Convey("custom_attributes", func() {
 			r := Record{}
 
-			_, ok := r.CustomAttributes()
-			So(ok, ShouldBeFalse)
+			l := r.CustomAttributesList()
+			So(l, ShouldBeEmpty)
 
 			r = Record{
 				"custom_attributes": nil,
 			}
 
 			So(func() {
-				r.CustomAttributes()
+				r.CustomAttributesList()
 			}, ShouldPanicWith, fmt.Errorf("custom_attributes is expected to be non-null"))
 
 			r = Record{
 				"custom_attributes": map[string]interface{}{},
 			}
 
-			v, ok := r.CustomAttributes()
-			So(ok, ShouldBeTrue)
-			So(len(v), ShouldEqual, 0)
+			l = r.CustomAttributesList()
+			So(l, ShouldBeEmpty)
 
 			r = Record{
 				"custom_attributes": map[string]interface{}{
@@ -385,9 +384,8 @@ func TestRecord(t *testing.T) {
 				},
 			}
 
-			v, ok = r.CustomAttributes()
-			So(ok, ShouldBeTrue)
-			So(len(v), ShouldEqual, 1)
+			l = r.CustomAttributesList()
+			So(len(l), ShouldEqual, 1)
 		})
 
 		Convey("roles", func() {
