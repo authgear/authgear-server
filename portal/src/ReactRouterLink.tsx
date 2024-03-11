@@ -11,7 +11,8 @@ function isModifiedEvent(event: React.MouseEvent) {
   return !!(event.metaKey || event.altKey || event.ctrlKey || event.shiftKey);
 }
 
-interface ReactRouterLinkPropsBase {
+export interface ReactRouterLinkPropsBase {
+  children?: React.ReactNode;
   replace?: boolean;
   state?: any;
   preserveDefault?: boolean;
@@ -20,9 +21,7 @@ interface ReactRouterLinkPropsBase {
 
 export interface ReactRouterLinkProps
   extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, "href">,
-    ReactRouterLinkPropsBase {
-  component?: React.ElementType;
-}
+    ReactRouterLinkPropsBase {}
 
 function useHandleClick({
   to,
@@ -88,16 +87,13 @@ export const ReactRouterLink = React.forwardRef<
   HTMLAnchorElement,
   ReactRouterLinkProps
 >(function LinkWithRef(props, ref) {
-  const { onClick, state, target, to, component, preserveDefault, ...rest } =
-    props;
+  const { onClick, state, target, to, preserveDefault, ...rest } = props;
   const href = useHref(to);
 
   const handleClick = useHandleClick(props);
 
-  const C = component ? component : "a";
-
   return (
-    <C {...rest} href={href} onClick={handleClick} ref={ref} target={target} />
+    <a {...rest} href={href} onClick={handleClick} ref={ref} target={target} />
   );
 });
 
@@ -115,7 +111,7 @@ function CustomComponent<P extends BasicComponentProps>(
 
   const handleClick = useHandleClick(props);
 
-  const Component = component as React.ComponentType<any>;
+  const Component = component as React.ComponentType<BasicComponentProps>;
 
   return <Component {...rest} href={href} onClick={handleClick} />;
 }
