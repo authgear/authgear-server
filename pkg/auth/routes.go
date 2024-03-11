@@ -273,6 +273,13 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		Authflow:    p.Handler(newWebAppAuthflowReauthHandler),
 		AuthflowV2:  p.Handler(newWebAppAuthflowV2ReauthHandler),
 	})
+	router.Add(webapphandler.ConfigureSSOCallbackRoute(webappSSOCallbackRoute), &webapphandler.ImplementationSwitcherHandler{
+		Interaction: p.Handler(newWebAppSSOCallbackHandler),
+		Authflow:    p.Handler(newWebAppAuthflowSSOCallbackHandler),
+		AuthflowV2:  p.Handler(newWebAppAuthflowV2SSOCallbackHandler),
+	})
+	// FIXME(authflowv2): Switch wechat callback endpoint.
+	router.Add(webapphandler.ConfigureWechatCallbackRoute(webappSSOCallbackRoute), p.Handler(newWechatCallbackHandler))
 
 	router.Add(webapphandler.ConfigureSelectAccountRoute(webappSelectAccountRoute), p.Handler(newWebAppSelectAccountHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SelectAccountRoute(webappSelectAccountRoute), p.Handler(newWebAppAuthflowV2SelectAccountHandler))
@@ -381,10 +388,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	router.Add(webapphandler.ConfigureTesterRoute(webappTesterRouter), p.Handler(newWebAppTesterHandler))
 
-	router.Add(webapphandler.ConfigureSSOCallbackRoute(webappSSOCallbackRoute), p.Handler(newWebAppSSOCallbackHandler))
-
 	router.Add(webapphandler.ConfigureWechatAuthRoute(webappPageRoute), p.Handler(newWechatAuthHandler))
-	router.Add(webapphandler.ConfigureWechatCallbackRoute(webappSSOCallbackRoute), p.Handler(newWechatCallbackHandler))
 
 	router.Add(webapphandler.ConfigurePasskeyCreationOptionsRoute(webappAPIRoute), p.Handler(newWebAppPasskeyCreationOptionsHandler))
 	router.Add(webapphandler.ConfigurePasskeyRequestOptionsRoute(webappAPIRoute), p.Handler(newWebAppPasskeyRequestOptionsHandler))
