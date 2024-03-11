@@ -20,7 +20,7 @@ import NavBreadcrumb from "../../NavBreadcrumb";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import iconBadge from "../../images/badge.svg";
 import PrimaryButton from "../../PrimaryButton";
-import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import RolesList from "./RolesList";
 import useDelayedValue from "../../hook/useDelayedValue";
 
@@ -52,13 +52,17 @@ interface CreateRoleButtonProps {
 const CreateRoleButton: React.VFC<CreateRoleButtonProps> =
   function CreateRoleButton(props) {
     const { className } = props;
-    const location = useLocation();
+    const navigate = useNavigate();
     return (
       <PrimaryButton
-        href={`${location.pathname}/add-role`}
         className={className}
         text={<FormattedMessage id={"RolesScreen.empty-state.button"} />}
         iconProps={{ iconName: "Add" }}
+        onClick={(e: React.MouseEvent<unknown>) => {
+          e.preventDefault();
+          e.stopPropagation();
+          navigate("./add");
+        }}
       />
     );
   };
