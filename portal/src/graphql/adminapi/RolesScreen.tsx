@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
-import { Text } from "@fluentui/react";
+import { Text, SearchBox, ISearchBoxProps, MessageBar } from "@fluentui/react";
 import {
   RolesListQueryDocument,
   RolesListQueryQuery,
@@ -11,12 +11,37 @@ import styles from "./RolesScreen.module.css";
 import { encodeOffsetToCursor } from "../../util/pagination";
 import ScreenContent from "../../ScreenContent";
 import NavBreadcrumb from "../../NavBreadcrumb";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import iconBadge from "../../images/badge.svg";
 import PrimaryButton from "../../PrimaryButton";
-import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import RolesList from "./RolesList";
+import useDelayedValue from "../../hook/useDelayedValue";
 
 const pageSize = 10;
+const searchResultSize = -1;
+
+interface CreateRoleButtonProps {
+  className?: string;
+}
+
+const CreateRoleButton: React.VFC<CreateRoleButtonProps> =
+  function CreateRoleButton(props) {
+    const { className } = props;
+    const navigate = useNavigate();
+    return (
+      <PrimaryButton
+        className={className}
+        text={<FormattedMessage id={"RolesScreen.empty-state.button"} />}
+        iconProps={{ iconName: "Add" }}
+        onClick={(e: React.MouseEvent<unknown>) => {
+          e.preventDefault();
+          e.stopPropagation();
+          navigate("./add");
+        }}
+      />
+    );
+  };
 
 interface RolesScreenEmptyStateProps {
   className?: string;
@@ -25,7 +50,6 @@ interface RolesScreenEmptyStateProps {
 const RolesScreenEmptyState: React.VFC<RolesScreenEmptyStateProps> =
   function RolesScreenEmptyState(props) {
     const { className } = props;
-    const location = useLocation();
     return (
       <div className={cn(className, styles.emptyStateContainer)}>
         <img className={styles.emptyStateIcon} src={iconBadge} />
@@ -35,22 +59,20 @@ const RolesScreenEmptyState: React.VFC<RolesScreenEmptyStateProps> =
         <Text className={styles.emptyStateSubtitle}>
           <FormattedMessage id="RolesScreen.empty-state.subtitle" />
         </Text>
-        <PrimaryButton
-          href={`${location.pathname}/add-role`}
-          className={styles.emptyStateButton}
-          text={<FormattedMessage id={"RolesScreen.empty-state.button"} />}
-          iconProps={{ iconName: "Add" }}
-        />
+        <CreateRoleButton className={styles.emptyStateButton} />
       </div>
     );
   };
 
+// eslint-disable-next-line complexity
 const RolesScreen: React.VFC = function RolesScreen() {
-  const [searchKeyword, _setSearchKeyword] = useState("");
+  const { renderToString } = useContext(Context);
+  const [searchKeyword, setSearchKeyword] = useState("");
 
   const isSearch = searchKeyword !== "";
+  const debouncedSearchKey = useDelayedValue(searchKeyword, 500);
 
-  const [offset, _setOffset] = useState(0);
+  const [offset, setOffset] = useState(0);
   // after: is exclusive so if we pass it "offset:0",
   // The first item is excluded.
   // Therefore we have adjust it by -1.
@@ -64,34 +86,87 @@ const RolesScreen: React.VFC = function RolesScreen() {
     }
     return encodeOffsetToCursor(offset - 1);
   }, [isSearch, offset]);
-  const { data, loading } = useQuery<
+
+  const onChangeOffset = useCallback((offset) => {
+    setOffset(offset);
+  }, []);
+
+  const onChangeSearchKeyword = useCallback((_e, value) => {
+    if (value != null) {
+      setSearchKeyword(value);
+      // Reset offset when search keyword was changed.
+      setOffset(0);
+    }
+  }, []);
+
+  const onClearSearchKeyword = useCallback((_e) => {
+    setSearchKeyword("");
+    // Reset offset when search keyword was changed.
+    setOffset(0);
+  }, []);
+
+  const { data, loading, previousData } = useQuery<
     RolesListQueryQuery,
     RolesListQueryQueryVariables
   >(RolesListQueryDocument, {
     variables: {
-      searchKeyword,
-      pageSize,
+      pageSize: isSearch ? searchResultSize : pageSize,
+      searchKeyword: debouncedSearchKey,
       cursor,
     },
     fetchPolicy: "network-only",
   });
 
+  const isInitialLoading = loading && previousData == null;
+
+  const isEmpty = !isInitialLoading && data?.roles?.totalCount === 0;
+  const isSearchEmpty = isSearch && data?.roles?.edges?.length === 0;
+
+  const searchBoxProps: ISearchBoxProps = useMemo(() => {
+    return {
+      className: styles.searchBox,
+      placeholder: renderToString("search"),
+      value: searchKeyword,
+      onChange: onChangeSearchKeyword,
+      onClear: onClearSearchKeyword,
+    };
+  }, [
+    renderToString,
+    searchKeyword,
+    onChangeSearchKeyword,
+    onClearSearchKeyword,
+  ]);
+
   const items = useMemo(() => {
     return [{ to: ".", label: <FormattedMessage id="RolesScreen.title" /> }];
   }, []);
 
-  const isEmpty = !loading && data?.roles?.edges?.length === 0;
-
   return (
     <ScreenContent className={styles.content} layout="list">
       <div className={styles.widget}>
-        <NavBreadcrumb className="block" items={items} />
+        <div className={styles.titleContainer}>
+          <NavBreadcrumb className="block" items={items} />
+          {!isEmpty ? <CreateRoleButton /> : null}
+        </div>
+        {!isEmpty ? <SearchBox {...searchBoxProps} /> : null}
       </div>
       {isEmpty ? (
         <RolesScreenEmptyState className={styles.widget} />
+      ) : isSearchEmpty ? (
+        <MessageBar className={cn(styles.widget, styles.message)}>
+          <FormattedMessage id="RolesScreen.empty.search" />
+        </MessageBar>
       ) : (
-        // TODO: implement list view
-        <RolesScreenEmptyState className={styles.widget} />
+        <RolesList
+          className={styles.widget}
+          isSearch={isSearch}
+          loading={isInitialLoading}
+          offset={offset}
+          pageSize={pageSize}
+          roles={data?.roles ?? null}
+          totalCount={data?.roles?.totalCount ?? undefined}
+          onChangeOffset={onChangeOffset}
+        />
       )}
     </ScreenContent>
   );

@@ -186,6 +186,23 @@ func (s *Store) GetGroupByKey(key string) (*Group, error) {
 	return r, nil
 }
 
+func (s *Store) CountGroups() (uint64, error) {
+	builder := s.SQLBuilder.
+		Select("count(*)").
+		From(s.SQLBuilder.TableName("_auth_group"))
+	scanner, err := s.SQLExecutor.QueryRowWith(builder)
+	if err != nil {
+		return 0, err
+	}
+
+	var count uint64
+	if err = scanner.Scan(&count); err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
 func (s *Store) ListGroups(options *ListGroupsOptions, pageArgs graphqlutil.PageArgs) ([]*Group, uint64, error) {
 	q := s.selectGroupQuery().
 		// Sort by key to ensure we have a stable order.

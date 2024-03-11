@@ -1,10 +1,19 @@
 .content {
-  @apply mt-11;
+  flex: 1 1 0;
+  overflow: hidden;
 }
 
 .widget {
   grid-column: 1 / span 12;
   @apply tablet:col-span-full;
+  min-height: 0;
+}
+
+.titleContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .emptyStateContainer {
@@ -34,4 +43,15 @@
 
 .emptyStateButton {
   @apply mt-8;
+}
+
+.searchBox {
+  align-self: center;
+  width: 300px;
+
+  @apply mt-12 mobile:w-auto;
+}
+
+.message {
+  @apply mt-5 h-min;
 }

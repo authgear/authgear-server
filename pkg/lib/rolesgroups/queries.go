@@ -223,3 +223,11 @@ func (q *Queries) ListEffectiveRolesByUserID(userID string) ([]*model.Role, erro
 
 	return roleModels, nil
 }
+
+func (q *Queries) CountRoles() (uint64, error) {
+	return q.Store.CountRoles()
+}
+
+func (q *Queries) CountGroups() (uint64, error) {
+	return q.Store.CountGroups()
+}
