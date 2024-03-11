@@ -36,6 +36,17 @@ import { usePivotNavigation } from "../../hook/usePivot";
 import { Pivot, PivotItem } from "@fluentui/react";
 import DeleteRoleDialog, { DeleteRoleDialogData } from "./DeleteRoleDialog";
 import { GroupsEmptyView } from "../../components/roles-and-groups/GroupsEmptyView";
+import { useQuery } from "@apollo/client";
+import {
+  GroupsListQueryDocument,
+  GroupsListQueryQuery,
+  GroupsListQueryQueryVariables,
+} from "./query/groupsListQuery.generated";
+import {
+  GroupsList,
+  GroupsListColumnKey,
+  GroupsListItem,
+} from "../../components/roles-and-groups/GroupsList";
 
 interface FormState {
   roleKey: string;
@@ -232,10 +243,61 @@ function RoleDetailsScreenSettingsFormContainer({
   );
 }
 
-function RoleDetailsScreenGroupListContainer({}: {
+const GROUPS_LIST_COLUMNS = [
+  GroupsListColumnKey.Name,
+  GroupsListColumnKey.Key,
+  GroupsListColumnKey.Action,
+];
+
+function RoleDetailsScreenGroupListContainer({
+  role,
+}: {
   role: RoleQueryNodeFragment;
 }) {
-  return <GroupsEmptyView />;
+  const {
+    data: groupsQueryData,
+    loading,
+    error,
+    refetch,
+  } = useQuery<GroupsListQueryQuery, GroupsListQueryQueryVariables>(
+    GroupsListQueryDocument,
+    {
+      variables: {
+        pageSize: 0,
+        searchKeyword: "",
+      },
+      fetchPolicy: "network-only",
+    }
+  );
+
+  if (error != null) {
+    return <ShowError error={error} onRetry={refetch} />;
+  }
+
+  if (loading) {
+    return <ShowLoading />;
+  }
+
+  const totalCount = groupsQueryData?.groups?.totalCount ?? 0;
+
+  if (totalCount === 0) {
+    return <GroupsEmptyView />;
+  }
+
+  const roleGroups =
+    role.groups?.edges?.flatMap<GroupsListItem>((edge) => {
+      if (edge?.node != null) {
+        return [edge.node];
+      }
+      return [];
+    }) ?? [];
+
+  return (
+    <section className="flex-1-0-auto">
+      <header className="h-9 mb-8">{/* TODO */}</header>
+      <GroupsList groups={roleGroups} columns={GROUPS_LIST_COLUMNS} />
+    </section>
+  );
 }
 
 const RoleDetailsScreenLoaded: React.VFC<{

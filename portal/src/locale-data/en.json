@@ -198,6 +198,12 @@
   "RolesList.column.action": "Action",
   "RolesList.delete-role": "Delete Role",
 
+  "GroupsList.column.name": "Name",
+  "GroupsList.column.key": "Group Key",
+  "GroupsList.column.description": "Description",
+  "GroupsList.column.action": "Action",
+  "GroupsList.actions.remove": "Remove",
+
   "DeleteRoleDialog.title": "Delete Role",
   "DeleteRoleDialog.description": "Are you sure you want to delete the role \"{roleName}\"?",
   "DeleteRoleDialog.button.confirm": "Delete Role",
