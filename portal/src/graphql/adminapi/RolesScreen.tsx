@@ -88,6 +88,7 @@ const RolesScreenEmptyState: React.VFC<RolesScreenEmptyStateProps> =
     );
   };
 
+// eslint-disable-next-line complexity
 const RolesScreen: React.VFC = function RolesScreen() {
   const { renderToString } = useContext(Context);
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -171,7 +172,7 @@ const RolesScreen: React.VFC = function RolesScreen() {
             <NavBreadcrumb className="block" items={items} />
             {!isEmpty ? <CreateRoleButton /> : null}
           </div>
-          <LocalSearchBox />
+          {!isEmpty ? <LocalSearchBox /> : null}
         </div>
         {isEmpty ? (
           isSearch ? (
