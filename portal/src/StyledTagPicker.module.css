@@ -1,0 +1,17 @@
+.tagPicker {
+  @apply w-full;
+  max-width: 510px;
+}
+
+.tagPicker div[role="listitem"]:not([class*="is-selected"]) {
+  background: transparent;
+  border: #e1dfdd solid 1px;
+}
+
+.pickerCallout {
+  @apply w-full;
+}
+
+.pickerSuggestions {
+  max-height: 152px;
+}
