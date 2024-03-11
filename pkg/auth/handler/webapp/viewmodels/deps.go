@@ -3,6 +3,7 @@ package viewmodels
 import "github.com/google/wire"
 
 var DependencySet = wire.NewSet(
+	NewBaseLogger,
 	wire.Struct(new(BaseViewModeler), "*"),
 	wire.Struct(new(SettingsViewModeler), "*"),
 	wire.Struct(new(SettingsProfileViewModeler), "*"),

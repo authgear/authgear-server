@@ -307,6 +307,7 @@ var RequestMiddlewareDependencySet = wire.NewSet(
 	wire.Value(template.DefaultLanguageTag(intl.BuiltinBaseLanguage)),
 	wire.Value(template.SupportedLanguageTags([]string{intl.BuiltinBaseLanguage})),
 
+	viewmodelswebapp.NewBaseLogger,
 	wire.Struct(new(viewmodelswebapp.BaseViewModeler), "*"),
 	wire.Struct(new(deps.RequestMiddleware), "*"),
 
