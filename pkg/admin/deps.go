@@ -121,6 +121,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(userimport.VerifiedClaimService), new(*verification.Service)),
 	wire.Bind(new(userimport.StandardAttributesService), new(*featurestdattrs.ServiceNoEvent)),
 	wire.Bind(new(userimport.CustomAttributesService), new(*featurecustomattrs.ServiceNoEvent)),
+	wire.Bind(new(userimport.RolesGroupsCommands), new(*rolesgroups.Commands)),
 
 	adminauthz.DependencySet,
 )

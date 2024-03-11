@@ -1348,16 +1348,25 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 		UserQueries: rawQueries,
 		UserStore:   userStore,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
 	userimportLogger := userimport.NewLogger(factory)
 	userImportService := &userimport.UserImportService{
-		AppDatabase:        handle,
-		LoginIDConfig:      loginIDConfig,
-		Identities:         serviceService,
-		UserCommands:       rawCommands,
-		VerifiedClaims:     verificationService,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
-		Logger:             userimportLogger,
+		AppDatabase:         handle,
+		LoginIDConfig:       loginIDConfig,
+		Identities:          serviceService,
+		UserCommands:        rawCommands,
+		VerifiedClaims:      verificationService,
+		StandardAttributes:  serviceNoEvent,
+		CustomAttributes:    customattrsServiceNoEvent,
+		RolesGroupsCommands: commands,
+		Logger:              userimportLogger,
 	}
 	userImportHandler := &transport.UserImportHandler{
 		JSON:              jsonResponseWriter,

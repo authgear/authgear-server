@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
@@ -47,15 +48,21 @@ type CustomAttributesService interface {
 	UpdateCustomAttributesWithList(role accesscontrol.Role, userID string, l attrs.List) error
 }
 
+type RolesGroupsCommands interface {
+	ResetUserGroup(options *rolesgroups.ResetUserGroupOptions) error
+	ResetUserRole(options *rolesgroups.ResetUserRoleOptions) error
+}
+
 type UserImportService struct {
-	AppDatabase        *appdb.Handle
-	LoginIDConfig      *config.LoginIDConfig
-	Identities         IdentityService
-	UserCommands       UserCommands
-	VerifiedClaims     VerifiedClaimService
-	StandardAttributes StandardAttributesService
-	CustomAttributes   CustomAttributesService
-	Logger             Logger
+	AppDatabase         *appdb.Handle
+	LoginIDConfig       *config.LoginIDConfig
+	Identities          IdentityService
+	UserCommands        UserCommands
+	VerifiedClaims      VerifiedClaimService
+	StandardAttributes  StandardAttributesService
+	CustomAttributes    CustomAttributesService
+	RolesGroupsCommands RolesGroupsCommands
+	Logger              Logger
 }
 
 type Logger struct{ *log.Logger }
@@ -199,6 +206,16 @@ func (s *UserImportService) insertRecordInTxn(ctx context.Context, result *impor
 	}
 
 	err = s.insertDisabledInTxn(ctx, result, record, u)
+	if err != nil {
+		return
+	}
+
+	err = s.insertRolesInTxn(ctx, result, record, userID)
+	if err != nil {
+		return
+	}
+
+	err = s.insertGroupsInTxn(ctx, result, record, userID)
 	if err != nil {
 		return
 	}
@@ -415,6 +432,40 @@ func (s *UserImportService) insertDisabledInTxn(ctx context.Context, result *imp
 	}
 
 	err = s.UserCommands.UpdateAccountStatus(u.ID, *accountStatus)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (s *UserImportService) insertRolesInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+	roleKeys, ok := record.Roles()
+	if !ok {
+		return
+	}
+
+	err = s.RolesGroupsCommands.ResetUserRole(&rolesgroups.ResetUserRoleOptions{
+		UserID:   userID,
+		RoleKeys: roleKeys,
+	})
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (s *UserImportService) insertGroupsInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+	groupKeys, ok := record.Groups()
+	if !ok {
+		return
+	}
+
+	err = s.RolesGroupsCommands.ResetUserGroup(&rolesgroups.ResetUserGroupOptions{
+		UserID:    userID,
+		GroupKeys: groupKeys,
+	})
 	if err != nil {
 		return
 	}
