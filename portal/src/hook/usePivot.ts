@@ -2,8 +2,11 @@ import { useCallback, useEffect } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { IPivotItemProps } from "@fluentui/react";
 
-function isHashValid(validItemKeys: string[], hash: string): boolean {
-  return validItemKeys.includes(hash);
+function isHashValid<K extends string>(
+  validItemKeys: K[],
+  hash: string
+): hash is K {
+  return validItemKeys.includes(hash as K);
 }
 
 export function usePivotNavigation<K extends string = string>(
@@ -57,7 +60,7 @@ export function usePivotNavigation<K extends string = string>(
   );
 
   const selectedKey = isHashValid(validItemKeys, hash)
-    ? (hash as K)
+    ? hash
     : initialSelectedKey;
 
   return { selectedKey, onLinkClick };
