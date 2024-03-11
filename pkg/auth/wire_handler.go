@@ -198,6 +198,22 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppAuthflowSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		AuthflowUIHandlerDependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.SSOCallbackHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		AuthflowV2UIHandlerDependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.SSOCallbackHandler)),
+	))
+}
+
 func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

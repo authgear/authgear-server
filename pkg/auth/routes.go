@@ -142,6 +142,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 			p.Middleware(newWebAppColorSchemeMiddleware),
 			p.Middleware(newWebAppWeChatRedirectURIMiddleware),
 			p.Middleware(newTutorialMiddleware),
+			p.Middleware(newImplementationSwitcherMiddleware),
 		)
 	}
 	webappChain := newWebappChain(false)
@@ -163,7 +164,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 			// It can now determine redirection from the response.
 			// https://github.com/hotwired/turbo/blob/daabebb0575fffbae1b2582dc458967cd638e899/src/core/drive/visit.ts#L316
 			p.Middleware(newSafeDynamicCSPMiddleware),
-			p.Middleware(newImplementationSwitcherMiddleware),
 		)
 	}
 	webappPageChain := newWebappPageChain(false)
@@ -180,7 +180,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	)
 	webappRequireAuthEnabledAuthEntrypointChain := httproute.Chain(
 		webappPageChain,
-		p.Middleware(newImplementationSwitcherMiddleware),
 		p.Middleware(newRequireAuthenticationEnabledMiddleware),
 		p.Middleware(newAuthEntryPointMiddleware),
 		// A unique visit is started when the user visit auth entry point
@@ -188,14 +187,12 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	)
 	webappPromoteChain := httproute.Chain(
 		webappPageChain,
-		p.Middleware(newImplementationSwitcherMiddleware),
 		p.Middleware(newRequireAuthenticationEnabledMiddleware),
 		p.Middleware(newAuthEntryPointMiddleware),
 	)
 	// select account page only accepts idp session
 	webappSelectAccountChain := httproute.Chain(
 		newWebappPageChain(true),
-		p.Middleware(newImplementationSwitcherMiddleware),
 		p.Middleware(newAuthEntryPointMiddleware),
 	)
 	// consent page only accepts idp session
@@ -276,6 +273,13 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		Authflow:    p.Handler(newWebAppAuthflowReauthHandler),
 		AuthflowV2:  p.Handler(newWebAppAuthflowV2ReauthHandler),
 	})
+	router.Add(webapphandler.ConfigureSSOCallbackRoute(webappSSOCallbackRoute), &webapphandler.ImplementationSwitcherHandler{
+		Interaction: p.Handler(newWebAppSSOCallbackHandler),
+		Authflow:    p.Handler(newWebAppAuthflowSSOCallbackHandler),
+		AuthflowV2:  p.Handler(newWebAppAuthflowV2SSOCallbackHandler),
+	})
+	// FIXME(authflowv2): Switch wechat callback endpoint.
+	router.Add(webapphandler.ConfigureWechatCallbackRoute(webappSSOCallbackRoute), p.Handler(newWechatCallbackHandler))
 
 	router.Add(webapphandler.ConfigureSelectAccountRoute(webappSelectAccountRoute), p.Handler(newWebAppSelectAccountHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SelectAccountRoute(webappSelectAccountRoute), p.Handler(newWebAppAuthflowV2SelectAccountHandler))
@@ -384,10 +388,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	router.Add(webapphandler.ConfigureTesterRoute(webappTesterRouter), p.Handler(newWebAppTesterHandler))
 
-	router.Add(webapphandler.ConfigureSSOCallbackRoute(webappSSOCallbackRoute), p.Handler(newWebAppSSOCallbackHandler))
-
 	router.Add(webapphandler.ConfigureWechatAuthRoute(webappPageRoute), p.Handler(newWechatAuthHandler))
-	router.Add(webapphandler.ConfigureWechatCallbackRoute(webappSSOCallbackRoute), p.Handler(newWechatCallbackHandler))
 
 	router.Add(webapphandler.ConfigurePasskeyCreationOptionsRoute(webappAPIRoute), p.Handler(newWebAppPasskeyCreationOptionsHandler))
 	router.Add(webapphandler.ConfigurePasskeyRequestOptionsRoute(webappAPIRoute), p.Handler(newWebAppPasskeyRequestOptionsHandler))
