@@ -1,13 +1,7 @@
 import { useQuery } from "@apollo/client";
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
-import { Text, ISearchBoxProps, SearchBox, MessageBar } from "@fluentui/react";
+import { Text, SearchBox, ISearchBoxProps, MessageBar } from "@fluentui/react";
 import {
   RolesListQueryDocument,
   RolesListQueryQuery,
@@ -26,24 +20,6 @@ import useDelayedValue from "../../hook/useDelayedValue";
 
 const pageSize = 10;
 const searchResultSize = -1;
-
-interface LocalSearchBoxProps {
-  className?: ISearchBoxProps["className"];
-  placeholder?: ISearchBoxProps["placeholder"];
-  value?: ISearchBoxProps["value"];
-  onChange?: ISearchBoxProps["onChange"];
-  onClear?: ISearchBoxProps["onClear"];
-}
-
-const LocalSearchBoxContext = createContext<LocalSearchBoxProps | null>(null);
-
-function LocalSearchBox() {
-  const value = useContext(LocalSearchBoxContext);
-  if (value == null) {
-    return null;
-  }
-  return <SearchBox {...value} />;
-}
 
 interface CreateRoleButtonProps {
   className?: string;
@@ -129,21 +105,6 @@ const RolesScreen: React.VFC = function RolesScreen() {
     setOffset(0);
   }, []);
 
-  const localSearchBoxProps: LocalSearchBoxProps = useMemo(() => {
-    return {
-      className: styles.searchBox,
-      placeholder: renderToString("search"),
-      value: searchKeyword,
-      onChange: onChangeSearchKeyword,
-      onClear: onClearSearchKeyword,
-    };
-  }, [
-    renderToString,
-    searchKeyword,
-    onChangeSearchKeyword,
-    onClearSearchKeyword,
-  ]);
-
   const { data, loading, previousData } = useQuery<
     RolesListQueryQuery,
     RolesListQueryQueryVariables
@@ -158,44 +119,56 @@ const RolesScreen: React.VFC = function RolesScreen() {
 
   const isInitialLoading = loading && previousData == null;
 
+  const isEmpty = !isInitialLoading && data?.roles?.totalCount === 0;
+  const isSearchEmpty = isSearch && data?.roles?.edges?.length === 0;
+
+  const searchBoxProps: ISearchBoxProps = useMemo(() => {
+    return {
+      className: styles.searchBox,
+      placeholder: renderToString("search"),
+      value: searchKeyword,
+      onChange: onChangeSearchKeyword,
+      onClear: onClearSearchKeyword,
+    };
+  }, [
+    renderToString,
+    searchKeyword,
+    onChangeSearchKeyword,
+    onClearSearchKeyword,
+  ]);
+
   const items = useMemo(() => {
     return [{ to: ".", label: <FormattedMessage id="RolesScreen.title" /> }];
   }, []);
 
-  const isEmpty = !isInitialLoading && (data?.roles?.edges?.length ?? 0) === 0;
-
   return (
-    <LocalSearchBoxContext.Provider value={localSearchBoxProps}>
-      <ScreenContent className={styles.content} layout="list">
-        <div className={styles.widget}>
-          <div className={styles.titleContainer}>
-            <NavBreadcrumb className="block" items={items} />
-            {!isEmpty ? <CreateRoleButton /> : null}
-          </div>
-          {!isEmpty ? <LocalSearchBox /> : null}
+    <ScreenContent className={styles.content} layout="list">
+      <div className={styles.widget}>
+        <div className={styles.titleContainer}>
+          <NavBreadcrumb className="block" items={items} />
+          {!isEmpty ? <CreateRoleButton /> : null}
         </div>
-        {isEmpty ? (
-          isSearch ? (
-            <MessageBar className={cn(styles.widget, styles.message)}>
-              <FormattedMessage id="RolesScreen.empty.search" />
-            </MessageBar>
-          ) : (
-            <RolesScreenEmptyState className={styles.widget} />
-          )
-        ) : (
-          <RolesList
-            className={styles.widget}
-            isSearch={isSearch}
-            loading={isInitialLoading}
-            offset={offset}
-            pageSize={pageSize}
-            roles={data?.roles ?? null}
-            totalCount={data?.roles?.totalCount ?? undefined}
-            onChangeOffset={onChangeOffset}
-          />
-        )}
-      </ScreenContent>
-    </LocalSearchBoxContext.Provider>
+        {!isEmpty ? <SearchBox {...searchBoxProps} /> : null}
+      </div>
+      {isEmpty ? (
+        <RolesScreenEmptyState className={styles.widget} />
+      ) : isSearchEmpty ? (
+        <MessageBar className={cn(styles.widget, styles.message)}>
+          <FormattedMessage id="RolesScreen.empty.search" />
+        </MessageBar>
+      ) : (
+        <RolesList
+          className={styles.widget}
+          isSearch={isSearch}
+          loading={isInitialLoading}
+          offset={offset}
+          pageSize={pageSize}
+          roles={data?.roles ?? null}
+          totalCount={data?.roles?.totalCount ?? undefined}
+          onChangeOffset={onChangeOffset}
+        />
+      )}
+    </ScreenContent>
   );
 };
 
