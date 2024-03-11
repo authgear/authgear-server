@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -36,13 +37,18 @@ type VerifiedClaimService interface {
 	MarkClaimVerified(claim *verification.Claim) error
 }
 
+type StandardAttributesService interface {
+	UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
+}
+
 type UserImportService struct {
-	AppDatabase    *appdb.Handle
-	LoginIDConfig  *config.LoginIDConfig
-	Identities     IdentityService
-	UserCommands   UserCommands
-	VerifiedClaims VerifiedClaimService
-	Logger         Logger
+	AppDatabase        *appdb.Handle
+	LoginIDConfig      *config.LoginIDConfig
+	Identities         IdentityService
+	UserCommands       UserCommands
+	VerifiedClaims     VerifiedClaimService
+	StandardAttributes StandardAttributesService
+	Logger             Logger
 }
 
 type Logger struct{ *log.Logger }
@@ -171,6 +177,14 @@ func (s *UserImportService) insertRecordInTxn(ctx context.Context, result *impor
 	}
 
 	err = s.insertVerifiedClaimsInTxn(ctx, result, record, userID, infos)
+	if err != nil {
+		return
+	}
+
+	err = s.insertStandardAttributesInTxn(ctx, result, record, userID)
+	if err != nil {
+		return
+	}
 
 	result.Outcome = OutcomeInserted
 	return
@@ -336,6 +350,20 @@ func (s *UserImportService) insertVerifiedClaimsInTxn(ctx context.Context, resul
 				}
 			}
 		}
+	}
+
+	return
+}
+
+func (s *UserImportService) insertStandardAttributesInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+	stdAttrs, ok := record.StandardAttributes()
+	if !ok {
+		return
+	}
+
+	err = s.StandardAttributes.UpdateStandardAttributes(accesscontrol.RoleGreatest, userID, stdAttrs)
+	if err != nil {
+		return
 	}
 
 	return

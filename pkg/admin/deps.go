@@ -119,6 +119,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(userimport.IdentityService), new(*identityservice.Service)),
 	wire.Bind(new(userimport.UserCommands), new(*user.RawCommands)),
 	wire.Bind(new(userimport.VerifiedClaimService), new(*verification.Service)),
+	wire.Bind(new(userimport.StandardAttributesService), new(*featurestdattrs.ServiceNoEvent)),
 
 	adminauthz.DependencySet,
 )

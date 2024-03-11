@@ -1326,14 +1326,32 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       rawQueries,
+		UserStore:         userStore,
+		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
+	}
 	userimportLogger := userimport.NewLogger(factory)
 	userImportService := &userimport.UserImportService{
-		AppDatabase:    handle,
-		LoginIDConfig:  loginIDConfig,
-		Identities:     serviceService,
-		UserCommands:   rawCommands,
-		VerifiedClaims: verificationService,
-		Logger:         userimportLogger,
+		AppDatabase:        handle,
+		LoginIDConfig:      loginIDConfig,
+		Identities:         serviceService,
+		UserCommands:       rawCommands,
+		VerifiedClaims:     verificationService,
+		StandardAttributes: serviceNoEvent,
+		Logger:             userimportLogger,
 	}
 	userImportHandler := &transport.UserImportHandler{
 		JSON:              jsonResponseWriter,
