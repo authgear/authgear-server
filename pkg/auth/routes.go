@@ -142,6 +142,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 			p.Middleware(newWebAppColorSchemeMiddleware),
 			p.Middleware(newWebAppWeChatRedirectURIMiddleware),
 			p.Middleware(newTutorialMiddleware),
+			p.Middleware(newImplementationSwitcherMiddleware),
 		)
 	}
 	webappChain := newWebappChain(false)
@@ -163,7 +164,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 			// It can now determine redirection from the response.
 			// https://github.com/hotwired/turbo/blob/daabebb0575fffbae1b2582dc458967cd638e899/src/core/drive/visit.ts#L316
 			p.Middleware(newSafeDynamicCSPMiddleware),
-			p.Middleware(newImplementationSwitcherMiddleware),
 		)
 	}
 	webappPageChain := newWebappPageChain(false)
@@ -180,7 +180,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	)
 	webappRequireAuthEnabledAuthEntrypointChain := httproute.Chain(
 		webappPageChain,
-		p.Middleware(newImplementationSwitcherMiddleware),
 		p.Middleware(newRequireAuthenticationEnabledMiddleware),
 		p.Middleware(newAuthEntryPointMiddleware),
 		// A unique visit is started when the user visit auth entry point
@@ -188,14 +187,12 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	)
 	webappPromoteChain := httproute.Chain(
 		webappPageChain,
-		p.Middleware(newImplementationSwitcherMiddleware),
 		p.Middleware(newRequireAuthenticationEnabledMiddleware),
 		p.Middleware(newAuthEntryPointMiddleware),
 	)
 	// select account page only accepts idp session
 	webappSelectAccountChain := httproute.Chain(
 		newWebappPageChain(true),
-		p.Middleware(newImplementationSwitcherMiddleware),
 		p.Middleware(newAuthEntryPointMiddleware),
 	)
 	// consent page only accepts idp session
