@@ -71,14 +71,6 @@ export const RoleGroupsList: React.VFC<RoleGroupsListProps> =
       [role]
     );
 
-    const onRenderTextActionButtonText = useCallback(() => {
-      return (
-        <Text className={styles.actionButtonText} theme={themes.destructive}>
-          <FormattedMessage id="RoleGroupsList.actions.remove" />
-        </Text>
-      );
-    }, [themes.destructive]);
-
     const columns: IColumn[] = useMemo((): IColumn[] => {
       return [
         {
@@ -136,7 +128,14 @@ export const RoleGroupsList: React.VFC<RoleGroupsListProps> =
             return (
               <div className={styles.cell}>
                 <ActionButton
-                  onRenderText={onRenderTextActionButtonText}
+                  text={
+                    <Text
+                      className={styles.actionButtonText}
+                      theme={themes.destructive}
+                    >
+                      <FormattedMessage id="RoleGroupsList.actions.remove" />
+                    </Text>
+                  }
                   className={styles.actionButton}
                   theme={themes.destructive}
                   onClick={(e) => {
@@ -148,7 +147,7 @@ export const RoleGroupsList: React.VFC<RoleGroupsListProps> =
           }
           default:
             return (
-              <div className={styles.cell}>
+              <div className={styles.cell} key={item.key}>
                 <div className={styles.cellText}>
                   {item[column?.fieldName as keyof RoleGroupsListItem] ?? ""}
                 </div>
@@ -156,7 +155,7 @@ export const RoleGroupsList: React.VFC<RoleGroupsListProps> =
             );
         }
       },
-      [onClickDeleteGroup, onRenderTextActionButtonText, themes.destructive]
+      [onClickDeleteGroup, themes.destructive]
     );
 
     const isEmpty = groups.length === 0;
