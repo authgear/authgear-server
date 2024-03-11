@@ -6,6 +6,7 @@ import {
   DetailsRow,
   IColumn,
   IDetailsRowProps,
+  MessageBar,
   SelectionMode,
   ShimmeredDetailsList,
   Text,
@@ -162,26 +163,34 @@ export const RoleGroupsList: React.VFC<RoleGroupsListProps> =
       [onClickDeleteGroup, onRenderTextActionButtonText, themes.destructive]
     );
 
+    const isEmpty = !delayedLoading && groups.length === 0;
+
     return (
       <>
         <div className={cn(styles.root, className)}>
-          <div
-            className={styles.listWrapper}
-            // For DetailList to correctly know what to display
-            // https://developer.microsoft.com/en-us/fluentui#/controls/web/detailslist
-            data-is-scrollable="true"
-          >
-            <ShimmeredDetailsList
-              enableShimmer={delayedLoading}
-              enableUpdateAnimations={false}
-              onRenderRow={onRenderRow}
-              onRenderItemColumn={onRenderItemColumn}
-              selectionMode={SelectionMode.none}
-              layoutMode={DetailsListLayoutMode.justified}
-              items={groups}
-              columns={columns}
-            />
-          </div>
+          {isEmpty ? (
+            <MessageBar className={styles.empty}>
+              <FormattedMessage id="RoleGroupsList.empty" />
+            </MessageBar>
+          ) : (
+            <div
+              className={styles.listWrapper}
+              // For DetailList to correctly know what to display
+              // https://developer.microsoft.com/en-us/fluentui#/controls/web/detailslist
+              data-is-scrollable="true"
+            >
+              <ShimmeredDetailsList
+                enableShimmer={delayedLoading}
+                enableUpdateAnimations={false}
+                onRenderRow={onRenderRow}
+                onRenderItemColumn={onRenderItemColumn}
+                selectionMode={SelectionMode.none}
+                layoutMode={DetailsListLayoutMode.justified}
+                items={groups}
+                columns={columns}
+              />
+            </div>
+          )}
         </div>
         <DeleteRoleGroupDialog
           data={deleteDialogData}
