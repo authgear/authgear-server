@@ -43,10 +43,9 @@ import {
   GroupsListQueryQueryVariables,
 } from "./query/groupsListQuery.generated";
 import {
-  GroupsList,
-  GroupsListColumnKey,
-  GroupsListItem,
-} from "../../components/roles-and-groups/GroupsList";
+  RoleGroupsList,
+  RoleGroupsListItem,
+} from "../../components/roles-and-groups/RoleGroupsList";
 
 interface FormState {
   roleKey: string;
@@ -243,12 +242,6 @@ function RoleDetailsScreenSettingsFormContainer({
   );
 }
 
-const GROUPS_LIST_COLUMNS = [
-  GroupsListColumnKey.Name,
-  GroupsListColumnKey.Key,
-  GroupsListColumnKey.Action,
-];
-
 function RoleDetailsScreenGroupListContainer({
   role,
 }: {
@@ -285,7 +278,7 @@ function RoleDetailsScreenGroupListContainer({
   }
 
   const roleGroups =
-    role.groups?.edges?.flatMap<GroupsListItem>((edge) => {
+    role.groups?.edges?.flatMap<RoleGroupsListItem>((edge) => {
       if (edge?.node != null) {
         return [edge.node];
       }
@@ -295,7 +288,7 @@ function RoleDetailsScreenGroupListContainer({
   return (
     <section className="flex-1-0-auto">
       <header className="h-9 mb-8">{/* TODO */}</header>
-      <GroupsList groups={roleGroups} columns={GROUPS_LIST_COLUMNS} />
+      <RoleGroupsList role={role} groups={roleGroups} />
     </section>
   );
 }

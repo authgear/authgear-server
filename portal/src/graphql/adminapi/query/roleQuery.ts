@@ -16,7 +16,10 @@ interface RoleQueryResult
   role: RoleQueryNodeFragment | null;
 }
 
-export function useRoleQuery(roleID: string): RoleQueryResult {
+export function useRoleQuery(
+  roleID: string,
+  options?: { skip?: boolean }
+): RoleQueryResult {
   const { data, loading, error, refetch } = useQuery<
     RoleQueryQuery,
     RoleQueryQueryVariables
@@ -24,6 +27,7 @@ export function useRoleQuery(roleID: string): RoleQueryResult {
     variables: {
       roleID,
     },
+    skip: options?.skip,
   });
 
   const role = useMemo(() => {

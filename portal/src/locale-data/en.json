@@ -198,11 +198,13 @@
   "RolesList.column.action": "Action",
   "RolesList.delete-role": "Delete Role",
 
-  "GroupsList.column.name": "Name",
-  "GroupsList.column.key": "Group Key",
-  "GroupsList.column.description": "Description",
-  "GroupsList.column.action": "Action",
-  "GroupsList.actions.remove": "Remove",
+  "RoleGroupsList.column.name": "Name",
+  "RoleGroupsList.column.key": "Group Key",
+  "RoleGroupsList.column.action": "Action",
+  "RoleGroupsList.actions.remove": "Remove",
+
+  "DeleteRoleGroupDialog.title": "Remove Group",
+  "DeleteRoleGroupDialog.description": "Are you sure you want to remove Human \"{roleName}\" from the \"{groupName}\" group?",
 
   "DeleteRoleDialog.title": "Delete Role",
   "DeleteRoleDialog.description": "Are you sure you want to delete the role \"{roleName}\"?",
