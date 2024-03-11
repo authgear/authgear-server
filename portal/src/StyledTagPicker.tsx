@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from "react";
-import { ITag, ITagPickerProps, TagPicker } from "@fluentui/react";
+import { ITag, ITagPickerProps, IconButton, TagPicker } from "@fluentui/react";
 import styles from "./StyledTagPicker.module.css";
 import { fixTagPickerStyles } from "./bugs";
 import cn from "classnames";
@@ -39,6 +39,7 @@ Expected usage:
     selectedItems={tags}
     onChange={onChangeTags}
     onResolveSuggestions={onResolveSuggestions}
+    onClearTags={onClearTags}
   />
 
 
@@ -46,12 +47,20 @@ Expected usage:
 
 interface StyledPickerProps extends ITagPickerProps {
   value: string;
+  onClearTags: () => void;
 }
 
 const StyledTagPicker: React.VFC<StyledPickerProps> = function StyledTagPicker(
   props: StyledPickerProps
 ) {
-  const { onChange, className, value, ...rest } = props;
+  const {
+    selectedItems,
+    onChange,
+    className,
+    value,
+    onClearTags: onClearInput,
+    ...rest
+  } = props;
   const tagPickerRef = useRef<HTMLDivElement | null>(null);
 
   const _onChange = useCallback(
@@ -67,13 +76,14 @@ const StyledTagPicker: React.VFC<StyledPickerProps> = function StyledTagPicker(
 
   return (
     // NOTE: directly add ref to TagPicker doesn't work
-    <div ref={tagPickerRef}>
+    <div ref={tagPickerRef} className={styles.tagPickerContainer}>
       <TagPicker
         {...rest}
         styles={fixTagPickerStyles}
         className={cn(styles.tagPicker, className)}
         inputProps={{
           value,
+          className: styles.pickerInput,
         }}
         pickerSuggestionsProps={{
           suggestionsClassName: styles.pickerSuggestions,
@@ -85,7 +95,15 @@ const StyledTagPicker: React.VFC<StyledPickerProps> = function StyledTagPicker(
           calloutMaxWidth: 510,
         }}
         onChange={_onChange}
+        selectedItems={selectedItems}
       />
+      {(selectedItems?.length ?? 0) > 0 ? (
+        <IconButton
+          onClick={onClearInput}
+          iconProps={{ iconName: "Clear" }}
+          className={styles.pickerIconButton}
+        />
+      ) : null}
     </div>
   );
 };
