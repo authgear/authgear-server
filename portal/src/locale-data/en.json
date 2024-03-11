@@ -190,6 +190,10 @@
   "RolesList.column.action": "Action",
   "RolesList.delete-role": "Delete Role",
 
+  "DeleteRoleDialog.title": "Delete Role",
+  "DeleteRoleDialog.description": "Are you sure you want to delete the role \"Human Resources Director\"?",
+  "DeleteRoleDialog.button.confirm": "Delete Role",
+
   "UsersScreen.title": "Users",
   "UsersScreen.add-user": "Add User",
   "UsersScreen.search.resultLimited": "Only showing top 10 results, please refine the search query if you can't find what you want.",

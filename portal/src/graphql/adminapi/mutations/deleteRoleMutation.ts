@@ -4,6 +4,7 @@ import {
   DeleteRoleMutationMutation,
   DeleteRoleMutationDocument,
 } from "./deleteRoleMutation.generated";
+import { RolesListQueryDocument } from "../query/rolesListQuery.generated";
 
 export function useDeleteRoleMutation(): {
   deleteRole: (id: string) => Promise<boolean>;
@@ -11,7 +12,9 @@ export function useDeleteRoleMutation(): {
   error: unknown;
 } {
   const [mutationFunction, { loading, error }] =
-    useMutation<DeleteRoleMutationMutation>(DeleteRoleMutationDocument);
+    useMutation<DeleteRoleMutationMutation>(DeleteRoleMutationDocument, {
+      refetchQueries: [RolesListQueryDocument],
+    });
 
   const deleteRole = useCallback(
     async (id: string) => {
