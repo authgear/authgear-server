@@ -105,7 +105,7 @@
   },
   "ForgotPasswordSMSTXT": {
     "Title": "按此連結重設你在 {{ template \"app.name\" }} 的密碼。如你未要求重設，則無需理會此訊息。",
-    "Disclaimer": "Ignore this if you are not resetting.",
+    "Disclaimer": "如你未要求重設，則無需理會此訊息。",
     "Link": "{{ .Link }}"
   },
   "ForgotPasswordOOBEmailTXT": {

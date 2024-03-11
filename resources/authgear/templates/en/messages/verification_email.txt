@@ -1,7 +1,6 @@
 Email Verification
 
 This email is sent to verify {{ .Email }} on {{ template "app.name" }}. Use this code in the verification page.
-{{ .Code }}
 
 {{ .Code }}
 

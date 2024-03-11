@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
-	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -17,6 +17,7 @@ type Locale struct {
 }
 
 var MESSAGES_PATH string = "messages"
+var TRANSLATION_FILE_PATH string = "translation.json"
 
 func CutSuffix(s, suffix string) (before string, found bool) {
 	if !strings.HasSuffix(s, suffix) {
@@ -33,62 +34,50 @@ func cloneMap(original map[string]any) map[string]any {
 	return copied
 }
 
-func constructOutputPath(outputDirectory string, locale Locale, path string) string {
-	return filepath.Join(outputDirectory, "templates", locale.Name, path)
-}
-
-func constructInputPath(templatesDirectory string, templatePath string, fileName string) string {
-	return filepath.Join(templatesDirectory, templatePath, fileName)
+func constructTemplatePath(templatesDirectory string, fileName string) string {
+	return filepath.Join(templatesDirectory, fileName)
 }
 
 func getLocales(
-	tranlationsDirectory string) []Locale {
+	templatesDirectory string) []Locale {
 	locales := []Locale{}
-	err := filepath.Walk(tranlationsDirectory, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		fileName := info.Name()
-		if !strings.HasSuffix(fileName, ".json") {
-			return nil
-		}
-		locale := strings.TrimSuffix(fileName, ".json")
-		locales = append(locales, Locale{
-			Name:            locale,
-			TranslationFile: path,
-		})
-		return nil
-	})
+
+	dirs, err := os.ReadDir(templatesDirectory)
 	if err != nil {
 		panic(err)
 	}
+
+	for _, dir := range dirs {
+		if dir.IsDir() {
+			locale := dir.Name()
+			locales = append(locales, Locale{
+				Name:            locale,
+				TranslationFile: filepath.Join(templatesDirectory, locale, MESSAGES_PATH, TRANSLATION_FILE_PATH),
+			})
+		}
+	}
+
 	return locales
 }
 
 func renderLocalizedTemplate(
 	template string,
-	locales []Locale,
+	locale Locale,
 	templatesDirectory string,
-	outputDirectory string,
-	templatePath string) {
-
-	for _, locale := range locales {
-		localeOutputDir := constructOutputPath(outputDirectory, locale, templatePath)
-		translationJson, err := loadJson(locale.TranslationFile)
-		if err != nil {
-			panic(err)
-		}
-		context := make(map[string]any)
-		context["T"] = translationJson
-		renderTemplate(template, templatesDirectory, localeOutputDir, templatePath, context)
+	defaultTemplatesDirectory string) {
+	translationJson, err := loadJson(locale.TranslationFile)
+	if err != nil {
+		panic(err)
 	}
+	context := make(map[string]any)
+	context["T"] = translationJson
+	renderTemplate(template, templatesDirectory, defaultTemplatesDirectory, context)
 }
 
 func renderTemplate(
 	template string,
 	templatesDirectory string,
-	outputDirectory string,
-	templatePath string,
+	defaultTemplatesDirectory string,
 	context any) {
 	var fullBuffer strings.Builder
 	var plaintextBuffer strings.Builder
@@ -99,7 +88,10 @@ func renderTemplate(
 	}
 
 	baseTemplate := getBaseTemplate(&plaintextBuffer)
-	tpl, err := loadTemplate(constructInputPath(templatesDirectory, templatePath, template), baseTemplate)
+	tpl, err := loadTemplate(constructTemplatePath(templatesDirectory, template), baseTemplate)
+	if errors.Is(err, fs.ErrNotExist) {
+		tpl, err = loadTemplate(constructTemplatePath(defaultTemplatesDirectory, template), baseTemplate)
+	}
 	if err != nil {
 		panic(err)
 	}
@@ -109,12 +101,7 @@ func renderTemplate(
 		panic(err)
 	}
 
-	outDir := filepath.Join(outputDirectory, filepath.Dir(template))
-	if err := os.MkdirAll(outDir, 0755); err != nil {
-		panic(err)
-	}
-
-	err = os.WriteFile(filepath.Join(outDir, tplName), []byte(fullBuffer.String()), 0666)
+	err = os.WriteFile(constructTemplatePath(templatesDirectory, tplName), []byte(fullBuffer.String()), 0666)
 	if err != nil {
 		panic(err)
 	}
@@ -129,28 +116,6 @@ func getBaseTemplate(plaintextBuffer *strings.Builder) *template.Template {
 			}
 			return str
 		},
-		"url": func(ss ...string) string {
-			str := strings.Join(ss, "")
-			if str != "" {
-				plaintextBuffer.WriteString(str + "\n")
-			}
-			return str
-		},
-		"formattedplaintext": func(s string, data ...string) string {
-			str := s
-			if data != nil {
-				for idx, value := range data {
-					str = strings.ReplaceAll(str, fmt.Sprintf("{%d}", idx), value)
-				}
-			}
-			if str != "" {
-				plaintextBuffer.WriteString(str + "\n")
-			}
-			return str
-		},
-		"concat": func(ss ...string) string {
-			return strings.Join(ss, "")
-		},
 	}
 
 	return template.New("").Delims("[[", "]]").Funcs(funcMap)
@@ -161,20 +126,18 @@ func loadTemplate(path string, baseTemplate *template.Template) (*template.Templ
 }
 
 func main() {
-	tranlationsDirectory := flag.String("t", "translations", "translation files directory")
 	templatesDirectory := flag.String("i", "templates", "template files directory")
-	outputDirectory := flag.String("o", "output", "output directory path")
 	flag.Parse()
 
-	messageInputDir := filepath.Join(*templatesDirectory, MESSAGES_PATH)
+	defaultMessagesDir := filepath.Join(*templatesDirectory, "en", MESSAGES_PATH)
 
 	var messageTemplates []string
-	err := filepath.WalkDir(messageInputDir, func(path string, d fs.DirEntry, err error) error {
+	err := filepath.WalkDir(defaultMessagesDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 		if filepath.Ext(path) == ".gotemplate" {
-			template, err := filepath.Rel(messageInputDir, path)
+			template, err := filepath.Rel(defaultMessagesDir, path)
 			if err != nil {
 				panic(err)
 			}
@@ -186,10 +149,33 @@ func main() {
 		panic(err)
 	}
 
-	locales := getLocales(*tranlationsDirectory)
+	dirs, err := os.ReadDir(*templatesDirectory)
+	if err != nil {
+		panic(err)
+	}
 
-	for _, tplFile := range messageTemplates {
-		renderLocalizedTemplate(tplFile, locales, *templatesDirectory, *outputDirectory, MESSAGES_PATH)
+	for _, dir := range dirs {
+		if !dir.IsDir() {
+			continue
+		}
+
+		locale := dir.Name()
+		localeMessagesDir := filepath.Join(*templatesDirectory, locale, MESSAGES_PATH)
+		if _, err := os.Stat(localeMessagesDir); os.IsNotExist(err) {
+			continue
+		}
+
+		localeTranslationFile := filepath.Join(localeMessagesDir, TRANSLATION_FILE_PATH)
+		if _, err := os.Stat(localeTranslationFile); os.IsNotExist(err) {
+			continue
+		}
+
+		for _, template := range messageTemplates {
+			renderLocalizedTemplate(template, Locale{
+				Name:            locale,
+				TranslationFile: localeTranslationFile,
+			}, localeMessagesDir, defaultMessagesDir)
+		}
 	}
 }
 

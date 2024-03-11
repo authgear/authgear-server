@@ -112,16 +112,11 @@ push-image:
 
 .PHONY: html-email
 html-email:
-	go run ./scripts/generatemjml/main.go \
-		-i resources/authgear/mjml/templates \
-		-t resources/authgear/mjml/translations \
-		-o resources/authgear
+	# Generate `.mjml` templates from `.mjml.gotemplate` files
+	go run ./scripts/generatemjml/main.go -i resources/authgear/templates
 
 	for t in $$(find resources -name '*.mjml'); do \
 		./scripts/npm/node_modules/.bin/mjml -l strict "$$t" > "$${t%.mjml}.html"; \
-		if echo "$$t" | grep -q "^resources/authgear/templates"; then \
-			rm "$$t"; \
-		fi; \
 	done
 
 .PHONY: authui

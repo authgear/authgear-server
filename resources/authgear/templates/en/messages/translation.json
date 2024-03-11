@@ -152,7 +152,7 @@
   },
   "VerificationEmailTXT": {
     "Title": "Email Verification",
-    "Body": "This email is sent to verify {{ .Email }} on {{ template \"app.name\" }}. Use this code in the verification page.\n{{ .Code }}",
+    "Body": "This email is sent to verify {{ .Email }} on {{ template \"app.name\" }}. Use this code in the verification page.",
     "Code": "{{ .Code }}",
     "Disclaimer": "Don't share it with anyone. If you didn't sign in or sign up, please ignore this email."
   },
