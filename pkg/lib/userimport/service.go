@@ -25,6 +25,7 @@ type importResult struct {
 
 type UserCommands interface {
 	Create(userID string) (*user.User, error)
+	UpdateAccountStatus(userID string, accountStatus user.AccountStatus) error
 }
 
 type IdentityService interface {
@@ -172,7 +173,7 @@ func (s *UserImportService) ImportRecordInTxn(ctx context.Context, result *impor
 
 func (s *UserImportService) insertRecordInTxn(ctx context.Context, result *importResult, record Record) (err error) {
 	userID := uuid.New()
-	_, err = s.UserCommands.Create(userID)
+	u, err := s.UserCommands.Create(userID)
 	if err != nil {
 		return
 	}
@@ -193,6 +194,11 @@ func (s *UserImportService) insertRecordInTxn(ctx context.Context, result *impor
 	}
 
 	err = s.insertCustomAttributesInTxn(ctx, result, record, userID)
+	if err != nil {
+		return
+	}
+
+	err = s.insertDisabledInTxn(ctx, result, record, u)
 	if err != nil {
 		return
 	}
@@ -383,6 +389,32 @@ func (s *UserImportService) insertStandardAttributesInTxn(ctx context.Context, r
 func (s *UserImportService) insertCustomAttributesInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
 	customAttrsList := record.CustomAttributesList()
 	err = s.CustomAttributes.UpdateCustomAttributesWithList(accesscontrol.RoleGreatest, userID, customAttrsList)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (s *UserImportService) insertDisabledInTxn(ctx context.Context, result *importResult, record Record, u *user.User) (err error) {
+	disabled, ok := record.Disabled()
+	if !ok {
+		return
+	}
+
+	if !disabled {
+		result.Warnings = append(result.Warnings, Warning{
+			Message: "disabled = false has no effect in insert.",
+		})
+		return
+	}
+
+	accountStatus, err := u.AccountStatus().Disable(nil)
+	if err != nil {
+		return
+	}
+
+	err = s.UserCommands.UpdateAccountStatus(u.ID, *accountStatus)
 	if err != nil {
 		return
 	}
