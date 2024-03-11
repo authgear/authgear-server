@@ -22,7 +22,6 @@ import { Group, Role } from "../../graphql/adminapi/globalTypes.generated";
 import Link from "../../Link";
 import ActionButton from "../../ActionButton";
 import { useSystemConfig } from "../../context/SystemConfigContext";
-import useDelayedValue from "../../hook/useDelayedValue";
 import DeleteRoleGroupDialog, {
   DeleteRoleGroupDialogData,
 } from "./DeleteRoleGroupDialog";
@@ -41,14 +40,12 @@ export enum RoleGroupsListColumnKey {
 interface RoleGroupsListProps {
   role: RoleGroupsListRole;
   className?: string;
-  isLoading?: boolean;
   groups: RoleGroupsListItem[];
 }
 
 export const RoleGroupsList: React.VFC<RoleGroupsListProps> =
-  function RoleGroupsList({ role, groups, isLoading, className }) {
+  function RoleGroupsList({ role, groups, className }) {
     const { themes } = useSystemConfig();
-    const delayedLoading = useDelayedValue(isLoading, 500);
     const { appID } = useParams() as { appID: string };
     const { renderToString } = useContext(MessageContext);
 
@@ -162,7 +159,7 @@ export const RoleGroupsList: React.VFC<RoleGroupsListProps> =
       [onClickDeleteGroup, onRenderTextActionButtonText, themes.destructive]
     );
 
-    const isEmpty = !delayedLoading && groups.length === 0;
+    const isEmpty = groups.length === 0;
 
     return (
       <>
@@ -179,7 +176,6 @@ export const RoleGroupsList: React.VFC<RoleGroupsListProps> =
               data-is-scrollable="true"
             >
               <ShimmeredDetailsList
-                enableShimmer={delayedLoading}
                 enableUpdateAnimations={false}
                 onRenderRow={onRenderRow}
                 onRenderItemColumn={onRenderItemColumn}
