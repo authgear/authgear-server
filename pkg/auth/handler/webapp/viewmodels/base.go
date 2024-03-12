@@ -19,9 +19,16 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/geoip"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/intl"
+	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/wechat"
 )
+
+type BaseLogger struct{ *log.Logger }
+
+func NewBaseLogger(lf *log.Factory) BaseLogger {
+	return BaseLogger{lf.New("webapp")}
+}
 
 type TranslationService interface {
 	HasKey(key string) (bool, error)
@@ -74,6 +81,7 @@ type BaseViewModel struct {
 	WebsocketDisabled bool
 
 	ShouldFocusInput bool
+	LogUnknownError  func(err map[string]interface{}) string
 }
 
 func (m *BaseViewModel) SetError(err error) {
@@ -148,6 +156,7 @@ type BaseViewModeler struct {
 	SupportedLanguageTags template.SupportedLanguageTags
 	AuthUISentryDSN       config.AuthUISentryDSN
 	OAuthClientResolver   WebappOAuthClientResolver
+	Logger                BaseLogger
 }
 
 func (m *BaseViewModeler) ViewModelForAuthFlow(r *http.Request, rw http.ResponseWriter) BaseViewModel {
@@ -257,6 +266,13 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		GoogleTagManagerContainerID: m.GoogleTagManager.ContainerID,
 		HasThirdPartyClient:         hasThirdPartyApp,
 		AuthUISentryDSN:             string(m.AuthUISentryDSN),
+		LogUnknownError: func(err map[string]interface{}) string {
+			if err != nil {
+				m.Logger.WithFields(err).Errorf("unknown error: %v", err)
+			}
+
+			return ""
+		},
 	}
 
 	if errorState, ok := m.ErrorCookie.GetError(r); ok {

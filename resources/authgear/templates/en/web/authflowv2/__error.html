@@ -222,7 +222,7 @@
     {{ else if eq .Error.reason "InvalidWhatsappUser" }}
       <span>{{ template "error-invalid-whatsapp-user" }}</span>
     {{ else }}
-      <span>{{ template "error-unknown" }}</span>
+      <span>{{ template "error-unknown" }}{{ call $.LogUnknownError .Error }}</span>
     {{ end }}
   {{- end -}}
 {{- end -}}

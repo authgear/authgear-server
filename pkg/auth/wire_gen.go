@@ -1209,6 +1209,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -1226,6 +1227,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -7505,6 +7507,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -7522,6 +7525,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -8394,6 +8398,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -8411,6 +8416,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -9282,6 +9288,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -9299,6 +9306,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -10158,6 +10166,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -10175,6 +10184,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -11029,6 +11039,7 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -11046,6 +11057,7 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -12028,6 +12040,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -12045,6 +12058,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -13016,6 +13030,7 @@ func newWebAppAuthflowSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -13033,6 +13048,7 @@ func newWebAppAuthflowSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -14004,6 +14020,7 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -14021,6 +14038,7 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -14864,6 +14882,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -14881,6 +14900,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -15725,6 +15745,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -15742,6 +15763,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -16590,6 +16612,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -16607,6 +16630,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -17457,6 +17481,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -17474,6 +17499,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -18322,6 +18348,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -18339,6 +18366,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -19185,6 +19213,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -19202,6 +19231,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -20050,6 +20080,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -20067,6 +20098,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -20916,6 +20948,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -20933,6 +20966,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -21781,6 +21815,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -21798,6 +21833,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -22646,6 +22682,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -22663,6 +22700,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -23513,6 +23551,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -23530,6 +23569,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -24378,6 +24418,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -24395,6 +24436,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -25243,6 +25285,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -25260,6 +25303,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -26112,6 +26156,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -26129,6 +26174,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -26977,6 +27023,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -26994,6 +27041,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -27846,6 +27894,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -27863,6 +27912,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -28711,6 +28761,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -28728,6 +28779,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -29584,6 +29636,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -29601,6 +29654,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -30471,6 +30525,7 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -30488,6 +30543,7 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -31347,6 +31403,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -31364,6 +31421,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -32212,6 +32270,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -32229,6 +32288,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -33073,6 +33133,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -33090,6 +33151,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -33938,6 +34000,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -33955,6 +34018,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -34799,6 +34863,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -34816,6 +34881,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -35670,6 +35736,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -35687,6 +35754,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -36531,6 +36599,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -36548,6 +36617,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -37394,6 +37464,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -37411,6 +37482,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -38255,6 +38327,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -38272,6 +38345,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -39148,6 +39222,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -39165,6 +39240,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -40020,6 +40096,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -40037,6 +40114,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -40905,6 +40983,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -40922,6 +41001,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -41774,6 +41854,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -41791,6 +41872,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -42636,6 +42718,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -42653,6 +42736,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -43506,6 +43590,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -43523,6 +43608,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -44368,6 +44454,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -44385,6 +44472,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -45230,6 +45318,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -45247,6 +45336,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -46092,6 +46182,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -46109,6 +46200,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -46955,6 +47047,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -46972,6 +47065,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -47837,6 +47931,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -47854,6 +47949,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -48699,6 +48795,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -48716,6 +48813,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -49561,6 +49659,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -49578,6 +49677,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -50423,6 +50523,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -50440,6 +50541,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -51285,6 +51387,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -51302,6 +51405,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -52154,6 +52258,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -52171,6 +52276,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -53017,6 +53123,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -53034,6 +53141,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -53878,6 +53986,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -53895,6 +54004,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -54755,6 +54865,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -54772,6 +54883,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -55616,6 +55728,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -55633,6 +55746,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -56535,6 +56649,7 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -56552,6 +56667,7 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -57377,6 +57493,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -57394,6 +57511,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -58238,6 +58356,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -58255,6 +58374,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -60766,6 +60886,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -60783,6 +60904,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -61637,6 +61759,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -61654,6 +61777,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -62499,6 +62623,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -62516,6 +62641,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -63360,6 +63486,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -63377,6 +63504,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -70178,6 +70306,7 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -70195,6 +70324,7 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	authflowViewModeler := &viewmodels.AuthflowViewModeler{
 		Authentication: authenticationConfig,
@@ -71102,6 +71232,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -71119,6 +71250,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	authflowViewModeler := &viewmodels.AuthflowViewModeler{
 		Authentication: authenticationConfig,
@@ -72038,6 +72170,7 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -72055,6 +72188,7 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	authflowViewModeler := &viewmodels.AuthflowViewModeler{
 		Authentication: authenticationConfig,
@@ -72961,6 +73095,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -72978,6 +73113,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	authflowViewModeler := &viewmodels.AuthflowViewModeler{
 		Authentication: authenticationConfig,
@@ -73888,6 +74024,7 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -73905,6 +74042,7 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	authflowViewModeler := &viewmodels.AuthflowViewModeler{
 		Authentication: authenticationConfig,
@@ -74794,6 +74932,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -74811,6 +74950,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	authflowViewModeler := &viewmodels.AuthflowViewModeler{
 		Authentication: authenticationConfig,
@@ -75700,6 +75840,7 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -75717,6 +75858,7 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -76600,6 +76742,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -76617,6 +76760,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -77500,6 +77644,7 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -77517,6 +77662,7 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -78402,6 +78548,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -78419,6 +78566,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -79304,6 +79452,7 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -79321,6 +79470,7 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -80204,6 +80354,7 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -80221,6 +80372,7 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -81104,6 +81256,7 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -81121,6 +81274,7 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -82004,6 +82158,7 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -82021,6 +82176,7 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -82904,6 +83060,7 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -82921,6 +83078,7 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -83804,6 +83962,7 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -83821,6 +83980,7 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -84704,6 +84864,7 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -84721,6 +84882,7 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -85604,6 +85766,7 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -85621,6 +85784,7 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -86504,6 +86668,7 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -86521,6 +86686,7 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -87406,6 +87572,7 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -87423,6 +87590,7 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -88308,6 +88476,7 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -88325,6 +88494,7 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -89209,6 +89379,7 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -89226,6 +89397,7 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -90109,6 +90281,7 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -90126,6 +90299,7 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -91010,6 +91184,7 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -91027,6 +91202,7 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -91910,6 +92086,7 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -91927,6 +92104,7 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -92810,6 +92988,7 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -92827,6 +93006,7 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -93710,6 +93890,7 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -93727,6 +93908,7 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -94610,6 +94792,7 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -94627,6 +94810,7 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -95510,6 +95694,7 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -95527,6 +95712,7 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -96410,6 +96596,7 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -96427,6 +96614,7 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -97310,6 +97498,7 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -97327,6 +97516,7 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -98210,6 +98400,7 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -98227,6 +98418,7 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -99110,6 +99302,7 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -99127,6 +99320,7 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -100010,6 +100204,7 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -100027,6 +100222,7 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -100910,6 +101106,7 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -100927,6 +101124,7 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -101810,6 +102008,7 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -101827,6 +102026,7 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -102710,6 +102910,7 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -102727,6 +102928,7 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -103610,6 +103812,7 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -103627,6 +103830,7 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -104512,6 +104716,7 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -104529,6 +104734,7 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -105414,6 +105620,7 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -105431,6 +105638,7 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -106314,6 +106522,7 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -106331,6 +106540,7 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -107157,6 +107367,7 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -107174,6 +107385,7 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -109816,6 +110028,7 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -109833,6 +110046,7 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -110716,6 +110930,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -110733,6 +110948,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -111616,6 +111832,7 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -111633,6 +111850,7 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -112516,6 +112734,7 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -112533,6 +112752,7 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -112613,6 +112833,8 @@ func newWebAppAuthflowAccountStatusHandler(p *deps.RequestProvider) http.Handler
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
+	factory := appProvider.LoggerFactory
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -112630,6 +112852,7 @@ func newWebAppAuthflowAccountStatusHandler(p *deps.RequestProvider) http.Handler
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -112709,6 +112932,8 @@ func newWebAppAuthflowV2AccountStatusHandler(p *deps.RequestProvider) http.Handl
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
+	factory := appProvider.LoggerFactory
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -112726,6 +112951,7 @@ func newWebAppAuthflowV2AccountStatusHandler(p *deps.RequestProvider) http.Handl
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -112805,6 +113031,8 @@ func newWebAppAuthflowNoAuthenticatorHandler(p *deps.RequestProvider) http.Handl
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
+	factory := appProvider.LoggerFactory
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -112822,6 +113050,7 @@ func newWebAppAuthflowNoAuthenticatorHandler(p *deps.RequestProvider) http.Handl
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -113704,6 +113933,7 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -113721,6 +113951,7 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -114604,6 +114835,7 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -114621,6 +114853,7 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -114701,6 +114934,8 @@ func newWebAppAuthflowV2NoAuthenticatorHandler(p *deps.RequestProvider) http.Han
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
+	factory := appProvider.LoggerFactory
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -114718,6 +114953,7 @@ func newWebAppAuthflowV2NoAuthenticatorHandler(p *deps.RequestProvider) http.Han
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -114791,6 +115027,8 @@ func newRequestMiddleware(w http.ResponseWriter, r *http.Request, p *deps.RootPr
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
+	factory := p.LoggerFactory
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -114808,6 +115046,7 @@ func newRequestMiddleware(w http.ResponseWriter, r *http.Request, p *deps.RootPr
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	requestMiddleware := &deps.RequestMiddleware{
 		HTTPHost:        httpHost,
@@ -114919,6 +115158,7 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -114936,6 +115176,7 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -115121,6 +115362,8 @@ func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
+	factory := appProvider.LoggerFactory
+	baseLogger := viewmodels.NewBaseLogger(factory)
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -115138,6 +115381,7 @@ func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
+		Logger:                baseLogger,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,

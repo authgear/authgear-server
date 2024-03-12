@@ -241,7 +241,9 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
     {{ else if eq .Error.reason "InvalidWhatsappUser" }}
     <li>{{ template "error-invalid-whatsapp-user" }}</li>
     {{ else }}
-    <li>{{ template "error-unknown" }}</li>
+    <li>
+      {{ template "error-unknown" }}{{ call $.LogUnknownError .Error }}
+    </li>
     {{ end }} {{ end }}
   </ul>
   <button
