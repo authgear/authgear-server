@@ -5,7 +5,9 @@
 
 .icon {
   @apply grid;
+  /* stylelint-disable-next-line number-leading-zero */
   grid-template-rows: theme(spacing.16);
+  /* stylelint-disable-next-line number-leading-zero */
   grid-template-columns: theme(spacing.16);
 }
 
