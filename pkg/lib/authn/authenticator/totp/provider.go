@@ -68,7 +68,10 @@ func (p *Provider) Create(a *authenticator.TOTP) error {
 
 func (p *Provider) Authenticate(a *authenticator.TOTP, code string) error {
 	now := p.Clock.NowUTC()
-	totp := secretcode.NewTOTPFromSecret(a.Secret)
+	totp, err := secretcode.NewTOTPFromSecret(a.Secret)
+	if err != nil {
+		return err
+	}
 	if totp.ValidateCode(now, code) {
 		return nil
 	}
