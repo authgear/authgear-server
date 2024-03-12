@@ -36,7 +36,7 @@ const defaultState: FormState = {
   roleDescription: "",
 };
 
-const AddRolesScreen: React.VFC = function AddRolesScreen() {
+const AddRoleScreen: React.VFC = function AddRoleScreen() {
   const navigate = useNavigate();
 
   const { createRole } = useCreateRoleMutation();
@@ -86,7 +86,7 @@ const AddRolesScreen: React.VFC = function AddRolesScreen() {
         to: "~/user-management/roles",
         label: <FormattedMessage id="RolesScreen.title" />,
       },
-      { to: ".", label: <FormattedMessage id="AddRolesScreen.title" /> },
+      { to: ".", label: <FormattedMessage id="AddRoleScreen.title" /> },
     ];
   }, []);
 
@@ -151,12 +151,12 @@ function AddRolesScreenForm() {
             fieldName="name"
             parentJSONPointer=""
             type="text"
-            label={renderToString("AddRolesScreen.roleName.title")}
+            label={renderToString("AddRoleScreen.roleName.title")}
             value={formState.roleName}
             onChange={onFormStateChangeCallbacks.roleName}
           />
           <WidgetDescription className="mt-2">
-            <FormattedMessage id="AddRolesScreen.roleName.description" />
+            <FormattedMessage id="AddRoleScreen.roleName.description" />
           </WidgetDescription>
         </div>
         <div>
@@ -165,12 +165,12 @@ function AddRolesScreenForm() {
             fieldName="key"
             parentJSONPointer=""
             type="text"
-            label={renderToString("AddRolesScreen.roleKey.title")}
+            label={renderToString("AddRoleScreen.roleKey.title")}
             value={formState.roleKey}
             onChange={onFormStateChangeCallbacks.roleKey}
           />
           <WidgetDescription className="mt-2">
-            <FormattedMessage id="AddRolesScreen.roleKey.description" />
+            <FormattedMessage id="AddRoleScreen.roleKey.description" />
           </WidgetDescription>
         </div>
         <FormTextField
@@ -181,7 +181,7 @@ function AddRolesScreenForm() {
           fieldName="description"
           parentJSONPointer=""
           type="text"
-          label={renderToString("AddRolesScreen.roleDescription.title")}
+          label={renderToString("AddRoleScreen.roleDescription.title")}
           value={formState.roleDescription}
           onChange={onFormStateChangeCallbacks.roleDescription}
         />
@@ -203,4 +203,4 @@ function AddRolesScreenForm() {
   );
 }
 
-export default AddRolesScreen;
+export default AddRoleScreen;

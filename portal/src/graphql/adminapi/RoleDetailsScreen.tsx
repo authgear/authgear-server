@@ -97,12 +97,12 @@ function RoleDetailsScreenSettingsForm({
             fieldName="name"
             parentJSONPointer=""
             type="text"
-            label={renderToString("AddRolesScreen.roleName.title")}
+            label={renderToString("AddRoleScreen.roleName.title")}
             value={formState.roleName}
             onChange={onFormStateChangeCallbacks.roleName}
           />
           <WidgetDescription className="mt-2">
-            <FormattedMessage id="AddRolesScreen.roleName.description" />
+            <FormattedMessage id="AddRoleScreen.roleName.description" />
           </WidgetDescription>
         </div>
         <div>
@@ -111,12 +111,12 @@ function RoleDetailsScreenSettingsForm({
             fieldName="key"
             parentJSONPointer=""
             type="text"
-            label={renderToString("AddRolesScreen.roleKey.title")}
+            label={renderToString("AddRoleScreen.roleKey.title")}
             value={formState.roleKey}
             onChange={onFormStateChangeCallbacks.roleKey}
           />
           <WidgetDescription className="mt-2">
-            <FormattedMessage id="AddRolesScreen.roleKey.description" />
+            <FormattedMessage id="AddRoleScreen.roleKey.description" />
           </WidgetDescription>
         </div>
         <FormTextField
@@ -127,7 +127,7 @@ function RoleDetailsScreenSettingsForm({
           fieldName="description"
           parentJSONPointer=""
           type="text"
-          label={renderToString("AddRolesScreen.roleDescription.title")}
+          label={renderToString("AddRoleScreen.roleDescription.title")}
           value={formState.roleDescription}
           onChange={onFormStateChangeCallbacks.roleDescription}
         />

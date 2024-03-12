@@ -195,12 +195,12 @@
   "GroupsEmptyView.description": "Create groups to represent the types of users that access your applications.",
   "GroupsEmptyView.button.text": "Create Group",
 
-  "AddRolesScreen.title": "Create Role",
-  "AddRolesScreen.roleKey.title": "Role Key",
-  "AddRolesScreen.roleKey.description": "The Role Key will be included in the UserInfo and JWT token of the user. e.g. app_a_admin.",
-  "AddRolesScreen.roleName.title": "Name",
-  "AddRolesScreen.roleName.description": "A display name of this role in the portal.",
-  "AddRolesScreen.roleDescription.title": "Description",
+  "AddRoleScreen.title": "Create Role",
+  "AddRoleScreen.roleKey.title": "Role Key",
+  "AddRoleScreen.roleKey.description": "The Role Key will be included in the UserInfo and JWT token of the user. e.g. app_a_admin.",
+  "AddRoleScreen.roleName.title": "Name",
+  "AddRoleScreen.roleName.description": "A display name of this role in the portal.",
+  "AddRoleScreen.roleDescription.title": "Description",
 
   "RolesList.column.name": "Name",
   "RolesList.column.key": "Role Key",
