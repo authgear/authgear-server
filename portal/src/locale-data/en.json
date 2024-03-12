@@ -123,6 +123,7 @@
   "errors.alchemy-protocol": "We have some problem with this NFT collection. Please contact us at {ExternalLink, react, children{hello@authgear.com} href{mailto:hello@authgear.com}}.",
   "errors.deno-hook.typecheck": "{pre, react, children{{message}}}",
   "errors.roles.key.validation.format": "Invalid role key. Only english alphbets, digits, colons (:) and underscores (_) are accepted, and the first character must be alphabet.",
+  "errors.groups.key.validation.format": "Invalid role key. Only english alphbets, digits, colons (:) and underscores (_) are accepted, and the first character must be alphabet.",
 
   "warnings.free-plan": "To avoid spam content, free plans are limited to send 5 SMS and Whatsapp messsage by default. To be eligible for 100 free SMS/Whatsapp per mo, please complete{ExternalLink, react, href{https://go.authgear.com/portal-support} children{the application form}}.",
 
@@ -201,6 +202,15 @@
   "AddRoleScreen.roleName.title": "Name",
   "AddRoleScreen.roleName.description": "A display name of this role in the portal.",
   "AddRoleScreen.roleDescription.title": "Description",
+
+  "GroupsScreen.title": "Groups",
+
+  "AddGroupScreen.title": "Create Group",
+  "AddGroupScreen.groupName.title": "Name",
+  "AddGroupScreen.groupName.description": "A display name of this group in the portal.",
+  "AddGroupScreen.groupKey.title": "Group Key",
+  "AddGroupScreen.groupKey.description": "The Group Key is a unique identifier for this group.",
+  "AddGroupScreen.groupDescription.title": "Description",
 
   "RolesList.column.name": "Name",
   "RolesList.column.key": "Role Key",
