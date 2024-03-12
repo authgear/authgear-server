@@ -103,7 +103,7 @@ interface BasicComponentProps {
 }
 
 // Typesafe implementation of using a non-anchor based custom component
-function CustomComponent<P extends BasicComponentProps>(
+export function ReactRouterLinkComponent<P extends BasicComponentProps>(
   props: P & ReactRouterLinkPropsBase & { component: React.ComponentType<P> }
 ): React.ReactElement | null {
   const { onClick, state, to, component, preserveDefault, ...rest } = props;
@@ -116,4 +116,4 @@ function CustomComponent<P extends BasicComponentProps>(
   return <Component {...rest} href={href} onClick={handleClick} />;
 }
 
-export default Object.assign(ReactRouterLink, { CustomComponent });
+export default ReactRouterLink;

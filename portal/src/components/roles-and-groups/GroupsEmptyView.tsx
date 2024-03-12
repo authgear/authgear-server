@@ -5,7 +5,7 @@ import { useParams } from "react-router-dom";
 import { RolesAndGroupsEmptyView } from "./RolesAndGroupsEmptyView";
 
 import iconGroups from "../../images/material-groups.svg";
-import ReactRouterLink from "../../ReactRouterLink";
+import { ReactRouterLinkComponent } from "../../ReactRouterLink";
 
 export const GroupsEmptyView: React.VFC<{ className?: string }> =
   function GroupsEmptyView({ className }) {
@@ -18,7 +18,7 @@ export const GroupsEmptyView: React.VFC<{ className?: string }> =
         title={<FormattedMessage id="GroupsEmptyView.title" />}
         description={<FormattedMessage id="GroupsEmptyView.description" />}
         button={
-          <ReactRouterLink.CustomComponent
+          <ReactRouterLinkComponent
             component={RolesAndGroupsEmptyView.CreateButton}
             to={`/project/${appID}/user-management/groups/add-group`}
             text={<FormattedMessage id="GroupsEmptyView.button.text" />}
