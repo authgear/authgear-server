@@ -247,6 +247,11 @@ func (s *UserImportService) insertRecordInTxn(ctx context.Context, result *impor
 		return
 	}
 
+	err = s.insertMFATOTPInTxn(ctx, result, record, userID)
+	if err != nil {
+		return
+	}
+
 	result.Outcome = OutcomeInserted
 	return
 }
@@ -633,6 +638,43 @@ func (s *UserImportService) insertMFAOOBOTPPhoneInTxn(ctx context.Context, resul
 		Kind:   model.AuthenticatorKindSecondary,
 		OOBOTP: &authenticator.OOBOTPSpec{
 			Phone: *phoneNumberPtr,
+		},
+	}
+
+	info, err := s.Authenticators.New(spec)
+	if err != nil {
+		return
+	}
+
+	err = s.Authenticators.Create(info)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (s *UserImportService) insertMFATOTPInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+	mfaObj, ok := record.MFA()
+	if !ok {
+		return
+	}
+
+	mfa := MFA(mfaObj)
+	totpObj, ok := mfa.TOTP()
+	if !ok {
+		return
+	}
+
+	secret := TOTP(totpObj).Secret()
+
+	spec := &authenticator.Spec{
+		UserID: userID,
+		Type:   model.AuthenticatorTypeTOTP,
+		Kind:   model.AuthenticatorKindSecondary,
+		TOTP: &authenticator.TOTPSpec{
+			DisplayName: "Imported",
+			Secret:      secret,
 		},
 	}
 
