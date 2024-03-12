@@ -237,6 +237,16 @@ func (s *UserImportService) insertRecordInTxn(ctx context.Context, result *impor
 		return
 	}
 
+	err = s.insertMFAOOBOTPEmailInTxn(ctx, result, record, userID)
+	if err != nil {
+		return
+	}
+
+	err = s.insertMFAOOBOTPPhoneInTxn(ctx, result, record, userID)
+	if err != nil {
+		return
+	}
+
 	result.Outcome = OutcomeInserted
 	return
 }
@@ -541,6 +551,88 @@ func (s *UserImportService) insertMFAPasswordInTxn(ctx context.Context, result *
 		Kind:      authenticator.KindSecondary,
 		Password: &authenticator.PasswordSpec{
 			PasswordHash: passwordHash,
+		},
+	}
+
+	info, err := s.Authenticators.New(spec)
+	if err != nil {
+		return
+	}
+
+	err = s.Authenticators.Create(info)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (s *UserImportService) insertMFAOOBOTPEmailInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+	mfaObj, ok := record.MFA()
+	if !ok {
+		return
+	}
+
+	mfa := MFA(mfaObj)
+	emailPtr, ok := mfa.Email()
+	if !ok {
+		return
+	}
+
+	if emailPtr == nil {
+		result.Warnings = append(result.Warnings, Warning{
+			Message: "mfa.email = null has no effect in insert.",
+		})
+		return
+	}
+
+	spec := &authenticator.Spec{
+		UserID: userID,
+		Type:   model.AuthenticatorTypeOOBEmail,
+		Kind:   model.AuthenticatorKindSecondary,
+		OOBOTP: &authenticator.OOBOTPSpec{
+			Email: *emailPtr,
+		},
+	}
+
+	info, err := s.Authenticators.New(spec)
+	if err != nil {
+		return
+	}
+
+	err = s.Authenticators.Create(info)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (s *UserImportService) insertMFAOOBOTPPhoneInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+	mfaObj, ok := record.MFA()
+	if !ok {
+		return
+	}
+
+	mfa := MFA(mfaObj)
+	phoneNumberPtr, ok := mfa.PhoneNumber()
+	if !ok {
+		return
+	}
+
+	if phoneNumberPtr == nil {
+		result.Warnings = append(result.Warnings, Warning{
+			Message: "mfa.phone_number = null has no effect in insert.",
+		})
+		return
+	}
+
+	spec := &authenticator.Spec{
+		UserID: userID,
+		Type:   model.AuthenticatorTypeOOBSMS,
+		Kind:   model.AuthenticatorKindSecondary,
+		OOBOTP: &authenticator.OOBOTPSpec{
+			Phone: *phoneNumberPtr,
 		},
 	}
 
