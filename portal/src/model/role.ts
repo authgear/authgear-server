@@ -1,18 +1,16 @@
 import { LocalValidationError } from "../error/validation";
+import { Role } from "../graphql/adminapi/globalTypes.generated";
 
-export interface RoleInput {
-  key: string;
-  name: string;
-  description?: string | null;
-}
+export interface CreatableRole
+  extends Pick<Role, "key" | "name" | "description"> {}
 
 // Ref: pkg/lib/rolesgroups/key.go
 const KEY_REGEX = /^[a-zA-Z_][a-zA-Z0-9:_]*$/;
 const MAX_KEY_LENGTH = 40;
 
 export function validateRole(
-  rawInput: RoleInput
-): [RoleInput, LocalValidationError[]] {
+  rawInput: CreatableRole
+): [CreatableRole, LocalValidationError[]] {
   const input = sanitizeRole(rawInput);
   const errors: LocalValidationError[] = [];
   if (!input.key) {
@@ -42,11 +40,12 @@ export function validateRole(
   return [input, errors];
 }
 
-export function sanitizeRole(input: RoleInput): RoleInput {
+export function sanitizeRole(input: CreatableRole): CreatableRole {
   const description = input.description?.trim();
+  const name = input.name?.trim();
   return {
     key: input.key.trim(),
-    name: input.name.trim(),
+    name: name ? name : null,
     description: description ? description : null,
   };
 }
