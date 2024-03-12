@@ -202,10 +202,10 @@
   "RoleGroupsList.column.key": "Group Key",
   "RoleGroupsList.column.action": "Action",
   "RoleGroupsList.actions.remove": "Remove",
-  "RoleGroupsList.empty": "No roles in group",
+  "RoleGroupsList.empty": "No groups in role",
 
   "DeleteRoleGroupDialog.title": "Remove Group",
-  "DeleteRoleGroupDialog.description": "Are you sure you want to remove Human \"{roleName}\" from the \"{groupName}\" group?",
+  "DeleteRoleGroupDialog.description": "Are you sure you want to remove \"{roleName}\" from the \"{groupName}\" group?",
 
   "DeleteRoleDialog.title": "Delete Role",
   "DeleteRoleDialog.description": "Are you sure you want to delete the role \"{roleName}\"?",
