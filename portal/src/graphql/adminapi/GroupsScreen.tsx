@@ -16,6 +16,7 @@ import { RoleAndGroupsLayout } from "../../RoleAndGroupsLayout";
 import { GroupsEmptyView } from "../../components/roles-and-groups/GroupsEmptyView";
 import { ReactRouterLinkComponent } from "../../ReactRouterLink";
 import { RolesAndGroupsEmptyView } from "../../components/roles-and-groups/RolesAndGroupsEmptyView";
+import GroupsList from "./GroupsList";
 
 const pageSize = 10;
 const searchResultSize = -1;
@@ -42,6 +43,10 @@ const GroupsScreen: React.VFC = function GroupsScreen() {
     }
     return encodeOffsetToCursor(offset - 1);
   }, [isSearch, offset]);
+
+  const onChangeOffset = useCallback((offset) => {
+    setOffset(offset);
+  }, []);
 
   const onChangeSearchKeyword = useCallback((_e, value) => {
     if (value != null) {
@@ -116,8 +121,16 @@ const GroupsScreen: React.VFC = function GroupsScreen() {
           <FormattedMessage id="GroupsScreen.empty.search" />
         </MessageBar>
       ) : (
-        // TODO: GroupsList
-        <GroupsEmptyView className={styles.emptyStateContainer} />
+        <GroupsList
+          className={styles.list}
+          isSearch={isSearch}
+          loading={isInitialLoading}
+          offset={offset}
+          pageSize={pageSize}
+          groups={data?.groups ?? null}
+          totalCount={data?.groups?.totalCount ?? undefined}
+          onChangeOffset={onChangeOffset}
+        />
       )}
     </RoleAndGroupsLayout>
   );
