@@ -1149,7 +1149,7 @@ When you are in this step, you will see a response like the following if you are
             "authentication": "primary_password"
           }
         ],
-        "device_token_enable": false
+        "device_token_enabled": false
       }
     }
   }
@@ -1179,7 +1179,7 @@ Or this response if you are performing secondary authentication.
             "authentication": "recovery_code"
           }
         ],
-        "device_token_enable": true
+        "device_token_enabled": true
       }
     }
   }
