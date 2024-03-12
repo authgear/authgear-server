@@ -181,6 +181,10 @@
   "RoleDetailsScreen.tabs.groups": "Groups",
   "RoleDetailsScreen.button.deleteRole": "Delete Role",
 
+  "GroupsEmptyView.title": "You don't have any groups yet.",
+  "GroupsEmptyView.description": "Create groups to represent the types of users that access your applications.",
+  "GroupsEmptyView.button.text": "Create Group",
+
   "AddRolesScreen.title": "Create Role",
   "AddRolesScreen.roleKey.title": "Role Key",
   "AddRolesScreen.roleKey.description": "The Role Key will be included in the UserInfo and JWT token of the user. e.g. app_a_admin.",
@@ -193,6 +197,15 @@
   "RolesList.column.description": "Description",
   "RolesList.column.action": "Action",
   "RolesList.delete-role": "Delete Role",
+
+  "RoleGroupsList.column.name": "Name",
+  "RoleGroupsList.column.key": "Group Key",
+  "RoleGroupsList.column.action": "Action",
+  "RoleGroupsList.actions.remove": "Remove",
+  "RoleGroupsList.empty": "No groups in role",
+
+  "DeleteRoleGroupDialog.title": "Remove Group",
+  "DeleteRoleGroupDialog.description": "Are you sure you want to remove \"{roleName}\" from the \"{groupName}\" group?",
 
   "DeleteRoleDialog.title": "Delete Role",
   "DeleteRoleDialog.description": "Are you sure you want to delete the role \"{roleName}\"?",

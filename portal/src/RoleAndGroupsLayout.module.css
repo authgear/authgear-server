@@ -13,8 +13,8 @@
   @apply p-6;
 
   @apply grid gap-12;
-  grid-template-columns: 1fr;
-  grid-auto-rows: min-content;
+  grid-template-columns: 100%;
+  grid-template-rows: min-content minmax(min-content, 1fr);
 }
 
 .topBar {
@@ -28,13 +28,14 @@
 }
 
 .content {
-  @apply block min-h-min;
+  @apply min-h-min;
+  @apply flex flex-col;
 }
 
 .verticalForm {
   @apply w-full max-w-[360px];
   @apply grid gap-8;
-  grid-template-columns: 1fr;
+  grid-template-columns: 100%;
   grid-auto-rows: min-content;
 
   @apply mobile:max-w-none;

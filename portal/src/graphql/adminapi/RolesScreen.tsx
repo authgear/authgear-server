@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client";
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
-import { Text, SearchBox, ISearchBoxProps, MessageBar } from "@fluentui/react";
+import { ISearchBoxProps, SearchBox, MessageBar } from "@fluentui/react";
 import {
   RolesListQueryDocument,
   RolesListQueryQuery,
@@ -14,9 +14,10 @@ import NavBreadcrumb from "../../NavBreadcrumb";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import iconBadge from "../../images/badge.svg";
 import PrimaryButton from "../../PrimaryButton";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import RolesList from "./RolesList";
 import useDelayedValue from "../../hook/useDelayedValue";
+import { RolesAndGroupsEmptyView } from "../../components/roles-and-groups/RolesAndGroupsEmptyView";
 
 const pageSize = 10;
 const searchResultSize = -1;
@@ -50,17 +51,20 @@ interface RolesScreenEmptyStateProps {
 const RolesScreenEmptyState: React.VFC<RolesScreenEmptyStateProps> =
   function RolesScreenEmptyState(props) {
     const { className } = props;
+    const location = useLocation();
     return (
-      <div className={cn(className, styles.emptyStateContainer)}>
-        <img className={styles.emptyStateIcon} src={iconBadge} />
-        <Text className={styles.emptyStateTitle}>
-          <FormattedMessage id="RolesScreen.empty-state.title" />
-        </Text>
-        <Text className={styles.emptyStateSubtitle}>
-          <FormattedMessage id="RolesScreen.empty-state.subtitle" />
-        </Text>
-        <CreateRoleButton className={styles.emptyStateButton} />
-      </div>
+      <RolesAndGroupsEmptyView
+        className={cn(className, styles.emptyStateContainer)}
+        icon={<img src={iconBadge} />}
+        title={<FormattedMessage id="RolesScreen.empty-state.title" />}
+        description={<FormattedMessage id="RolesScreen.empty-state.subtitle" />}
+        button={
+          <RolesAndGroupsEmptyView.CreateButton
+            href={`${location.pathname}/add-role`}
+            text={<FormattedMessage id="RolesScreen.empty-state.button" />}
+          />
+        }
+      />
     );
   };
 

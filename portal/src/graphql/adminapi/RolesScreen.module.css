@@ -17,32 +17,10 @@
 }
 
 .emptyStateContainer {
-  @apply mt-7 py-6;
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-}
-
-.emptyStateIcon {
-  @apply h-16 w-16;
-}
-
-.emptyStateTitle {
-  @apply mt-6;
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
-.emptyStateSubtitle {
-  @apply mt-4;
-  font-size: 1rem;
-  font-weight: 400;
-  max-width: 480px;
-  text-align: center;
-}
-
-.emptyStateButton {
-  @apply mt-8;
+  /* Spacing top = 48px */
+  /* Gap from layout = 20px */
+  /* Remaining space = 48 - 20 = 28px = 7unit */
+  @apply mt-7;
 }
 
 .searchBox {

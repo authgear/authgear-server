@@ -128,14 +128,6 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
     },
     [appID]
   );
-  const onRenderTextActionButtonText = useCallback(() => {
-    return (
-      <Text className={styles.actionButtonText} theme={themes.destructive}>
-        <FormattedMessage id="RolesList.delete-role" />
-      </Text>
-    );
-  }, [themes.destructive]);
-
   const [deleteRoleDialogData, setDeleteRoleDialogData] =
     useState<DeleteRoleDialogData | null>(null);
   const onClickDeleteRole = useCallback(
@@ -169,7 +161,14 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
           return (
             <div className={styles.cell}>
               <ActionButton
-                onRenderText={onRenderTextActionButtonText}
+                text={
+                  <Text
+                    className={styles.actionButtonText}
+                    theme={themes.destructive}
+                  >
+                    <FormattedMessage id="RolesList.delete-role" />
+                  </Text>
+                }
                 className={styles.actionButton}
                 theme={themes.destructive}
                 onClick={(e) => {
@@ -189,7 +188,7 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
           );
       }
     },
-    [onRenderTextActionButtonText, themes.destructive, onClickDeleteRole]
+    [themes.destructive, onClickDeleteRole]
   );
   return (
     <>

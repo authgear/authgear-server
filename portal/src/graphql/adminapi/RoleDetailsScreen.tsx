@@ -33,8 +33,20 @@ import DefaultButton from "../../DefaultButton";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useUpdateRoleMutation } from "./mutations/updateRoleMutation";
 import { usePivotNavigation } from "../../hook/usePivot";
-import { Pivot, PivotItem } from "@fluentui/react";
+import { Pivot, PivotItem, SearchBox } from "@fluentui/react";
 import DeleteRoleDialog, { DeleteRoleDialogData } from "./DeleteRoleDialog";
+import { GroupsEmptyView } from "../../components/roles-and-groups/GroupsEmptyView";
+import { useQuery } from "@apollo/client";
+import {
+  GroupsListQueryDocument,
+  GroupsListQueryQuery,
+  GroupsListQueryQueryVariables,
+} from "./query/groupsListQuery.generated";
+import {
+  RoleGroupsList,
+  RoleGroupsListItem,
+} from "../../components/roles-and-groups/RoleGroupsList";
+import { searchGroups } from "../../model/group";
 
 interface FormState {
   roleKey: string;
@@ -231,6 +243,88 @@ function RoleDetailsScreenSettingsFormContainer({
   );
 }
 
+function RoleDetailsScreenGroupListContainer({
+  role,
+}: {
+  role: RoleQueryNodeFragment;
+}) {
+  const { renderToString } = useContext(MessageContext);
+  const {
+    data: groupsQueryData,
+    loading,
+    error,
+    refetch,
+  } = useQuery<GroupsListQueryQuery, GroupsListQueryQueryVariables>(
+    GroupsListQueryDocument,
+    {
+      variables: {
+        pageSize: 0,
+        searchKeyword: "",
+      },
+      fetchPolicy: "network-only",
+    }
+  );
+
+  const [searchKeyword, setSearchKeyword] = useState<string>("");
+  const onChangeSearchKeyword = useCallback(
+    (e?: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      if (e === undefined) {
+        return;
+      }
+      const value = e.currentTarget.value;
+      setSearchKeyword(value);
+    },
+    []
+  );
+  const onClearSearchKeyword = useCallback(() => {
+    setSearchKeyword("");
+  }, []);
+
+  const filteredRoleGroups = useMemo(() => {
+    const roleGroups =
+      role.groups?.edges?.flatMap<RoleGroupsListItem>((edge) => {
+        if (edge?.node != null) {
+          return [edge.node];
+        }
+        return [];
+      }) ?? [];
+    return searchGroups(roleGroups, searchKeyword);
+  }, [role.groups?.edges, searchKeyword]);
+
+  if (error != null) {
+    return <ShowError error={error} onRetry={refetch} />;
+  }
+
+  if (loading) {
+    return <ShowLoading />;
+  }
+
+  const totalCount = groupsQueryData?.groups?.totalCount ?? 0;
+
+  if (totalCount === 0) {
+    return <GroupsEmptyView />;
+  }
+
+  return (
+    <section className="flex-1 flex flex-col">
+      <header className="flex flex-row items-center justify-between mb-8">
+        <SearchBox
+          className="max-w-[300px] min-w-0 flex-1"
+          placeholder={renderToString("search")}
+          value={searchKeyword}
+          onChange={onChangeSearchKeyword}
+          onClear={onClearSearchKeyword}
+        />
+      </header>
+      <RoleGroupsList
+        className="flex-1 min-h-0"
+        role={role}
+        groups={filteredRoleGroups}
+      />
+    </section>
+  );
+}
+
 const RoleDetailsScreenLoaded: React.VFC<{
   role: RoleQueryNodeFragment;
   reload: ReturnType<typeof useRoleQuery>["refetch"];
@@ -270,7 +364,7 @@ const RoleDetailsScreenLoaded: React.VFC<{
         />
       </Pivot>
       {selectedKey === GROUPS_KEY ? (
-        <>{/* TODO */}</>
+        <RoleDetailsScreenGroupListContainer role={role} />
       ) : (
         <RoleDetailsScreenSettingsFormContainer role={role} />
       )}

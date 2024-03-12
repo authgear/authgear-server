@@ -1,17 +1,14 @@
 .root {
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .listWrapper {
-  flex: 1 0 0%;
+  @apply flex-1;
   min-height: 0;
   overflow-y: auto;
-}
-
-.pagination {
-  align-self: flex-end;
-  margin: 12px 16px;
+  overflow-x: hidden;
 }
 
 .actionButton {
@@ -37,12 +34,4 @@
   @apply truncate;
   font-size: 14px;
   line-height: 20px;
-}
-
-.description {
-  white-space: normal;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 12px;
-  line-height: 16px;
 }

@@ -1,0 +1,30 @@
+.container {
+  @apply py-6;
+  @apply flex items-center flex-col;
+}
+
+.icon {
+  @apply grid;
+  /* stylelint-disable-next-line number-leading-zero */
+  grid-template-rows: theme(spacing.16);
+  /* stylelint-disable-next-line number-leading-zero */
+  grid-template-columns: theme(spacing.16);
+}
+
+.title {
+  @apply mt-6;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.description {
+  @apply mt-4;
+  font-size: 1rem;
+  font-weight: 400;
+  max-width: 480px;
+  text-align: center;
+}
+
+.button {
+  @apply mt-8;
+}
