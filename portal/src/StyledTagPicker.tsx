@@ -91,11 +91,7 @@ const StyledTagPicker: React.VFC<StyledPickerProps> = function StyledTagPicker(
           value,
           className: styles.pickerInput,
         }}
-        pickerSuggestionsProps={{
-          suggestionsClassName: styles.pickerSuggestions,
-        }}
         pickerCalloutProps={{
-          className: styles.pickerCallout,
           target: tagPickerRef,
         }}
         onChange={_onChange}

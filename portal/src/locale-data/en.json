@@ -180,6 +180,10 @@
   "RoleDetailsScreen.tabs.settings": "Settings",
   "RoleDetailsScreen.tabs.groups": "Groups",
   "RoleDetailsScreen.button.deleteRole": "Delete Role",
+  "RoleDetailsScreen.groups.add": "Add to Group",
+
+  "AddRoleGroupsDialog.title": "Add {roleName} role to group",
+  "AddRoleGroupsDialog.selectGroups": "Select Groups",
 
   "GroupsEmptyView.title": "You don't have any groups yet.",
   "GroupsEmptyView.description": "Create groups to represent the types of users that access your applications.",

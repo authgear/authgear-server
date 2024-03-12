@@ -48,12 +48,13 @@ function useSnapshotData(data: DeleteRoleGroupDialogData | null) {
   return snapshot;
 }
 
+const dialogStyles = { main: { minHeight: 0 } };
+
 const DeleteRoleGroupDialog: React.VFC<DeleteRoleGroupDialogProps> =
   function DeleteRoleGroupDialog(props) {
     const { onDismiss, onDismissed, data } = props;
     const isHidden = data === null;
     const { renderToString } = useContext(Context);
-    const dialogStyles = { main: { minHeight: 0 } };
     const { themes } = useSystemConfig();
 
     const { refetch: refetchRole } = useRoleQuery(data?.roleID ?? "", {

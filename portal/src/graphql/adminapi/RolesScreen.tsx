@@ -38,7 +38,7 @@ const CreateRoleButton: React.VFC<CreateRoleButtonProps> =
         onClick={(e: React.MouseEvent<unknown>) => {
           e.preventDefault();
           e.stopPropagation();
-          navigate("./add");
+          navigate("./add-role");
         }}
       />
     );
