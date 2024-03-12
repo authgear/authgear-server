@@ -28,7 +28,11 @@
 }
 
 .content {
-  @apply self-start w-full max-w-[360px];
+  @apply block min-h-min;
+}
+
+.verticalForm {
+  @apply w-full max-w-[360px];
   @apply grid gap-8;
   grid-template-columns: 1fr;
   grid-auto-rows: min-content;
@@ -36,9 +40,6 @@
   @apply mobile:max-w-none;
 }
 
-.footer {
-  @apply self-stretch;
-  @apply grid grid-flow-col gap-4;
-  grid-template-rows: min-content;
-  grid-auto-columns: min-content;
+.formFooter {
+  @apply grid grid-flow-col gap-4 justify-start;
 }

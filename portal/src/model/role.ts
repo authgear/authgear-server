@@ -10,7 +10,9 @@ export interface RoleInput {
 const KEY_REGEX = /^[a-zA-Z_][a-zA-Z0-9:_]*$/;
 const MAX_KEY_LENGTH = 40;
 
-export function validateRole(rawInput: RoleInput): LocalValidationError[] {
+export function validateRole(
+  rawInput: RoleInput
+): [RoleInput, LocalValidationError[]] {
   const input = sanitizeRole(rawInput);
   const errors: LocalValidationError[] = [];
   if (!input.key) {
@@ -37,7 +39,7 @@ export function validateRole(rawInput: RoleInput): LocalValidationError[] {
       messageID: "errors.validation.required",
     });
   }
-  return errors;
+  return [input, errors];
 }
 
 export function sanitizeRole(input: RoleInput): RoleInput {

@@ -6,12 +6,12 @@ import {
 import { useMutation } from "@apollo/client";
 
 export function useUpdateRoleMutation(): {
-  updateRole: (
-    id: string,
-    key?: string,
-    name?: string,
-    description?: string
-  ) => Promise<void>;
+  updateRole: (role: {
+    id: string;
+    key?: string;
+    name?: string;
+    description?: string | null;
+  }) => Promise<void>;
   loading: boolean;
   error: unknown;
 } {
@@ -19,13 +19,18 @@ export function useUpdateRoleMutation(): {
     useMutation<UpdateRoleMutationMutation>(UpdateRoleMutationDocument);
 
   const updateRole = useCallback(
-    async (id: string, key?: string, name?: string, description?: string) => {
+    async (role: {
+      id: string;
+      key?: string;
+      name?: string;
+      description?: string | null;
+    }) => {
       await mutateFunction({
         variables: {
-          id,
-          key,
-          name,
-          description,
+          id: role.id,
+          key: role.key,
+          name: role.name,
+          description: role.description == null ? null : role.description,
         },
       });
     },
