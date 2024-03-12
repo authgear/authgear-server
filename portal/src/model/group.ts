@@ -8,6 +8,17 @@ export interface CreatableGroup
 const KEY_REGEX = /^[a-zA-Z_][a-zA-Z0-9:_]*$/;
 const MAX_KEY_LENGTH = 40;
 
+export function generateGroupKeyFromName(name: string): string {
+  let processedName = name.trim();
+  // Replace all whitespace, -, + with _
+  processedName = processedName.replace(/[\s\-+]/g, "_");
+  // Remove all unallowed characters
+  processedName = processedName.replace(/[^a-zA-Z0-9:_]/g, "");
+  // Remove all unallowed prefix characters
+  processedName = processedName.replace(/^[^a-zA-Z_]*/, "");
+  return processedName;
+}
+
 export function validateGroup(
   rawInput: CreatableGroup
 ): [CreatableGroup, LocalValidationError[]] {
@@ -41,10 +52,11 @@ export function validateGroup(
 }
 
 export function sanitizeGroup(input: CreatableGroup): CreatableGroup {
+  const key = input.key.trim();
   const description = input.description?.trim();
   const name = input.name?.trim();
   return {
-    key: input.key.trim(),
+    key: key ? key : generateGroupKeyFromName(name ?? ""),
     name: name ? name : null,
     description: description ? description : null,
   };

@@ -15,7 +15,7 @@ import { useNavigate } from "react-router-dom";
 import { useCreateGroupMutation } from "./mutations/createGroupMutation";
 import { APIError } from "../../error/error";
 import { makeLocalValidationError } from "../../error/validation";
-import { validateGroup } from "../../model/group";
+import { generateGroupKeyFromName, validateGroup } from "../../model/group";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 import { useFormTopErrors } from "../../form";
 import { useErrorMessageBarContext } from "../../ErrorMessageBar";
@@ -94,6 +94,7 @@ function AddGroupScreenForm() {
             required={true}
             fieldName="key"
             parentJSONPointer=""
+            placeholder={generateGroupKeyFromName(formState.groupName)}
             type="text"
             label={renderToString("AddGroupScreen.groupKey.title")}
             value={formState.groupKey}
