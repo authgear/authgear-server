@@ -1,0 +1,33 @@
+.tagPicker {
+  @apply w-full;
+}
+
+.tagPickerContainer {
+  @apply relative;
+  max-width: 510px;
+}
+
+.tagPicker div[role="listitem"]:not([class*="is-selected"]) {
+  background: transparent;
+  outline: #e1dfdd solid 1px;
+}
+
+.pickerCallout {
+  @apply w-full;
+  max-height: 152px;
+  max-width: 510px;
+}
+
+.pickerSuggestions {
+  max-height: 152px;
+}
+
+.pickerInput {
+  padding-right: 32px;
+}
+
+.pickerIconButton {
+  @apply absolute inset-y-0 right-0 h-full;
+
+  color: #201f1e;
+}
