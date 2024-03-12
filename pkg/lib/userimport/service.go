@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -35,6 +36,11 @@ type IdentityService interface {
 	ListByClaim(name string, value string) ([]*identity.Info, error)
 }
 
+type AuthenticatorService interface {
+	New(spec *authenticator.Spec) (*authenticator.Info, error)
+	Create(info *authenticator.Info) error
+}
+
 type VerifiedClaimService interface {
 	NewVerifiedClaim(userID string, claimName string, claimValue string) *verification.Claim
 	MarkClaimVerified(claim *verification.Claim) error
@@ -57,6 +63,7 @@ type UserImportService struct {
 	AppDatabase         *appdb.Handle
 	LoginIDConfig       *config.LoginIDConfig
 	Identities          IdentityService
+	Authenticators      AuthenticatorService
 	UserCommands        UserCommands
 	VerifiedClaims      VerifiedClaimService
 	StandardAttributes  StandardAttributesService
@@ -216,6 +223,11 @@ func (s *UserImportService) insertRecordInTxn(ctx context.Context, result *impor
 	}
 
 	err = s.insertGroupsInTxn(ctx, result, record, userID)
+	if err != nil {
+		return
+	}
+
+	err = s.insertPasswordInTxn(ctx, result, record, userID)
 	if err != nil {
 		return
 	}
@@ -466,6 +478,36 @@ func (s *UserImportService) insertGroupsInTxn(ctx context.Context, result *impor
 		UserID:    userID,
 		GroupKeys: groupKeys,
 	})
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (s *UserImportService) insertPasswordInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+	password, ok := record.Password()
+	if !ok {
+		return
+	}
+	passwordHash := Password(password).PasswordHash()
+
+	spec := &authenticator.Spec{
+		UserID:    userID,
+		Type:      model.AuthenticatorTypePassword,
+		IsDefault: false,
+		Kind:      authenticator.KindPrimary,
+		Password: &authenticator.PasswordSpec{
+			PasswordHash: passwordHash,
+		},
+	}
+
+	info, err := s.Authenticators.New(spec)
+	if err != nil {
+		return
+	}
+
+	err = s.Authenticators.Create(info)
 	if err != nil {
 		return
 	}
