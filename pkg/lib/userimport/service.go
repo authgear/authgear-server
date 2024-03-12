@@ -232,6 +232,11 @@ func (s *UserImportService) insertRecordInTxn(ctx context.Context, result *impor
 		return
 	}
 
+	err = s.insertMFAPasswordInTxn(ctx, result, record, userID)
+	if err != nil {
+		return
+	}
+
 	result.Outcome = OutcomeInserted
 	return
 }
@@ -497,6 +502,43 @@ func (s *UserImportService) insertPasswordInTxn(ctx context.Context, result *imp
 		Type:      model.AuthenticatorTypePassword,
 		IsDefault: false,
 		Kind:      authenticator.KindPrimary,
+		Password: &authenticator.PasswordSpec{
+			PasswordHash: passwordHash,
+		},
+	}
+
+	info, err := s.Authenticators.New(spec)
+	if err != nil {
+		return
+	}
+
+	err = s.Authenticators.Create(info)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (s *UserImportService) insertMFAPasswordInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+	mfaObj, ok := record.MFA()
+	if !ok {
+		return
+	}
+
+	mfa := MFA(mfaObj)
+	mfaPasswordObj, ok := mfa.Password()
+	if !ok {
+		return
+	}
+
+	passwordHash := Password(mfaPasswordObj).PasswordHash()
+
+	spec := &authenticator.Spec{
+		UserID:    userID,
+		Type:      model.AuthenticatorTypePassword,
+		IsDefault: false,
+		Kind:      authenticator.KindSecondary,
 		Password: &authenticator.PasswordSpec{
 			PasswordHash: passwordHash,
 		},
