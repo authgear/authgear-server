@@ -9,7 +9,7 @@ export function useUpdateRoleMutation(): {
   updateRole: (role: {
     id: string;
     key?: string;
-    name?: string;
+    name?: string | null;
     description?: string | null;
   }) => Promise<void>;
   loading: boolean;
@@ -22,7 +22,7 @@ export function useUpdateRoleMutation(): {
     async (role: {
       id: string;
       key?: string;
-      name?: string;
+      name?: string | null;
       description?: string | null;
     }) => {
       await mutateFunction({
