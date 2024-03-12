@@ -48,7 +48,7 @@ func (p *Provider) List(userID string) ([]*authenticator.Password, error) {
 	return authenticators, nil
 }
 
-func (p *Provider) New(id string, userID string, password string, isDefault bool, kind string) (*authenticator.Password, error) {
+func (p *Provider) New(id string, userID string, passwordSpec *authenticator.PasswordSpec, isDefault bool, kind string) (*authenticator.Password, error) {
 	if id == "" {
 		id = uuid.New()
 	}
@@ -58,12 +58,28 @@ func (p *Provider) New(id string, userID string, password string, isDefault bool
 		IsDefault: isDefault,
 		Kind:      kind,
 	}
-	err := p.PasswordChecker.ValidateNewPassword(userID, password)
-	if err != nil {
-		return nil, err
+
+	switch {
+	// The input password is plain password.
+	case passwordSpec.PlainPassword != "":
+		err := p.PasswordChecker.ValidateNewPassword(userID, passwordSpec.PlainPassword)
+		if err != nil {
+			return nil, err
+		}
+		authen = p.populatePasswordHash(authen, passwordSpec.PlainPassword)
+		return authen, nil
+	// The input password is a bcrypt hash.
+	case passwordSpec.PasswordHash != "":
+		hash := []byte(passwordSpec.PasswordHash)
+		err := pwd.CheckHash(hash)
+		if err != nil {
+			return nil, TranslateBcryptError(err)
+		}
+		authen = p.populatePasswordHashWithHash(authen, hash)
+		return authen, nil
+	default:
+		panic(fmt.Errorf("invalid password spec"))
 	}
-	authen = p.populatePasswordHash(authen, password)
-	return authen, nil
 }
 
 // WithPassword return new authenticator pointer if password is changed
@@ -170,5 +186,11 @@ func (p *Provider) populatePasswordHash(a *authenticator.Password, password stri
 	newAuthn := *a
 	newAuthn.PasswordHash = hash
 
+	return &newAuthn
+}
+
+func (p *Provider) populatePasswordHashWithHash(a *authenticator.Password, hash []byte) *authenticator.Password {
+	newAuthn := *a
+	newAuthn.PasswordHash = hash
 	return &newAuthn
 }
