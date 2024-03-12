@@ -10,7 +10,13 @@ import {
   FormattedMessage,
   Context as MessageContext,
 } from "@oursky/react-messageformat";
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  useEffect,
+} from "react";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import ErrorDialog from "../../error/ErrorDialog";
@@ -65,6 +71,9 @@ export const AddRoleGroupsDialog: React.VFC<AddRoleGroupsDialogProps> =
     roleGroups,
   }) {
     const { renderToString } = useContext(MessageContext);
+    const existingGroupIDs = useMemo(() => {
+      return new Set(roleGroups.map((group) => group.id));
+    }, [roleGroups]);
 
     const [groupTags, setGroupTags] = useState<GroupTag[]>([]);
 
@@ -75,14 +84,7 @@ export const AddRoleGroupsDialog: React.VFC<AddRoleGroupsDialogProps> =
     const { refetch } = useQuery<
       GroupsListQueryQuery,
       GroupsListQueryQueryVariables
-    >(GroupsListQueryDocument, {
-      variables: {
-        pageSize: roleGroups.length + groupTags.length + 4,
-        searchKeyword: "",
-      },
-      fetchPolicy: "network-only",
-      skip: true,
-    });
+    >(GroupsListQueryDocument);
 
     const onChangeGroupTags = useCallback((tags?: ITag[]) => {
       if (tags === undefined) {
@@ -99,20 +101,34 @@ export const AddRoleGroupsDialog: React.VFC<AddRoleGroupsDialogProps> =
     const onClearGroupTags = useCallback(() => setGroupTags([]), []);
 
     const onResolveGroupSuggestions = useCallback(
-      async (filter: string): Promise<ITag[]> => {
-        const result = await refetch({ searchKeyword: filter });
+      async (filter: string, selectedTags?: ITag[]): Promise<ITag[]> => {
+        const selectedGroupIDs = new Set(
+          selectedTags?.map((tag) => (tag as GroupTag).group.id)
+        );
+        const result = await refetch({ searchKeyword: filter, pageSize: 100 });
 
         if (result.data.groups?.edges == null) {
           return [];
         }
         return result.data.groups.edges.flatMap<GroupTag>((edge) => {
-          if (edge?.node == null) {
+          const node = edge?.node;
+          if (node == null) {
             return [];
           }
-          return [toGroupTag(edge.node)];
+          // Filter out existing groups
+          if (existingGroupIDs.has(node.id)) {
+            return [];
+          }
+
+          // Filter out selected groups
+          if (selectedGroupIDs.has(node.id)) {
+            return [];
+          }
+
+          return [toGroupTag(node)];
         });
       },
-      [refetch]
+      [existingGroupIDs, refetch]
     );
 
     const onDialogDismiss = useCallback(() => {
@@ -152,6 +168,11 @@ export const AddRoleGroupsDialog: React.VFC<AddRoleGroupsDialogProps> =
       onDismiss,
     ]);
 
+    useEffect(() => {
+      // Reset states on isHidden changes
+      setGroupTags([]);
+    }, [isHidden]);
+
     const modalProps = useMemo((): IModalProps => {
       return {
         onDismissed,
@@ -182,6 +203,7 @@ export const AddRoleGroupsDialog: React.VFC<AddRoleGroupsDialogProps> =
                 <FormattedMessage id="AddRoleGroupsDialog.selectGroups" />
               </Label>
               <StyledTagPicker
+                autoFocus={true}
                 value={searchGroupKeyword}
                 onInputChange={onSearchInputChange}
                 selectedItems={groupTags}
