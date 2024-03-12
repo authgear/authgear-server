@@ -48,7 +48,7 @@ type TOTPAuthenticatorProvider interface {
 	Get(userID, id string) (*authenticator.TOTP, error)
 	GetMany(ids []string) ([]*authenticator.TOTP, error)
 	List(userID string) ([]*authenticator.TOTP, error)
-	New(id string, userID string, displayName string, isDefault bool, kind string) *authenticator.TOTP
+	New(id string, userID string, totpSpec *authenticator.TOTPSpec, isDefault bool, kind string) (*authenticator.TOTP, error)
 	Create(*authenticator.TOTP) error
 	Delete(*authenticator.TOTP) error
 	Authenticate(a *authenticator.TOTP, code string) error
@@ -337,8 +337,10 @@ func (s *Service) NewWithAuthenticatorID(authenticatorID string, spec *authentic
 		return p.ToInfo(), nil
 
 	case model.AuthenticatorTypeTOTP:
-		displayName := spec.TOTP.DisplayName
-		t := s.TOTP.New(authenticatorID, spec.UserID, displayName, spec.IsDefault, string(spec.Kind))
+		t, err := s.TOTP.New(authenticatorID, spec.UserID, spec.TOTP, spec.IsDefault, string(spec.Kind))
+		if err != nil {
+			return nil, err
+		}
 		return t.ToInfo(), nil
 
 	case model.AuthenticatorTypeOOBEmail:
