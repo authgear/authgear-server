@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import { GroupsListFragment } from "./query/groupsListQuery.generated";
 import useDelayedValue from "../../hook/useDelayedValue";
@@ -19,6 +19,7 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import Link from "../../Link";
 import ActionButton from "../../ActionButton";
 import PaginationWidget from "../../PaginationWidget";
+import DeleteGroupDialog, { DeleteGroupDialogData } from "./DeleteGroupDialog";
 
 interface GroupsListProps {
   className?: string;
@@ -127,6 +128,23 @@ const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
     },
     [appID]
   );
+  const [deleteGroupDialogData, setDeleteGroupDialogData] =
+    useState<DeleteGroupDialogData | null>(null);
+  const onClickDeleteGroup = useCallback(
+    (e: React.MouseEvent<unknown>, item: GroupListItem) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDeleteGroupDialogData({
+        groupID: item.id,
+        groupName: item.name,
+        groupKey: item.key,
+      });
+    },
+    []
+  );
+  const dismissDeleteGroupDialog = useCallback(() => {
+    setDeleteGroupDialogData(null);
+  }, []);
 
   const onRenderGroupItemColumn = useCallback(
     (item: GroupListItem, _index?: number, column?: IColumn) => {
@@ -153,6 +171,9 @@ const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
                 }
                 className={styles.actionButton}
                 theme={themes.destructive}
+                onClick={(e) => {
+                  onClickDeleteGroup(e, item);
+                }}
               />
             </div>
           );
@@ -167,7 +188,7 @@ const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
           );
       }
     },
-    [themes.destructive]
+    [themes.destructive, onClickDeleteGroup]
   );
   return (
     <>
@@ -193,6 +214,10 @@ const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
             onChangeOffset={onChangeOffset}
           />
         ) : null}
+        <DeleteGroupDialog
+          onDismiss={dismissDeleteGroupDialog}
+          data={deleteGroupDialogData}
+        />
       </div>
     </>
   );
