@@ -14,7 +14,7 @@
         This email is sent to verify {{ .Email }} on {{ template "app.name" }}. Use this code in the verification page.
       </mj-text>
       <mj-text font-size="32px" font-weight="heavy" font-family="monospace" letter-spacing="12px" padding="24px 24px 24px 40px">{{ .Code }}</mj-text>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">If you didn't sign in or sign up, please ignore this email.</mj-text>
+      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">Don't share it with anyone. If you didn't sign in or sign up, please ignore this email.</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

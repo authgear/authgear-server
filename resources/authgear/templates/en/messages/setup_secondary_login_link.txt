@@ -1,6 +1,6 @@
 Verify your email and setup 2-step verification on {{ template "app.name" }}
 
-Please follow the link below to setup 2-step verification.
+Please click the link below to setup 2-step verification on {{ template "app.name" }}.
 
 {{ .URL }}
 

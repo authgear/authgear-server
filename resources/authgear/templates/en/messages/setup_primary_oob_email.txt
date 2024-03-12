@@ -1,7 +1,7 @@
 Sign up on {{ template "app.name" }}
 
-Please use the following one-time-password to complete the sign up process.
+Please use the following one-time password to complete the sign up process on {{ template "app.name" }}.
 
 {{ .Code }}
 
-If you didn't sign up, please ignore this email.
+Don't share it with anyone. If you didn't sign up, please ignore this email.

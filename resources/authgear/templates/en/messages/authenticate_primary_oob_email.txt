@@ -4,4 +4,4 @@ Please use the following one-time password to complete the log in process.
 
 {{ .Code }}
 
-If you didn't trigger a login, please ignore this email.
+Don't share it with anyone. If you didn't trigger a login, please ignore this email.

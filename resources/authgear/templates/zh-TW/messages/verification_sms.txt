@@ -1,0 +1,3 @@
+{{ .Code }} 是你的 {{ template "app.name" }} 驗證碼。
+
+切勿分享給任何人。

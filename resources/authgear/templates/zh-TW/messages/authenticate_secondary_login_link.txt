@@ -1,0 +1,7 @@
+登入至 {{ template "app.name" }}
+
+請按以下連結登入至 {{ template "app.name" }}。
+
+{{ .URL }}
+
+如你未曾登入，則無需理會此電郵。

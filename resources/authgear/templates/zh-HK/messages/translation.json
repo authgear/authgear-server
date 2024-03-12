@@ -1,0 +1,163 @@
+{
+  "PrimaryLoginLink": {
+    "Title": "登入至 {{ template \"app.name\" }}",
+    "Body": "請按以下按鈕登入至 {{ template \"app.name\" }}",
+    "Button": "登入至 {{ template \"app.name\" }}",
+    "Disclaimer": "如你未曾登入，則無需理會此電郵。"
+  },
+  "PrimaryOOBEmail": {
+    "Title": "登入至 {{ template \"app.name\" }}",
+    "Body": "請用以下一次性密碼完成登入。",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "切勿分享給任何人。如你未曾登入，則無需理會此電郵。"
+  },
+  "SecondaryLoginLink": {
+    "Title": "登入至 {{ template \"app.name\" }}",
+    "Instruction": "請按以下按鈕登入至 {{ template \"app.name\" }}。",
+    "ButtonText": "登入至 {{ template \"app.name\" }}",
+    "Disclaimer": "如你未曾登入，則無需理會此電郵。"
+  },
+  "SecondaryOOBEmail": {
+    "Title": "登入至 {{ template \"app.name\" }}",
+    "Body": "請用以下一次性密碼完成登入。",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "切勿分享給任何人。如你未曾登入，則無需理會此電郵。"
+  },
+  "ForgotPassword": {
+    "Title": "重設密碼",
+    "Body": "你要求了重設 {{ template \"app.name\" }} 上的密碼。請按以下按鈕重設密碼。",
+    "Button": "重設密碼",
+    "Disclaimer": "如你未要求重設，則無需理會此電郵。"
+  },
+  "ForgotPasswordOOBEmail": {
+    "Title": "重設密碼",
+    "Body": "請用以下一次性密碼重設 {{ template \"app.name\" }} 上的密碼。",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "切勿分享給任何人。如你未要求重設，則無需理會此電郵。"
+  },
+  "SetupPrimaryLoginLink": {
+    "Title": "驗證你在 {{ template \"app.name\" }} 的電郵",
+    "Body": "請按以下連結完成註冊",
+    "Button": "驗證電郵",
+    "Disclaimer": "如你未曾註冊，則無需理會此電郵。"
+  },
+  "SetupPrimaryOOBEmail": {
+    "Title": "註冊 {{ template \"app.name\" }}",
+    "Body": "請用以下一次性密碼完成註冊",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "切勿分享給任何人。如你未曾註冊，則無需理會此電郵。"
+  },
+  "SetupSecondaryLoginLink": {
+    "Title": "驗證你在 {{ template \"app.name\" }} 的電郵",
+    "Body": "請按以下按鈕設定雙重驗證",
+    "Button": "驗證電郵",
+    "Disclaimer": "如你未曾進行設定，則無需理會此電郵。"
+  },
+  "SetupSecondaryOOBEmail": {
+    "Title": "設定{{ template \"app.name\" }} 雙重驗證",
+    "Body": "請用以下一次性密碼為設定雙重驗證",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "切勿分享給任何人。如你未曾進行設定，則無需理會此電郵。"
+  },
+  "VerificationEmail": {
+    "Title": "電郵驗證",
+    "Body": "請在 {{ template \"app.name\" }} 輸入以下驗證碼以驗證 {{.Email}}。",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "切勿分享給任何人。假如你未曾登入或註冊，則無需理會此電郵。"
+  },
+  "PrimaryLoginLinkTXT": {
+    "Title": "登入至 {{ template \"app.name\" }}",
+    "Body": "請按以下連結登入至 {{ template \"app.name\" }}。",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "如你未曾登入，則無需理會此電郵。"
+  },
+  "PrimaryOOBEmailTXT": {
+    "Title": "登入至 {{ template \"app.name\" }}",
+    "Body": "請用以下一次性密碼完成登入。",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "切勿分享給任何人。如你未曾登入，則無需理會此電郵。"
+  },
+  "PrimaryOOBSMSTXT": {
+    "Title": "{{ template \"app.name\" }} 的一次性密碼為： {{ .Code }}",
+    "Disclaimer": "切勿分享給任何人。"
+  },
+  "SecondaryLoginLinkTXT": {
+    "Title": "登入至 {{ template \"app.name\" }}",
+    "Body": "請按以下連結登入至 {{ template \"app.name\" }}。",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "如你未曾登入，則無需理會此電郵。"
+  },
+  "SecondaryOOBEmailTXT": {
+    "Title": "登入至 {{ template \"app.name\" }}",
+    "Body": "請用以下一次性密碼完成登入。",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "切勿分享給任何人。如你未曾登入，則無需理會此電郵。"
+  },
+  "SecondaryOOBSMSTXT": {
+    "Title": "{{ template \"app.name\" }} 的一次性密碼為： {{ .Code }}",
+    "Disclaimer": "切勿分享給任何人。"
+  },
+  "ForgotPasswordEmailTXT": {
+    "Title": "重設密碼",
+    "Body": "你要求了重設 {{ template \"app.name\" }} 上的密碼。請按此連結重設密碼。",
+    "Link": "{{ .Link }}",
+    "Disclaimer": "如你未要求重設，則無需理會此電郵。"
+  },
+  "ForgotPasswordSMSTXT": {
+    "Title": "按此連結重設你在 {{ template \"app.name\" }} 的密碼。如你未要求重設，則無需理會此訊息。",
+    "Disclaimer": "如你未要求重設，則無需理會此訊息。",
+    "Link": "{{ .Link }}"
+  },
+  "ForgotPasswordOOBEmailTXT": {
+    "Title": "重設密碼",
+    "Body": "請用以下一次性密碼重設 {{ template \"app.name\" }} 上的密碼。",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "切勿分享給任何人。如你未要求重設，則無需理會此電郵。"
+  },
+  "ForgotPasswordOOBSMSTXT": {
+    "Body": "以此一次性密碼：{{ .Code }} 重設 {{ template \"app.name\" }} 上的密碼。",
+    "Disclaimer": "切勿分享給任何人。"
+  },
+  "SetupPrimaryLoginLinkTXT": {
+    "Title": "驗證你在 {{ template \"app.name\" }} 的電郵",
+    "Body": "請按以下連結完成註冊",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "如你未曾註冊，則無需理會此電郵。"
+  },
+  "SetupPrimaryOOBEmailTXT": {
+    "Title": "註冊 {{ template \"app.name\" }}",
+    "Body": "請用以下一次性密碼完成註冊",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "切勿分享給任何人。如你未曾註冊，則無需理會此電郵。"
+  },
+  "SetupPrimaryOOBSMSTXT": {
+    "Title": "{{ template \"app.name\" }} 的一次性密碼為： {{ .Code }}",
+    "Disclaimer": "切勿分享給任何人。"
+  },
+  "SetupSecondaryLoginLinkTXT": {
+    "Title": "驗證你在 {{ template \"app.name\" }} 的電郵",
+    "Body": "請按以下連結設定雙重驗證",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "如你未曾進行設定，則無需理會此電郵。"
+  },
+  "SetupSecondaryOOBEmailTXT": {
+    "Title": "設定{{ template \"app.name\" }} 雙重驗證",
+    "Body": "請用以下一次性密碼為設定雙重驗證",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "切勿分享給任何人。如你未曾進行設定，則無需理會此電郵。"
+  },
+  "SetupSecondaryOOBSMSTXT": {
+    "Title": "設定{{ template \"app.name\" }} 雙重驗證的一次性密碼為： {{ .Code }}。",
+    "Disclaimer": "切勿分享給任何人。"
+  },
+  "VerificationEmailTXT": {
+    "Title": "電郵驗證",
+    "Body": "請在 {{ template \"app.name\" }} 輸入以下驗證碼以驗證 {{.Email}}。",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "切勿分享給任何人。如你未曾登入或註冊，則無需理會此電郵。"
+  },
+  "VerificationSMSTXT": {
+    "Code": "{{ .Code }} 是你的 {{ template \"app.name\" }} 驗證碼。",
+    "Disclaimer": "切勿分享給任何人。"
+  }
+}

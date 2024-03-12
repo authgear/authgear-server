@@ -10,7 +10,7 @@
     <mj-column>
       <mj-text font-weight="bold" font-size="24px" line-height="32px">Verify your email and setup 2-step verification on {{ template "app.name" }}</mj-text>
       <mj-text font-size="16px" padding-top="10px" line-height="24px">
-        Please follow the link below to setup 2-step verification.
+        Please click the button below to setup 2-step verification.
       </mj-text>
     </mj-column>
   </mj-section>
