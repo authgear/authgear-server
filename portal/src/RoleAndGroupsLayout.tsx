@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ReactNode } from "react";
 import cn from "classnames";
 import styles from "./RoleAndGroupsLayout.module.css";
 import NavBreadcrumb, { BreadcrumbItem } from "./NavBreadcrumb";
@@ -10,7 +10,8 @@ import {
 } from "./ErrorMessageBar";
 
 interface RoleAndGroupsLayoutProps {
-  breadcrumbs: BreadcrumbItem[];
+  headerBreadcrumbs: BreadcrumbItem[];
+  headerSubitem?: ReactNode;
 }
 
 const progressIndicatorStyles = {
@@ -21,7 +22,11 @@ const progressIndicatorStyles = {
 
 export const RoleAndGroupsLayout: React.VFC<
   React.PropsWithChildren<RoleAndGroupsLayoutProps>
-> = function RoleAndGroupsLayout({ breadcrumbs, children }) {
+> = function RoleAndGroupsLayout({
+  headerBreadcrumbs,
+  headerSubitem,
+  children,
+}) {
   const isLoading = useIsLoading();
 
   return (
@@ -36,7 +41,13 @@ export const RoleAndGroupsLayout: React.VFC<
           <ErrorMessageBar />
         </div>
         <div className={styles.main}>
-          <NavBreadcrumb className={styles.header} items={breadcrumbs} />
+          <header className={styles.header}>
+            <NavBreadcrumb
+              className={styles.breadcrumb}
+              items={headerBreadcrumbs}
+            />
+            {headerSubitem != null ? headerSubitem : null}
+          </header>
           <section className={styles.content}>{children}</section>
         </div>
       </div>

@@ -9,69 +9,22 @@ import {
 } from "./query/rolesListQuery.generated";
 import styles from "./RolesScreen.module.css";
 import { encodeOffsetToCursor } from "../../util/pagination";
-import ScreenContent from "../../ScreenContent";
-import NavBreadcrumb from "../../NavBreadcrumb";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import iconBadge from "../../images/badge.svg";
-import PrimaryButton from "../../PrimaryButton";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import RolesList from "./RolesList";
 import useDelayedValue from "../../hook/useDelayedValue";
+import { RoleAndGroupsLayout } from "../../RoleAndGroupsLayout";
+import { RolesEmptyView } from "../../components/roles-and-groups/RolesEmptyView";
+import { ReactRouterLinkComponent } from "../../ReactRouterLink";
 import { RolesAndGroupsEmptyView } from "../../components/roles-and-groups/RolesAndGroupsEmptyView";
 
 const pageSize = 10;
 const searchResultSize = -1;
 
-interface CreateRoleButtonProps {
-  className?: string;
-}
-
-const CreateRoleButton: React.VFC<CreateRoleButtonProps> =
-  function CreateRoleButton(props) {
-    const { className } = props;
-    const navigate = useNavigate();
-    return (
-      <PrimaryButton
-        className={className}
-        text={<FormattedMessage id={"RolesScreen.empty-state.button"} />}
-        iconProps={{ iconName: "Add" }}
-        onClick={(e: React.MouseEvent<unknown>) => {
-          e.preventDefault();
-          e.stopPropagation();
-          navigate("./add-role");
-        }}
-      />
-    );
-  };
-
-interface RolesScreenEmptyStateProps {
-  className?: string;
-}
-
-const RolesScreenEmptyState: React.VFC<RolesScreenEmptyStateProps> =
-  function RolesScreenEmptyState(props) {
-    const { className } = props;
-    const location = useLocation();
-    return (
-      <RolesAndGroupsEmptyView
-        className={cn(className, styles.emptyStateContainer)}
-        icon={<img src={iconBadge} />}
-        title={<FormattedMessage id="RolesScreen.empty-state.title" />}
-        description={<FormattedMessage id="RolesScreen.empty-state.subtitle" />}
-        button={
-          <RolesAndGroupsEmptyView.CreateButton
-            href={`${location.pathname}/add-role`}
-            text={<FormattedMessage id="RolesScreen.empty-state.button" />}
-          />
-        }
-      />
-    );
-  };
-
-// eslint-disable-next-line complexity
 const RolesScreen: React.VFC = function RolesScreen() {
   const { renderToString } = useContext(Context);
   const [searchKeyword, setSearchKeyword] = useState("");
+  const { appID } = useParams<{ appID: string }>();
 
   const isSearch = searchKeyword !== "";
   const debouncedSearchKey = useDelayedValue(searchKeyword, 500);
@@ -145,24 +98,31 @@ const RolesScreen: React.VFC = function RolesScreen() {
     return [{ to: ".", label: <FormattedMessage id="RolesScreen.title" /> }];
   }, []);
 
+  const headerSubItem = useMemo(() => {
+    return !isEmpty ? (
+      <ReactRouterLinkComponent
+        component={RolesAndGroupsEmptyView.CreateButton}
+        to={`/project/${appID}/user-management/roles/add-role`}
+        text={<FormattedMessage id="RolesEmptyView.button.text" />}
+      />
+    ) : null;
+  }, [appID, isEmpty]);
+
   return (
-    <ScreenContent className={styles.content} layout="list">
-      <div className={styles.widget}>
-        <div className={styles.titleContainer}>
-          <NavBreadcrumb className="block" items={items} />
-          {!isEmpty ? <CreateRoleButton /> : null}
-        </div>
-        {!isEmpty ? <SearchBox {...searchBoxProps} /> : null}
-      </div>
+    <RoleAndGroupsLayout
+      headerBreadcrumbs={items}
+      headerSubitem={headerSubItem}
+    >
+      {!isEmpty ? <SearchBox {...searchBoxProps} /> : null}
       {isEmpty ? (
-        <RolesScreenEmptyState className={styles.widget} />
+        <RolesEmptyView className={styles.emptyStateContainer} />
       ) : isSearchEmpty ? (
-        <MessageBar className={cn(styles.widget, styles.message)}>
+        <MessageBar className={cn(styles.message)}>
           <FormattedMessage id="RolesScreen.empty.search" />
         </MessageBar>
       ) : (
         <RolesList
-          className={styles.widget}
+          className={styles.list}
           isSearch={isSearch}
           loading={isInitialLoading}
           offset={offset}
@@ -172,7 +132,7 @@ const RolesScreen: React.VFC = function RolesScreen() {
           onChangeOffset={onChangeOffset}
         />
       )}
-    </ScreenContent>
+    </RoleAndGroupsLayout>
   );
 };
 

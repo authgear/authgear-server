@@ -24,7 +24,11 @@
 }
 
 .header {
-  @apply self-stretch;
+  @apply flex flex-row justify-between;
+}
+
+.breadcrumb {
+  @apply flex-1;
 }
 
 .content {

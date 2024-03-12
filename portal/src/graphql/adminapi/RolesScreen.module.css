@@ -1,21 +1,3 @@
-.content {
-  flex: 1 1 0;
-  overflow: hidden;
-}
-
-.widget {
-  grid-column: 1 / span 12;
-  @apply tablet:col-span-full;
-  min-height: 0;
-}
-
-.titleContainer {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .emptyStateContainer {
   /* Spacing top = 48px */
   /* Gap from layout = 20px */
@@ -24,12 +6,15 @@
 }
 
 .searchBox {
-  align-self: center;
   width: 300px;
 
-  @apply mt-12 mobile:w-auto;
+  @apply mobile:w-auto mb-8;
 }
 
 .message {
   @apply mt-5 h-min;
+}
+
+.list {
+  @apply flex-1;
 }
