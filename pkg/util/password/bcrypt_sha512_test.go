@@ -27,5 +27,12 @@ func TestBCryptSHA512(t *testing.T) {
 			// should NOT truncate passwords
 			So(bcrypt.Compare([]byte("password12345678password12345678password12345678password12345678password12345670"), h), ShouldBeError)
 		})
+		Convey("should check existing hash", func() {
+			h := []byte("$bcrypt-sha512$$2a$10$qQybX3kAJNT2YqYRVmbfjO5EhgWm6vV4cWmXo2ZATAuBmCyJM2fKu")
+			So(bcrypt.CheckHash(h), ShouldBeNil)
+
+			So(bcrypt.CheckHash(nil), ShouldBeError, "invalid password format")
+			So(bcrypt.CheckHash([]byte("$bcrypt-sha512$")), ShouldBeError, "crypto/bcrypt: hashedSecret too short to be a bcrypted password")
+		})
 	})
 }

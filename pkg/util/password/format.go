@@ -6,9 +6,14 @@ import (
 )
 
 type passwordFormat interface {
+	// ID returns the identifier of the format.
 	ID() string
+	// Hash turns the plain password into a hash.
 	Hash(password []byte) ([]byte, error)
+	// Compare checks if password is the same as the hash.
 	Compare(password, hash []byte) error
+	// CheckHash checks if hash is a valid hash. It is useful when importing an external password hash.
+	CheckHash(hash []byte) error
 }
 
 var errInvalidPasswordFormat = errors.New("invalid password format")

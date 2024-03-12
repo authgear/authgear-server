@@ -19,3 +19,10 @@ func (bcryptPassword) Hash(password []byte) ([]byte, error) {
 func (bcryptPassword) Compare(password, hash []byte) error {
 	return bcrypt.CompareHashAndPassword(hash, password)
 }
+
+func (bcryptPassword) CheckHash(hash []byte) error {
+	// The package bcrypt only exposes 3 functions.
+	// The only functions that can be used to implement CheckHash is Cost.
+	_, err := bcrypt.Cost(hash)
+	return err
+}

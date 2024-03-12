@@ -1,6 +1,8 @@
 package password
 
 import (
+	"bytes"
+	"fmt"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -20,6 +22,12 @@ func (h *testHash) Hash(password []byte) ([]byte, error) {
 func (h *testHash) Compare(password, hash []byte) error {
 	h.testedPassword = password
 	return nil
+}
+func (h *testHash) CheckHash(hash []byte) error {
+	if bytes.HasPrefix(hash, []byte("$"+h.id+"$")) {
+		return nil
+	}
+	return fmt.Errorf("invalid hash: %v", string(hash))
 }
 
 func TestDispatch(t *testing.T) {
@@ -55,6 +63,12 @@ func TestDispatch(t *testing.T) {
 			err = Compare([]byte("password2"), []byte("$unk$password2"))
 			So(err, ShouldBeNil)
 			So(string(hash1.testedPassword), ShouldEqual, "password2")
+		})
+
+		Convey("should validate existing hash", func() {
+			So(CheckHash([]byte("$test1$password")), ShouldBeNil)
+			So(CheckHash([]byte("$test2$password")), ShouldBeNil)
+			So(CheckHash([]byte("$unk$password")), ShouldBeError, "invalid hash: $unk$password")
 		})
 
 		Convey("should perform migration if needed", func() {
