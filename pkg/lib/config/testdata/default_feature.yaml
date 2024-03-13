@@ -49,6 +49,9 @@ authenticator:
         disabled: false
       history:
         disabled: false
+    expiry:
+      force_change:
+        disabled: false
 ui:
   white_labeling:
     disabled: false

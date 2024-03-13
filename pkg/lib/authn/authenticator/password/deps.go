@@ -26,6 +26,10 @@ func ProvideChecker(
 		checker.PwHistoryDays = cfg.Policy.HistoryDays
 		checker.PasswordHistoryEnabled = cfg.Policy.IsEnabled()
 	}
+	if !*featureCfg.Password.Expiry.ForceChange.Disabled {
+		checker.PwExpiryForceChangeEnabled = cfg.Expiry.ForceChange.IsEnabled()
+		checker.PwExpiryForceChangeSinceLastUpdateInDays = cfg.Expiry.ForceChange.SinceLastUpdateInDays
+	}
 	if !*featureCfg.Password.Policy.MinimumGuessableLevel.Disabled {
 		checker.PwMinGuessableLevel = cfg.Policy.MinimumGuessableLevel
 	}
