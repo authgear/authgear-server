@@ -10,13 +10,7 @@ import {
   FormattedMessage,
   Context as MessageContext,
 } from "@oursky/react-messageformat";
-import React, {
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-  useEffect,
-} from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import ErrorDialog from "../../error/ErrorDialog";
@@ -64,7 +58,7 @@ export const AddRoleGroupsDialog: React.VFC<AddRoleGroupsDialogProps> =
   function AddRoleGroupsDialog({
     isHidden,
     onDismiss,
-    onDismissed,
+    onDismissed: propsOnDismissed,
     roleID,
     roleKey,
     roleName,
@@ -168,16 +162,16 @@ export const AddRoleGroupsDialog: React.VFC<AddRoleGroupsDialogProps> =
       onDismiss,
     ]);
 
-    useEffect(() => {
-      // Reset states on isHidden changes
-      setGroupTags([]);
-    }, [isHidden]);
-
     const modalProps = useMemo((): IModalProps => {
       return {
-        onDismissed,
+        onDismissed: () => {
+          // Reset states on dismiss
+          setGroupTags([]);
+
+          propsOnDismissed?.();
+        },
       };
-    }, [onDismissed]);
+    }, [propsOnDismissed]);
 
     const dialogContentProps: IDialogContentProps = useMemo(() => {
       return {
