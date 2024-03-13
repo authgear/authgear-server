@@ -104,7 +104,7 @@ var _ = Schema.Add("PasswordExpiryForceChangeConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"enabled": { "type": "boolean" },
-		"since_last_update_in_days": { "$ref": "#/$defs/DurationDays" }
+		"since_last_update": { "$ref": "#/$defs/DurationString" }
 	}
 }
 `)
@@ -120,24 +120,14 @@ func (c *PasswordExpiryConfig) SetDefaults() {
 }
 
 type PasswordExpiryForceChangeConfig struct {
-	Enabled               bool         `json:"enabled"`
-	SinceLastUpdateInDays DurationDays `json:"since_last_update_in_days,omitempty"`
+	Enabled         bool           `json:"enabled,omitempty"`
+	SinceLastUpdate DurationString `json:"since_last_update,omitempty"`
 }
 
 func (c *PasswordExpiryForceChangeConfig) IsEnabled() bool {
-	return c.Enabled && c.SinceLastUpdateInDays > 0
+	sinceLastUpdate, sinceLastUpdateIsValid := c.SinceLastUpdate.MaybeDuration()
+	return c.Enabled && sinceLastUpdateIsValid && sinceLastUpdate > 0
 }
-
-var _ = Schema.Add("PasswordExpiryForceChangeConfig", `
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"enabled": { "type": "boolean" },
-		"since_last_update_in_days": { "$ref": "#/$defs/DurationDays" }
-	}
-}
-`)
 
 var _ = Schema.Add("PasswordRatelimitConfig", `
 {

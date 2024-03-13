@@ -470,7 +470,6 @@ authenticator:
     expiry:
       force_change:
         enabled: false
-        since_last_update_in_days: 0
   totp:
     maximum: 99
   oob_otp:
