@@ -771,6 +771,10 @@ func (s *UserImportService) upsertRecordInTxn(ctx context.Context, result *impor
 		return
 	}
 
+	// password update behavior is IGNORED.
+	// mfa.password update behavior is IGNORED.
+	// mfa.totp update behavior is IGNORED.
+
 	result.Outcome = OutcomeUpdated
 	return
 }
