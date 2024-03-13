@@ -196,7 +196,7 @@ const AddGroupScreen: React.VFC = function AddGroupScreen() {
   }, [form.submissionResult, navigate]);
 
   return (
-    <RoleAndGroupsLayout breadcrumbs={breadcrumbs}>
+    <RoleAndGroupsLayout headerBreadcrumbs={breadcrumbs}>
       <RoleAndGroupsFormContainer form={form}>
         <AddGroupScreenForm />
       </RoleAndGroupsFormContainer>
