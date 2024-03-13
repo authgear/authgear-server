@@ -28,6 +28,11 @@ type importResult struct {
 	Warnings []Warning
 }
 
+type identityUpdate struct {
+	OldInfo *identity.Info
+	NewInfo *identity.Info
+}
+
 type UserCommands interface {
 	Create(userID string) (*user.User, error)
 	UpdateAccountStatus(userID string, accountStatus user.AccountStatus) error
@@ -37,7 +42,7 @@ type IdentityService interface {
 	New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
 	Create(info *identity.Info) error
 	Delete(info *identity.Info) error
-	Update(info *identity.Info) error
+	Update(oldInfo *identity.Info, newInfo *identity.Info) error
 	UpdateWithSpec(info *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
 	CheckDuplicated(info *identity.Info) (dup *identity.Info, err error)
 	ListByClaim(name string, value string) ([]*identity.Info, error)
@@ -829,7 +834,7 @@ func (s *UserImportService) removeIdentityInTxn(ctx context.Context, result *imp
 }
 
 func (s *UserImportService) upsertIdentityInTxn(ctx context.Context, result *importResult, userID string, infos []*identity.Info, spec *identity.Spec) error {
-	var toBeUpdated []*identity.Info
+	var toBeUpdated []identityUpdate
 	var toBeInserted []*identity.Info
 
 	isUpdated := false
@@ -845,7 +850,10 @@ func (s *UserImportService) upsertIdentityInTxn(ctx context.Context, result *imp
 			if err != nil {
 				return err
 			}
-			toBeUpdated = append(toBeUpdated, updatedInfo)
+			toBeUpdated = append(toBeUpdated, identityUpdate{
+				OldInfo: info,
+				NewInfo: updatedInfo,
+			})
 		}
 	}
 	if !isUpdated {
@@ -859,13 +867,13 @@ func (s *UserImportService) upsertIdentityInTxn(ctx context.Context, result *imp
 		toBeInserted = append(toBeInserted, info)
 	}
 
-	for _, info := range toBeUpdated {
-		err := s.checkIdentityDuplicate(ctx, info)
+	for _, identityUpdate := range toBeUpdated {
+		err := s.checkIdentityDuplicate(ctx, identityUpdate.NewInfo)
 		if err != nil {
 			return err
 		}
 
-		err = s.Identities.Update(info)
+		err = s.Identities.Update(identityUpdate.OldInfo, identityUpdate.NewInfo)
 		if err != nil {
 			return err
 		}

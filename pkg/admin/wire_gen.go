@@ -1133,17 +1133,35 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := configConfig.AppConfig
 	identityConfig := appConfig.Identity
 	loginIDConfig := identityConfig.LoginID
+	request := p.Request
+	contextContext := deps.ProvideRequestContext(request)
+	appID := appConfig.ID
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	userAgentString := deps.ProvideUserAgentString(request)
+	logger := event.NewLogger(factory)
+	clockClock := _wireSystemClockValue
+	localizationConfig := appConfig.Localization
+	secretConfig := configConfig.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
+	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rawQueries := &user.RawQueries{
+		Store: store,
+	}
 	authenticationConfig := appConfig.Authentication
 	featureConfig := configConfig.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
-	secretConfig := configConfig.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	appID := appConfig.ID
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	request := p.Request
-	contextContext := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
-	store := &service.Store{
+	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -1163,7 +1181,6 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
-	clockClock := _wireSystemClockValue
 	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
@@ -1207,9 +1224,6 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(configConfig)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(configConfig)
 	resolver := &template.Resolver{
@@ -1220,7 +1234,6 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	localizationConfig := appConfig.Localization
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
@@ -1258,7 +1271,6 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
@@ -1266,14 +1278,14 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	logger := ratelimit.NewLogger(factory)
+	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
-		Logger:  logger,
+		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Config:  rateLimitsFeatureConfig,
 	}
@@ -1297,7 +1309,7 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
 		IdentityFeatureConfig: identityFeatureConfig,
-		Store:                 store,
+		Store:                 serviceStore,
 		LoginID:               provider,
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
@@ -1305,7 +1317,7 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:               passkeyProvider,
 		SIWE:                  siweProvider,
 	}
-	serviceStore := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -1338,12 +1350,12 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey3.Store{
+	store4 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	provider2 := &passkey3.Provider{
-		Store:   store3,
+		Store:   store4,
 		Clock:   clockClock,
 		Passkey: passkeyService,
 	}
@@ -1417,7 +1429,7 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 		Provider: lockoutService,
 	}
 	service4 := &service2.Service{
-		Store:          serviceStore,
+		Store:          store3,
 		Config:         appConfig,
 		Password:       passwordProvider,
 		Passkey:        provider2,
@@ -1426,15 +1438,6 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimits:     rateLimits,
 		Lockout:        serviceLockout,
-	}
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rawCommands := &user.RawCommands{
-		Store: userStore,
-		Clock: clockClock,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -1448,9 +1451,6 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -1461,28 +1461,259 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         userStore,
+		UserStore:         store,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   userStore,
+		UserStore:   store,
+	}
+	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
+	web3Service := &web3.Service{
+		APIEndpoint: nftIndexerAPIEndpoint,
+		Web3Config:  web3Config,
 	}
 	rolesgroupsStore := &rolesgroups.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	queries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
+		RawQueries:         rawQueries,
+		Store:              store,
+		Identities:         serviceService,
+		Authenticators:     service4,
+		Verification:       verificationService,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+		Web3:               web3Service,
+		RolesAndGroups:     queries,
+	}
+	resolverImpl := &event.ResolverImpl{
+		Users: userQueries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	webHookImpl := hook.WebHookImpl{
+		Secret: webhookKeyMaterials,
+	}
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	eventWebHookImpl := &hook.EventWebHookImpl{
+		WebHookImpl: webHookImpl,
+		SyncHTTP:    syncHTTPClient,
+		AsyncHTTP:   asyncHTTPClient,
+	}
+	denoHook := hook.DenoHook{
+		Context:         contextContext,
+		ResourceManager: manager,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	eventDenoHookImpl := &hook.EventDenoHookImpl{
+		DenoHook:        denoHook,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+	}
 	commands := &rolesgroups.Commands{
 		Store: rolesgroupsStore,
+	}
+	sink := &hook.Sink{
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		EventWebHook:       eventWebHookImpl,
+		EventDenoHook:      eventDenoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilderApp,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	elasticsearchLogger := elasticsearch.NewLogger(factory)
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	queue := appProvider.TaskQueue
+	elasticsearchService := elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userQueries,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
+	elasticsearchSink := &elasticsearch.Sink{
+		Logger:   elasticsearchLogger,
+		Service:  elasticsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		Provider: lockoutService,
+	}
+	mfaService := &mfa.Service{
+		IP:            remoteIP,
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
+	}
+	rawCommands := &user.RawCommands{
+		Store: store,
+		Clock: clockClock,
+	}
+	userCommands := &user.Commands{
+		RawCommands:        rawCommands,
+		RawQueries:         rawQueries,
+		Events:             eventService,
+		Verification:       verificationService,
+		UserProfileConfig:  userProfileConfig,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+		Web3:               web3Service,
+		RolesAndGroups:     queries,
+	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       rawQueries,
+		UserStore:         store,
+		Events:            eventService,
+	}
+	authorizationStore := &pq.AuthorizationStore{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
+	idpsessionStoreRedis := &idpsession.StoreRedis{
+		Redis:  appredisHandle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: storeRedisLogger,
+	}
+	sessionConfig := appConfig.Session
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	cookieDef := session.NewSessionCookieDef(sessionConfig)
+	idpsessionManager := &idpsession.Manager{
+		Store:     idpsessionStoreRedis,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef,
+	}
+	redisLogger := redis.NewLogger(factory)
+	redisStore := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	oAuthConfig := appConfig.OAuth
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
+	}
+	sessionManager := &oauth2.SessionManager{
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
+	}
+	accountDeletionConfig := appConfig.AccountDeletion
+	accountAnonymizationConfig := appConfig.AccountAnonymization
+	coordinator := &facade.Coordinator{
+		Events:                     eventService,
+		Identities:                 serviceService,
+		Authenticators:             service4,
+		Verification:               verificationService,
+		MFA:                        mfaService,
+		UserCommands:               userCommands,
+		UserQueries:                userQueries,
+		RolesGroupsCommands:        commands,
+		StdAttrsService:            stdattrsService,
+		PasswordHistory:            historyStore,
+		OAuth:                      authorizationStore,
+		IDPSessions:                idpsessionManager,
+		OAuthSessions:              sessionManager,
+		IdentityConfig:             identityConfig,
+		AccountDeletionConfig:      accountDeletionConfig,
+		AccountAnonymizationConfig: accountAnonymizationConfig,
+		Clock:                      clockClock,
+	}
+	identityFacade := &facade.IdentityFacade{
+		Coordinator: coordinator,
 	}
 	userimportLogger := userimport.NewLogger(factory)
 	userImportService := &userimport.UserImportService{
 		AppDatabase:         handle,
 		LoginIDConfig:       loginIDConfig,
-		Identities:          serviceService,
+		Identities:          identityFacade,
 		Authenticators:      service4,
 		UserCommands:        rawCommands,
 		VerifiedClaims:      verificationService,
