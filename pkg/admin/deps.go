@@ -118,6 +118,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(transport.UserImportService), new(*userimport.UserImportService)),
 	wire.Bind(new(userimport.IdentityService), new(*libfacade.IdentityFacade)),
 	wire.Bind(new(userimport.UserCommands), new(*user.RawCommands)),
+	wire.Bind(new(userimport.UserQueries), new(*user.RawQueries)),
 	wire.Bind(new(userimport.VerifiedClaimService), new(*verification.Service)),
 	wire.Bind(new(userimport.StandardAttributesService), new(*featurestdattrs.ServiceNoEvent)),
 	wire.Bind(new(userimport.CustomAttributesService), new(*featurecustomattrs.ServiceNoEvent)),

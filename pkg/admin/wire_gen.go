@@ -1716,6 +1716,7 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 		Identities:          identityFacade,
 		Authenticators:      service4,
 		UserCommands:        rawCommands,
+		UserQueries:         rawQueries,
 		VerifiedClaims:      verificationService,
 		StandardAttributes:  serviceNoEvent,
 		CustomAttributes:    customattrsServiceNoEvent,

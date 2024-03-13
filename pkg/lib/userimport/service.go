@@ -38,6 +38,10 @@ type claim struct {
 	Value string
 }
 
+type UserQueries interface {
+	GetRaw(userID string) (*user.User, error)
+}
+
 type UserCommands interface {
 	Create(userID string) (*user.User, error)
 	UpdateAccountStatus(userID string, accountStatus user.AccountStatus) error
@@ -85,6 +89,7 @@ type UserImportService struct {
 	Identities          IdentityService
 	Authenticators      AuthenticatorService
 	UserCommands        UserCommands
+	UserQueries         UserQueries
 	VerifiedClaims      VerifiedClaimService
 	StandardAttributes  StandardAttributesService
 	CustomAttributes    CustomAttributesService
@@ -741,6 +746,11 @@ func (s *UserImportService) upsertRecordInTxn(ctx context.Context, result *impor
 		return
 	}
 
+	err = s.upsertStandardAttributesInTxn(ctx, result, record, info.UserID)
+	if err != nil {
+		return
+	}
+
 	result.Outcome = OutcomeUpdated
 	return
 }
@@ -1027,6 +1037,20 @@ func (s *UserImportService) upsertVerifiedClaimsInTxn(ctx context.Context, resul
 	}
 
 	err = s.upsertPhoneNumberVerifiedInTxn(ctx, result, record, userID, infos, verifiedClaims)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (s *UserImportService) upsertStandardAttributesInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+	u, err := s.UserQueries.GetRaw(userID)
+	if err != nil {
+		return
+	}
+
+	err = s.insertStandardAttributesInTxn(ctx, result, record, u)
 	if err != nil {
 		return
 	}
