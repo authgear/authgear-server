@@ -16,5 +16,5 @@
 }
 
 .list {
-  @apply flex-1;
+  @apply flex-1 min-h-0;
 }
