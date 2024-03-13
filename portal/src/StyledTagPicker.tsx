@@ -48,6 +48,7 @@ Expected usage:
 interface StyledPickerProps extends ITagPickerProps {
   value: string;
   onClearTags: () => void;
+  autoFocus?: boolean;
 }
 
 const StyledTagPicker: React.VFC<StyledPickerProps> = function StyledTagPicker(
@@ -59,6 +60,7 @@ const StyledTagPicker: React.VFC<StyledPickerProps> = function StyledTagPicker(
     className,
     value,
     onClearTags: onClearInput,
+    autoFocus,
     ...rest
   } = props;
   const tagPickerRef = useRef<HTMLDivElement | null>(null);
@@ -90,12 +92,9 @@ const StyledTagPicker: React.VFC<StyledPickerProps> = function StyledTagPicker(
         inputProps={{
           value,
           className: styles.pickerInput,
-        }}
-        pickerSuggestionsProps={{
-          suggestionsClassName: styles.pickerSuggestions,
+          autoFocus: autoFocus,
         }}
         pickerCalloutProps={{
-          className: styles.pickerCallout,
           target: tagPickerRef,
         }}
         onChange={_onChange}

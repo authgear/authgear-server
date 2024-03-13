@@ -47,6 +47,7 @@ import {
   RoleGroupsListItem,
 } from "../../components/roles-and-groups/RoleGroupsList";
 import { searchGroups } from "../../model/group";
+import { AddRoleGroupsDialog } from "../../components/roles-and-groups/AddRoleGroupsDialog";
 
 interface FormState {
   roleKey: string;
@@ -280,6 +281,16 @@ function RoleDetailsScreenGroupListContainer({
     setSearchKeyword("");
   }, []);
 
+  const [isAddGroupDialogHidden, setIsAddGroupDialogHidden] = useState(true);
+  const showAddGroupDialog = useCallback(
+    () => setIsAddGroupDialogHidden(false),
+    []
+  );
+  const hideAddGroupDialog = useCallback(
+    () => setIsAddGroupDialogHidden(true),
+    []
+  );
+
   const filteredRoleGroups = useMemo(() => {
     const roleGroups =
       role.groups?.edges?.flatMap<RoleGroupsListItem>((edge) => {
@@ -290,6 +301,17 @@ function RoleDetailsScreenGroupListContainer({
       }) ?? [];
     return searchGroups(roleGroups, searchKeyword);
   }, [role.groups?.edges, searchKeyword]);
+
+  const roleGroups = useMemo(() => {
+    return (
+      role.groups?.edges?.flatMap((e) => {
+        if (e?.node) {
+          return [e.node];
+        }
+        return [];
+      }) ?? []
+    );
+  }, [role.groups?.edges]);
 
   if (error != null) {
     return <ShowError error={error} onRetry={refetch} />;
@@ -306,22 +328,36 @@ function RoleDetailsScreenGroupListContainer({
   }
 
   return (
-    <section className="flex-1 flex flex-col">
-      <header className="flex flex-row items-center justify-between mb-8">
-        <SearchBox
-          className="max-w-[300px] min-w-0 flex-1"
-          placeholder={renderToString("search")}
-          value={searchKeyword}
-          onChange={onChangeSearchKeyword}
-          onClear={onClearSearchKeyword}
+    <>
+      <section className="flex-1 flex flex-col">
+        <header className="flex flex-row items-center justify-between mb-8">
+          <SearchBox
+            className="max-w-[300px] min-w-0 flex-1 mr-2"
+            placeholder={renderToString("search")}
+            value={searchKeyword}
+            onChange={onChangeSearchKeyword}
+            onClear={onClearSearchKeyword}
+          />
+          <PrimaryButton
+            text={<FormattedMessage id="RoleDetailsScreen.groups.add" />}
+            onClick={showAddGroupDialog}
+          />
+        </header>
+        <RoleGroupsList
+          className="flex-1 min-h-0"
+          role={role}
+          groups={filteredRoleGroups}
         />
-      </header>
-      <RoleGroupsList
-        className="flex-1 min-h-0"
-        role={role}
-        groups={filteredRoleGroups}
+      </section>
+      <AddRoleGroupsDialog
+        roleID={role.id}
+        roleKey={role.key}
+        roleName={role.name ?? null}
+        roleGroups={roleGroups}
+        isHidden={isAddGroupDialogHidden}
+        onDismiss={hideAddGroupDialog}
       />
-    </section>
+    </>
   );
 }
 
