@@ -28,7 +28,7 @@ func ProvideChecker(
 	}
 	if !*featureCfg.Password.Expiry.ForceChange.Disabled {
 		checker.PwExpiryForceChangeEnabled = cfg.Expiry.ForceChange.IsEnabled()
-		checker.PwExpiryForceChangeSinceLastUpdateInDays = cfg.Expiry.ForceChange.SinceLastUpdateInDays
+		checker.PwExpiryForceChangeSinceLastUpdate = cfg.Expiry.ForceChange.SinceLastUpdate
 	}
 	if !*featureCfg.Password.Policy.MinimumGuessableLevel.Disabled {
 		checker.PwMinGuessableLevel = cfg.Policy.MinimumGuessableLevel

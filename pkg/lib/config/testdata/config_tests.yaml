@@ -1016,13 +1016,13 @@ config:
       expiry:
         force_change:
           enabled: true
-          since_last_update_in_days: 12
+          since_last_update: 24h
 ---
 name: password-expiry-invalid-format
 error: |-
   invalid configuration:
-  /authenticator/password/expiry/force_change/since_last_update_in_days: type
-    map[actual:[string] expected:[integer]]
+  /authenticator/password/expiry/force_change/since_last_update: format
+    map[error:time: invalid duration "BCD" format:x_duration_string]
 config:
   id: test
   http:
@@ -1032,4 +1032,4 @@ config:
       expiry:
         force_change:
           enabled: true
-          since_last_update_in_days: "BCD"
+          since_last_update: "BCD"
