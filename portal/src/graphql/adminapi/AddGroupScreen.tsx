@@ -163,7 +163,7 @@ const AddGroupScreen: React.VFC = function AddGroupScreen() {
 
   const submit = useCallback(
     async (rawState: FormState) => {
-      const [sanitizedRole, errors] = validateGroup({
+      const [sanitizedGroup, errors] = validateGroup({
         key: rawState.groupKey,
         name: rawState.groupName,
         description: rawState.groupDescription,
@@ -172,9 +172,9 @@ const AddGroupScreen: React.VFC = function AddGroupScreen() {
         throw new Error("unexpected validation errors");
       }
       return createGroup({
-        key: sanitizedRole.key,
-        name: sanitizedRole.name,
-        description: sanitizedRole.description,
+        key: sanitizedGroup.key,
+        name: sanitizedGroup.name,
+        description: sanitizedGroup.description,
       });
     },
     [createGroup]
