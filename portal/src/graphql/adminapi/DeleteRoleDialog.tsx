@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useContext, useMemo } from "react";
 import {
   Dialog,
   DialogFooter,
@@ -17,6 +11,7 @@ import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import ErrorDialog from "../../error/ErrorDialog";
 import { useDeleteRoleMutation } from "./mutations/deleteRoleMutation";
+import { useSnapshotData } from "../../hook/useSnapshotData";
 
 export interface DeleteRoleDialogData {
   roleID: string;
@@ -28,18 +23,6 @@ interface DeleteRoleDialogProps {
   data: DeleteRoleDialogData | null;
   onDismiss: (isDeleted: boolean) => void;
   onDismissed?: () => void;
-}
-
-function useSnapshotData(data: DeleteRoleDialogData | null) {
-  // Keep the latest non-null data, because the dialog has transition animation before dismiss.
-  // During the transition, we still need the data. However, the parent may already changed the props.
-  const [snapshot, setSnapshot] = useState<DeleteRoleDialogData | null>(data);
-  useEffect(() => {
-    if (data !== null) {
-      setSnapshot(data);
-    }
-  }, [data]);
-  return snapshot;
 }
 
 const DeleteRoleDialog: React.VFC<DeleteRoleDialogProps> =
@@ -57,6 +40,8 @@ const DeleteRoleDialog: React.VFC<DeleteRoleDialogProps> =
       onDismiss(false);
     }, [loading, isHidden, onDismiss]);
 
+    // Keep the latest non-null data, because the dialog has transition animation before dismiss.
+    // During the transition, we still need the data. However, the parent may already changed the props.
     const snapshot = useSnapshotData(data);
     const dialogContentProps: IDialogContentProps = {
       title: renderToString("DeleteRoleDialog.title"),

@@ -4,6 +4,7 @@ import {
   DeleteGroupMutationMutation,
   DeleteGroupMutationDocument,
 } from "./deleteGroupMutation.generated";
+import { GroupsListQueryDocument } from "../query/groupsListQuery.generated";
 
 export function useDeleteGroupMutation(): {
   deleteGroup: (id: string) => Promise<boolean>;
@@ -11,7 +12,9 @@ export function useDeleteGroupMutation(): {
   error: unknown;
 } {
   const [mutationFunction, { loading, error }] =
-    useMutation<DeleteGroupMutationMutation>(DeleteGroupMutationDocument);
+    useMutation<DeleteGroupMutationMutation>(DeleteGroupMutationDocument, {
+      refetchQueries: [GroupsListQueryDocument],
+    });
 
   const deleteGroup = useCallback(
     async (id: string) => {

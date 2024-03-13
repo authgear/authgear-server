@@ -10,39 +10,29 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import ErrorDialog from "../../error/ErrorDialog";
-import { useRemoveRoleFromGroupsMutation } from "../../graphql/adminapi/mutations/removeRoleFromGroups";
-import { useRoleQuery } from "../../graphql/adminapi/query/roleQuery";
+import { useDeleteGroupMutation } from "./mutations/deleteGroupMutation";
 import { useSnapshotData } from "../../hook/useSnapshotData";
 
-export interface DeleteRoleGroupDialogData {
-  roleID: string;
-  roleKey: string;
-  roleName: string | null;
+export interface DeleteGroupDialogData {
   groupID: string;
   groupName: string | null;
   groupKey: string;
 }
 
-interface DeleteRoleGroupDialogProps {
-  data: DeleteRoleGroupDialogData | null;
+interface DeleteGroupDialogProps {
+  data: DeleteGroupDialogData | null;
   onDismiss: (isDeleted: boolean) => void;
   onDismissed?: () => void;
 }
 
-const dialogStyles = { main: { minHeight: 0 } };
-
-const DeleteRoleGroupDialog: React.VFC<DeleteRoleGroupDialogProps> =
-  function DeleteRoleGroupDialog(props) {
+const DeleteGroupDialog: React.VFC<DeleteGroupDialogProps> =
+  function DeleteGroupDialog(props) {
     const { onDismiss, onDismissed, data } = props;
     const isHidden = data === null;
     const { renderToString } = useContext(Context);
+    const dialogStyles = { main: { minHeight: 0 } };
     const { themes } = useSystemConfig();
-
-    const { refetch: refetchRole } = useRoleQuery(data?.roleID ?? "", {
-      skip: true,
-    });
-    const { removeRoleFromGroups, loading, error } =
-      useRemoveRoleFromGroupsMutation();
+    const { deleteGroup, loading, error } = useDeleteGroupMutation();
     const onDialogDismiss = useCallback(() => {
       if (loading || isHidden) {
         return;
@@ -54,10 +44,9 @@ const DeleteRoleGroupDialog: React.VFC<DeleteRoleGroupDialogProps> =
     // During the transition, we still need the data. However, the parent may already changed the props.
     const snapshot = useSnapshotData(data);
     const dialogContentProps: IDialogContentProps = {
-      title: renderToString("DeleteRoleGroupDialog.title"),
-      subText: renderToString("DeleteRoleGroupDialog.description", {
+      title: renderToString("DeleteGroupDialog.title"),
+      subText: renderToString("DeleteGroupDialog.description", {
         groupName: snapshot?.groupName ?? snapshot?.groupKey ?? "Unknown",
-        roleName: snapshot?.roleName ?? snapshot?.roleKey ?? "Unknown",
       }),
     };
 
@@ -65,19 +54,14 @@ const DeleteRoleGroupDialog: React.VFC<DeleteRoleGroupDialogProps> =
       if (loading || isHidden) {
         return;
       }
-      removeRoleFromGroups(data.roleKey, [data.groupKey])
-        .then(async () => {
-          // Update the cache
-          return refetchRole({ roleID: data.roleID });
-        })
-        .then(
-          () => onDismiss(true),
-          (e: unknown) => {
-            onDismiss(false);
-            throw e;
-          }
-        );
-    }, [loading, isHidden, refetchRole, removeRoleFromGroups, data, onDismiss]);
+      deleteGroup(data.groupID).then(
+        () => onDismiss(true),
+        (e: unknown) => {
+          onDismiss(false);
+          throw e;
+        }
+      );
+    }, [loading, isHidden, deleteGroup, data, onDismiss]);
 
     const modalProps = useMemo((): IModalProps => {
       return {
@@ -99,7 +83,7 @@ const DeleteRoleGroupDialog: React.VFC<DeleteRoleGroupDialogProps> =
               theme={themes.destructive}
               disabled={loading}
               onClick={onConfirm}
-              text={<FormattedMessage id="remove" />}
+              text={<FormattedMessage id="DeleteGroupDialog.button.confirm" />}
             />
             <DefaultButton
               onClick={onDialogDismiss}
@@ -113,4 +97,4 @@ const DeleteRoleGroupDialog: React.VFC<DeleteRoleGroupDialogProps> =
     );
   };
 
-export default DeleteRoleGroupDialog;
+export default DeleteGroupDialog;

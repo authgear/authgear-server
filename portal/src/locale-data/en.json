@@ -177,6 +177,16 @@
   "GroupsScreen.empty-state.button": "Create Group",
   "GroupsScreen.empty.search": "No results matched your search.",
 
+  "GroupsList.column.name": "Name",
+  "GroupsList.column.key": "Group Key",
+  "GroupsList.column.description": "Description",
+  "GroupsList.column.action": "Action",
+  "GroupsList.delete-group": "Delete Group",
+
+  "DeleteGroupDialog.title": "Delete Group",
+  "DeleteGroupDialog.description": "Are you sure you want to delete the group \"{groupName}\"?",
+  "DeleteGroupDialog.button.confirm": "Delete Group",
+
   "RolesScreen.title": "Roles",
   "RolesEmptyView.title": "You don't have any roles yet.",
   "RolesEmptyView.description": "Create roles to represent the types of users that access your applications.",
