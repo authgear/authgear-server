@@ -756,6 +756,11 @@ func (s *UserImportService) upsertRecordInTxn(ctx context.Context, result *impor
 		return
 	}
 
+	err = s.upsertDisabledInTxn(ctx, result, record, info.UserID)
+	if err != nil {
+		return
+	}
+
 	result.Outcome = OutcomeUpdated
 	return
 }
@@ -1065,4 +1070,40 @@ func (s *UserImportService) upsertStandardAttributesInTxn(ctx context.Context, r
 
 func (s *UserImportService) upsertCustomAttributesInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
 	return s.insertCustomAttributesInTxn(ctx, result, record, userID)
+}
+
+func (s *UserImportService) upsertDisabledInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+	disabled, ok := record.Disabled()
+	if !ok {
+		return
+	}
+
+	u, err := s.UserQueries.GetRaw(userID)
+	if err != nil {
+		return
+	}
+
+	if disabled {
+		var accountStatus *user.AccountStatus
+		accountStatus, err = u.AccountStatus().Disable(nil)
+		if err != nil {
+			return
+		}
+		err = s.UserCommands.UpdateAccountStatus(u.ID, *accountStatus)
+		if err != nil {
+			return
+		}
+	} else {
+		var accountStatus *user.AccountStatus
+		accountStatus, err = u.AccountStatus().Reenable()
+		if err != nil {
+			return
+		}
+		err = s.UserCommands.UpdateAccountStatus(u.ID, *accountStatus)
+		if err != nil {
+			return
+		}
+	}
+
+	return
 }
