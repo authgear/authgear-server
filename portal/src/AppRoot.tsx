@@ -10,14 +10,17 @@ import CookieLifetimeConfigurationScreen from "./graphql/portal/CookieLifetimeCo
 import { AppContext } from "./context/AppContext";
 
 const RolesScreen = lazy(async () => import("./graphql/adminapi/RolesScreen"));
-const AddRolesScreen = lazy(
-  async () => import("./graphql/adminapi/AddRolesScreen")
+const AddRoleScreen = lazy(
+  async () => import("./graphql/adminapi/AddRoleScreen")
 );
 const RoleDetailsScreen = lazy(
   async () => import("./graphql/adminapi/RoleDetailsScreen")
 );
 const GroupsScreen = lazy(
   async () => import("./graphql/adminapi/GroupsScreen")
+);
+const AddGroupScreen = lazy(
+  async () => import("./graphql/adminapi/AddGroupScreen")
 );
 const UsersRedirectScreen = lazy(async () => import("./UsersRedirectScreen"));
 const UsersScreen = lazy(async () => import("./graphql/adminapi/UsersScreen"));
@@ -231,7 +234,7 @@ const AppRoot: React.VFC = function AppRoot() {
                   path="add-role"
                   element={
                     <Suspense fallback={<ShowLoading />}>
-                      <AddRolesScreen />
+                      <AddRoleScreen />
                     </Suspense>
                   }
                 />
@@ -259,6 +262,14 @@ const AppRoot: React.VFC = function AppRoot() {
                   element={
                     <Suspense fallback={<ShowLoading />}>
                       <GroupsScreen />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="add-group"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <AddGroupScreen />
                     </Suspense>
                   }
                 />

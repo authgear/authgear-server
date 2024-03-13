@@ -6,11 +6,11 @@ import {
 import { useCallback } from "react";
 
 export function useCreateGroupMutation(): {
-  createGroup: (
-    key: string,
-    name: string,
-    description?: string
-  ) => Promise<string | null>;
+  createGroup: (group: {
+    key: string;
+    name?: string | null;
+    description?: string | null;
+  }) => Promise<string | null>;
   loading: boolean;
   error: unknown;
 } {
@@ -18,12 +18,16 @@ export function useCreateGroupMutation(): {
     useMutation<CreateGroupMutationMutation>(CreateGroupMutationDocument);
 
   const createGroup = useCallback(
-    async (key: string, name: string, description?: string) => {
+    async (group: {
+      key: string;
+      name?: string | null;
+      description?: string | null;
+    }) => {
       const result = await mutateFunction({
         variables: {
-          key,
-          name,
-          description,
+          key: group.key,
+          name: group.name ?? null,
+          description: group.description ?? null,
         },
       });
       const groupID = result.data?.createGroup.group.id ?? null;

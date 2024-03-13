@@ -8,7 +8,7 @@ import { useCallback } from "react";
 export function useCreateRoleMutation(): {
   createRole: (role: {
     key: string;
-    name: string;
+    name?: string | null;
     description?: string | null;
   }) => Promise<string | null>;
   loading: boolean;
@@ -20,7 +20,7 @@ export function useCreateRoleMutation(): {
   const createRole = useCallback(
     async (role: {
       key: string;
-      name: string;
+      name?: string | null;
       description?: string | null;
     }) => {
       const result = await mutateFunction({
