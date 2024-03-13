@@ -28,6 +28,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
+//go:generate mockgen -source=id_token.go -destination=id_token_mock_test.go -package oidc
+
 var UserinfoScopes = []string{
 	oauth.FullAccessScope,
 	oauth.FullUserInfoScope,
