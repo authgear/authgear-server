@@ -223,6 +223,13 @@
   "AddGroupScreen.groupKey.description": "The Group Key is a unique identifier for this group.",
   "AddGroupScreen.groupDescription.title": "Description",
 
+  "GroupDetailsSettingsForm.groupName.title": "Name",
+  "GroupDetailsSettingsForm.groupName.description": "A display name of this group in the portal.",
+  "GroupDetailsSettingsForm.groupKey.title": "Group Key",
+  "GroupDetailsSettingsForm.groupKey.description": "The Group Key is a unique identifier for this group.",
+  "GroupDetailsSettingsForm.groupDescription.title": "Description",
+  "GroupDetailsSettingsForm.button.deleteGroup": "Delete Group",
+
   "RolesList.column.name": "Name",
   "RolesList.column.key": "Role Key",
   "RolesList.column.description": "Description",
