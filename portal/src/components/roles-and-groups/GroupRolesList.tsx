@@ -22,6 +22,10 @@ import { Group, Role } from "../../graphql/adminapi/globalTypes.generated";
 import Link from "../../Link";
 import ActionButton from "../../ActionButton";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import DeleteGroupDialog from "../../graphql/adminapi/DeleteGroupDialog";
+import DeleteGroupRoleDialog, {
+  DeleteGroupRoleDialogData,
+} from "./DeleteGroupRoleDialog";
 
 export interface GroupRolesListItem
   extends Pick<Group, "id" | "name" | "key"> {}
@@ -46,6 +50,28 @@ export const GroupRolesList: React.VFC<GroupRolesListProps> =
     const { themes } = useSystemConfig();
     const { appID } = useParams() as { appID: string };
     const { renderToString } = useContext(MessageContext);
+
+    const [deleteDialogData, setDeleteDialogData] =
+      useState<DeleteGroupRoleDialogData | null>(null);
+    const onDismissDeleteDialog = useCallback(
+      () => setDeleteDialogData(null),
+      []
+    );
+    const onClickDeleteRole = useCallback(
+      (e: React.MouseEvent<unknown>, item: GroupRolesListItem) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDeleteDialogData({
+          roleID: item.id,
+          roleKey: item.key,
+          roleName: item.name ?? null,
+          groupID: group.id,
+          groupKey: group.key,
+          groupName: group.name ?? null,
+        });
+      },
+      [group]
+    );
 
     const columns: IColumn[] = useMemo((): IColumn[] => {
       return [
@@ -114,6 +140,9 @@ export const GroupRolesList: React.VFC<GroupRolesListProps> =
                   }
                   className={styles.actionButton}
                   theme={themes.destructive}
+                  onClick={(e) => {
+                    onClickDeleteRole(e, item);
+                  }}
                 />
               </div>
             );
@@ -128,7 +157,7 @@ export const GroupRolesList: React.VFC<GroupRolesListProps> =
             );
         }
       },
-      [themes.destructive]
+      [onClickDeleteRole, themes.destructive]
     );
 
     const isEmpty = roles.length === 0;
@@ -159,6 +188,10 @@ export const GroupRolesList: React.VFC<GroupRolesListProps> =
             </div>
           )}
         </div>
+        <DeleteGroupRoleDialog
+          data={deleteDialogData}
+          onDismiss={onDismissDeleteDialog}
+        />
       </>
     );
   };
