@@ -751,6 +751,11 @@ func (s *UserImportService) upsertRecordInTxn(ctx context.Context, result *impor
 		return
 	}
 
+	err = s.upsertCustomAttributesInTxn(ctx, result, record, info.UserID)
+	if err != nil {
+		return
+	}
+
 	result.Outcome = OutcomeUpdated
 	return
 }
@@ -1056,4 +1061,8 @@ func (s *UserImportService) upsertStandardAttributesInTxn(ctx context.Context, r
 	}
 
 	return
+}
+
+func (s *UserImportService) upsertCustomAttributesInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+	return s.insertCustomAttributesInTxn(ctx, result, record, userID)
 }
