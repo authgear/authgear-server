@@ -33,6 +33,11 @@ type identityUpdate struct {
 	NewInfo *identity.Info
 }
 
+type claim struct {
+	Name  string
+	Value string
+}
+
 type UserCommands interface {
 	Create(userID string) (*user.User, error)
 	UpdateAccountStatus(userID string, accountStatus user.AccountStatus) error
@@ -57,6 +62,8 @@ type AuthenticatorService interface {
 type VerifiedClaimService interface {
 	NewVerifiedClaim(userID string, claimName string, claimValue string) *verification.Claim
 	MarkClaimVerified(claim *verification.Claim) error
+	GetClaims(userID string) ([]*verification.Claim, error)
+	DeleteClaim(claim *verification.Claim) error
 }
 
 type StandardAttributesService interface {
@@ -729,6 +736,11 @@ func (s *UserImportService) upsertRecordInTxn(ctx context.Context, result *impor
 		return
 	}
 
+	err = s.upsertVerifiedClaimsInTxn(ctx, result, record, info.UserID)
+	if err != nil {
+		return
+	}
+
 	result.Outcome = OutcomeUpdated
 	return
 }
@@ -892,4 +904,132 @@ func (s *UserImportService) upsertIdentityInTxn(ctx context.Context, result *imp
 	}
 
 	return nil
+}
+
+func (s *UserImportService) setVerifiedInTxn(ctx context.Context, userID string, verifiedClaims []*verification.Claim, c *claim, verified bool) error {
+	if verified {
+		for _, verifiedClaim := range verifiedClaims {
+			// Claim is verified already.
+			if verifiedClaim.Name == c.Name && verifiedClaim.Value == c.Value {
+				return nil
+			}
+		}
+
+		verifiedClaim := s.VerifiedClaims.NewVerifiedClaim(userID, c.Name, c.Value)
+		err := s.VerifiedClaims.MarkClaimVerified(verifiedClaim)
+		if err != nil {
+			return err
+		}
+	} else {
+		var toBeDeleted *verification.Claim
+		for _, verifiedClaim := range verifiedClaims {
+			if verifiedClaim.Name == c.Name && verifiedClaim.Value == c.Value {
+				toBeDeleted = verifiedClaim
+			}
+		}
+		if toBeDeleted == nil {
+			return nil
+		}
+
+		err := s.VerifiedClaims.DeleteClaim(toBeDeleted)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *UserImportService) upsertEmailVerifiedInTxn(ctx context.Context, result *importResult, record Record, userID string, infos []*identity.Info, verifiedClaims []*verification.Claim) (err error) {
+	if emailVerified, emailVerifiedOK := record.EmailVerified(); emailVerifiedOK {
+		emailPtr, emailOK := record.Email()
+		if !emailOK {
+			result.Warnings = append(result.Warnings, Warning{
+				Message: "email_verified has no effect when email is absent.",
+			})
+		} else if emailPtr == nil {
+			result.Warnings = append(result.Warnings, Warning{
+				Message: "email_verified has no effect when email = null.",
+			})
+		} else {
+			var c *claim
+			for _, info := range infos {
+				if info.Type == model.IdentityTypeLoginID && info.LoginID.LoginIDType == model.LoginIDKeyTypeEmail && info.LoginID.LoginIDKey == string(model.LoginIDKeyTypeEmail) {
+					claims := info.AllStandardClaims()
+					if email, ok := claims["email"].(string); ok && email == *emailPtr {
+						c = &claim{
+							Name:  "email",
+							Value: email,
+						}
+					}
+				}
+			}
+			if c != nil {
+				err = s.setVerifiedInTxn(ctx, userID, verifiedClaims, c, emailVerified)
+				if err != nil {
+					return
+				}
+			}
+		}
+	}
+
+	return
+}
+
+func (s *UserImportService) upsertPhoneNumberVerifiedInTxn(ctx context.Context, result *importResult, record Record, userID string, infos []*identity.Info, verifiedClaims []*verification.Claim) (err error) {
+	if phoneNumberVerified, phoneNumberVerifiedOK := record.PhoneNumberVerified(); phoneNumberVerifiedOK {
+		phoneNumberPtr, phoneNumberOK := record.PhoneNumber()
+		if !phoneNumberOK {
+			result.Warnings = append(result.Warnings, Warning{
+				Message: "phone_number_verified has no effect when phone_number is absent.",
+			})
+		} else if phoneNumberPtr == nil {
+			result.Warnings = append(result.Warnings, Warning{
+				Message: "phone_number_verified has no effect when phone_number = null.",
+			})
+		} else {
+			var c *claim
+			for _, info := range infos {
+				if info.Type == model.IdentityTypeLoginID && info.LoginID.LoginIDType == model.LoginIDKeyTypePhone && info.LoginID.LoginIDKey == string(model.LoginIDKeyTypePhone) {
+					claims := info.AllStandardClaims()
+					if phoneNumber, ok := claims["phone_number"].(string); ok && phoneNumber == *phoneNumberPtr {
+						c = &claim{
+							Name:  "phone_number",
+							Value: phoneNumber,
+						}
+					}
+				}
+			}
+			if c != nil {
+				err = s.setVerifiedInTxn(ctx, userID, verifiedClaims, c, phoneNumberVerified)
+				if err != nil {
+					return
+				}
+			}
+		}
+	}
+	return
+}
+
+func (s *UserImportService) upsertVerifiedClaimsInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+	infos, err := s.Identities.ListByUser(userID)
+	if err != nil {
+		return
+	}
+
+	verifiedClaims, err := s.VerifiedClaims.GetClaims(userID)
+	if err != nil {
+		return
+	}
+
+	err = s.upsertEmailVerifiedInTxn(ctx, result, record, userID, infos, verifiedClaims)
+	if err != nil {
+		return
+	}
+
+	err = s.upsertPhoneNumberVerifiedInTxn(ctx, result, record, userID, infos, verifiedClaims)
+	if err != nil {
+		return
+	}
+
+	return
 }
