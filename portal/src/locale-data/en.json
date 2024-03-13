@@ -171,10 +171,16 @@
   "AppsScreen.create-app": "Create Project",
   "AppsScreen.project-quota-reached": "You have reached the maximum number of projects in your account, please apply for an increase by completing{ExternalLink, react, href{https://go.authgear.com/portal-support} children{this form}}.",
 
+  "GroupsScreen.title": "Groups",
+  "GroupsScreen.empty-state.title": "You don't have any groups yet.",
+  "GroupsScreen.empty-state.subtitle": "Create groups to represent the types of users that access your applications.",
+  "GroupsScreen.empty-state.button": "Create Group",
+  "GroupsScreen.empty.search": "No results matched your search.",
+
   "RolesScreen.title": "Roles",
-  "RolesScreen.empty-state.title": "You don't have any roles yet.",
-  "RolesScreen.empty-state.subtitle": "Create roles to represent the types of users that access your applications.",
-  "RolesScreen.empty-state.button": "Create Role",
+  "RolesEmptyView.title": "You don't have any roles yet.",
+  "RolesEmptyView.description": "Create roles to represent the types of users that access your applications.",
+  "RolesEmptyView.button.text": "Create Role",
   "RolesScreen.empty.search": "No results matched your search.",
 
   "RoleDetailsScreen.tabs.settings": "Settings",

@@ -383,7 +383,7 @@ const RoleDetailsScreenLoaded: React.VFC<{
   }, [role]);
 
   return (
-    <RoleAndGroupsLayout breadcrumbs={breadcrumbs}>
+    <RoleAndGroupsLayout headerBreadcrumbs={breadcrumbs}>
       <Pivot
         overflowBehavior="menu"
         selectedKey={selectedKey}
