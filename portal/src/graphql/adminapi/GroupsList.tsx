@@ -121,7 +121,7 @@ const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
         ? `/project/${appID}/user-management/groups/${props.item.id}/details`
         : ".";
       return (
-        <Link to={targetPath}>
+        <Link to={targetPath} className="contents">
           <DetailsRow {...props} />
         </Link>
       );

@@ -121,7 +121,7 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
         ? `/project/${appID}/user-management/roles/${props.item.id}/details`
         : ".";
       return (
-        <Link to={targetPath}>
+        <Link to={targetPath} className="contents">
           <DetailsRow {...props} />
         </Link>
       );
