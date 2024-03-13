@@ -96,6 +96,14 @@ const StyledTagPicker: React.VFC<StyledPickerProps> = function StyledTagPicker(
         }}
         pickerCalloutProps={{
           target: tagPickerRef,
+          doNotLayer: true,
+          styles: {
+            root: { width: "100%" },
+          },
+        }}
+        pickerSuggestionsProps={{
+          // Overrides the default min width which is 260px
+          className: styles.pickerSuggestion,
         }}
         onChange={_onChange}
         selectedItems={selectedItems}

@@ -15,6 +15,10 @@
   padding-right: 32px;
 }
 
+.pickerSuggestion {
+  @apply min-w-0;
+}
+
 .pickerIconButton {
   @apply absolute inset-y-0 right-0 h-full;
 
