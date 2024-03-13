@@ -1,15 +1,64 @@
-import React from "react";
+import React, { useContext, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { useGroupQuery } from "./query/groupQuery";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
+import {
+  FormattedMessage,
+  Context as MessageContext,
+} from "@oursky/react-messageformat";
 import { GroupQueryNodeFragment } from "./query/groupQuery.generated";
+import { usePivotNavigation } from "../../hook/usePivot";
+import { BreadcrumbItem } from "../../NavBreadcrumb";
+import { RoleAndGroupsLayout } from "../../RoleAndGroupsLayout";
+import { Pivot, PivotItem } from "@fluentui/react";
 
-function GroupDetailsScreenLoaded(_props: {
-  group: GroupQueryNodeFragment;
-  reload: ReturnType<typeof useGroupQuery>["refetch"];
-}) {
-  return <></>;
+const SETTINGS_KEY = "settings";
+const ROLES_KEY = "roles";
+
+function GroupDetailsScreenLoaded(props: { group: GroupQueryNodeFragment }) {
+  const { group } = props;
+  const { renderToString } = useContext(MessageContext);
+
+  const { selectedKey, onLinkClick } = usePivotNavigation([
+    SETTINGS_KEY,
+    ROLES_KEY,
+  ]);
+
+  const breadcrumbs = useMemo<BreadcrumbItem[]>(() => {
+    return [
+      {
+        to: "~/user-management/groups",
+        label: <FormattedMessage id="GroupsScreen.title" />,
+      },
+      { to: ".", label: group.name ?? group.key },
+    ];
+  }, [group]);
+
+  return (
+    <RoleAndGroupsLayout headerBreadcrumbs={breadcrumbs}>
+      <Pivot
+        overflowBehavior="menu"
+        selectedKey={selectedKey}
+        onLinkClick={onLinkClick}
+        className="mb-8"
+      >
+        <PivotItem
+          itemKey={SETTINGS_KEY}
+          headerText={renderToString("RoleDetailsScreen.tabs.settings")}
+        />
+        <PivotItem
+          itemKey={ROLES_KEY}
+          headerText={renderToString("RoleDetailsScreen.tabs.groups")}
+        />
+      </Pivot>
+      {selectedKey === ROLES_KEY ? (
+        <>{/* TODO: Groups Tab */}</>
+      ) : (
+        <>{/* TODO: Settings Tab */}</>
+      )}
+    </RoleAndGroupsLayout>
+  );
 }
 
 const GroupDetailsScreen: React.VFC = function GroupDetailsScreen() {
@@ -28,7 +77,7 @@ const GroupDetailsScreen: React.VFC = function GroupDetailsScreen() {
     return <ShowLoading />;
   }
 
-  return <GroupDetailsScreenLoaded group={group} reload={refetch} />;
+  return <GroupDetailsScreenLoaded group={group} />;
 };
 
 export default GroupDetailsScreen;

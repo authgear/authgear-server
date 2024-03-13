@@ -213,8 +213,6 @@
   "AddRoleScreen.roleName.description": "A display name of this role in the portal.",
   "AddRoleScreen.roleDescription.title": "Description",
 
-  "GroupsScreen.title": "Groups",
-
   "AddGroupScreen.title": "Create Group",
   "AddGroupScreen.groupName.title": "Name",
   "AddGroupScreen.groupName.description": "A display name of this group in the portal.",
