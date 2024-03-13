@@ -407,7 +407,7 @@ config:
         redirect_uris:
           - "https://example.com"
         x_max_concurrent_session: 1
-        
+
 
 ---
 name: dupe-authenticator-type
@@ -1004,3 +1004,32 @@ config:
     siwe:
       networks:
         - ethereum:0x1234@1
+---
+name: password-expiry
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authenticator:
+    password:
+      expiry:
+        force_change:
+          enabled: true
+          since_last_update_in_days: 12
+---
+name: password-expiry-invalid-format
+error: |-
+  invalid configuration:
+  /authenticator/password/expiry/force_change/since_last_update_in_days: type
+    map[actual:[string] expected:[integer]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authenticator:
+    password:
+      expiry:
+        force_change:
+          enabled: true
+          since_last_update_in_days: "BCD"

@@ -24,6 +24,7 @@ var _ = Schema.Add("AuthenticatorPasswordConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"policy": { "$ref": "#/$defs/PasswordPolicyConfig" },
+		"expiry": { "$ref": "#/$defs/PasswordExpiryConfig" },
 		"force_change": { "type": "boolean" },
 		"ratelimit": { "$ref": "#/$defs/PasswordRatelimitConfig" }
 	}
@@ -32,6 +33,7 @@ var _ = Schema.Add("AuthenticatorPasswordConfig", `
 
 type AuthenticatorPasswordConfig struct {
 	Policy               *PasswordPolicyConfig    `json:"policy,omitempty"`
+	Expiry               *PasswordExpiryConfig    `json:"expiry,omitempty"`
 	ForceChange          *bool                    `json:"force_change,omitempty"`
 	Deprecated_Ratelimit *PasswordRatelimitConfig `json:"ratelimit,omitempty"`
 }
@@ -85,6 +87,57 @@ func (c *PasswordPolicyConfig) SetDefaults() {
 		c.MinLength = newInt(8)
 	}
 }
+
+var _ = Schema.Add("PasswordExpiryConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"force_change": { "$ref": "#/$defs/PasswordExpiryForceChangeConfig" }
+	}
+}
+`)
+
+var _ = Schema.Add("PasswordExpiryForceChangeConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"enabled": { "type": "boolean" },
+		"since_last_update_in_days": { "$ref": "#/$defs/DurationDays" }
+	}
+}
+`)
+
+type PasswordExpiryConfig struct {
+	ForceChange *PasswordExpiryForceChangeConfig `json:"force_change,omitempty"`
+}
+
+func (c *PasswordExpiryConfig) SetDefaults() {
+	if c.ForceChange == nil {
+		c.ForceChange = &PasswordExpiryForceChangeConfig{}
+	}
+}
+
+type PasswordExpiryForceChangeConfig struct {
+	Enabled               bool         `json:"enabled"`
+	SinceLastUpdateInDays DurationDays `json:"since_last_update_in_days,omitempty"`
+}
+
+func (c *PasswordExpiryForceChangeConfig) IsEnabled() bool {
+	return c.Enabled && c.SinceLastUpdateInDays > 0
+}
+
+var _ = Schema.Add("PasswordExpiryForceChangeConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"enabled": { "type": "boolean" },
+		"since_last_update_in_days": { "$ref": "#/$defs/DurationDays" }
+	}
+}
+`)
 
 var _ = Schema.Add("PasswordRatelimitConfig", `
 {
