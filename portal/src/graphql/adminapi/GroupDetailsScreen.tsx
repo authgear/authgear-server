@@ -45,11 +45,11 @@ function GroupDetailsScreenLoaded(props: { group: GroupQueryNodeFragment }) {
       >
         <PivotItem
           itemKey={SETTINGS_KEY}
-          headerText={renderToString("RoleDetailsScreen.tabs.settings")}
+          headerText={renderToString("GroupDetailsScreen.tabs.settings")}
         />
         <PivotItem
           itemKey={ROLES_KEY}
-          headerText={renderToString("RoleDetailsScreen.tabs.groups")}
+          headerText={renderToString("GroupDetailsScreen.tabs.roles")}
         />
       </Pivot>
       {selectedKey === ROLES_KEY ? (

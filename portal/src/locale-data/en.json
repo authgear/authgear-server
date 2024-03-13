@@ -199,6 +199,9 @@
   "RoleDetailsScreen.button.deleteRole": "Delete Role",
   "RoleDetailsScreen.groups.add": "Add to Group",
 
+  "GroupDetailsScreen.tabs.settings": "Settings",
+  "GroupDetailsScreen.tabs.roles": "Roles",
+
   "AddRoleGroupsDialog.title": "Add {roleName} role to group",
   "AddRoleGroupsDialog.selectGroups": "Select Groups",
 
