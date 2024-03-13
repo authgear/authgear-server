@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useContext, useMemo } from "react";
 import {
   Dialog,
   DialogFooter,
@@ -18,6 +12,7 @@ import DefaultButton from "../../DefaultButton";
 import ErrorDialog from "../../error/ErrorDialog";
 import { useRemoveRoleFromGroupsMutation } from "../../graphql/adminapi/mutations/removeRoleFromGroups";
 import { useRoleQuery } from "../../graphql/adminapi/query/roleQuery";
+import { useSnapshotData } from "../../hook/useSnapshotData";
 
 export interface DeleteRoleGroupDialogData {
   roleID: string;
@@ -32,20 +27,6 @@ interface DeleteRoleGroupDialogProps {
   data: DeleteRoleGroupDialogData | null;
   onDismiss: (isDeleted: boolean) => void;
   onDismissed?: () => void;
-}
-
-function useSnapshotData(data: DeleteRoleGroupDialogData | null) {
-  // Keep the latest non-null data, because the dialog has transition animation before dismiss.
-  // During the transition, we still need the data. However, the parent may already changed the props.
-  const [snapshot, setSnapshot] = useState<DeleteRoleGroupDialogData | null>(
-    data
-  );
-  useEffect(() => {
-    if (data !== null) {
-      setSnapshot(data);
-    }
-  }, [data]);
-  return snapshot;
 }
 
 const dialogStyles = { main: { minHeight: 0 } };
@@ -69,6 +50,8 @@ const DeleteRoleGroupDialog: React.VFC<DeleteRoleGroupDialogProps> =
       onDismiss(false);
     }, [loading, isHidden, onDismiss]);
 
+    // Keep the latest non-null data, because the dialog has transition animation before dismiss.
+    // During the transition, we still need the data. However, the parent may already changed the props.
     const snapshot = useSnapshotData(data);
     const dialogContentProps: IDialogContentProps = {
       title: renderToString("DeleteRoleGroupDialog.title"),
