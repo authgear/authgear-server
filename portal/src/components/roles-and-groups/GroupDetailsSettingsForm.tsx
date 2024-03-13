@@ -26,9 +26,7 @@ import { APIError } from "../../error/error";
 import { generateGroupKeyFromName, validateGroup } from "../../model/group";
 import { makeLocalValidationError } from "../../error/validation";
 import { GroupQueryNodeFragment } from "../../graphql/adminapi/query/groupQuery.generated";
-import DeleteGroupDialog, {
-  DeleteGroupDialogData,
-} from "../../graphql/adminapi/DeleteGroupDialog";
+import DeleteGroupDialog, { DeleteGroupDialogData } from "./DeleteGroupDialog";
 import { RoleAndGroupsFormContainer } from "../../graphql/adminapi/RoleAndGroupsFormContainer";
 
 interface FormState {
