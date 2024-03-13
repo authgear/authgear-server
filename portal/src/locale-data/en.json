@@ -184,6 +184,8 @@
   "GroupsList.column.action": "Action",
   "GroupsList.delete-group": "Delete Group",
 
+  "GroupDetailsScreen.roles.add": "Add to Role",
+
   "DeleteGroupDialog.title": "Delete Group",
   "DeleteGroupDialog.description": "Are you sure you want to delete the group \"{groupName}\"?",
   "DeleteGroupDialog.button.confirm": "Delete Group",
