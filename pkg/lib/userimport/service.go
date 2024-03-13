@@ -3,8 +3,10 @@ package userimport
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
@@ -33,7 +35,12 @@ type UserCommands interface {
 type IdentityService interface {
 	New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
 	Create(info *identity.Info) error
+	Delete(info *identity.Info) error
+	Update(info *identity.Info) error
+	UpdateWithSpec(info *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
+	CheckDuplicated(info *identity.Info) (dup *identity.Info, err error)
 	ListByClaim(name string, value string) ([]*identity.Info, error)
+	ListByUser(userID string) ([]*identity.Info, error)
 }
 
 type AuthenticatorService interface {
@@ -169,9 +176,7 @@ func (s *UserImportService) ImportRecordInTxn(ctx context.Context, result *impor
 		return s.insertRecordInTxn(ctx, result, record)
 	case 1:
 		if options.Upsert {
-			// TODO(userimport): update
-			err = fmt.Errorf("upsert is not implemented yet")
-			return
+			return s.upsertRecordInTxn(ctx, result, options, record, infos[0])
 		} else {
 			result.Outcome = OutcomeSkipped
 			result.Warnings = append(result.Warnings, Warning{
@@ -183,6 +188,20 @@ func (s *UserImportService) ImportRecordInTxn(ctx context.Context, result *impor
 		err = fmt.Errorf("unexpected number of identities found: %v", len(infos))
 		return
 	}
+}
+
+func (s *UserImportService) checkIdentityDuplicate(ctx context.Context, info *identity.Info) (err error) {
+	dupe, err := s.Identities.CheckDuplicated(info)
+	if errors.Is(err, identity.ErrIdentityAlreadyExists) {
+		err = api.NewInvariantViolated("DuplicatedIdentity", "identity already exists", map[string]interface{}{
+			"login_id": dupe.LoginID.LoginID,
+		})
+		return
+	}
+	if err != nil {
+		return
+	}
+	return
 }
 
 func (s *UserImportService) insertRecordInTxn(ctx context.Context, result *importResult, record Record) (err error) {
@@ -348,6 +367,11 @@ func (s *UserImportService) insertIdentitiesInTxn(ctx context.Context, result *i
 	}
 
 	for _, info := range infos {
+		err = s.checkIdentityDuplicate(ctx, info)
+		if err != nil {
+			return
+		}
+
 		err = s.Identities.Create(info)
 		if err != nil {
 			return
@@ -689,4 +713,172 @@ func (s *UserImportService) insertMFATOTPInTxn(ctx context.Context, result *impo
 	}
 
 	return
+}
+
+func (s *UserImportService) upsertRecordInTxn(ctx context.Context, result *importResult, options *Options, record Record, info *identity.Info) (err error) {
+	err = s.upsertIdentitiesInTxn(ctx, result, options, record, info)
+	if err != nil {
+		return
+	}
+
+	result.Outcome = OutcomeUpdated
+	return
+}
+
+func (s *UserImportService) upsertIdentitiesInTxnHelper(ctx context.Context, result *importResult, userID string, infos []*identity.Info, typ model.LoginIDKeyType, ptr *string) (err error) {
+	if ptr == nil {
+		err := s.removeIdentityInTxn(ctx, result, infos, typ)
+		if err != nil {
+			return err
+		}
+	} else {
+		spec := &identity.Spec{
+			Type: model.IdentityTypeLoginID,
+			LoginID: &identity.LoginIDSpec{
+				Type:  typ,
+				Key:   string(typ),
+				Value: *ptr,
+			},
+		}
+		err := s.upsertIdentityInTxn(ctx, result, userID, infos, spec)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// nolint: gocognit
+func (s *UserImportService) upsertIdentitiesInTxn(ctx context.Context, result *importResult, options *Options, record Record, info *identity.Info) (err error) {
+	userID := info.UserID
+	infos, err := s.Identities.ListByUser(userID)
+	if err != nil {
+		return
+	}
+
+	switch options.Identifier {
+	case IdentifierEmail:
+		if phoneNumberPtr, phoneNumberOK := record.PhoneNumber(); phoneNumberOK {
+			err = s.upsertIdentitiesInTxnHelper(ctx, result, userID, infos, model.LoginIDKeyTypePhone, phoneNumberPtr)
+			if err != nil {
+				return
+			}
+		}
+
+		if preferredUsernamePtr, preferredUsernameOK := record.PreferredUsername(); preferredUsernameOK {
+			err = s.upsertIdentitiesInTxnHelper(ctx, result, userID, infos, model.LoginIDKeyTypeUsername, preferredUsernamePtr)
+			if err != nil {
+				return
+			}
+		}
+	case IdentifierPhoneNumber:
+		if emailPtr, emailOK := record.Email(); emailOK {
+			err = s.upsertIdentitiesInTxnHelper(ctx, result, userID, infos, model.LoginIDKeyTypeEmail, emailPtr)
+			if err != nil {
+				return
+			}
+		}
+
+		if preferredUsernamePtr, preferredUsernameOK := record.PreferredUsername(); preferredUsernameOK {
+			err = s.upsertIdentitiesInTxnHelper(ctx, result, userID, infos, model.LoginIDKeyTypeUsername, preferredUsernamePtr)
+			if err != nil {
+				return
+			}
+		}
+	case IdentifierPreferredUsername:
+		if emailPtr, emailOK := record.Email(); emailOK {
+			err = s.upsertIdentitiesInTxnHelper(ctx, result, userID, infos, model.LoginIDKeyTypeEmail, emailPtr)
+			if err != nil {
+				return
+			}
+		}
+
+		if phoneNumberPtr, phoneNumberOK := record.PhoneNumber(); phoneNumberOK {
+			err = s.upsertIdentitiesInTxnHelper(ctx, result, userID, infos, model.LoginIDKeyTypePhone, phoneNumberPtr)
+			if err != nil {
+				return
+			}
+		}
+	default:
+		err = fmt.Errorf("unknown identifier: %v", options.Identifier)
+	}
+
+	return
+}
+
+func (s *UserImportService) removeIdentityInTxn(ctx context.Context, result *importResult, infos []*identity.Info, typ model.LoginIDKeyType) error {
+	var toBeRemoved []*identity.Info
+	for _, info := range infos {
+		info := info
+		if info.Type == model.IdentityTypeLoginID && info.LoginID.LoginIDType == typ && info.LoginID.LoginIDKey == string(typ) {
+			toBeRemoved = append(toBeRemoved, info)
+		}
+	}
+
+	for _, info := range toBeRemoved {
+		err := s.Identities.Delete(info)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *UserImportService) upsertIdentityInTxn(ctx context.Context, result *importResult, userID string, infos []*identity.Info, spec *identity.Spec) error {
+	var toBeUpdated []*identity.Info
+	var toBeInserted []*identity.Info
+
+	isUpdated := false
+	for _, info := range infos {
+		info := info
+
+		if info.Type == model.IdentityTypeLoginID && info.LoginID.LoginIDType == spec.LoginID.Type && info.LoginID.LoginIDKey == spec.LoginID.Key {
+			isUpdated = true
+			updatedInfo, err := s.Identities.UpdateWithSpec(info, spec, identity.NewIdentityOptions{
+				// Allow the developer to bypass blocklist.
+				LoginIDEmailByPassBlocklistAllowlist: true,
+			})
+			if err != nil {
+				return err
+			}
+			toBeUpdated = append(toBeUpdated, updatedInfo)
+		}
+	}
+	if !isUpdated {
+		info, err := s.Identities.New(userID, spec, identity.NewIdentityOptions{
+			// Allow the developer to bypass blocklist.
+			LoginIDEmailByPassBlocklistAllowlist: true,
+		})
+		if err != nil {
+			return err
+		}
+		toBeInserted = append(toBeInserted, info)
+	}
+
+	for _, info := range toBeUpdated {
+		err := s.checkIdentityDuplicate(ctx, info)
+		if err != nil {
+			return err
+		}
+
+		err = s.Identities.Update(info)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, info := range toBeInserted {
+		err := s.checkIdentityDuplicate(ctx, info)
+		if err != nil {
+			return err
+		}
+
+		err = s.Identities.Create(info)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
