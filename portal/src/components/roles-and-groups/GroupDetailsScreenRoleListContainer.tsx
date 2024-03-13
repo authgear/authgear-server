@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useState } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { GroupQueryNodeFragment } from "../../graphql/adminapi/query/groupQuery.generated";
 import {
   FormattedMessage,
@@ -16,6 +16,8 @@ import {
   RolesListQueryQueryVariables,
 } from "../../graphql/adminapi/query/rolesListQuery.generated";
 import { RolesEmptyView } from "./RolesEmptyView";
+import { GroupRolesList } from "./GroupRolesList";
+import { searchRolesAndGroups } from "../../util/rolesAndGroups";
 
 export interface GroupRolesListItem extends Pick<Role, "id" | "name" | "key"> {}
 
@@ -58,6 +60,17 @@ const GroupDetailsScreenRoleListContainer: React.VFC<
     setSearchKeyword("");
   }, []);
 
+  const filteredGroupRoles = useMemo(() => {
+    const groupRoles =
+      group.roles?.edges?.flatMap<GroupRolesListItem>((edge) => {
+        if (edge?.node != null) {
+          return [edge.node];
+        }
+        return [];
+      }) ?? [];
+    return searchRolesAndGroups(groupRoles, searchKeyword);
+  }, [group.roles?.edges, searchKeyword]);
+
   if (error != null) {
     return <ShowError error={error} onRetry={refetch} />;
   }
@@ -87,6 +100,11 @@ const GroupDetailsScreenRoleListContainer: React.VFC<
             text={<FormattedMessage id="GroupDetailsScreen.roles.add" />}
           />
         </header>
+        <GroupRolesList
+          className="flex-1 min-h-0"
+          group={group}
+          roles={filteredGroupRoles}
+        />
       </section>
     </>
   );

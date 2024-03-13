@@ -184,6 +184,12 @@
   "GroupsList.column.action": "Action",
   "GroupsList.delete-group": "Delete Group",
 
+  "GroupRolesList.column.name": "Name",
+  "GroupRolesList.column.key": "Role Key",
+  "GroupRolesList.column.action": "Action",
+  "GroupRolesList.actions.remove": "Remove",
+  "GroupRolesList.empty": "No roles in group",
+
   "GroupDetailsScreen.roles.add": "Add to Role",
 
   "DeleteGroupDialog.title": "Delete Group",
