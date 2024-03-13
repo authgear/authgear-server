@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -221,7 +222,7 @@ func (s *UserImportService) insertRecordInTxn(ctx context.Context, result *impor
 		return
 	}
 
-	err = s.insertStandardAttributesInTxn(ctx, result, record, userID)
+	err = s.insertStandardAttributesInTxn(ctx, result, record, u)
 	if err != nil {
 		return
 	}
@@ -445,13 +446,15 @@ func (s *UserImportService) insertVerifiedClaimsInTxn(ctx context.Context, resul
 	return
 }
 
-func (s *UserImportService) insertStandardAttributesInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
-	stdAttrs, ok := record.StandardAttributes()
-	if !ok {
+func (s *UserImportService) insertStandardAttributesInTxn(ctx context.Context, result *importResult, record Record, u *user.User) (err error) {
+	stdAttrsList := record.StandardAttributesList()
+
+	stdAttrs, err := stdattrs.T(u.StandardAttributes).MergedWithList(stdAttrsList)
+	if err != nil {
 		return
 	}
 
-	err = s.StandardAttributes.UpdateStandardAttributes(accesscontrol.RoleGreatest, userID, stdAttrs)
+	err = s.StandardAttributes.UpdateStandardAttributes(accesscontrol.RoleGreatest, u.ID, stdAttrs)
 	if err != nil {
 		return
 	}

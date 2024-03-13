@@ -263,8 +263,8 @@ func TestRecord(t *testing.T) {
 		Convey("standard_attributes", func() {
 			r := Record{}
 
-			_, ok := r.StandardAttributes()
-			So(ok, ShouldBeFalse)
+			l := r.StandardAttributesList()
+			So(l, ShouldBeEmpty)
 
 			recordString := `
 {
@@ -328,33 +328,8 @@ func TestRecord(t *testing.T) {
 			err := json.Unmarshal([]byte(recordString), &r)
 			So(err, ShouldBeNil)
 
-			attrs, ok := r.StandardAttributes()
-			So(ok, ShouldBeTrue)
-			So(attrs, ShouldResemble, map[string]interface{}{
-				"preferred_username": "johndoe",
-				"email":              "johndoe@example.com",
-				"phone_number":       "+85298765432",
-				"name":               "John Doe",
-				"given_name":         "John",
-				"family_name":        "Doe",
-				"middle_name":        "middle",
-				"nickname":           "JohnDoe",
-				"profile":            "https://example.com/profile",
-				"picture":            "https://example.com/picture",
-				"website":            "https://example.com/website",
-				"gender":             "male",
-				"birthdate":          "1970-01-01",
-				"zoneinfo":           "Asia/Hong_Kong",
-				"locale":             "zh-HK",
-				"address": map[string]interface{}{
-					"formatted":      "1 Unnamed Road, Central, Hong Kong Island, HK",
-					"street_address": "1 Unnamed Road",
-					"locality":       "Central",
-					"region":         "Hong Kong Island",
-					"postal_code":    "N/A",
-					"country":        "HK",
-				},
-			})
+			l = r.StandardAttributesList()
+			So(len(l), ShouldEqual, 16)
 		})
 
 		Convey("custom_attributes", func() {

@@ -272,7 +272,7 @@ func (m Record) PhoneNumberVerified() (bool, bool) {
 	return mapGetNonNull[Record, bool](m, "phone_number_verified")
 }
 
-func (m Record) StandardAttributes() (map[string]interface{}, bool) {
+func (m Record) standardAttributes() (map[string]interface{}, bool) {
 	attrs := make(map[string]interface{})
 	for key := range m {
 		for _, k := range standardAttributeKeys {
@@ -285,6 +285,22 @@ func (m Record) StandardAttributes() (map[string]interface{}, bool) {
 		return attrs, true
 	}
 	return nil, false
+}
+
+func (m Record) StandardAttributesList() (attrsList attrs.List) {
+	stdAttrs, ok := m.standardAttributes()
+	if !ok {
+		return
+	}
+
+	for key, value := range stdAttrs {
+		ptr := jsonpointer.T{key}.String()
+		attrsList = append(attrsList, attrs.T{
+			Pointer: ptr,
+			Value:   value,
+		})
+	}
+	return
 }
 
 func (m Record) customAttributes() (map[string]interface{}, bool) {
