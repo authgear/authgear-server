@@ -141,7 +141,13 @@ You will receive a response similar to the following when you just initiated an 
 ```
 
 You will receive a response similar to the following when the import completed (with or without errors).
-Sensitive values are redacted in the response.
+
+- `details[*].index`: The index of the record in the request.
+- `details[*].outcome`: The outcome of the import. Valid values are `inserted`, `updated`, `skipped`, and `failed`.
+- `details[*].user_id`: The user ID of the record. It is absent when the import would result in insert but the outcome is `failed`.
+- `details[*].record`: The redacted record. In particular, `password_hash` and `secret` are redacted.
+- `details[*].warnings`: The warnings encountered in the import. Note that records with warnings are still inserted or updated.
+- `details[*].errors`: The errors encountered in the import. Note that records with errors are not inserted nor updated.
 
 ```
 {
@@ -158,6 +164,8 @@ Sensitive values are redacted in the response.
   "details": [
     {
       "index": 0,
+      "outcome": "updated",
+      "user_id": "some_opaque_id",
       "record": {
         "preferred_username": "johndoe",
         "email": "johndoe@example.com"
@@ -173,7 +181,16 @@ Sensitive values are redacted in the response.
       ]
     },
     {
+      "index": 1,
+      "outcome": "inserted",
+      "user_id": "some_opaque_id",
+      "record": {
+        "email": "janedoe@example.com"
+      }
+    },
+    {
       "index": 2,
+      "outcome": "failed",
       "record": {
         "preferred_username": "louischan",
         "email": "louischan@oursky.com"
