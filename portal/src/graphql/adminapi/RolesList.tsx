@@ -4,12 +4,9 @@ import { RolesListFragment } from "./query/rolesListQuery.generated";
 import useDelayedValue from "../../hook/useDelayedValue";
 import {
   ColumnActionsMode,
-  DetailsListLayoutMode,
   DetailsRow,
   IColumn,
   IDetailsRowProps,
-  SelectionMode,
-  ShimmeredDetailsList,
   Text,
 } from "@fluentui/react";
 import styles from "./RolesList.module.css";
@@ -18,8 +15,8 @@ import { useParams } from "react-router-dom";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import Link from "../../Link";
 import ActionButton from "../../ActionButton";
-import PaginationWidget from "../../PaginationWidget";
 import DeleteRoleDialog, { DeleteRoleDialogData } from "./DeleteRoleDialog";
+import RolesAndGroupsBaseList from "../../components/roles-and-groups/list/RolesAndGroupsBaseList";
 
 interface RolesListProps {
   className?: string;
@@ -193,27 +190,18 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
   return (
     <>
       <div className={cn(styles.root, className)}>
-        <div className={styles.listWrapper}>
-          <ShimmeredDetailsList
-            enableShimmer={loading}
-            enableUpdateAnimations={false}
-            onRenderRow={onRenderRoleRow}
-            onRenderItemColumn={onRenderRoleItemColumn}
-            selectionMode={SelectionMode.none}
-            layoutMode={DetailsListLayoutMode.justified}
-            items={items}
-            columns={columns}
-          />
-        </div>
-        {!isSearch ? (
-          <PaginationWidget
-            className={cn(styles.pagination)}
-            offset={offset}
-            pageSize={pageSize}
-            totalCount={totalCount}
-            onChangeOffset={onChangeOffset}
-          />
-        ) : null}
+        <RolesAndGroupsBaseList
+          loading={loading}
+          onRenderRow={onRenderRoleRow}
+          onRenderItemColumn={onRenderRoleItemColumn}
+          items={items}
+          columns={columns}
+          isSearch={isSearch}
+          offset={offset}
+          pageSize={pageSize}
+          totalCount={totalCount}
+          onChangeOffset={onChangeOffset}
+        />
         <DeleteRoleDialog
           onDismiss={dismissDeleteRoleDialog}
           data={deleteRoleDialogData}
