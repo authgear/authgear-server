@@ -18,6 +18,7 @@ import {
 import { RolesEmptyView } from "./RolesEmptyView";
 import { GroupRolesList } from "./GroupRolesList";
 import { searchRolesAndGroups } from "../../util/rolesAndGroups";
+import { AddGroupRolesDialog } from "./AddGroupRolesDialog";
 
 export interface GroupRolesListItem extends Pick<Role, "id" | "name" | "key"> {}
 
@@ -60,6 +61,16 @@ const GroupDetailsScreenRoleListContainer: React.VFC<
     setSearchKeyword("");
   }, []);
 
+  const [isAddRoleDialogHidden, setIsAddRoleDialogHidden] = useState(true);
+  const showAddRoleDialog = useCallback(
+    () => setIsAddRoleDialogHidden(false),
+    []
+  );
+  const hideAddRoleDialog = useCallback(
+    () => setIsAddRoleDialogHidden(true),
+    []
+  );
+
   const filteredGroupRoles = useMemo(() => {
     const groupRoles =
       group.roles?.edges?.flatMap<GroupRolesListItem>((edge) => {
@@ -70,6 +81,17 @@ const GroupDetailsScreenRoleListContainer: React.VFC<
       }) ?? [];
     return searchRolesAndGroups(groupRoles, searchKeyword);
   }, [group.roles?.edges, searchKeyword]);
+
+  const groupRoles = useMemo(() => {
+    return (
+      group.roles?.edges?.flatMap((e) => {
+        if (e?.node) {
+          return [e.node];
+        }
+        return [];
+      }) ?? []
+    );
+  }, [group.roles?.edges]);
 
   if (error != null) {
     return <ShowError error={error} onRetry={refetch} />;
@@ -98,6 +120,7 @@ const GroupDetailsScreenRoleListContainer: React.VFC<
           />
           <PrimaryButton
             text={<FormattedMessage id="GroupDetailsScreen.roles.add" />}
+            onClick={showAddRoleDialog}
           />
         </header>
         <GroupRolesList
@@ -106,6 +129,14 @@ const GroupDetailsScreenRoleListContainer: React.VFC<
           roles={filteredGroupRoles}
         />
       </section>
+      <AddGroupRolesDialog
+        groupID={group.id}
+        groupKey={group.key}
+        groupName={group.name ?? null}
+        groupRoles={groupRoles}
+        isHidden={isAddRoleDialogHidden}
+        onDismiss={hideAddRoleDialog}
+      />
     </>
   );
 };

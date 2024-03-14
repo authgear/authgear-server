@@ -195,6 +195,9 @@
 
   "GroupDetailsScreen.roles.add": "Add to Role",
 
+  "AddGroupRolesDialog.title": "Add {groupName} group to role",
+  "AddGroupRolesDialog.selectGroups": "Select Roles",
+
   "DeleteGroupDialog.title": "Delete Group",
   "DeleteGroupDialog.description": "Are you sure you want to delete the group \"{groupName}\"?",
   "DeleteGroupDialog.button.confirm": "Delete Group",
