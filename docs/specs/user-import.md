@@ -7,7 +7,7 @@ User Import allows the developer to bulk import users from an existing system to
 - It is not a synchronous operation. The import is created and runs in the background. The developer can query the status of it.
 - It DOES NOT fire existing hooks, namely `user.pre_create` and `user.created`.
 
-## POST /api/users/import
+## POST /_api/admin/users/import
 
 - The endpoint requires Admin API JWT token to access.
 - This endpoint is added to Admin API server.
@@ -16,7 +16,7 @@ User Import allows the developer to bulk import users from an existing system to
 
 Use this endpoint to initiate an import.
 
-## GET /api/users/import/ID
+## GET /_api/admin/users/import/ID
 
 - The endpoint requires Admin API JWT token to access.
 - This endpoint is added to Admin API server.
