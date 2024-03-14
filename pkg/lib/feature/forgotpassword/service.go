@@ -327,7 +327,7 @@ func (s *Service) doVerifyCodeWithTarget(target string, code string, codeChannel
 	// We do not use s.InspectState() because it does not treat dummy code as invalid.
 	//
 	// If test mode is disabled, the dummy code is not actually sent.
-	// So most of time, we will not go throught the code path of state.UserID == "".
+	// So most of time, we will not go thought the code path of state.UserID == "".
 	//
 	// If test mode is enabled, the dummy code is not actually sent but a magic code can be used instead.
 	// The user ID associated with the magic code is empty, violating the assumption of this package.
