@@ -1,22 +1,9 @@
-import {
-  Dialog,
-  DialogFooter,
-  IDialogContentProps,
-  IModalProps,
-  ITag,
-  Label,
-} from "@fluentui/react";
-import {
-  FormattedMessage,
-  Context as MessageContext,
-} from "@oursky/react-messageformat";
-import React, { useCallback, useContext, useMemo, useState } from "react";
-import PrimaryButton from "../../PrimaryButton";
-import DefaultButton from "../../DefaultButton";
+import { ITag } from "@fluentui/react";
+import { Context as MessageContext } from "@oursky/react-messageformat";
+import React, { useCallback, useContext, useMemo } from "react";
 import ErrorDialog from "../../error/ErrorDialog";
 import { useAddRoleToGroupsMutation } from "../../graphql/adminapi/mutations/addRoleToGroupsMutation";
 import { useRoleQuery } from "../../graphql/adminapi/query/roleQuery";
-import StyledTagPicker from "../../StyledTagPicker";
 import {
   GroupsListQueryDocument,
   GroupsListQueryQuery,
@@ -24,8 +11,7 @@ import {
 } from "../../graphql/adminapi/query/groupsListQuery.generated";
 import { useQuery } from "@apollo/client";
 import { Group } from "../../graphql/adminapi/globalTypes.generated";
-
-import styles from "./AddRoleGroupsDialog.module.css";
+import AddTagsDialog from "./AddTagsDialog";
 
 interface AddRoleGroupsDialogGroup extends Pick<Group, "id" | "key" | "name"> {}
 
@@ -39,8 +25,6 @@ interface AddRoleGroupsDialogProps {
   onDismiss: () => void;
   onDismissed?: () => void;
 }
-
-const dialogStyles = { main: { minHeight: 0 } };
 
 interface GroupTag extends ITag {
   group: AddRoleGroupsDialogGroup;
@@ -69,8 +53,6 @@ export const AddRoleGroupsDialog: React.VFC<AddRoleGroupsDialogProps> =
       return new Set(roleGroups.map((group) => group.id));
     }, [roleGroups]);
 
-    const [groupTags, setGroupTags] = useState<GroupTag[]>([]);
-
     const { addRoleToGroups, loading, error } = useAddRoleToGroupsMutation();
     const { refetch: refetchRole } = useRoleQuery(roleID, {
       skip: true,
@@ -79,20 +61,6 @@ export const AddRoleGroupsDialog: React.VFC<AddRoleGroupsDialogProps> =
       GroupsListQueryQuery,
       GroupsListQueryQueryVariables
     >(GroupsListQueryDocument);
-
-    const onChangeGroupTags = useCallback((tags?: ITag[]) => {
-      if (tags === undefined) {
-        setGroupTags([]);
-      } else {
-        setGroupTags(tags as GroupTag[]);
-      }
-    }, []);
-    const [searchGroupKeyword, setSearchGroupKeyword] = useState<string>("");
-    const onSearchInputChange = useCallback((value: string): string => {
-      setSearchGroupKeyword(value);
-      return value;
-    }, []);
-    const onClearGroupTags = useCallback(() => setGroupTags([]), []);
 
     const onResolveGroupSuggestions = useCallback(
       async (filter: string, selectedTags?: ITag[]): Promise<ITag[]> => {
@@ -132,94 +100,56 @@ export const AddRoleGroupsDialog: React.VFC<AddRoleGroupsDialogProps> =
       onDismiss();
     }, [isHidden, loading, onDismiss]);
 
-    const onSubmit = useCallback(() => {
-      if (loading || isHidden || groupTags.length === 0) {
-        return;
-      }
-      addRoleToGroups(
+    const onSubmit = useCallback(
+      (tags: ITag[]) => {
+        const groupTags = tags as GroupTag[];
+        if (loading || isHidden || groupTags.length === 0) {
+          return;
+        }
+        addRoleToGroups(
+          roleKey,
+          groupTags.map((tag) => tag.group.key)
+        )
+          .then(async () => {
+            // Update the cache
+            return refetchRole({ roleID: roleID });
+          })
+          .then(
+            () => onDismiss(),
+            (e: unknown) => {
+              onDismiss();
+              throw e;
+            }
+          );
+      },
+      [
+        loading,
+        isHidden,
+        addRoleToGroups,
         roleKey,
-        groupTags.map((tag) => tag.group.key)
-      )
-        .then(async () => {
-          // Update the cache
-          return refetchRole({ roleID: roleID });
-        })
-        .then(
-          () => onDismiss(),
-          (e: unknown) => {
-            onDismiss();
-            throw e;
-          }
-        );
-    }, [
-      loading,
-      isHidden,
-      groupTags,
-      addRoleToGroups,
-      roleKey,
-      refetchRole,
-      roleID,
-      onDismiss,
-    ]);
+        refetchRole,
+        roleID,
+        onDismiss,
+      ]
+    );
 
-    const modalProps = useMemo((): IModalProps => {
-      return {
-        onDismissed: () => {
-          // Reset states on dismiss
-          setGroupTags([]);
-
-          propsOnDismissed?.();
-        },
-      };
-    }, [propsOnDismissed]);
-
-    const dialogContentProps: IDialogContentProps = useMemo(() => {
-      return {
-        title: renderToString("AddRoleGroupsDialog.title", {
-          roleName: roleName ?? roleKey,
-        }),
-      };
-    }, [renderToString, roleKey, roleName]);
+    const dialogTitle = renderToString("AddRoleGroupsDialog.title", {
+      roleName: roleName ?? roleKey,
+    });
+    const tagPickerLabel = renderToString("AddRoleGroupsDialog.selectGroups");
 
     return (
       <>
-        <Dialog
-          hidden={isHidden}
+        <AddTagsDialog
+          isHidden={isHidden}
+          isLoading={loading}
+          title={dialogTitle}
+          tagPickerLabel={tagPickerLabel}
           onDismiss={onDialogDismiss}
-          modalProps={modalProps}
-          dialogContentProps={dialogContentProps}
-          styles={dialogStyles}
-          maxWidth="560px"
-        >
-          <div className={styles.content}>
-            <div className={styles.field}>
-              <Label>
-                <FormattedMessage id="AddRoleGroupsDialog.selectGroups" />
-              </Label>
-              <StyledTagPicker
-                autoFocus={true}
-                value={searchGroupKeyword}
-                onInputChange={onSearchInputChange}
-                selectedItems={groupTags}
-                onChange={onChangeGroupTags}
-                onResolveSuggestions={onResolveGroupSuggestions}
-                onClearTags={onClearGroupTags}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <PrimaryButton
-              disabled={loading}
-              onClick={onSubmit}
-              text={<FormattedMessage id="add" />}
-            />
-            <DefaultButton
-              onClick={onDialogDismiss}
-              disabled={loading}
-              text={<FormattedMessage id="cancel" />}
-            />
-          </DialogFooter>
-        </Dialog>
+          onDismissed={propsOnDismissed}
+          onSubmit={onSubmit}
+          onResolveSuggestions={onResolveGroupSuggestions}
+        />
         <ErrorDialog error={error} />
       </>
     );
