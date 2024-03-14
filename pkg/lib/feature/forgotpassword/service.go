@@ -324,6 +324,13 @@ func (s *Service) doVerifyCodeWithTarget(target string, code string, codeChannel
 		}
 	}()
 
+	// We do not use s.InspectState() because it does not treat dummy code as invalid.
+	//
+	// If test mode is disabled, the dummy code is not actually sent.
+	// So most of time, we will not go thought the code path of state.UserID == "".
+	//
+	// If test mode is enabled, the dummy code is not actually sent but a magic code can be used instead.
+	// The user ID associated with the magic code is empty, violating the assumption of this package.
 	state, err = s.OTPCodes.InspectState(kind, target)
 	if errors.Is(err, otp.ErrConsumedCode) {
 		err = ErrUsedCode
@@ -332,6 +339,9 @@ func (s *Service) doVerifyCodeWithTarget(target string, code string, codeChannel
 		err = ErrInvalidCode
 		return
 	} else if err != nil {
+		return
+	} else if state.UserID == "" {
+		err = ErrInvalidCode
 		return
 	}
 
@@ -402,6 +412,7 @@ func (s *Service) IsRateLimitError(err error, target string, channel CodeChannel
 	return ratelimit.IsRateLimitErrorWithBucketName(err, otpKind.RateLimitTriggerCooldown(target).Name)
 }
 
+// InspectState is for external use. It DOES NOT report dummy code as invalid.
 func (s *Service) InspectState(target string, channel CodeChannel, kind CodeKind) (*otp.State, error) {
 	otpKind, _ := s.getForgotPasswordOTP(s.getChannel(target, channel), kind)
 	return s.OTPCodes.InspectState(otpKind, target)
