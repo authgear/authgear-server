@@ -77,7 +77,8 @@ export function searchGroups<G extends SearchableGroup>(
     const groupID = group.id.toLowerCase();
     const groupKey = group.key.toLowerCase();
     const groupName = group.name?.toLowerCase();
-    for (const keyword of keywords) {
+
+    return keywords.every((keyword) => {
       if (groupID === keyword) {
         return true;
       }
@@ -87,7 +88,7 @@ export function searchGroups<G extends SearchableGroup>(
       if (groupName?.includes(keyword)) {
         return true;
       }
-    }
-    return false;
+      return false;
+    });
   });
 }

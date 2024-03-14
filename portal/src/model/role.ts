@@ -65,7 +65,7 @@ export function searchRoles<R extends SearchableRole>(
     const roleID = role.id.toLowerCase();
     const roleKey = role.key.toLowerCase();
     const roleName = role.name?.toLowerCase();
-    for (const keyword of keywords) {
+    return keywords.every((keyword) => {
       if (roleID === keyword) {
         return true;
       }
@@ -75,7 +75,7 @@ export function searchRoles<R extends SearchableRole>(
       if (roleName?.includes(keyword)) {
         return true;
       }
-    }
-    return false;
+      return false;
+    });
   });
 }
