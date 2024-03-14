@@ -1709,12 +1709,15 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	authenticatorFacade := &facade.AuthenticatorFacade{
+		Coordinator: coordinator,
+	}
 	userimportLogger := userimport.NewLogger(factory)
 	userImportService := &userimport.UserImportService{
 		AppDatabase:         handle,
 		LoginIDConfig:       loginIDConfig,
 		Identities:          identityFacade,
-		Authenticators:      service4,
+		Authenticators:      authenticatorFacade,
 		UserCommands:        rawCommands,
 		UserQueries:         rawQueries,
 		VerifiedClaims:      verificationService,

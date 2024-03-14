@@ -60,7 +60,9 @@ type IdentityService interface {
 
 type AuthenticatorService interface {
 	New(spec *authenticator.Spec) (*authenticator.Info, error)
-	Create(info *authenticator.Info) error
+	Create(info *authenticator.Info, markVerified bool) error
+	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
+	Delete(info *authenticator.Info) error
 }
 
 type VerifiedClaimService interface {
@@ -571,7 +573,7 @@ func (s *UserImportService) insertPasswordInTxn(ctx context.Context, result *imp
 		return
 	}
 
-	err = s.Authenticators.Create(info)
+	err = s.Authenticators.Create(info, false)
 	if err != nil {
 		return
 	}
@@ -608,7 +610,7 @@ func (s *UserImportService) insertMFAPasswordInTxn(ctx context.Context, result *
 		return
 	}
 
-	err = s.Authenticators.Create(info)
+	err = s.Authenticators.Create(info, false)
 	if err != nil {
 		return
 	}
@@ -649,7 +651,7 @@ func (s *UserImportService) insertMFAOOBOTPEmailInTxn(ctx context.Context, resul
 		return
 	}
 
-	err = s.Authenticators.Create(info)
+	err = s.Authenticators.Create(info, false)
 	if err != nil {
 		return
 	}
@@ -690,7 +692,7 @@ func (s *UserImportService) insertMFAOOBOTPPhoneInTxn(ctx context.Context, resul
 		return
 	}
 
-	err = s.Authenticators.Create(info)
+	err = s.Authenticators.Create(info, false)
 	if err != nil {
 		return
 	}
@@ -727,7 +729,7 @@ func (s *UserImportService) insertMFATOTPInTxn(ctx context.Context, result *impo
 		return
 	}
 
-	err = s.Authenticators.Create(info)
+	err = s.Authenticators.Create(info, false)
 	if err != nil {
 		return
 	}
@@ -774,6 +776,16 @@ func (s *UserImportService) upsertRecordInTxn(ctx context.Context, result *impor
 	// password update behavior is IGNORED.
 	// mfa.password update behavior is IGNORED.
 	// mfa.totp update behavior is IGNORED.
+
+	err = s.upsertMFAOOBOTPEmailInTxn(ctx, result, record, info.UserID)
+	if err != nil {
+		return
+	}
+
+	err = s.upsertMFAOOBOTPPhoneInTxn(ctx, result, record, info.UserID)
+	if err != nil {
+		return
+	}
 
 	result.Outcome = OutcomeUpdated
 	return
@@ -1128,4 +1140,148 @@ func (s *UserImportService) upsertRolesInTxn(ctx context.Context, result *import
 
 func (s *UserImportService) upsertGroupsInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
 	return s.insertGroupsInTxn(ctx, result, record, userID)
+}
+
+func (s *UserImportService) upsertMFAOOBOTPEmailInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+	mfaObj, ok := record.MFA()
+	if !ok {
+		return
+	}
+
+	mfa := MFA(mfaObj)
+	emailPtr, ok := mfa.Email()
+	if !ok {
+		return
+	}
+
+	infos, err := s.Authenticators.List(
+		userID,
+		authenticator.KeepKind(authenticator.KindSecondary),
+		authenticator.KeepType(model.AuthenticatorTypeOOBEmail),
+	)
+	if err != nil {
+		return
+	}
+
+	if emailPtr == nil {
+		for _, info := range infos {
+			err = s.Authenticators.Delete(info)
+			if err != nil {
+				return
+			}
+		}
+	} else {
+		spec := &authenticator.Spec{
+			UserID: userID,
+			Type:   model.AuthenticatorTypeOOBEmail,
+			Kind:   model.AuthenticatorKindSecondary,
+			OOBOTP: &authenticator.OOBOTPSpec{
+				Email: *emailPtr,
+			},
+		}
+
+		var expected *authenticator.Info
+		expected, err = s.Authenticators.New(spec)
+		if err != nil {
+			return
+		}
+
+		var found *authenticator.Info
+		for _, info := range infos {
+			if info.Equal(expected) {
+				found = info
+			}
+		}
+
+		// Not found. We delete all and create again.
+		if found == nil {
+			for _, info := range infos {
+				err = s.Authenticators.Delete(info)
+				if err != nil {
+					return
+				}
+			}
+
+			err = s.Authenticators.Create(expected, false)
+			if err != nil {
+				return
+			}
+		}
+
+		// Otherwise it is found. Nothing to do.
+	}
+
+	return
+}
+
+func (s *UserImportService) upsertMFAOOBOTPPhoneInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+	mfaObj, ok := record.MFA()
+	if !ok {
+		return
+	}
+
+	mfa := MFA(mfaObj)
+	phoneNumberPtr, ok := mfa.PhoneNumber()
+	if !ok {
+		return
+	}
+
+	infos, err := s.Authenticators.List(
+		userID,
+		authenticator.KeepKind(authenticator.KindSecondary),
+		authenticator.KeepType(model.AuthenticatorTypeOOBSMS),
+	)
+	if err != nil {
+		return
+	}
+
+	if phoneNumberPtr == nil {
+		for _, info := range infos {
+			err = s.Authenticators.Delete(info)
+			if err != nil {
+				return
+			}
+		}
+	} else {
+		spec := &authenticator.Spec{
+			UserID: userID,
+			Type:   model.AuthenticatorTypeOOBSMS,
+			Kind:   model.AuthenticatorKindSecondary,
+			OOBOTP: &authenticator.OOBOTPSpec{
+				Phone: *phoneNumberPtr,
+			},
+		}
+
+		var expected *authenticator.Info
+		expected, err = s.Authenticators.New(spec)
+		if err != nil {
+			return
+		}
+
+		var found *authenticator.Info
+		for _, info := range infos {
+			if info.Equal(expected) {
+				found = info
+			}
+		}
+
+		// Not found. We delete all and create again.
+		if found == nil {
+			for _, info := range infos {
+				err = s.Authenticators.Delete(info)
+				if err != nil {
+					return
+				}
+			}
+
+			err = s.Authenticators.Create(expected, false)
+			if err != nil {
+				return
+			}
+		}
+
+		// Otherwise it is found. Nothing to do.
+	}
+
+	return
 }

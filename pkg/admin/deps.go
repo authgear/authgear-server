@@ -123,7 +123,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(userimport.StandardAttributesService), new(*featurestdattrs.ServiceNoEvent)),
 	wire.Bind(new(userimport.CustomAttributesService), new(*featurecustomattrs.ServiceNoEvent)),
 	wire.Bind(new(userimport.RolesGroupsCommands), new(*rolesgroups.Commands)),
-	wire.Bind(new(userimport.AuthenticatorService), new(*authenticatorservice.Service)),
+	wire.Bind(new(userimport.AuthenticatorService), new(*libfacade.AuthenticatorFacade)),
 
 	adminauthz.DependencySet,
 )
