@@ -1062,6 +1062,15 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
         history_size: config.authenticator?.password?.policy?.history_size ?? 0,
         history_days: config.authenticator?.password?.policy?.history_days ?? 0,
       },
+      expiry: {
+        force_change: {
+          enabled:
+            config.authenticator?.password?.expiry?.force_change?.enabled,
+          duration_since_last_update:
+            config.authenticator?.password?.expiry?.force_change
+              ?.duration_since_last_update,
+        },
+      },
     },
     forgotPasswordLinkValidPeriodSeconds,
     forgotPasswordCodeValidPeriodSeconds,
@@ -1221,6 +1230,7 @@ function constructConfig(
     config.authenticator.password = {
       force_change: currentState.authenticatorPasswordConfig.force_change,
       policy: currentState.authenticatorPasswordConfig.policy,
+      expiry: currentState.authenticatorPasswordConfig.expiry,
     };
 
     if (currentState.forgotPasswordLinkValidPeriodSeconds != null) {

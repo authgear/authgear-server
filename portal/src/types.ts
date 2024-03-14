@@ -197,6 +197,15 @@ export interface PasswordPolicyConfig {
   history_days?: number;
 }
 
+export interface PasswordExpiryConfig {
+  force_change?: PasswordExpiryForceChangeConfig;
+}
+
+export interface PasswordExpiryForceChangeConfig {
+  enabled?: boolean;
+  duration_since_last_update?: DurationString;
+}
+
 export interface AuthenticatorOOBConfig {
   email?: AuthenticatorOOBEmailConfig;
   sms?: AuthenticatorOOBSMSConfig;
@@ -217,6 +226,7 @@ export interface AuthenticatorOOBSMSConfig {
 export interface AuthenticatorPasswordConfig {
   force_change?: boolean;
   policy?: PasswordPolicyConfig;
+  expiry?: PasswordExpiryConfig;
 }
 
 export interface AuthenticatorConfig {

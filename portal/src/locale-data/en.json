@@ -649,6 +649,11 @@
   "PasswordPolicyConfigurationScreen.history-size.label": "No. of password history to keep",
   "PasswordPolicyConfigurationScreen.excluded-keywords.label": "Keywords to be excluded",
 
+  "LoginMethodConfigurationScreen.password.expiry": "Password Expiry",
+  "LoginMethodConfigurationScreen.password.expiry.description": "Configure actions upon password expiry.",
+  "LoginMethodConfigurationScreen.password.expiry.enable-force-change.label": "Force password change on next login if it has expired",
+  "LoginMethodConfigurationScreen.password.expiry.force-change-since-last-update.label": "Force change since last update (days)",
+
   "PasswordSettings.reset-link-valid-duration.label": "Reset link valid duration (seconds)",
   "PasswordSettings.reset-code-valid-duration.label": "Reset OTP valid duration (seconds)",
   "PasswordSettings.resetPasswordWithEmail.label": "Reset password with email by:",
