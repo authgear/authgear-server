@@ -7,16 +7,15 @@ import {
   DetailsRow,
   IColumn,
   IDetailsRowProps,
-  Text,
 } from "@fluentui/react";
 import styles from "./RolesList.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useParams } from "react-router-dom";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context } from "@oursky/react-messageformat";
 import Link from "../../Link";
-import ActionButton from "../../ActionButton";
 import DeleteRoleDialog, { DeleteRoleDialogData } from "./DeleteRoleDialog";
 import RolesAndGroupsBaseList from "../../components/roles-and-groups/list/RolesAndGroupsBaseList";
+import ActionButtonCell from "../../components/roles-and-groups/list/ActionButtonCell";
 
 interface RolesListProps {
   className?: string;
@@ -156,23 +155,12 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
           );
         case "action": {
           return (
-            <div className={styles.cell}>
-              <ActionButton
-                text={
-                  <Text
-                    className={styles.actionButtonText}
-                    theme={themes.destructive}
-                  >
-                    <FormattedMessage id="RolesList.delete-role" />
-                  </Text>
-                }
-                className={styles.actionButton}
-                theme={themes.destructive}
-                onClick={(e) => {
-                  onClickDeleteRole(e, item);
-                }}
-              />
-            </div>
+            <ActionButtonCell
+              text={renderToString("RolesList.delete-role")}
+              onClick={(e) => {
+                onClickDeleteRole(e, item);
+              }}
+            />
           );
         }
         default:
