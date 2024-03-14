@@ -184,6 +184,20 @@
   "GroupsList.column.action": "Action",
   "GroupsList.delete-group": "Delete Group",
 
+  "GroupRolesList.column.name": "Name",
+  "GroupRolesList.column.key": "Role Key",
+  "GroupRolesList.column.action": "Action",
+  "GroupRolesList.actions.remove": "Remove",
+  "GroupRolesList.empty": "No roles in group",
+
+  "DeleteGroupRoleDialog.title": "Remove Role",
+  "DeleteGroupRoleDialog.description": "Are you sure you want to remove \"{groupName}\" from the \"{roleName}\" role?",
+
+  "GroupDetailsScreen.roles.add": "Add to Role",
+
+  "AddGroupRolesDialog.title": "Add {groupName} group to role",
+  "AddGroupRolesDialog.selectGroups": "Select Roles",
+
   "DeleteGroupDialog.title": "Delete Group",
   "DeleteGroupDialog.description": "Are you sure you want to delete the group \"{groupName}\"?",
   "DeleteGroupDialog.button.confirm": "Delete Group",

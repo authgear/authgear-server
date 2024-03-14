@@ -46,8 +46,8 @@ import {
   RoleGroupsList,
   RoleGroupsListItem,
 } from "../../components/roles-and-groups/RoleGroupsList";
-import { searchGroups } from "../../model/group";
 import { AddRoleGroupsDialog } from "../../components/roles-and-groups/AddRoleGroupsDialog";
+import { searchGroups } from "../../model/group";
 
 interface FormState {
   roleKey: string;

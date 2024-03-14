@@ -1,5 +1,6 @@
 import { LocalValidationError } from "../error/validation";
 import { Role } from "../graphql/adminapi/globalTypes.generated";
+import { processSearchKeyword } from "../util/search";
 
 export interface CreatableRole
   extends Pick<Role, "key" | "name" | "description"> {}
@@ -48,4 +49,33 @@ export function sanitizeRole(input: CreatableRole): CreatableRole {
     name: name ? name : null,
     description: description ? description : null,
   };
+}
+
+export interface SearchableRole extends Pick<Role, "id" | "key" | "name"> {}
+
+export function searchRoles<R extends SearchableRole>(
+  roles: R[],
+  searchKeyword: string
+): R[] {
+  if (searchKeyword === "") {
+    return roles;
+  }
+  const keywords = processSearchKeyword(searchKeyword);
+  return roles.filter((role) => {
+    const roleID = role.id.toLowerCase();
+    const roleKey = role.key.toLowerCase();
+    const roleName = role.name?.toLowerCase();
+    return keywords.every((keyword) => {
+      if (roleID === keyword) {
+        return true;
+      }
+      if (roleKey.includes(keyword)) {
+        return true;
+      }
+      if (roleName?.includes(keyword)) {
+        return true;
+      }
+      return false;
+    });
+  });
 }
