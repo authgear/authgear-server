@@ -26,7 +26,6 @@ var _ = FeatureConfigSchema.Add("AuthenticatorPasswordFeatureConfig", `
 
 type AuthenticatorPasswordFeatureConfig struct {
 	Policy *PasswordPolicyFeatureConfig `json:"policy,omitempty"`
-	Expiry *PasswordExpiryFeatureConfig `json:"expiry,omitempty"`
 }
 
 var _ = FeatureConfigSchema.Add("PasswordPolicyFeatureConfig", `
@@ -36,8 +35,7 @@ var _ = FeatureConfigSchema.Add("PasswordPolicyFeatureConfig", `
 	"properties": {
 		"minimum_guessable_level": { "$ref": "#/$defs/PasswordPolicyItemFeatureConfig" },
 		"excluded_keywords": { "$ref": "#/$defs/PasswordPolicyItemFeatureConfig" },
-		"history": { "$ref": "#/$defs/PasswordPolicyItemFeatureConfig" },
-		"expiry": { "$ref": "#/$defs/PasswordExpiryFeatureConfig" }
+		"history": { "$ref": "#/$defs/PasswordPolicyItemFeatureConfig" }
 	}
 }
 `)
@@ -63,47 +61,6 @@ type PasswordPolicyItemFeatureConfig struct {
 }
 
 func (c *PasswordPolicyItemFeatureConfig) SetDefaults() {
-	if c.Disabled == nil {
-		c.Disabled = newBool(false)
-	}
-}
-
-var _ = FeatureConfigSchema.Add("PasswordExpiryFeatureConfig", `
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"force_change": { "$ref": "#/$defs/PasswordExpiryForceChangeFeatureConfig" }
-	}
-}
-`)
-
-type PasswordExpiryFeatureConfig struct {
-	ForceChange *PasswordExpiryForceChangeFeatureConfig `json:"force_change,omitempty"`
-}
-
-func (c *PasswordExpiryFeatureConfig) SetDefaults() {
-	if c.ForceChange == nil {
-		c.ForceChange = &PasswordExpiryForceChangeFeatureConfig{}
-		c.ForceChange.SetDefaults()
-	}
-}
-
-var _ = FeatureConfigSchema.Add("PasswordExpiryForceChangeFeatureConfig", `
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"disabled": { "type": "boolean" }
-	}
-}
-`)
-
-type PasswordExpiryForceChangeFeatureConfig struct {
-	Disabled *bool `json:"disabled,omitempty"`
-}
-
-func (c *PasswordExpiryForceChangeFeatureConfig) SetDefaults() {
 	if c.Disabled == nil {
 		c.Disabled = newBool(false)
 	}
