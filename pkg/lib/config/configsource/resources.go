@@ -294,17 +294,6 @@ func (d AuthgearYAMLDescriptor) validateBasedOnFeatureConfig(appConfig *config.A
 			).EmitErrorMessage("password history is disallowed")
 		}
 	}
-	if *fc.Authenticator.Password.Expiry.ForceChange.Disabled {
-		if appConfig.Authenticator.Password.Expiry.ForceChange.IsEnabled() {
-			validationCtx.Child(
-				"authenticator",
-				"password",
-				"expiry",
-				"force_change",
-			).EmitErrorMessage("password expiry force_change is disallowed")
-		}
-	}
-
 	if !fc.OAuth.Client.CustomUIEnabled {
 		for i, oauthClient := range appConfig.OAuth.Clients {
 			if oauthClient.CustomUIURI != "" {
