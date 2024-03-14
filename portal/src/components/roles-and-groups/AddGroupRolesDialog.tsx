@@ -13,7 +13,7 @@ import {
   RolesListQueryQueryVariables,
 } from "../../graphql/adminapi/query/rolesListQuery.generated";
 
-interface AddGroupRolesDialogGroup extends Pick<Role, "id" | "key" | "name"> {}
+interface AddGroupRolesDialogGroup extends Pick<Role, "id" | "key" | "name"> { }
 
 interface AddGroupRolesDialogProps {
   groupID: string;
@@ -64,7 +64,7 @@ export const AddGroupRolesDialog: React.VFC<AddGroupRolesDialogProps> =
 
     const onResolveGroupSuggestions = useCallback(
       async (filter: string, selectedTags?: ITag[]): Promise<ITag[]> => {
-        const selectedGroupIDs = new Set(
+        const selectedRoleIDs = new Set(
           selectedTags?.map((tag) => (tag as RoleTag).role.id)
         );
         const result = await refetch({ searchKeyword: filter, pageSize: 100 });
@@ -77,13 +77,13 @@ export const AddGroupRolesDialog: React.VFC<AddGroupRolesDialogProps> =
           if (node == null) {
             return [];
           }
-          // Filter out existing groups
+          // Filter out existing roles 
           if (existingRoleIDs.has(node.id)) {
             return [];
           }
 
-          // Filter out selected groups
-          if (selectedGroupIDs.has(node.id)) {
+          // Filter out selected roles
+          if (selectedRoleIDs.has(node.id)) {
             return [];
           }
 

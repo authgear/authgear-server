@@ -191,7 +191,7 @@
   "GroupRolesList.empty": "No roles in group",
 
   "DeleteGroupRoleDialog.title": "Remove Role",
-  "DeleteGroupRoleDialog.description": "Are you sure you want to remove \"{groupName}\" from the \"{roleName}\" group?",
+  "DeleteGroupRoleDialog.description": "Are you sure you want to remove \"{groupName}\" from the \"{roleName}\" role?",
 
   "GroupDetailsScreen.roles.add": "Add to Role",
 
