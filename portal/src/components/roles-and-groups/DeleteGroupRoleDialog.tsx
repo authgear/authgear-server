@@ -1,9 +1,7 @@
 import React, {
   useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useState,
 } from "react";
 import {
   Dialog,
@@ -18,6 +16,7 @@ import DefaultButton from "../../DefaultButton";
 import ErrorDialog from "../../error/ErrorDialog";
 import { useGroupQuery } from "../../graphql/adminapi/query/groupQuery";
 import { useRemoveGroupFromRolesMutation } from "../../graphql/adminapi/mutations/removeGroupFromRoles";
+import { useSnapshotData } from "../../hook/useSnapshotData";
 
 export interface DeleteGroupRoleDialogData {
   roleID: string;
@@ -34,19 +33,6 @@ interface DeleteGroupRoleDialogProps {
   onDismissed?: () => void;
 }
 
-function useSnapshotData(data: DeleteGroupRoleDialogData | null) {
-  // Keep the latest non-null data, because the dialog has transition animation before dismiss.
-  // During the transition, we still need the data. However, the parent may already changed the props.
-  const [snapshot, setSnapshot] = useState<DeleteGroupRoleDialogData | null>(
-    data
-  );
-  useEffect(() => {
-    if (data !== null) {
-      setSnapshot(data);
-    }
-  }, [data]);
-  return snapshot;
-}
 
 const dialogStyles = { main: { minHeight: 0 } };
 
