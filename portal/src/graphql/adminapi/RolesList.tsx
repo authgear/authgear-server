@@ -16,6 +16,7 @@ import Link from "../../Link";
 import DeleteRoleDialog, { DeleteRoleDialogData } from "./DeleteRoleDialog";
 import RolesAndGroupsBaseList from "../../components/roles-and-groups/list/RolesAndGroupsBaseList";
 import ActionButtonCell from "../../components/roles-and-groups/list/ActionButtonCell";
+import TextCell from "../../components/roles-and-groups/list/TextCell";
 
 interface RolesListProps {
   className?: string;
@@ -165,11 +166,7 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
         }
         default:
           return (
-            <div className={styles.cell}>
-              <div className={styles.cellText}>
-                {item[column?.key as keyof RoleListItem] ?? ""}
-              </div>
-            </div>
+            <TextCell>{item[column?.key as keyof RoleListItem] ?? ""}</TextCell>
           );
       }
     },
