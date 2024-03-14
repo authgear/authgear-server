@@ -6,12 +6,12 @@ import {
 import { useMutation } from "@apollo/client";
 
 export function useUpdateGroupMutation(): {
-  updateGroup: (
-    id: string,
-    key?: string,
-    name?: string,
-    description?: string
-  ) => Promise<void>;
+  updateGroup: (group: {
+    id: string;
+    key?: string;
+    name?: string | null;
+    description?: string | null;
+  }) => Promise<void>;
   loading: boolean;
   error: unknown;
 } {
@@ -19,13 +19,18 @@ export function useUpdateGroupMutation(): {
     useMutation<UpdateGroupMutationMutation>(UpdateGroupMutationDocument);
 
   const updateGroup = useCallback(
-    async (id: string, key?: string, name?: string, description?: string) => {
+    async (group: {
+      id: string;
+      key?: string;
+      name?: string | null;
+      description?: string | null;
+    }) => {
       await mutateFunction({
         variables: {
-          id,
-          key,
-          name,
-          description,
+          id: group.id,
+          key: group.key,
+          name: group.name,
+          description: group.description,
         },
       });
     },

@@ -10,8 +10,8 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import ErrorDialog from "../../error/ErrorDialog";
-import { useDeleteGroupMutation } from "./mutations/deleteGroupMutation";
 import { useSnapshotData } from "../../hook/useSnapshotData";
+import { useDeleteGroupMutation } from "../../graphql/adminapi/mutations/deleteGroupMutation";
 
 export interface DeleteGroupDialogData {
   groupID: string;

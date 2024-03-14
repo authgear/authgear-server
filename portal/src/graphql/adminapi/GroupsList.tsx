@@ -19,7 +19,9 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import Link from "../../Link";
 import ActionButton from "../../ActionButton";
 import PaginationWidget from "../../PaginationWidget";
-import DeleteGroupDialog, { DeleteGroupDialogData } from "./DeleteGroupDialog";
+import DeleteGroupDialog, {
+  DeleteGroupDialogData,
+} from "../../components/roles-and-groups/DeleteGroupDialog";
 
 interface GroupsListProps {
   className?: string;

@@ -12,6 +12,7 @@ import { usePivotNavigation } from "../../hook/usePivot";
 import { BreadcrumbItem } from "../../NavBreadcrumb";
 import { RoleAndGroupsLayout } from "../../RoleAndGroupsLayout";
 import { Pivot, PivotItem } from "@fluentui/react";
+import { GroupDetailsSettingsForm } from "../../components/roles-and-groups/GroupDetailsSettingsForm";
 
 const SETTINGS_KEY = "settings";
 const ROLES_KEY = "roles";
@@ -55,7 +56,7 @@ function GroupDetailsScreenLoaded(props: { group: GroupQueryNodeFragment }) {
       {selectedKey === ROLES_KEY ? (
         <>{/* TODO: Groups Tab */}</>
       ) : (
-        <>{/* TODO: Settings Tab */}</>
+        <GroupDetailsSettingsForm group={group} />
       )}
     </RoleAndGroupsLayout>
   );
