@@ -23,6 +23,7 @@
         (dict
           "Type" "error"
           "Classname" "mt-4"
+          "Message" (include "authflowv2/__error.html" .)
         )
       }}
     </div>
@@ -36,6 +37,13 @@
       <input type="hidden" name="x_oob_otp_code" value="{{ .Code }}">
       <h1 class="screen-title">{{ template "v2-verify-login-link-title" }}</h1>
       <p class="screen-description">{{ template "v2-verify-login-link-description" (dict "AppOrClientName" $appName) }}</p>
+      {{ template "authflowv2/__alert_message.html"
+        (dict
+          "Type" "error"
+          "Classname" "mt-4"
+          "Message" (include "authflowv2/__error.html" .)
+        )
+      }}
       <div class="flex-1 tablet:h-4 tablet:flex-none"></div>
       <button
         class="primary-btn"
