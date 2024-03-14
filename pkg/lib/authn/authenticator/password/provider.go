@@ -23,6 +23,7 @@ type Provider struct {
 	Logger          Logger
 	PasswordHistory *HistoryStore
 	PasswordChecker *Checker
+	Expiry          *Expiry
 	Housekeeper     *Housekeeper
 }
 
@@ -140,10 +141,15 @@ func (p *Provider) Authenticate(a *authenticator.Password, password string) (req
 		}
 	}
 
-	if notAllowedErr := p.PasswordChecker.ValidateCurrentPassword(password); notAllowedErr != nil {
+	if validateErr := p.PasswordChecker.ValidateCurrentPassword(password); validateErr != nil {
 		if p.Config.ForceChange != nil && *p.Config.ForceChange {
 			requireUpdate = true
 		}
+	}
+
+	if expiryErr := p.Expiry.Validate(password, a.ID); expiryErr != nil {
+		err = expiryErr
+		requireUpdate = true
 	}
 
 	return

@@ -35,3 +35,5 @@ var ErrClaimNotVerifiable = NewInvariantViolated("ClaimNotVerifiable", "claim no
 
 var ChangePasswordFailed = apierrors.Invalid.WithReason("ChangePasswordFailed")
 var ErrNoPassword = ChangePasswordFailed.NewWithCause("the user does not have a password", apierrors.StringCause("NoPassword"))
+
+var ErrPasswordExpiryForceChange = apierrors.Invalid.WithReason("PasswordExpired").New("password expired")

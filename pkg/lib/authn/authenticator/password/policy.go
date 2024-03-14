@@ -1,11 +1,5 @@
 package password
 
-import (
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
-)
-
-var PasswordPolicyViolated apierrors.Kind = apierrors.Invalid.WithReason("PasswordPolicyViolated")
-
 type PolicyName string
 
 const (
@@ -28,8 +22,6 @@ const (
 	PasswordBelowGuessableLevel PolicyName = "PasswordBelowGuessableLevel"
 	// PasswordReused is self-explanatory
 	PasswordReused PolicyName = "PasswordReused"
-	// PasswordExpired is self-explanatory
-	PasswordExpired PolicyName = "PasswordExpired"
 )
 
 type Policy struct {

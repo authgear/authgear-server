@@ -287,6 +287,23 @@ func TestValidateNewPassword(t *testing.T) {
 		}
 		`)
 	})
+	Convey("validate strong password", t, func() {
+		// nolint:gosec
+		password := "N!hon-no-tsuk!-wa-seka!-1ban-k!re!desu" // 日本の月は世界一番きれいです
+		pc := &Checker{
+			PwMinLength:         8,
+			PwUppercaseRequired: true,
+			PwLowercaseRequired: true,
+			PwDigitRequired:     true,
+			PwSymbolRequired:    true,
+			PwMinGuessableLevel: 5,
+			PwExcludedKeywords:  []string{"user", "admin"},
+		}
+		So(
+			pc.ValidateNewPassword("", password),
+			ShouldBeNil,
+		)
+	})
 
 	Convey("validate password history", t, func(c C) {
 		historySize := 12
@@ -408,24 +425,6 @@ func TestValidateNewPassword(t *testing.T) {
 		`)
 
 		test(pc, authID, "coffee", "")
-	})
-
-	Convey("validate strong password", t, func() {
-		// nolint:gosec
-		password := "N!hon-no-tsuk!-wa-seka!-1ban-k!re!desu" // 日本の月は世界一番きれいです
-		pc := &Checker{
-			PwMinLength:         8,
-			PwUppercaseRequired: true,
-			PwLowercaseRequired: true,
-			PwDigitRequired:     true,
-			PwSymbolRequired:    true,
-			PwMinGuessableLevel: 5,
-			PwExcludedKeywords:  []string{"user", "admin"},
-		}
-		So(
-			pc.ValidateNewPassword("", password),
-			ShouldBeNil,
-		)
 	})
 }
 

@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -514,7 +515,11 @@ func (s *Service) verifyWithSpec(info *authenticator.Info, spec *authenticator.S
 		plainPassword := spec.Password.PlainPassword
 		a := info.Password
 		requireUpdate, err = s.Password.Authenticate(a, plainPassword)
-		if err != nil {
+		var apiError = apierrors.AsAPIError(err)
+		if apiError != nil && apiError.Kind == password.PasswordExpiryForceChange {
+			// Proceed next auth step but require update
+			err = api.ErrPasswordExpiryForceChange
+		} else if err != nil {
 			err = api.ErrInvalidCredentials
 			return
 		}
@@ -609,6 +614,10 @@ func (s *Service) VerifyOneWithSpec(
 		if errors.Is(err, api.ErrInvalidCredentials) {
 			continue
 		}
+		if errors.Is(err, api.ErrPasswordExpiryForceChange) {
+			// If password is expired, carry on next step but require update
+			info = thisInfo
+		}
 		// unexpected errors or no error
 		// For both cases we should break the loop and return
 		if err == nil {
@@ -627,6 +636,11 @@ func (s *Service) VerifyOneWithSpec(
 	case info != nil && err == nil:
 		// Authenticated.
 		break
+	case info != nil && err != nil:
+		if errors.Is(err, api.ErrPasswordExpiryForceChange) {
+			// If password is expired, carry on next step but require update
+			break
+		}
 	case info == nil && err != nil:
 		// Some error.
 		break
