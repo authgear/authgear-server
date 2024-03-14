@@ -120,20 +120,18 @@ type CheckerHistoryStore interface {
 }
 
 type Checker struct {
-	PwMinLength                        int
-	PwUppercaseRequired                bool
-	PwLowercaseRequired                bool
-	PwAlphabetRequired                 bool
-	PwDigitRequired                    bool
-	PwSymbolRequired                   bool
-	PwMinGuessableLevel                int
-	PwExcludedKeywords                 []string
-	PwHistorySize                      int
-	PwHistoryDays                      config.DurationDays
-	PasswordHistoryEnabled             bool
-	PasswordHistoryStore               CheckerHistoryStore
-	PwExpiryForceChangeEnabled         bool
-	PwExpiryForceChangeSinceLastUpdate config.DurationString
+	PwMinLength            int
+	PwUppercaseRequired    bool
+	PwLowercaseRequired    bool
+	PwAlphabetRequired     bool
+	PwDigitRequired        bool
+	PwSymbolRequired       bool
+	PwMinGuessableLevel    int
+	PwExcludedKeywords     []string
+	PwHistorySize          int
+	PwHistoryDays          config.DurationDays
+	PasswordHistoryEnabled bool
+	PasswordHistoryStore   CheckerHistoryStore
 }
 
 func (pc *Checker) policyPasswordLength() Policy {
