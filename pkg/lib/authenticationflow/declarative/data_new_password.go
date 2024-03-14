@@ -4,7 +4,8 @@ import authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 
 type NewPasswordData struct {
 	TypedData
-	PasswordPolicy *PasswordPolicy `json:"password_policy,omitempty"`
+	PasswordPolicy *PasswordPolicy       `json:"password_policy,omitempty"`
+	Reason         *PasswordChangeReason `json:"reason,omitempty"`
 }
 
 func NewNewPasswordData(d NewPasswordData) NewPasswordData {

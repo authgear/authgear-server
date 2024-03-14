@@ -195,12 +195,10 @@ func generateLoginFlowStepAuthenticatePrimaryPassword(
 	}
 
 	// Add change password step.
-	if *cfg.Authenticator.Password.ForceChange {
-		oneOf.Steps = append(oneOf.Steps, &config.AuthenticationFlowLoginFlowStep{
-			Type:       config.AuthenticationFlowLoginFlowStepTypeChangePassword,
-			TargetStep: targetStep,
-		})
-	}
+	oneOf.Steps = append(oneOf.Steps, &config.AuthenticationFlowLoginFlowStep{
+		Type:       config.AuthenticationFlowLoginFlowStepTypeChangePassword,
+		TargetStep: targetStep,
+	})
 	return oneOf
 }
 

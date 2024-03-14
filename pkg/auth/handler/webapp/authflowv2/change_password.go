@@ -41,10 +41,11 @@ type AuthflowV2ChangePasswordNavigator interface {
 }
 
 type AuthflowV2ChangePasswordHandler struct {
-	Controller    *handlerwebapp.AuthflowController
-	Navigator     AuthflowV2ChangePasswordNavigator
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      handlerwebapp.Renderer
+	Controller              *handlerwebapp.AuthflowController
+	Navigator               AuthflowV2ChangePasswordNavigator
+	BaseViewModel           *viewmodels.BaseViewModeler
+	ChangePasswordViewModel *viewmodels.ChangePasswordViewModeler
+	Renderer                handlerwebapp.Renderer
 }
 
 func (h *AuthflowV2ChangePasswordHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
@@ -62,8 +63,10 @@ func (h *AuthflowV2ChangePasswordHandler) GetData(w http.ResponseWriter, r *http
 			IsNew: false,
 		},
 	)
+	changePasswordViewModel := h.ChangePasswordViewModel.NewWithAuthflow(screenData.Reason)
 
 	viewmodels.Embed(data, passwordPolicyViewModel)
+	viewmodels.Embed(data, changePasswordViewModel)
 
 	passwordInputErrorViewModel := authflowv2viewmodels.NewPasswordInputErrorViewModel(baseViewModel.RawError)
 	viewmodels.Embed(data, passwordInputErrorViewModel)
