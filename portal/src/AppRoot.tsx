@@ -22,6 +22,9 @@ const GroupsScreen = lazy(
 const AddGroupScreen = lazy(
   async () => import("./graphql/adminapi/AddGroupScreen")
 );
+const GroupDetailsScreen = lazy(
+  async () => import("./graphql/adminapi/GroupDetailsScreen")
+);
 const UsersRedirectScreen = lazy(async () => import("./UsersRedirectScreen"));
 const UsersScreen = lazy(async () => import("./graphql/adminapi/UsersScreen"));
 const AddUserScreen = lazy(
@@ -273,6 +276,22 @@ const AppRoot: React.VFC = function AppRoot() {
                     </Suspense>
                   }
                 />
+                <Route path=":groupID">
+                  <Route
+                    index={true}
+                    element={<Navigate to="details" replace={true} />}
+                  />
+                  <Route path="details">
+                    <Route
+                      index={true}
+                      element={
+                        <Suspense fallback={<ShowLoading />}>
+                          <GroupDetailsScreen />
+                        </Suspense>
+                      }
+                    />
+                  </Route>
+                </Route>
               </Route>
 
               <Route path="users">
