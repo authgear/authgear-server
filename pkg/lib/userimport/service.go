@@ -85,6 +85,10 @@ type RolesGroupsCommands interface {
 	ResetUserRole(options *rolesgroups.ResetUserRoleOptions) error
 }
 
+type ElasticsearchService interface {
+	ReindexUser(userID string, isDelete bool) error
+}
+
 type UserImportService struct {
 	AppDatabase         *appdb.Handle
 	LoginIDConfig       *config.LoginIDConfig
@@ -96,6 +100,7 @@ type UserImportService struct {
 	StandardAttributes  StandardAttributesService
 	CustomAttributes    CustomAttributesService
 	RolesGroupsCommands RolesGroupsCommands
+	Elasticsearch       ElasticsearchService
 	Logger              Logger
 }
 
@@ -287,6 +292,11 @@ func (s *UserImportService) insertRecordInTxn(ctx context.Context, result *impor
 	}
 
 	err = s.insertMFATOTPInTxn(ctx, result, record, userID)
+	if err != nil {
+		return
+	}
+
+	err = s.Elasticsearch.ReindexUser(userID, false)
 	if err != nil {
 		return
 	}
@@ -783,6 +793,11 @@ func (s *UserImportService) upsertRecordInTxn(ctx context.Context, result *impor
 	}
 
 	err = s.upsertMFAOOBOTPPhoneInTxn(ctx, result, record, info.UserID)
+	if err != nil {
+		return
+	}
+
+	err = s.Elasticsearch.ReindexUser(info.UserID, false)
 	if err != nil {
 		return
 	}

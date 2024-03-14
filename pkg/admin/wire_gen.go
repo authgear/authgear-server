@@ -1712,6 +1712,14 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := &facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	service5 := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userQueries,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	userimportLogger := userimport.NewLogger(factory)
 	userImportService := &userimport.UserImportService{
 		AppDatabase:         handle,
@@ -1724,6 +1732,7 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes:  serviceNoEvent,
 		CustomAttributes:    customattrsServiceNoEvent,
 		RolesGroupsCommands: commands,
+		Elasticsearch:       service5,
 		Logger:              userimportLogger,
 	}
 	userImportHandler := &transport.UserImportHandler{
