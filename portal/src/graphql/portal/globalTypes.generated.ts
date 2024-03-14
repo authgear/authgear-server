@@ -847,6 +847,7 @@ export type VerifyDomainPayload = {
 export type Viewer = Node & {
   __typename?: 'Viewer';
   email?: Maybe<Scalars['String']['output']>;
+  formattedName?: Maybe<Scalars['String']['output']>;
   /** The ID of an object */
   id: Scalars['ID']['output'];
   projectOwnerCount: Scalars['Int']['output'];

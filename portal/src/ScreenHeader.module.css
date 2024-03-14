@@ -60,3 +60,22 @@
 .hamburger {
   margin: 8px 20px 8px 16px;
 }
+
+.links {
+  @apply ml-auto mr-5 mobile:mr-4;
+  @apply flex;
+  @apply gap-10 tablet:gap-4;
+}
+
+.link {
+  @apply inline-flex;
+  @apply text-center;
+
+  &:hover {
+    text-decoration: none;
+  }
+
+  span {
+    @apply text-white;
+  }
+}

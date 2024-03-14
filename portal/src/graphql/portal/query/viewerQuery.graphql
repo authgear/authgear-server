@@ -2,6 +2,7 @@ query viewerQuery {
   viewer {
     id
     email
+    formattedName
     projectQuota
     projectOwnerCount
   }

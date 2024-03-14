@@ -3,7 +3,7 @@ package graphql
 import (
 	"context"
 
-	"github.com/authgear/graphql-go-relay"
+	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/portal/model"
@@ -22,6 +22,9 @@ var nodeViewer = node(
 		Fields: graphql.Fields{
 			"id": relay.GlobalIDField(typeViewer, nil),
 			"email": &graphql.Field{
+				Type: graphql.String,
+			},
+			"formattedName": &graphql.Field{
 				Type: graphql.String,
 			},
 			"projectQuota": &graphql.Field{

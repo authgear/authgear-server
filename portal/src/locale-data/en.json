@@ -80,6 +80,8 @@
 
   "ScreenHeader.sign-out": "Sign Out",
   "ScreenHeader.settings": "Account Settings",
+  "ScreenHeader.links.schedule-demo": "Discuss your needs",
+  "ScreenHeader.links.documentation": "Docs",
 
   "show-error.retry": "Retry",
 
