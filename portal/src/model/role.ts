@@ -1,6 +1,6 @@
 import { LocalValidationError } from "../error/validation";
 import { Role } from "../graphql/adminapi/globalTypes.generated";
-import { processKeyword } from "../util/rolesAndGroups";
+import { processSearchKeyword } from "../util/search";
 
 export interface CreatableRole
   extends Pick<Role, "key" | "name" | "description"> {}
@@ -60,7 +60,7 @@ export function searchRoles<R extends SearchableRole>(
   if (searchKeyword === "") {
     return roles;
   }
-  const keywords = processKeyword(searchKeyword);
+  const keywords = processSearchKeyword(searchKeyword);
   return roles.filter((role) => {
     const roleID = role.id.toLowerCase();
     const roleKey = role.key.toLowerCase();

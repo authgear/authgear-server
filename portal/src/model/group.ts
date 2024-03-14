@@ -1,6 +1,6 @@
 import { LocalValidationError } from "../error/validation";
 import { Group } from "../graphql/adminapi/globalTypes.generated";
-import { processKeyword } from "../util/rolesAndGroups";
+import { processSearchKeyword } from "../util/search";
 
 export interface CreatableGroup
   extends Pick<Group, "key" | "name" | "description"> {}
@@ -72,7 +72,7 @@ export function searchGroups<G extends SearchableGroup>(
   if (searchKeyword === "") {
     return groups;
   }
-  const keywords = processKeyword(searchKeyword);
+  const keywords = processSearchKeyword(searchKeyword);
   return groups.filter((group) => {
     const groupID = group.id.toLowerCase();
     const groupKey = group.key.toLowerCase();
