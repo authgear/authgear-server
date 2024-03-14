@@ -104,12 +104,37 @@ var _ = Schema.Add("PasswordExpiryForceChangeConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"enabled": { "type": "boolean" },
-		"since_last_update": { "$ref": "#/$defs/DurationString" }
+		"duration_since_last_update": { "$ref": "#/$defs/DurationString" }
 	},
 	"if": { "properties": { "enabled": { "const": true } }, "required": ["enabled"] },
-	"then": { "required": ["since_last_update"] }
+	"then": { "required": ["duration_since_last_update"] }
 }
 `)
+
+/**
+Example config of password expiry
+
+NOTE: Currently only force_change is supported. The other 2 cases are planned in later phase.
+
+```
+password:
+	# The 3 cases can be turned on individually.
+	# However, the precedence is deny_login > force_change > prompt_change.
+	expiry: # "expiration" is American English, while "expiry" is British English. But we have been using "expiry" in the config. So let's stick with it.
+		# In this case, the authflow will result in a dead end, with an error telling that the password is expired and the login is denied.
+		deny_login:
+			enabled: true
+			duration_since_last_update: 2160h
+		# In this case, the authflow will enter the change_password step (The existing one). To proceed, the end-user must change the password.
+		force_change:
+				enabled: true
+      duration_since_last_update: 1440h
+    # In this case, the authflow will enter the change_password step. But this step now supports taking an input to skip the password update.
+    prompt_change:
+      enabled: true
+      duration_since_last_update: 720h
+```
+**/
 
 type PasswordExpiryConfig struct {
 	ForceChange *PasswordExpiryForceChangeConfig `json:"force_change,omitempty"`
@@ -122,12 +147,12 @@ func (c *PasswordExpiryConfig) SetDefaults() {
 }
 
 type PasswordExpiryForceChangeConfig struct {
-	Enabled         bool           `json:"enabled,omitempty"`
-	SinceLastUpdate DurationString `json:"since_last_update,omitempty"`
+	Enabled                 bool           `json:"enabled,omitempty"`
+	DurationSinceLastUpdate DurationString `json:"duration_since_last_update,omitempty"`
 }
 
 func (c *PasswordExpiryForceChangeConfig) IsEnabled() bool {
-	sinceLastUpdate, sinceLastUpdateIsValid := c.SinceLastUpdate.MaybeDuration()
+	sinceLastUpdate, sinceLastUpdateIsValid := c.DurationSinceLastUpdate.MaybeDuration()
 	return c.Enabled && sinceLastUpdateIsValid && sinceLastUpdate > 0
 }
 
