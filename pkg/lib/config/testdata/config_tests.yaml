@@ -1018,6 +1018,18 @@ config:
           enabled: true
           since_last_update: 24h
 ---
+name: password-expiry-disabled
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authenticator:
+    password:
+      expiry:
+        force_change:
+          enabled: false
+---
 name: password-expiry-invalid-format
 error: |-
   invalid configuration:
@@ -1033,3 +1045,18 @@ config:
         force_change:
           enabled: true
           since_last_update: "BCD"
+---
+name: password-expiry-missing-since-last-update
+error: |-
+  invalid configuration:
+  /authenticator/password/expiry/force_change: required
+    map[actual:[enabled] expected:[since_last_update] missing:[since_last_update]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authenticator:
+    password:
+      expiry:
+        force_change:
+          enabled: true

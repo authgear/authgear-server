@@ -105,7 +105,9 @@ var _ = Schema.Add("PasswordExpiryForceChangeConfig", `
 	"properties": {
 		"enabled": { "type": "boolean" },
 		"since_last_update": { "$ref": "#/$defs/DurationString" }
-	}
+	},
+	"if": { "properties": { "enabled": { "const": true } }, "required": ["enabled"] },
+	"then": { "required": ["since_last_update"] }
 }
 `)
 
