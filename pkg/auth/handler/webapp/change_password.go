@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	pwd "github.com/authgear/authgear-server/pkg/util/password"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -37,13 +38,14 @@ type ChangePasswordViewModel struct {
 }
 
 type ForceChangePasswordHandler struct {
-	ControllerFactory ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	Renderer          Renderer
-	PasswordPolicy    PasswordPolicy
+	ControllerFactory       ControllerFactory
+	BaseViewModel           *viewmodels.BaseViewModeler
+	ChangePasswordViewModel *viewmodels.ChangePasswordViewModeler
+	Renderer                Renderer
+	PasswordPolicy          PasswordPolicy
 }
 
-func (h *ForceChangePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+func (h *ForceChangePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	passwordPolicyViewModel := viewmodels.NewPasswordPolicyViewModel(
@@ -52,11 +54,10 @@ func (h *ForceChangePasswordHandler) GetData(r *http.Request, rw http.ResponseWr
 		baseViewModel.RawError,
 		viewmodels.GetDefaultPasswordPolicyViewModelOptions(),
 	)
+	changePasswordViewModel := h.ChangePasswordViewModel.NewWithGraph(graph)
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, passwordPolicyViewModel)
-	viewmodels.Embed(data, ChangePasswordViewModel{
-		Force: true,
-	})
+	viewmodels.Embed(data, changePasswordViewModel)
 
 	return data, nil
 }
@@ -73,12 +74,12 @@ func (h *ForceChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		// Ensure there is an ongoing web session.
 		// If the user clicks back just after authentication, there is no ongoing web session.
 		// The user will see the normal web session not found error page.
-		_, err := ctrl.InteractionGet()
+		graph, err := ctrl.InteractionGet()
 		if err != nil {
 			return err
 		}
 
-		data, err := h.GetData(r, w)
+		data, err := h.GetData(r, w, graph)
 		if err != nil {
 			return err
 		}

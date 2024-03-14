@@ -1,6 +1,9 @@
 package nodes
 
 import (
+	"errors"
+
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -68,17 +71,22 @@ func (e *EdgeAuthenticationPassword) Instantiate(ctx *interaction.Context, graph
 			),
 		},
 	)
-	if err != nil {
+
+	reason := interaction.AuthenticatorUpdateReasonPolicy
+	if errors.Is(err, api.ErrPasswordExpiryForceChange) {
+		reason = interaction.AuthenticatorUpdateReasonExpiryForceChange
+	} else if err != nil {
 		return nil, err
 	}
 
-	return &NodeAuthenticationPassword{Stage: e.Stage, Authenticator: info, RequireUpdate: requireUpdate}, nil
+	return &NodeAuthenticationPassword{Stage: e.Stage, Authenticator: info, RequireUpdate: requireUpdate, RequireUpdateReason: &reason}, nil
 }
 
 type NodeAuthenticationPassword struct {
-	Stage         authn.AuthenticationStage `json:"stage"`
-	Authenticator *authenticator.Info       `json:"authenticator"`
-	RequireUpdate bool                      `json:"require_update"`
+	Stage               authn.AuthenticationStage              `json:"stage"`
+	Authenticator       *authenticator.Info                    `json:"authenticator"`
+	RequireUpdate       bool                                   `json:"require_update"`
+	RequireUpdateReason *interaction.AuthenticatorUpdateReason `json:"require_update_reason,omitempty"`
 }
 
 func (n *NodeAuthenticationPassword) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -99,9 +107,9 @@ func (n *NodeAuthenticationPassword) DeriveEdges(graph *interaction.Graph) ([]in
 	}, nil
 }
 
-func (n *NodeAuthenticationPassword) GetRequireUpdateAuthenticator(stage authn.AuthenticationStage) (info *authenticator.Info, ok bool) {
+func (n *NodeAuthenticationPassword) GetRequireUpdateAuthenticator(stage authn.AuthenticationStage) (info *authenticator.Info, reason *interaction.AuthenticatorUpdateReason, ok bool) {
 	if n.RequireUpdate && n.Stage == stage {
-		return n.Authenticator, true
+		return n.Authenticator, n.RequireUpdateReason, true
 	}
-	return nil, false
+	return nil, nil, false
 }

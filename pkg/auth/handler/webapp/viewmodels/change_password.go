@@ -20,6 +20,23 @@ type ChangePasswordViewModeler struct {
 	LoginID        *config.LoginIDConfig
 }
 
+func (m *ChangePasswordViewModeler) NewWithGraph(graph *interaction.Graph) ChangePasswordViewModel {
+	var node ChangePasswordGetter
+	if !graph.FindLastNode(&node) {
+		panic("webapp: no node with password change reason found")
+	}
+
+	var reason string
+	if node.GetChangeReason() != nil {
+		reason = string(*node.GetChangeReason())
+	}
+
+	return ChangePasswordViewModel{
+		Force:  true,
+		Reason: reason,
+	}
+}
+
 func (m *ChangePasswordViewModeler) NewWithAuthflow(reason *declarative.PasswordChangeReason) ChangePasswordViewModel {
 	var reasonStr string
 	if reason != nil {
