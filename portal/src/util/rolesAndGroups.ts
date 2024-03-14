@@ -1,15 +1,15 @@
 export interface Searchable {
-  id: string 
-  key: string
-  name?: string | null
+  id: string;
+  key: string;
+  name?: string | null;
 }
 
 export function searchRolesAndGroups<T extends Searchable>(
   data: T[],
   searchKeyword: string
 ): T[] {
-  if(searchKeyword === ""){
-    return data
+  if (searchKeyword === "") {
+    return data;
   }
   const keywords = searchKeyword
     .toLowerCase()

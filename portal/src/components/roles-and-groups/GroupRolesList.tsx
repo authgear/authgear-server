@@ -22,7 +22,6 @@ import { Group, Role } from "../../graphql/adminapi/globalTypes.generated";
 import Link from "../../Link";
 import ActionButton from "../../ActionButton";
 import { useSystemConfig } from "../../context/SystemConfigContext";
-import DeleteGroupDialog from "../../graphql/adminapi/DeleteGroupDialog";
 import DeleteGroupRoleDialog, {
   DeleteGroupRoleDialogData,
 } from "./DeleteGroupRoleDialog";
