@@ -13,7 +13,7 @@ import {
   RolesListQueryQueryVariables,
 } from "../../graphql/adminapi/query/rolesListQuery.generated";
 
-interface AddGroupRolesDialogGroup extends Pick<Role, "id" | "key" | "name"> { }
+interface AddGroupRolesDialogGroup extends Pick<Role, "id" | "key" | "name"> {}
 
 interface AddGroupRolesDialogProps {
   groupID: string;
@@ -77,7 +77,7 @@ export const AddGroupRolesDialog: React.VFC<AddGroupRolesDialogProps> =
           if (node == null) {
             return [];
           }
-          // Filter out existing roles 
+          // Filter out existing roles
           if (existingRoleIDs.has(node.id)) {
             return [];
           }

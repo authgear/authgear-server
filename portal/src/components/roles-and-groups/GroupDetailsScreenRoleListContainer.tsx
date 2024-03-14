@@ -17,8 +17,8 @@ import {
 } from "../../graphql/adminapi/query/rolesListQuery.generated";
 import { RolesEmptyView } from "./RolesEmptyView";
 import { GroupRolesList } from "./GroupRolesList";
-import { searchRolesAndGroups } from "../../util/rolesAndGroups";
 import { AddGroupRolesDialog } from "./AddGroupRolesDialog";
+import { searchRoles } from "../../model/role";
 
 export interface GroupRolesListItem extends Pick<Role, "id" | "name" | "key"> {}
 
@@ -79,7 +79,7 @@ const GroupDetailsScreenRoleListContainer: React.VFC<
         }
         return [];
       }) ?? [];
-    return searchRolesAndGroups(groupRoles, searchKeyword);
+    return searchRoles(groupRoles, searchKeyword);
   }, [group.roles?.edges, searchKeyword]);
 
   const groupRoles = useMemo(() => {

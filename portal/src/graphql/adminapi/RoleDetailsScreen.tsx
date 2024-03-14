@@ -47,7 +47,7 @@ import {
   RoleGroupsListItem,
 } from "../../components/roles-and-groups/RoleGroupsList";
 import { AddRoleGroupsDialog } from "../../components/roles-and-groups/AddRoleGroupsDialog";
-import { searchRolesAndGroups } from "../../util/rolesAndGroups";
+import { searchGroups } from "../../model/group";
 
 interface FormState {
   roleKey: string;
@@ -299,7 +299,7 @@ function RoleDetailsScreenGroupListContainer({
         }
         return [];
       }) ?? [];
-    return searchRolesAndGroups(roleGroups, searchKeyword);
+    return searchGroups(roleGroups, searchKeyword);
   }, [role.groups?.edges, searchKeyword]);
 
   const roleGroups = useMemo(() => {

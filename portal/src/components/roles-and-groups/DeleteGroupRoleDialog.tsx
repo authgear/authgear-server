@@ -1,8 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useMemo,
-} from "react";
+import React, { useCallback, useContext, useMemo } from "react";
 import {
   Dialog,
   DialogFooter,
@@ -32,7 +28,6 @@ interface DeleteGroupRoleDialogProps {
   onDismiss: (isDeleted: boolean) => void;
   onDismissed?: () => void;
 }
-
 
 const dialogStyles = { main: { minHeight: 0 } };
 
