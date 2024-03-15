@@ -20,6 +20,7 @@ import Link from "./Link";
 import styles from "./ScreenHeader.module.css";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import { useBoolean } from "@fluentui/react-hooks";
+import ExternalLink from "./ExternalLink";
 
 interface LogoProps {
   isNavbarHeader?: boolean;
@@ -192,6 +193,17 @@ const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
       });
   }, [redirectURI]);
 
+  const scheduleDemoLink = useMemo(() => {
+    const url = new URL("https://www.authgear.com/schedule-demo");
+    if (viewer?.email) {
+      url.searchParams.append("email", viewer.email);
+    }
+    if (viewer?.formattedName) {
+      url.searchParams.append("name", viewer.formattedName);
+    }
+    return url.toString();
+  }, [viewer?.email, viewer?.formattedName]);
+
   const headerStyle = useMemo(
     () => ({
       backgroundColor: themes.main.palette.themePrimary,
@@ -244,8 +256,21 @@ const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
         <DesktopViewHeaderIconSection />
         {appID ? <DesktopViewHeaderAppSection appID={appID} /> : null}
       </div>
+      <div className={styles.links}>
+        <ExternalLink href={scheduleDemoLink} className={styles.link}>
+          <Text variant="small">
+            {renderToString("ScreenHeader.links.schedule-demo")}
+          </Text>
+        </ExternalLink>
+        <ExternalLink href="https://docs.authgear.com/" className={styles.link}>
+          <Text variant="small">
+            {renderToString("ScreenHeader.links.documentation")}
+          </Text>
+        </ExternalLink>
+      </div>
       {viewer != null ? (
         <CommandButton
+          className={styles.desktopView}
           menuProps={menuProps}
           theme={themes.inverted}
           styles={commandButtonStyles}

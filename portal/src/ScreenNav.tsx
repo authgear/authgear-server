@@ -2,7 +2,14 @@ import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useQuery } from "@apollo/client";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { Context } from "@oursky/react-messageformat";
-import { INavLink, INavLinkGroup, INavStyleProps, Nav } from "@fluentui/react";
+import {
+  INavLink,
+  INavLinkGroup,
+  INavStyleProps,
+  Nav,
+  Text,
+} from "@fluentui/react";
+import authgear from "@authgear/web";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import {
   ScreenNavQueryQuery,
@@ -10,6 +17,9 @@ import {
 } from "./graphql/portal/query/screenNavQuery.generated";
 import { client } from "./graphql/portal/apollo";
 import { useAppFeatureConfigQuery } from "./graphql/portal/query/appFeatureConfigQuery";
+import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
+import styles from "./ScreenNav.module.css";
+import ExternalLink from "./ExternalLink";
 
 function getStyles(props: INavStyleProps) {
   return {
@@ -105,6 +115,8 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
   const navigate = useNavigate();
   const { renderToString } = useContext(Context);
   const { pathname } = useLocation();
+  const { authgearEndpoint } = useSystemConfig();
+  const { viewer } = useViewerQuery();
   const queryResult = useQuery<ScreenNavQueryQuery>(ScreenNavQueryDocument, {
     client,
     variables: {
@@ -404,19 +416,58 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
     []
   );
 
+  const settingURL = authgearEndpoint + "/settings";
+  const redirectURI = window.location.origin + "/";
+  const onClickLogout = useCallback(() => {
+    authgear
+      .logout({
+        redirectURI,
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }, [redirectURI]);
+
   if (queryResult.loading) {
     return null;
   }
 
   return (
-    <Nav
-      ariaLabel={label}
-      groups={navGroups}
-      onLinkClick={onLinkClick}
-      onLinkExpandClick={onLinkExpandClick}
-      selectedKey={selectedKey}
-      styles={getStyles}
-    />
+    <>
+      <Nav
+        ariaLabel={label}
+        groups={navGroups}
+        onLinkClick={onLinkClick}
+        onLinkExpandClick={onLinkExpandClick}
+        selectedKey={selectedKey}
+        styles={getStyles}
+      />
+      {mobileView ? (
+        <div className={styles.userActions}>
+          <Text variant="small" className={styles.userActionEmail}>
+            {viewer?.email}
+          </Text>
+          <ExternalLink
+            href={settingURL}
+            target="_self"
+            className={styles.userActionItem}
+          >
+            <Text variant="small">
+              {renderToString("ScreenHeader.settings")}
+            </Text>
+          </ExternalLink>
+          <button
+            type="button"
+            className={styles.userActionItem}
+            onClick={onClickLogout}
+          >
+            <Text variant="small">
+              {renderToString("ScreenHeader.sign-out")}
+            </Text>
+          </button>
+        </div>
+      ) : null}
+    </>
   );
 };
 

@@ -57,6 +57,7 @@ func (l *UserLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
 			nodes(ids: $ids) {
 				... on User {
 					id
+					formattedName
 					standardAttributes
 				}
 			}
@@ -118,6 +119,10 @@ func (l *UserLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
 			email, ok := standardAttributes["email"].(string)
 			if ok {
 				userModel.Email = email
+			}
+			formattedName, ok := userNode["formattedName"].(string)
+			if ok {
+				userModel.FormattedName = formattedName
 			}
 
 			quota := quotas[idx]

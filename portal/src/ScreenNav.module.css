@@ -1,0 +1,15 @@
+.userActions {
+  @apply mb-5;
+  @apply px-8;
+  @apply flex flex-col;
+  @apply gap-3;
+}
+
+.userActionEmail {
+  @apply font-semibold;
+  color: #605e5c;
+}
+
+.userActionItem {
+  @apply w-max;
+}
