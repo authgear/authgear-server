@@ -1126,23 +1126,31 @@ func (s *UserImportService) upsertDisabledInTxn(ctx context.Context, result *imp
 
 	if disabled {
 		var accountStatus *user.AccountStatus
-		accountStatus, err = u.AccountStatus().Disable(nil)
-		if err != nil {
-			return
-		}
-		err = s.UserCommands.UpdateAccountStatus(u.ID, *accountStatus)
-		if err != nil {
-			return
+		// Treat invalid account status transition as warning.
+		accountStatus, accountStatusErr := u.AccountStatus().Disable(nil)
+		if accountStatusErr != nil {
+			result.Warnings = append(result.Warnings, Warning{
+				Message: accountStatusErr.Error(),
+			})
+		} else {
+			err = s.UserCommands.UpdateAccountStatus(u.ID, *accountStatus)
+			if err != nil {
+				return
+			}
 		}
 	} else {
 		var accountStatus *user.AccountStatus
-		accountStatus, err = u.AccountStatus().Reenable()
-		if err != nil {
-			return
-		}
-		err = s.UserCommands.UpdateAccountStatus(u.ID, *accountStatus)
-		if err != nil {
-			return
+		// Treat invalid account status transition as warning.
+		accountStatus, accountStatusErr := u.AccountStatus().Reenable()
+		if err != accountStatusErr {
+			result.Warnings = append(result.Warnings, Warning{
+				Message: accountStatusErr.Error(),
+			})
+		} else {
+			err = s.UserCommands.UpdateAccountStatus(u.ID, *accountStatus)
+			if err != nil {
+				return
+			}
 		}
 	}
 
