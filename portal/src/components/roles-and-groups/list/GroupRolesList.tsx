@@ -2,29 +2,22 @@ import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import {
   ColumnActionsMode,
-  DetailsListLayoutMode,
   DetailsRow,
   IColumn,
   IDetailsRowProps,
-  MessageBar,
-  SelectionMode,
-  ShimmeredDetailsList,
-  Text,
 } from "@fluentui/react";
-import {
-  FormattedMessage,
-  Context as MessageContext,
-} from "@oursky/react-messageformat";
+import { Context as MessageContext } from "@oursky/react-messageformat";
 import { useParams } from "react-router-dom";
 
 import styles from "./GroupRolesList.module.css";
-import { Group, Role } from "../../graphql/adminapi/globalTypes.generated";
-import Link from "../../Link";
-import ActionButton from "../../ActionButton";
-import { useSystemConfig } from "../../context/SystemConfigContext";
+import { Group, Role } from "../../../graphql/adminapi/globalTypes.generated";
+import Link from "../../../Link";
 import DeleteGroupRoleDialog, {
   DeleteGroupRoleDialogData,
-} from "./DeleteGroupRoleDialog";
+} from "../dialog/DeleteGroupRoleDialog";
+import ActionButtonCell from "./common/ActionButtonCell";
+import TextCell from "./common/TextCell";
+import RolesAndGroupsBaseList from "./common/RolesAndGroupsBaseList";
 
 export interface GroupRolesListItem
   extends Pick<Group, "id" | "name" | "key"> {}
@@ -46,7 +39,6 @@ interface GroupRolesListProps {
 
 export const GroupRolesList: React.VFC<GroupRolesListProps> =
   function GroupRolesList({ group, roles, className }) {
-    const { themes } = useSystemConfig();
     const { appID } = useParams() as { appID: string };
     const { renderToString } = useContext(MessageContext);
 
@@ -127,65 +119,37 @@ export const GroupRolesList: React.VFC<GroupRolesListProps> =
         switch (column?.key) {
           case GroupRolesListColumnKey.Action: {
             return (
-              <div className={styles.cell}>
-                <ActionButton
-                  text={
-                    <Text
-                      className={styles.actionButtonText}
-                      theme={themes.destructive}
-                    >
-                      <FormattedMessage id="GroupRolesList.actions.remove" />
-                    </Text>
-                  }
-                  className={styles.actionButton}
-                  theme={themes.destructive}
-                  onClick={(e) => {
-                    onClickDeleteRole(e, item);
-                  }}
-                />
-              </div>
+              <ActionButtonCell
+                text={renderToString("GroupRolesList.actions.remove")}
+                onClick={(e) => {
+                  onClickDeleteRole(e, item);
+                }}
+              />
             );
           }
           default:
             return (
-              <div className={styles.cell} key={item.key}>
-                <div className={styles.cellText}>
-                  {item[column?.fieldName as keyof GroupRolesListItem] ?? ""}
-                </div>
-              </div>
+              <TextCell>
+                {item[column?.fieldName as keyof GroupRolesListItem] ?? ""}
+              </TextCell>
             );
         }
       },
-      [onClickDeleteRole, themes.destructive]
+      [onClickDeleteRole, renderToString]
     );
 
-    const isEmpty = roles.length === 0;
+    const listEmptyText = renderToString("GroupRolesList.empty");
 
     return (
       <>
         <div className={cn(styles.root, className)}>
-          {isEmpty ? (
-            <MessageBar className={styles.empty}>
-              <FormattedMessage id="GroupRolesList.empty" />
-            </MessageBar>
-          ) : (
-            <div
-              className={styles.listWrapper}
-              // For DetailList to correctly know what to display
-              // https://developer.microsoft.com/en-us/fluentui#/controls/web/detailslist
-              data-is-scrollable="true"
-            >
-              <ShimmeredDetailsList
-                enableUpdateAnimations={false}
-                onRenderRow={onRenderRow}
-                onRenderItemColumn={onRenderItemColumn}
-                selectionMode={SelectionMode.none}
-                layoutMode={DetailsListLayoutMode.justified}
-                items={roles}
-                columns={columns}
-              />
-            </div>
-          )}
+          <RolesAndGroupsBaseList
+            emptyText={listEmptyText}
+            onRenderRow={onRenderRow}
+            onRenderItemColumn={onRenderItemColumn}
+            items={roles}
+            columns={columns}
+          />
         </div>
         <DeleteGroupRoleDialog
           data={deleteDialogData}

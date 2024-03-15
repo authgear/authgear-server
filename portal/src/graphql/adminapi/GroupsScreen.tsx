@@ -1,7 +1,6 @@
 import { useQuery } from "@apollo/client";
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import cn from "classnames";
-import { ISearchBoxProps, SearchBox, MessageBar } from "@fluentui/react";
+import { ISearchBoxProps, SearchBox } from "@fluentui/react";
 import {
   GroupsListQueryDocument,
   GroupsListQueryQuery,
@@ -13,10 +12,10 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useParams } from "react-router-dom";
 import useDelayedValue from "../../hook/useDelayedValue";
 import { RoleAndGroupsLayout } from "../../RoleAndGroupsLayout";
-import { GroupsEmptyView } from "../../components/roles-and-groups/GroupsEmptyView";
+import { GroupsEmptyView } from "../../components/roles-and-groups/empty-view/GroupsEmptyView";
 import { ReactRouterLinkComponent } from "../../ReactRouterLink";
-import { RolesAndGroupsEmptyView } from "../../components/roles-and-groups/RolesAndGroupsEmptyView";
-import GroupsList from "./GroupsList";
+import { RolesAndGroupsEmptyView } from "../../components/roles-and-groups/empty-view/RolesAndGroupsEmptyView";
+import GroupsList from "../../components/roles-and-groups/list/GroupsList";
 
 const pageSize = 10;
 const searchResultSize = -1;
@@ -77,7 +76,6 @@ const GroupsScreen: React.VFC = function GroupsScreen() {
   const isInitialLoading = loading && previousData == null;
 
   const isEmpty = !isInitialLoading && data?.groups?.totalCount === 0;
-  const isSearchEmpty = isSearch && data?.groups?.edges?.length === 0;
 
   const searchBoxProps: ISearchBoxProps = useMemo(() => {
     return {
@@ -116,10 +114,6 @@ const GroupsScreen: React.VFC = function GroupsScreen() {
       {!isEmpty ? <SearchBox {...searchBoxProps} /> : null}
       {isEmpty ? (
         <GroupsEmptyView className={styles.emptyStateContainer} />
-      ) : isSearchEmpty ? (
-        <MessageBar className={cn(styles.message)}>
-          <FormattedMessage id="GroupsScreen.empty.search" />
-        </MessageBar>
       ) : (
         <GroupsList
           className={styles.list}

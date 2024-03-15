@@ -4,7 +4,7 @@ import {
   RoleAndGroupsLayout,
   RoleAndGroupsVeriticalFormLayout,
 } from "../../RoleAndGroupsLayout";
-import { RoleAndGroupsFormContainer } from "./RoleAndGroupsFormContainer";
+import { RoleAndGroupsFormContainer } from "../../components/roles-and-groups/form/RoleAndGroupsFormContainer";
 import { BreadcrumbItem } from "../../NavBreadcrumb";
 import {
   FormattedMessage,

@@ -8,9 +8,9 @@ import {
 } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import React, { ReactElement, useCallback, useMemo, useState } from "react";
-import PrimaryButton from "../../PrimaryButton";
-import DefaultButton from "../../DefaultButton";
-import StyledTagPicker from "../../StyledTagPicker";
+import PrimaryButton from "../../../PrimaryButton";
+import DefaultButton from "../../../DefaultButton";
+import StyledTagPicker from "../../../StyledTagPicker";
 import styles from "./AddTagsDialog.module.css";
 
 interface AddTagsDialogProps {

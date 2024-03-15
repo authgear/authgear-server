@@ -1,7 +1,6 @@
 import { useQuery } from "@apollo/client";
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import cn from "classnames";
-import { ISearchBoxProps, SearchBox, MessageBar } from "@fluentui/react";
+import { ISearchBoxProps, SearchBox } from "@fluentui/react";
 import {
   RolesListQueryDocument,
   RolesListQueryQuery,
@@ -11,12 +10,12 @@ import styles from "./RolesScreen.module.css";
 import { encodeOffsetToCursor } from "../../util/pagination";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useParams } from "react-router-dom";
-import RolesList from "./RolesList";
+import RolesList from "../../components/roles-and-groups/list/RolesList";
 import useDelayedValue from "../../hook/useDelayedValue";
 import { RoleAndGroupsLayout } from "../../RoleAndGroupsLayout";
-import { RolesEmptyView } from "../../components/roles-and-groups/RolesEmptyView";
+import { RolesEmptyView } from "../../components/roles-and-groups/empty-view/RolesEmptyView";
 import { ReactRouterLinkComponent } from "../../ReactRouterLink";
-import { RolesAndGroupsEmptyView } from "../../components/roles-and-groups/RolesAndGroupsEmptyView";
+import { RolesAndGroupsEmptyView } from "../../components/roles-and-groups/empty-view/RolesAndGroupsEmptyView";
 
 const pageSize = 10;
 const searchResultSize = -1;
@@ -77,7 +76,6 @@ const RolesScreen: React.VFC = function RolesScreen() {
   const isInitialLoading = loading && previousData == null;
 
   const isEmpty = !isInitialLoading && data?.roles?.totalCount === 0;
-  const isSearchEmpty = isSearch && data?.roles?.edges?.length === 0;
 
   const searchBoxProps: ISearchBoxProps = useMemo(() => {
     return {
@@ -116,10 +114,6 @@ const RolesScreen: React.VFC = function RolesScreen() {
       {!isEmpty ? <SearchBox {...searchBoxProps} /> : null}
       {isEmpty ? (
         <RolesEmptyView className={styles.emptyStateContainer} />
-      ) : isSearchEmpty ? (
-        <MessageBar className={cn(styles.message)}>
-          <FormattedMessage id="RolesScreen.empty.search" />
-        </MessageBar>
       ) : (
         <RolesList
           className={styles.list}

@@ -1,27 +1,24 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
-import { GroupsListFragment } from "./query/groupsListQuery.generated";
-import useDelayedValue from "../../hook/useDelayedValue";
+import useDelayedValue from "../../../hook/useDelayedValue";
 import {
   ColumnActionsMode,
-  DetailsListLayoutMode,
   DetailsRow,
   IColumn,
   IDetailsRowProps,
-  SelectionMode,
-  ShimmeredDetailsList,
-  Text,
 } from "@fluentui/react";
 import styles from "./GroupsList.module.css";
-import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useParams } from "react-router-dom";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import Link from "../../Link";
-import ActionButton from "../../ActionButton";
-import PaginationWidget from "../../PaginationWidget";
+import { Context } from "@oursky/react-messageformat";
+import Link from "../../../Link";
 import DeleteGroupDialog, {
   DeleteGroupDialogData,
-} from "../../components/roles-and-groups/DeleteGroupDialog";
+} from "../dialog/DeleteGroupDialog";
+import DescriptionCell from "./common/DescriptionCell";
+import ActionButtonCell from "./common/ActionButtonCell";
+import TextCell from "./common/TextCell";
+import RolesAndGroupsBaseList from "./common/RolesAndGroupsBaseList";
+import { GroupsListFragment } from "../../../graphql/adminapi/query/groupsListQuery.generated";
 
 interface GroupsListProps {
   className?: string;
@@ -61,7 +58,6 @@ const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
   const edges = props.groups?.edges;
   const loading = useDelayedValue(rawLoading, 500);
   const { renderToString } = useContext(Context);
-  const { themes } = useSystemConfig();
   const { appID } = useParams() as { appID: string };
   const columns: IColumn[] = [
     {
@@ -153,69 +149,56 @@ const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
       switch (column?.key) {
         case "description":
           return (
-            <div className={styles.cell}>
-              <div className={styles.description}>
-                {item[column.key as keyof GroupListItem] ?? ""}
-              </div>
-            </div>
+            <DescriptionCell>
+              {item[column.key as keyof GroupListItem] ?? ""}
+            </DescriptionCell>
           );
         case "action": {
           return (
-            <div className={styles.cell}>
-              <ActionButton
-                text={
-                  <Text
-                    className={styles.actionButtonText}
-                    theme={themes.destructive}
-                  >
-                    <FormattedMessage id="GroupsList.delete-group" />
-                  </Text>
-                }
-                className={styles.actionButton}
-                theme={themes.destructive}
-                onClick={(e) => {
-                  onClickDeleteGroup(e, item);
-                }}
-              />
-            </div>
+            <ActionButtonCell
+              text={renderToString("GroupsList.delete-group")}
+              onClick={(e) => {
+                onClickDeleteGroup(e, item);
+              }}
+            />
           );
         }
         default:
           return (
-            <div className={styles.cell}>
-              <div className={styles.cellText}>
-                {item[column?.key as keyof GroupListItem] ?? ""}
-              </div>
-            </div>
+            <TextCell>
+              {item[column?.key as keyof GroupListItem] ?? ""}
+            </TextCell>
           );
       }
     },
-    [themes.destructive, onClickDeleteGroup]
+    [renderToString, onClickDeleteGroup]
   );
+
+  const paginationProps = useMemo(
+    () => ({
+      isSearch,
+      offset,
+      pageSize,
+      totalCount,
+      onChangeOffset,
+    }),
+    [isSearch, offset, pageSize, totalCount, onChangeOffset]
+  );
+
+  const listEmptyText = renderToString("GroupsList.empty.search");
+
   return (
     <>
       <div className={cn(styles.root, className)}>
-        <div className={styles.listWrapper}>
-          <ShimmeredDetailsList
-            enableShimmer={loading}
-            enableUpdateAnimations={false}
-            onRenderRow={onRenderGroupRow}
-            onRenderItemColumn={onRenderGroupItemColumn}
-            selectionMode={SelectionMode.none}
-            layoutMode={DetailsListLayoutMode.justified}
-            items={items}
-            columns={columns}
-          />
-        </div>
-        {!isSearch ? (
-          <PaginationWidget
-            className={cn(styles.pagination)}
-            offset={offset}
-            pageSize={pageSize}
-            totalCount={totalCount}
-            onChangeOffset={onChangeOffset}
-          />
-        ) : null}
+        <RolesAndGroupsBaseList
+          emptyText={listEmptyText}
+          loading={loading}
+          onRenderRow={onRenderGroupRow}
+          onRenderItemColumn={onRenderGroupItemColumn}
+          items={items}
+          columns={columns}
+          pagination={paginationProps}
+        />
         <DeleteGroupDialog
           onDismiss={dismissDeleteGroupDialog}
           data={deleteGroupDialogData}

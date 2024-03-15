@@ -1,24 +1,24 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import { GroupQueryNodeFragment } from "../../graphql/adminapi/query/groupQuery.generated";
+import { GroupQueryNodeFragment } from "../../../graphql/adminapi/query/groupQuery.generated";
 import {
   FormattedMessage,
   Context as MessageContext,
 } from "@oursky/react-messageformat";
 import { useQuery } from "@apollo/client";
 import { SearchBox } from "@fluentui/react";
-import ShowError from "../../ShowError";
-import ShowLoading from "../../ShowLoading";
-import { Role } from "../../graphql/adminapi/globalTypes.generated";
-import PrimaryButton from "../../PrimaryButton";
+import ShowError from "../../../ShowError";
+import ShowLoading from "../../../ShowLoading";
+import { Role } from "../../../graphql/adminapi/globalTypes.generated";
+import PrimaryButton from "../../../PrimaryButton";
 import {
   RolesListQueryDocument,
   RolesListQueryQuery,
   RolesListQueryQueryVariables,
-} from "../../graphql/adminapi/query/rolesListQuery.generated";
-import { RolesEmptyView } from "./RolesEmptyView";
-import { GroupRolesList } from "./GroupRolesList";
-import { AddGroupRolesDialog } from "./AddGroupRolesDialog";
-import { searchRoles } from "../../model/role";
+} from "../../../graphql/adminapi/query/rolesListQuery.generated";
+import { RolesEmptyView } from "../empty-view/RolesEmptyView";
+import { GroupRolesList } from "../list/GroupRolesList";
+import { AddGroupRolesDialog } from "../dialog/AddGroupRolesDialog";
+import { searchRoles } from "../../../model/role";
 
 export interface GroupRolesListItem extends Pick<Role, "id" | "name" | "key"> {}
 

@@ -2,7 +2,7 @@ import React, { MouseEventHandler } from "react";
 import cn from "classnames";
 import { Text } from "@fluentui/react";
 import styles from "./RolesAndGroupsEmptyView.module.css";
-import PrimaryButton from "../../PrimaryButton";
+import PrimaryButton from "../../../PrimaryButton";
 
 function CreateButton(props: {
   className?: string;

@@ -1,25 +1,24 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
-import { RolesListFragment } from "./query/rolesListQuery.generated";
-import useDelayedValue from "../../hook/useDelayedValue";
+import useDelayedValue from "../../../hook/useDelayedValue";
 import {
   ColumnActionsMode,
-  DetailsListLayoutMode,
   DetailsRow,
   IColumn,
   IDetailsRowProps,
-  SelectionMode,
-  ShimmeredDetailsList,
-  Text,
 } from "@fluentui/react";
 import styles from "./RolesList.module.css";
-import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useParams } from "react-router-dom";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import Link from "../../Link";
-import ActionButton from "../../ActionButton";
-import PaginationWidget from "../../PaginationWidget";
-import DeleteRoleDialog, { DeleteRoleDialogData } from "./DeleteRoleDialog";
+import { Context } from "@oursky/react-messageformat";
+import Link from "../../../Link";
+import DeleteRoleDialog, {
+  DeleteRoleDialogData,
+} from "../dialog/DeleteRoleDialog";
+import RolesAndGroupsBaseList from "./common/RolesAndGroupsBaseList";
+import ActionButtonCell from "./common/ActionButtonCell";
+import TextCell from "./common/TextCell";
+import DescriptionCell from "./common/DescriptionCell";
+import { RolesListFragment } from "../../../graphql/adminapi/query/rolesListQuery.generated";
 
 interface RolesListProps {
   className?: string;
@@ -59,7 +58,6 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
   const edges = props.roles?.edges;
   const loading = useDelayedValue(rawLoading, 500);
   const { renderToString } = useContext(Context);
-  const { themes } = useSystemConfig();
   const { appID } = useParams() as { appID: string };
   const columns: IColumn[] = [
     {
@@ -151,69 +149,54 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
       switch (column?.key) {
         case "description":
           return (
-            <div className={styles.cell}>
-              <div className={styles.description}>
-                {item[column.key as keyof RoleListItem] ?? ""}
-              </div>
-            </div>
+            <DescriptionCell>
+              {item[column.key as keyof RoleListItem] ?? ""}
+            </DescriptionCell>
           );
         case "action": {
           return (
-            <div className={styles.cell}>
-              <ActionButton
-                text={
-                  <Text
-                    className={styles.actionButtonText}
-                    theme={themes.destructive}
-                  >
-                    <FormattedMessage id="RolesList.delete-role" />
-                  </Text>
-                }
-                className={styles.actionButton}
-                theme={themes.destructive}
-                onClick={(e) => {
-                  onClickDeleteRole(e, item);
-                }}
-              />
-            </div>
+            <ActionButtonCell
+              text={renderToString("RolesList.delete-role")}
+              onClick={(e) => {
+                onClickDeleteRole(e, item);
+              }}
+            />
           );
         }
         default:
           return (
-            <div className={styles.cell}>
-              <div className={styles.cellText}>
-                {item[column?.key as keyof RoleListItem] ?? ""}
-              </div>
-            </div>
+            <TextCell>{item[column?.key as keyof RoleListItem] ?? ""}</TextCell>
           );
       }
     },
-    [themes.destructive, onClickDeleteRole]
+    [renderToString, onClickDeleteRole]
   );
+
+  const paginationProps = useMemo(
+    () => ({
+      isSearch,
+      offset,
+      pageSize,
+      totalCount,
+      onChangeOffset,
+    }),
+    [isSearch, offset, pageSize, totalCount, onChangeOffset]
+  );
+
+  const listEmptyText = renderToString("RolesList.empty.search");
+
   return (
     <>
       <div className={cn(styles.root, className)}>
-        <div className={styles.listWrapper}>
-          <ShimmeredDetailsList
-            enableShimmer={loading}
-            enableUpdateAnimations={false}
-            onRenderRow={onRenderRoleRow}
-            onRenderItemColumn={onRenderRoleItemColumn}
-            selectionMode={SelectionMode.none}
-            layoutMode={DetailsListLayoutMode.justified}
-            items={items}
-            columns={columns}
-          />
-        </div>
-        {!isSearch ? (
-          <PaginationWidget
-            className={cn(styles.pagination)}
-            offset={offset}
-            pageSize={pageSize}
-            totalCount={totalCount}
-            onChangeOffset={onChangeOffset}
-          />
-        ) : null}
+        <RolesAndGroupsBaseList
+          emptyText={listEmptyText}
+          loading={loading}
+          onRenderRow={onRenderRoleRow}
+          onRenderItemColumn={onRenderRoleItemColumn}
+          items={items}
+          columns={columns}
+          pagination={paginationProps}
+        />
         <DeleteRoleDialog
           onDismiss={dismissDeleteRoleDialog}
           data={deleteRoleDialogData}
