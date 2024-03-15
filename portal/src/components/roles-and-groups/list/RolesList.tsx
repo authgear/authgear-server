@@ -182,7 +182,7 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
       totalCount,
       onChangeOffset,
     }),
-    []
+    [isSearch, offset, pageSize, totalCount, onChangeOffset]
   );
 
   const listEmptyText = renderToString("RolesList.empty.search");

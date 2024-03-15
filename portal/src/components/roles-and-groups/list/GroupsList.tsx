@@ -184,7 +184,7 @@ const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
       totalCount,
       onChangeOffset,
     }),
-    []
+    [isSearch, offset, pageSize, totalCount, onChangeOffset]
   );
 
   const listEmptyText = renderToString("GroupsList.empty.search");
