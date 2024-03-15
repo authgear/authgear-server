@@ -26,6 +26,7 @@
       {
         "ignoreAtRules": ["mixin", "include", "tailwind", "layer"]
       }
-    ]
+    ],
+    "function-no-unknown": [true, { "ignoreFunctions": ["theme"] }]
   }
 }

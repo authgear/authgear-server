@@ -1,0 +1,16 @@
+.emptyStateContainer {
+  /* Spacing top = 48px */
+  /* Gap from layout = 20px */
+  /* Remaining space = 48 - 20 = 28px = 7unit */
+  @apply mt-7;
+}
+
+.searchBox {
+  width: 300px;
+
+  @apply mobile:w-auto mb-8;
+}
+
+.list {
+  @apply flex-1 min-h-0;
+}

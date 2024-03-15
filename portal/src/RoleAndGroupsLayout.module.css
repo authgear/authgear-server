@@ -1,0 +1,50 @@
+.root {
+  @apply flex-1;
+  @apply flex flex-col;
+  @apply min-h-0;
+  @apply overflow-auto;
+
+  /* Let body to scroll in mobile */
+  @apply mobile:overflow-visible mobile:flex-1-0-auto mobile:min-h-min;
+}
+
+.main {
+  @apply flex-1-0-auto;
+  @apply p-6;
+
+  @apply grid gap-12;
+  grid-template-columns: 100%;
+  grid-template-rows: min-content minmax(min-content, 1fr);
+}
+
+.topBar {
+  @apply sticky top-0 z-10;
+
+  @apply mobile:top-[var(--screen-header-height)];
+}
+
+.header {
+  @apply flex flex-row justify-between;
+}
+
+.breadcrumb {
+  @apply flex-1;
+}
+
+.content {
+  @apply min-h-min;
+  @apply flex flex-col;
+}
+
+.verticalForm {
+  @apply w-full max-w-[360px];
+  @apply grid gap-8;
+  grid-template-columns: 100%;
+  grid-auto-rows: min-content;
+
+  @apply mobile:max-w-none;
+}
+
+.formFooter {
+  @apply grid grid-flow-col gap-4 justify-start;
+}

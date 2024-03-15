@@ -1,5 +1,18 @@
 import { useCallback } from "react";
 
+export function processSearchKeyword(keyword: string): string[] {
+  return keyword
+    .toLowerCase()
+    .split(" ")
+    .flatMap((keyword) => {
+      const trimmedKeyword = keyword.trim();
+      if (trimmedKeyword) {
+        return [trimmedKeyword];
+      }
+      return [];
+    });
+}
+
 export function exactKeywordSearch<X, K extends keyof X>(
   list: X[],
   keyList: X[K] extends string | undefined | null ? K[] : never,

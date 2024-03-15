@@ -1,0 +1,33 @@
+fragment RoleQueryNode on Role {
+  id
+  key
+  name
+  description
+  groups {
+    edges {
+      node {
+        id
+        key
+        name
+        description
+      }
+    }
+  }
+  users {
+    edges {
+      node {
+        id
+        formattedName
+      }
+    }
+  }
+  createdAt
+  updatedAt
+}
+
+query roleQuery($roleID: ID!) {
+  node(id: $roleID) {
+    __typename
+    ...RoleQueryNode
+  }
+}

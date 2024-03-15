@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-  createContext,
-} from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ICommandBarItemProps,
@@ -32,28 +26,10 @@ import useDelayedValue from "../../hook/useDelayedValue";
 import styles from "./UsersScreen.module.css";
 import { onRenderCommandBarPrimaryButton } from "../../CommandBarPrimaryButton";
 
-const LocalSearchBoxContext = createContext<LocalSearchBoxProps | null>(null);
-
 const pageSize = 10;
 // We have performance problem on the users query
 // limit to 10 items for now
 const searchResultSize = 10;
-
-interface LocalSearchBoxProps {
-  className?: ISearchBoxProps["className"];
-  placeholder?: ISearchBoxProps["placeholder"];
-  value?: ISearchBoxProps["value"];
-  onChange?: ISearchBoxProps["onChange"];
-  onClear?: ISearchBoxProps["onClear"];
-}
-
-function LocalSearchBox() {
-  const value = useContext(LocalSearchBoxContext);
-  if (value == null) {
-    return null;
-  }
-  return <SearchBox {...value} />;
-}
 
 const UsersScreen: React.VFC = function UsersScreen() {
   const { searchEnabled } = useSystemConfig();
@@ -90,7 +66,7 @@ const UsersScreen: React.VFC = function UsersScreen() {
     setOffset(0);
   }, []);
 
-  const localSearchBoxProps: LocalSearchBoxProps = useMemo(() => {
+  const searchBoxProps: ISearchBoxProps = useMemo(() => {
     return {
       className: styles.searchBox,
       placeholder: renderToString("search"),
@@ -115,12 +91,12 @@ const UsersScreen: React.VFC = function UsersScreen() {
         {
           key: "search",
           // eslint-disable-next-line react/no-unstable-nested-components
-          onRender: () => <LocalSearchBox />,
+          onRender: () => <SearchBox {...searchBoxProps} />,
         },
       ];
     }
     return [];
-  }, [searchEnabled]);
+  }, [searchBoxProps, searchEnabled]);
 
   const primaryItems: ICommandBarItemProps[] = useMemo(() => {
     return [
@@ -196,39 +172,37 @@ const UsersScreen: React.VFC = function UsersScreen() {
   );
 
   return (
-    <LocalSearchBoxContext.Provider value={localSearchBoxProps}>
-      <CommandBarContainer
-        className={styles.root}
-        isLoading={loading}
-        primaryItems={primaryItems}
-        secondaryItems={secondaryItems}
-        messageBar={messageBar}
-      >
-        <ScreenContent className={styles.content} layout="list">
-          <div className={styles.widget}>
-            <NavBreadcrumb className="block" items={items} />
-            {isSearch && isTotalExceededLimit && !loading ? (
-              <MessageBar className={styles.message}>
-                <FormattedMessage id="UsersScreen.search.resultLimited" />
-              </MessageBar>
-            ) : null}
-          </div>
-          <UsersList
-            className={styles.widget}
-            isSearch={isSearch}
-            loading={loading}
-            users={data?.users ?? null}
-            offset={offset}
-            pageSize={pageSize}
-            totalCount={data?.users?.totalCount ?? undefined}
-            onChangeOffset={onChangeOffset}
-            onColumnClick={onColumnClick}
-            sortBy={sortBy}
-            sortDirection={sortDirection}
-          />
-        </ScreenContent>
-      </CommandBarContainer>
-    </LocalSearchBoxContext.Provider>
+    <CommandBarContainer
+      className={styles.root}
+      isLoading={loading}
+      primaryItems={primaryItems}
+      secondaryItems={secondaryItems}
+      messageBar={messageBar}
+    >
+      <ScreenContent className={styles.content} layout="list">
+        <div className={styles.widget}>
+          <NavBreadcrumb className="block" items={items} />
+          {isSearch && isTotalExceededLimit && !loading ? (
+            <MessageBar className={styles.message}>
+              <FormattedMessage id="UsersScreen.search.resultLimited" />
+            </MessageBar>
+          ) : null}
+        </div>
+        <UsersList
+          className={styles.widget}
+          isSearch={isSearch}
+          loading={loading}
+          users={data?.users ?? null}
+          offset={offset}
+          pageSize={pageSize}
+          totalCount={data?.users?.totalCount ?? undefined}
+          onChangeOffset={onChangeOffset}
+          onColumnClick={onColumnClick}
+          sortBy={sortBy}
+          sortDirection={sortDirection}
+        />
+      </ScreenContent>
+    </CommandBarContainer>
   );
 };
 

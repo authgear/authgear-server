@@ -4,7 +4,7 @@
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid gray;
-  height: 48px;
+  height: var(--screen-header-height);
   position: sticky;
   top: 0;
   z-index: 9999;
@@ -22,7 +22,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 48px;
+  height: var(--screen-header-height);
 }
 
 .headerArrow {

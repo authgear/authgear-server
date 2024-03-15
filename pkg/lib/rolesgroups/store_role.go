@@ -186,6 +186,23 @@ func (s *Store) GetRoleByKey(key string) (*Role, error) {
 	return r, nil
 }
 
+func (s *Store) CountRoles() (uint64, error) {
+	builder := s.SQLBuilder.
+		Select("count(*)").
+		From(s.SQLBuilder.TableName("_auth_role"))
+	scanner, err := s.SQLExecutor.QueryRowWith(builder)
+	if err != nil {
+		return 0, err
+	}
+
+	var count uint64
+	if err = scanner.Scan(&count); err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
 func (s *Store) ListRoles(options *ListRolesOptions, pageArgs graphqlutil.PageArgs) ([]*Role, uint64, error) {
 	q := s.selectRoleQuery().
 		// Sort by key to ensure we have a stable order.

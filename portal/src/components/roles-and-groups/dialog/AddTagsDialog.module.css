@@ -1,0 +1,8 @@
+.content {
+  width: 510px;
+  @apply max-w-full;
+}
+
+.field {
+  @apply py-4;
+}

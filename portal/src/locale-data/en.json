@@ -124,6 +124,8 @@
   "errors.bad-nft-collection": "This NFT collection is either not supported or is from another network.",
   "errors.alchemy-protocol": "We have some problem with this NFT collection. Please contact us at {ExternalLink, react, children{hello@authgear.com} href{mailto:hello@authgear.com}}.",
   "errors.deno-hook.typecheck": "{pre, react, children{{message}}}",
+  "errors.roles.key.validation.format": "Invalid role key. Only english alphbets, digits, colons (:) and underscores (_) are accepted, and the first character must be alphabet.",
+  "errors.groups.key.validation.format": "Invalid group key. Only english alphbets, digits, colons (:) and underscores (_) are accepted, and the first character must be alphabet.",
 
   "warnings.free-plan": "To avoid spam content, free plans are limited to send 5 SMS and Whatsapp messsage by default. To be eligible for 100 free SMS/Whatsapp per mo, please complete{ExternalLink, react, href{https://go.authgear.com/portal-support} children{the application form}}.",
 
@@ -137,7 +139,10 @@
   "ScreenNav.all-projects": "All projects",
   "ScreenNav.getting-started": "Getting Started",
   "ScreenNav.analytics": "Analytics",
-  "ScreenNav.users": "User Management",
+  "ScreenNav.user-management": "User Management",
+  "ScreenNav.users": "Users",
+  "ScreenNav.roles": "Roles",
+  "ScreenNav.groups": "Groups",
   "ScreenNav.authentication": "Authentication",
   "ScreenNav.anonymous-users": "Anonymous Users",
   "ScreenNav.app2app": "App2App",
@@ -168,6 +173,97 @@
   "AppsScreen.title": "Select Project",
   "AppsScreen.create-app": "Create Project",
   "AppsScreen.project-quota-reached": "You have reached the maximum number of projects in your account, please apply for an increase by completing{ExternalLink, react, href{https://go.authgear.com/portal-support} children{this form}}.",
+
+  "GroupsScreen.title": "Groups",
+  "GroupsScreen.empty-state.title": "You don't have any groups yet.",
+  "GroupsScreen.empty-state.subtitle": "Create groups to represent the types of users that access your applications.",
+  "GroupsScreen.empty-state.button": "Create Group",
+
+  "GroupsList.column.name": "Name",
+  "GroupsList.column.key": "Group Key",
+  "GroupsList.column.description": "Description",
+  "GroupsList.column.action": "Action",
+  "GroupsList.delete-group": "Delete Group",
+  "GroupsList.empty.search": "No results matched your search.",
+
+  "GroupRolesList.column.name": "Name",
+  "GroupRolesList.column.key": "Role Key",
+  "GroupRolesList.column.action": "Action",
+  "GroupRolesList.actions.remove": "Remove",
+  "GroupRolesList.empty": "No roles in group",
+
+  "DeleteGroupRoleDialog.title": "Remove Role",
+  "DeleteGroupRoleDialog.description": "Are you sure you want to remove \"{groupName}\" from the \"{roleName}\" role?",
+
+  "GroupDetailsScreen.roles.add": "Add to Role",
+
+  "AddGroupRolesDialog.title": "Add {groupName} group to role",
+  "AddGroupRolesDialog.selectGroups": "Select Roles",
+
+  "DeleteGroupDialog.title": "Delete Group",
+  "DeleteGroupDialog.description": "Are you sure you want to delete the group \"{groupName}\"?",
+  "DeleteGroupDialog.button.confirm": "Delete Group",
+
+  "RolesScreen.title": "Roles",
+  "RolesEmptyView.title": "You don't have any roles yet.",
+  "RolesEmptyView.description": "Create roles to represent the types of users that access your applications.",
+  "RolesEmptyView.button.text": "Create Role",
+
+  "RoleDetailsScreen.tabs.settings": "Settings",
+  "RoleDetailsScreen.tabs.groups": "Groups",
+  "RoleDetailsScreen.button.deleteRole": "Delete Role",
+  "RoleDetailsScreen.groups.add": "Add to Group",
+
+  "GroupDetailsScreen.tabs.settings": "Settings",
+  "GroupDetailsScreen.tabs.roles": "Roles",
+
+  "AddRoleGroupsDialog.title": "Add {roleName} role to group",
+  "AddRoleGroupsDialog.selectGroups": "Select Groups",
+
+  "GroupsEmptyView.title": "You don't have any groups yet.",
+  "GroupsEmptyView.description": "Create groups to represent the types of users that access your applications.",
+  "GroupsEmptyView.button.text": "Create Group",
+
+  "AddRoleScreen.title": "Create Role",
+  "AddRoleScreen.roleKey.title": "Role Key",
+  "AddRoleScreen.roleKey.description": "The Role Key will be included in the UserInfo and JWT token of the user. e.g. app_a_admin.",
+  "AddRoleScreen.roleName.title": "Name",
+  "AddRoleScreen.roleName.description": "A display name of this role in the portal.",
+  "AddRoleScreen.roleDescription.title": "Description",
+
+  "AddGroupScreen.title": "Create Group",
+  "AddGroupScreen.groupName.title": "Name",
+  "AddGroupScreen.groupName.description": "A display name of this group in the portal.",
+  "AddGroupScreen.groupKey.title": "Group Key",
+  "AddGroupScreen.groupKey.description": "The Group Key is a unique identifier for this group.",
+  "AddGroupScreen.groupDescription.title": "Description",
+
+  "GroupDetailsSettingsForm.groupName.title": "Name",
+  "GroupDetailsSettingsForm.groupName.description": "A display name of this group in the portal.",
+  "GroupDetailsSettingsForm.groupKey.title": "Group Key",
+  "GroupDetailsSettingsForm.groupKey.description": "The Group Key is a unique identifier for this group.",
+  "GroupDetailsSettingsForm.groupDescription.title": "Description",
+  "GroupDetailsSettingsForm.button.deleteGroup": "Delete Group",
+
+  "RolesList.column.name": "Name",
+  "RolesList.column.key": "Role Key",
+  "RolesList.column.description": "Description",
+  "RolesList.column.action": "Action",
+  "RolesList.delete-role": "Delete Role",
+  "RolesList.empty.search": "No results matched your search.",
+
+  "RoleGroupsList.column.name": "Name",
+  "RoleGroupsList.column.key": "Group Key",
+  "RoleGroupsList.column.action": "Action",
+  "RoleGroupsList.actions.remove": "Remove",
+  "RoleGroupsList.empty": "No groups in role",
+
+  "DeleteRoleGroupDialog.title": "Remove Group",
+  "DeleteRoleGroupDialog.description": "Are you sure you want to remove \"{roleName}\" from the \"{groupName}\" group?",
+
+  "DeleteRoleDialog.title": "Delete Role",
+  "DeleteRoleDialog.description": "Are you sure you want to delete the role \"{roleName}\"?",
+  "DeleteRoleDialog.button.confirm": "Delete Role",
 
   "UsersScreen.title": "Users",
   "UsersScreen.add-user": "Add User",

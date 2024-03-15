@@ -9,6 +9,23 @@ import ShowLoading from "./ShowLoading";
 import CookieLifetimeConfigurationScreen from "./graphql/portal/CookieLifetimeConfigurationScreen";
 import { AppContext } from "./context/AppContext";
 
+const RolesScreen = lazy(async () => import("./graphql/adminapi/RolesScreen"));
+const AddRoleScreen = lazy(
+  async () => import("./graphql/adminapi/AddRoleScreen")
+);
+const RoleDetailsScreen = lazy(
+  async () => import("./graphql/adminapi/RoleDetailsScreen")
+);
+const GroupsScreen = lazy(
+  async () => import("./graphql/adminapi/GroupsScreen")
+);
+const AddGroupScreen = lazy(
+  async () => import("./graphql/adminapi/AddGroupScreen")
+);
+const GroupDetailsScreen = lazy(
+  async () => import("./graphql/adminapi/GroupDetailsScreen")
+);
+const UsersRedirectScreen = lazy(async () => import("./UsersRedirectScreen"));
 const UsersScreen = lazy(async () => import("./graphql/adminapi/UsersScreen"));
 const AddUserScreen = lazy(
   async () => import("./graphql/adminapi/AddUserScreen")
@@ -197,102 +214,182 @@ const AppRoot: React.VFC = function AppRoot() {
                 }
               />
             </Route>
+            <Route
+              path="users/*"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <UsersRedirectScreen />
+                </Suspense>
+              }
+            ></Route>
 
-            <Route path="users">
-              <Route
-                index={true}
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <UsersScreen />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="add-user"
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <AddUserScreen />
-                  </Suspense>
-                }
-              />
-              <Route path=":userID">
+            <Route path="user-management">
+              <Route path="roles">
                 <Route
                   index={true}
-                  element={<Navigate to="details" replace={true} />}
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <RolesScreen />
+                    </Suspense>
+                  }
                 />
-                <Route path="details">
+                <Route
+                  path="add-role"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <AddRoleScreen />
+                    </Suspense>
+                  }
+                />
+                <Route path=":roleID">
                   <Route
                     index={true}
-                    element={
-                      <Suspense fallback={<ShowLoading />}>
-                        <UserDetailsScreen />
-                      </Suspense>
-                    }
+                    element={<Navigate to="details" replace={true} />}
                   />
+                  <Route path="details">
+                    <Route
+                      index={true}
+                      element={
+                        <Suspense fallback={<ShowLoading />}>
+                          <RoleDetailsScreen />
+                        </Suspense>
+                      }
+                    />
+                  </Route>
+                </Route>
+              </Route>
+
+              <Route path="groups">
+                <Route
+                  index={true}
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <GroupsScreen />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="add-group"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <AddGroupScreen />
+                    </Suspense>
+                  }
+                />
+                <Route path=":groupID">
                   <Route
-                    path="add-email"
-                    element={
-                      <Suspense fallback={<ShowLoading />}>
-                        <EmailScreen />
-                      </Suspense>
-                    }
+                    index={true}
+                    element={<Navigate to="details" replace={true} />}
                   />
+                  <Route path="details">
+                    <Route
+                      index={true}
+                      element={
+                        <Suspense fallback={<ShowLoading />}>
+                          <GroupDetailsScreen />
+                        </Suspense>
+                      }
+                    />
+                  </Route>
+                </Route>
+              </Route>
+
+              <Route path="users">
+                <Route
+                  index={true}
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <UsersScreen />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="add-user"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <AddUserScreen />
+                    </Suspense>
+                  }
+                />
+                <Route path=":userID">
                   <Route
-                    path="edit-email/:identityID"
-                    element={
-                      <Suspense fallback={<ShowLoading />}>
-                        <EmailScreen />
-                      </Suspense>
-                    }
+                    index={true}
+                    element={<Navigate to="details" replace={true} />}
                   />
-                  <Route
-                    path="add-phone"
-                    element={
-                      <Suspense fallback={<ShowLoading />}>
-                        <PhoneScreen />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="edit-phone/:identityID"
-                    element={
-                      <Suspense fallback={<ShowLoading />}>
-                        <PhoneScreen />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="add-username"
-                    element={
-                      <Suspense fallback={<ShowLoading />}>
-                        <UsernameScreen />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="edit-username/:identityID"
-                    element={
-                      <Suspense fallback={<ShowLoading />}>
-                        <UsernameScreen />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="reset-password"
-                    element={
-                      <Suspense fallback={<ShowLoading />}>
-                        <ResetPasswordScreen />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="edit-picture"
-                    element={
-                      <Suspense fallback={<ShowLoading />}>
-                        <EditPictureScreen />
-                      </Suspense>
-                    }
-                  />
+                  <Route path="details">
+                    <Route
+                      index={true}
+                      element={
+                        <Suspense fallback={<ShowLoading />}>
+                          <UserDetailsScreen />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="add-email"
+                      element={
+                        <Suspense fallback={<ShowLoading />}>
+                          <EmailScreen />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="edit-email/:identityID"
+                      element={
+                        <Suspense fallback={<ShowLoading />}>
+                          <EmailScreen />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="add-phone"
+                      element={
+                        <Suspense fallback={<ShowLoading />}>
+                          <PhoneScreen />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="edit-phone/:identityID"
+                      element={
+                        <Suspense fallback={<ShowLoading />}>
+                          <PhoneScreen />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="add-username"
+                      element={
+                        <Suspense fallback={<ShowLoading />}>
+                          <UsernameScreen />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="edit-username/:identityID"
+                      element={
+                        <Suspense fallback={<ShowLoading />}>
+                          <UsernameScreen />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="reset-password"
+                      element={
+                        <Suspense fallback={<ShowLoading />}>
+                          <ResetPasswordScreen />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="edit-picture"
+                      element={
+                        <Suspense fallback={<ShowLoading />}>
+                          <EditPictureScreen />
+                        </Suspense>
+                      }
+                    />
+                  </Route>
                 </Route>
               </Route>
             </Route>
