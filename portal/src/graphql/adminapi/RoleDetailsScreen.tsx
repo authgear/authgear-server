@@ -34,7 +34,9 @@ import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useUpdateRoleMutation } from "./mutations/updateRoleMutation";
 import { usePivotNavigation } from "../../hook/usePivot";
 import { Pivot, PivotItem, SearchBox } from "@fluentui/react";
-import DeleteRoleDialog, { DeleteRoleDialogData } from "./DeleteRoleDialog";
+import DeleteRoleDialog, {
+  DeleteRoleDialogData,
+} from "../../components/roles-and-groups/DeleteRoleDialog";
 import { GroupsEmptyView } from "../../components/roles-and-groups/GroupsEmptyView";
 import { useQuery } from "@apollo/client";
 import {

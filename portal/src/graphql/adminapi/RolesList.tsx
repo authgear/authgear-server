@@ -13,7 +13,9 @@ import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useParams } from "react-router-dom";
 import { Context } from "@oursky/react-messageformat";
 import Link from "../../Link";
-import DeleteRoleDialog, { DeleteRoleDialogData } from "./DeleteRoleDialog";
+import DeleteRoleDialog, {
+  DeleteRoleDialogData,
+} from "../../components/roles-and-groups/DeleteRoleDialog";
 import RolesAndGroupsBaseList from "../../components/roles-and-groups/list/RolesAndGroupsBaseList";
 import ActionButtonCell from "../../components/roles-and-groups/list/ActionButtonCell";
 import TextCell from "../../components/roles-and-groups/list/TextCell";
