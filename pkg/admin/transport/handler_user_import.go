@@ -27,7 +27,7 @@ type UserImportHandler struct {
 func (h *UserImportHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var request userimport.Request
-	err = httputil.BindJSONBody(r, w, userimport.RequestSchema.Validator(), &request)
+	err = httputil.BindJSONBody(r, w, userimport.RequestSchema.Validator(), &request, httputil.WithBodyMaxSize(userimport.BodyMaxSize))
 	if err != nil {
 		h.JSON.WriteResponse(w, &api.Response{Error: err})
 		return

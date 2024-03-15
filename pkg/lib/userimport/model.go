@@ -12,6 +12,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
+// BodyMaxSize is 500KB.
+var BodyMaxSize int64 = 500 * 1000
+
 var RecordSchemaForIdentifierEmail *validation.SimpleSchema
 var RecordSchemaForIdentifierPhoneNumber *validation.SimpleSchema
 var RecordSchemaForIdentifierPreferredUsername *validation.SimpleSchema
