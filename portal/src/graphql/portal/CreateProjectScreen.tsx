@@ -22,14 +22,17 @@ import {
   useGTMDispatch,
 } from "../../GTMProvider";
 import PrimaryButton from "../../PrimaryButton";
+import FormPhoneTextField from "../../FormPhoneTextField";
 
 interface FormState {
   appID: string;
+  phoneNumber: string;
 }
 
 function makeDefaultState(): FormState {
   return {
     appID: randomProjectName(),
+    phoneNumber: "",
   };
 }
 
@@ -69,9 +72,11 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
   const { createApp } = useCreateAppMutation();
   const { renderToString } = useContext(Context);
 
+  const isFirstProject = numberOfApps === 0;
+
   const submit = useCallback(
     async (state: FormState) => {
-      return createApp(state.appID);
+      return createApp(state.appID, state.phoneNumber);
     },
     [createApp]
   );
@@ -87,7 +92,7 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
     updateError,
     save,
     isUpdating,
-    state: { appID },
+    state: { appID, phoneNumber },
     setState,
   } = form;
 
@@ -95,6 +100,15 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
     (_e, newValue) => {
       if (newValue != null) {
         setState((prev) => ({ ...prev, appID: newValue }));
+      }
+    },
+    [setState]
+  );
+
+  const onChangePhoneNumber = useCallback(
+    (_e, newValue) => {
+      if (newValue != null) {
+        setState((prev) => ({ ...prev, phoneNumber: newValue }));
       }
     },
     [setState]
@@ -167,6 +181,15 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
                 "CreateProjectScreen.app-id.description"
               )}
             />
+            {isFirstProject ? (
+              <FormPhoneTextField
+                parentJSONPointer=""
+                fieldName="phone_number"
+                inputValue={phoneNumber}
+                onChange={onChangePhoneNumber}
+                label={renderToString("CreateProjectScreen.phone-number.label")}
+              />
+            ) : null}
           </form>
         </WizardContentLayout>
       </WizardScreenLayout>

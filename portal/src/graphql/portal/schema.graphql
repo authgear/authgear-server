@@ -231,6 +231,9 @@ enum CollaboratorRole {
 input CreateAppInput {
   """ID of the new app."""
   id: String!
+
+  """Phone number of the new app."""
+  phoneNumber: String
 }
 
 """"""
