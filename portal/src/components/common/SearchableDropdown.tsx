@@ -153,6 +153,7 @@ export const SearchableDropdown: React.VFC<SearchableDropdownProps> =
         {...restProps}
         calloutProps={{
           calloutMaxHeight: 264,
+          calloutMinWidth: 200,
           alignTargetEdge: true,
           ...calloutProps,
         }}
