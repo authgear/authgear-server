@@ -185,10 +185,13 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
     []
   );
 
+  const listEmptyText = renderToString("RolesList.empty.search");
+
   return (
     <>
       <div className={cn(styles.root, className)}>
         <RolesAndGroupsBaseList
+          emptyText={listEmptyText}
           loading={loading}
           onRenderRow={onRenderRoleRow}
           onRenderItemColumn={onRenderRoleItemColumn}

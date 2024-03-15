@@ -176,13 +176,13 @@
   "GroupsScreen.empty-state.title": "You don't have any groups yet.",
   "GroupsScreen.empty-state.subtitle": "Create groups to represent the types of users that access your applications.",
   "GroupsScreen.empty-state.button": "Create Group",
-  "GroupsScreen.empty.search": "No results matched your search.",
 
   "GroupsList.column.name": "Name",
   "GroupsList.column.key": "Group Key",
   "GroupsList.column.description": "Description",
   "GroupsList.column.action": "Action",
   "GroupsList.delete-group": "Delete Group",
+  "GroupsList.empty.search": "No results matched your search.",
 
   "GroupRolesList.column.name": "Name",
   "GroupRolesList.column.key": "Role Key",
@@ -206,7 +206,6 @@
   "RolesEmptyView.title": "You don't have any roles yet.",
   "RolesEmptyView.description": "Create roles to represent the types of users that access your applications.",
   "RolesEmptyView.button.text": "Create Role",
-  "RolesScreen.empty.search": "No results matched your search.",
 
   "RoleDetailsScreen.tabs.settings": "Settings",
   "RoleDetailsScreen.tabs.groups": "Groups",
@@ -249,6 +248,7 @@
   "RolesList.column.description": "Description",
   "RolesList.column.action": "Action",
   "RolesList.delete-role": "Delete Role",
+  "RolesList.empty.search": "No results matched your search.",
 
   "RoleGroupsList.column.name": "Name",
   "RoleGroupsList.column.key": "Group Key",

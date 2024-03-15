@@ -187,10 +187,13 @@ const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
     []
   );
 
+  const listEmptyText = renderToString("GroupsList.empty.search");
+
   return (
     <>
       <div className={cn(styles.root, className)}>
         <RolesAndGroupsBaseList
+          emptyText={listEmptyText}
           loading={loading}
           onRenderRow={onRenderGroupRow}
           onRenderItemColumn={onRenderGroupItemColumn}

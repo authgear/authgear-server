@@ -77,7 +77,6 @@ const GroupsScreen: React.VFC = function GroupsScreen() {
   const isInitialLoading = loading && previousData == null;
 
   const isEmpty = !isInitialLoading && data?.groups?.totalCount === 0;
-  const isSearchEmpty = isSearch && data?.groups?.edges?.length === 0;
 
   const searchBoxProps: ISearchBoxProps = useMemo(() => {
     return {
@@ -116,10 +115,6 @@ const GroupsScreen: React.VFC = function GroupsScreen() {
       {!isEmpty ? <SearchBox {...searchBoxProps} /> : null}
       {isEmpty ? (
         <GroupsEmptyView className={styles.emptyStateContainer} />
-      ) : isSearchEmpty ? (
-        <MessageBar className={cn(styles.message)}>
-          <FormattedMessage id="GroupsScreen.empty.search" />
-        </MessageBar>
       ) : (
         <GroupsList
           className={styles.list}

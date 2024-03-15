@@ -1,7 +1,6 @@
 import { useQuery } from "@apollo/client";
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import cn from "classnames";
-import { ISearchBoxProps, SearchBox, MessageBar } from "@fluentui/react";
+import { ISearchBoxProps, SearchBox } from "@fluentui/react";
 import {
   RolesListQueryDocument,
   RolesListQueryQuery,
@@ -77,7 +76,6 @@ const RolesScreen: React.VFC = function RolesScreen() {
   const isInitialLoading = loading && previousData == null;
 
   const isEmpty = !isInitialLoading && data?.roles?.totalCount === 0;
-  const isSearchEmpty = isSearch && data?.roles?.edges?.length === 0;
 
   const searchBoxProps: ISearchBoxProps = useMemo(() => {
     return {
@@ -116,10 +114,6 @@ const RolesScreen: React.VFC = function RolesScreen() {
       {!isEmpty ? <SearchBox {...searchBoxProps} /> : null}
       {isEmpty ? (
         <RolesEmptyView className={styles.emptyStateContainer} />
-      ) : isSearchEmpty ? (
-        <MessageBar className={cn(styles.message)}>
-          <FormattedMessage id="RolesScreen.empty.search" />
-        </MessageBar>
       ) : (
         <RolesList
           className={styles.list}

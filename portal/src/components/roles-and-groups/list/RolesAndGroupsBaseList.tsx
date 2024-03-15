@@ -4,6 +4,7 @@ import {
   IColumn,
   IDetailsRowProps,
   IRenderFunction,
+  MessageBar,
   SelectionMode,
   ShimmeredDetailsList,
 } from "@fluentui/react";
@@ -32,6 +33,7 @@ interface RolesAndGroupsBaseListProps<T> {
   ) => React.ReactNode;
   items: T[];
   columns: IColumn[];
+  emptyText: string;
 }
 
 function RolesAndGroupsBaseList<T>(
@@ -45,9 +47,14 @@ function RolesAndGroupsBaseList<T>(
     onRenderItemColumn,
     items,
     columns,
+    emptyText,
   } = props;
 
-  return (
+  const isEmpty = items.length === 0;
+
+  return isEmpty ? (
+    <MessageBar className={styles.message}>{emptyText}</MessageBar>
+  ) : (
     <>
       <div
         className={cn(styles.listWrapper, className)}

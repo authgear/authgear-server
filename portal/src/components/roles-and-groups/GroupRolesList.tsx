@@ -5,12 +5,8 @@ import {
   DetailsRow,
   IColumn,
   IDetailsRowProps,
-  MessageBar,
 } from "@fluentui/react";
-import {
-  FormattedMessage,
-  Context as MessageContext,
-} from "@oursky/react-messageformat";
+import { Context as MessageContext } from "@oursky/react-messageformat";
 import { useParams } from "react-router-dom";
 
 import styles from "./GroupRolesList.module.css";
@@ -144,23 +140,18 @@ export const GroupRolesList: React.VFC<GroupRolesListProps> =
       [onClickDeleteRole, themes.destructive]
     );
 
-    const isEmpty = roles.length === 0;
+    const listEmptyText = renderToString("GroupRolesList.empty");
 
     return (
       <>
         <div className={cn(styles.root, className)}>
-          {isEmpty ? (
-            <MessageBar className={styles.empty}>
-              <FormattedMessage id="GroupRolesList.empty" />
-            </MessageBar>
-          ) : (
-            <RolesAndGroupsBaseList
-              onRenderRow={onRenderRow}
-              onRenderItemColumn={onRenderItemColumn}
-              items={roles}
-              columns={columns}
-            />
-          )}
+          <RolesAndGroupsBaseList
+            emptyText={listEmptyText}
+            onRenderRow={onRenderRow}
+            onRenderItemColumn={onRenderItemColumn}
+            items={roles}
+            columns={columns}
+          />
         </div>
         <DeleteGroupRoleDialog
           data={deleteDialogData}

@@ -11,10 +11,6 @@
   @apply mobile:w-auto mb-8;
 }
 
-.message {
-  @apply mt-5 h-min;
-}
-
 .list {
   @apply flex-1 min-h-0;
 }
