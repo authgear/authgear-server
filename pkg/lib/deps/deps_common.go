@@ -101,6 +101,7 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		libes.DependencySet,
+		wire.Bind(new(userimport.ElasticsearchService), new(*libes.Service)),
 	),
 
 	wire.NewSet(
@@ -193,6 +194,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(hook.CustomAttributesServiceNoEvent), new(*featurecustomattrs.ServiceNoEvent)),
 		wire.Bind(new(workflow.CustomAttrsService), new(*featurecustomattrs.Service)),
 		wire.Bind(new(authenticationflow.CustomAttrsService), new(*featurecustomattrs.Service)),
+		wire.Bind(new(userimport.CustomAttributesService), new(*featurecustomattrs.ServiceNoEvent)),
 	),
 
 	wire.NewSet(
@@ -248,6 +250,8 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(authenticationflow.VerificationService), new(facade.WorkflowVerificationFacade)),
 		wire.Bind(new(authenticationflow.MFAService), new(*facade.MFAFacade)),
 		wire.Bind(new(interaction.MFAService), new(*facade.MFAFacade)),
+		wire.Bind(new(userimport.IdentityService), new(*facade.IdentityFacade)),
+		wire.Bind(new(userimport.AuthenticatorService), new(*facade.AuthenticatorFacade)),
 	),
 
 	wire.NewSet(
@@ -269,6 +273,8 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oauthhandler.UserProvider), new(*user.Queries)),
 		wire.Bind(new(event.ResolverUserQueries), new(*user.Queries)),
 		wire.Bind(new(libes.UserQueries), new(*user.Queries)),
+		wire.Bind(new(userimport.UserCommands), new(*user.RawCommands)),
+		wire.Bind(new(userimport.UserQueries), new(*user.RawQueries)),
 	),
 
 	wire.NewSet(
@@ -277,6 +283,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oidc.RolesAndGroupsProvider), new(*rolesgroups.Queries)),
 		wire.Bind(new(hook.RolesAndGroupsServiceNoEvent), new(*rolesgroups.Commands)),
 		wire.Bind(new(user.RolesAndGroupsService), new(*rolesgroups.Queries)),
+		wire.Bind(new(userimport.RolesGroupsCommands), new(*rolesgroups.Commands)),
 	),
 
 	wire.NewSet(
@@ -356,6 +363,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(user.VerificationService), new(*verification.Service)),
 		wire.Bind(new(facade.VerificationService), new(*verification.Service)),
 		wire.Bind(new(interaction.VerificationService), new(*verification.Service)),
+		wire.Bind(new(userimport.VerifiedClaimService), new(*verification.Service)),
 	),
 
 	wire.NewSet(
@@ -419,6 +427,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(workflow.StdAttrsService), new(*featurestdattrs.Service)),
 		wire.Bind(new(authenticationflow.StdAttrsService), new(*featurestdattrs.Service)),
 		wire.Bind(new(hook.StandardAttributesServiceNoEvent), new(*featurestdattrs.ServiceNoEvent)),
+		wire.Bind(new(userimport.StandardAttributesService), new(*featurestdattrs.ServiceNoEvent)),
 	),
 
 	presign.DependencySet,
@@ -497,7 +506,5 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(interaction.OAuthClientResolver), new(*oauthclient.Resolver)),
 	),
 
-	wire.NewSet(
-		userimport.DependencySet,
-	),
+	userimport.DependencySet,
 )

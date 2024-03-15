@@ -22,7 +22,6 @@ import (
 	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
-	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/nonce"
@@ -116,15 +115,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(transport.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
 	wire.Bind(new(transport.PresignProvider), new(*presign.Provider)),
 	wire.Bind(new(transport.UserImportService), new(*userimport.UserImportService)),
-	wire.Bind(new(userimport.IdentityService), new(*libfacade.IdentityFacade)),
-	wire.Bind(new(userimport.UserCommands), new(*user.RawCommands)),
-	wire.Bind(new(userimport.UserQueries), new(*user.RawQueries)),
-	wire.Bind(new(userimport.VerifiedClaimService), new(*verification.Service)),
-	wire.Bind(new(userimport.StandardAttributesService), new(*featurestdattrs.ServiceNoEvent)),
-	wire.Bind(new(userimport.CustomAttributesService), new(*featurecustomattrs.ServiceNoEvent)),
-	wire.Bind(new(userimport.RolesGroupsCommands), new(*rolesgroups.Commands)),
-	wire.Bind(new(userimport.AuthenticatorService), new(*libfacade.AuthenticatorFacade)),
-	wire.Bind(new(userimport.ElasticsearchService), new(*libes.Service)),
 
 	adminauthz.DependencySet,
 )
