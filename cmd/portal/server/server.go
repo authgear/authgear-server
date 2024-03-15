@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/pprofutil"
 	"github.com/authgear/authgear-server/pkg/util/server"
+	"github.com/authgear/authgear-server/pkg/util/signalutil"
 	"github.com/authgear/authgear-server/pkg/version"
 )
 
@@ -67,16 +68,16 @@ func (c *Controller) Start() {
 
 	p.ConfigSourceController = configSrcController
 
-	var specs []server.Spec
-	specs = append(specs, server.Spec{
+	var specs []signalutil.Daemon
+	specs = append(specs, server.NewSpec(&server.Spec{
 		Name:          "portal server",
 		ListenAddress: cfg.PortalListenAddr,
 		Handler:       portal.NewRouter(p),
-	})
-	specs = append(specs, server.Spec{
+	}))
+	specs = append(specs, server.NewSpec(&server.Spec{
 		Name:          "portal internal server",
 		ListenAddress: cfg.PortalInternalListenAddr,
 		Handler:       pprofutil.NewServeMux(),
-	})
-	server.Start(c.logger, specs)
+	}))
+	signalutil.Start(c.logger, specs...)
 }
