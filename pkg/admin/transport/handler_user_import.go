@@ -16,7 +16,7 @@ func ConfigureUserImportRoute(route httproute.Route) httproute.Route {
 }
 
 type UserImportService interface {
-	ImportRecords(ctx context.Context, request *userimport.Request) (*userimport.Summary, []userimport.Detail)
+	ImportRecords(ctx context.Context, request *userimport.Request) *userimport.Result
 }
 
 type UserImportHandler struct {
@@ -37,13 +37,7 @@ func (h *UserImportHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserImportHandler) handle(w http.ResponseWriter, r *http.Request, request *userimport.Request) {
-	summary, details := h.UserImportService.ImportRecords(r.Context(), request)
-	result := map[string]interface{}{
-		"summary": summary,
-	}
-	if len(details) > 0 {
-		result["details"] = details
-	}
+	result := h.UserImportService.ImportRecords(r.Context(), request)
 	h.JSON.WriteResponse(w, &api.Response{
 		Result: result,
 	})
