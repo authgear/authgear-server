@@ -9,7 +9,6 @@ import {
   MessageBar,
   SelectionMode,
   ShimmeredDetailsList,
-  Text,
 } from "@fluentui/react";
 import {
   FormattedMessage,
@@ -20,11 +19,12 @@ import { useParams } from "react-router-dom";
 import styles from "./GroupRolesList.module.css";
 import { Group, Role } from "../../graphql/adminapi/globalTypes.generated";
 import Link from "../../Link";
-import ActionButton from "../../ActionButton";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import DeleteGroupRoleDialog, {
   DeleteGroupRoleDialogData,
 } from "./DeleteGroupRoleDialog";
+import ActionButtonCell from "./list/ActionButtonCell";
+import TextCell from "./list/TextCell";
 
 export interface GroupRolesListItem
   extends Pick<Group, "id" | "name" | "key"> {}
@@ -127,32 +127,19 @@ export const GroupRolesList: React.VFC<GroupRolesListProps> =
         switch (column?.key) {
           case GroupRolesListColumnKey.Action: {
             return (
-              <div className={styles.cell}>
-                <ActionButton
-                  text={
-                    <Text
-                      className={styles.actionButtonText}
-                      theme={themes.destructive}
-                    >
-                      <FormattedMessage id="GroupRolesList.actions.remove" />
-                    </Text>
-                  }
-                  className={styles.actionButton}
-                  theme={themes.destructive}
-                  onClick={(e) => {
-                    onClickDeleteRole(e, item);
-                  }}
-                />
-              </div>
+              <ActionButtonCell
+                text={renderToString("GroupRolesList.actions.remove")}
+                onClick={(e) => {
+                  onClickDeleteRole(e, item);
+                }}
+              />
             );
           }
           default:
             return (
-              <div className={styles.cell} key={item.key}>
-                <div className={styles.cellText}>
-                  {item[column?.fieldName as keyof GroupRolesListItem] ?? ""}
-                </div>
-              </div>
+              <TextCell>
+                {item[column?.fieldName as keyof GroupRolesListItem] ?? ""}
+              </TextCell>
             );
         }
       },

@@ -10,18 +10,19 @@ import {
   IDetailsRowProps,
   SelectionMode,
   ShimmeredDetailsList,
-  Text,
 } from "@fluentui/react";
 import styles from "./GroupsList.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useParams } from "react-router-dom";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context } from "@oursky/react-messageformat";
 import Link from "../../Link";
-import ActionButton from "../../ActionButton";
 import PaginationWidget from "../../PaginationWidget";
 import DeleteGroupDialog, {
   DeleteGroupDialogData,
 } from "../../components/roles-and-groups/DeleteGroupDialog";
+import DescriptionCell from "../../components/roles-and-groups/list/DescriptionCell";
+import ActionButtonCell from "../../components/roles-and-groups/list/ActionButtonCell";
+import TextCell from "../../components/roles-and-groups/list/TextCell";
 
 interface GroupsListProps {
   className?: string;
@@ -153,40 +154,25 @@ const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
       switch (column?.key) {
         case "description":
           return (
-            <div className={styles.cell}>
-              <div className={styles.description}>
-                {item[column.key as keyof GroupListItem] ?? ""}
-              </div>
-            </div>
+            <DescriptionCell>
+              {item[column.key as keyof GroupListItem] ?? ""}
+            </DescriptionCell>
           );
         case "action": {
           return (
-            <div className={styles.cell}>
-              <ActionButton
-                text={
-                  <Text
-                    className={styles.actionButtonText}
-                    theme={themes.destructive}
-                  >
-                    <FormattedMessage id="GroupsList.delete-group" />
-                  </Text>
-                }
-                className={styles.actionButton}
-                theme={themes.destructive}
-                onClick={(e) => {
-                  onClickDeleteGroup(e, item);
-                }}
-              />
-            </div>
+            <ActionButtonCell
+              text={renderToString("GroupsList.delete-group")}
+              onClick={(e) => {
+                onClickDeleteGroup(e, item);
+              }}
+            />
           );
         }
         default:
           return (
-            <div className={styles.cell}>
-              <div className={styles.cellText}>
-                {item[column?.key as keyof GroupListItem] ?? ""}
-              </div>
-            </div>
+            <TextCell>
+              {item[column?.key as keyof GroupListItem] ?? ""}
+            </TextCell>
           );
       }
     },
