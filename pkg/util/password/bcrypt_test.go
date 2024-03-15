@@ -27,5 +27,11 @@ func TestBCrypt(t *testing.T) {
 			// bcrypt password truncation
 			So(bcrypt.Compare([]byte("password12345678password12345678password12345678password12345678password12345670"), h), ShouldBeNil)
 		})
+		Convey("should check existing hash", func() {
+			h := []byte("$2a$10$4yzWhYLTp56Aire5CaS2EuUQjs0TiDa83faJe095mUeajNJUyrJDK")
+			So(bcrypt.CheckHash(h), ShouldBeNil)
+
+			So(bcrypt.CheckHash(nil), ShouldBeError, "crypto/bcrypt: hashedSecret too short to be a bcrypted password")
+		})
 	})
 }

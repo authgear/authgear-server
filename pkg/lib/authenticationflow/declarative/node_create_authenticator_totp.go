@@ -135,7 +135,11 @@ func (n *NodeCreateAuthenticatorTOTP) OutputData(ctx context.Context, deps *auth
 		Issuer:      string(issuer),
 		AccountName: accountName,
 	}
-	otpauthURI := secretcode.NewTOTPFromSecret(secret).GetURI(opts).String()
+	totp, err := secretcode.NewTOTPFromSecret(secret)
+	if err != nil {
+		return nil, err
+	}
+	otpauthURI := totp.GetURI(opts).String()
 
 	return NewNodeCreateAuthenticatorTOTPData(NodeCreateAuthenticatorTOTPData{
 		Secret:     secret,

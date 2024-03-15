@@ -31,3 +31,12 @@ func (p bcryptSHA512Password) Compare(password, hash []byte) error {
 	shaHash := sha512.Sum512(password)
 	return bcrypt.CompareHashAndPassword(data, shaHash[:])
 }
+
+func (b bcryptSHA512Password) CheckHash(hash []byte) error {
+	_, data, err := parsePasswordFormat(hash)
+	if err != nil {
+		return err
+	}
+	// Delegate to bcryptPassword.
+	return bcryptPassword{}.CheckHash(data)
+}

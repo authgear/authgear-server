@@ -54,6 +54,14 @@ func Compare(password, hash []byte) error {
 	return fmt.Compare(password, hash)
 }
 
+func CheckHash(hash []byte) error {
+	fmt, err := resolveFormat(hash)
+	if err != nil {
+		return err
+	}
+	return fmt.CheckHash(hash)
+}
+
 func TryMigrate(password []byte, hash *[]byte) (migrated bool, err error) {
 	// Do not enforce password length limit: migration of old password should
 	// not fail due to length limit

@@ -28,6 +28,11 @@ func (b SchemaBuilder) Type(t Type) SchemaBuilder {
 	return b
 }
 
+func (b SchemaBuilder) Types(ts ...Type) SchemaBuilder {
+	b["type"] = ts
+	return b
+}
+
 func (b SchemaBuilder) Properties() SchemaBuilder {
 	bb, ok := b["properties"].(SchemaBuilder)
 	if !ok {

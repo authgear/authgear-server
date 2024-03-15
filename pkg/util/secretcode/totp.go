@@ -63,8 +63,13 @@ func NewTOTPFromRNG() (*TOTP, error) {
 	return &TOTP{Secret: secret}, nil
 }
 
-func NewTOTPFromSecret(secret string) *TOTP {
-	return &TOTP{Secret: secret}
+func NewTOTPFromSecret(secret string) (*TOTP, error) {
+	_, err := b32NoPadding.DecodeString(secret)
+	if err != nil {
+		return nil, err
+	}
+
+	return &TOTP{Secret: secret}, nil
 }
 
 // GenerateCode generates the TOTP code against the secret at the given time t.

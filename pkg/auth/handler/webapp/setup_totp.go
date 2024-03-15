@@ -73,7 +73,10 @@ func (h *SetupTOTPHandler) MakeViewModel(session *webapp.Session, graph *interac
 
 	a := node.GetTOTPAuthenticator()
 	secret := a.TOTP.Secret
-	totp := secretcode.NewTOTPFromSecret(secret)
+	totp, err := secretcode.NewTOTPFromSecret(secret)
+	if err != nil {
+		return nil, err
+	}
 
 	issuer := h.Endpoints.Origin().String()
 	// FIXME(mfa): decide a proper account name.

@@ -2,6 +2,7 @@ package secretcode
 
 import (
 	"encoding/base32"
+	"errors"
 	"testing"
 	"time"
 
@@ -15,7 +16,7 @@ func TestTOTP(t *testing.T) {
 		// nolint: gosec
 		fixtureSecret := "GJQFQHET4FX7U5EWSXU36MM36X46TJ7E"
 		fixtureTime := time.Date(2019, 6, 1, 0, 0, 0, 0, time.UTC)
-		totp := NewTOTPFromSecret(fixtureSecret)
+		totp, _ := NewTOTPFromSecret(fixtureSecret)
 
 		Convey("NewTOTPSecretFromRNG", func() {
 			totp, err := NewTOTPFromRNG()
@@ -25,6 +26,13 @@ func TestTOTP(t *testing.T) {
 			// Base32 groups 5 bits into 1 character.
 			// So the length should be 160/5 = 32.
 			So(len(totp.Secret), ShouldEqual, 32)
+		})
+
+		Convey("NewTOTPFromSecret", func() {
+			_, err := NewTOTPFromSecret("!")
+			var corruptInputError base32.CorruptInputError
+			So(errors.As(err, &corruptInputError), ShouldBeTrue)
+			So(err, ShouldBeError, "illegal base32 data at input byte 0")
 		})
 
 		Convey("GenerateCode", func() {
@@ -98,7 +106,7 @@ func TestTOTPGetURI(t *testing.T) {
 		rawSecret := "01234567890123456789"
 		enc := base32.StdEncoding.WithPadding(base32.NoPadding)
 		secret := enc.EncodeToString([]byte(rawSecret))
-		totp := NewTOTPFromSecret(secret)
+		totp, _ := NewTOTPFromSecret(secret)
 
 		test := func(opts URIOptions, expected string) {
 			u := totp.GetURI(opts)
@@ -124,7 +132,7 @@ func TestTOTPQRCodeImage(t *testing.T) {
 		rawSecret := "01234567890123456789"
 		enc := base32.StdEncoding.WithPadding(base32.NoPadding)
 		secret := enc.EncodeToString([]byte(rawSecret))
-		totp := NewTOTPFromSecret(secret)
+		totp, _ := NewTOTPFromSecret(secret)
 
 		opts := QRCodeImageOptions{
 			Issuer:      "test",

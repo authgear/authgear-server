@@ -17,7 +17,7 @@ type PasswordAuthenticatorProvider interface {
 	Get(userID, id string) (*authenticator.Password, error)
 	GetMany(ids []string) ([]*authenticator.Password, error)
 	List(userID string) ([]*authenticator.Password, error)
-	New(id string, userID string, password string, isDefault bool, kind string) (*authenticator.Password, error)
+	New(id string, userID string, passwordSpec *authenticator.PasswordSpec, isDefault bool, kind string) (*authenticator.Password, error)
 	// WithPassword returns new authenticator pointer if password is changed
 	// Otherwise original authenticator will be returned
 	WithPassword(a *authenticator.Password, password string) (*authenticator.Password, error)
@@ -48,7 +48,7 @@ type TOTPAuthenticatorProvider interface {
 	Get(userID, id string) (*authenticator.TOTP, error)
 	GetMany(ids []string) ([]*authenticator.TOTP, error)
 	List(userID string) ([]*authenticator.TOTP, error)
-	New(id string, userID string, displayName string, isDefault bool, kind string) *authenticator.TOTP
+	New(id string, userID string, totpSpec *authenticator.TOTPSpec, isDefault bool, kind string) (*authenticator.TOTP, error)
 	Create(*authenticator.TOTP) error
 	Delete(*authenticator.TOTP) error
 	Authenticate(a *authenticator.TOTP, code string) error
@@ -315,8 +315,7 @@ func (s *Service) New(spec *authenticator.Spec) (*authenticator.Info, error) {
 func (s *Service) NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error) {
 	switch spec.Type {
 	case model.AuthenticatorTypePassword:
-		plainPassword := spec.Password.PlainPassword
-		p, err := s.Password.New(authenticatorID, spec.UserID, plainPassword, spec.IsDefault, string(spec.Kind))
+		p, err := s.Password.New(authenticatorID, spec.UserID, spec.Password, spec.IsDefault, string(spec.Kind))
 		if err != nil {
 			return nil, err
 		}
@@ -338,8 +337,10 @@ func (s *Service) NewWithAuthenticatorID(authenticatorID string, spec *authentic
 		return p.ToInfo(), nil
 
 	case model.AuthenticatorTypeTOTP:
-		displayName := spec.TOTP.DisplayName
-		t := s.TOTP.New(authenticatorID, spec.UserID, displayName, spec.IsDefault, string(spec.Kind))
+		t, err := s.TOTP.New(authenticatorID, spec.UserID, spec.TOTP, spec.IsDefault, string(spec.Kind))
+		if err != nil {
+			return nil, err
+		}
 		return t.ToInfo(), nil
 
 	case model.AuthenticatorTypeOOBEmail:

@@ -2,6 +2,7 @@ package httputil
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"mime"
 	"net/http"
@@ -13,7 +14,35 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
+var JSONTooLarge = apierrors.RequestEntityTooLarge.WithReason("JSONTooLarge")
+
 const BodyMaxSize = 1024 * 1024 * 10
+
+type jsonOption struct {
+	BodyMaxSize int64
+}
+
+type JSONOption func(option *jsonOption)
+
+func makeDefaultOption() *jsonOption {
+	return &jsonOption{
+		BodyMaxSize: BodyMaxSize,
+	}
+}
+
+func applyJSONOptions(options ...JSONOption) *jsonOption {
+	option := makeDefaultOption()
+	for _, o := range options {
+		o(option)
+	}
+	return option
+}
+
+func WithBodyMaxSize(size int64) JSONOption {
+	return func(option *jsonOption) {
+		option.BodyMaxSize = size
+	}
+}
 
 func IsJSONContentType(contentType string) bool {
 	mediaType, params, err := mime.ParseMediaType(contentType)
@@ -36,27 +65,37 @@ func IsJSONContentType(contentType string) bool {
 	return strings.ToLower(charset) == "utf-8"
 }
 
-func ParseJSONBody(r *http.Request, w http.ResponseWriter, parse func(io.Reader, interface{}) error, payload interface{}) error {
+func ParseJSONBody(r *http.Request, w http.ResponseWriter, parse func(io.Reader, interface{}) error, payload interface{}, options ...JSONOption) error {
+	option := applyJSONOptions(options...)
 	if !IsJSONContentType(r.Header.Get("Content-Type")) {
 		return apierrors.NewBadRequest("request content type is invalid")
 	}
-	body := http.MaxBytesReader(w, r.Body, BodyMaxSize)
+	body := http.MaxBytesReader(w, r.Body, option.BodyMaxSize)
 	defer body.Close()
-	return parse(body, payload)
+	err := parse(body, payload)
+	if err != nil {
+		var maxBytesError *http.MaxBytesError
+		if errors.As(err, &maxBytesError) {
+			return JSONTooLarge.NewWithInfo("request body too large", apierrors.Details{
+				"limit": maxBytesError.Limit,
+			})
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 type BodyDefaulter interface {
 	SetDefaults()
 }
 
-func BindJSONBody(r *http.Request, w http.ResponseWriter, v *validation.SchemaValidator, payload interface{}) error {
+func BindJSONBody(r *http.Request, w http.ResponseWriter, v *validation.SchemaValidator, payload interface{}, options ...JSONOption) error {
 	const errorMessage = "invalid request body"
 	return ParseJSONBody(r, w, func(reader io.Reader, value interface{}) error {
 		err := v.ParseWithMessage(reader, errorMessage, value)
 		if err != nil {
-			if !apierrors.IsKind(err, apierrors.ValidationFailed) {
-				return apierrors.NewBadRequest(errorMessage)
-			}
 			return err
 		}
 
@@ -64,7 +103,7 @@ func BindJSONBody(r *http.Request, w http.ResponseWriter, v *validation.SchemaVa
 			value.SetDefaults()
 		}
 		return validation.ValidateValueWithMessage(value, errorMessage)
-	}, payload)
+	}, payload, options...)
 }
 
 type JSONResponseWriterLogger struct{ *log.Logger }
