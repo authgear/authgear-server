@@ -1,17 +1,17 @@
 import { ITag } from "@fluentui/react";
 import { Context as MessageContext } from "@oursky/react-messageformat";
 import React, { useCallback, useContext, useMemo } from "react";
-import ErrorDialog from "../../error/ErrorDialog";
+import ErrorDialog from "../../../error/ErrorDialog";
 import { useQuery } from "@apollo/client";
-import { Role } from "../../graphql/adminapi/globalTypes.generated";
+import { Role } from "../../../graphql/adminapi/globalTypes.generated";
 import AddTagsDialog from "./AddTagsDialog";
-import { useAddGroupToRolesMutation } from "../../graphql/adminapi/mutations/addGroupToRolesMutation";
-import { useGroupQuery } from "../../graphql/adminapi/query/groupQuery";
+import { useAddGroupToRolesMutation } from "../../../graphql/adminapi/mutations/addGroupToRolesMutation";
+import { useGroupQuery } from "../../../graphql/adminapi/query/groupQuery";
 import {
   RolesListQueryDocument,
   RolesListQueryQuery,
   RolesListQueryQueryVariables,
-} from "../../graphql/adminapi/query/rolesListQuery.generated";
+} from "../../../graphql/adminapi/query/rolesListQuery.generated";
 
 interface AddGroupRolesDialogGroup extends Pick<Role, "id" | "key" | "name"> {}
 

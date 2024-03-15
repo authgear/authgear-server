@@ -4,8 +4,8 @@ import { useParams } from "react-router-dom";
 
 import { RolesAndGroupsEmptyView } from "./RolesAndGroupsEmptyView";
 
-import iconGroups from "../../images/material-groups.svg";
-import { ReactRouterLinkComponent } from "../../ReactRouterLink";
+import iconGroups from "../../../images/material-groups.svg";
+import { ReactRouterLinkComponent } from "../../../ReactRouterLink";
 
 export const GroupsEmptyView: React.VFC<{ className?: string }> =
   function GroupsEmptyView({ className }) {

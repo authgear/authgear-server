@@ -27,7 +27,7 @@ import { makeLocalValidationError } from "../../error/validation";
 import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
 import WidgetDescription from "../../WidgetDescription";
 import FormTextField from "../../FormTextField";
-import { RoleAndGroupsFormContainer } from "./RoleAndGroupsFormContainer";
+import { RoleAndGroupsFormContainer } from "../../components/roles-and-groups/form/RoleAndGroupsFormContainer";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import { useSystemConfig } from "../../context/SystemConfigContext";
@@ -36,8 +36,8 @@ import { usePivotNavigation } from "../../hook/usePivot";
 import { Pivot, PivotItem, SearchBox } from "@fluentui/react";
 import DeleteRoleDialog, {
   DeleteRoleDialogData,
-} from "../../components/roles-and-groups/DeleteRoleDialog";
-import { GroupsEmptyView } from "../../components/roles-and-groups/GroupsEmptyView";
+} from "../../components/roles-and-groups/dialog/DeleteRoleDialog";
+import { GroupsEmptyView } from "../../components/roles-and-groups/empty-view/GroupsEmptyView";
 import { useQuery } from "@apollo/client";
 import {
   GroupsListQueryDocument,
@@ -47,8 +47,8 @@ import {
 import {
   RoleGroupsList,
   RoleGroupsListItem,
-} from "../../components/roles-and-groups/RoleGroupsList";
-import { AddRoleGroupsDialog } from "../../components/roles-and-groups/AddRoleGroupsDialog";
+} from "../../components/roles-and-groups/list/RoleGroupsList";
+import { AddRoleGroupsDialog } from "../../components/roles-and-groups/dialog/AddRoleGroupsDialog";
 import { searchGroups } from "../../model/group";
 
 interface FormState {

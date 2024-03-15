@@ -1,9 +1,9 @@
 import React from "react";
 import BaseCell from "./BaseCell";
-import ActionButton from "../../../ActionButton";
+import ActionButton from "../../../../ActionButton";
 import styles from "./ActionButtonCell.module.css";
 import { Text } from "@fluentui/react";
-import { useSystemConfig } from "../../../context/SystemConfigContext";
+import { useSystemConfig } from "../../../../context/SystemConfigContext";
 
 interface ActionButtonCellProps {
   text: string;

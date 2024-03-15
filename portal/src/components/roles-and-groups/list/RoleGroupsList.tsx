@@ -10,15 +10,15 @@ import { Context as MessageContext } from "@oursky/react-messageformat";
 import { useParams } from "react-router-dom";
 
 import styles from "./RoleGroupsList.module.css";
-import { Group, Role } from "../../graphql/adminapi/globalTypes.generated";
-import Link from "../../Link";
-import { useSystemConfig } from "../../context/SystemConfigContext";
+import { Group, Role } from "../../../graphql/adminapi/globalTypes.generated";
+import Link from "../../../Link";
+import { useSystemConfig } from "../../../context/SystemConfigContext";
 import DeleteRoleGroupDialog, {
   DeleteRoleGroupDialogData,
-} from "./DeleteRoleGroupDialog";
-import ActionButtonCell from "./list/ActionButtonCell";
-import TextCell from "./list/TextCell";
-import RolesAndGroupsBaseList from "./list/RolesAndGroupsBaseList";
+} from "../dialog/DeleteRoleGroupDialog";
+import ActionButtonCell from "./components/ActionButtonCell";
+import TextCell from "./components/TextCell";
+import RolesAndGroupsBaseList from "./components/RolesAndGroupsBaseList";
 
 export interface RoleGroupsListItem
   extends Pick<Group, "id" | "name" | "key"> {}

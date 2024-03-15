@@ -4,8 +4,8 @@ import { useParams } from "react-router-dom";
 
 import { RolesAndGroupsEmptyView } from "./RolesAndGroupsEmptyView";
 
-import iconBadge from "../../images/badge.svg";
-import { ReactRouterLinkComponent } from "../../ReactRouterLink";
+import iconBadge from "../../../images/badge.svg";
+import { ReactRouterLinkComponent } from "../../../ReactRouterLink";
 
 export const RolesEmptyView: React.VFC<{ className?: string }> =
   function RolesEmptyView({ className }) {

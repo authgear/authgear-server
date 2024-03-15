@@ -1,9 +1,9 @@
 import React, { useCallback, useContext } from "react";
 import { Context } from "@oursky/react-messageformat";
-import { useGroupQuery } from "../../graphql/adminapi/query/groupQuery";
-import { useRemoveGroupFromRolesMutation } from "../../graphql/adminapi/mutations/removeGroupFromRoles";
-import { useSnapshotData } from "../../hook/useSnapshotData";
-import RolesAndGroupsBaseDeleteDialog from "./RolesAndGroupsBaseDeleteDialog";
+import { useGroupQuery } from "../../../graphql/adminapi/query/groupQuery";
+import { useRemoveGroupFromRolesMutation } from "../../../graphql/adminapi/mutations/removeGroupFromRoles";
+import { useSnapshotData } from "../../../hook/useSnapshotData";
+import RolesAndGroupsBaseDeleteDialog from "./components/RolesAndGroupsBaseDeleteDialog";
 
 export interface DeleteGroupRoleDialogData {
   roleID: string;

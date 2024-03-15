@@ -10,7 +10,7 @@ import {
 } from "@fluentui/react";
 import styles from "./RolesAndGroupsBaseList.module.css";
 import cn from "classnames";
-import PaginationWidget from "../../../PaginationWidget";
+import PaginationWidget from "../../../../PaginationWidget";
 
 interface PaginationProps {
   isSearch: boolean;

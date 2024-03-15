@@ -1,49 +1,49 @@
 import React, { useCallback, useContext } from "react";
 import { Context } from "@oursky/react-messageformat";
-import { useDeleteRoleMutation } from "../../graphql/adminapi/mutations/deleteRoleMutation";
-import { useSnapshotData } from "../../hook/useSnapshotData";
-import RolesAndGroupsBaseDeleteDialog from "./RolesAndGroupsBaseDeleteDialog";
+import { useSnapshotData } from "../../../hook/useSnapshotData";
+import { useDeleteGroupMutation } from "../../../graphql/adminapi/mutations/deleteGroupMutation";
+import RolesAndGroupsBaseDeleteDialog from "./components/RolesAndGroupsBaseDeleteDialog";
 
-export interface DeleteRoleDialogData {
-  roleID: string;
-  roleName: string | null;
-  roleKey: string;
+export interface DeleteGroupDialogData {
+  groupID: string;
+  groupName: string | null;
+  groupKey: string;
 }
 
-interface DeleteRoleDialogProps {
-  data: DeleteRoleDialogData | null;
+interface DeleteGroupDialogProps {
+  data: DeleteGroupDialogData | null;
   onDismiss: (isDeleted: boolean) => void;
   onDismissed?: () => void;
 }
 
-const DeleteRoleDialog: React.VFC<DeleteRoleDialogProps> =
-  function DeleteRoleDialog(props) {
+const DeleteGroupDialog: React.VFC<DeleteGroupDialogProps> =
+  function DeleteGroupDialog(props) {
     const { onDismiss, onDismissed, data } = props;
     const isHidden = data === null;
     const { renderToString } = useContext(Context);
-    const { deleteRole, loading, error } = useDeleteRoleMutation();
+    const { deleteGroup, loading, error } = useDeleteGroupMutation();
 
     // Keep the latest non-null data, because the dialog has transition animation before dismiss.
     // During the transition, we still need the data. However, the parent may already changed the props.
     const snapshot = useSnapshotData(data);
-    const title = renderToString("DeleteRoleDialog.title");
-    const subText = renderToString("DeleteRoleDialog.description", {
-      roleName: snapshot?.roleName ?? snapshot?.roleKey ?? "Unknown",
+    const title = renderToString("DeleteGroupDialog.title");
+    const subText = renderToString("DeleteGroupDialog.description", {
+      groupName: snapshot?.groupName ?? snapshot?.groupKey ?? "Unknown",
     });
-    const buttonText = renderToString("DeleteRoleDialog.button.confirm");
+    const buttonText = renderToString("DeleteGroupDialog.button.confirm");
 
     const onConfirm = useCallback(() => {
       if (loading || isHidden) {
         return;
       }
-      deleteRole(data.roleID).then(
+      deleteGroup(data.groupID).then(
         () => onDismiss(true),
         (e: unknown) => {
           onDismiss(false);
           throw e;
         }
       );
-    }, [loading, isHidden, deleteRole, data, onDismiss]);
+    }, [loading, isHidden, deleteGroup, data, onDismiss]);
 
     return (
       <RolesAndGroupsBaseDeleteDialog
@@ -61,4 +61,4 @@ const DeleteRoleDialog: React.VFC<DeleteRoleDialogProps> =
     );
   };
 
-export default DeleteRoleDialog;
+export default DeleteGroupDialog;

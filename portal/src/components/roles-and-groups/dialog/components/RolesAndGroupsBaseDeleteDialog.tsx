@@ -5,11 +5,11 @@ import {
   IModalProps,
 } from "@fluentui/react";
 import React, { useCallback, useMemo } from "react";
-import PrimaryButton from "../../PrimaryButton";
 import { FormattedMessage } from "@oursky/react-messageformat";
-import DefaultButton from "../../DefaultButton";
-import ErrorDialog from "../../error/ErrorDialog";
-import { useSystemConfig } from "../../context/SystemConfigContext";
+import { useSystemConfig } from "../../../../context/SystemConfigContext";
+import PrimaryButton from "../../../../PrimaryButton";
+import DefaultButton from "../../../../DefaultButton";
+import ErrorDialog from "../../../../error/ErrorDialog";
 
 export interface RolesAndGroupsBaseDeleteDialogProps<T> {
   title: string;

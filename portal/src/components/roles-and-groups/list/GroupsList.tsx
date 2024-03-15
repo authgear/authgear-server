@@ -1,52 +1,52 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
-import { RolesListFragment } from "./query/rolesListQuery.generated";
-import useDelayedValue from "../../hook/useDelayedValue";
+import useDelayedValue from "../../../hook/useDelayedValue";
 import {
   ColumnActionsMode,
   DetailsRow,
   IColumn,
   IDetailsRowProps,
 } from "@fluentui/react";
-import styles from "./RolesList.module.css";
-import { useSystemConfig } from "../../context/SystemConfigContext";
+import styles from "./GroupsList.module.css";
+import { useSystemConfig } from "../../../context/SystemConfigContext";
 import { useParams } from "react-router-dom";
 import { Context } from "@oursky/react-messageformat";
-import Link from "../../Link";
-import DeleteRoleDialog, {
-  DeleteRoleDialogData,
-} from "../../components/roles-and-groups/DeleteRoleDialog";
-import RolesAndGroupsBaseList from "../../components/roles-and-groups/list/RolesAndGroupsBaseList";
-import ActionButtonCell from "../../components/roles-and-groups/list/ActionButtonCell";
-import TextCell from "../../components/roles-and-groups/list/TextCell";
-import DescriptionCell from "../../components/roles-and-groups/list/DescriptionCell";
+import Link from "../../../Link";
+import DeleteGroupDialog, {
+  DeleteGroupDialogData,
+} from "../dialog/DeleteGroupDialog";
+import DescriptionCell from "./components/DescriptionCell";
+import ActionButtonCell from "./components/ActionButtonCell";
+import TextCell from "./components/TextCell";
+import RolesAndGroupsBaseList from "./components/RolesAndGroupsBaseList";
+import { GroupsListFragment } from "../../../graphql/adminapi/query/groupsListQuery.generated";
 
-interface RolesListProps {
+interface GroupsListProps {
   className?: string;
   isSearch: boolean;
   loading: boolean;
-  roles: RolesListFragment | null;
+  groups: GroupsListFragment | null;
   offset: number;
   pageSize: number;
   totalCount?: number;
   onChangeOffset?: (offset: number) => void;
 }
 
-interface RoleListItem {
+interface GroupListItem {
   id: string;
   key: string;
   name: string | null;
   description: string | null;
 }
 
-const isRoleListItem = (value: unknown): value is RoleListItem => {
+const isGroupListItem = (value: unknown): value is GroupListItem => {
   if (!(value instanceof Object)) {
     return false;
   }
   return "key" in value && "id" in value;
 };
 
-const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
+const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
   const {
     className,
     loading: rawLoading,
@@ -56,7 +56,7 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
     totalCount,
     onChangeOffset,
   } = props;
-  const edges = props.roles?.edges;
+  const edges = props.groups?.edges;
   const loading = useDelayedValue(rawLoading, 500);
   const { renderToString } = useContext(Context);
   const { themes } = useSystemConfig();
@@ -65,7 +65,7 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
     {
       key: "name",
       fieldName: "name",
-      name: renderToString("RolesList.column.name"),
+      name: renderToString("GroupsList.column.name"),
       minWidth: 150,
       maxWidth: 260,
       columnActionsMode: ColumnActionsMode.disabled,
@@ -73,7 +73,7 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
     {
       key: "key",
       fieldName: "key",
-      name: renderToString("RolesList.column.key"),
+      name: renderToString("GroupsList.column.key"),
       minWidth: 150,
       maxWidth: 260,
       columnActionsMode: ColumnActionsMode.disabled,
@@ -81,20 +81,20 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
     {
       key: "description",
       fieldName: "description",
-      name: renderToString("RolesList.column.description"),
+      name: renderToString("GroupsList.column.description"),
       minWidth: 300,
       columnActionsMode: ColumnActionsMode.disabled,
     },
     {
       key: "action",
       fieldName: "action",
-      name: renderToString("RolesList.column.action"),
-      minWidth: 67,
-      maxWidth: 67,
+      name: renderToString("GroupsList.column.action"),
+      minWidth: 77,
+      maxWidth: 77,
       columnActionsMode: ColumnActionsMode.disabled,
     },
   ];
-  const items: RoleListItem[] = useMemo(() => {
+  const items: GroupListItem[] = useMemo(() => {
     const items = [];
     if (edges != null) {
       for (const edge of edges) {
@@ -112,13 +112,13 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
     return items;
   }, [edges]);
 
-  const onRenderRoleRow = React.useCallback(
+  const onRenderGroupRow = React.useCallback(
     (props?: IDetailsRowProps) => {
       if (props == null) {
         return null;
       }
-      const targetPath = isRoleListItem(props.item)
-        ? `/project/${appID}/user-management/roles/${props.item.id}/details`
+      const targetPath = isGroupListItem(props.item)
+        ? `/project/${appID}/user-management/groups/${props.item.id}/details`
         : ".";
       return (
         <Link to={targetPath} className="contents">
@@ -128,50 +128,52 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
     },
     [appID]
   );
-  const [deleteRoleDialogData, setDeleteRoleDialogData] =
-    useState<DeleteRoleDialogData | null>(null);
-  const onClickDeleteRole = useCallback(
-    (e: React.MouseEvent<unknown>, item: RoleListItem) => {
+  const [deleteGroupDialogData, setDeleteGroupDialogData] =
+    useState<DeleteGroupDialogData | null>(null);
+  const onClickDeleteGroup = useCallback(
+    (e: React.MouseEvent<unknown>, item: GroupListItem) => {
       e.preventDefault();
       e.stopPropagation();
-      setDeleteRoleDialogData({
-        roleID: item.id,
-        roleName: item.name,
-        roleKey: item.key,
+      setDeleteGroupDialogData({
+        groupID: item.id,
+        groupName: item.name,
+        groupKey: item.key,
       });
     },
     []
   );
-  const dismissDeleteRoleDialog = useCallback(() => {
-    setDeleteRoleDialogData(null);
+  const dismissDeleteGroupDialog = useCallback(() => {
+    setDeleteGroupDialogData(null);
   }, []);
 
-  const onRenderRoleItemColumn = useCallback(
-    (item: RoleListItem, _index?: number, column?: IColumn) => {
+  const onRenderGroupItemColumn = useCallback(
+    (item: GroupListItem, _index?: number, column?: IColumn) => {
       switch (column?.key) {
         case "description":
           return (
             <DescriptionCell>
-              {item[column.key as keyof RoleListItem] ?? ""}
+              {item[column.key as keyof GroupListItem] ?? ""}
             </DescriptionCell>
           );
         case "action": {
           return (
             <ActionButtonCell
-              text={renderToString("RolesList.delete-role")}
+              text={renderToString("GroupsList.delete-group")}
               onClick={(e) => {
-                onClickDeleteRole(e, item);
+                onClickDeleteGroup(e, item);
               }}
             />
           );
         }
         default:
           return (
-            <TextCell>{item[column?.key as keyof RoleListItem] ?? ""}</TextCell>
+            <TextCell>
+              {item[column?.key as keyof GroupListItem] ?? ""}
+            </TextCell>
           );
       }
     },
-    [themes.destructive, onClickDeleteRole]
+    [themes.destructive, onClickDeleteGroup]
   );
 
   const paginationProps = useMemo(
@@ -185,7 +187,7 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
     []
   );
 
-  const listEmptyText = renderToString("RolesList.empty.search");
+  const listEmptyText = renderToString("GroupsList.empty.search");
 
   return (
     <>
@@ -193,19 +195,19 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
         <RolesAndGroupsBaseList
           emptyText={listEmptyText}
           loading={loading}
-          onRenderRow={onRenderRoleRow}
-          onRenderItemColumn={onRenderRoleItemColumn}
+          onRenderRow={onRenderGroupRow}
+          onRenderItemColumn={onRenderGroupItemColumn}
           items={items}
           columns={columns}
           pagination={paginationProps}
         />
-        <DeleteRoleDialog
-          onDismiss={dismissDeleteRoleDialog}
-          data={deleteRoleDialogData}
+        <DeleteGroupDialog
+          onDismiss={dismissDeleteGroupDialog}
+          data={deleteGroupDialogData}
         />
       </div>
     </>
   );
 };
 
-export default RolesList;
+export default GroupsList;

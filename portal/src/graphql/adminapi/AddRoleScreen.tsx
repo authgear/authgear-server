@@ -22,7 +22,7 @@ import { validateRole } from "../../model/role";
 import { useNavigate } from "react-router-dom";
 import { useErrorMessageBarContext } from "../../ErrorMessageBar";
 import { useFormTopErrors } from "../../form";
-import { RoleAndGroupsFormContainer } from "./RoleAndGroupsFormContainer";
+import { RoleAndGroupsFormContainer } from "../../components/roles-and-groups/form/RoleAndGroupsFormContainer";
 
 interface FormState {
   roleKey: string;

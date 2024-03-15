@@ -5,29 +5,31 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { useSystemConfig } from "../../context/SystemConfigContext";
+import { useSystemConfig } from "../../../context/SystemConfigContext";
 import {
   FormattedMessage,
   Context as MessageContext,
 } from "@oursky/react-messageformat";
-import { useFormContainerBaseContext } from "../../FormContainerBase";
-import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
+import { useFormContainerBaseContext } from "../../../FormContainerBase";
+import { SimpleFormModel, useSimpleForm } from "../../../hook/useSimpleForm";
 import {
   RoleAndGroupsFormFooter,
   RoleAndGroupsVeriticalFormLayout,
-} from "../../RoleAndGroupsLayout";
-import FormTextField from "../../FormTextField";
-import WidgetDescription from "../../WidgetDescription";
-import PrimaryButton from "../../PrimaryButton";
-import DefaultButton from "../../DefaultButton";
+} from "../../../RoleAndGroupsLayout";
+import FormTextField from "../../../FormTextField";
+import WidgetDescription from "../../../WidgetDescription";
+import PrimaryButton from "../../../PrimaryButton";
+import DefaultButton from "../../../DefaultButton";
 import { useNavigate, useParams } from "react-router-dom";
-import { useUpdateGroupMutation } from "../../graphql/adminapi/mutations/updateGroupMutation";
-import { APIError } from "../../error/error";
-import { generateGroupKeyFromName, validateGroup } from "../../model/group";
-import { makeLocalValidationError } from "../../error/validation";
-import { GroupQueryNodeFragment } from "../../graphql/adminapi/query/groupQuery.generated";
-import DeleteGroupDialog, { DeleteGroupDialogData } from "./DeleteGroupDialog";
-import { RoleAndGroupsFormContainer } from "../../graphql/adminapi/RoleAndGroupsFormContainer";
+import { useUpdateGroupMutation } from "../../../graphql/adminapi/mutations/updateGroupMutation";
+import { APIError } from "../../../error/error";
+import { generateGroupKeyFromName, validateGroup } from "../../../model/group";
+import { makeLocalValidationError } from "../../../error/validation";
+import { GroupQueryNodeFragment } from "../../../graphql/adminapi/query/groupQuery.generated";
+import DeleteGroupDialog, {
+  DeleteGroupDialogData,
+} from "../dialog/DeleteGroupDialog";
+import { RoleAndGroupsFormContainer } from "./RoleAndGroupsFormContainer";
 
 interface FormState {
   groupKey: string;

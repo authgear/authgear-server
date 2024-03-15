@@ -12,8 +12,8 @@ import { usePivotNavigation } from "../../hook/usePivot";
 import { BreadcrumbItem } from "../../NavBreadcrumb";
 import { RoleAndGroupsLayout } from "../../RoleAndGroupsLayout";
 import { Pivot, PivotItem } from "@fluentui/react";
-import { GroupDetailsSettingsForm } from "../../components/roles-and-groups/GroupDetailsSettingsForm";
-import GroupDetailsScreenRoleListContainer from "../../components/roles-and-groups/GroupDetailsScreenRoleListContainer";
+import { GroupDetailsSettingsForm } from "../../components/roles-and-groups/form/GroupDetailsSettingsForm";
+import GroupDetailsScreenRoleListContainer from "../../components/roles-and-groups/form/GroupDetailsScreenRoleListContainer";
 
 const SETTINGS_KEY = "settings";
 const ROLES_KEY = "roles";

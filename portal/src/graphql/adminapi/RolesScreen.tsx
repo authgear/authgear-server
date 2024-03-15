@@ -10,12 +10,12 @@ import styles from "./RolesScreen.module.css";
 import { encodeOffsetToCursor } from "../../util/pagination";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useParams } from "react-router-dom";
-import RolesList from "./RolesList";
+import RolesList from "../../components/roles-and-groups/list/RolesList";
 import useDelayedValue from "../../hook/useDelayedValue";
 import { RoleAndGroupsLayout } from "../../RoleAndGroupsLayout";
-import { RolesEmptyView } from "../../components/roles-and-groups/RolesEmptyView";
+import { RolesEmptyView } from "../../components/roles-and-groups/empty-view/RolesEmptyView";
 import { ReactRouterLinkComponent } from "../../ReactRouterLink";
-import { RolesAndGroupsEmptyView } from "../../components/roles-and-groups/RolesAndGroupsEmptyView";
+import { RolesAndGroupsEmptyView } from "../../components/roles-and-groups/empty-view/RolesAndGroupsEmptyView";
 
 const pageSize = 10;
 const searchResultSize = -1;
