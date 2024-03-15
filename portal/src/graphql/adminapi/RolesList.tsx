@@ -173,6 +173,18 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
     },
     [themes.destructive, onClickDeleteRole]
   );
+
+  const paginationProps = useMemo(
+    () => ({
+      isSearch,
+      offset,
+      pageSize,
+      totalCount,
+      onChangeOffset,
+    }),
+    []
+  );
+
   return (
     <>
       <div className={cn(styles.root, className)}>
@@ -182,11 +194,7 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
           onRenderItemColumn={onRenderRoleItemColumn}
           items={items}
           columns={columns}
-          isSearch={isSearch}
-          offset={offset}
-          pageSize={pageSize}
-          totalCount={totalCount}
-          onChangeOffset={onChangeOffset}
+          pagination={paginationProps}
         />
         <DeleteRoleDialog
           onDismiss={dismissDeleteRoleDialog}

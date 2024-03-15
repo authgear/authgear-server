@@ -4,25 +4,22 @@ import { GroupsListFragment } from "./query/groupsListQuery.generated";
 import useDelayedValue from "../../hook/useDelayedValue";
 import {
   ColumnActionsMode,
-  DetailsListLayoutMode,
   DetailsRow,
   IColumn,
   IDetailsRowProps,
-  SelectionMode,
-  ShimmeredDetailsList,
 } from "@fluentui/react";
 import styles from "./GroupsList.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useParams } from "react-router-dom";
 import { Context } from "@oursky/react-messageformat";
 import Link from "../../Link";
-import PaginationWidget from "../../PaginationWidget";
 import DeleteGroupDialog, {
   DeleteGroupDialogData,
 } from "../../components/roles-and-groups/DeleteGroupDialog";
 import DescriptionCell from "../../components/roles-and-groups/list/DescriptionCell";
 import ActionButtonCell from "../../components/roles-and-groups/list/ActionButtonCell";
 import TextCell from "../../components/roles-and-groups/list/TextCell";
+import RolesAndGroupsBaseList from "../../components/roles-and-groups/list/RolesAndGroupsBaseList";
 
 interface GroupsListProps {
   className?: string;
@@ -178,30 +175,29 @@ const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
     },
     [themes.destructive, onClickDeleteGroup]
   );
+
+  const paginationProps = useMemo(
+    () => ({
+      isSearch,
+      offset,
+      pageSize,
+      totalCount,
+      onChangeOffset,
+    }),
+    []
+  );
+
   return (
     <>
       <div className={cn(styles.root, className)}>
-        <div className={styles.listWrapper}>
-          <ShimmeredDetailsList
-            enableShimmer={loading}
-            enableUpdateAnimations={false}
-            onRenderRow={onRenderGroupRow}
-            onRenderItemColumn={onRenderGroupItemColumn}
-            selectionMode={SelectionMode.none}
-            layoutMode={DetailsListLayoutMode.justified}
-            items={items}
-            columns={columns}
-          />
-        </div>
-        {!isSearch ? (
-          <PaginationWidget
-            className={cn(styles.pagination)}
-            offset={offset}
-            pageSize={pageSize}
-            totalCount={totalCount}
-            onChangeOffset={onChangeOffset}
-          />
-        ) : null}
+        <RolesAndGroupsBaseList
+          loading={loading}
+          onRenderRow={onRenderGroupRow}
+          onRenderItemColumn={onRenderGroupItemColumn}
+          items={items}
+          columns={columns}
+          pagination={paginationProps}
+        />
         <DeleteGroupDialog
           onDismiss={dismissDeleteGroupDialog}
           data={deleteGroupDialogData}

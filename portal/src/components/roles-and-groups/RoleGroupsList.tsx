@@ -2,13 +2,10 @@ import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import {
   ColumnActionsMode,
-  DetailsListLayoutMode,
   DetailsRow,
   IColumn,
   IDetailsRowProps,
   MessageBar,
-  SelectionMode,
-  ShimmeredDetailsList,
 } from "@fluentui/react";
 import {
   FormattedMessage,
@@ -25,6 +22,7 @@ import DeleteRoleGroupDialog, {
 } from "./DeleteRoleGroupDialog";
 import ActionButtonCell from "./list/ActionButtonCell";
 import TextCell from "./list/TextCell";
+import RolesAndGroupsBaseList from "./list/RolesAndGroupsBaseList";
 
 export interface RoleGroupsListItem
   extends Pick<Group, "id" | "name" | "key"> {}
@@ -155,22 +153,12 @@ export const RoleGroupsList: React.VFC<RoleGroupsListProps> =
               <FormattedMessage id="RoleGroupsList.empty" />
             </MessageBar>
           ) : (
-            <div
-              className={styles.listWrapper}
-              // For DetailList to correctly know what to display
-              // https://developer.microsoft.com/en-us/fluentui#/controls/web/detailslist
-              data-is-scrollable="true"
-            >
-              <ShimmeredDetailsList
-                enableUpdateAnimations={false}
-                onRenderRow={onRenderRow}
-                onRenderItemColumn={onRenderItemColumn}
-                selectionMode={SelectionMode.none}
-                layoutMode={DetailsListLayoutMode.justified}
-                items={groups}
-                columns={columns}
-              />
-            </div>
+            <RolesAndGroupsBaseList
+              onRenderRow={onRenderRow}
+              onRenderItemColumn={onRenderItemColumn}
+              items={groups}
+              columns={columns}
+            />
           )}
         </div>
         <DeleteRoleGroupDialog

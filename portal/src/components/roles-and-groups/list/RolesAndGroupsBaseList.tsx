@@ -11,14 +11,18 @@ import styles from "./RolesAndGroupsBaseList.module.css";
 import cn from "classnames";
 import PaginationWidget from "../../../PaginationWidget";
 
-interface RolesAndGroupsBaseListProps<T> {
-  className?: string;
-  loading: boolean;
+interface PaginationProps {
   isSearch: boolean;
   offset: number;
   pageSize: number;
   totalCount?: number;
   onChangeOffset?: (offset: number) => void;
+}
+
+interface RolesAndGroupsBaseListProps<T> {
+  className?: string;
+  loading?: boolean;
+  pagination?: PaginationProps;
 
   onRenderRow: IRenderFunction<IDetailsRowProps>;
   onRenderItemColumn: (
@@ -36,11 +40,7 @@ function RolesAndGroupsBaseList<T>(
   const {
     className,
     loading,
-    isSearch,
-    offset,
-    pageSize,
-    totalCount,
-    onChangeOffset,
+    pagination,
     onRenderRow,
     onRenderItemColumn,
     items,
@@ -49,7 +49,12 @@ function RolesAndGroupsBaseList<T>(
 
   return (
     <>
-      <div className={cn(styles.listWrapper, className)}>
+      <div
+        className={cn(styles.listWrapper, className)}
+        // For DetailList to correctly know what to display
+        // https://developer.microsoft.com/en-us/fluentui#/controls/web/detailslist
+        data-is-scrollable="true"
+      >
         <ShimmeredDetailsList
           enableShimmer={loading}
           enableUpdateAnimations={false}
@@ -61,14 +66,8 @@ function RolesAndGroupsBaseList<T>(
           columns={columns}
         />
       </div>
-      {!isSearch ? (
-        <PaginationWidget
-          className={cn(styles.pagination)}
-          offset={offset}
-          pageSize={pageSize}
-          totalCount={totalCount}
-          onChangeOffset={onChangeOffset}
-        />
+      {pagination != null && !pagination.isSearch ? (
+        <PaginationWidget className={styles.pagination} {...pagination} />
       ) : null}
     </>
   );
