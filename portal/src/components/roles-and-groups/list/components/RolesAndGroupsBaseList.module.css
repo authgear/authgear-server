@@ -1,5 +1,5 @@
 .listWrapper {
-  flex: 1 0 0%;
+  @apply flex-1;
   min-height: 0;
   overflow-y: auto;
 }
