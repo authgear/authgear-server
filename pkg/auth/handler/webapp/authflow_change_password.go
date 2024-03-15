@@ -45,7 +45,7 @@ func (h *AuthflowChangePasswordHandler) GetData(w http.ResponseWriter, r *http.R
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.NewPasswordData)
+	screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.ForceChangePasswordData)
 
 	passwordPolicyViewModel := viewmodels.NewPasswordPolicyViewModelFromAuthflow(
 		screenData.PasswordPolicy,
