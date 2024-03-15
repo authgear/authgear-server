@@ -66,6 +66,7 @@ const DeleteRoleGroupDialog: React.VFC<DeleteRoleGroupDialogProps> =
         loading={loading}
         error={error}
         title={title}
+        // eslint-disable-next-line react/forbid-component-props
         subText={subText}
         buttonText={buttonText}
         isHidden={isHidden}

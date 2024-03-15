@@ -8,7 +8,6 @@ import {
   IDetailsRowProps,
 } from "@fluentui/react";
 import styles from "./GroupsList.module.css";
-import { useSystemConfig } from "../../../context/SystemConfigContext";
 import { useParams } from "react-router-dom";
 import { Context } from "@oursky/react-messageformat";
 import Link from "../../../Link";
@@ -59,7 +58,6 @@ const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
   const edges = props.groups?.edges;
   const loading = useDelayedValue(rawLoading, 500);
   const { renderToString } = useContext(Context);
-  const { themes } = useSystemConfig();
   const { appID } = useParams() as { appID: string };
   const columns: IColumn[] = [
     {
@@ -173,7 +171,7 @@ const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
           );
       }
     },
-    [themes.destructive, onClickDeleteGroup]
+    [renderToString, onClickDeleteGroup]
   );
 
   const paginationProps = useMemo(

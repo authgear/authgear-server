@@ -8,7 +8,6 @@ import {
   IDetailsRowProps,
 } from "@fluentui/react";
 import styles from "./RolesList.module.css";
-import { useSystemConfig } from "../../../context/SystemConfigContext";
 import { useParams } from "react-router-dom";
 import { Context } from "@oursky/react-messageformat";
 import Link from "../../../Link";
@@ -59,7 +58,6 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
   const edges = props.roles?.edges;
   const loading = useDelayedValue(rawLoading, 500);
   const { renderToString } = useContext(Context);
-  const { themes } = useSystemConfig();
   const { appID } = useParams() as { appID: string };
   const columns: IColumn[] = [
     {
@@ -171,7 +169,7 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
           );
       }
     },
-    [themes.destructive, onClickDeleteRole]
+    [renderToString, onClickDeleteRole]
   );
 
   const paginationProps = useMemo(

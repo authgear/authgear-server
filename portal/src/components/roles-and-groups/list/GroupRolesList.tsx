@@ -12,7 +12,6 @@ import { useParams } from "react-router-dom";
 import styles from "./GroupRolesList.module.css";
 import { Group, Role } from "../../../graphql/adminapi/globalTypes.generated";
 import Link from "../../../Link";
-import { useSystemConfig } from "../../../context/SystemConfigContext";
 import DeleteGroupRoleDialog, {
   DeleteGroupRoleDialogData,
 } from "../dialog/DeleteGroupRoleDialog";
@@ -40,7 +39,6 @@ interface GroupRolesListProps {
 
 export const GroupRolesList: React.VFC<GroupRolesListProps> =
   function GroupRolesList({ group, roles, className }) {
-    const { themes } = useSystemConfig();
     const { appID } = useParams() as { appID: string };
     const { renderToString } = useContext(MessageContext);
 
@@ -137,7 +135,7 @@ export const GroupRolesList: React.VFC<GroupRolesListProps> =
             );
         }
       },
-      [onClickDeleteRole, themes.destructive]
+      [onClickDeleteRole, renderToString]
     );
 
     const listEmptyText = renderToString("GroupRolesList.empty");
