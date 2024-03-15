@@ -45,12 +45,15 @@
   }
 
   .alert-message__icon {
+    @apply flex-none;
     height: var(--alert-message__icon-size);
     width: var(--alert-message__icon-size);
     font-size: var(--alert-message__icon-size);
   }
 
   .alert-message__text {
+    @apply flex-1 w-0;
+    @apply overflow-hidden break-words text-ellipsis;
     color: var(--alert-message__text-color);
     font-family: var(--alert-message__font-family);
     font-size: var(--alert-message__font-size);
