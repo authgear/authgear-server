@@ -15,6 +15,7 @@
         (dict
           "Type" "error"
           "Classname" "mt-4"
+          "Message" (include "authflowv2/__error.html" .)
         )
       }}
     </header>
@@ -58,6 +59,14 @@
       {{- end }}
     {{- end }}
   </p>
+
+  {{ template "authflowv2/__alert_message.html"
+    (dict
+      "Type" "error"
+      "Classname" "mt-4"
+      "Message" (include "authflowv2/__error.html" .)
+    )
+  }}
 </header>
 
 <footer class="flex flex-col gap-y-8">

@@ -13,6 +13,7 @@ type InputError struct {
 type PasswordInputErrorViewModel struct {
 	PasswordInputError        *InputError
 	ConfirmPasswordInputError *InputError
+	HasUnknownError           bool
 }
 
 // nolint: gocognit
@@ -62,7 +63,11 @@ func NewPasswordInputErrorViewModel(apiError *apierrors.APIError) PasswordInputE
 					}
 				}
 			}
+		}
 
+		if !viewModel.PasswordInputError.HasError && !viewModel.ConfirmPasswordInputError.HasError {
+			// If it is not an error shown in inputs, it is an unknown error
+			viewModel.HasUnknownError = true
 		}
 	}
 
