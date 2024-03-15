@@ -1,14 +1,15 @@
 import { IDropdownOption } from "@fluentui/react";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useDebounced } from "../../hook/useDebounced";
 import { SearchableDropdown } from "../common/SearchableDropdown";
 
 export function DebugSearchableDropdown(): React.ReactElement {
   const [searchKeyword, setSearchKeyword] = useState("");
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const allOptions = useMemo((): IDropdownOption[] => {
     return new Array(50).fill("").map<IDropdownOption>((_, idx) => {
       return {
-        key: idx,
+        key: `${idx}`,
         text: `This is option ${idx + 1}`,
       };
     });
@@ -22,6 +23,18 @@ export function DebugSearchableDropdown(): React.ReactElement {
     );
   }, [allOptions, deboundedKeyword]);
 
+  const onChange = useCallback((_: unknown, option?: IDropdownOption) => {
+    if (!option) {
+      setSelectedKey(null);
+      return;
+    }
+    if (option.selected || option.selected === undefined) {
+      setSelectedKey(option.key as string);
+    } else {
+      setSelectedKey(null);
+    }
+  }, []);
+
   return (
     <SearchableDropdown
       placeholder="Select something"
@@ -30,6 +43,8 @@ export function DebugSearchableDropdown(): React.ReactElement {
       options={options}
       searchValue={searchKeyword}
       onSearchValueChange={setSearchKeyword}
+      selectedKey={selectedKey}
+      onChange={onChange}
     />
   );
 }
