@@ -29,6 +29,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
+	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/captcha"
@@ -504,7 +505,20 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oidc.UIInfoClientResolver), new(*oauthclient.Resolver)),
 		wire.Bind(new(webapp.WebappOAuthClientResolver), new(*oauthclient.Resolver)),
 		wire.Bind(new(interaction.OAuthClientResolver), new(*oauthclient.Resolver)),
+		wire.Bind(new(oauth.OAuthClientResolver), new(*oauthclient.Resolver)),
 	),
 
 	userimport.DependencySet,
+
+	wire.NewSet(
+		endpoints.DependencySet,
+		wire.Bind(new(oauth.BaseURLProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(oauth.EndpointsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(oidc.BaseURLProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(oidc.EndpointsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(oidc.UIURLBuilderAuthUIEndpointsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(otp.EndpointsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(tester.EndpointsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(interaction.OAuthRedirectURIBuilder), new(*endpoints.Endpoints)),
+	),
 )
