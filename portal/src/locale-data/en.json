@@ -412,6 +412,9 @@
   "EditPictureScreen.remove-picture.label": "Remove Picture",
   "EditPictureScreen.remove-picture.dialog.description": "Are you sure you want to remove the profile picture?",
 
+  "UserDetails.groups.header": "Groups",
+  "UserDetails.roles.header": "Roles",
+
   "UserDetails.session.header": "Sessions and apps",
   "UserDetails.session.devices": "Devices",
   "UserDetails.session.clientID": "Client ID",

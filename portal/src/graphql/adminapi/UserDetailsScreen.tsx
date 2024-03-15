@@ -65,6 +65,8 @@ const USER_PROFILE_KEY = "user-profile";
 const ACCOUNT_SECURITY_PIVOT_KEY = "account-security";
 const CONNECTED_IDENTITIES_PIVOT_KEY = "connected-identities";
 const SESSION_PIVOT_KEY = "session";
+const ROLES_KEY = "roles";
+const GROUPS_KEY = "groups";
 
 interface FormState {
   userID: string;
@@ -227,6 +229,8 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     ACCOUNT_SECURITY_PIVOT_KEY,
     CONNECTED_IDENTITIES_PIVOT_KEY,
     SESSION_PIVOT_KEY,
+    ROLES_KEY,
+    GROUPS_KEY,
   ]);
   const { form, data, appConfig } = props;
   const { state, setState } = form;
@@ -412,6 +416,18 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
             authorizations={authorizations}
             oauthClientConfig={oauthClientConfig}
           />
+        </PivotItem>
+        <PivotItem
+          itemKey={ROLES_KEY}
+          headerText={renderToString("UserDetails.roles.header")}
+        >
+          {/*TODO*/}
+        </PivotItem>
+        <PivotItem
+          itemKey={GROUPS_KEY}
+          headerText={renderToString("UserDetails.groups.header")}
+        >
+          {/*TODO*/}
         </PivotItem>
       </Pivot>
     </div>
