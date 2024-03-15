@@ -13,7 +13,7 @@ import { BreadcrumbItem } from "../../NavBreadcrumb";
 import { RoleAndGroupsLayout } from "../../RoleAndGroupsLayout";
 import { Pivot, PivotItem } from "@fluentui/react";
 import { GroupDetailsSettingsForm } from "../../components/roles-and-groups/form/GroupDetailsSettingsForm";
-import GroupDetailsScreenRoleListContainer from "../../components/roles-and-groups/form/GroupDetailsScreenRoleListContainer";
+import GroupDetailsScreenRoleListContainer from "../../components/roles-and-groups/list/GroupDetailsScreenRoleListContainer";
 
 const SETTINGS_KEY = "settings";
 const ROLES_KEY = "roles";

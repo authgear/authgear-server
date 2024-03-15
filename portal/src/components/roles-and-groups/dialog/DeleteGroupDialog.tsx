@@ -2,7 +2,7 @@ import React, { useCallback, useContext } from "react";
 import { Context } from "@oursky/react-messageformat";
 import { useSnapshotData } from "../../../hook/useSnapshotData";
 import { useDeleteGroupMutation } from "../../../graphql/adminapi/mutations/deleteGroupMutation";
-import RolesAndGroupsBaseDeleteDialog from "./components/RolesAndGroupsBaseDeleteDialog";
+import RolesAndGroupsBaseDeleteDialog from "./common/RolesAndGroupsBaseDeleteDialog";
 
 export interface DeleteGroupDialogData {
   groupID: string;

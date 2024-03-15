@@ -14,10 +14,10 @@ import Link from "../../../Link";
 import DeleteRoleDialog, {
   DeleteRoleDialogData,
 } from "../dialog/DeleteRoleDialog";
-import RolesAndGroupsBaseList from "./components/RolesAndGroupsBaseList";
-import ActionButtonCell from "./components/ActionButtonCell";
-import TextCell from "./components/TextCell";
-import DescriptionCell from "./components/DescriptionCell";
+import RolesAndGroupsBaseList from "./common/RolesAndGroupsBaseList";
+import ActionButtonCell from "./common/ActionButtonCell";
+import TextCell from "./common/TextCell";
+import DescriptionCell from "./common/DescriptionCell";
 import { RolesListFragment } from "../../../graphql/adminapi/query/rolesListQuery.generated";
 
 interface RolesListProps {

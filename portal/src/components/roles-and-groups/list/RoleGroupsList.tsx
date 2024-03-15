@@ -15,9 +15,9 @@ import Link from "../../../Link";
 import DeleteRoleGroupDialog, {
   DeleteRoleGroupDialogData,
 } from "../dialog/DeleteRoleGroupDialog";
-import ActionButtonCell from "./components/ActionButtonCell";
-import TextCell from "./components/TextCell";
-import RolesAndGroupsBaseList from "./components/RolesAndGroupsBaseList";
+import ActionButtonCell from "./common/ActionButtonCell";
+import TextCell from "./common/TextCell";
+import RolesAndGroupsBaseList from "./common/RolesAndGroupsBaseList";
 
 export interface RoleGroupsListItem
   extends Pick<Group, "id" | "name" | "key"> {}

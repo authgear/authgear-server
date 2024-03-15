@@ -3,7 +3,7 @@ import { Context } from "@oursky/react-messageformat";
 import { useRemoveRoleFromGroupsMutation } from "../../../graphql/adminapi/mutations/removeRoleFromGroups";
 import { useRoleQuery } from "../../../graphql/adminapi/query/roleQuery";
 import { useSnapshotData } from "../../../hook/useSnapshotData";
-import RolesAndGroupsBaseDeleteDialog from "./components/RolesAndGroupsBaseDeleteDialog";
+import RolesAndGroupsBaseDeleteDialog from "./common/RolesAndGroupsBaseDeleteDialog";
 
 export interface DeleteRoleGroupDialogData {
   roleID: string;
