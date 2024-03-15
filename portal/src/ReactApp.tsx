@@ -59,6 +59,8 @@ const AcceptAdminInvitationScreen = lazy(
   async () => import("./graphql/portal/AcceptAdminInvitationScreen")
 );
 
+const DebugScreen = lazy(async () => import("./DebugScreen"));
+
 async function loadSystemConfig(): Promise<SystemConfig> {
   const resp = await fetch("/api/system-config.json");
   const config = (await resp.json()) as PartialSystemConfig;
@@ -175,6 +177,15 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
             </Suspense>
           }
         />
+
+        <Route
+          path="/debug"
+          element={
+            <Suspense fallback={<ShowLoading />}>
+              <DebugScreen />
+            </Suspense>
+          }
+        ></Route>
       </Routes>
     </BrowserRouter>
   );
