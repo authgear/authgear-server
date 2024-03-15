@@ -25,7 +25,7 @@ type PasswordAuthenticatorProvider interface {
 	Create(*authenticator.Password) error
 	UpdatePassword(*authenticator.Password) error
 	Delete(*authenticator.Password) error
-	Authenticate(a *authenticator.Password, password string) (requireUpdate bool, err error)
+	Authenticate(a *authenticator.Password, password string) (verifyResult *password.VerifyResult, err error)
 }
 
 type PasskeyAuthenticatorProvider interface {
@@ -509,17 +509,13 @@ func (s *Service) Delete(info *authenticator.Info) error {
 	return nil
 }
 
-func (s *Service) verifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (requireUpdate bool, err error) {
+func (s *Service) verifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (verifyResult VerifyResult, err error) {
 	switch info.Type {
 	case model.AuthenticatorTypePassword:
 		plainPassword := spec.Password.PlainPassword
 		a := info.Password
-		requireUpdate, err = s.Password.Authenticate(a, plainPassword)
-		var apiError = apierrors.AsAPIError(err)
-		if apiError != nil && apiError.Kind == password.PasswordExpiryForceChange {
-			// Proceed next auth step but require update
-			err = api.ErrPasswordExpiryForceChange
-		} else if err != nil {
+		verifyResult.Password, err = s.Password.Authenticate(a, plainPassword)
+		if err != nil {
 			err = api.ErrInvalidCredentials
 			return
 		}
@@ -528,7 +524,7 @@ func (s *Service) verifyWithSpec(info *authenticator.Info, spec *authenticator.S
 	case model.AuthenticatorTypePasskey:
 		assertionResponse := spec.Passkey.AssertionResponse
 		a := info.Passkey
-		requireUpdate, err = s.Passkey.Authenticate(a, assertionResponse)
+		verifyResult.Passkey, err = s.Passkey.Authenticate(a, assertionResponse)
 		if err != nil {
 			err = api.ErrInvalidCredentials
 			return
@@ -586,7 +582,7 @@ func (s *Service) VerifyOneWithSpec(
 	authenticatorType model.AuthenticatorType,
 	infos []*authenticator.Info,
 	spec *authenticator.Spec,
-	options *VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error) {
+	options *VerifyOptions) (info *authenticator.Info, verifyResult VerifyResult, err error) {
 	if options == nil {
 		options = &VerifyOptions{}
 	}
@@ -610,13 +606,9 @@ func (s *Service) VerifyOneWithSpec(
 			err = fmt.Errorf("only authenticators with same type of same user can be verified together")
 			return
 		}
-		requireUpdate, err = s.verifyWithSpec(thisInfo, spec, options)
+		verifyResult, err = s.verifyWithSpec(thisInfo, spec, options)
 		if errors.Is(err, api.ErrInvalidCredentials) {
 			continue
-		}
-		if errors.Is(err, api.ErrPasswordExpiryForceChange) {
-			// If password is expired, carry on next step but require update
-			info = thisInfo
 		}
 		// unexpected errors or no error
 		// For both cases we should break the loop and return
@@ -636,11 +628,6 @@ func (s *Service) VerifyOneWithSpec(
 	case info != nil && err == nil:
 		// Authenticated.
 		break
-	case info != nil && err != nil:
-		if errors.Is(err, api.ErrPasswordExpiryForceChange) {
-			// If password is expired, carry on next step but require update
-			break
-		}
 	case info == nil && err != nil:
 		// Some error.
 		break

@@ -44,11 +44,11 @@ func (a AuthenticatorFacade) Delete(authenticatorInfo *authenticator.Info) error
 	return a.Coordinator.AuthenticatorDelete(authenticatorInfo)
 }
 
-func (a AuthenticatorFacade) VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (requireUpdate bool, err error) {
+func (a AuthenticatorFacade) VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (verifyResult service.VerifyResult, err error) {
 	return a.Coordinator.AuthenticatorVerifyWithSpec(info, spec, options)
 }
 
-func (a AuthenticatorFacade) VerifyOneWithSpec(userID string, authenticatorType apimodel.AuthenticatorType, infos []*authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error) {
+func (a AuthenticatorFacade) VerifyOneWithSpec(userID string, authenticatorType apimodel.AuthenticatorType, infos []*authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (info *authenticator.Info, verifyResult service.VerifyResult, err error) {
 	return a.Coordinator.AuthenticatorVerifyOneWithSpec(userID, authenticatorType, infos, spec, options)
 }
 

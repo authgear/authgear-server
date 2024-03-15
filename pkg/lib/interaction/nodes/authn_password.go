@@ -1,9 +1,6 @@
 package nodes
 
 import (
-	"errors"
-
-	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -58,7 +55,7 @@ func (e *EdgeAuthenticationPassword) Instantiate(ctx *interaction.Context, graph
 		},
 	}
 
-	info, requireUpdate, err := ctx.Authenticators.VerifyOneWithSpec(
+	info, verifyResult, err := ctx.Authenticators.VerifyOneWithSpec(
 		graph.MustGetUserID(),
 		model.AuthenticatorTypePassword,
 		e.Authenticators,
@@ -71,15 +68,18 @@ func (e *EdgeAuthenticationPassword) Instantiate(ctx *interaction.Context, graph
 			),
 		},
 	)
-
-	reason := interaction.AuthenticatorUpdateReasonPolicy
-	if errors.Is(err, api.ErrPasswordExpiryForceChange) {
-		reason = interaction.AuthenticatorUpdateReasonExpiryForceChange
-	} else if err != nil {
+	if err != nil {
 		return nil, err
 	}
 
-	return &NodeAuthenticationPassword{Stage: e.Stage, Authenticator: info, RequireUpdate: requireUpdate, RequireUpdateReason: &reason}, nil
+	var reason interaction.AuthenticatorUpdateReason
+	if verifyResult.Password.ExpiryForceChange {
+		reason = interaction.AuthenticatorUpdateReasonExpiryForceChange
+	} else {
+		reason = interaction.AuthenticatorUpdateReasonPolicy
+	}
+
+	return &NodeAuthenticationPassword{Stage: e.Stage, Authenticator: info, RequireUpdate: verifyResult.Password.RequireUpdate(), RequireUpdateReason: &reason}, nil
 }
 
 type NodeAuthenticationPassword struct {

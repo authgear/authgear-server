@@ -53,7 +53,7 @@ func (e *EdgeAuthenticationPasskey) Instantiate(ctx *interaction.Context, graph 
 		},
 	}
 
-	info, requireUpdate, err := ctx.Authenticators.VerifyOneWithSpec(
+	info, verifyResult, err := ctx.Authenticators.VerifyOneWithSpec(
 		graph.MustGetUserID(),
 		model.AuthenticatorTypePasskey,
 		e.Authenticators, spec,
@@ -73,7 +73,7 @@ func (e *EdgeAuthenticationPasskey) Instantiate(ctx *interaction.Context, graph 
 		Stage:         e.Stage,
 		Spec:          spec,
 		Authenticator: info,
-		RequireUpdate: requireUpdate,
+		RequireUpdate: verifyResult.Passkey,
 	}, nil
 }
 

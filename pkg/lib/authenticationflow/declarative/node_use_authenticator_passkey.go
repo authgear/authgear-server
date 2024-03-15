@@ -65,7 +65,7 @@ func (n *NodeUseAuthenticatorPasskey) ReactTo(ctx context.Context, deps *authflo
 			return nil, err
 		}
 
-		authenticatorInfo, requireUpdate, err := deps.Authenticators.VerifyOneWithSpec(
+		authenticatorInfo, verifyResult, err := deps.Authenticators.VerifyOneWithSpec(
 			n.UserID,
 			model.AuthenticatorTypePasskey,
 			authenticators,
@@ -85,7 +85,7 @@ func (n *NodeUseAuthenticatorPasskey) ReactTo(ctx context.Context, deps *authflo
 		return authflow.NewNodeSimple(&NodeDoUseAuthenticatorPasskey{
 			AssertionResponse: assertionResponseBytes,
 			Authenticator:     authenticatorInfo,
-			RequireUpdate:     requireUpdate,
+			RequireUpdate:     verifyResult.Passkey,
 		}), nil
 	}
 

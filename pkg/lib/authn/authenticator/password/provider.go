@@ -119,7 +119,8 @@ func (p *Provider) Create(a *authenticator.Password) error {
 	return nil
 }
 
-func (p *Provider) Authenticate(a *authenticator.Password, password string) (requireUpdate bool, err error) {
+func (p *Provider) Authenticate(a *authenticator.Password, password string) (verifyResult *VerifyResult, err error) {
+	verifyResult = &VerifyResult{}
 	err = pwd.Compare([]byte(password), a.PasswordHash)
 	if err != nil {
 		return
@@ -143,13 +144,12 @@ func (p *Provider) Authenticate(a *authenticator.Password, password string) (req
 
 	if validateErr := p.PasswordChecker.ValidateCurrentPassword(password); validateErr != nil {
 		if p.Config.ForceChange != nil && *p.Config.ForceChange {
-			requireUpdate = true
+			verifyResult.PolicyForceChange = true
 		}
 	}
 
 	if expiryErr := p.Expiry.Validate(a, password); expiryErr != nil {
-		err = expiryErr
-		requireUpdate = true
+		verifyResult.ExpiryForceChange = true
 	}
 
 	return

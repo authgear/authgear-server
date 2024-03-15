@@ -2,11 +2,9 @@ package declarative
 
 import (
 	"context"
-	"errors"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
-	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
@@ -64,7 +62,7 @@ func (i *NodeUseAuthenticatorPassword) ReactTo(ctx context.Context, deps *authfl
 			},
 		}
 
-		info, requireUpdate, err := deps.Authenticators.VerifyOneWithSpec(
+		info, verifyResult, err := deps.Authenticators.VerifyOneWithSpec(
 			i.UserID,
 			model.AuthenticatorTypePassword,
 			as,
@@ -77,21 +75,21 @@ func (i *NodeUseAuthenticatorPassword) ReactTo(ctx context.Context, deps *authfl
 				),
 			},
 		)
-		if errors.Is(err, api.ErrPasswordExpiryForceChange) {
-			return authflow.NewNodeSimple(&NodeDoUseAuthenticatorPassword{
-				Authenticator:          info,
-				PasswordChangeRequired: true,
-				PasswordChangeReason:   PasswordChangeReasonExpiryForceChange,
-				JSONPointer:            i.JSONPointer,
-			}), nil
-		} else if err != nil {
+		if err != nil {
 			return nil, err
+		}
+
+		var reason PasswordChangeReason
+		if verifyResult.Password.ExpiryForceChange {
+			reason = PasswordChangeReasonExpiryForceChange
+		} else {
+			reason = PasswordChangeReasonPolicy
 		}
 
 		return authflow.NewNodeSimple(&NodeDoUseAuthenticatorPassword{
 			Authenticator:          info,
-			PasswordChangeRequired: requireUpdate,
-			PasswordChangeReason:   PasswordChangeReasonPolicy,
+			PasswordChangeRequired: verifyResult.Password.RequireUpdate(),
+			PasswordChangeReason:   reason,
 			JSONPointer:            i.JSONPointer,
 		}), nil
 	}

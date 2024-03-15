@@ -79,7 +79,7 @@ func (n *NodeUseIdentityPasskey) ReactTo(ctx context.Context, deps *authflow.Dep
 			return nil, err
 		}
 
-		authenticatorInfo, requireUpdate, err := deps.Authenticators.VerifyOneWithSpec(
+		authenticatorInfo, verifyResult, err := deps.Authenticators.VerifyOneWithSpec(
 			userID,
 			model.AuthenticatorTypePasskey,
 			authenticators,
@@ -100,7 +100,7 @@ func (n *NodeUseIdentityPasskey) ReactTo(ctx context.Context, deps *authflow.Dep
 			AssertionResponse: assertionResponseBytes,
 			Identity:          exactMatch,
 			Authenticator:     authenticatorInfo,
-			RequireUpdate:     requireUpdate,
+			RequireUpdate:     verifyResult.Passkey,
 		})
 		if err != nil {
 			return nil, err
