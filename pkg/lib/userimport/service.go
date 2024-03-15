@@ -127,7 +127,6 @@ func (s *UserImportService) ImportRecords(ctx context.Context, request *Request)
 			Record: rawMessage,
 		}
 
-		hasDetail := false
 		var result importResult
 		err := s.AppDatabase.WithTx(func() error {
 			err := s.ImportRecordInTxn(ctx, &result, options, rawMessage)
@@ -139,19 +138,15 @@ func (s *UserImportService) ImportRecords(ctx context.Context, request *Request)
 
 		if len(result.Warnings) > 0 {
 			detail.Warnings = result.Warnings
-			hasDetail = true
 		}
 		if err != nil {
 			if !apierrors.IsAPIError(err) {
 				s.Logger.WithError(err).Error(err.Error())
 			}
 			detail.Errors = []*apierrors.APIError{apierrors.AsAPIError(err)}
-			hasDetail = true
 		}
 
-		if hasDetail {
-			details = append(details, detail)
-		}
+		details = append(details, detail)
 
 		switch result.Outcome {
 		case OutcomeInserted:
