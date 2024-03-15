@@ -147,7 +147,7 @@ func (p *Provider) Authenticate(a *authenticator.Password, password string) (req
 		}
 	}
 
-	if expiryErr := p.Expiry.Validate(password, a.ID); expiryErr != nil {
+	if expiryErr := p.Expiry.Validate(a, password); expiryErr != nil {
 		err = expiryErr
 		requireUpdate = true
 	}
