@@ -189,9 +189,11 @@ func (s *UserImportService) ImportRecordInTxn(ctx context.Context, detail *Detai
 	case 0:
 		return s.insertRecordInTxn(ctx, detail, record)
 	case 1:
+		info := infos[0]
 		if options.Upsert {
-			return s.upsertRecordInTxn(ctx, detail, options, record, infos[0])
+			return s.upsertRecordInTxn(ctx, detail, options, record, info)
 		} else {
+			detail.UserID = info.UserID
 			detail.Outcome = OutcomeSkipped
 			detail.Warnings = append(detail.Warnings, Warning{
 				Message: "skipping because upsert = false and user exists",
@@ -290,6 +292,7 @@ func (s *UserImportService) insertRecordInTxn(ctx context.Context, detail *Detai
 		return
 	}
 
+	detail.UserID = userID
 	detail.Outcome = OutcomeInserted
 	return
 }
@@ -791,6 +794,7 @@ func (s *UserImportService) upsertRecordInTxn(ctx context.Context, detail *Detai
 		return
 	}
 
+	detail.UserID = info.UserID
 	detail.Outcome = OutcomeUpdated
 	return
 }

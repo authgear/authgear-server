@@ -416,6 +416,7 @@ type Detail struct {
 	Index    int                   `json:"index"`
 	Record   json.RawMessage       `json:"record"`
 	Outcome  Outcome               `json:"outcome,omitempty"`
+	UserID   string                `json:"user_id,omitempty"`
 	Warnings []Warning             `json:"warnings,omitempty"`
 	Errors   []*apierrors.APIError `json:"errors,omitempty"`
 }
