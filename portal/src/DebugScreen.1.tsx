@@ -21,5 +21,3 @@ export const DebugScreen: React.VFC = function DebugScreen() {
     </main>
   );
 };
-
-export default DebugScreen;

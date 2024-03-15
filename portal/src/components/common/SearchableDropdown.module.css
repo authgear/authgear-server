@@ -1,0 +1,7 @@
+.searchBoxRow {
+  @apply pt-2 pb-1 sticky top-0 bg-white z-10;
+}
+
+.optionsLoadingRow {
+  @apply p-4 flex items-center justify-center;
+}
