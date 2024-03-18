@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import {
   ColumnActionsMode,
@@ -15,12 +15,15 @@ import Link from "../../../Link";
 import ActionButtonCell from "./common/ActionButtonCell";
 import TextCell from "./common/TextCell";
 import RolesAndGroupsBaseList from "./common/RolesAndGroupsBaseList";
+import DeleteUserGroupDialog, {
+  DeleteUserGroupDialogData,
+} from "../dialog/DeleteUserGroupDialog";
 
 export interface UserGroupsListItem
   extends Pick<Group, "id" | "name" | "key"> {}
 
 export interface UserGroupsListUser
-  extends Pick<User, "id" | "formattedName"> {}
+  extends Pick<User, "id" | "formattedName" | "endUserAccountID"> {}
 
 export enum UserGroupsListColumnKey {
   Name = "Name",
@@ -35,9 +38,31 @@ interface UserGroupsListProps {
 }
 
 export const UserGroupsList: React.VFC<UserGroupsListProps> =
-  function UserGroupsList({ groups, className }) {
+  function UserGroupsList({ user, groups, className }) {
     const { appID } = useParams() as { appID: string };
     const { renderToString } = useContext(MessageContext);
+
+    const [deleteDialogData, setDeleteDialogData] =
+      useState<DeleteUserGroupDialogData | null>(null);
+    const onDismissDeleteDialog = useCallback(
+      () => setDeleteDialogData(null),
+      []
+    );
+    const onClickDeleteGroup = useCallback(
+      (e: React.MouseEvent<unknown>, item: UserGroupsListItem) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDeleteDialogData({
+          userID: user.id,
+          userFormattedName: user.formattedName ?? null,
+          userEndUserAccountID: user.endUserAccountID ?? null,
+          groupID: item.id,
+          groupKey: item.key,
+          groupName: item.name ?? null,
+        });
+      },
+      [user]
+    );
 
     const columns: IColumn[] = useMemo((): IColumn[] => {
       return [
@@ -96,6 +121,9 @@ export const UserGroupsList: React.VFC<UserGroupsListProps> =
             return (
               <ActionButtonCell
                 text={renderToString("UserGroupsList.actions.remove")}
+                onClick={(e) => {
+                  onClickDeleteGroup(e, item);
+                }}
               />
             );
           }
@@ -107,7 +135,7 @@ export const UserGroupsList: React.VFC<UserGroupsListProps> =
             );
         }
       },
-      [renderToString]
+      [onClickDeleteGroup, renderToString]
     );
 
     const listEmptyText = renderToString("UserGroupsList.empty");
@@ -123,6 +151,10 @@ export const UserGroupsList: React.VFC<UserGroupsListProps> =
             columns={columns}
           />
         </div>
+        <DeleteUserGroupDialog
+          data={deleteDialogData}
+          onDismiss={onDismissDeleteDialog}
+        />
       </>
     );
   };

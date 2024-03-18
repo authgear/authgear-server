@@ -178,6 +178,9 @@
   "UserGroupsList.actions.remove": "Remove",
   "UserGroupsList.empty": "No groups for this user",
 
+  "DeleteUserGroupDialog.title": "Remove Group",
+  "DeleteUserGroupDialog.description": "Are you sure you want to remove \"{userName}\" from the \"{groupName}\" group?",
+
   "GroupsScreen.title": "Groups",
   "GroupsScreen.empty-state.title": "You don't have any groups yet.",
   "GroupsScreen.empty-state.subtitle": "Create groups to represent the types of users that access your applications.",
