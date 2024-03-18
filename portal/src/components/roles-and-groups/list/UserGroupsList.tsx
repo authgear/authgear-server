@@ -35,10 +35,24 @@ interface UserGroupsListProps {
   user: UserGroupsListUser;
   className?: string;
   groups: UserGroupsListItem[];
+  isSearch: boolean;
+  offset: number;
+  pageSize: number;
+  totalCount?: number;
+  onChangeOffset?: (offset: number) => void;
 }
 
 export const UserGroupsList: React.VFC<UserGroupsListProps> =
-  function UserGroupsList({ user, groups, className }) {
+  function UserGroupsList({
+    user,
+    groups,
+    className,
+    isSearch,
+    offset,
+    pageSize,
+    totalCount,
+    onChangeOffset,
+  }) {
     const { appID } = useParams() as { appID: string };
     const { renderToString } = useContext(MessageContext);
 
@@ -138,6 +152,17 @@ export const UserGroupsList: React.VFC<UserGroupsListProps> =
       [onClickDeleteGroup, renderToString]
     );
 
+    const paginationProps = useMemo(
+      () => ({
+        isSearch,
+        offset,
+        pageSize,
+        totalCount,
+        onChangeOffset,
+      }),
+      [isSearch, offset, pageSize, totalCount, onChangeOffset]
+    );
+
     const listEmptyText = renderToString("UserGroupsList.empty");
 
     return (
@@ -149,6 +174,7 @@ export const UserGroupsList: React.VFC<UserGroupsListProps> =
             onRenderItemColumn={onRenderItemColumn}
             items={groups}
             columns={columns}
+            pagination={paginationProps}
           />
         </div>
         <DeleteUserGroupDialog

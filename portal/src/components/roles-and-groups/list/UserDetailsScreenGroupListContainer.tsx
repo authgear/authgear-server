@@ -20,6 +20,8 @@ import PrimaryButton from "../../../PrimaryButton";
 import cn from "classnames";
 import { AddUserGroupsDialog } from "../dialog/AddUserGroupsDialog";
 
+const pageSize = 10;
+
 function UserDetailsScreenGroupListContainer({
   user,
   className,
@@ -45,6 +47,13 @@ function UserDetailsScreenGroupListContainer({
   );
 
   const [searchKeyword, setSearchKeyword] = useState<string>("");
+  const isSearch = searchKeyword !== "";
+  const [offset, setOffset] = useState(0);
+
+  const onChangeOffset = useCallback((offset) => {
+    setOffset(offset);
+  }, []);
+
   const onChangeSearchKeyword = useCallback(
     (e?: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       if (e === undefined) {
@@ -52,6 +61,8 @@ function UserDetailsScreenGroupListContainer({
       }
       const value = e.currentTarget.value;
       setSearchKeyword(value);
+      // Reset offset when search keyword was changed.
+      setOffset(0);
     },
     []
   );
@@ -77,8 +88,12 @@ function UserDetailsScreenGroupListContainer({
         }
         return [];
       }) ?? [];
-    return searchGroups(userGroups, searchKeyword);
-  }, [user.groups?.edges, searchKeyword]);
+    if (isSearch) {
+      return searchGroups(userGroups, searchKeyword);
+    }
+
+    return userGroups.slice(offset, offset + pageSize);
+  }, [user.groups?.edges, isSearch, offset, searchKeyword]);
 
   const userGroups = useMemo(() => {
     return (
@@ -125,6 +140,11 @@ function UserDetailsScreenGroupListContainer({
           className="flex-1 min-h-0"
           user={user}
           groups={filteredUserGroups}
+          isSearch={isSearch}
+          offset={offset}
+          pageSize={pageSize}
+          totalCount={userGroups.length}
+          onChangeOffset={onChangeOffset}
         />
       </section>
       <AddUserGroupsDialog
