@@ -37,6 +37,10 @@ export function SearchableDropdownStory(): React.ReactElement {
     }
   }, []);
 
+  const onClear = useCallback(() => {
+    setSelectedItem(null);
+  }, []);
+
   return (
     <SearchableDropdown
       placeholder="Select something"
@@ -48,6 +52,7 @@ export function SearchableDropdownStory(): React.ReactElement {
       onSearchValueChange={setSearchKeyword}
       selectedItem={selectedItem}
       onChange={onChange}
+      onClear={onClear}
     />
   );
 }

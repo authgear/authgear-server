@@ -2,6 +2,7 @@ import {
   Dropdown,
   IDropdownOption,
   IDropdownProps,
+  IconButton,
   SearchBox,
   Spinner,
   SpinnerSize,
@@ -27,6 +28,7 @@ interface SearchableDropdownProps
   selectedItem?: IDropdownOption | null;
   selectedItems?: IDropdownOption[];
   optionsEmptyMessage?: React.ReactNode;
+  onClear?: () => void;
 }
 
 function SearchableDropdownSearchBox(props: {
@@ -74,6 +76,33 @@ function EmptyView(props: { message?: React.ReactNode }) {
   );
 }
 
+const ClearButton = React.memo(function ClearButton(props: {
+  onClick: React.MouseEventHandler<HTMLButtonElement>;
+}) {
+  const { onClick } = props;
+  return (
+    <IconButton
+      onClick={onClick}
+      styles={{
+        root: {
+          right: -7,
+          width: 30,
+          height: 30,
+        },
+      }}
+      iconProps={{
+        iconName: "Clear",
+        styles: {
+          root: {
+            color: "#605E5C",
+            fontSize: 12,
+          },
+        },
+      }}
+    />
+  );
+});
+
 const EMPTY_CALLOUT_PROPS: IDropdownProps["calloutProps"] = {};
 
 export const SearchableDropdown: React.VFC<SearchableDropdownProps> =
@@ -88,6 +117,7 @@ export const SearchableDropdown: React.VFC<SearchableDropdownProps> =
       selectedItem,
       selectedItems,
       optionsEmptyMessage,
+      onClear,
       ...restProps
     } = props;
 
@@ -131,6 +161,30 @@ export const SearchableDropdown: React.VFC<SearchableDropdownProps> =
       ]
     );
 
+    const onClearButtonClick = useCallback(
+      (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.stopPropagation();
+        e.preventDefault();
+        onClear?.();
+      },
+      [onClear]
+    );
+
+    const onRenderCaretDown = useCallback<
+      NonNullable<IDropdownProps["onRenderCaretDown"]>
+    >(
+      (props, defaultRenderer) => {
+        if (
+          selectedItem != null ||
+          (selectedItems && selectedItems.length > 0)
+        ) {
+          return <ClearButton onClick={onClearButtonClick} />;
+        }
+        return defaultRenderer?.(props) ?? <></>;
+      },
+      [onClearButtonClick, selectedItem, selectedItems]
+    );
+
     const combinedOptions = useMemo(() => {
       const providedOptionKeys = new Set(options.map((o) => o.key));
 
@@ -151,6 +205,9 @@ export const SearchableDropdown: React.VFC<SearchableDropdownProps> =
     }, [options, selectedItem, selectedItems]);
 
     const selectedKey = useMemo(() => {
+      if (selectedItem === null) {
+        return null;
+      }
       return selectedItem?.key;
     }, [selectedItem]);
 
@@ -162,6 +219,7 @@ export const SearchableDropdown: React.VFC<SearchableDropdownProps> =
       <Dropdown
         options={combinedOptions}
         onRenderList={onRenderList}
+        onRenderCaretDown={onRenderCaretDown}
         {...restProps}
         calloutProps={{
           calloutMaxHeight: 264,
