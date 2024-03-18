@@ -47,6 +47,7 @@
     "jest-environment-jsdom": "29.7.0",
     "parcel": "2.10.2",
     "parcel-resolver-authgear": "1.0.0",
+    "parcel-resolver-ignore": "2.2.0",
     "prettier": "2.7.1",
     "stylelint": "14.11.0",
     "tailwindcss": "3.3.5",
@@ -60,6 +61,7 @@
     "@fluentui/merge-styles": "8.5.13",
     "@fluentui/react": "8.112.8",
     "@fluentui/react-hooks": "8.6.33",
+    "@fortawesome/fontawesome-free": "5.15.4",
     "@monaco-editor/react": "4.6.0",
     "@oursky/react-messageformat": "2.0.2",
     "@sentry/react": "7.80.0",
@@ -88,5 +90,8 @@
     "tzdata": "1.0.25",
     "uuid": "9.0.1",
     "zxcvbn": "4.4.2"
-  }
+  },
+  "parcelIgnore": [
+    "/api/osano.js"
+  ]
 }

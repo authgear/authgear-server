@@ -41,6 +41,7 @@ func (c *Controller) Start() {
 		&cfg.AuditLog,
 		&cfg.Analytic,
 		&cfg.Stripe,
+		&cfg.Osano,
 		&cfg.GoogleTagManager,
 		&cfg.PortalFrontendSentry,
 	)

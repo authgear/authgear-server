@@ -34,6 +34,7 @@ type RootProvider struct {
 	AuditLogConfig             *portalconfig.AuditLogConfig
 	AnalyticConfig             *config.AnalyticConfig
 	StripeConfig               *portalconfig.StripeConfig
+	OsanoConfig                *portalconfig.OsanoConfig
 	GoogleTagManagerConfig     *portalconfig.GoogleTagManagerConfig
 	PortalFrontendSentryConfig *portalconfig.PortalFrontendSentryConfig
 	LoggerFactory              *log.Factory
@@ -67,6 +68,7 @@ func NewRootProvider(
 	auditLogConfig *portalconfig.AuditLogConfig,
 	analyticConfig *config.AnalyticConfig,
 	stripeConfig *portalconfig.StripeConfig,
+	osanoConfig *portalconfig.OsanoConfig,
 	googleTagManagerConfig *portalconfig.GoogleTagManagerConfig,
 	portalFrontendSentryConfig *portalconfig.PortalFrontendSentryConfig,
 ) (*RootProvider, error) {
@@ -111,6 +113,7 @@ func NewRootProvider(
 		AuditLogConfig:             auditLogConfig,
 		AnalyticConfig:             analyticConfig,
 		StripeConfig:               stripeConfig,
+		OsanoConfig:                osanoConfig,
 		GoogleTagManagerConfig:     googleTagManagerConfig,
 		PortalFrontendSentryConfig: portalFrontendSentryConfig,
 		LoggerFactory:              loggerFactory,

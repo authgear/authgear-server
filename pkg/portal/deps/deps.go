@@ -62,6 +62,7 @@ var DependencySet = wire.NewSet(
 		"AuditLogConfig",
 		"AnalyticConfig",
 		"StripeConfig",
+		"OsanoConfig",
 		"GoogleTagManagerConfig",
 		"PortalFrontendSentryConfig",
 		"SentryHub",
