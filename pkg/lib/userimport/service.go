@@ -106,8 +106,11 @@ func NewLogger(lf *log.Factory) Logger {
 }
 
 func (s *UserImportService) ImportRecords(ctx context.Context, request *Request) *Result {
+	total := len(request.Records)
 	result := &Result{
-		Summary: &Summary{},
+		Summary: &Summary{
+			Total: total,
+		},
 	}
 
 	options := &Options{
@@ -116,8 +119,6 @@ func (s *UserImportService) ImportRecords(ctx context.Context, request *Request)
 	}
 
 	for idx, rawMessage := range request.Records {
-		result.Summary.Total += 1
-
 		detail := Detail{
 			Index:  idx,
 			Record: rawMessage,
@@ -132,6 +133,8 @@ func (s *UserImportService) ImportRecords(ctx context.Context, request *Request)
 			}
 			return nil
 		})
+
+		s.Logger.Infof("processed record (%v/%v): %v", idx+1, total, detail.Outcome)
 
 		if err != nil {
 			if !apierrors.IsAPIError(err) {

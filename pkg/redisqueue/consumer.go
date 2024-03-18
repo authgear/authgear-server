@@ -149,6 +149,7 @@ func (c *Consumer) dequeue(ctx context.Context) {
 		}
 
 		appProvider = c.rootProvider.NewAppProvider(ctx, appCtx)
+		appProvider.LoggerFactory.DefaultFields["task_id"] = task.ID
 		return nil
 	})
 	if err != nil {
