@@ -26,6 +26,11 @@ func NewHandle(pool *Pool, connectionOptions ConnectionOptions, logger *log.Logg
 }
 
 func (h *Handle) WithConn(f func(conn *goredis.Conn) error) error {
+	ctx := context.Background()
+	return h.WithConnContext(ctx, f)
+}
+
+func (h *Handle) WithConnContext(ctx context.Context, f func(conn *goredis.Conn) error) error {
 	h.logger.WithFields(map[string]interface{}{
 		"max_open_connection":             *h.ConnectionOptions.MaxOpenConnection,
 		"max_idle_connection":             *h.ConnectionOptions.MaxIdleConnection,
@@ -33,7 +38,6 @@ func (h *Handle) WithConn(f func(conn *goredis.Conn) error) error {
 		"max_connection_lifetime_seconds": *h.ConnectionOptions.MaxConnectionLifetime,
 	}).Debug("open redis connection")
 
-	ctx := context.Background()
 	conn := h.Client().Conn(ctx)
 	defer func() {
 		err := conn.Close()
