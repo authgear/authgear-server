@@ -3,6 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Osano script must be loaded synchronously. -->
+    <!-- That is, without async nor defer. -->
+    <!-- Osano script must also be the first script to be loaded, -->
+    <!-- It must precede any other <script> or <link> tags. -->
+    <!-- Parcel interprets absolute path in HTML as file path relative to project root. -->
+    <!-- To undo this behavior, we installed parcel-resolver-ignore and configure it in package.json#parcelIgnore -->
+    <script src="/api/osano.js"></script>
     <link rel="shortcut icon" href="./favicon.png" />
     <link
       rel="stylesheet"
