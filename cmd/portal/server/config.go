@@ -54,6 +54,8 @@ type Config struct {
 
 	Stripe portalconfig.StripeConfig `envconfig:"STRIPE"`
 
+	Osano portalconfig.OsanoConfig `envconfig:"OSANO"`
+
 	GoogleTagManager portalconfig.GoogleTagManagerConfig `envconfig:"GTM"`
 
 	PortalFrontendSentry portalconfig.PortalFrontendSentryConfig `envconfig:"PORTAL_FRONTEND_SENTRY"`

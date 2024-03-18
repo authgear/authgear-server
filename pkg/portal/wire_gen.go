@@ -618,3 +618,12 @@ func newStripeWebhookHandler(p *deps.RequestProvider) http.Handler {
 	}
 	return stripeWebhookHandler
 }
+
+func newOsanoHandler(p *deps.RequestProvider) http.Handler {
+	rootProvider := p.RootProvider
+	osanoConfig := rootProvider.OsanoConfig
+	osanoHandler := &transport.OsanoHandler{
+		OsanoConfig: osanoConfig,
+	}
+	return osanoHandler
+}
