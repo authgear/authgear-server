@@ -5,7 +5,9 @@ import { SearchableDropdown } from "../common/SearchableDropdown";
 
 export function DebugSearchableDropdown(): React.ReactElement {
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<IDropdownOption | null>(
+    null
+  );
   const allOptions = useMemo((): IDropdownOption[] => {
     return new Array(50).fill("").map<IDropdownOption>((_, idx) => {
       return {
@@ -25,13 +27,13 @@ export function DebugSearchableDropdown(): React.ReactElement {
 
   const onChange = useCallback((_: unknown, option?: IDropdownOption) => {
     if (!option) {
-      setSelectedKey(null);
+      setSelectedItem(null);
       return;
     }
     if (option.selected || option.selected === undefined) {
-      setSelectedKey(option.key as string);
+      setSelectedItem(option);
     } else {
-      setSelectedKey(null);
+      setSelectedItem(null);
     }
   }, []);
 
@@ -43,7 +45,7 @@ export function DebugSearchableDropdown(): React.ReactElement {
       options={options}
       searchValue={searchKeyword}
       onSearchValueChange={setSearchKeyword}
-      selectedKey={selectedKey}
+      selectedItem={selectedItem}
       onChange={onChange}
     />
   );
