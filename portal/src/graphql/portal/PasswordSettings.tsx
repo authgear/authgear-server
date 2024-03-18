@@ -760,7 +760,7 @@ export default function PasswordSettings<T extends State>(
         label={renderToString(
           "LoginMethodConfigurationScreen.password.expiry.force-change-since-last-update.label"
         )}
-        value={passwordExpiryForceChangeDays?.toFixed(0)}
+        value={passwordExpiryForceChangeDays?.toFixed(0) ?? ""}
         onChange={onChangeExpiryForceChangeDays}
         onBlur={onBlurExpiryForceChangeDays}
       />
