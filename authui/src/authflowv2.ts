@@ -34,6 +34,7 @@ import {
 } from "./passkey";
 import { NewPasswordFieldController } from "./authflowv2/new-password-field";
 import { AlertMessageController } from "./authflowv2/alert-message";
+import { DismissKeyboardOnScrollController } from "./authflowv2/dismissKeyboard";
 
 axios.defaults.withCredentials = true;
 
@@ -91,5 +92,9 @@ Stimulus.register(
 );
 Stimulus.register("authflow-passkey-error", AuthflowV2PasskeyErrorController);
 Stimulus.register("alert-message", AlertMessageController);
+Stimulus.register(
+  "dismiss-keyboard-on-scroll",
+  DismissKeyboardOnScrollController
+);
 
 injectCSSAttrs(document.documentElement);
