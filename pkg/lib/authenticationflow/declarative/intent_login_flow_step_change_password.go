@@ -68,7 +68,7 @@ func (i *IntentLoginFlowStepChangePassword) ReactTo(ctx context.Context, deps *a
 	}
 
 	switch changeReason {
-	case PasswordChangeReasonExpiryForceChange:
+	case PasswordChangeReasonExpiry:
 		// Always force change password if it is expired.
 	case PasswordChangeReasonPolicy:
 		fallthrough

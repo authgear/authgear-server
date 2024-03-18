@@ -71,6 +71,6 @@ func (n *NodeLoginFlowChangePassword) OutputData(ctx context.Context, deps *auth
 			deps.FeatureConfig.Authenticator,
 			deps.Config.Authenticator.Password.Policy,
 		),
-		Reason: n.Reason,
+		ForceChangeReason: n.Reason,
 	}), nil
 }

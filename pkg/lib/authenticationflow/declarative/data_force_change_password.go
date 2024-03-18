@@ -4,8 +4,8 @@ import authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 
 type ForceChangePasswordData struct {
 	TypedData
-	PasswordPolicy *PasswordPolicy       `json:"password_policy,omitempty"`
-	Reason         *PasswordChangeReason `json:"reason,omitempty"`
+	PasswordPolicy    *PasswordPolicy       `json:"password_policy,omitempty"`
+	ForceChangeReason *PasswordChangeReason `json:"force_change_reason,omitempty"`
 }
 
 func NewForceChangePasswordData(d ForceChangePasswordData) ForceChangePasswordData {

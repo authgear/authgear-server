@@ -74,7 +74,7 @@ func (e *EdgeAuthenticationPassword) Instantiate(ctx *interaction.Context, graph
 
 	var reason interaction.AuthenticatorUpdateReason
 	if verifyResult.Password.ExpiryForceChange {
-		reason = interaction.AuthenticatorUpdateReasonExpiryForceChange
+		reason = interaction.AuthenticatorUpdateReasonExpiry
 	} else {
 		reason = interaction.AuthenticatorUpdateReasonPolicy
 	}

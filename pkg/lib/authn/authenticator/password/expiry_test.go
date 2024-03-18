@@ -17,8 +17,8 @@ import (
 func TestValidateCurrentPassword(t *testing.T) {
 	now := time.Date(2017, 11, 4, 0, 0, 0, 0, time.UTC)
 
-	test := func(pe *Expiry, authenticator *authenticator.Password, password string, expected string) {
-		err := pe.Validate(authenticator, password)
+	test := func(pe *Expiry, authenticator *authenticator.Password, expected string) {
+		err := pe.Validate(authenticator)
 		if err != nil {
 			e := apierrors.AsAPIError(err)
 			b, _ := json.Marshal(e)
@@ -38,18 +38,10 @@ func TestValidateCurrentPassword(t *testing.T) {
 		}
 
 		test(pc, &authenticator.Password{
-			ID:           "0",
-			UserID:       "chima",
-			PasswordHash: []byte("$2a$10$EazYxG5cUdf99wGXDU1fguNxvCe7xQLEgr/Ay6VS9fkkVjHZtpJfl"), // random hash
-			UpdatedAt:    now.Add(-time.Hour * 24 * 90),
-		}, "chima", "")
-
-		test(pc, &authenticator.Password{
-			ID:           "1",
-			UserID:       "chima",
-			PasswordHash: []byte("$2a$10$EazYxG5cUdf99wGXDU1fguNxvCe7xQLEgr/Ay6VS9fkkVjHZtpJfm"), // "chima"
-			UpdatedAt:    now.Add(-time.Hour * 24 * 30),
-		}, "chima", `
+			ID:        "1",
+			UserID:    "chima",
+			UpdatedAt: now.Add(-time.Hour * 24 * 30),
+		}, `
 		{
 			"name": "Invalid",
 			"reason": "PasswordExpiryForceChange",
@@ -59,11 +51,10 @@ func TestValidateCurrentPassword(t *testing.T) {
 		`)
 
 		test(pc, &authenticator.Password{
-			ID:           "2",
-			UserID:       "faseng",
-			PasswordHash: []byte("$2a$10$8Z0zqmCZ3pZUlvLD8lN.B.ecN7MX8uVcZooPUFnCcB8tWR6diVc1a"), // "faseng"
-			UpdatedAt:    now.Add(-time.Hour * 24 * 30),
-		}, "faseng", `
+			ID:        "2",
+			UserID:    "faseng",
+			UpdatedAt: now.Add(-time.Hour * 24 * 30),
+		}, `
 		{
 			"name": "Invalid",
 			"reason": "PasswordExpiryForceChange",
@@ -73,10 +64,9 @@ func TestValidateCurrentPassword(t *testing.T) {
 		`)
 
 		test(pc, &authenticator.Password{
-			ID:           "3",
-			UserID:       "coffee",
-			PasswordHash: []byte("$2a$10$qzmi8TkYosj66xHvc9EfEulKjGoZswJSyNVEmmbLDxNGP/lMm6UXC"), // "coffee"
-			UpdatedAt:    now.Add(-time.Hour * 24 * 29),
-		}, "coffee", "")
+			ID:        "3",
+			UserID:    "coffee",
+			UpdatedAt: now.Add(-time.Hour * 24 * 29),
+		}, "")
 	})
 }

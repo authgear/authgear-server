@@ -63,7 +63,7 @@ func (h *AuthflowV2ChangePasswordHandler) GetData(w http.ResponseWriter, r *http
 			IsNew: false,
 		},
 	)
-	changePasswordViewModel := h.ChangePasswordViewModel.NewWithAuthflow(screenData.Reason)
+	changePasswordViewModel := h.ChangePasswordViewModel.NewWithAuthflow(screenData.ForceChangeReason)
 
 	viewmodels.Embed(data, passwordPolicyViewModel)
 	viewmodels.Embed(data, changePasswordViewModel)

@@ -13,12 +13,11 @@ type Expiry struct {
 	Clock                      clock.Clock
 }
 
-func (pe *Expiry) Validate(authenticator *authenticator.Password, password string) error {
-	if IsSamePassword(authenticator.PasswordHash, password) {
-		if pe.ForceChangeEnabled {
-			if !authenticator.UpdatedAt.Add(pe.ForceChangeSinceLastUpdate.Duration()).After(pe.Clock.NowUTC()) {
-				return PasswordExpiryForceChange.New("password expired")
-			}
+func (pe *Expiry) Validate(authenticator *authenticator.Password) error {
+	// Authenticator is already verified with given password prior to this call.
+	if pe.ForceChangeEnabled {
+		if !authenticator.UpdatedAt.Add(pe.ForceChangeSinceLastUpdate.Duration()).After(pe.Clock.NowUTC()) {
+			return PasswordExpiryForceChange.New("password expired")
 		}
 	}
 	return nil

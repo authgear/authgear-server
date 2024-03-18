@@ -81,7 +81,7 @@ func (i *NodeUseAuthenticatorPassword) ReactTo(ctx context.Context, deps *authfl
 
 		var reason PasswordChangeReason
 		if verifyResult.Password.ExpiryForceChange {
-			reason = PasswordChangeReasonExpiryForceChange
+			reason = PasswordChangeReasonExpiry
 		} else {
 			reason = PasswordChangeReasonPolicy
 		}

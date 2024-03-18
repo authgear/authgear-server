@@ -50,7 +50,7 @@ type AuthenticatorService interface {
 	Create(authenticatorInfo *authenticator.Info) error
 	Update(authenticatorInfo *authenticator.Info) error
 	Delete(authenticatorInfo *authenticator.Info) error
-	VerifyOneWithSpec(userID string, authenticatorType model.AuthenticatorType, infos []*authenticator.Info, spec *authenticator.Spec, options *service.VerifyOptions) (info *authenticator.Info, verifyResult service.VerifyResult, err error)
+	VerifyOneWithSpec(userID string, authenticatorType model.AuthenticatorType, infos []*authenticator.Info, spec *authenticator.Spec, options *service.VerifyOptions) (info *authenticator.Info, verifyResult *service.VerifyResult, err error)
 	UpdateOrphans(oldInfo *identity.Info, newInfo *identity.Info) error
 	RemoveOrphans(identities []*identity.Info) error
 	ClearLockoutAttempts(userID string, usedMethods []config.AuthenticationLockoutMethod) error
@@ -352,7 +352,7 @@ func (c *Coordinator) AuthenticatorDelete(authenticatorInfo *authenticator.Info)
 	return nil
 }
 
-func (c *Coordinator) AuthenticatorVerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (verifyResult service.VerifyResult, err error) {
+func (c *Coordinator) AuthenticatorVerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (verifyResult *service.VerifyResult, err error) {
 	_, verifyResult, err = c.AuthenticatorVerifyOneWithSpec(
 		info.UserID,
 		info.Type,
@@ -385,7 +385,7 @@ func (c *Coordinator) addAuthenticationTypeToError(err error, authnType authn.Au
 	return newe
 }
 
-func (c *Coordinator) AuthenticatorVerifyOneWithSpec(userID string, authenticatorType model.AuthenticatorType, infos []*authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (info *authenticator.Info, verifyResult service.VerifyResult, err error) {
+func (c *Coordinator) AuthenticatorVerifyOneWithSpec(userID string, authenticatorType model.AuthenticatorType, infos []*authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (info *authenticator.Info, verifyResult *service.VerifyResult, err error) {
 	if options == nil {
 		options = &VerifyOptions{}
 	}
