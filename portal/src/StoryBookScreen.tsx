@@ -1,8 +1,8 @@
 import React from "react";
 import { Text } from "@fluentui/react";
-import { DebugSearchableDropdown } from "./components/debug/DebugSearchableDropdown";
+import { SearchableDropdownStory } from "./components/stories/SearchableDropdownStory";
 
-export const DebugScreen: React.VFC = function DebugScreen() {
+export const StoryBookScreen: React.VFC = function StoryBookScreen() {
   return (
     <main className="p-4">
       <Text as="h1" className="block py-2" variant="xxLarge">
@@ -14,7 +14,7 @@ export const DebugScreen: React.VFC = function DebugScreen() {
             SearchableDropdown
           </Text>
           <div className="w-60">
-            <DebugSearchableDropdown />
+            <SearchableDropdownStory />
           </div>
         </div>
       </section>
@@ -22,4 +22,4 @@ export const DebugScreen: React.VFC = function DebugScreen() {
   );
 };
 
-export default DebugScreen;
+export default StoryBookScreen;

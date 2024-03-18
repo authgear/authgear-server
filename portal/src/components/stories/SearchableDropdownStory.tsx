@@ -3,7 +3,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import { useDebounced } from "../../hook/useDebounced";
 import { SearchableDropdown } from "../common/SearchableDropdown";
 
-export function DebugSearchableDropdown(): React.ReactElement {
+export function SearchableDropdownStory(): React.ReactElement {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedItem, setSelectedItem] = useState<IDropdownOption | null>(
     null
