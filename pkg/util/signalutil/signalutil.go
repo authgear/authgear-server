@@ -21,7 +21,7 @@ type Daemon interface {
 }
 
 func Start(logger *log.Logger, daemons ...Daemon) {
-	startCtx := context.Background()
+	startCtx, cancel := context.WithCancel(context.Background())
 	var stopCtx context.Context
 	waitGroup := new(sync.WaitGroup)
 	shutdown := make(chan struct{})
@@ -50,8 +50,13 @@ func Start(logger *log.Logger, daemons ...Daemon) {
 	sig := <-sigChan
 	logger.Infof("received signal %s, shutting down...", sig.String())
 
-	stopCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	// Cancel the context we pass to Start() first.
+	// This causes the daemon that respects context to stop blocking and proceed to shutdown.
+	cancel()
+
+	stopCtx, cancelTimeout := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancelTimeout()
+
 	close(shutdown)
 	waitGroup.Wait()
 }
