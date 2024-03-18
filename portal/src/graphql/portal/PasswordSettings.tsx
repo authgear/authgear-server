@@ -36,6 +36,7 @@ import {
   parseNumber,
   tryProduce,
 } from "../../util/input";
+import { formatDuration, parseDuration } from "../../util/duration";
 
 export enum ResetPasswordWithEmailMethod {
   Link = "link",
@@ -354,6 +355,22 @@ export default function PasswordSettings<T extends State>(
     (authenticatorPasswordConfig.policy?.history_size != null &&
       authenticatorPasswordConfig.policy.history_size > 0);
 
+  const isPasswordExpiryForceChangeEnabled =
+    authenticatorPasswordConfig.expiry?.force_change?.enabled === true;
+
+  const passwordExpiryForceChangeDays = useMemo(() => {
+    const duration =
+      authenticatorPasswordConfig.expiry?.force_change
+        ?.duration_since_last_update;
+    const secondsPerDay = 24 * 60 * 60;
+    const days = duration ? parseDuration(duration) / secondsPerDay : undefined;
+
+    return days;
+  }, [
+    authenticatorPasswordConfig.expiry?.force_change
+      ?.duration_since_last_update,
+  ]);
+
   const onChangeForceChange = useCallback(
     (_e, checked) => {
       if (checked == null) {
@@ -407,6 +424,40 @@ export default function PasswordSettings<T extends State>(
     },
     [setState]
   );
+
+  const onChangeExpiryForceChangeDays = useCallback(
+    (_e, value: string | undefined) => {
+      if (value == null) {
+        return;
+      }
+      setState((s) =>
+        produce(s, (s) => {
+          s.authenticatorPasswordConfig.expiry ??= {};
+          s.authenticatorPasswordConfig.expiry.force_change ??= {};
+          s.authenticatorPasswordConfig.expiry.force_change.duration_since_last_update =
+            tryProduce(
+              s.authenticatorPasswordConfig.expiry.force_change
+                .duration_since_last_update,
+              () => {
+                const num = parseNumber(value);
+                return num == null ? undefined : formatDuration(num * 24, "h");
+              }
+            );
+        })
+      );
+    },
+    [setState]
+  );
+
+  const onBlurExpiryForceChangeDays = useCallback(() => {
+    setState((s) =>
+      produce(s, (s) => {
+        if (!passwordExpiryForceChangeDays) {
+          s.authenticatorPasswordConfig.expiry = undefined;
+        }
+      })
+    );
+  }, [passwordExpiryForceChangeDays, setState]);
 
   const onChangeMinLength = usePasswordNumberOnChange(setState, "min_length");
   const onChangeDigitRequired = usePasswordCheckboxOnChange(
@@ -476,6 +527,29 @@ export default function PasswordSettings<T extends State>(
           } else {
             prev.authenticatorPasswordConfig.policy.history_days = 0;
             prev.authenticatorPasswordConfig.policy.history_size = 0;
+          }
+        })
+      );
+    },
+    [setState]
+  );
+
+  const onChangeExpiryForceChangeEnabled = useCallback(
+    (_, checked) => {
+      if (checked == null) {
+        return;
+      }
+      setState((prev) =>
+        produce(prev, (prev) => {
+          prev.authenticatorPasswordConfig.expiry ??= {};
+          prev.authenticatorPasswordConfig.expiry.force_change ??= {};
+
+          if (checked) {
+            prev.authenticatorPasswordConfig.expiry.force_change.enabled = true;
+            prev.authenticatorPasswordConfig.expiry.force_change.duration_since_last_update =
+              formatDuration(90 * 24, "h");
+          } else {
+            prev.authenticatorPasswordConfig.expiry = undefined;
           }
         })
       );
@@ -664,6 +738,33 @@ export default function PasswordSettings<T extends State>(
         }
         onChange={onChangeHistorySize}
       />
+      <HorizontalDivider />
+      <WidgetSubtitle>
+        <FormattedMessage id="LoginMethodConfigurationScreen.password.expiry" />
+      </WidgetSubtitle>
+      <WidgetDescription>
+        <FormattedMessage id="LoginMethodConfigurationScreen.password.expiry.description" />
+      </WidgetDescription>
+      <Toggle
+        checked={isPasswordExpiryForceChangeEnabled}
+        inlineLabel={true}
+        label={
+          <FormattedMessage id="LoginMethodConfigurationScreen.password.expiry.enable-force-change.label" />
+        }
+        onChange={onChangeExpiryForceChangeEnabled}
+      />
+      <TextField
+        type="number"
+        min={0}
+        disabled={!isPasswordExpiryForceChangeEnabled}
+        label={renderToString(
+          "LoginMethodConfigurationScreen.password.expiry.force-change-since-last-update.label"
+        )}
+        value={passwordExpiryForceChangeDays?.toFixed(0) ?? ""}
+        onChange={onChangeExpiryForceChangeDays}
+        onBlur={onBlurExpiryForceChangeDays}
+      />
+      <HorizontalDivider />
       <div>
         <Label
           disabled={passwordPolicyFeatureConfig?.excluded_keywords?.disabled}
