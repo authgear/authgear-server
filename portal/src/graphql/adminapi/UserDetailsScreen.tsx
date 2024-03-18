@@ -54,10 +54,11 @@ import styles from "./UserDetailsScreen.module.css";
 import { makeInvariantViolatedErrorParseRule } from "../../error/parse";
 import { IdentityType } from "./globalTypes.generated";
 import AnonymizeUserDialog from "./AnonymizeUserDialog";
+import UserDetailsScreenGroupListContainer from "../../components/roles-and-groups/list/UserDetailsScreenGroupListContainer";
 
 interface UserDetailsProps {
   form: SimpleFormModel<FormState>;
-  data: UserQueryNodeFragment | null;
+  data: UserQueryNodeFragment;
   appConfig: PortalAPIAppConfig | null;
 }
 
@@ -290,32 +291,31 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     [setState]
   );
 
-  const web3Claims = data?.web3;
+  const web3Claims = data.web3;
 
-  const verifiedClaims = data?.verifiedClaims ?? [];
+  const verifiedClaims = data.verifiedClaims;
 
   const identities = useMemo(
     () =>
-      data?.identities?.edges?.map((edge) => edge?.node).filter(nonNullable) ??
+      data.identities?.edges?.map((edge) => edge?.node).filter(nonNullable) ??
       [],
-    [data?.identities]
+    [data.identities]
   );
 
   const authenticators = useMemo(
     () =>
-      data?.authenticators?.edges
+      data.authenticators?.edges
         ?.map((edge) => edge?.node)
         .filter(nonNullable) ?? [],
-    [data?.authenticators]
+    [data.authenticators]
   );
 
   const sessions =
-    data?.sessions?.edges?.map((edge) => edge?.node).filter(nonNullable) ?? [];
+    data.sessions?.edges?.map((edge) => edge?.node).filter(nonNullable) ?? [];
 
   const authorizations =
-    data?.authorizations?.edges
-      ?.map((edge) => edge?.node)
-      .filter(nonNullable) ?? [];
+    data.authorizations?.edges?.map((edge) => edge?.node).filter(nonNullable) ??
+    [];
 
   const profileImageEditable = useMemo(() => {
     const ptr = jsonPointerToString(["picture"]);
@@ -328,7 +328,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     [identities]
   );
 
-  if (data?.isAnonymized) {
+  if (data.isAnonymized) {
     return (
       <div className={styles.widget}>
         <UserDetailSummary
@@ -352,17 +352,23 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
   return (
     <div className={styles.widget}>
       <UserDetailSummary
-        isAnonymous={data?.isAnonymous ?? false}
-        isAnonymized={data?.isAnonymized ?? false}
-        profileImageURL={data?.standardAttributes.picture}
+        isAnonymous={data.isAnonymous}
+        isAnonymized={data.isAnonymized}
+        profileImageURL={data.standardAttributes.picture}
         profileImageEditable={profileImageEditable}
-        rawUserID={data?.id != null ? extractRawID(data.id) : ""}
-        formattedName={data?.formattedName ?? undefined}
-        endUserAccountIdentifier={data?.endUserAccountID ?? undefined}
-        createdAtISO={data?.createdAt ?? null}
-        lastLoginAtISO={data?.lastLoginAt ?? null}
+        rawUserID={extractRawID(data.id)}
+        formattedName={data.formattedName ?? undefined}
+        endUserAccountIdentifier={data.endUserAccountID ?? undefined}
+        createdAtISO={data.createdAt ?? null}
+        lastLoginAtISO={data.lastLoginAt ?? null}
       />
       <Pivot
+        styles={{
+          itemContainer: {
+            flex: "1 0 auto",
+          },
+        }}
+        className={styles.pivot}
         overflowBehavior="menu"
         selectedKey={selectedKey}
         onLinkClick={onLinkClick}
@@ -424,10 +430,11 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
           {/*TODO*/}
         </PivotItem>
         <PivotItem
+          className={"h-full pt-8"}
           itemKey={GROUPS_KEY}
           headerText={renderToString("UserDetails.groups.header")}
         >
-          {/*TODO*/}
+          <UserDetailsScreenGroupListContainer user={data} />
         </PivotItem>
       </Pivot>
     </div>
@@ -738,6 +745,7 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
 
     return (
       <FormContainer
+        className={styles.formContainer}
         errorRules={ERROR_RULES}
         form={form}
         primaryItems={primaryItems}
@@ -748,7 +756,7 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
           </>
         }
       >
-        <ScreenContent>
+        <ScreenContent className={styles.screenContent}>
           <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
           <UserDetails form={form} data={user} appConfig={effectiveAppConfig} />
         </ScreenContent>

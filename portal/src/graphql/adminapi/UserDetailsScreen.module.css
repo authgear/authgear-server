@@ -2,8 +2,25 @@
   grid-column: 1 / span 8;
 
   @apply tablet:col-span-full;
+
+  @apply flex flex-col;
 }
 
 .siweEnabledTabWarningMessageBar {
   @apply mt-5;
+}
+
+.screenContent {
+  @apply flex-1-0-auto;
+
+  grid-template-rows: min-content minmax(min-content, 1fr);
+  grid-auto-columns: 1fr;
+}
+
+.pivot {
+  @apply flex-1 flex flex-col;
+}
+
+.formContainer {
+  @apply flex flex-col flex-1-0-auto;
 }

@@ -172,6 +172,12 @@
   "AppsScreen.create-app": "Create Project",
   "AppsScreen.project-quota-reached": "You have reached the maximum number of projects in your account, please apply for an increase by completing{ExternalLink, react, href{https://go.authgear.com/portal-support} children{this form}}.",
 
+  "UserGroupsList.column.name": "Name",
+  "UserGroupsList.column.key": "Group Key",
+  "UserGroupsList.column.action": "Action",
+  "UserGroupsList.actions.remove": "Remove",
+  "UserGroupsList.empty": "No groups for this user",
+
   "GroupsScreen.title": "Groups",
   "GroupsScreen.empty-state.title": "You don't have any groups yet.",
   "GroupsScreen.empty-state.subtitle": "Create groups to represent the types of users that access your applications.",
@@ -288,6 +294,7 @@
   "UserDetailsScreen.user-account-security.siwe-enabled": "This tab is not available when the user signs in with Ethereum.",
   "UserDetailsScreen.user-anonymized": "User data erased",
   "UserDetailsScreen.user-anonymized.message": "This user is anonymized and all data are erased.",
+  "UserDetailsScreen.groups.add": "Add to Group",
 
   "UsersList.column.raw-id": "ID",
   "UsersList.column.username": "Username",
