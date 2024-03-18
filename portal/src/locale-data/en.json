@@ -299,6 +299,9 @@
   "UserDetailsScreen.user-anonymized.message": "This user is anonymized and all data are erased.",
   "UserDetailsScreen.groups.add": "Add to Group",
 
+  "AddUserGroupsDialog.title": "Add the user {userName} to the group",
+  "AddUserGroupsDialog.selectGroups": "Select Groups",
+
   "UsersList.column.raw-id": "ID",
   "UsersList.column.username": "Username",
   "UsersList.column.email": "Email",

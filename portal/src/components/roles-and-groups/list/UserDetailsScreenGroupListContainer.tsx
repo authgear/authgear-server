@@ -18,6 +18,7 @@ import { GroupsEmptyView } from "../empty-view/GroupsEmptyView";
 import { UserGroupsListItem, UserGroupsList } from "./UserGroupsList";
 import PrimaryButton from "../../../PrimaryButton";
 import cn from "classnames";
+import { AddUserGroupsDialog } from "../dialog/AddUserGroupsDialog";
 
 function UserDetailsScreenGroupListContainer({
   user,
@@ -58,6 +59,16 @@ function UserDetailsScreenGroupListContainer({
     setSearchKeyword("");
   }, []);
 
+  const [isAddRoleDialogHidden, setIsAddRoleDialogHidden] = useState(true);
+  const showAddRoleDialog = useCallback(
+    () => setIsAddRoleDialogHidden(false),
+    []
+  );
+  const hideAddRoleDialog = useCallback(
+    () => setIsAddRoleDialogHidden(true),
+    []
+  );
+
   const filteredUserGroups = useMemo(() => {
     const userGroups =
       user.groups?.edges?.flatMap<UserGroupsListItem>((edge) => {
@@ -68,6 +79,17 @@ function UserDetailsScreenGroupListContainer({
       }) ?? [];
     return searchGroups(userGroups, searchKeyword);
   }, [user.groups?.edges, searchKeyword]);
+
+  const userGroups = useMemo(() => {
+    return (
+      user.groups?.edges?.flatMap((e) => {
+        if (e?.node) {
+          return [e.node];
+        }
+        return [];
+      }) ?? []
+    );
+  }, [user.groups?.edges]);
 
   if (error != null) {
     return <ShowError error={error} onRetry={refetch} />;
@@ -96,6 +118,7 @@ function UserDetailsScreenGroupListContainer({
           />
           <PrimaryButton
             text={<FormattedMessage id="UserDetailsScreen.groups.add" />}
+            onClick={showAddRoleDialog}
           />
         </header>
         <UserGroupsList
@@ -104,6 +127,14 @@ function UserDetailsScreenGroupListContainer({
           groups={filteredUserGroups}
         />
       </section>
+      <AddUserGroupsDialog
+        userID={user.id}
+        userFormattedName={user.formattedName ?? null}
+        userEndUserAccountID={user.endUserAccountID ?? null}
+        userGroups={userGroups}
+        isHidden={isAddRoleDialogHidden}
+        onDismiss={hideAddRoleDialog}
+      />
     </>
   );
 }
