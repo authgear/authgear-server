@@ -116,6 +116,27 @@ func ProvideUserAgentString(r *http.Request) httputil.UserAgentString {
 	return httputil.UserAgentString(r.UserAgent())
 }
 
+func ProvideRedisQueueHTTPRequest() *http.Request {
+	r, _ := http.NewRequest("GET", "", nil)
+	return r
+}
+
+func ProvideRedisQueueRemoteIP() httputil.RemoteIP {
+	return httputil.RemoteIP("127.0.0.1")
+}
+
+func ProvideRedisQueueUserAgentString() httputil.UserAgentString {
+	return httputil.UserAgentString("redis-queue")
+}
+
+func ProvideRedisQueueHTTPHost() httputil.HTTPHost {
+	return httputil.HTTPHost("127.0.0.1")
+}
+
+func ProvideRedisQueueHTTPProto() httputil.HTTPProto {
+	return httputil.HTTPProto("https")
+}
+
 var RequestDependencySet = wire.NewSet(
 	appRootDeps,
 	wire.FieldsOf(new(*RequestProvider),
@@ -128,6 +149,15 @@ var RequestDependencySet = wire.NewSet(
 	ProvideUserAgentString,
 	ProvideHTTPHost,
 	ProvideHTTPProto,
+)
+
+var RedisQueueDependencySet = wire.NewSet(
+	appRootDeps,
+	ProvideRedisQueueHTTPRequest,
+	ProvideRedisQueueRemoteIP,
+	ProvideRedisQueueUserAgentString,
+	ProvideRedisQueueHTTPHost,
+	ProvideRedisQueueHTTPProto,
 )
 
 var TaskDependencySet = wire.NewSet(
