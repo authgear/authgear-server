@@ -15,11 +15,12 @@ type EdgeEnsurePasswordChange struct {
 }
 
 func (e *EdgeEnsurePasswordChange) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	authenticator, ok := graph.GetRequireUpdateAuthenticator(e.Stage)
+	authenticator, reason, ok := graph.GetRequireUpdateAuthenticator(e.Stage)
 	if ok && authenticator.Type == model.AuthenticatorTypePassword {
 		return &NodeChangePasswordBegin{
-			Force: true,
-			Stage: e.Stage,
+			Force:  true,
+			Reason: reason,
+			Stage:  e.Stage,
 		}, nil
 	}
 	return &NodeEnsurePasswordChange{

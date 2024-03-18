@@ -353,6 +353,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	}
 	authenticatorFeatureConfig := featureConfig.Authenticator
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, authenticatorFeatureConfig, historyStore)
+	expiry := password.ProvideExpiry(authenticatorPasswordConfig, clockClock)
 	housekeeperLogger := password.NewHousekeeperLogger(factory)
 	housekeeper := &password.Housekeeper{
 		Store:  historyStore,
@@ -366,6 +367,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
+		Expiry:          expiry,
 		Housekeeper:     housekeeper,
 	}
 	store4 := &passkey3.Store{

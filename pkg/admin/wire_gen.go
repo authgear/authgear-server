@@ -369,6 +369,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorFeatureConfig := featureConfig.Authenticator
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, authenticatorFeatureConfig, historyStore)
+	expiry := password.ProvideExpiry(authenticatorPasswordConfig, clockClock)
 	housekeeperLogger := password.NewHousekeeperLogger(factory)
 	housekeeper := &password.Housekeeper{
 		Store:  historyStore,
@@ -382,6 +383,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
+		Expiry:          expiry,
 		Housekeeper:     housekeeper,
 	}
 	store4 := &passkey3.Store{
@@ -1335,6 +1337,7 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorFeatureConfig := featureConfig.Authenticator
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, authenticatorFeatureConfig, historyStore)
+	expiry := password.ProvideExpiry(authenticatorPasswordConfig, clockClock)
 	housekeeperLogger := password.NewHousekeeperLogger(factory)
 	housekeeper := &password.Housekeeper{
 		Store:  historyStore,
@@ -1348,6 +1351,7 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
+		Expiry:          expiry,
 		Housekeeper:     housekeeper,
 	}
 	store4 := &passkey3.Store{

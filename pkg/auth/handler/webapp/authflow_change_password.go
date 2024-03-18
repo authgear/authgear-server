@@ -33,9 +33,10 @@ func ConfigureAuthflowChangePasswordRoute(route httproute.Route) httproute.Route
 }
 
 type AuthflowChangePasswordHandler struct {
-	Controller    *AuthflowController
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      Renderer
+	Controller              *AuthflowController
+	BaseViewModel           *viewmodels.BaseViewModeler
+	ChangePasswordViewModel *viewmodels.ChangePasswordViewModeler
+	Renderer                Renderer
 }
 
 func (h *AuthflowChangePasswordHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
@@ -44,7 +45,7 @@ func (h *AuthflowChangePasswordHandler) GetData(w http.ResponseWriter, r *http.R
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.NewPasswordData)
+	screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.ForceChangePasswordData)
 
 	passwordPolicyViewModel := viewmodels.NewPasswordPolicyViewModelFromAuthflow(
 		screenData.PasswordPolicy,
@@ -53,7 +54,9 @@ func (h *AuthflowChangePasswordHandler) GetData(w http.ResponseWriter, r *http.R
 			IsNew: false,
 		},
 	)
+	changePasswordViewModel := h.ChangePasswordViewModel.NewWithAuthflow(screenData.ForceChangeReason)
 	viewmodels.Embed(data, passwordPolicyViewModel)
+	viewmodels.Embed(data, changePasswordViewModel)
 
 	return data, nil
 }

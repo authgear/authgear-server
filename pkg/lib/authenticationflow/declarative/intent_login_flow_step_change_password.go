@@ -13,7 +13,7 @@ import (
 )
 
 type IntentLoginFlowStepChangePasswordTarget interface {
-	GetPasswordAuthenticator(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (*authenticator.Info, bool)
+	GetChangeRequiredPasswordAuthenticator(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (*authenticator.Info, PasswordChangeReason)
 }
 
 func init() {
@@ -61,15 +61,27 @@ func (i *IntentLoginFlowStepChangePassword) ReactTo(ctx context.Context, deps *a
 		})
 	}
 
-	info, ok := target.GetPasswordAuthenticator(ctx, deps, flows.Replace(targetStepFlow))
-	if !ok {
+	info, changeReason := target.GetChangeRequiredPasswordAuthenticator(ctx, deps, flows.Replace(targetStepFlow))
+	if info == nil {
 		// No need to change. End this flow.
 		return authflow.NewNodeSimple(&NodeSentinel{}), nil
+	}
+
+	switch changeReason {
+	case PasswordChangeReasonExpiry:
+		// Always force change password if it is expired.
+	case PasswordChangeReasonPolicy:
+		fallthrough
+	default:
+		if !*deps.Config.Authenticator.Password.ForceChange {
+			return authflow.NewNodeSimple(&NodeSentinel{}), nil
+		}
 	}
 
 	return authflow.NewNodeSimple(&NodeLoginFlowChangePassword{
 		JSONPointer:   i.JSONPointer,
 		Authenticator: info,
+		Reason:        &changeReason,
 	}), nil
 }
 

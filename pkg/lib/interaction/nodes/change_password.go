@@ -28,8 +28,13 @@ func (e *EdgeChangePasswordBegin) Instantiate(ctx *interaction.Context, graph *i
 }
 
 type NodeChangePasswordBegin struct {
-	Force bool                      `json:"force"`
-	Stage authn.AuthenticationStage `json:"stage"`
+	Force  bool                                   `json:"force"`
+	Reason *interaction.AuthenticatorUpdateReason `json:"reason,omitempty"`
+	Stage  authn.AuthenticationStage              `json:"stage"`
+}
+
+func (n *NodeChangePasswordBegin) GetChangeReason() *interaction.AuthenticatorUpdateReason {
+	return n.Reason
 }
 
 func (n *NodeChangePasswordBegin) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {

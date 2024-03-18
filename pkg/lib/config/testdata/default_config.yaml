@@ -467,6 +467,9 @@ authenticator:
     force_change: true
     policy:
       min_length: 8
+    expiry:
+      force_change:
+        enabled: false
   totp:
     maximum: 99
   oob_otp:

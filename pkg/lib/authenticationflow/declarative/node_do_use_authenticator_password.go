@@ -12,9 +12,10 @@ func init() {
 }
 
 type NodeDoUseAuthenticatorPassword struct {
-	JSONPointer            jsonpointer.T       `json:"json_pointer,omitempty"`
-	Authenticator          *authenticator.Info `json:"authenticator,omitempty"`
-	PasswordChangeRequired bool                `json:"password_change_required,omitempty"`
+	JSONPointer            jsonpointer.T        `json:"json_pointer,omitempty"`
+	Authenticator          *authenticator.Info  `json:"authenticator,omitempty"`
+	PasswordChangeRequired bool                 `json:"password_change_required,omitempty"`
+	PasswordChangeReason   PasswordChangeReason `json:"password_change_required_reason,omitempty"`
 }
 
 var _ authflow.NodeSimple = &NodeDoUseAuthenticatorPassword{}

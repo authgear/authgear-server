@@ -62,7 +62,7 @@ func (i *NodeUseAuthenticatorPassword) ReactTo(ctx context.Context, deps *authfl
 			},
 		}
 
-		info, requireUpdate, err := deps.Authenticators.VerifyOneWithSpec(
+		info, verifyResult, err := deps.Authenticators.VerifyOneWithSpec(
 			i.UserID,
 			model.AuthenticatorTypePassword,
 			as,
@@ -79,9 +79,17 @@ func (i *NodeUseAuthenticatorPassword) ReactTo(ctx context.Context, deps *authfl
 			return nil, err
 		}
 
+		var reason PasswordChangeReason
+		if verifyResult.Password.ExpiryForceChange {
+			reason = PasswordChangeReasonExpiry
+		} else {
+			reason = PasswordChangeReasonPolicy
+		}
+
 		return authflow.NewNodeSimple(&NodeDoUseAuthenticatorPassword{
 			Authenticator:          info,
-			PasswordChangeRequired: requireUpdate,
+			PasswordChangeRequired: verifyResult.Password.RequireUpdate(),
+			PasswordChangeReason:   reason,
 			JSONPointer:            i.JSONPointer,
 		}), nil
 	}

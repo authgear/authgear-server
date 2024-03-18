@@ -4,6 +4,7 @@ import (
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 func ProvideChecker(
@@ -35,6 +36,17 @@ func ProvideChecker(
 	return checker
 }
 
+func ProvideExpiry(
+	cfg *config.AuthenticatorPasswordConfig,
+	c clock.Clock,
+) *Expiry {
+	return &Expiry{
+		ForceChangeEnabled:         cfg.Expiry.ForceChange.IsEnabled(),
+		ForceChangeSinceLastUpdate: cfg.Expiry.ForceChange.DurationSinceLastUpdate,
+		Clock:                      c,
+	}
+}
+
 var DependencySet = wire.NewSet(
 	NewLogger,
 	wire.Struct(new(Provider), "*"),
@@ -44,4 +56,5 @@ var DependencySet = wire.NewSet(
 	ProvideChecker,
 	wire.Struct(new(HistoryStore), "*"),
 	wire.Bind(new(CheckerHistoryStore), new(*HistoryStore)),
+	ProvideExpiry,
 )

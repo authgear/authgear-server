@@ -14,8 +14,13 @@ func init() {
 }
 
 type NodeLoginFlowChangePassword struct {
-	JSONPointer   jsonpointer.T       `json:"json_pointer,omitempty"`
-	Authenticator *authenticator.Info `json:"authenticator,omitempty"`
+	JSONPointer   jsonpointer.T         `json:"json_pointer,omitempty"`
+	Authenticator *authenticator.Info   `json:"authenticator,omitempty"`
+	Reason        *PasswordChangeReason `json:"reason,omitempty"`
+}
+
+func (n *NodeLoginFlowChangePassword) GetChangeReason() *PasswordChangeReason {
+	return n.Reason
 }
 
 var _ authflow.NodeSimple = &NodeLoginFlowChangePassword{}
@@ -61,10 +66,11 @@ func (n *NodeLoginFlowChangePassword) ReactTo(ctx context.Context, deps *authflo
 }
 
 func (n *NodeLoginFlowChangePassword) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	return NewNewPasswordData(NewPasswordData{
+	return NewForceChangePasswordData(ForceChangePasswordData{
 		PasswordPolicy: NewPasswordPolicy(
 			deps.FeatureConfig.Authenticator,
 			deps.Config.Authenticator.Password.Policy,
 		),
+		ForceChangeReason: n.Reason,
 	}), nil
 }

@@ -256,18 +256,18 @@ func (g *Graph) GetUserNewAuthenticators() []*authenticator.Info {
 	return authenticators
 }
 
-func (g *Graph) GetRequireUpdateAuthenticator(stage authn.AuthenticationStage) (*authenticator.Info, bool) {
+func (g *Graph) GetRequireUpdateAuthenticator(stage authn.AuthenticationStage) (*authenticator.Info, *AuthenticatorUpdateReason, bool) {
 	for _, node := range g.Nodes {
 		if n, ok := node.(interface {
-			GetRequireUpdateAuthenticator(stage authn.AuthenticationStage) (*authenticator.Info, bool)
+			GetRequireUpdateAuthenticator(stage authn.AuthenticationStage) (*authenticator.Info, *AuthenticatorUpdateReason, bool)
 		}); ok {
-			info, ok := n.GetRequireUpdateAuthenticator(stage)
+			info, reason, ok := n.GetRequireUpdateAuthenticator(stage)
 			if ok {
-				return info, ok
+				return info, reason, ok
 			}
 		}
 	}
-	return nil, false
+	return nil, nil, false
 }
 
 func (g *Graph) GetAMR() []string {

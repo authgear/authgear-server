@@ -368,6 +368,8 @@ steps:
           - authentication: secondary_totp
           - authentication: recovery_code
           - authentication: device_token
+        - type: change_password
+          target_step: authenticate_primary_email
 - type: check_account_status
 - type: terminate_other_sessions
 `)

@@ -376,6 +376,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	}
 	authenticatorFeatureConfig := featureConfig.Authenticator
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, authenticatorFeatureConfig, historyStore)
+	expiry := password.ProvideExpiry(authenticatorPasswordConfig, clock)
 	housekeeperLogger := password.NewHousekeeperLogger(factory)
 	housekeeper := &password.Housekeeper{
 		Store:  historyStore,
@@ -389,6 +390,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
+		Expiry:          expiry,
 		Housekeeper:     housekeeper,
 	}
 	store4 := &passkey3.Store{
@@ -902,6 +904,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorFeatureConfig := featureConfig.Authenticator
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, authenticatorFeatureConfig, historyStore)
+	expiry := password.ProvideExpiry(authenticatorPasswordConfig, clockClock)
 	housekeeperLogger := password.NewHousekeeperLogger(factory)
 	housekeeper := &password.Housekeeper{
 		Store:  historyStore,
@@ -915,6 +918,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
+		Expiry:          expiry,
 		Housekeeper:     housekeeper,
 	}
 	store3 := &passkey3.Store{

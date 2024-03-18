@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -24,7 +25,7 @@ type PasswordAuthenticatorProvider interface {
 	Create(*authenticator.Password) error
 	UpdatePassword(*authenticator.Password) error
 	Delete(*authenticator.Password) error
-	Authenticate(a *authenticator.Password, password string) (requireUpdate bool, err error)
+	Authenticate(a *authenticator.Password, password string) (verifyResult *password.VerifyResult, err error)
 }
 
 type PasskeyAuthenticatorProvider interface {
@@ -508,25 +509,26 @@ func (s *Service) Delete(info *authenticator.Info) error {
 	return nil
 }
 
-func (s *Service) verifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (requireUpdate bool, err error) {
+func (s *Service) verifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (verifyResult *VerifyResult, err error) {
+	verifyResult = &VerifyResult{}
 	switch info.Type {
 	case model.AuthenticatorTypePassword:
 		plainPassword := spec.Password.PlainPassword
 		a := info.Password
-		requireUpdate, err = s.Password.Authenticate(a, plainPassword)
+		verifyResult.Password, err = s.Password.Authenticate(a, plainPassword)
 		if err != nil {
 			err = api.ErrInvalidCredentials
-			return
+			return nil, err
 		}
 		*info = *a.ToInfo()
 		return
 	case model.AuthenticatorTypePasskey:
 		assertionResponse := spec.Passkey.AssertionResponse
 		a := info.Passkey
-		requireUpdate, err = s.Passkey.Authenticate(a, assertionResponse)
+		verifyResult.Passkey, err = s.Passkey.Authenticate(a, assertionResponse)
 		if err != nil {
 			err = api.ErrInvalidCredentials
-			return
+			return nil, err
 		}
 		*info = *a.ToInfo()
 
@@ -536,7 +538,7 @@ func (s *Service) verifyWithSpec(info *authenticator.Info, spec *authenticator.S
 		a := info.TOTP
 		if s.TOTP.Authenticate(a, code) != nil {
 			err = api.ErrInvalidCredentials
-			return
+			return nil, err
 		}
 		// Do not update info because by definition TOTP does not update itself during verification.
 
@@ -563,13 +565,13 @@ func (s *Service) verifyWithSpec(info *authenticator.Info, spec *authenticator.S
 		})
 		if apierrors.IsKind(err, otp.InvalidOTPCode) {
 			err = api.ErrInvalidCredentials
-			return
+			return nil, err
 		} else if err != nil {
-			return
+			return nil, err
 		}
 		// Do not update info because by definition OOBOTP does not update itself during verification.
 
-		return
+		return verifyResult, nil
 	}
 
 	panic("authenticator: unhandled authenticator type " + info.Type)
@@ -581,7 +583,7 @@ func (s *Service) VerifyOneWithSpec(
 	authenticatorType model.AuthenticatorType,
 	infos []*authenticator.Info,
 	spec *authenticator.Spec,
-	options *VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error) {
+	options *VerifyOptions) (info *authenticator.Info, verifyResult *VerifyResult, err error) {
 	if options == nil {
 		options = &VerifyOptions{}
 	}
@@ -605,7 +607,7 @@ func (s *Service) VerifyOneWithSpec(
 			err = fmt.Errorf("only authenticators with same type of same user can be verified together")
 			return
 		}
-		requireUpdate, err = s.verifyWithSpec(thisInfo, spec, options)
+		verifyResult, err = s.verifyWithSpec(thisInfo, spec, options)
 		if errors.Is(err, api.ErrInvalidCredentials) {
 			continue
 		}
