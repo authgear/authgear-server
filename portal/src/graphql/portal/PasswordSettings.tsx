@@ -549,10 +549,7 @@ export default function PasswordSettings<T extends State>(
             prev.authenticatorPasswordConfig.expiry.force_change.duration_since_last_update =
               formatDuration(90 * 24, "h");
           } else {
-            prev.authenticatorPasswordConfig.expiry.force_change.enabled =
-              false;
-            prev.authenticatorPasswordConfig.expiry.force_change.duration_since_last_update =
-              undefined;
+            prev.authenticatorPasswordConfig.expiry = undefined;
           }
         })
       );
