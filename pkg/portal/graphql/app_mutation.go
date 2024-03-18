@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
+	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -389,7 +390,7 @@ var _ = registerMutationField(
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			input := p.Args["input"].(map[string]interface{})
 			appID := input["id"].(string)
-			phoneNumber := input["phoneNumber"].(*string)
+			phoneNumber := input["phoneNumber"].(string)
 
 			gqlCtx := GQLContext(p.Context)
 
@@ -411,7 +412,17 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			if phoneNumber != nil {
+			if phoneNumber != "" {
+				entry := model.OnboardEntry{
+					PhoneNumber: phoneNumber,
+				}
+				err := gqlCtx.OnboardService.SubmitOnboardEntry(
+					entry,
+					actorID,
+				)
+				if err != nil {
+					return nil, err
+				}
 			}
 
 			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectAppCreatedEventPayload{
