@@ -41,6 +41,7 @@ export function SearchableDropdownStory(): React.ReactElement {
     <SearchableDropdown
       placeholder="Select something"
       searchPlaceholder="Type here to search"
+      optionsEmptyMessage="Nothing to show"
       isLoadingOptions={isDebouncing}
       options={options}
       searchValue={searchKeyword}

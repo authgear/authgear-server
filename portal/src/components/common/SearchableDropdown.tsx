@@ -5,6 +5,7 @@ import {
   SearchBox,
   Spinner,
   SpinnerSize,
+  Text,
 } from "@fluentui/react";
 import React, { useCallback, useContext, useMemo } from "react";
 import { Context as MessageContext } from "@oursky/react-messageformat";
@@ -25,6 +26,7 @@ interface SearchableDropdownProps
   searchPlaceholder?: string;
   selectedItem?: IDropdownOption | null;
   selectedItems?: IDropdownOption[];
+  optionsEmptyMessage?: React.ReactNode;
 }
 
 function SearchableDropdownSearchBox(props: {
@@ -61,6 +63,17 @@ function SearchableDropdownSearchBox(props: {
   );
 }
 
+function EmptyView(props: { message?: React.ReactNode }) {
+  const { message } = props;
+  const { renderToString } = useContext(MessageContext);
+
+  return (
+    <Text block={true} className={styles.emptyView}>
+      {message ?? renderToString("SearchableDropdown.empty")}
+    </Text>
+  );
+}
+
 const EMPTY_CALLOUT_PROPS: IDropdownProps["calloutProps"] = {};
 
 export const SearchableDropdown: React.VFC<SearchableDropdownProps> =
@@ -74,6 +87,7 @@ export const SearchableDropdown: React.VFC<SearchableDropdownProps> =
       calloutProps = EMPTY_CALLOUT_PROPS,
       selectedItem,
       selectedItems,
+      optionsEmptyMessage,
       ...restProps
     } = props;
 
@@ -84,6 +98,8 @@ export const SearchableDropdown: React.VFC<SearchableDropdownProps> =
         if (defaultRenderer == null) {
           return null;
         }
+
+        const isOptionsEmpty = props?.options?.length === 0;
 
         return (
           <>
@@ -98,13 +114,21 @@ export const SearchableDropdown: React.VFC<SearchableDropdownProps> =
               <div className={styles.optionsLoadingRow}>
                 <Spinner size={SpinnerSize.xSmall} />
               </div>
+            ) : isOptionsEmpty ? (
+              <EmptyView message={optionsEmptyMessage} />
             ) : (
               defaultRenderer(props)
             )}
           </>
         );
       },
-      [isLoadingOptions, onSearchValueChange, searchPlaceholder, searchValue]
+      [
+        isLoadingOptions,
+        onSearchValueChange,
+        optionsEmptyMessage,
+        searchPlaceholder,
+        searchValue,
+      ]
     );
 
     const combinedOptions = useMemo(() => {

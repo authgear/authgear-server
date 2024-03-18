@@ -5,3 +5,8 @@
 .optionsLoadingRow {
   @apply p-4 flex items-center justify-center;
 }
+
+.emptyView {
+  @apply py-2 text-center;
+  color: #bfbfc3;
+}
