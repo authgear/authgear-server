@@ -7,7 +7,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/admin"
 	"github.com/authgear/authgear-server/pkg/auth"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
+	infraredisqueue "github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
+	"github.com/authgear/authgear-server/pkg/redisqueue"
 	"github.com/authgear/authgear-server/pkg/resolver"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/pprofutil"
@@ -152,6 +154,13 @@ func (c *Controller) Start() {
 			ListenAddress: u.Host,
 			Handler:       pprofutil.NewServeMux(),
 		}))
+
+		specs = append(specs, redisqueue.NewConsumer(
+			infraredisqueue.QueueUserImport,
+			p,
+			configSrcController,
+			redisqueue.UserImport,
+		))
 	}
 
 	signalutil.Start(c.logger, specs...)

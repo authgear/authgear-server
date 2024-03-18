@@ -77,9 +77,16 @@ func newPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
-func newUserImportHandler(p *deps.RequestProvider) http.Handler {
+func newUserImportCreateHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(http.Handler), new(*transport.UserImportHandler)),
+		wire.Bind(new(http.Handler), new(*transport.UserImportCreateHandler)),
+	))
+}
+
+func newUserImportGetHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.UserImportGetHandler)),
 	))
 }

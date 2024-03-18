@@ -8,6 +8,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(UIParamMiddleware), "*"),
 	wire.Struct(new(GraphQLHandler), "*"),
 	wire.Struct(new(PresignImagesUploadHandler), "*"),
-	wire.Struct(new(UserImportHandler), "*"),
+	wire.Struct(new(UserImportCreateHandler), "*"),
+	wire.Struct(new(UserImportGetHandler), "*"),
 	NewPresignImagesUploadHandlerLogger,
 )

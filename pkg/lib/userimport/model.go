@@ -3,12 +3,14 @@ package userimport
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 	"golang.org/x/exp/constraints"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -424,4 +426,35 @@ type Detail struct {
 type Result struct {
 	Summary *Summary `json:"summary,omitempty"`
 	Details []Detail `json:"details,omitempty"`
+}
+
+type Response struct {
+	ID          string                `json:"id,omitempty"`
+	CreatedAt   *time.Time            `json:"created_at,omitempty"`
+	CompletedAt *time.Time            `json:"completed_at,omitempty"`
+	Status      redisqueue.TaskStatus `json:"status,omitempty"`
+	Summary     *Summary              `json:"summary,omitempty"`
+	Details     []Detail              `json:"details,omitempty"`
+}
+
+func NewResponseFromTask(task *redisqueue.Task) (*Response, error) {
+	response := &Response{
+		ID:          task.ID,
+		CreatedAt:   task.CreatedAt,
+		CompletedAt: task.CompletedAt,
+		Status:      task.Status,
+	}
+
+	if task.Output != nil {
+		var result Result
+		err := json.Unmarshal(task.Output, &result)
+		if err != nil {
+			return nil, err
+		}
+
+		response.Summary = result.Summary
+		response.Details = result.Details
+	}
+
+	return response, nil
 }

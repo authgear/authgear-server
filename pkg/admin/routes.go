@@ -56,7 +56,8 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 
 	router.AddRoutes(p.Handler(newGraphQLHandler), transport.ConfigureGraphQLRoute(route)...)
 	router.Add(transport.ConfigurePresignImagesUploadRoute(route), p.Handler(newPresignImagesUploadHandler))
-	router.Add(transport.ConfigureUserImportRoute(route), p.Handler(newUserImportHandler))
+	router.Add(transport.ConfigureUserImportCreateRoute(route), p.Handler(newUserImportCreateHandler))
+	router.Add(transport.ConfigureUserImportGetRoute(route), p.Handler(newUserImportGetHandler))
 
 	return router
 }

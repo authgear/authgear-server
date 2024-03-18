@@ -45,6 +45,7 @@ import (
 	infracaptcha "github.com/authgear/authgear-server/pkg/lib/infra/captcha"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	infrawhatsapp "github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -521,4 +522,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(tester.EndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(interaction.OAuthRedirectURIBuilder), new(*endpoints.Endpoints)),
 	),
+
+	redisqueue.ProducerDependencySet,
 )
