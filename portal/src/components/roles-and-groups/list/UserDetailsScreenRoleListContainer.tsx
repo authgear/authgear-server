@@ -69,31 +69,55 @@ function UserDetailsScreenRoleListContainer({
     setSearchKeyword("");
   }, []);
 
-  const filteredUserRoles = useMemo(() => {
-    const userRoles =
-      user.roles?.edges?.flatMap<UserRolesListItem>((edge) => {
-        if (edge?.node != null) {
-          return [edge.node];
+  const groupRoles = useMemo(() => {
+    const groupsRolesTable: Record<string, UserRolesListItem> = {};
+    user.groups?.edges?.forEach((edge) => {
+      const group = edge?.node;
+      if (group?.roles?.edges == null) {
+        return;
+      }
+      group.roles.edges.forEach((roleEdge) => {
+        const role = roleEdge?.node;
+        if (role == null) {
+          return;
         }
-        return [];
-      }) ?? [];
-    if (isSearch) {
-      return searchRoles(userRoles, searchKeyword);
-    }
+        if (role.key in groupsRolesTable) {
+          groupsRolesTable[role.key].groups.push(group);
+        } else {
+          const roleWithGroups = {
+            ...role,
+            groups: [group],
+          };
+          groupsRolesTable[role.key] = roleWithGroups;
+        }
+      });
+    });
 
-    return userRoles.slice(offset, offset + pageSize);
-  }, [user.roles?.edges, isSearch, offset, searchKeyword]);
+    return Object.entries(groupsRolesTable).map(([_, value]) => value);
+  }, [user.groups?.edges]);
 
-  const userRoles = useMemo(() => {
+  const userRoles: UserRolesListItem[] = useMemo(() => {
     return (
       user.roles?.edges?.flatMap((e) => {
         if (e?.node) {
-          return [e.node];
+          return [{ ...e.node, groups: [] }];
         }
         return [];
       }) ?? []
     );
   }, [user.roles?.edges]);
+
+  const combinedRoles: UserRolesListItem[] = useMemo(() => {
+    return [...groupRoles, ...userRoles];
+  }, [groupRoles, userRoles]);
+
+  const filteredCombinedRoles = useMemo(() => {
+    if (isSearch) {
+      return searchRoles(combinedRoles, searchKeyword);
+    }
+
+    return combinedRoles.slice(offset, offset + pageSize);
+  }, [isSearch, combinedRoles, offset, searchKeyword]);
 
   if (error != null) {
     return <ShowError error={error} onRetry={refetch} />;
@@ -127,11 +151,11 @@ function UserDetailsScreenRoleListContainer({
         <UserRolesList
           className="flex-1 min-h-0"
           user={user}
-          roles={filteredUserRoles}
+          roles={filteredCombinedRoles}
           isSearch={isSearch}
           offset={offset}
           pageSize={pageSize}
-          totalCount={userRoles.length}
+          totalCount={combinedRoles.length}
           onChangeOffset={onChangeOffset}
         />
       </section>

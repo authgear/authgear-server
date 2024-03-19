@@ -15,8 +15,11 @@ import Link from "../../../Link";
 import ActionButtonCell from "./common/ActionButtonCell";
 import TextCell from "./common/TextCell";
 import RolesAndGroupsBaseList from "./common/RolesAndGroupsBaseList";
+import { UserGroupsListItem } from "./UserGroupsList";
 
-export interface UserRolesListItem extends Pick<Role, "id" | "name" | "key"> {}
+export interface UserRolesListItem extends Pick<Role, "id" | "name" | "key"> {
+  groups: UserGroupsListItem[];
+}
 
 export interface UserRolesListUser
   extends Pick<User, "id" | "formattedName" | "endUserAccountID"> {}
@@ -24,6 +27,7 @@ export interface UserRolesListUser
 export enum UserRolesListColumnKey {
   Name = "Name",
   Key = "Key",
+  Group = "Group",
   Action = "Action",
 }
 
@@ -58,7 +62,7 @@ export const UserRolesList: React.VFC<UserRolesListProps> =
           fieldName: "name",
           name: renderToString("UserRolesList.column.name"),
           minWidth: 100,
-          maxWidth: 300,
+          maxWidth: 200,
           isResizable: true,
           columnActionsMode: ColumnActionsMode.disabled,
         },
@@ -66,6 +70,15 @@ export const UserRolesList: React.VFC<UserRolesListProps> =
           key: UserRolesListColumnKey.Key,
           fieldName: "key",
           name: renderToString("UserRolesList.column.key"),
+          minWidth: 100,
+          maxWidth: 200,
+          isResizable: true,
+          columnActionsMode: ColumnActionsMode.disabled,
+        },
+        {
+          key: UserRolesListColumnKey.Group,
+          fieldName: "group",
+          name: renderToString("UserRolesList.column.group"),
           minWidth: 100,
           maxWidth: 9999,
           isResizable: true,
@@ -111,6 +124,14 @@ export const UserRolesList: React.VFC<UserRolesListProps> =
               />
             );
           }
+          case UserRolesListColumnKey.Group:
+            return (
+              <TextCell>
+                {item.groups.length === 0
+                  ? "-"
+                  : item.groups.map((group) => group.name).join(", ")}
+              </TextCell>
+            );
           default:
             return (
               <TextCell>
