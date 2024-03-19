@@ -281,6 +281,9 @@
   "UserRolesList.actions.remove": "Remove",
   "UserRolesList.empty": "No roles for this user",
 
+  "DeleteUserRoleDialog.title": "Remove Role",
+  "DeleteUserRoleDialog.description": "Are you sure you want to remove \"{roleName}\" from the user \"{userName}\"?",
+
   "UsersScreen.title": "Users",
   "UsersScreen.add-user": "Add User",
   "UsersScreen.search.resultLimited": "Only showing top 10 results, please refine the search query if you can't find what you want.",
