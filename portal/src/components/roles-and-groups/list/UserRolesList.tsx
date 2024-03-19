@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import {
   ColumnActionsMode,
@@ -16,6 +16,9 @@ import ActionButtonCell from "./common/ActionButtonCell";
 import TextCell from "./common/TextCell";
 import RolesAndGroupsBaseList from "./common/RolesAndGroupsBaseList";
 import { UserGroupsListItem } from "./UserGroupsList";
+import DeleteUserRoleDialog, {
+  DeleteUserRoleDialogData,
+} from "../dialog/DeleteUserRoleDialog";
 
 export interface UserRolesListItem extends Pick<Role, "id" | "name" | "key"> {
   groups: UserGroupsListItem[];
@@ -44,6 +47,7 @@ interface UserRolesListProps {
 
 export const UserRolesList: React.VFC<UserRolesListProps> =
   function UserRolesList({
+    user,
     roles,
     className,
     isSearch,
@@ -54,6 +58,28 @@ export const UserRolesList: React.VFC<UserRolesListProps> =
   }) {
     const { appID } = useParams() as { appID: string };
     const { renderToString } = useContext(MessageContext);
+
+    const [deleteDialogData, setDeleteDialogData] =
+      useState<DeleteUserRoleDialogData | null>(null);
+    const onDismissDeleteDialog = useCallback(
+      () => setDeleteDialogData(null),
+      []
+    );
+    const onClickDeleteRole = useCallback(
+      (e: React.MouseEvent<unknown>, item: UserRolesListItem) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDeleteDialogData({
+          userID: user.id,
+          userFormattedName: user.formattedName ?? null,
+          userEndUserAccountID: user.endUserAccountID ?? null,
+          roleID: item.id,
+          roleKey: item.key,
+          roleName: item.name ?? null,
+        });
+      },
+      [user]
+    );
 
     const columns: IColumn[] = useMemo((): IColumn[] => {
       return [
@@ -122,6 +148,9 @@ export const UserRolesList: React.VFC<UserRolesListProps> =
               <ActionButtonCell
                 text={renderToString("UserRolesList.actions.remove")}
                 disabled={item.groups.length !== 0}
+                onClick={(e) => {
+                  onClickDeleteRole(e, item);
+                }}
               />
             );
           }
@@ -141,7 +170,7 @@ export const UserRolesList: React.VFC<UserRolesListProps> =
             );
         }
       },
-      [renderToString]
+      [onClickDeleteRole, renderToString]
     );
 
     const paginationProps = useMemo(
@@ -167,6 +196,10 @@ export const UserRolesList: React.VFC<UserRolesListProps> =
             items={roles}
             columns={columns}
             pagination={paginationProps}
+          />
+          <DeleteUserRoleDialog
+            data={deleteDialogData}
+            onDismiss={onDismissDeleteDialog}
           />
         </div>
       </>
