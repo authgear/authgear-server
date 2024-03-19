@@ -23,6 +23,18 @@ fragment UserQueryNode on User {
         description
         id
         key
+        roles {
+          edges {
+            node {
+              createdAt
+              description
+              id
+              key
+              name
+              updatedAt
+            }
+          }
+        }
         name
         updatedAt
       }
