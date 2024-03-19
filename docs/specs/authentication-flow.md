@@ -132,9 +132,9 @@ Example:
 
 ```yaml
 signup_flows:
-- id: default_signup_flow
+- name: default_signup_flow
   steps:
-  - id: setup_identity
+  - name: setup_identity
     type: identify
     one_of:
     - identification: phone
@@ -156,7 +156,7 @@ signup_flows:
   - type: authenticate
     one_of:
     - authentication: primary_password
-  - id: setup_phone_2fa
+  - name: setup_phone_2fa
     type: authenticate
     one_of:
     - authentication: secondary_oob_otp_sms
@@ -182,7 +182,7 @@ signup_flows:
 ```yaml
 login_flows:
 # Sign in with a phone number and OTP via SMS to any phone number the account has.
-- id: phone_otp_to_any_phone
+- name: phone_otp_to_any_phone
   steps:
   - type: identify
     one_of:
@@ -192,9 +192,9 @@ login_flows:
     - authentication: primary_oob_otp_sms
 
 # Sign in with a phone number and OTP via SMS to the same phone number.
-- id: phone_otp_to_same_phone
+- name: phone_otp_to_same_phone
   steps:
-  - id: identify
+  - name: identify
     type: identify
     one_of:
     - identification: phone
@@ -204,7 +204,7 @@ login_flows:
       target_step: identify
 
 # Sign in with a phone number and a password
-- id: phone_password
+- name: phone_password
   steps:
   - type: identify
     one_of:
@@ -214,7 +214,7 @@ login_flows:
     - authentication: primary_password
 
 # Sign in with a phone number, or an email address, with a password
-- id: phone_email_password
+- name: phone_email_password
   steps:
   - type: identify
     one_of:
@@ -225,7 +225,7 @@ login_flows:
     - authentication: primary_password
 
 # Sign in with an email address, a password and a TOTP
-- id: email_password_totp
+- name: email_password_totp
   steps:
   - type: identify
     one_of:
@@ -238,7 +238,7 @@ login_flows:
     - authentication: secondary_totp
 
 # Sign in with an email address, a password. Perform 2FA if the end-user has configured.
-- id: email_password_optional_2fa
+- name: email_password_optional_2fa
   steps:
   - type: identify
     one_of:
@@ -260,13 +260,13 @@ login_flows:
 
 # Sign in with an email address, a password. Require the end-user to change password,
 # if the password does not fulfill password requirements.
-- id: forced_password_update
+- name: forced_password_update
   steps:
   - type: identify
     one_of:
     - identification: email
   - type: authenticate
-    id: step1
+    name: step1
     one_of:
     - authentication: primary_password
   # Require the end-user to change the password,
@@ -276,7 +276,7 @@ login_flows:
   - type: change_password
     target_step: step1
 
-- id: account_linking
+- name: account_linking
   account_linking:
     conditions:
     # The standard_attribute to determine whether two identities are the "same".
@@ -311,7 +311,7 @@ Example:
 
 ```yaml
 signup_login_flows:
-- id: default_signup_login_flow
+- name: default_signup_login_flow
   steps:
   - type: identify
     one_of:
@@ -330,14 +330,14 @@ Example:
 ```yaml
 reauth_flows:
 # Re-authenticate with primary password.
-- id: reauth_password
+- name: reauth_password
   steps:
   - type: authenticate
     one_of:
     - authentication: primary_password
 
 # Re-authenticate with any 2nd factor, assuming that 2FA is required in signup flow.
-- id: reauth_2fa
+- name: reauth_2fa
   steps:
   - type: authenticate
     one_of:
@@ -345,7 +345,7 @@ reauth_flows:
     - authentication: secondary_sms_code
 
 # Re-authenticate with the 1st factor AND the 2nd factor.
-- id: reauth_full
+- name: reauth_full
   steps:
   - type: authenticate
     one_of:
@@ -362,9 +362,9 @@ reauth_flows:
 
 ```yaml
 signup_flows:
-- id: default_signup_flow
+- name: default_signup_flow
   steps:
-  - id: setup_phone
+  - name: setup_phone
     type: identify
     one_of:
     - identification: phone
@@ -374,7 +374,7 @@ signup_flows:
       target_step: setup_phone
   - type: verify
     target_step: setup_phone
-  - id: setup_email
+  - name: setup_email
     type: identify
     one_of:
     - identification: email
@@ -387,7 +387,7 @@ signup_flows:
     - authentication: primary_password
 
 login_flows:
-- id: default_login_flow
+- name: default_login_flow
   steps:
   - type: identify
     one_of:
@@ -405,9 +405,9 @@ login_flows:
 
 ```yaml
 signup_flows:
-- id: default_signup_flow
+- name: default_signup_flow
   steps:
-  - id: setup_first_identity
+  - name: setup_first_identity
     type: identify
     one_of:
     - identification: phone
@@ -418,7 +418,7 @@ signup_flows:
           target_step: setup_first_identity
       - type: verify
         target_step: setup_first_identity
-      - id: setup_second_identity
+      - name: setup_second_identity
         type: identify
         one_of:
         - identification: email
@@ -435,7 +435,7 @@ signup_flows:
           target_step: setup_first_identity
       - type: verify
         target_step: setup_first_identity
-      - id: setup_second_identity
+      - name: setup_second_identity
         type: identify
         one_of:
         - identification: phone
@@ -450,7 +450,7 @@ signup_flows:
     - authentication: primary_password
 
 login_flows:
-- id: default_login_flow
+- name: default_login_flow
   steps:
   - type: identify
     one_of:
@@ -469,7 +469,7 @@ login_flows:
         - authentication: primary_password
 
 signup_login_flows:
-- id: default_signup_login_flow
+- name: default_signup_login_flow
   steps:
   - type: identify
     one_of:
@@ -485,7 +485,7 @@ signup_login_flows:
 
 ```yaml
 signup_flows:
-- id: default_signup_flow
+- name: default_signup_flow
   steps:
   - type: identify
     one_of:
@@ -495,7 +495,7 @@ signup_flows:
     - authentication: primary_password
 
 login_flows:
-- id: default_login_flow
+- name: default_login_flow
   steps:
   - type: identify
     one_of:
@@ -515,7 +515,7 @@ login_flows:
 # signup_flows is omitted here because the exact signup flow is unknown.
 
 login_flows:
-- id: default_login_flow
+- name: default_login_flow
   steps:
   - type: identify
     one_of:
@@ -534,7 +534,7 @@ login_flows:
 # signup_flows are omitted because it does not have public signup.
 
 login_flows:
-- id: default_login_flow
+- name: default_login_flow
   steps:
   - type: identify
     one_of:
@@ -554,9 +554,9 @@ login_flows:
 signup_flows:
 # The end user sign up with OAuth without password or 2FA.
 # Or the end user sign up with verified email with password and 2FA.
-- id: default_signup_flow
+- name: default_signup_flow
   steps:
-  - id: setup_identity
+  - name: setup_identity
     type: identify
     one_of:
     - identification: oauth
@@ -579,7 +579,7 @@ login_flows:
 # The end user can sign in with OAuth.
 # The end user can sign in with passkey directly.
 # The end user can sign in with email with OTP, password, or passkey, and with 2FA.
-- id: default_login_flow
+- name: default_login_flow
   steps:
   - type: identify
     one_of:
@@ -684,7 +684,7 @@ Content-Type: application/json
 
 - `state_token`: The `state_token` of a previous request.
 - `input`: A JSON object specific to the current step of the flow.
-- `batch_input`: An array of input. This allows you to execute the flow multiple steps in a single request. In order to do this, you must know in advance how the flow is going. 
+- `batch_input`: An array of input. This allows you to execute the flow multiple steps in a single request. In order to do this, you must know in advance how the flow is going.
 
 ### Get the Authentication Flow
 
