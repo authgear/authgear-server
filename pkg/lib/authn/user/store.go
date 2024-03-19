@@ -245,10 +245,6 @@ func (s *Store) Count() (uint64, error) {
 func (s *Store) QueryPage(listOption ListOptions, pageArgs graphqlutil.PageArgs) ([]*User, uint64, error) {
 	query := s.selectQuery("u")
 
-	type condition struct {
-		Expr string
-		Args interface{}
-	}
 	var orCondititions sq.Or = sq.Or{}
 
 	if len(listOption.GroupKeys) != 0 {
