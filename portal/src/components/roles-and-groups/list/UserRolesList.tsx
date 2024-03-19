@@ -121,6 +121,7 @@ export const UserRolesList: React.VFC<UserRolesListProps> =
             return (
               <ActionButtonCell
                 text={renderToString("UserRolesList.actions.remove")}
+                disabled={item.groups.length !== 0}
               />
             );
           }
