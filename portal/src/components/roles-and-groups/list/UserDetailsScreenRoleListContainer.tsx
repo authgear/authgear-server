@@ -18,6 +18,7 @@ import { RolesEmptyView } from "../empty-view/RolesEmptyView";
 import { UserRolesListItem, UserRolesList } from "./UserRolesList";
 import PrimaryButton from "../../../PrimaryButton";
 import cn from "classnames";
+import { AddUserRolesDialog } from "../dialog/AddUserRolesDialog";
 
 const pageSize = 10;
 
@@ -68,6 +69,16 @@ function UserDetailsScreenRoleListContainer({
   const onClearSearchKeyword = useCallback(() => {
     setSearchKeyword("");
   }, []);
+
+  const [isAddRoleDialogHidden, setIsAddRoleDialogHidden] = useState(true);
+  const showAddRoleDialog = useCallback(
+    () => setIsAddRoleDialogHidden(false),
+    []
+  );
+  const hideAddRoleDialog = useCallback(
+    () => setIsAddRoleDialogHidden(true),
+    []
+  );
 
   const groupRoles = useMemo(() => {
     const groupsRolesTable: Record<string, UserRolesListItem> = {};
@@ -146,6 +157,7 @@ function UserDetailsScreenRoleListContainer({
           />
           <PrimaryButton
             text={<FormattedMessage id="UserDetailsScreen.roles.add" />}
+            onClick={showAddRoleDialog}
           />
         </header>
         <UserRolesList
@@ -159,6 +171,14 @@ function UserDetailsScreenRoleListContainer({
           onChangeOffset={onChangeOffset}
         />
       </section>
+      <AddUserRolesDialog
+        userID={user.id}
+        userFormattedName={user.formattedName ?? null}
+        userEndUserAccountID={user.endUserAccountID ?? null}
+        userRoles={userRoles}
+        isHidden={isAddRoleDialogHidden}
+        onDismiss={hideAddRoleDialog}
+      />
     </>
   );
 }

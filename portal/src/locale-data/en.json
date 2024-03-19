@@ -315,6 +315,9 @@
   "AddUserGroupsDialog.title": "Add the user {userName} to the group",
   "AddUserGroupsDialog.selectGroups": "Select Groups",
 
+  "AddUserRolesDialog.title": "Add roles to the user {userName}",
+  "AddUserRolesDialog.selectRoles": "Select Roles",
+
   "UsersList.column.raw-id": "ID",
   "UsersList.column.username": "Username",
   "UsersList.column.email": "Email",
