@@ -218,7 +218,7 @@
   "AddRoleGroupsDialog.selectGroups": "Select Groups",
 
   "GroupsEmptyView.title": "You don't have any groups yet.",
-  "GroupsEmptyView.description": "Create groups to represent the types of users that access your applications. Users in a group share the same roles.\n\nFor example, all users in \"Marketing Manager\" group will automatically possess the admin right of a marketing app",
+  "GroupsEmptyView.description": "Create groups to represent the types of users that access your applications. Users in a group inherit the same set of roles.",
   "GroupsEmptyView.button.text": "Create Group",
 
   "AddRoleScreen.title": "Create Role",
