@@ -1,6 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
-import useDelayedValue from "../../../hook/useDelayedValue";
 import {
   ColumnActionsMode,
   DetailsRow,
@@ -48,7 +47,7 @@ const isGroupListItem = (value: unknown): value is GroupListItem => {
 const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
   const {
     className,
-    loading: rawLoading,
+    loading,
     isSearch,
     offset,
     pageSize,
@@ -56,7 +55,6 @@ const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
     onChangeOffset,
   } = props;
   const edges = props.groups?.edges;
-  const loading = useDelayedValue(rawLoading, 500);
   const { renderToString } = useContext(Context);
   const { appID } = useParams() as { appID: string };
   const columns: IColumn[] = [
