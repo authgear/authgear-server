@@ -50,7 +50,7 @@ function RolesAndGroupsBaseList<T>(
     emptyText,
   } = props;
 
-  const isEmpty = items.length === 0;
+  const isEmpty = items.length === 0 && !loading;
 
   return isEmpty ? (
     <MessageBar className={styles.message}>{emptyText}</MessageBar>

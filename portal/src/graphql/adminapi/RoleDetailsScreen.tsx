@@ -412,7 +412,9 @@ const RoleDetailsScreenLoaded: React.VFC<{
 
 const RoleDetailsScreen: React.VFC = function RoleDetailsScreen() {
   const { roleID } = useParams() as { roleID: string };
-  const { role, loading, error, refetch } = useRoleQuery(roleID);
+  const { role, loading, error, refetch } = useRoleQuery(roleID, {
+    fetchPolicy: "network-only",
+  });
 
   if (error != null) {
     return <ShowError error={error} onRetry={refetch} />;

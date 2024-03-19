@@ -61,7 +61,7 @@ const GroupsScreen: React.VFC = function GroupsScreen() {
     setOffset(0);
   }, []);
 
-  const { data, loading, previousData } = useQuery<
+  const { data, loading } = useQuery<
     GroupsListQueryQuery,
     GroupsListQueryQueryVariables
   >(GroupsListQueryDocument, {
@@ -73,9 +73,9 @@ const GroupsScreen: React.VFC = function GroupsScreen() {
     fetchPolicy: "network-only",
   });
 
-  const isInitialLoading = loading && previousData == null;
+  const isLoading = loading || data == null;
 
-  const isEmpty = !isInitialLoading && data?.groups?.totalCount === 0;
+  const isEmpty = !isLoading && data.groups?.totalCount === 0;
 
   const searchBoxProps: ISearchBoxProps = useMemo(() => {
     return {
@@ -118,7 +118,7 @@ const GroupsScreen: React.VFC = function GroupsScreen() {
         <GroupsList
           className={styles.list}
           isSearch={isSearch}
-          loading={isInitialLoading}
+          loading={isLoading}
           offset={offset}
           pageSize={pageSize}
           groups={data?.groups ?? null}

@@ -1,4 +1,4 @@
-import { QueryResult, useQuery } from "@apollo/client";
+import { QueryResult, WatchQueryFetchPolicy, useQuery } from "@apollo/client";
 import { useMemo } from "react";
 import {
   GroupQueryQuery,
@@ -18,7 +18,7 @@ interface GroupQueryResult
 
 export function useGroupQuery(
   groupID: string,
-  options?: { skip?: boolean }
+  options?: { skip?: boolean; fetchPolicy?: WatchQueryFetchPolicy }
 ): GroupQueryResult {
   const { data, loading, error, refetch } = useQuery<
     GroupQueryQuery,
@@ -28,6 +28,7 @@ export function useGroupQuery(
       groupID,
     },
     skip: options?.skip,
+    fetchPolicy: options?.fetchPolicy,
   });
 
   const group = useMemo(() => {

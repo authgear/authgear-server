@@ -175,9 +175,6 @@
   "AppsScreen.project-quota-reached": "You have reached the maximum number of projects in your account, please apply for an increase by completing{ExternalLink, react, href{https://go.authgear.com/portal-support} children{this form}}.",
 
   "GroupsScreen.title": "Groups",
-  "GroupsScreen.empty-state.title": "You don't have any groups yet.",
-  "GroupsScreen.empty-state.subtitle": "Create groups to represent the types of users that access your applications.",
-  "GroupsScreen.empty-state.button": "Create Group",
 
   "GroupsList.column.name": "Name",
   "GroupsList.column.key": "Group Key",
@@ -195,7 +192,7 @@
   "DeleteGroupRoleDialog.title": "Remove Role",
   "DeleteGroupRoleDialog.description": "Are you sure you want to remove \"{groupName}\" from the \"{roleName}\" role?",
 
-  "GroupDetailsScreen.roles.add": "Add to Role",
+  "GroupDetailsScreen.roles.add": "Add Role",
 
   "AddGroupRolesDialog.title": "Add {groupName} group to role",
   "AddGroupRolesDialog.selectGroups": "Select Roles",
@@ -221,7 +218,7 @@
   "AddRoleGroupsDialog.selectGroups": "Select Groups",
 
   "GroupsEmptyView.title": "You don't have any groups yet.",
-  "GroupsEmptyView.description": "Create groups to represent the types of users that access your applications.",
+  "GroupsEmptyView.description": "Create groups to represent the types of users that access your applications. Users in a group share the same roles.\n\nFor example, all users in \"Marketing Manager\" group will automatically possess the admin right of a marketing app",
   "GroupsEmptyView.button.text": "Create Group",
 
   "AddRoleScreen.title": "Create Role",
@@ -235,13 +232,13 @@
   "AddGroupScreen.groupName.title": "Name",
   "AddGroupScreen.groupName.description": "A display name of this group in the portal.",
   "AddGroupScreen.groupKey.title": "Group Key",
-  "AddGroupScreen.groupKey.description": "The Group Key is a unique identifier for this group.",
+  "AddGroupScreen.groupKey.description": "The Group Key is a unique identifier for this group when referenced from Admin API and Hooks.",
   "AddGroupScreen.groupDescription.title": "Description",
 
   "GroupDetailsSettingsForm.groupName.title": "Name",
   "GroupDetailsSettingsForm.groupName.description": "A display name of this group in the portal.",
   "GroupDetailsSettingsForm.groupKey.title": "Group Key",
-  "GroupDetailsSettingsForm.groupKey.description": "The Group Key is a unique identifier for this group.",
+  "GroupDetailsSettingsForm.groupKey.description": "The Group Key is a unique identifier for this group when referenced from Admin API and Hooks.",
   "GroupDetailsSettingsForm.groupDescription.title": "Description",
   "GroupDetailsSettingsForm.button.deleteGroup": "Delete Group",
 
