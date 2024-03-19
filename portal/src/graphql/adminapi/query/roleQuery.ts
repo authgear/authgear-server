@@ -1,4 +1,4 @@
-import { QueryResult, useQuery } from "@apollo/client";
+import { QueryResult, WatchQueryFetchPolicy, useQuery } from "@apollo/client";
 import { useMemo } from "react";
 import {
   RoleQueryQuery,
@@ -18,7 +18,7 @@ interface RoleQueryResult
 
 export function useRoleQuery(
   roleID: string,
-  options?: { skip?: boolean }
+  options?: { skip?: boolean; fetchPolicy?: WatchQueryFetchPolicy }
 ): RoleQueryResult {
   const { data, loading, error, refetch } = useQuery<
     RoleQueryQuery,
@@ -28,6 +28,7 @@ export function useRoleQuery(
       roleID,
     },
     skip: options?.skip,
+    fetchPolicy: options?.fetchPolicy,
   });
 
   const role = useMemo(() => {

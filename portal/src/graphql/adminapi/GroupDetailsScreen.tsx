@@ -65,7 +65,9 @@ function GroupDetailsScreenLoaded(props: { group: GroupQueryNodeFragment }) {
 
 const GroupDetailsScreen: React.VFC = function GroupDetailsScreen() {
   const { groupID } = useParams() as { groupID: string };
-  const { group, loading, error, refetch } = useGroupQuery(groupID);
+  const { group, loading, error, refetch } = useGroupQuery(groupID, {
+    fetchPolicy: "network-only",
+  });
 
   if (error != null) {
     return <ShowError error={error} onRetry={refetch} />;
