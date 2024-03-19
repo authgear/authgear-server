@@ -133,6 +133,13 @@ func (b SelectBuilder) Join(from string, alias string, pred string, args ...inte
 	return b
 }
 
+func (b SelectBuilder) LeftJoin(from string, alias string, pred string, args ...interface{}) SelectBuilder {
+	join := fmt.Sprintf("%s AS %s ON %s", from, alias, pred)
+	b.builder = b.builder.LeftJoin(join, args...)
+	b.builder = b.builder.Where(alias+".app_id = ?", b.appID)
+	return b
+}
+
 func (b SelectBuilder) Where(pred interface{}, args ...interface{}) SelectBuilder {
 	b.builder = b.builder.Where(pred, args...)
 	return b

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/squirrel"
+	sq "github.com/Masterminds/squirrel"
 	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -244,10 +245,42 @@ func (s *Store) Count() (uint64, error) {
 func (s *Store) QueryPage(listOption ListOptions, pageArgs graphqlutil.PageArgs) ([]*User, uint64, error) {
 	query := s.selectQuery("u")
 
+	type condition struct {
+		Expr string
+		Args interface{}
+	}
+	var orCondititions sq.Or = sq.Or{}
+
 	if len(listOption.GroupKeys) != 0 {
 		query = query.
-			Join(s.SQLBuilder.TableName("_auth_user_group"), "ug", "u.id = ug.user_id").
-			Join(s.SQLBuilder.TableName("_auth_group"), "g", "g.id = ug.group_id AND g.key = ANY (?)", pq.Array(listOption.GroupKeys))
+			LeftJoin(s.SQLBuilder.TableName("_auth_user_group"), "ug", "u.id = ug.user_id").
+			LeftJoin(s.SQLBuilder.TableName("_auth_group"), "g", "g.id = ug.group_id")
+		orCondititions = append(orCondititions, sq.Expr(
+			"g.key = ANY (?)",
+			pq.Array(listOption.GroupKeys),
+		))
+	}
+
+	if len(listOption.RoleKeys) != 0 {
+		query = query.
+			LeftJoin(s.SQLBuilder.TableName("_auth_user_role"), "ur", "u.id = ur.user_id").
+			LeftJoin(s.SQLBuilder.TableName("_auth_role"), "direct_role", "ur.role_id = direct_role.id").
+			LeftJoin(s.SQLBuilder.TableName("_auth_user_group"), "aug", "u.id = aug.user_id").
+			LeftJoin(s.SQLBuilder.TableName("_auth_group_role"), "agr", "aug.group_id = agr.group_id").
+			LeftJoin(s.SQLBuilder.TableName("_auth_role"), "group_role", "agr.role_id = group_role.id")
+
+		orCondititions = append(orCondititions, sq.Expr(
+			"direct_role.key = ANY (?)",
+			pq.Array(listOption.RoleKeys),
+		))
+		orCondititions = append(orCondititions, sq.Expr(
+			"group_role.key = ANY (?)",
+			pq.Array(listOption.RoleKeys),
+		))
+	}
+
+	if len(orCondititions) > 0 {
+		query = query.Where(orCondititions)
 	}
 
 	query = listOption.SortOption.Apply(query)
@@ -256,6 +289,8 @@ func (s *Store) QueryPage(listOption ListOptions, pageArgs graphqlutil.PageArgs)
 	if err != nil {
 		return nil, 0, err
 	}
+	stmt, args, err := query.ToSql()
+	fmt.Println("tung DEBUG SQL", stmt, args, err)
 
 	rows, err := s.SQLExecutor.QueryWith(query)
 	if err != nil {
