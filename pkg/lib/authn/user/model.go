@@ -13,6 +13,7 @@ import (
 
 type ListOptions struct {
 	GroupKeys  []string
+	RoleKeys   []string
 	SortOption SortOption
 }
 
