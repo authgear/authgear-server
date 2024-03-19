@@ -18,7 +18,7 @@
 }
 
 .description {
-  @apply mt-4;
+  @apply mt-4 whitespace-pre-wrap;
   font-size: 1rem;
   font-weight: 400;
   max-width: 480px;
