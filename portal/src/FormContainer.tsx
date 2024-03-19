@@ -19,6 +19,7 @@ export interface SaveButtonProps {
 }
 
 export interface FormContainerProps extends FormContainerBaseProps {
+  className?: string;
   saveButtonProps?: SaveButtonProps;
   fallbackErrorMessageID?: string;
   messageBar?: React.ReactNode;
@@ -124,7 +125,9 @@ const FormContainer_: React.VFC<FormContainerProps> = function FormContainer_(
         secondaryItems={farItems}
         messageBar={<FormErrorMessageBar>{messageBar}</FormErrorMessageBar>}
       >
-        <form onSubmit={onSubmit}>{props.children}</form>
+        <form className={props.className} onSubmit={onSubmit}>
+          {props.children}
+        </form>
       </CommandBarContainer>
       <Dialog
         hidden={!isResetDialogVisible}
