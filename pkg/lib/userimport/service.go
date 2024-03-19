@@ -120,19 +120,24 @@ func (s *UserImportService) ImportRecords(ctx context.Context, request *Request)
 
 	for idx, rawMessage := range request.Records {
 		detail := Detail{
-			Index:  idx,
-			Record: rawMessage,
+			Index: idx,
 			// Assume the outcome is failed.
 			Outcome: OutcomeFailed,
 		}
 
+		var record Record
 		err := s.AppDatabase.WithTx(func() error {
-			err := s.ImportRecordInTxn(ctx, &detail, options, rawMessage)
+			var err error
+			record, err = s.ImportRecordInTxn(ctx, &detail, options, rawMessage)
 			if err != nil {
 				return err
 			}
 			return nil
 		})
+		if record != nil {
+			record.Redact()
+			detail.Record = record
+		}
 
 		s.Logger.Infof("processed record (%v/%v): %v", idx+1, total, detail.Outcome)
 
@@ -162,9 +167,7 @@ func (s *UserImportService) ImportRecords(ctx context.Context, request *Request)
 	return result
 }
 
-func (s *UserImportService) ImportRecordInTxn(ctx context.Context, detail *Detail, options *Options, rawMessage json.RawMessage) (err error) {
-	var record Record
-
+func (s *UserImportService) ImportRecordInTxn(ctx context.Context, detail *Detail, options *Options, rawMessage json.RawMessage) (record Record, err error) {
 	err = options.RecordSchema().Validator().ParseJSONRawMessage(rawMessage, &record)
 	if err != nil {
 		return
@@ -190,11 +193,19 @@ func (s *UserImportService) ImportRecordInTxn(ctx context.Context, detail *Detai
 
 	switch len(infos) {
 	case 0:
-		return s.insertRecordInTxn(ctx, detail, record)
+		err = s.insertRecordInTxn(ctx, detail, record)
+		if err != nil {
+			return
+		}
+		return
 	case 1:
 		info := infos[0]
 		if options.Upsert {
-			return s.upsertRecordInTxn(ctx, detail, options, record, info)
+			err = s.upsertRecordInTxn(ctx, detail, options, record, info)
+			if err != nil {
+				return
+			}
+			return
 		} else {
 			detail.UserID = info.UserID
 			detail.Outcome = OutcomeSkipped

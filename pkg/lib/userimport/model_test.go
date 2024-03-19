@@ -452,6 +452,134 @@ func TestRecord(t *testing.T) {
 			So(v, ShouldNotBeNil)
 			So(len(v), ShouldEqual, 0)
 		})
+
+		Convey("Redact", func() {
+			recordString := `
+{
+	"preferred_username": "johndoe",
+	"email": "johndoe@example.com",
+	"phone_number": "+85298765432",
+
+	"disabled": true,
+
+	"email_verified": true,
+	"phone_number_verified": true,
+
+	"name": "John Doe",
+	"given_name": "John",
+	"family_name": "Doe",
+	"middle_name": "middle",
+	"nickname": "JohnDoe",
+	"profile": "https://example.com/profile",
+	"picture": "https://example.com/picture",
+	"website": "https://example.com/website",
+	"gender": "male",
+	"birthdate": "1970-01-01",
+	"zoneinfo": "Asia/Hong_Kong",
+	"locale": "zh-HK",
+	"address": {
+		"formatted": "1 Unnamed Road, Central, Hong Kong Island, HK",
+		"street_address": "1 Unnamed Road",
+		"locality": "Central",
+		"region": "Hong Kong Island",
+		"postal_code": "N/A",
+		"country": "HK"
+	},
+
+	"custom_attributes": {
+		"member_id": "123456789"
+	},
+
+	"roles": ["role_a", "role_b"],
+	"groups": ["group_a", "group_b"],
+
+	"password": {
+		"type": "bcrypt",
+		"password_hash": "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy"
+	},
+
+	"mfa": {
+		"email": "johndoe@example.com",
+		"phone_number": "+85298765432",
+		"password": {
+			"type": "bcrypt",
+			"password_hash": "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy"
+		},
+		"totp": {
+			"secret": "JBSWY3DPEHPK3PXP"
+		}
+	}
+}
+		`
+
+			expected := `
+{
+	"preferred_username": "johndoe",
+	"email": "johndoe@example.com",
+	"phone_number": "+85298765432",
+
+	"disabled": true,
+
+	"email_verified": true,
+	"phone_number_verified": true,
+
+	"name": "John Doe",
+	"given_name": "John",
+	"family_name": "Doe",
+	"middle_name": "middle",
+	"nickname": "JohnDoe",
+	"profile": "https://example.com/profile",
+	"picture": "https://example.com/picture",
+	"website": "https://example.com/website",
+	"gender": "male",
+	"birthdate": "1970-01-01",
+	"zoneinfo": "Asia/Hong_Kong",
+	"locale": "zh-HK",
+	"address": {
+		"formatted": "1 Unnamed Road, Central, Hong Kong Island, HK",
+		"street_address": "1 Unnamed Road",
+		"locality": "Central",
+		"region": "Hong Kong Island",
+		"postal_code": "N/A",
+		"country": "HK"
+	},
+
+	"custom_attributes": {
+		"member_id": "123456789"
+	},
+
+	"roles": ["role_a", "role_b"],
+	"groups": ["group_a", "group_b"],
+
+	"password": {
+		"type": "bcrypt",
+		"password_hash": "REDACTED"
+	},
+
+	"mfa": {
+		"email": "johndoe@example.com",
+		"phone_number": "+85298765432",
+		"password": {
+			"type": "bcrypt",
+			"password_hash": "REDACTED"
+		},
+		"totp": {
+			"secret": "REDACTED"
+		}
+	}
+}
+		`
+
+			r := Record{}
+			err := json.Unmarshal([]byte(recordString), &r)
+			So(err, ShouldBeNil)
+			r.Redact()
+
+			redacted, err := json.Marshal(r)
+			So(err, ShouldBeNil)
+
+			So(string(redacted), ShouldEqualJSON, expected)
+		})
 	})
 }
 
