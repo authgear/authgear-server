@@ -1021,7 +1021,7 @@ type Query {
   roles(after: String, before: String, first: Int, last: Int, searchKeyword: String): RoleConnection
 
   """All users"""
-  users(after: String, before: String, first: Int, groupKeys: [String!], last: Int, searchKeyword: String, sortBy: UserSortBy, sortDirection: SortDirection): UserConnection
+  users(after: String, before: String, first: Int, groupKeys: [String!], last: Int, roleKeys: [String!], searchKeyword: String, sortBy: UserSortBy, sortDirection: SortDirection): UserConnection
 }
 
 """"""
