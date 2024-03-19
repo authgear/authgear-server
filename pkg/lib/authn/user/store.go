@@ -289,8 +289,6 @@ func (s *Store) QueryPage(listOption ListOptions, pageArgs graphqlutil.PageArgs)
 	if err != nil {
 		return nil, 0, err
 	}
-	stmt, args, err := query.ToSql()
-	fmt.Println("tung DEBUG SQL", stmt, args, err)
 
 	rows, err := s.SQLExecutor.QueryWith(query)
 	if err != nil {
