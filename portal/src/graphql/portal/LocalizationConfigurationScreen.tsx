@@ -798,11 +798,11 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             <FormattedMessage id="LocalizationConfigurationScreen.title" />
           </ScreenTitle>
           <ManageLanguageWidget
-            supportedLanguagesForDropdown={initialSupportedLanguages}
-            supportedLanguagesForEditing={supportedLanguages}
+            existingLanguages={initialSupportedLanguages}
+            supportedLanguages={supportedLanguages}
             selectedLanguage={state.selectedLanguage}
-            onChangeSelectedLanguage={setSelectedLanguage}
             fallbackLanguage={state.fallbackLanguage}
+            onChangeSelectedLanguage={setSelectedLanguage}
             onChangeLanguages={onChangeLanguages}
           />
         </div>

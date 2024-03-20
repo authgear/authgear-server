@@ -666,8 +666,8 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             <FormattedMessage id="UISettingsScreen.title" />
           </ScreenTitle>
           <ManageLanguageWidget
-            supportedLanguagesForDropdown={initialSupportedLanguages}
-            supportedLanguagesForEditing={supportedLanguages}
+            existingLanguages={initialSupportedLanguages}
+            supportedLanguages={supportedLanguages}
             selectedLanguage={state.selectedLanguage}
             fallbackLanguage={state.fallbackLanguage}
             onChangeSelectedLanguage={setSelectedLanguage}
