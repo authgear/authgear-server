@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/signalutil"
 )
@@ -98,6 +99,16 @@ func (c *Consumer) Stop(ctx context.Context, _ *log.Logger) error {
 }
 
 func (c *Consumer) dequeue(ctx context.Context) {
+	defer func() {
+		if r := recover(); r != nil {
+			c.logger.WithFields(map[string]interface{}{
+				"queue_name": c.QueueName,
+				"error":      r,
+				"stack":      errorutil.Callers(8),
+			}).Error("panic occurred when running task")
+		}
+	}()
+
 	var task redisqueue.Task
 	var appProvider *deps.AppProvider
 
