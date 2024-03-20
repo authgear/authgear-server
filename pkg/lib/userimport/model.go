@@ -3,17 +3,21 @@ package userimport
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 	"golang.org/x/exp/constraints"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 // BodyMaxSize is 500KB.
 var BodyMaxSize int64 = 500 * 1000
+
+const RedactPlaceholder = "REDACTED"
 
 var RecordSchemaForIdentifierEmail *validation.SimpleSchema
 var RecordSchemaForIdentifierPhoneNumber *validation.SimpleSchema
@@ -225,13 +229,30 @@ func (m Password) PasswordHash() string {
 	return m["password_hash"].(string)
 }
 
+func (m Password) Redact() {
+	m["password_hash"] = RedactPlaceholder
+}
+
 type TOTP map[string]interface{}
+
+func (m TOTP) Redact() {
+	m["secret"] = RedactPlaceholder
+}
 
 func (m TOTP) Secret() string {
 	return m["secret"].(string)
 }
 
 type MFA map[string]interface{}
+
+func (m MFA) Redact() {
+	if password, ok := m.Password(); ok {
+		Password(password).Redact()
+	}
+	if totp, ok := m.TOTP(); ok {
+		TOTP(totp).Redact()
+	}
+}
 
 func (m MFA) Email() (*string, bool) {
 	return mapGetNullable[MFA, string](m, "email")
@@ -250,6 +271,15 @@ func (m MFA) TOTP() (map[string]interface{}, bool) {
 }
 
 type Record map[string]interface{}
+
+func (m Record) Redact() {
+	if password, ok := m.Password(); ok {
+		Password(password).Redact()
+	}
+	if mfa, ok := m.MFA(); ok {
+		MFA(mfa).Redact()
+	}
+}
 
 func (m Record) PreferredUsername() (*string, bool) {
 	return mapGetNullable[Record, string](m, "preferred_username")
@@ -414,7 +444,45 @@ type Summary struct {
 
 type Detail struct {
 	Index    int                   `json:"index"`
-	Record   json.RawMessage       `json:"record"`
+	Record   Record                `json:"record,omitempty"`
+	Outcome  Outcome               `json:"outcome,omitempty"`
+	UserID   string                `json:"user_id,omitempty"`
 	Warnings []Warning             `json:"warnings,omitempty"`
 	Errors   []*apierrors.APIError `json:"errors,omitempty"`
+}
+
+type Result struct {
+	Summary *Summary `json:"summary,omitempty"`
+	Details []Detail `json:"details,omitempty"`
+}
+
+type Response struct {
+	ID          string                `json:"id,omitempty"`
+	CreatedAt   *time.Time            `json:"created_at,omitempty"`
+	CompletedAt *time.Time            `json:"completed_at,omitempty"`
+	Status      redisqueue.TaskStatus `json:"status,omitempty"`
+	Summary     *Summary              `json:"summary,omitempty"`
+	Details     []Detail              `json:"details,omitempty"`
+}
+
+func NewResponseFromTask(task *redisqueue.Task) (*Response, error) {
+	response := &Response{
+		ID:          task.ID,
+		CreatedAt:   task.CreatedAt,
+		CompletedAt: task.CompletedAt,
+		Status:      task.Status,
+	}
+
+	if task.Output != nil {
+		var result Result
+		err := json.Unmarshal(task.Output, &result)
+		if err != nil {
+			return nil, err
+		}
+
+		response.Summary = result.Summary
+		response.Details = result.Details
+	}
+
+	return response, nil
 }

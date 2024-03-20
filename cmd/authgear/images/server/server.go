@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/pprofutil"
 	"github.com/authgear/authgear-server/pkg/util/server"
+	"github.com/authgear/authgear-server/pkg/util/signalutil"
 	"github.com/authgear/authgear-server/pkg/util/vipsutil"
 	"github.com/authgear/authgear-server/pkg/version"
 )
@@ -41,16 +42,16 @@ func (c *Controller) Start() {
 	c.logger = p.LoggerFactory.New("authgear-images")
 	c.logger.Infof("authgear (version %s)", version.Version)
 
-	var specs []server.Spec
-	specs = append(specs, server.Spec{
+	var specs []signalutil.Daemon
+	specs = append(specs, server.NewSpec(&server.Spec{
 		Name:          "images server",
 		ListenAddress: cfg.ListenAddr,
 		Handler:       images.NewRouter(p, configSrcController.GetConfigSource()),
-	})
-	specs = append(specs, server.Spec{
+	}))
+	specs = append(specs, server.NewSpec(&server.Spec{
 		Name:          "images internal server",
 		ListenAddress: cfg.InternalListenAddr,
 		Handler:       pprofutil.NewServeMux(),
-	})
-	server.Start(c.logger, specs)
+	}))
+	signalutil.Start(c.logger, specs...)
 }

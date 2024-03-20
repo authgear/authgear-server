@@ -21,7 +21,6 @@ import (
 	identityanonymous "github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
-	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
@@ -100,31 +99,19 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.SelectAccountAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 	wire.Bind(new(handlerwebappauthflowv2.SelectAccountAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 
-	wire.NewSet(
-		endpoints.DependencySet,
-
-		wire.Bind(new(oauth.EndpointsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(oauth.BaseURLProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(handlerwebapp.SetupTOTPEndpointsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(handlerwebapp.OAuthEntrypointEndpointsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(handlerwebapp.ConfirmTerminateOtherSessionsEndpointsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(handlerwebapp.AuthflowLoginEndpointsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(handlerwebapp.PanicMiddlewareEndpointsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(webapp.AuthflowNavigatorEndpointsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(webapp.SuccessPageMiddlewareEndpointsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(handlerwebappauthflowv2.AuthflowLoginEndpointsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(handlerwebappauthflowv2.AuthflowV2NavigatorEndpointsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(handlerwebappauthflowv2.AuthflowV2PromoteEndpointsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(handlerwebapp.AuthflowSignupEndpointsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(handlerwebapp.AuthflowPromoteEndpointsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(oidc.EndpointsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(oidc.UIURLBuilderAuthUIEndpointsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(oidc.BaseURLProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(otp.EndpointsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(oidchandler.WebAppURLsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(tester.EndpointsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(interaction.OAuthRedirectURIBuilder), new(*endpoints.Endpoints)),
-	),
+	wire.Bind(new(handlerwebapp.SetupTOTPEndpointsProvider), new(*endpoints.Endpoints)),
+	wire.Bind(new(handlerwebapp.OAuthEntrypointEndpointsProvider), new(*endpoints.Endpoints)),
+	wire.Bind(new(handlerwebapp.ConfirmTerminateOtherSessionsEndpointsProvider), new(*endpoints.Endpoints)),
+	wire.Bind(new(handlerwebapp.AuthflowLoginEndpointsProvider), new(*endpoints.Endpoints)),
+	wire.Bind(new(handlerwebapp.PanicMiddlewareEndpointsProvider), new(*endpoints.Endpoints)),
+	wire.Bind(new(webapp.AuthflowNavigatorEndpointsProvider), new(*endpoints.Endpoints)),
+	wire.Bind(new(webapp.SuccessPageMiddlewareEndpointsProvider), new(*endpoints.Endpoints)),
+	wire.Bind(new(handlerwebappauthflowv2.AuthflowLoginEndpointsProvider), new(*endpoints.Endpoints)),
+	wire.Bind(new(handlerwebappauthflowv2.AuthflowV2NavigatorEndpointsProvider), new(*endpoints.Endpoints)),
+	wire.Bind(new(handlerwebappauthflowv2.AuthflowV2PromoteEndpointsProvider), new(*endpoints.Endpoints)),
+	wire.Bind(new(handlerwebapp.AuthflowSignupEndpointsProvider), new(*endpoints.Endpoints)),
+	wire.Bind(new(handlerwebapp.AuthflowPromoteEndpointsProvider), new(*endpoints.Endpoints)),
+	wire.Bind(new(oidchandler.WebAppURLsProvider), new(*endpoints.Endpoints)),
 
 	webapp.DependencySet,
 	wire.Bind(new(handlerwebapp.AnonymousUserPromotionService), new(*webapp.AnonymousUserPromotionService)),
@@ -229,8 +216,6 @@ var DependencySet = wire.NewSet(
 
 	api.DependencySet,
 	wire.Bind(new(api.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
-
-	wire.Bind(new(oauth.OAuthClientResolver), new(*oauthclient.Resolver)),
 )
 
 func ProvideOAuthConfig() *config.OAuthConfig {

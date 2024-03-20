@@ -16,26 +16,22 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
-	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	libfacade "github.com/authgear/authgear-server/pkg/lib/facade"
 	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
-	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/nonce"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
-	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
-	"github.com/authgear/authgear-server/pkg/lib/tester"
-	"github.com/authgear/authgear-server/pkg/lib/userimport"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
@@ -74,7 +70,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(facade.OAuthAuthorizationService), new(*oauth.AuthorizationService)),
 	wire.Bind(new(facade.OAuthTokenService), new(*oauthhandler.TokenService)),
 
-	wire.Bind(new(oauth.OAuthClientResolver), new(*oauthclient.Resolver)),
 	wire.Bind(new(facade.OAuthClientResolver), new(*oauthclient.Resolver)),
 
 	graphql.DependencySet,
@@ -102,29 +97,11 @@ var DependencySet = wire.NewSet(
 	service.DependencySet,
 	wire.Bind(new(service.InteractionGraphService), new(*interaction.Service)),
 
-	wire.NewSet(
-		endpoints.DependencySet,
-		wire.Bind(new(otp.EndpointsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(oauth.EndpointsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(oauth.BaseURLProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(oidc.BaseURLProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(tester.EndpointsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(interaction.OAuthRedirectURIBuilder), new(*endpoints.Endpoints)),
-	),
-
 	transport.DependencySet,
 	wire.Bind(new(transport.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
 	wire.Bind(new(transport.PresignProvider), new(*presign.Provider)),
-	wire.Bind(new(transport.UserImportService), new(*userimport.UserImportService)),
-	wire.Bind(new(userimport.IdentityService), new(*libfacade.IdentityFacade)),
-	wire.Bind(new(userimport.UserCommands), new(*user.RawCommands)),
-	wire.Bind(new(userimport.UserQueries), new(*user.RawQueries)),
-	wire.Bind(new(userimport.VerifiedClaimService), new(*verification.Service)),
-	wire.Bind(new(userimport.StandardAttributesService), new(*featurestdattrs.ServiceNoEvent)),
-	wire.Bind(new(userimport.CustomAttributesService), new(*featurecustomattrs.ServiceNoEvent)),
-	wire.Bind(new(userimport.RolesGroupsCommands), new(*rolesgroups.Commands)),
-	wire.Bind(new(userimport.AuthenticatorService), new(*libfacade.AuthenticatorFacade)),
-	wire.Bind(new(userimport.ElasticsearchService), new(*libes.Service)),
+	wire.Bind(new(transport.UserImportCreateProducer), new(*redisqueue.UserImportProducer)),
+	wire.Bind(new(transport.UserImportGetProducer), new(*redisqueue.UserImportProducer)),
 
 	adminauthz.DependencySet,
 )

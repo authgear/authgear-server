@@ -23,11 +23,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
-type importResult struct {
-	Outcome  Outcome
-	Warnings []Warning
-}
-
 type identityUpdate struct {
 	OldInfo *identity.Info
 	NewInfo *identity.Info
@@ -110,69 +105,69 @@ func NewLogger(lf *log.Factory) Logger {
 	return Logger{lf.New("user-import")}
 }
 
-func (s *UserImportService) ImportRecords(ctx context.Context, request *Request) (*Summary, []Detail) {
-	summary := Summary{}
+func (s *UserImportService) ImportRecords(ctx context.Context, request *Request) *Result {
+	total := len(request.Records)
+	result := &Result{
+		Summary: &Summary{
+			Total: total,
+		},
+	}
 
 	options := &Options{
 		Upsert:     request.Upsert,
 		Identifier: request.Identifier,
 	}
-	var details []Detail
 
 	for idx, rawMessage := range request.Records {
-		summary.Total += 1
-
 		detail := Detail{
-			Index:  idx,
-			Record: rawMessage,
+			Index: idx,
+			// Assume the outcome is failed.
+			Outcome: OutcomeFailed,
 		}
 
-		hasDetail := false
-		var result importResult
+		var record Record
 		err := s.AppDatabase.WithTx(func() error {
-			err := s.ImportRecordInTxn(ctx, &result, options, rawMessage)
+			var err error
+			record, err = s.ImportRecordInTxn(ctx, &detail, options, rawMessage)
 			if err != nil {
 				return err
 			}
 			return nil
 		})
-
-		if len(result.Warnings) > 0 {
-			detail.Warnings = result.Warnings
-			hasDetail = true
+		if record != nil {
+			record.Redact()
+			detail.Record = record
 		}
+
+		s.Logger.Infof("processed record (%v/%v): %v", idx+1, total, detail.Outcome)
+
 		if err != nil {
 			if !apierrors.IsAPIError(err) {
 				s.Logger.WithError(err).Error(err.Error())
 			}
 			detail.Errors = []*apierrors.APIError{apierrors.AsAPIError(err)}
-			hasDetail = true
 		}
 
-		if hasDetail {
-			details = append(details, detail)
-		}
+		result.Details = append(result.Details, detail)
 
-		switch result.Outcome {
+		switch detail.Outcome {
 		case OutcomeInserted:
-			summary.Inserted += 1
+			result.Summary.Inserted += 1
 		case OutcomeUpdated:
-			summary.Updated += 1
+			result.Summary.Updated += 1
 		case OutcomeSkipped:
-			summary.Skipped += 1
+			result.Summary.Skipped += 1
 		case OutcomeFailed:
-			summary.Failed += 1
+			result.Summary.Failed += 1
 		default:
-			summary.Failed += 1
+			result.Summary.Failed += 1
 		}
 	}
 
-	return &summary, details
+	return result
 }
 
-func (s *UserImportService) ImportRecordInTxn(ctx context.Context, result *importResult, options *Options, rawMessage json.RawMessage) (err error) {
-	var record Record
-
+func (s *UserImportService) ImportRecordInTxn(ctx context.Context, detail *Detail, options *Options, rawMessage json.RawMessage) (record Record, err error) {
 	err = options.RecordSchema().Validator().ParseJSONRawMessage(rawMessage, &record)
 	if err != nil {
 		return
@@ -198,13 +193,23 @@ func (s *UserImportService) ImportRecordInTxn(ctx context.Context, result *impor
 
 	switch len(infos) {
 	case 0:
-		return s.insertRecordInTxn(ctx, result, record)
+		err = s.insertRecordInTxn(ctx, detail, record)
+		if err != nil {
+			return
+		}
+		return
 	case 1:
+		info := infos[0]
 		if options.Upsert {
-			return s.upsertRecordInTxn(ctx, result, options, record, infos[0])
+			err = s.upsertRecordInTxn(ctx, detail, options, record, info)
+			if err != nil {
+				return
+			}
+			return
 		} else {
-			result.Outcome = OutcomeSkipped
-			result.Warnings = append(result.Warnings, Warning{
+			detail.UserID = info.UserID
+			detail.Outcome = OutcomeSkipped
+			detail.Warnings = append(detail.Warnings, Warning{
 				Message: "skipping because upsert = false and user exists",
 			})
 			return
@@ -229,69 +234,69 @@ func (s *UserImportService) checkIdentityDuplicate(ctx context.Context, info *id
 	return
 }
 
-func (s *UserImportService) insertRecordInTxn(ctx context.Context, result *importResult, record Record) (err error) {
+func (s *UserImportService) insertRecordInTxn(ctx context.Context, detail *Detail, record Record) (err error) {
 	userID := uuid.New()
 	u, err := s.UserCommands.Create(userID)
 	if err != nil {
 		return
 	}
 
-	infos, err := s.insertIdentitiesInTxn(ctx, result, record, userID)
+	infos, err := s.insertIdentitiesInTxn(ctx, detail, record, userID)
 	if err != nil {
 		return
 	}
 
-	err = s.insertVerifiedClaimsInTxn(ctx, result, record, userID, infos)
+	err = s.insertVerifiedClaimsInTxn(ctx, detail, record, userID, infos)
 	if err != nil {
 		return
 	}
 
-	err = s.insertStandardAttributesInTxn(ctx, result, record, u)
+	err = s.insertStandardAttributesInTxn(ctx, detail, record, u)
 	if err != nil {
 		return
 	}
 
-	err = s.insertCustomAttributesInTxn(ctx, result, record, userID)
+	err = s.insertCustomAttributesInTxn(ctx, detail, record, userID)
 	if err != nil {
 		return
 	}
 
-	err = s.insertDisabledInTxn(ctx, result, record, u)
+	err = s.insertDisabledInTxn(ctx, detail, record, u)
 	if err != nil {
 		return
 	}
 
-	err = s.insertRolesInTxn(ctx, result, record, userID)
+	err = s.insertRolesInTxn(ctx, detail, record, userID)
 	if err != nil {
 		return
 	}
 
-	err = s.insertGroupsInTxn(ctx, result, record, userID)
+	err = s.insertGroupsInTxn(ctx, detail, record, userID)
 	if err != nil {
 		return
 	}
 
-	err = s.insertPasswordInTxn(ctx, result, record, userID)
+	err = s.insertPasswordInTxn(ctx, detail, record, userID)
 	if err != nil {
 		return
 	}
 
-	err = s.insertMFAPasswordInTxn(ctx, result, record, userID)
+	err = s.insertMFAPasswordInTxn(ctx, detail, record, userID)
 	if err != nil {
 		return
 	}
 
-	err = s.insertMFAOOBOTPEmailInTxn(ctx, result, record, userID)
+	err = s.insertMFAOOBOTPEmailInTxn(ctx, detail, record, userID)
 	if err != nil {
 		return
 	}
 
-	err = s.insertMFAOOBOTPPhoneInTxn(ctx, result, record, userID)
+	err = s.insertMFAOOBOTPPhoneInTxn(ctx, detail, record, userID)
 	if err != nil {
 		return
 	}
 
-	err = s.insertMFATOTPInTxn(ctx, result, record, userID)
+	err = s.insertMFATOTPInTxn(ctx, detail, record, userID)
 	if err != nil {
 		return
 	}
@@ -301,23 +306,24 @@ func (s *UserImportService) insertRecordInTxn(ctx context.Context, result *impor
 		return
 	}
 
-	result.Outcome = OutcomeInserted
+	detail.UserID = userID
+	detail.Outcome = OutcomeInserted
 	return
 }
 
-func (s *UserImportService) insertIdentitiesInTxn(ctx context.Context, result *importResult, record Record, userID string) (infos []*identity.Info, err error) {
+func (s *UserImportService) insertIdentitiesInTxn(ctx context.Context, detail *Detail, record Record, userID string) (infos []*identity.Info, err error) {
 	var specs []*identity.Spec
 
 	if emailPtr, ok := record.Email(); ok {
 		if emailPtr == nil {
-			result.Warnings = append(result.Warnings, Warning{
+			detail.Warnings = append(detail.Warnings, Warning{
 				Message: "email = null has no effect in insert.",
 			})
 		} else {
 			key := string(model.LoginIDKeyTypeEmail)
 			_, ok := s.LoginIDConfig.GetKeyConfig(key)
 			if !ok {
-				result.Warnings = append(result.Warnings, Warning{
+				detail.Warnings = append(detail.Warnings, Warning{
 					Message: "email is ignored because it is not an allowed login ID.",
 				})
 			} else {
@@ -335,14 +341,14 @@ func (s *UserImportService) insertIdentitiesInTxn(ctx context.Context, result *i
 
 	if phoneNumberPtr, ok := record.PhoneNumber(); ok {
 		if phoneNumberPtr == nil {
-			result.Warnings = append(result.Warnings, Warning{
+			detail.Warnings = append(detail.Warnings, Warning{
 				Message: "phone_number = null has no effect in insert.",
 			})
 		} else {
 			key := string(model.LoginIDKeyTypePhone)
 			_, ok := s.LoginIDConfig.GetKeyConfig(key)
 			if !ok {
-				result.Warnings = append(result.Warnings, Warning{
+				detail.Warnings = append(detail.Warnings, Warning{
 					Message: "phone_number is ignored because it is not an allowed login ID.",
 				})
 			} else {
@@ -361,14 +367,14 @@ func (s *UserImportService) insertIdentitiesInTxn(ctx context.Context, result *i
 
 	if preferredUsernamePtr, ok := record.PreferredUsername(); ok {
 		if preferredUsernamePtr == nil {
-			result.Warnings = append(result.Warnings, Warning{
+			detail.Warnings = append(detail.Warnings, Warning{
 				Message: "preferred_username = null has no effect in insert.",
 			})
 		} else {
 			key := string(model.LoginIDKeyTypeUsername)
 			_, ok := s.LoginIDConfig.GetKeyConfig(key)
 			if !ok {
-				result.Warnings = append(result.Warnings, Warning{
+				detail.Warnings = append(detail.Warnings, Warning{
 					Message: "preferred_username is ignored because it is not an allowed login ID.",
 				})
 			} else {
@@ -411,10 +417,10 @@ func (s *UserImportService) insertIdentitiesInTxn(ctx context.Context, result *i
 	return
 }
 
-func (s *UserImportService) insertVerifiedClaimsInTxn(ctx context.Context, result *importResult, record Record, userID string, infos []*identity.Info) (err error) {
+func (s *UserImportService) insertVerifiedClaimsInTxn(ctx context.Context, detail *Detail, record Record, userID string, infos []*identity.Info) (err error) {
 	if emailVerified, emailVerifiedOK := record.EmailVerified(); emailVerifiedOK {
 		if !emailVerified {
-			result.Warnings = append(result.Warnings, Warning{
+			detail.Warnings = append(detail.Warnings, Warning{
 				Message: "email_verified = false has no effect in insert.",
 			})
 		} else {
@@ -429,7 +435,7 @@ func (s *UserImportService) insertVerifiedClaimsInTxn(ctx context.Context, resul
 			}
 
 			if !emailOK {
-				result.Warnings = append(result.Warnings, Warning{
+				detail.Warnings = append(detail.Warnings, Warning{
 					Message: "email_verified = true has no effect when email is absent.",
 				})
 			} else {
@@ -444,7 +450,7 @@ func (s *UserImportService) insertVerifiedClaimsInTxn(ctx context.Context, resul
 
 	if phoneNumberVerified, phoneNumberVerifiedOK := record.PhoneNumberVerified(); phoneNumberVerifiedOK {
 		if !phoneNumberVerified {
-			result.Warnings = append(result.Warnings, Warning{
+			detail.Warnings = append(detail.Warnings, Warning{
 				Message: "phone_number_verified = false has no effect in insert.",
 			})
 		} else {
@@ -459,7 +465,7 @@ func (s *UserImportService) insertVerifiedClaimsInTxn(ctx context.Context, resul
 			}
 
 			if !phoneNumberOK {
-				result.Warnings = append(result.Warnings, Warning{
+				detail.Warnings = append(detail.Warnings, Warning{
 					Message: "phone_number_verified = true has no effect when phone_number is absent.",
 				})
 			} else {
@@ -475,7 +481,7 @@ func (s *UserImportService) insertVerifiedClaimsInTxn(ctx context.Context, resul
 	return
 }
 
-func (s *UserImportService) insertStandardAttributesInTxn(ctx context.Context, result *importResult, record Record, u *user.User) (err error) {
+func (s *UserImportService) insertStandardAttributesInTxn(ctx context.Context, detail *Detail, record Record, u *user.User) (err error) {
 	stdAttrsList := record.StandardAttributesList()
 
 	stdAttrs, err := stdattrs.T(u.StandardAttributes).MergedWithList(stdAttrsList)
@@ -491,7 +497,7 @@ func (s *UserImportService) insertStandardAttributesInTxn(ctx context.Context, r
 	return
 }
 
-func (s *UserImportService) insertCustomAttributesInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+func (s *UserImportService) insertCustomAttributesInTxn(ctx context.Context, detail *Detail, record Record, userID string) (err error) {
 	customAttrsList := record.CustomAttributesList()
 	err = s.CustomAttributes.UpdateCustomAttributesWithList(accesscontrol.RoleGreatest, userID, customAttrsList)
 	if err != nil {
@@ -501,14 +507,14 @@ func (s *UserImportService) insertCustomAttributesInTxn(ctx context.Context, res
 	return
 }
 
-func (s *UserImportService) insertDisabledInTxn(ctx context.Context, result *importResult, record Record, u *user.User) (err error) {
+func (s *UserImportService) insertDisabledInTxn(ctx context.Context, detail *Detail, record Record, u *user.User) (err error) {
 	disabled, ok := record.Disabled()
 	if !ok {
 		return
 	}
 
 	if !disabled {
-		result.Warnings = append(result.Warnings, Warning{
+		detail.Warnings = append(detail.Warnings, Warning{
 			Message: "disabled = false has no effect in insert.",
 		})
 		return
@@ -527,7 +533,7 @@ func (s *UserImportService) insertDisabledInTxn(ctx context.Context, result *imp
 	return
 }
 
-func (s *UserImportService) insertRolesInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+func (s *UserImportService) insertRolesInTxn(ctx context.Context, detail *Detail, record Record, userID string) (err error) {
 	roleKeys, ok := record.Roles()
 	if !ok {
 		return
@@ -544,7 +550,7 @@ func (s *UserImportService) insertRolesInTxn(ctx context.Context, result *import
 	return
 }
 
-func (s *UserImportService) insertGroupsInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+func (s *UserImportService) insertGroupsInTxn(ctx context.Context, detail *Detail, record Record, userID string) (err error) {
 	groupKeys, ok := record.Groups()
 	if !ok {
 		return
@@ -561,7 +567,7 @@ func (s *UserImportService) insertGroupsInTxn(ctx context.Context, result *impor
 	return
 }
 
-func (s *UserImportService) insertPasswordInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+func (s *UserImportService) insertPasswordInTxn(ctx context.Context, detail *Detail, record Record, userID string) (err error) {
 	password, ok := record.Password()
 	if !ok {
 		return
@@ -591,7 +597,7 @@ func (s *UserImportService) insertPasswordInTxn(ctx context.Context, result *imp
 	return
 }
 
-func (s *UserImportService) insertMFAPasswordInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+func (s *UserImportService) insertMFAPasswordInTxn(ctx context.Context, detail *Detail, record Record, userID string) (err error) {
 	mfaObj, ok := record.MFA()
 	if !ok {
 		return
@@ -628,7 +634,7 @@ func (s *UserImportService) insertMFAPasswordInTxn(ctx context.Context, result *
 	return
 }
 
-func (s *UserImportService) insertMFAOOBOTPEmailInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+func (s *UserImportService) insertMFAOOBOTPEmailInTxn(ctx context.Context, detail *Detail, record Record, userID string) (err error) {
 	mfaObj, ok := record.MFA()
 	if !ok {
 		return
@@ -641,7 +647,7 @@ func (s *UserImportService) insertMFAOOBOTPEmailInTxn(ctx context.Context, resul
 	}
 
 	if emailPtr == nil {
-		result.Warnings = append(result.Warnings, Warning{
+		detail.Warnings = append(detail.Warnings, Warning{
 			Message: "mfa.email = null has no effect in insert.",
 		})
 		return
@@ -669,7 +675,7 @@ func (s *UserImportService) insertMFAOOBOTPEmailInTxn(ctx context.Context, resul
 	return
 }
 
-func (s *UserImportService) insertMFAOOBOTPPhoneInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+func (s *UserImportService) insertMFAOOBOTPPhoneInTxn(ctx context.Context, detail *Detail, record Record, userID string) (err error) {
 	mfaObj, ok := record.MFA()
 	if !ok {
 		return
@@ -682,7 +688,7 @@ func (s *UserImportService) insertMFAOOBOTPPhoneInTxn(ctx context.Context, resul
 	}
 
 	if phoneNumberPtr == nil {
-		result.Warnings = append(result.Warnings, Warning{
+		detail.Warnings = append(detail.Warnings, Warning{
 			Message: "mfa.phone_number = null has no effect in insert.",
 		})
 		return
@@ -710,7 +716,7 @@ func (s *UserImportService) insertMFAOOBOTPPhoneInTxn(ctx context.Context, resul
 	return
 }
 
-func (s *UserImportService) insertMFATOTPInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+func (s *UserImportService) insertMFATOTPInTxn(ctx context.Context, detail *Detail, record Record, userID string) (err error) {
 	mfaObj, ok := record.MFA()
 	if !ok {
 		return
@@ -747,38 +753,38 @@ func (s *UserImportService) insertMFATOTPInTxn(ctx context.Context, result *impo
 	return
 }
 
-func (s *UserImportService) upsertRecordInTxn(ctx context.Context, result *importResult, options *Options, record Record, info *identity.Info) (err error) {
-	err = s.upsertIdentitiesInTxn(ctx, result, options, record, info)
+func (s *UserImportService) upsertRecordInTxn(ctx context.Context, detail *Detail, options *Options, record Record, info *identity.Info) (err error) {
+	err = s.upsertIdentitiesInTxn(ctx, detail, options, record, info)
 	if err != nil {
 		return
 	}
 
-	err = s.upsertVerifiedClaimsInTxn(ctx, result, record, info.UserID)
+	err = s.upsertVerifiedClaimsInTxn(ctx, detail, record, info.UserID)
 	if err != nil {
 		return
 	}
 
-	err = s.upsertStandardAttributesInTxn(ctx, result, record, info.UserID)
+	err = s.upsertStandardAttributesInTxn(ctx, detail, record, info.UserID)
 	if err != nil {
 		return
 	}
 
-	err = s.upsertCustomAttributesInTxn(ctx, result, record, info.UserID)
+	err = s.upsertCustomAttributesInTxn(ctx, detail, record, info.UserID)
 	if err != nil {
 		return
 	}
 
-	err = s.upsertDisabledInTxn(ctx, result, record, info.UserID)
+	err = s.upsertDisabledInTxn(ctx, detail, record, info.UserID)
 	if err != nil {
 		return
 	}
 
-	err = s.upsertRolesInTxn(ctx, result, record, info.UserID)
+	err = s.upsertRolesInTxn(ctx, detail, record, info.UserID)
 	if err != nil {
 		return
 	}
 
-	err = s.upsertGroupsInTxn(ctx, result, record, info.UserID)
+	err = s.upsertGroupsInTxn(ctx, detail, record, info.UserID)
 	if err != nil {
 		return
 	}
@@ -787,12 +793,12 @@ func (s *UserImportService) upsertRecordInTxn(ctx context.Context, result *impor
 	// mfa.password update behavior is IGNORED.
 	// mfa.totp update behavior is IGNORED.
 
-	err = s.upsertMFAOOBOTPEmailInTxn(ctx, result, record, info.UserID)
+	err = s.upsertMFAOOBOTPEmailInTxn(ctx, detail, record, info.UserID)
 	if err != nil {
 		return
 	}
 
-	err = s.upsertMFAOOBOTPPhoneInTxn(ctx, result, record, info.UserID)
+	err = s.upsertMFAOOBOTPPhoneInTxn(ctx, detail, record, info.UserID)
 	if err != nil {
 		return
 	}
@@ -802,13 +808,14 @@ func (s *UserImportService) upsertRecordInTxn(ctx context.Context, result *impor
 		return
 	}
 
-	result.Outcome = OutcomeUpdated
+	detail.UserID = info.UserID
+	detail.Outcome = OutcomeUpdated
 	return
 }
 
-func (s *UserImportService) upsertIdentitiesInTxnHelper(ctx context.Context, result *importResult, userID string, infos []*identity.Info, typ model.LoginIDKeyType, ptr *string) (err error) {
+func (s *UserImportService) upsertIdentitiesInTxnHelper(ctx context.Context, detail *Detail, userID string, infos []*identity.Info, typ model.LoginIDKeyType, ptr *string) (err error) {
 	if ptr == nil {
-		err := s.removeIdentityInTxn(ctx, result, infos, typ)
+		err := s.removeIdentityInTxn(ctx, detail, infos, typ)
 		if err != nil {
 			return err
 		}
@@ -821,7 +828,7 @@ func (s *UserImportService) upsertIdentitiesInTxnHelper(ctx context.Context, res
 				Value: *ptr,
 			},
 		}
-		err := s.upsertIdentityInTxn(ctx, result, userID, infos, spec)
+		err := s.upsertIdentityInTxn(ctx, detail, userID, infos, spec)
 		if err != nil {
 			return err
 		}
@@ -830,7 +837,7 @@ func (s *UserImportService) upsertIdentitiesInTxnHelper(ctx context.Context, res
 }
 
 // nolint: gocognit
-func (s *UserImportService) upsertIdentitiesInTxn(ctx context.Context, result *importResult, options *Options, record Record, info *identity.Info) (err error) {
+func (s *UserImportService) upsertIdentitiesInTxn(ctx context.Context, detail *Detail, options *Options, record Record, info *identity.Info) (err error) {
 	userID := info.UserID
 	infos, err := s.Identities.ListByUser(userID)
 	if err != nil {
@@ -840,42 +847,42 @@ func (s *UserImportService) upsertIdentitiesInTxn(ctx context.Context, result *i
 	switch options.Identifier {
 	case IdentifierEmail:
 		if phoneNumberPtr, phoneNumberOK := record.PhoneNumber(); phoneNumberOK {
-			err = s.upsertIdentitiesInTxnHelper(ctx, result, userID, infos, model.LoginIDKeyTypePhone, phoneNumberPtr)
+			err = s.upsertIdentitiesInTxnHelper(ctx, detail, userID, infos, model.LoginIDKeyTypePhone, phoneNumberPtr)
 			if err != nil {
 				return
 			}
 		}
 
 		if preferredUsernamePtr, preferredUsernameOK := record.PreferredUsername(); preferredUsernameOK {
-			err = s.upsertIdentitiesInTxnHelper(ctx, result, userID, infos, model.LoginIDKeyTypeUsername, preferredUsernamePtr)
+			err = s.upsertIdentitiesInTxnHelper(ctx, detail, userID, infos, model.LoginIDKeyTypeUsername, preferredUsernamePtr)
 			if err != nil {
 				return
 			}
 		}
 	case IdentifierPhoneNumber:
 		if emailPtr, emailOK := record.Email(); emailOK {
-			err = s.upsertIdentitiesInTxnHelper(ctx, result, userID, infos, model.LoginIDKeyTypeEmail, emailPtr)
+			err = s.upsertIdentitiesInTxnHelper(ctx, detail, userID, infos, model.LoginIDKeyTypeEmail, emailPtr)
 			if err != nil {
 				return
 			}
 		}
 
 		if preferredUsernamePtr, preferredUsernameOK := record.PreferredUsername(); preferredUsernameOK {
-			err = s.upsertIdentitiesInTxnHelper(ctx, result, userID, infos, model.LoginIDKeyTypeUsername, preferredUsernamePtr)
+			err = s.upsertIdentitiesInTxnHelper(ctx, detail, userID, infos, model.LoginIDKeyTypeUsername, preferredUsernamePtr)
 			if err != nil {
 				return
 			}
 		}
 	case IdentifierPreferredUsername:
 		if emailPtr, emailOK := record.Email(); emailOK {
-			err = s.upsertIdentitiesInTxnHelper(ctx, result, userID, infos, model.LoginIDKeyTypeEmail, emailPtr)
+			err = s.upsertIdentitiesInTxnHelper(ctx, detail, userID, infos, model.LoginIDKeyTypeEmail, emailPtr)
 			if err != nil {
 				return
 			}
 		}
 
 		if phoneNumberPtr, phoneNumberOK := record.PhoneNumber(); phoneNumberOK {
-			err = s.upsertIdentitiesInTxnHelper(ctx, result, userID, infos, model.LoginIDKeyTypePhone, phoneNumberPtr)
+			err = s.upsertIdentitiesInTxnHelper(ctx, detail, userID, infos, model.LoginIDKeyTypePhone, phoneNumberPtr)
 			if err != nil {
 				return
 			}
@@ -887,7 +894,7 @@ func (s *UserImportService) upsertIdentitiesInTxn(ctx context.Context, result *i
 	return
 }
 
-func (s *UserImportService) removeIdentityInTxn(ctx context.Context, result *importResult, infos []*identity.Info, typ model.LoginIDKeyType) error {
+func (s *UserImportService) removeIdentityInTxn(ctx context.Context, detail *Detail, infos []*identity.Info, typ model.LoginIDKeyType) error {
 	var toBeRemoved []*identity.Info
 	for _, info := range infos {
 		info := info
@@ -906,7 +913,7 @@ func (s *UserImportService) removeIdentityInTxn(ctx context.Context, result *imp
 	return nil
 }
 
-func (s *UserImportService) upsertIdentityInTxn(ctx context.Context, result *importResult, userID string, infos []*identity.Info, spec *identity.Spec) error {
+func (s *UserImportService) upsertIdentityInTxn(ctx context.Context, detail *Detail, userID string, infos []*identity.Info, spec *identity.Spec) error {
 	var toBeUpdated []identityUpdate
 	var toBeInserted []*identity.Info
 
@@ -1000,15 +1007,15 @@ func (s *UserImportService) setVerifiedInTxn(ctx context.Context, userID string,
 	return nil
 }
 
-func (s *UserImportService) upsertEmailVerifiedInTxn(ctx context.Context, result *importResult, record Record, userID string, infos []*identity.Info, verifiedClaims []*verification.Claim) (err error) {
+func (s *UserImportService) upsertEmailVerifiedInTxn(ctx context.Context, detail *Detail, record Record, userID string, infos []*identity.Info, verifiedClaims []*verification.Claim) (err error) {
 	if emailVerified, emailVerifiedOK := record.EmailVerified(); emailVerifiedOK {
 		emailPtr, emailOK := record.Email()
 		if !emailOK {
-			result.Warnings = append(result.Warnings, Warning{
+			detail.Warnings = append(detail.Warnings, Warning{
 				Message: "email_verified has no effect when email is absent.",
 			})
 		} else if emailPtr == nil {
-			result.Warnings = append(result.Warnings, Warning{
+			detail.Warnings = append(detail.Warnings, Warning{
 				Message: "email_verified has no effect when email = null.",
 			})
 		} else {
@@ -1036,15 +1043,15 @@ func (s *UserImportService) upsertEmailVerifiedInTxn(ctx context.Context, result
 	return
 }
 
-func (s *UserImportService) upsertPhoneNumberVerifiedInTxn(ctx context.Context, result *importResult, record Record, userID string, infos []*identity.Info, verifiedClaims []*verification.Claim) (err error) {
+func (s *UserImportService) upsertPhoneNumberVerifiedInTxn(ctx context.Context, detail *Detail, record Record, userID string, infos []*identity.Info, verifiedClaims []*verification.Claim) (err error) {
 	if phoneNumberVerified, phoneNumberVerifiedOK := record.PhoneNumberVerified(); phoneNumberVerifiedOK {
 		phoneNumberPtr, phoneNumberOK := record.PhoneNumber()
 		if !phoneNumberOK {
-			result.Warnings = append(result.Warnings, Warning{
+			detail.Warnings = append(detail.Warnings, Warning{
 				Message: "phone_number_verified has no effect when phone_number is absent.",
 			})
 		} else if phoneNumberPtr == nil {
-			result.Warnings = append(result.Warnings, Warning{
+			detail.Warnings = append(detail.Warnings, Warning{
 				Message: "phone_number_verified has no effect when phone_number = null.",
 			})
 		} else {
@@ -1071,7 +1078,7 @@ func (s *UserImportService) upsertPhoneNumberVerifiedInTxn(ctx context.Context, 
 	return
 }
 
-func (s *UserImportService) upsertVerifiedClaimsInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+func (s *UserImportService) upsertVerifiedClaimsInTxn(ctx context.Context, detail *Detail, record Record, userID string) (err error) {
 	infos, err := s.Identities.ListByUser(userID)
 	if err != nil {
 		return
@@ -1082,12 +1089,12 @@ func (s *UserImportService) upsertVerifiedClaimsInTxn(ctx context.Context, resul
 		return
 	}
 
-	err = s.upsertEmailVerifiedInTxn(ctx, result, record, userID, infos, verifiedClaims)
+	err = s.upsertEmailVerifiedInTxn(ctx, detail, record, userID, infos, verifiedClaims)
 	if err != nil {
 		return
 	}
 
-	err = s.upsertPhoneNumberVerifiedInTxn(ctx, result, record, userID, infos, verifiedClaims)
+	err = s.upsertPhoneNumberVerifiedInTxn(ctx, detail, record, userID, infos, verifiedClaims)
 	if err != nil {
 		return
 	}
@@ -1095,13 +1102,13 @@ func (s *UserImportService) upsertVerifiedClaimsInTxn(ctx context.Context, resul
 	return
 }
 
-func (s *UserImportService) upsertStandardAttributesInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+func (s *UserImportService) upsertStandardAttributesInTxn(ctx context.Context, detail *Detail, record Record, userID string) (err error) {
 	u, err := s.UserQueries.GetRaw(userID)
 	if err != nil {
 		return
 	}
 
-	err = s.insertStandardAttributesInTxn(ctx, result, record, u)
+	err = s.insertStandardAttributesInTxn(ctx, detail, record, u)
 	if err != nil {
 		return
 	}
@@ -1109,11 +1116,11 @@ func (s *UserImportService) upsertStandardAttributesInTxn(ctx context.Context, r
 	return
 }
 
-func (s *UserImportService) upsertCustomAttributesInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
-	return s.insertCustomAttributesInTxn(ctx, result, record, userID)
+func (s *UserImportService) upsertCustomAttributesInTxn(ctx context.Context, detail *Detail, record Record, userID string) (err error) {
+	return s.insertCustomAttributesInTxn(ctx, detail, record, userID)
 }
 
-func (s *UserImportService) upsertDisabledInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+func (s *UserImportService) upsertDisabledInTxn(ctx context.Context, detail *Detail, record Record, userID string) (err error) {
 	disabled, ok := record.Disabled()
 	if !ok {
 		return
@@ -1129,7 +1136,7 @@ func (s *UserImportService) upsertDisabledInTxn(ctx context.Context, result *imp
 		// Treat invalid account status transition as warning.
 		accountStatus, accountStatusErr := u.AccountStatus().Disable(nil)
 		if accountStatusErr != nil {
-			result.Warnings = append(result.Warnings, Warning{
+			detail.Warnings = append(detail.Warnings, Warning{
 				Message: accountStatusErr.Error(),
 			})
 		} else {
@@ -1143,7 +1150,7 @@ func (s *UserImportService) upsertDisabledInTxn(ctx context.Context, result *imp
 		// Treat invalid account status transition as warning.
 		accountStatus, accountStatusErr := u.AccountStatus().Reenable()
 		if err != accountStatusErr {
-			result.Warnings = append(result.Warnings, Warning{
+			detail.Warnings = append(detail.Warnings, Warning{
 				Message: accountStatusErr.Error(),
 			})
 		} else {
@@ -1157,15 +1164,15 @@ func (s *UserImportService) upsertDisabledInTxn(ctx context.Context, result *imp
 	return
 }
 
-func (s *UserImportService) upsertRolesInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
-	return s.insertRolesInTxn(ctx, result, record, userID)
+func (s *UserImportService) upsertRolesInTxn(ctx context.Context, detail *Detail, record Record, userID string) (err error) {
+	return s.insertRolesInTxn(ctx, detail, record, userID)
 }
 
-func (s *UserImportService) upsertGroupsInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
-	return s.insertGroupsInTxn(ctx, result, record, userID)
+func (s *UserImportService) upsertGroupsInTxn(ctx context.Context, detail *Detail, record Record, userID string) (err error) {
+	return s.insertGroupsInTxn(ctx, detail, record, userID)
 }
 
-func (s *UserImportService) upsertMFAOOBOTPEmailInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+func (s *UserImportService) upsertMFAOOBOTPEmailInTxn(ctx context.Context, detail *Detail, record Record, userID string) (err error) {
 	mfaObj, ok := record.MFA()
 	if !ok {
 		return
@@ -1237,7 +1244,7 @@ func (s *UserImportService) upsertMFAOOBOTPEmailInTxn(ctx context.Context, resul
 	return
 }
 
-func (s *UserImportService) upsertMFAOOBOTPPhoneInTxn(ctx context.Context, result *importResult, record Record, userID string) (err error) {
+func (s *UserImportService) upsertMFAOOBOTPPhoneInTxn(ctx context.Context, detail *Detail, record Record, userID string) (err error) {
 	mfaObj, ok := record.MFA()
 	if !ok {
 		return

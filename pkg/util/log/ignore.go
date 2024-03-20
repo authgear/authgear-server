@@ -26,8 +26,12 @@ func IgnoreError(err error) (ignore bool) {
 	// the error would be context.Canceled.
 	// However, by observation, other errors may occur too.
 	// We consider all of them as request canceled and do not log them.
-
 	if errors.Is(err, context.Canceled) {
+		ignore = true
+	}
+
+	// DeadlineExceeded occurs when we shutdown the daemon but encounter a timeout.
+	if errors.Is(err, context.DeadlineExceeded) {
 		ignore = true
 	}
 

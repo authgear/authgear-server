@@ -4,10 +4,6 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"os"
-	"os/signal"
-	"sync"
-	"syscall"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -20,62 +16,38 @@ type Spec struct {
 	CertFilePath  string
 	KeyFilePath   string
 	Handler       http.Handler
+
+	server *http.Server
 }
 
-func Start(logger *log.Logger, specs []Spec) {
-	var ctx context.Context
-	waitGroup := new(sync.WaitGroup)
-	shutdown := make(chan struct{})
+func NewSpec(spec *Spec) *Spec {
+	spec.server = &http.Server{
+		Addr:              spec.ListenAddress,
+		Handler:           spec.Handler,
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+	return spec
+}
 
-	for _, spec := range specs {
-		// Capture spec
-		spec := spec
+func (spec *Spec) DisplayName() string {
+	return spec.Name
+}
 
-		httpServer := &http.Server{
-			Addr:              spec.ListenAddress,
-			Handler:           spec.Handler,
-			ReadHeaderTimeout: 5 * time.Second,
-		}
-
-		go func() {
-			var err error
-			if spec.HTTPS {
-				logger.Infof("starting %v on https://%v", spec.Name, spec.ListenAddress)
-				err = httpServer.ListenAndServeTLS(spec.CertFilePath, spec.KeyFilePath)
-			} else {
-				logger.Infof("starting %v on http://%v", spec.Name, spec.ListenAddress)
-				err = httpServer.ListenAndServe()
-			}
-
-			if err != nil && !errors.Is(err, http.ErrServerClosed) {
-				logger.WithError(err).Fatalf("failed to start %v", spec.Name)
-			}
-		}()
-
-		waitGroup.Add(1)
-
-		go func() {
-			defer waitGroup.Done()
-
-			<-shutdown
-
-			logger.Infof("stopping %v...", spec.Name)
-
-			err := httpServer.Shutdown(ctx)
-			if err != nil {
-				logger.WithError(err).Errorf("failed to stop gracefully %v", spec.Name)
-			}
-		}()
+func (spec *Spec) Start(_ context.Context, logger *log.Logger) {
+	var err error
+	if spec.HTTPS {
+		logger.Infof("starting %v on https://%v", spec.Name, spec.ListenAddress)
+		err = spec.server.ListenAndServeTLS(spec.CertFilePath, spec.KeyFilePath)
+	} else {
+		logger.Infof("starting %v on http://%v", spec.Name, spec.ListenAddress)
+		err = spec.server.ListenAndServe()
 	}
 
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
+		logger.WithError(err).Fatalf("failed to start %v", spec.Name)
+	}
+}
 
-	sig := <-sigChan
-	logger.Infof("received signal %s, shutting down...", sig.String())
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	close(shutdown)
-	waitGroup.Wait()
+func (spec *Spec) Stop(ctx context.Context, logger *log.Logger) error {
+	return spec.server.Shutdown(ctx)
 }
