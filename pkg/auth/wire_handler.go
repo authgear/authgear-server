@@ -1117,3 +1117,11 @@ func newWebAppAuthflowV2NoAuthenticatorHandler(p *deps.RequestProvider) http.Han
 		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2NoAuthenticatorHandler)),
 	))
 }
+
+func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		AuthflowV2UIHandlerDependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2WechatHandler)),
+	))
+}

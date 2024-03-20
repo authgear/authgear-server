@@ -50,7 +50,7 @@ func (h *WechatAuthHandler) GetData(r *http.Request, w http.ResponseWriter, sess
 		return nil, apierrors.NewInvalid("missing authorization url")
 	}
 
-	img, err := createQRCodeImage(authURL, 512, 512, qr.M)
+	img, err := CreateQRCodeImage(authURL, 512, 512, qr.M)
 	if err != nil {
 		return nil, err
 	}
