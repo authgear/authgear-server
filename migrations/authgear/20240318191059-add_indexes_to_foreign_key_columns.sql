@@ -13,8 +13,8 @@ CREATE INDEX _auth_user_role_role_id ON _auth_user_role (role_id);
 CREATE INDEX _auth_verified_claim_user_id ON _auth_verified_claim (user_id);
 
 CREATE INDEX _auth_user_app_id ON _auth_user (app_id);
-CREATE INDEX _auth_user_app_id_created_at ON _auth_user (app_id, created_at);
-CREATE INDEX _auth_user_app_id_last_login_at ON _auth_user (app_id, last_login_at);
+CREATE INDEX _auth_user_app_id_created_at ON _auth_user (app_id, created_at DESC NULLS LAST);
+CREATE INDEX _auth_user_app_id_last_login_at ON _auth_user (app_id, last_login_at DESC NULLS LAST);
 
 -- +migrate Down
 DROP INDEX _auth_authenticator_user_id;
