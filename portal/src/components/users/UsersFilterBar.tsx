@@ -22,6 +22,8 @@ interface UsersFilterBarProps {
   className?: string;
   showSearchBar: boolean;
   isSearchDisabled?: boolean;
+  showRoleFilter: boolean;
+  showGroupFilter: boolean;
   filters: UsersFilter;
   onFilterChange: (fn: (prevValue: UsersFilter) => UsersFilter) => void;
 }
@@ -31,6 +33,8 @@ export const UsersFilterBar: React.VFC<UsersFilterBarProps> =
     className,
     showSearchBar,
     isSearchDisabled,
+    showGroupFilter,
+    showRoleFilter,
     filters,
     onFilterChange,
   }) {
@@ -81,18 +85,22 @@ export const UsersFilterBar: React.VFC<UsersFilterBarProps> =
           />
         ) : null}
         <div className={styles.filterContainer}>
-          <RolesFilterDropdown
-            className={styles.filter}
-            value={filters.role}
-            onChange={onRoleChange}
-            onClear={onRoleClear}
-          />
-          <GroupsFilterDropdown
-            className={styles.filter}
-            value={filters.group}
-            onChange={onGroupChange}
-            onClear={onGroupClear}
-          />
+          {showRoleFilter ? (
+            <RolesFilterDropdown
+              className={styles.filter}
+              value={filters.role}
+              onChange={onRoleChange}
+              onClear={onRoleClear}
+            />
+          ) : null}
+          {showGroupFilter ? (
+            <GroupsFilterDropdown
+              className={styles.filter}
+              value={filters.group}
+              onChange={onGroupChange}
+              onClear={onGroupClear}
+            />
+          ) : null}
         </div>
       </div>
     );

@@ -30,11 +30,125 @@ import {
   UsersFilter,
   UsersFilterBar,
 } from "../../components/users/UsersFilterBar";
+import {
+  RolesListQueryDocument,
+  RolesListQueryQuery,
+  RolesListQueryQueryVariables,
+} from "./query/rolesListQuery.generated";
+import {
+  GroupsListQueryDocument,
+  GroupsListQueryQuery,
+  GroupsListQueryQueryVariables,
+} from "./query/groupsListQuery.generated";
 
 const pageSize = 10;
 // We have performance problem on the users query
 // limit to 10 items for now
 const searchResultSize = 10;
+
+function useRemoteData(options: {
+  filters: UsersFilter;
+  offset: number;
+  sortBy: UserSortBy | undefined;
+  sortDirection: SortDirection | undefined;
+}) {
+  const { filters, offset, sortBy, sortDirection } = options;
+
+  const isSearch = filters.searchKeyword !== "";
+
+  const debouncedSearchKey = useDelayedValue(filters.searchKeyword, 500);
+
+  const filterGroupKeys = useMemo(() => {
+    return filters.group == null ? undefined : [filters.group.group.key];
+  }, [filters.group]);
+
+  const filterRoleKeys = useMemo(() => {
+    return filters.role == null ? undefined : [filters.role.role.key];
+  }, [filters.role]);
+
+  const cursor = useMemo(() => {
+    if (isSearch) {
+      // Search always query all rows.
+      return null;
+    }
+    if (offset === 0) {
+      return null;
+    }
+    return encodeOffsetToCursor(offset - 1);
+  }, [isSearch, offset]);
+
+  const {
+    data,
+    error,
+    loading,
+    refetch: refetchUsersListData,
+  } = useQuery<UsersListQueryQuery, UsersListQueryQueryVariables>(
+    UsersListQueryDocument,
+    {
+      variables: {
+        pageSize: isSearch ? searchResultSize : pageSize,
+        cursor,
+        sortBy,
+        sortDirection,
+        searchKeyword: debouncedSearchKey,
+        groupKeys: filterGroupKeys,
+        roleKeys: filterRoleKeys,
+      },
+      fetchPolicy: "network-only",
+    }
+  );
+
+  const {
+    data: rolesListData,
+    loading: isRolesListDataLoading,
+    error: rolesListDataError,
+    refetch: refetchRolesListData,
+  } = useQuery<RolesListQueryQuery, RolesListQueryQueryVariables>(
+    RolesListQueryDocument,
+    {
+      variables: {
+        pageSize: 0,
+        searchKeyword: "",
+      },
+      fetchPolicy: "network-only",
+    }
+  );
+
+  const {
+    data: groupsListData,
+    loading: isGroupsListDataLoading,
+    error: groupsListDataError,
+    refetch: refetchGroupsListData,
+  } = useQuery<GroupsListQueryQuery, GroupsListQueryQueryVariables>(
+    GroupsListQueryDocument,
+    {
+      variables: {
+        pageSize: 0,
+        searchKeyword: "",
+      },
+      fetchPolicy: "network-only",
+    }
+  );
+
+  return {
+    isLoading: loading || isRolesListDataLoading || isGroupsListDataLoading,
+    error: error ?? rolesListDataError ?? groupsListDataError,
+    data,
+    isGroupsEmpty:
+      groupsListData?.groups == null || groupsListData.groups.totalCount === 0,
+    isRolesEmpty:
+      rolesListData?.roles == null || rolesListData.roles.totalCount === 0,
+    refetch: useCallback(
+      async () =>
+        Promise.all([
+          refetchUsersListData(),
+          refetchGroupsListData(),
+          refetchRolesListData(),
+        ]),
+      [refetchGroupsListData, refetchRolesListData, refetchUsersListData]
+    ),
+  };
+}
 
 const UsersScreen: React.VFC = function UsersScreen() {
   const { searchEnabled } = useSystemConfig();
@@ -44,7 +158,6 @@ const UsersScreen: React.VFC = function UsersScreen() {
     role: null,
     group: null,
   });
-  const debouncedSearchKey = useDelayedValue(filters.searchKeyword, 500);
 
   const [offset, setOffset] = useState(0);
   const [sortBy, setSortBy] = useState<UserSortBy | undefined>(undefined);
@@ -61,47 +174,12 @@ const UsersScreen: React.VFC = function UsersScreen() {
     return [{ to: ".", label: <FormattedMessage id="UsersScreen.title" /> }];
   }, []);
 
-  // after: is exclusive so if we pass it "offset:0",
-  // The first item is excluded.
-  // Therefore we have adjust it by -1.
-  const cursor = useMemo(() => {
-    if (isSearch) {
-      // Search always query all rows.
-      return null;
-    }
-    if (offset === 0) {
-      return null;
-    }
-    return encodeOffsetToCursor(offset - 1);
-  }, [isSearch, offset]);
-
   const onChangeOffset = useCallback((offset) => {
     setOffset(offset);
   }, []);
 
-  const filterGroupKeys = useMemo(() => {
-    return filters.group == null ? undefined : [filters.group.group.key];
-  }, [filters.group]);
-
-  const filterRoleKeys = useMemo(() => {
-    return filters.role == null ? undefined : [filters.role.role.key];
-  }, [filters.role]);
-
-  const { data, error, loading, refetch } = useQuery<
-    UsersListQueryQuery,
-    UsersListQueryQueryVariables
-  >(UsersListQueryDocument, {
-    variables: {
-      pageSize: isSearch ? searchResultSize : pageSize,
-      cursor,
-      sortBy,
-      sortDirection,
-      searchKeyword: debouncedSearchKey,
-      groupKeys: filterGroupKeys,
-      roleKeys: filterRoleKeys,
-    },
-    fetchPolicy: "network-only",
-  });
+  const { data, isLoading, isGroupsEmpty, isRolesEmpty, error, refetch } =
+    useRemoteData({ filters, offset, sortBy, sortDirection });
 
   const isTotalExceededLimit =
     (data?.users?.totalCount ?? 0) > searchResultSize;
@@ -143,7 +221,7 @@ const UsersScreen: React.VFC = function UsersScreen() {
   return (
     <CommandBarContainer
       className={styles.root}
-      isLoading={loading}
+      isLoading={isLoading}
       messageBar={messageBar}
       hideCommandBar={true}
     >
@@ -164,10 +242,12 @@ const UsersScreen: React.VFC = function UsersScreen() {
             className="mt-12"
             isSearchDisabled={isFiltering}
             showSearchBar={searchEnabled}
+            showGroupFilter={!isGroupsEmpty}
+            showRoleFilter={!isRolesEmpty}
             filters={filters}
             onFilterChange={setFilters}
           />
-          {isSearch && isTotalExceededLimit && !loading ? (
+          {isSearch && isTotalExceededLimit && !isLoading ? (
             <MessageBar className={styles.message}>
               <FormattedMessage id="UsersScreen.search.resultLimited" />
             </MessageBar>
@@ -176,7 +256,7 @@ const UsersScreen: React.VFC = function UsersScreen() {
         <UsersList
           className={styles.widget}
           isSearch={isSearch}
-          loading={loading}
+          loading={isLoading}
           users={data?.users ?? null}
           offset={offset}
           pageSize={pageSize}
