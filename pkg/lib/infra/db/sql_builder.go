@@ -145,6 +145,11 @@ func (b SelectBuilder) Where(pred interface{}, args ...interface{}) SelectBuilde
 	return b
 }
 
+func (b SelectBuilder) PrefixExpr(expr sq.Sqlizer) SelectBuilder {
+	b.builder = b.builder.PrefixExpr(expr)
+	return b
+}
+
 func (b SelectBuilder) OrderBy(orderBy ...string) SelectBuilder {
 	b.builder = b.builder.OrderBy(orderBy...)
 	return b
