@@ -16,7 +16,8 @@
   <div
     data-controller="custom-select body-scroll-lock"
     data-phone-input-target="countrySelect"
-    data-action="custom-select:initialized->phone-input#handleCountrySelectInitialized">
+    data-action="custom-select:initialized->phone-input#handleCountrySelectInitialized custom-select:open->body-scroll-lock#lock custom-select:close->body-scroll-lock#unlock"
+  >
     <!-- NOTE(tung): Use type="text" here,
       because browser will not restore value of input with type="hidden" on back -->
     <input

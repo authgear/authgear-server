@@ -1,8 +1,6 @@
 import { Controller } from "@hotwired/stimulus";
 
 export class BodyScrollLockController extends Controller {
-  static targets = ["dialog"];
-
   scrollPosition = 0;
 
   lock() {
@@ -11,8 +9,8 @@ export class BodyScrollLockController extends Controller {
     document.body.style.position = "fixed";
     document.body.style.top = `-${this.scrollPosition}px`;
     document.body.style.width = "100%";
-    document.body.style.height = visualViewport?.height
-      ? `${visualViewport.height}px`
+    document.body.style.height = window.visualViewport?.height
+      ? `${window.visualViewport.height}px`
       : "100vh";
   }
 
@@ -21,6 +19,7 @@ export class BodyScrollLockController extends Controller {
     document.body.style.removeProperty("position");
     document.body.style.removeProperty("top");
     document.body.style.removeProperty("width");
+    document.body.style.removeProperty("height");
     window.scrollTo(0, this.scrollPosition);
   }
 }
