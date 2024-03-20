@@ -84,7 +84,18 @@ function UserDetailsScreenGroupListContainer({
     const userGroups =
       user.groups?.edges?.flatMap<UserGroupsListItem>((edge) => {
         if (edge?.node != null) {
-          return [edge.node];
+          return [
+            {
+              ...edge.node,
+              roles: {
+                totalCount: edge.node.roles?.totalCount ?? 0,
+                items:
+                  edge.node.roles?.edges?.flatMap((edge) => {
+                    return edge?.node == null ? [] : [edge.node];
+                  }) ?? null,
+              },
+            },
+          ];
         }
         return [];
       }) ?? [];
