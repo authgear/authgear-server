@@ -1,11 +1,6 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  ICommandBarItemProps,
-  SearchBox,
-  ISearchBoxProps,
-  MessageBar,
-} from "@fluentui/react";
+import { MessageBar } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useQuery } from "@apollo/client";
 import NavBreadcrumb from "../../NavBreadcrumb";
@@ -24,36 +19,26 @@ import ShowError from "../../ShowError";
 import useDelayedValue from "../../hook/useDelayedValue";
 
 import styles from "./UsersScreen.module.css";
-import { onRenderCommandBarPrimaryButton } from "../../CommandBarPrimaryButton";
+import PrimaryButton from "../../PrimaryButton";
 import {
-  GroupsFilterDropdown,
-  GroupsFilterDropdownOption,
-} from "../../components/users/GroupsFilterDropdown";
-import {
-  RolesFilterDropdown,
-  RolesFilterDropdownOption,
-} from "../../components/users/RolesFilterDropdown";
+  UsersFilter,
+  UsersFilterBar,
+} from "../../components/users/UsersFilterBar";
 
 const pageSize = 10;
 // We have performance problem on the users query
 // limit to 10 items for now
 const searchResultSize = 10;
 
-function useOnClearFilterCallback<T>(setT: (value: T | null) => void) {
-  return useCallback(() => setT(null), [setT]);
-}
-
 const UsersScreen: React.VFC = function UsersScreen() {
   const { searchEnabled } = useSystemConfig();
 
-  const [searchKeyword, setSearchKeyword] = useState("");
-  const debouncedSearchKey = useDelayedValue(searchKeyword, 500);
-  const [groupFilter, setGroupFilter] =
-    useState<GroupsFilterDropdownOption | null>(null);
-  const clearGroupFilter = useOnClearFilterCallback(setGroupFilter);
-  const [roleFilter, setRoleFilter] =
-    useState<RolesFilterDropdownOption | null>(null);
-  const clearRoleFilter = useOnClearFilterCallback(setRoleFilter);
+  const [filters, setFilters] = useState<UsersFilter>({
+    searchKeyword: "",
+    role: null,
+    group: null,
+  });
+  const debouncedSearchKey = useDelayedValue(filters.searchKeyword, 500);
 
   const [offset, setOffset] = useState(0);
   const [sortBy, setSortBy] = useState<UserSortBy | undefined>(undefined);
@@ -64,100 +49,11 @@ const UsersScreen: React.VFC = function UsersScreen() {
   const { renderToString } = useContext(Context);
   const navigate = useNavigate();
 
-  const isSearch = searchKeyword !== "";
+  const isSearch = filters.searchKeyword !== "";
 
   const items = useMemo(() => {
     return [{ to: ".", label: <FormattedMessage id="UsersScreen.title" /> }];
   }, []);
-
-  const onChangeSearchKeyword = useCallback((_e, value) => {
-    if (value != null) {
-      setSearchKeyword(value);
-      // Reset offset when search keyword was changed.
-      setOffset(0);
-    }
-  }, []);
-
-  const onClearSearchKeyword = useCallback((_e) => {
-    setSearchKeyword("");
-    // Reset offset when search keyword was changed.
-    setOffset(0);
-  }, []);
-
-  const searchBoxProps: ISearchBoxProps = useMemo(() => {
-    return {
-      className: styles.searchBox,
-      placeholder: renderToString("search"),
-      value: searchKeyword,
-      onChange: onChangeSearchKeyword,
-      onClear: onClearSearchKeyword,
-    };
-  }, [
-    renderToString,
-    searchKeyword,
-    onChangeSearchKeyword,
-    onClearSearchKeyword,
-  ]);
-
-  // If secondaryItems changes on every key stroke,
-  // input method such as cangjie cannot be used.
-  // Every key stroke is entered into the text box literally without giving us a chance to select character.
-  // This can be work around by using context.
-  const secondaryItems: ICommandBarItemProps[] = useMemo(() => {
-    const items: ICommandBarItemProps[] = [];
-    if (searchEnabled) {
-      items.push({
-        key: "search",
-        // eslint-disable-next-line react/no-unstable-nested-components
-        onRender: () => <SearchBox {...searchBoxProps} />,
-      });
-    }
-
-    items.push({
-      key: "groups-filter",
-      // eslint-disable-next-line react/no-unstable-nested-components
-      onRender: () => (
-        <GroupsFilterDropdown
-          value={groupFilter}
-          onChange={setGroupFilter}
-          onClear={clearGroupFilter}
-        />
-      ),
-    });
-
-    items.push({
-      key: "groups-filter",
-      // eslint-disable-next-line react/no-unstable-nested-components
-      onRender: () => (
-        <RolesFilterDropdown
-          value={roleFilter}
-          onChange={setRoleFilter}
-          onClear={clearRoleFilter}
-        />
-      ),
-    });
-
-    return items;
-  }, [
-    clearGroupFilter,
-    clearRoleFilter,
-    groupFilter,
-    roleFilter,
-    searchBoxProps,
-    searchEnabled,
-  ]);
-
-  const primaryItems: ICommandBarItemProps[] = useMemo(() => {
-    return [
-      {
-        key: "addUser",
-        text: renderToString("UsersScreen.add-user"),
-        iconProps: { iconName: "CirclePlus" },
-        onClick: () => navigate("./add-user"),
-        onRender: onRenderCommandBarPrimaryButton,
-      },
-    ];
-  }, [navigate, renderToString]);
 
   // after: is exclusive so if we pass it "offset:0",
   // The first item is excluded.
@@ -178,12 +74,12 @@ const UsersScreen: React.VFC = function UsersScreen() {
   }, []);
 
   const filterGroupKeys = useMemo(() => {
-    return groupFilter == null ? undefined : [groupFilter.group.key];
-  }, [groupFilter]);
+    return filters.group == null ? undefined : [filters.group.group.key];
+  }, [filters.group]);
 
   const filterRoleKeys = useMemo(() => {
-    return roleFilter == null ? undefined : [roleFilter.role.key];
-  }, [roleFilter]);
+    return filters.role == null ? undefined : [filters.role.role.key];
+  }, [filters.role]);
 
   const { data, error, loading, refetch } = useQuery<
     UsersListQueryQuery,
@@ -234,13 +130,28 @@ const UsersScreen: React.VFC = function UsersScreen() {
     <CommandBarContainer
       className={styles.root}
       isLoading={loading}
-      primaryItems={primaryItems}
-      secondaryItems={secondaryItems}
       messageBar={messageBar}
+      hideCommandBar={true}
     >
       <ScreenContent className={styles.content} layout="list">
         <div className={styles.widget}>
-          <NavBreadcrumb className="block" items={items} />
+          <div className="flex gap-x-1">
+            <NavBreadcrumb
+              className="flex-1 overflow-hidden items-center"
+              items={items}
+            />
+            <PrimaryButton
+              text={renderToString("UsersScreen.add-user")}
+              iconProps={useMemo(() => ({ iconName: "Add" }), [])}
+              onClick={useCallback(() => navigate("./add-user"), [navigate])}
+            />
+          </div>
+          <UsersFilterBar
+            className="mt-12"
+            showSearchBar={searchEnabled}
+            filters={filters}
+            onFilterChange={setFilters}
+          />
           {isSearch && isTotalExceededLimit && !loading ? (
             <MessageBar className={styles.message}>
               <FormattedMessage id="UsersScreen.search.resultLimited" />

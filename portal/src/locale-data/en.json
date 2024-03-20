@@ -275,7 +275,7 @@
   "DeleteRoleDialog.button.confirm": "Delete Role",
 
   "UsersScreen.title": "Users",
-  "UsersScreen.add-user": "Add User",
+  "UsersScreen.add-user": "Create User",
   "UsersScreen.search.resultLimited": "Only showing top 10 results, please refine the search query if you can't find what you want.",
   "UsersScreen.filters.groups.placeholder": "Groups",
   "UsersScreen.filters.roles.placeholder": "Roles",

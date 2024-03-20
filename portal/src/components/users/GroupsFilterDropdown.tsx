@@ -11,6 +11,7 @@ import { IDropdownOption } from "@fluentui/react";
 import { Group } from "../../graphql/adminapi/globalTypes.generated";
 
 interface GroupsFilterDropdownProps {
+  className?: string;
   value: GroupsFilterDropdownOption | null;
   onChange: (newValue: GroupsFilterDropdownOption | null) => void;
   onClear: () => void;
@@ -24,6 +25,7 @@ export interface GroupsFilterDropdownOption extends IDropdownOption {
 
 export const GroupsFilterDropdown: React.VFC<GroupsFilterDropdownProps> =
   function GroupsFilterDropdown({
+    className,
     value,
     onChange: propsOnChange,
     onClear,
@@ -68,6 +70,7 @@ export const GroupsFilterDropdown: React.VFC<GroupsFilterDropdownProps> =
 
     return (
       <SearchableDropdown
+        className={className}
         placeholder={renderToString("UsersScreen.filters.groups.placeholder")}
         isLoadingOptions={loading}
         options={options}
