@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Masterminds/squirrel"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/lib/pq"
 
@@ -307,7 +306,7 @@ func (s *Store) QueryPage(listOption ListOptions, pageArgs graphqlutil.PageArgs)
 func (s *Store) UpdateLoginTime(userID string, loginAt time.Time) error {
 	builder := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_user")).
-		Set("last_login_at", squirrel.Expr("login_at")).
+		Set("last_login_at", sq.Expr("login_at")).
 		Set("login_at", loginAt).
 		Where("id = ?", userID)
 
