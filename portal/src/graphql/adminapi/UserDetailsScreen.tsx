@@ -367,6 +367,8 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
         styles={{
           itemContainer: {
             flex: "1 0 auto",
+            display: "flex",
+            flexDirection: "column",
           },
         }}
         className={styles.pivot}
@@ -425,14 +427,14 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
           />
         </PivotItem>
         <PivotItem
-          className={"h-full pt-8"}
+          className={"flex-1 pt-8"}
           itemKey={ROLES_KEY}
           headerText={renderToString("UserDetails.roles.header")}
         >
           <UserDetailsScreenRoleListContainer user={data} />
         </PivotItem>
         <PivotItem
-          className={"h-full pt-8"}
+          className={"flex-1 pt-8"}
           itemKey={GROUPS_KEY}
           headerText={renderToString("UserDetails.groups.header")}
         >
