@@ -161,7 +161,7 @@ function UserDetailsScreenRoleListContainer({
           />
         </header>
         <UserRolesList
-          className="flex-1 min-h-0"
+          className="flex-1-0-auto min-h-[200px]"
           user={user}
           roles={filteredCombinedRoles}
           isSearch={isSearch}
