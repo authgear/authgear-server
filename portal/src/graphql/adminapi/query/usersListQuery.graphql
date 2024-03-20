@@ -23,6 +23,8 @@ fragment UsersList on UserConnection {
 query UsersListQuery(
   $searchKeyword: String!
   $pageSize: Int!
+  $groupKeys: [String!]
+  $roleKeys: [String!]
   $cursor: String
   $sortBy: UserSortBy
   $sortDirection: SortDirection
@@ -31,6 +33,8 @@ query UsersListQuery(
     first: $pageSize
     after: $cursor
     searchKeyword: $searchKeyword
+    groupKeys: $groupKeys
+    roleKeys: $roleKeys
     sortBy: $sortBy
     sortDirection: $sortDirection
   ) {
