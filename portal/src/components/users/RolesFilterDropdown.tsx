@@ -11,6 +11,7 @@ import {
 } from "../../graphql/adminapi/query/rolesListQuery.generated";
 
 interface RolesFilterDropdownProps {
+  className?: string;
   value: RolesFilterDropdownOption | null;
   onChange: (newValue: RolesFilterDropdownOption | null) => void;
   onClear: () => void;
@@ -24,6 +25,7 @@ export interface RolesFilterDropdownOption extends IDropdownOption {
 
 export const RolesFilterDropdown: React.VFC<RolesFilterDropdownProps> =
   function RolesFilterDropdown({
+    className,
     value,
     onChange: propsOnChange,
     onClear,
@@ -68,6 +70,7 @@ export const RolesFilterDropdown: React.VFC<RolesFilterDropdownProps> =
 
     return (
       <SearchableDropdown
+        className={className}
         placeholder={renderToString("UsersScreen.filters.roles.placeholder")}
         isLoadingOptions={loading}
         options={options}

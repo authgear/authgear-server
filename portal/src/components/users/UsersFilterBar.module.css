@@ -1,0 +1,18 @@
+.root {
+  @apply flex gap-x-4;
+  @apply mobile:flex-col;
+}
+
+.searchBox {
+  @apply w-[300px] flex-none;
+  @apply mobile:w-full;
+}
+
+.filterContainer {
+  @apply flex gap-x-4;
+}
+
+.filter {
+  @apply w-[100px] flex-none;
+  @apply mobile:flex-1;
+}
