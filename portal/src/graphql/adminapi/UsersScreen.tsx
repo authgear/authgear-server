@@ -29,6 +29,10 @@ import {
   GroupsFilterDropdown,
   GroupsFilterDropdownOption,
 } from "../../components/users/GroupsFilterDropdown";
+import {
+  RolesFilterDropdown,
+  RolesFilterDropdownOption,
+} from "../../components/users/RolesFilterDropdown";
 
 const pageSize = 10;
 // We have performance problem on the users query
@@ -43,10 +47,13 @@ const UsersScreen: React.VFC = function UsersScreen() {
   const { searchEnabled } = useSystemConfig();
 
   const [searchKeyword, setSearchKeyword] = useState("");
+  const debouncedSearchKey = useDelayedValue(searchKeyword, 500);
   const [groupFilter, setGroupFilter] =
     useState<GroupsFilterDropdownOption | null>(null);
   const clearGroupFilter = useOnClearFilterCallback(setGroupFilter);
-  const debouncedSearchKey = useDelayedValue(searchKeyword, 500);
+  const [roleFilter, setRoleFilter] =
+    useState<RolesFilterDropdownOption | null>(null);
+  const clearRoleFilter = useOnClearFilterCallback(setRoleFilter);
 
   const [offset, setOffset] = useState(0);
   const [sortBy, setSortBy] = useState<UserSortBy | undefined>(undefined);
@@ -118,8 +125,27 @@ const UsersScreen: React.VFC = function UsersScreen() {
       ),
     });
 
+    items.push({
+      key: "groups-filter",
+      // eslint-disable-next-line react/no-unstable-nested-components
+      onRender: () => (
+        <RolesFilterDropdown
+          value={roleFilter}
+          onChange={setRoleFilter}
+          onClear={clearRoleFilter}
+        />
+      ),
+    });
+
     return items;
-  }, [clearGroupFilter, groupFilter, searchBoxProps, searchEnabled]);
+  }, [
+    clearGroupFilter,
+    clearRoleFilter,
+    groupFilter,
+    roleFilter,
+    searchBoxProps,
+    searchEnabled,
+  ]);
 
   const primaryItems: ICommandBarItemProps[] = useMemo(() => {
     return [
@@ -155,6 +181,10 @@ const UsersScreen: React.VFC = function UsersScreen() {
     return groupFilter == null ? undefined : [groupFilter.group.key];
   }, [groupFilter]);
 
+  const filterRoleKeys = useMemo(() => {
+    return roleFilter == null ? undefined : [roleFilter.role.key];
+  }, [roleFilter]);
+
   const { data, error, loading, refetch } = useQuery<
     UsersListQueryQuery,
     UsersListQueryQueryVariables
@@ -166,6 +196,7 @@ const UsersScreen: React.VFC = function UsersScreen() {
       sortDirection,
       searchKeyword: debouncedSearchKey,
       groupKeys: filterGroupKeys,
+      roleKeys: filterRoleKeys,
     },
     fetchPolicy: "network-only",
   });
