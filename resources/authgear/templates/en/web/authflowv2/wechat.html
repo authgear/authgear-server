@@ -9,11 +9,11 @@
 {{ if $.IsNativePlatform }}
 {{ if $.WechatRedirectURI }}
 
-<div class="flex-1-0-auto">
+<div class="screen-icon-layout flex-1-0-auto">
   <h1 class="screen-title">
     {{ template "v2-wechat-auth-page-title" }}
   </h1>
-  <h2 class="screen-description mt-4">
+  <h2 class="screen-description">
     {{ template "v2-wechat-auth-page-app-description" }}
   </h2>
   {{ template "authflowv2/__alert_message.html"
@@ -25,7 +25,7 @@
   }}
 
   <form
-    class="flex flex-col gap-y-4 mt-8"
+    class="screen-actions flex flex-col gap-y-4 mt-8"
     data-controller="click-to-switch"
     method="post"
     novalidate
@@ -43,7 +43,7 @@
   </a>
 
   <button
-    class="primary-btn wechat hidden"
+    class="primary-btn primary-btn--success hidden"
     type="submit"
     name="x_action"
     value=""
@@ -59,18 +59,18 @@
 {{ end }}
 {{ else }}
 
-<div class="flex-1-0-auto">
+<div class="screen-icon-layout flex-1-0-auto">
   <h1 class="screen-title">
     {{ template "v2-wechat-auth-page-title" }}
   </h1>
-  <h2 class="screen-description mt-4">
+  <h2 class="screen-description">
     {{ template "v2-wechat-auth-page-with-qr-code-description" }}
   </h2>
 
   <div
     class="flex flex-col gap-y-4 mt-8"
   >
-    <img class="w-48 place-self-center" src="{{ $.ImageURI }}">
+    <img class="w-44 place-self-center" src="{{ $.ImageURI }}">
 </div>
 </div>
 
