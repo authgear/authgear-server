@@ -25,16 +25,27 @@ import useDelayedValue from "../../hook/useDelayedValue";
 
 import styles from "./UsersScreen.module.css";
 import { onRenderCommandBarPrimaryButton } from "../../CommandBarPrimaryButton";
+import {
+  GroupsFilterDropdown,
+  GroupsFilterDropdownOption,
+} from "../../components/users/GroupsFilterDropdown";
 
 const pageSize = 10;
 // We have performance problem on the users query
 // limit to 10 items for now
 const searchResultSize = 10;
 
+function useOnClearFilterCallback<T>(setT: (value: T | null) => void) {
+  return useCallback(() => setT(null), [setT]);
+}
+
 const UsersScreen: React.VFC = function UsersScreen() {
   const { searchEnabled } = useSystemConfig();
 
   const [searchKeyword, setSearchKeyword] = useState("");
+  const [groupFilter, setGroupFilter] =
+    useState<GroupsFilterDropdownOption | null>(null);
+  const clearGroupFilter = useOnClearFilterCallback(setGroupFilter);
   const debouncedSearchKey = useDelayedValue(searchKeyword, 500);
 
   const [offset, setOffset] = useState(0);
@@ -86,17 +97,29 @@ const UsersScreen: React.VFC = function UsersScreen() {
   // Every key stroke is entered into the text box literally without giving us a chance to select character.
   // This can be work around by using context.
   const secondaryItems: ICommandBarItemProps[] = useMemo(() => {
+    const items: ICommandBarItemProps[] = [];
     if (searchEnabled) {
-      return [
-        {
-          key: "search",
-          // eslint-disable-next-line react/no-unstable-nested-components
-          onRender: () => <SearchBox {...searchBoxProps} />,
-        },
-      ];
+      items.push({
+        key: "search",
+        // eslint-disable-next-line react/no-unstable-nested-components
+        onRender: () => <SearchBox {...searchBoxProps} />,
+      });
     }
-    return [];
-  }, [searchBoxProps, searchEnabled]);
+
+    items.push({
+      key: "groups-filter",
+      // eslint-disable-next-line react/no-unstable-nested-components
+      onRender: () => (
+        <GroupsFilterDropdown
+          value={groupFilter}
+          onChange={setGroupFilter}
+          onClear={clearGroupFilter}
+        />
+      ),
+    });
+
+    return items;
+  }, [clearGroupFilter, groupFilter, searchBoxProps, searchEnabled]);
 
   const primaryItems: ICommandBarItemProps[] = useMemo(() => {
     return [
@@ -128,6 +151,10 @@ const UsersScreen: React.VFC = function UsersScreen() {
     setOffset(offset);
   }, []);
 
+  const filterGroupKeys = useMemo(() => {
+    return groupFilter == null ? undefined : [groupFilter.group.key];
+  }, [groupFilter]);
+
   const { data, error, loading, refetch } = useQuery<
     UsersListQueryQuery,
     UsersListQueryQueryVariables
@@ -138,6 +165,7 @@ const UsersScreen: React.VFC = function UsersScreen() {
       sortBy,
       sortDirection,
       searchKeyword: debouncedSearchKey,
+      groupKeys: filterGroupKeys,
     },
     fetchPolicy: "network-only",
   });
