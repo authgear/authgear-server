@@ -60,6 +60,7 @@ import { useResourceForm } from "../../hook/useResourceForm";
 import FormContainer from "../../FormContainer";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import styles from "./LocalizationConfigurationScreen.module.css";
+import ReplaceLanguagesConfirmationDialog from "./ReplaceLanguagesConfirmationDialog";
 
 interface ConfigFormState {
   supportedLanguages: string[];
@@ -970,35 +971,72 @@ const LocalizationConfigurationScreen: React.VFC =
       ]
     );
 
-    const form: FormModel = {
-      isLoading: config.isLoading || resources.isLoading,
-      isUpdating: config.isUpdating || resources.isUpdating,
-      isDirty: config.isDirty || resources.isDirty,
-      loadError: config.loadError ?? resources.loadError,
-      updateError: config.updateError ?? resources.updateError,
-      state,
-      setState: (fn) => {
-        const newState = fn(state);
-        config.setState(() => ({
-          supportedLanguages: newState.supportedLanguages,
-          fallbackLanguage: newState.fallbackLanguage,
-        }));
-        resources.setState(() => ({ resources: newState.resources }));
-        setSelectedLanguage(newState.selectedLanguage);
-      },
-      reload: () => {
-        config.reload();
-        resources.reload();
-      },
-      reset: () => {
-        config.reset();
-        resources.reset();
-        setSelectedLanguage(config.state.fallbackLanguage);
-      },
-      save: async (ignoreConflict: boolean = false) => {
-        await config.save(ignoreConflict);
-        await resources.save(ignoreConflict);
-      },
+    const allExistingLanguageAreRemoved = useMemo(() => {
+      return initialSupportedLanguages.every(
+        (locale) => !state.supportedLanguages.includes(locale)
+      );
+    }, [initialSupportedLanguages, state.supportedLanguages]);
+
+    const [
+      isClearLocalizationConfirmationDialogVisible,
+      setIsClearLocalizationConfirmationDialogVisible,
+    ] = useState(false);
+
+    const dismissClearLocalizationConfirmationDialog = useCallback(() => {
+      setIsClearLocalizationConfirmationDialogVisible(false);
+    }, []);
+
+    const form: FormModel = useMemo(
+      () => ({
+        isLoading: config.isLoading || resources.isLoading,
+        isUpdating: config.isUpdating || resources.isUpdating,
+        isDirty: config.isDirty || resources.isDirty,
+        loadError: config.loadError ?? resources.loadError,
+        updateError: config.updateError ?? resources.updateError,
+        state,
+        setState: (fn) => {
+          const newState = fn(state);
+          config.setState(() => ({
+            supportedLanguages: newState.supportedLanguages,
+            fallbackLanguage: newState.fallbackLanguage,
+          }));
+          resources.setState(() => ({ resources: newState.resources }));
+          setSelectedLanguage(newState.selectedLanguage);
+        },
+        reload: () => {
+          config.reload();
+          resources.reload();
+        },
+        reset: () => {
+          config.reset();
+          resources.reset();
+          setSelectedLanguage(config.state.fallbackLanguage);
+        },
+        save: async (ignoreConflict: boolean = false) => {
+          await config.save(ignoreConflict);
+          await resources.save(ignoreConflict);
+        },
+      }),
+      [config, resources, state]
+    );
+
+    const confirmFormSave = useCallback(async () => {
+      if (allExistingLanguageAreRemoved) {
+        setIsClearLocalizationConfirmationDialogVisible(true);
+        return;
+      }
+
+      await form.save();
+    }, [allExistingLanguageAreRemoved, form]);
+
+    const doFormSave = useCallback(async () => {
+      dismissClearLocalizationConfirmationDialog();
+      await form.save();
+    }, [dismissClearLocalizationConfirmationDialog, form]);
+
+    const formWithConfirmation = {
+      ...form,
+      save: confirmFormSave,
     };
 
     if (form.isLoading) {
@@ -1010,7 +1048,7 @@ const LocalizationConfigurationScreen: React.VFC =
     }
 
     return (
-      <FormContainer form={form} canSave={true}>
+      <FormContainer form={formWithConfirmation} canSave={true}>
         <ResourcesConfigurationContent
           form={form}
           initialSupportedLanguages={initialSupportedLanguages}
@@ -1018,6 +1056,11 @@ const LocalizationConfigurationScreen: React.VFC =
           passwordlessViaSMSEnabled={passwordlessViaSMSEnabled}
           passwordlessViaEmailOTPMode={passwordlessViaEmailOTPMode}
           verificationEnabled={verificationEnabled}
+        />
+        <ReplaceLanguagesConfirmationDialog
+          visible={isClearLocalizationConfirmationDialogVisible}
+          onDismiss={dismissClearLocalizationConfirmationDialog}
+          onConfirm={doFormSave}
         />
       </FormContainer>
     );

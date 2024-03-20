@@ -820,6 +820,8 @@
   "ManageLanguageWidget.default-language-description": "For any languages you don’t provide localization, your default language will be used.",
   "ManageLanguageWidget.languages": "Languages",
   "ManageLanguageWidget.set-as-default": "Set as Default",
+  "ManageLanguageWidget.option-removed": "{LANG} (Removed)",
+  "ManageLanguageWidget.save-to-select-new-language": "Save changes to select newly added language",
 
   "UISettingsScreen.title": "UI Settings",
   "UISettingsScreen.description": "Authgear comes with some simple styling for your login and signup page. You can customize the look and feel here.",
@@ -853,6 +855,9 @@
   "LocalizationConfigurationScreen.verification.title": "Verification",
   "LocalizationConfigurationScreen.passwordless-via-email.title": "Passwordless via Email",
   "LocalizationConfigurationScreen.passwordless-via-sms.title": "Passwordless via SMS",
+
+  "ReplaceLanguagesConfirmationDialog.title": "Confirm language changes",
+  "ReplaceLanguagesConfirmationDialog.message": "All changes in the templates will be discarded.",
 
   "EditTemplatesWidget.email": "Email",
   "EditTemplatesWidget.email-subject": "Subject",
