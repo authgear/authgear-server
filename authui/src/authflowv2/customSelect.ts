@@ -1,5 +1,6 @@
 import { Controller } from "@hotwired/stimulus";
 import { autoUpdate, computePosition, flip } from "@floating-ui/dom";
+import { BodyScrollLockController } from "./bodyScrollLock";
 
 export interface SearchSelectOption {
   triggerLabel?: string;
@@ -25,6 +26,14 @@ export class CustomSelectController extends Controller {
     options: Array,
     initialValue: String,
   };
+
+  get bodyScrollLock() {
+    const ctr = this.application.getControllerForElementAndIdentifier(
+      this.element,
+      "body-scroll-lock"
+    );
+    return ctr as BodyScrollLockController | null;
+  }
 
   declare readonly inputTarget: HTMLInputElement;
   declare readonly triggerTarget: HTMLButtonElement;
@@ -134,6 +143,7 @@ export class CustomSelectController extends Controller {
 
     this.dropdownTarget.classList.remove("hidden");
     this.triggerTarget.setAttribute("aria-expanded", "true");
+    this.bodyScrollLock?.lock();
 
     this.resetHightlightIndex();
     this.clearSearch();
@@ -150,6 +160,7 @@ export class CustomSelectController extends Controller {
     this.dropdownTarget.classList.add("hidden");
     this.triggerTarget.setAttribute("aria-expanded", "false");
     this.triggerTarget.focus();
+    this.bodyScrollLock?.unlock();
   }
 
   private resetHightlightIndex() {

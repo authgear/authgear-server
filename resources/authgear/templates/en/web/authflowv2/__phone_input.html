@@ -14,7 +14,7 @@
 {{ define "authflowv2/__phone_input.html" }}
 <div class="phone-input" data-controller="phone-input">
   <div
-    data-controller="custom-select"
+    data-controller="custom-select body-scroll-lock"
     data-phone-input-target="countrySelect"
     data-action="custom-select:initialized->phone-input#handleCountrySelectInitialized">
     <!-- NOTE(tung): Use type="text" here,
