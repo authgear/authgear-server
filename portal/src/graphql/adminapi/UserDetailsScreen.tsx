@@ -55,6 +55,7 @@ import { makeInvariantViolatedErrorParseRule } from "../../error/parse";
 import { IdentityType } from "./globalTypes.generated";
 import AnonymizeUserDialog from "./AnonymizeUserDialog";
 import UserDetailsScreenGroupListContainer from "../../components/roles-and-groups/list/UserDetailsScreenGroupListContainer";
+import UserDetailsScreenRoleListContainer from "../../components/roles-and-groups/list/UserDetailsScreenRoleListContainer";
 
 interface UserDetailsProps {
   form: SimpleFormModel<FormState>;
@@ -366,6 +367,8 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
         styles={{
           itemContainer: {
             flex: "1 0 auto",
+            display: "flex",
+            flexDirection: "column",
           },
         }}
         className={styles.pivot}
@@ -424,13 +427,14 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
           />
         </PivotItem>
         <PivotItem
+          className={"flex-1 pt-8"}
           itemKey={ROLES_KEY}
           headerText={renderToString("UserDetails.roles.header")}
         >
-          {/*TODO*/}
+          <UserDetailsScreenRoleListContainer user={data} />
         </PivotItem>
         <PivotItem
-          className={"h-full pt-8"}
+          className={"flex-1 pt-8"}
           itemKey={GROUPS_KEY}
           headerText={renderToString("UserDetails.groups.header")}
         >

@@ -271,6 +271,16 @@
   "DeleteRoleDialog.description": "Are you sure you want to delete the role \"{roleName}\"?",
   "DeleteRoleDialog.button.confirm": "Delete Role",
 
+  "UserRolesList.column.name": "Name",
+  "UserRolesList.column.key": "Role Key",
+  "UserRolesList.column.group": "Group",
+  "UserRolesList.column.action": "Action",
+  "UserRolesList.actions.remove": "Remove",
+  "UserRolesList.empty": "No roles for this user",
+
+  "DeleteUserRoleDialog.title": "Remove Role",
+  "DeleteUserRoleDialog.description": "Are you sure you want to remove \"{roleName}\" from the user \"{userName}\"?",
+
   "UsersScreen.title": "Users",
   "UsersScreen.add-user": "Add User",
   "UsersScreen.search.resultLimited": "Only showing top 10 results, please refine the search query if you can't find what you want.",
@@ -297,9 +307,13 @@
   "UserDetailsScreen.user-anonymized": "User data erased",
   "UserDetailsScreen.user-anonymized.message": "This user is anonymized and all data are erased.",
   "UserDetailsScreen.groups.add": "Add to Group",
+  "UserDetailsScreen.roles.add": "Add Roles",
 
   "AddUserGroupsDialog.title": "Add the user {userName} to the group",
   "AddUserGroupsDialog.selectGroups": "Select Groups",
+
+  "AddUserRolesDialog.title": "Add roles to the user {userName}",
+  "AddUserRolesDialog.selectRoles": "Select Roles",
 
   "UsersList.column.raw-id": "ID",
   "UsersList.column.username": "Username",
