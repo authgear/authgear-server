@@ -265,6 +265,7 @@ const UsersScreen: React.VFC = function UsersScreen() {
           onColumnClick={onColumnClick}
           sortBy={sortBy}
           sortDirection={sortDirection}
+          showRolesAndGroups={!isRolesEmpty || !isGroupsEmpty}
         />
       </ScreenContent>
     </CommandBarContainer>

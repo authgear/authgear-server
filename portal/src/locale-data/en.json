@@ -321,6 +321,8 @@
   "UsersList.column.username": "Username",
   "UsersList.column.email": "Email",
   "UsersList.column.phone": "Phone",
+  "UsersList.column.roles": "Role",
+  "UsersList.column.groups": "Group",
   "UsersList.column.signed-up": "Signed Up",
   "UsersList.column.last-login-at": "Last Login",
   "UsersList.disable-user": "Disable User",
