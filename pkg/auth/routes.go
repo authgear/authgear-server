@@ -164,6 +164,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 			// It can now determine redirection from the response.
 			// https://github.com/hotwired/turbo/blob/daabebb0575fffbae1b2582dc458967cd638e899/src/core/drive/visit.ts#L316
 			p.Middleware(newSafeDynamicCSPMiddleware),
+			p.Middleware(newWebAppWeChatRedirectURIMiddleware),
 		)
 	}
 	webappPageChain := newWebappPageChain(false)
@@ -278,7 +279,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		Authflow:    p.Handler(newWebAppAuthflowSSOCallbackHandler),
 		AuthflowV2:  p.Handler(newWebAppAuthflowV2SSOCallbackHandler),
 	})
-	// FIXME(authflowv2): Switch wechat callback endpoint.
 	router.Add(webapphandler.ConfigureWechatCallbackRoute(webappSSOCallbackRoute), p.Handler(newWechatCallbackHandler))
 
 	router.Add(webapphandler.ConfigureSelectAccountRoute(webappSelectAccountRoute), p.Handler(newWebAppSelectAccountHandler))

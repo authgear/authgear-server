@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	coreimage "github.com/authgear/authgear-server/pkg/util/image"
 	"github.com/authgear/authgear-server/pkg/util/template"
+	"github.com/authgear/authgear-server/pkg/util/urlutil"
 	"github.com/authgear/authgear-server/pkg/util/wechat"
 )
 
@@ -46,9 +47,22 @@ func (h *AuthflowWechatHandler) GetData(w http.ResponseWriter, r *http.Request, 
 	viewmodels.Embed(data, baseViewModel)
 
 	screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.OAuthData)
+	state := webapp.AuthflowOAuthState{
+		WebSessionID: s.ID,
+		XStep:        screen.Screen.StateToken.XStep,
+		ErrorRedirectURI: (&url.URL{
+			Path:     r.URL.Path,
+			RawQuery: r.URL.Query().Encode(),
+		}).String(),
+	}
 
-	authorizationURL := screenData.OAuthAuthorizationURL
-	img, err := createQRCodeImage(authorizationURL, 512, 512, qr.M)
+	authorizationURL, err := url.Parse(screenData.OAuthAuthorizationURL)
+	if err != nil {
+		return nil, err
+	}
+	authorizationURL = urlutil.WithQueryParamsAdded(authorizationURL, map[string]string{"state": state.Encode()})
+
+	img, err := createQRCodeImage(authorizationURL.String(), 512, 512, qr.M)
 	if err != nil {
 		return nil, err
 	}
@@ -68,14 +82,6 @@ func (h *AuthflowWechatHandler) GetData(w http.ResponseWriter, r *http.Request, 
 			return nil, err
 		}
 		q := u.Query()
-		state := webapp.AuthflowOAuthState{
-			WebSessionID: s.ID,
-			XStep:        screen.Screen.StateToken.XStep,
-			ErrorRedirectURI: (&url.URL{
-				Path:     r.URL.Path,
-				RawQuery: r.URL.Query().Encode(),
-			}).String(),
-		}
 		q.Set("state", state.Encode())
 		u.RawQuery = q.Encode()
 		// nolint: gosec
