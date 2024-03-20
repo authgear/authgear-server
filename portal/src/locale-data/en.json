@@ -278,6 +278,7 @@
   "UsersScreen.add-user": "Add User",
   "UsersScreen.search.resultLimited": "Only showing top 10 results, please refine the search query if you can't find what you want.",
   "UsersScreen.filters.groups.placeholder": "Groups",
+  "UsersScreen.filters.roles.placeholder": "Roles",
 
   "AddUserScreen.title": "Add User",
   "AddUserScreen.user-info.label": "Fill in 1 of the following fields:",
