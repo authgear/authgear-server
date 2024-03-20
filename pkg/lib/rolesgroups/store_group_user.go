@@ -21,7 +21,8 @@ func (s *Store) ListGroupsByUserIDs(userIDs []string) (map[string][]*Group, erro
 	).
 		From(s.SQLBuilder.TableName("_auth_user_group"), "ug").
 		Join(s.SQLBuilder.TableName("_auth_group"), "g", "ug.group_id = g.id").
-		Where("ug.user_id = ANY (?)", pq.Array(userIDs))
+		Where("ug.user_id = ANY (?)", pq.Array(userIDs)).
+		OrderBy("ug.created_at")
 
 	return s.queryGroupsWithUserID(q)
 }
@@ -37,7 +38,8 @@ func (s *Store) ListGroupsByUserID(userID string) ([]*Group, error) {
 	).
 		From(s.SQLBuilder.TableName("_auth_user_group"), "ug").
 		Join(s.SQLBuilder.TableName("_auth_group"), "g", "ug.group_id = g.id").
-		Where("ug.user_id = ?", userID)
+		Where("ug.user_id = ?", userID).
+		OrderBy("ug.created_at")
 
 	return s.queryGroups(q)
 }
