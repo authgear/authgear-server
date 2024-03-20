@@ -21,6 +21,7 @@ export interface UsersFilter {
 interface UsersFilterBarProps {
   className?: string;
   showSearchBar: boolean;
+  isSearchDisabled?: boolean;
   filters: UsersFilter;
   onFilterChange: (fn: (prevValue: UsersFilter) => UsersFilter) => void;
 }
@@ -29,6 +30,7 @@ export const UsersFilterBar: React.VFC<UsersFilterBarProps> =
   function UsersFilterBar({
     className,
     showSearchBar,
+    isSearchDisabled,
     filters,
     onFilterChange,
   }) {
@@ -72,6 +74,7 @@ export const UsersFilterBar: React.VFC<UsersFilterBarProps> =
           <SearchBox
             className={styles.searchBox}
             placeholder={renderToString("search")}
+            disabled={isSearchDisabled}
             value={filters.searchKeyword}
             onChange={onChangeSearchKeyword}
             onClear={onClearSearchKeyword}

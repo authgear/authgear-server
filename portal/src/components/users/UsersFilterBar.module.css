@@ -1,5 +1,5 @@
 .root {
-  @apply flex gap-x-4;
+  @apply flex gap-4;
   @apply mobile:flex-col;
 }
 
