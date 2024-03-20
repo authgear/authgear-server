@@ -154,6 +154,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       configAppID,
 	}
 	rawCommands := &user.RawCommands{
 		Store: store,

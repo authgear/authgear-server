@@ -10,6 +10,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/lib/pq"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -34,6 +35,7 @@ type Store struct {
 	SQLBuilder  *appdb.SQLBuilderApp
 	SQLExecutor *appdb.SQLExecutor
 	Clock       clock.Clock
+	AppID       config.AppID
 }
 
 func (s *Store) Create(u *User) (err error) {
@@ -244,38 +246,36 @@ func (s *Store) Count() (uint64, error) {
 func (s *Store) QueryPage(listOption ListOptions, pageArgs graphqlutil.PageArgs) ([]*User, uint64, error) {
 	query := s.selectQuery("u")
 
-	var orCondititions sq.Or = sq.Or{}
+	isFilterEnabled := false
+	if len(listOption.GroupKeys) > 0 || len(listOption.RoleKeys) > 0 {
+		isFilterEnabled = true
+	}
 
-	if len(listOption.GroupKeys) != 0 {
-		query = query.
-			LeftJoin(s.SQLBuilder.TableName("_auth_user_group"), "ug", "u.id = ug.user_id").
-			LeftJoin(s.SQLBuilder.TableName("_auth_group"), "g", "g.id = ug.group_id")
-		orCondititions = append(orCondititions, sq.Expr(
-			"g.key = ANY (?)",
+	if isFilterEnabled {
+		// Note(tung): squirrel doesn't support CTE, so use sq.Expr to implement it
+		q := sq.Expr(`
+WITH q AS (
+	SELECT DISTINCT au.id AS id FROM _auth_user au
+	LEFT JOIN _auth_user_group aug ON (au.id = aug.user_id)
+	LEFT JOIN _auth_group user_group ON (aug.group_id = user_group.id)
+	LEFT JOIN _auth_group_role agr ON (aug.group_id = agr.group_id)
+	LEFT JOIN _auth_role group_role ON (agr.role_id = group_role.id)
+	LEFt JOIN _auth_user_role aur ON (au.id = aur.user_id)
+	LEFT JOIN _auth_role user_role ON (aur.role_id = user_role.id)
+	WHERE au.app_id = ? AND ( -- AppID
+		(user_group.key = ANY (?)) OR -- listOption.GroupKeys
+		(user_role.key = ANY (?)) OR -- listOption.RoleKeys
+		(group_role.key = ANY (?)) -- listOption.RoleKeys
+	)
+)
+`,
+			s.AppID,
 			pq.Array(listOption.GroupKeys),
-		))
-	}
-
-	if len(listOption.RoleKeys) != 0 {
-		query = query.
-			LeftJoin(s.SQLBuilder.TableName("_auth_user_role"), "ur", "u.id = ur.user_id").
-			LeftJoin(s.SQLBuilder.TableName("_auth_role"), "direct_role", "ur.role_id = direct_role.id").
-			LeftJoin(s.SQLBuilder.TableName("_auth_user_group"), "aug", "u.id = aug.user_id").
-			LeftJoin(s.SQLBuilder.TableName("_auth_group_role"), "agr", "aug.group_id = agr.group_id").
-			LeftJoin(s.SQLBuilder.TableName("_auth_role"), "group_role", "agr.role_id = group_role.id")
-
-		orCondititions = append(orCondititions, sq.Expr(
-			"direct_role.key = ANY (?)",
 			pq.Array(listOption.RoleKeys),
-		))
-		orCondititions = append(orCondititions, sq.Expr(
-			"group_role.key = ANY (?)",
 			pq.Array(listOption.RoleKeys),
-		))
-	}
+		)
 
-	if len(orCondititions) > 0 {
-		query = query.Where(orCondititions)
+		query = query.PrefixExpr(q).Where("u.id IN (SELECT id FROM q)")
 	}
 
 	query = listOption.SortOption.Apply(query)

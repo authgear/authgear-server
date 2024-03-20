@@ -182,6 +182,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	rawQueries := &user.RawQueries{
 		Store: store,
@@ -1156,6 +1157,7 @@ func newUserImportHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	rawQueries := &user.RawQueries{
 		Store: store,

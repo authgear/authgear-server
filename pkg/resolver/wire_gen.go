@@ -195,6 +195,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clock,
+		AppID:       appID,
 	}
 	rawQueries := &user.RawQueries{
 		Store: userStore,
@@ -882,6 +883,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	rawQueries := &user.RawQueries{
 		Store: userStore,
