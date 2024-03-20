@@ -2,9 +2,7 @@ import React from "react";
 import BaseCell from "./BaseCell";
 import ActionButton from "../../../../ActionButton";
 import styles from "./ActionButtonCell.module.css";
-import { Text } from "@fluentui/react";
 import { useSystemConfig } from "../../../../context/SystemConfigContext";
-import cn from "classnames";
 
 interface ActionButtonCellProps {
   text: string;
@@ -18,18 +16,11 @@ function ActionButtonCell(props: ActionButtonCellProps): React.ReactElement {
   return (
     <BaseCell>
       <ActionButton
-        text={
-          <Text
-            // TO BE CONFIRMED: How the themes color work for different states
-            className={cn(
-              styles.actionButtonText,
-              disabled && "text-[#BFBFC3]"
-            )}
-            theme={themes.destructive}
-          >
-            {text}
-          </Text>
-        }
+        text={text}
+        styles={{
+          label: { fontWeight: 600 },
+          labelDisabled: { color: "#BFBFC3" },
+        }}
         className={styles.actionButton}
         theme={themes.destructive}
         onClick={onClick}
