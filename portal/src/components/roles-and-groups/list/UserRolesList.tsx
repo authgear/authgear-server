@@ -10,18 +10,21 @@ import { Context as MessageContext } from "@oursky/react-messageformat";
 import { useParams } from "react-router-dom";
 
 import styles from "./UserRolesList.module.css";
-import { Role, User } from "../../../graphql/adminapi/globalTypes.generated";
+import {
+  Group,
+  Role,
+  User,
+} from "../../../graphql/adminapi/globalTypes.generated";
 import Link from "../../../Link";
 import ActionButtonCell from "./common/ActionButtonCell";
 import TextCell from "./common/TextCell";
 import RolesAndGroupsBaseList from "./common/RolesAndGroupsBaseList";
-import { UserGroupsListItem } from "./UserGroupsList";
 import DeleteUserRoleDialog, {
   DeleteUserRoleDialogData,
 } from "../dialog/DeleteUserRoleDialog";
 
 export interface UserRolesListItem extends Pick<Role, "id" | "name" | "key"> {
-  groups: UserGroupsListItem[];
+  groups: Pick<Group, "id" | "name" | "key">[];
 }
 
 export interface UserRolesListUser
