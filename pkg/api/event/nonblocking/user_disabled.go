@@ -37,8 +37,8 @@ func (e *UserDisabledEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *UserDisabledEventPayload) ReindexUserNeeded() bool {
-	return true
+func (e *UserDisabledEventPayload) RequireReindexUserIDs() []string {
+	return []string{e.UserID()}
 }
 
 func (e *UserDisabledEventPayload) IsUserDeleted() bool {

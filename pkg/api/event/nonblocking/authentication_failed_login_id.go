@@ -37,8 +37,8 @@ func (e *AuthenticationFailedLoginIDEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *AuthenticationFailedLoginIDEventPayload) ReindexUserNeeded() bool {
-	return false
+func (e *AuthenticationFailedLoginIDEventPayload) RequireReindexUserIDs() []string {
+	return []string{}
 }
 
 func (e *AuthenticationFailedLoginIDEventPayload) IsUserDeleted() bool {

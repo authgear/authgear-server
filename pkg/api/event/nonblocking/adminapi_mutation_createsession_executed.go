@@ -38,8 +38,8 @@ func (e *AdminAPIMutationCreateSessionExecutedEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *AdminAPIMutationCreateSessionExecutedEventPayload) ReindexUserNeeded() bool {
-	return false
+func (e *AdminAPIMutationCreateSessionExecutedEventPayload) RequireReindexUserIDs() []string {
+	return []string{}
 }
 
 func (e *AdminAPIMutationCreateSessionExecutedEventPayload) IsUserDeleted() bool {

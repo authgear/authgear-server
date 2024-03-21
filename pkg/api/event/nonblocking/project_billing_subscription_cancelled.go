@@ -36,8 +36,8 @@ func (e *ProjectBillingSubscriptionCancelledEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *ProjectBillingSubscriptionCancelledEventPayload) ReindexUserNeeded() bool {
-	return false
+func (e *ProjectBillingSubscriptionCancelledEventPayload) RequireReindexUserIDs() []string {
+	return []string{}
 }
 
 func (e *ProjectBillingSubscriptionCancelledEventPayload) IsUserDeleted() bool {

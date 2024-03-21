@@ -35,8 +35,8 @@ func (e *ProjectAppSecretViewedEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *ProjectAppSecretViewedEventPayload) ReindexUserNeeded() bool {
-	return false
+func (e *ProjectAppSecretViewedEventPayload) RequireReindexUserIDs() []string {
+	return []string{}
 }
 
 func (e *ProjectAppSecretViewedEventPayload) IsUserDeleted() bool {

@@ -36,8 +36,8 @@ func (e *AdminAPIMutationGenerateOOBOTPCodeExecutedEventPayload) ForAudit() bool
 	return true
 }
 
-func (e *AdminAPIMutationGenerateOOBOTPCodeExecutedEventPayload) ReindexUserNeeded() bool {
-	return false
+func (e *AdminAPIMutationGenerateOOBOTPCodeExecutedEventPayload) RequireReindexUserIDs() []string {
+	return []string{}
 }
 
 func (e *AdminAPIMutationGenerateOOBOTPCodeExecutedEventPayload) IsUserDeleted() bool {

@@ -40,8 +40,8 @@ func (e *UserDeletionUnscheduledEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *UserDeletionUnscheduledEventPayload) ReindexUserNeeded() bool {
-	return true
+func (e *UserDeletionUnscheduledEventPayload) RequireReindexUserIDs() []string {
+	return []string{e.UserID()}
 }
 
 func (e *UserDeletionUnscheduledEventPayload) IsUserDeleted() bool {

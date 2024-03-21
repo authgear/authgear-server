@@ -42,8 +42,8 @@ func (e *IdentityBiometricDisabledEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *IdentityBiometricDisabledEventPayload) ReindexUserNeeded() bool {
-	return false
+func (e *IdentityBiometricDisabledEventPayload) RequireReindexUserIDs() []string {
+	return []string{}
 }
 
 func (e *IdentityBiometricDisabledEventPayload) IsUserDeleted() bool {

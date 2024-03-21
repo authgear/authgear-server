@@ -36,8 +36,8 @@ func (e *ProjectDomainVerifiedEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *ProjectDomainVerifiedEventPayload) ReindexUserNeeded() bool {
-	return false
+func (e *ProjectDomainVerifiedEventPayload) RequireReindexUserIDs() []string {
+	return []string{}
 }
 
 func (e *ProjectDomainVerifiedEventPayload) IsUserDeleted() bool {

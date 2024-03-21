@@ -42,8 +42,8 @@ func (e *IdentityOAuthConnectedEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *IdentityOAuthConnectedEventPayload) ReindexUserNeeded() bool {
-	return true
+func (e *IdentityOAuthConnectedEventPayload) RequireReindexUserIDs() []string {
+	return []string{e.UserID()}
 }
 
 func (e *IdentityOAuthConnectedEventPayload) IsUserDeleted() bool {

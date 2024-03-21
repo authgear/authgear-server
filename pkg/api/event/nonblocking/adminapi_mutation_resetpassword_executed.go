@@ -37,8 +37,8 @@ func (e *AdminAPIMutationResetPasswordExecutedEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *AdminAPIMutationResetPasswordExecutedEventPayload) ReindexUserNeeded() bool {
-	return false
+func (e *AdminAPIMutationResetPasswordExecutedEventPayload) RequireReindexUserIDs() []string {
+	return []string{}
 }
 
 func (e *AdminAPIMutationResetPasswordExecutedEventPayload) IsUserDeleted() bool {

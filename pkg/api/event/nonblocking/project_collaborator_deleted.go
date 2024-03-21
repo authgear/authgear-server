@@ -37,8 +37,8 @@ func (e *ProjectCollaboratorDeletedEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *ProjectCollaboratorDeletedEventPayload) ReindexUserNeeded() bool {
-	return false
+func (e *ProjectCollaboratorDeletedEventPayload) RequireReindexUserIDs() []string {
+	return []string{}
 }
 
 func (e *ProjectCollaboratorDeletedEventPayload) IsUserDeleted() bool {

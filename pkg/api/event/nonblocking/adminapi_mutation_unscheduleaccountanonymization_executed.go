@@ -37,8 +37,8 @@ func (e *AdminAPIMutationUnscheduleAccountAnonymizationExecutedEventPayload) For
 	return true
 }
 
-func (e *AdminAPIMutationUnscheduleAccountAnonymizationExecutedEventPayload) ReindexUserNeeded() bool {
-	return false
+func (e *AdminAPIMutationUnscheduleAccountAnonymizationExecutedEventPayload) RequireReindexUserIDs() []string {
+	return []string{}
 }
 
 func (e *AdminAPIMutationUnscheduleAccountAnonymizationExecutedEventPayload) IsUserDeleted() bool {

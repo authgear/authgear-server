@@ -46,7 +46,7 @@ type NonBlockingPayload interface {
 	NonBlockingEventType() Type
 	ForHook() bool
 	ForAudit() bool
-	ReindexUserNeeded() bool
+	RequireReindexUserIDs() []string
 	IsUserDeleted() bool
 }
 

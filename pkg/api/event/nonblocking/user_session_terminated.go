@@ -51,8 +51,8 @@ func (e *UserSessionTerminatedEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *UserSessionTerminatedEventPayload) ReindexUserNeeded() bool {
-	return false
+func (e *UserSessionTerminatedEventPayload) RequireReindexUserIDs() []string {
+	return []string{}
 }
 
 func (e *UserSessionTerminatedEventPayload) IsUserDeleted() bool {

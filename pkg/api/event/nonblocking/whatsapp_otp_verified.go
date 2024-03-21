@@ -36,8 +36,8 @@ func (e *WhatsappOTPVerifiedEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *WhatsappOTPVerifiedEventPayload) ReindexUserNeeded() bool {
-	return false
+func (e *WhatsappOTPVerifiedEventPayload) RequireReindexUserIDs() []string {
+	return []string{}
 }
 
 func (e *WhatsappOTPVerifiedEventPayload) IsUserDeleted() bool {

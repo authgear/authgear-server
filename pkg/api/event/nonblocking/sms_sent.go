@@ -38,8 +38,8 @@ func (e *SMSSentEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *SMSSentEventPayload) ReindexUserNeeded() bool {
-	return false
+func (e *SMSSentEventPayload) RequireReindexUserIDs() []string {
+	return []string{}
 }
 
 func (e *SMSSentEventPayload) IsUserDeleted() bool {

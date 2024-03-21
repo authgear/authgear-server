@@ -35,8 +35,8 @@ func (*ProjectAppCreatedEventPayload) ForAudit() bool {
 	return true
 }
 
-func (*ProjectAppCreatedEventPayload) ReindexUserNeeded() bool {
-	return false
+func (*ProjectAppCreatedEventPayload) RequireReindexUserIDs() []string {
+	return []string{}
 }
 
 func (*ProjectAppCreatedEventPayload) IsUserDeleted() bool {

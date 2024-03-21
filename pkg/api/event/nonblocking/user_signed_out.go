@@ -44,8 +44,8 @@ func (e *UserSignedOutEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *UserSignedOutEventPayload) ReindexUserNeeded() bool {
-	return false
+func (e *UserSignedOutEventPayload) RequireReindexUserIDs() []string {
+	return []string{}
 }
 
 func (e *UserSignedOutEventPayload) IsUserDeleted() bool {

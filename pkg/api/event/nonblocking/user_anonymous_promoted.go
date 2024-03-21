@@ -44,8 +44,8 @@ func (e *UserAnonymousPromotedEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *UserAnonymousPromotedEventPayload) ReindexUserNeeded() bool {
-	return true
+func (e *UserAnonymousPromotedEventPayload) RequireReindexUserIDs() []string {
+	return []string{e.UserID()}
 }
 
 func (e *UserAnonymousPromotedEventPayload) IsUserDeleted() bool {

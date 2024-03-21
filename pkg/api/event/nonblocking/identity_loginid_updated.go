@@ -65,8 +65,8 @@ func (e *IdentityLoginIDUpdatedEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *IdentityLoginIDUpdatedEventPayload) ReindexUserNeeded() bool {
-	return true
+func (e *IdentityLoginIDUpdatedEventPayload) RequireReindexUserIDs() []string {
+	return []string{e.UserID()}
 }
 
 func (e *IdentityLoginIDUpdatedEventPayload) IsUserDeleted() bool {

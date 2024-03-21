@@ -40,8 +40,8 @@ func (e *UserAnonymizationScheduledEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *UserAnonymizationScheduledEventPayload) ReindexUserNeeded() bool {
-	return true
+func (e *UserAnonymizationScheduledEventPayload) RequireReindexUserIDs() []string {
+	return []string{e.UserID()}
 }
 
 func (e *UserAnonymizationScheduledEventPayload) IsUserDeleted() bool {
