@@ -240,6 +240,13 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
     </li>
     {{ else if eq .Error.reason "InvalidWhatsappUser" }}
     <li>{{ template "error-invalid-whatsapp-user" }}</li>
+    {{ else if eq .Error.reason "ChangePasswordFailed" }}
+      {{ $cause := .Error.info.cause }}
+        {{ if (eq $cause.kind "PasswordReused") }}
+        <span>{{ template "error-password-change-password-reused" }}</span>
+        {{ else }}
+        <span>{{ .Error.message }}</span>
+        {{ end }}
     {{ else }}
     <li>
       {{ template "error-unknown" }}{{ call $.LogUnknownError .Error }}

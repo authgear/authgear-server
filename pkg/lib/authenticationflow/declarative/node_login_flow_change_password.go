@@ -5,6 +5,7 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 )
@@ -50,6 +51,11 @@ func (n *NodeLoginFlowChangePassword) ReactTo(ctx context.Context, deps *authflo
 		})
 		if err != nil {
 			return nil, err
+		}
+
+		if !changed && n.Reason != nil && *n.Reason == PasswordChangeReasonExpiry {
+			// Password is expired, but the user did not change the password.
+			return nil, api.ErrPasswordReused
 		}
 
 		if !changed {
