@@ -37,6 +37,7 @@ image
 info
 input
 key_vertical
+keyboard
 label
 language
 light

@@ -142,6 +142,8 @@ export class CustomSelectController extends Controller {
     if (this.hasSearchTarget) {
       this.searchTarget.focus();
     }
+
+    this.dispatch("open");
   }
 
   close() {
@@ -150,6 +152,8 @@ export class CustomSelectController extends Controller {
     this.dropdownTarget.classList.add("hidden");
     this.triggerTarget.setAttribute("aria-expanded", "false");
     this.triggerTarget.focus();
+
+    this.dispatch("close");
   }
 
   private resetHightlightIndex() {

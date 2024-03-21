@@ -14,9 +14,10 @@
 {{ define "authflowv2/__phone_input.html" }}
 <div class="phone-input" data-controller="phone-input">
   <div
-    data-controller="custom-select"
+    data-controller="custom-select body-scroll-lock"
     data-phone-input-target="countrySelect"
-    data-action="custom-select:initialized->phone-input#handleCountrySelectInitialized">
+    data-action="custom-select:initialized->phone-input#handleCountrySelectInitialized custom-select:open->body-scroll-lock#lock custom-select:close->body-scroll-lock#unlock"
+  >
     <!-- NOTE(tung): Use type="text" here,
       because browser will not restore value of input with type="hidden" on back -->
     <input
@@ -55,6 +56,7 @@
             <input
               class="select__search-input"
               placeholder="{{ template "v2-search-label" }}"
+              data-controller="dismiss-keyboard-on-scroll"
               data-custom-select-target="search"
               data-action="input->custom-select#search"
             >
