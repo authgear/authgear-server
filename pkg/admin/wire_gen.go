@@ -553,12 +553,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
 	elasticsearchService := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     userQueries,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
+		AppID:       appID,
+		Client:      client,
+		Users:       userQueries,
+		OAuth:       oauthStore,
+		LoginID:     loginidStore,
+		RolesGroups: rolesgroupsStore,
+		TaskQueue:   queue,
 	}
 	rawCommands := &user.RawCommands{
 		Store: store,
@@ -623,12 +624,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	service5 := elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     userQueries,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
+		AppID:       appID,
+		Client:      client,
+		Users:       userQueries,
+		OAuth:       oauthStore,
+		LoginID:     loginidStore,
+		RolesGroups: rolesgroupsStore,
+		TaskQueue:   queue,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,

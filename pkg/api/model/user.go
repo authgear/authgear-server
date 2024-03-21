@@ -57,6 +57,9 @@ type ElasticsearchUserRaw struct {
 	PhoneNumber        []string
 	OAuthSubjectID     []string
 	StandardAttributes map[string]interface{}
+
+	Groups         []*Group
+	EffectiveRoles []*Role
 }
 
 type ElasticsearchUserSource struct {
@@ -104,4 +107,9 @@ type ElasticsearchUserSource struct {
 	Region        string `json:"region,omitempty"`
 	PostalCode    string `json:"postal_code,omitempty"`
 	Country       string `json:"country,omitempty"`
+
+	RoleKey   []string `json:"role_key,omitempty"`
+	RoleName  []string `json:"role_name,omitempty"`
+	GroupKey  []string `json:"group_key,omitempty"`
+	GroupName []string `json:"group_name,omitempty"`
 }

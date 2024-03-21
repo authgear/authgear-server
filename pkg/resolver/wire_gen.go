@@ -608,12 +608,13 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
 	elasticsearchService := elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     userQueries,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
+		AppID:       appID,
+		Client:      client,
+		Users:       userQueries,
+		OAuth:       oauthStore,
+		LoginID:     loginidStore,
+		RolesGroups: rolesgroupsStore,
+		TaskQueue:   queue,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
