@@ -120,6 +120,7 @@ export const GroupRolesList: React.VFC<GroupRolesListProps> =
           case GroupRolesListColumnKey.Action: {
             return (
               <ActionButtonCell
+                variant="destructive"
                 text={renderToString("GroupRolesList.actions.remove")}
                 onClick={(e) => {
                   onClickDeleteRole(e, item);

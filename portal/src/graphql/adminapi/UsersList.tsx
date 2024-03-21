@@ -335,12 +335,12 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
           return <UserInfo item={item} />;
         }
         case "action": {
-          const theme =
+          const variant =
             item.deleteAt != null
-              ? themes.actionButton
+              ? "default"
               : item.isDisabled
-              ? themes.actionButton
-              : themes.destructive;
+              ? "default"
+              : "destructive";
 
           const text =
             item.deleteAt != null
@@ -355,7 +355,7 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
 
           return (
             <ActionButtonCell
-              theme={theme}
+              variant={variant}
               onClick={(event) => onUserActionClick(event, item)}
               text={text}
             />
@@ -399,7 +399,7 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
           );
       }
     },
-    [onUserActionClick, renderToString, themes.actionButton, themes.destructive]
+    [onUserActionClick, renderToString]
   );
 
   const dismissDisableUserDialog = useCallback(() => {

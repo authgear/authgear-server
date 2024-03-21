@@ -134,6 +134,7 @@ export const UserGroupsList: React.VFC<UserGroupsListProps> =
           case UserGroupsListColumnKey.Action: {
             return (
               <ActionButtonCell
+                variant="destructive"
                 text={renderToString("UserGroupsList.actions.remove")}
                 onClick={(e) => {
                   onClickDeleteGroup(e, item);

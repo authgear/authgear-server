@@ -154,6 +154,7 @@ const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
         case "action": {
           return (
             <ActionButtonCell
+              variant="destructive"
               text={renderToString("GroupsList.delete-group")}
               onClick={(e) => {
                 onClickDeleteGroup(e, item);
