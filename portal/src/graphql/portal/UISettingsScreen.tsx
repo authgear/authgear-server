@@ -62,6 +62,7 @@ import WidgetDescription from "../../WidgetDescription";
 import Toggle from "../../Toggle";
 import { ErrorParseRule, ParsedAPIError } from "../../error/parse";
 import { APIError } from "../../error/error";
+import ReplaceLanguagesConfirmationDialog from "./ReplaceLanguagesConfirmationDialog";
 
 const ImageMaxSizeInKB = 100;
 
@@ -666,8 +667,8 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             <FormattedMessage id="UISettingsScreen.title" />
           </ScreenTitle>
           <ManageLanguageWidget
-            supportedLanguagesForDropdown={initialSupportedLanguages}
-            supportedLanguagesForEditing={supportedLanguages}
+            existingLanguages={initialSupportedLanguages}
+            supportedLanguages={supportedLanguages}
             selectedLanguage={state.selectedLanguage}
             fallbackLanguage={state.fallbackLanguage}
             onChangeSelectedLanguage={setSelectedLanguage}
@@ -886,42 +887,80 @@ const UISettingsScreen: React.VFC = function UISettingsScreen() {
     ]
   );
 
-  const form: FormModel = {
-    isLoading: config.isLoading || resources.isLoading || featureConfig.loading,
-    isUpdating: config.isUpdating || resources.isUpdating,
-    isDirty: config.isDirty || resources.isDirty,
-    loadError: config.loadError ?? resources.loadError ?? featureConfig.error,
-    updateError: config.updateError ?? resources.updateError,
-    state,
-    setState: (fn) => {
-      const newState = fn(state);
-      config.setState(() => ({
-        supportedLanguages: newState.supportedLanguages,
-        fallbackLanguage: newState.fallbackLanguage,
-        darkThemeDisabled: newState.darkThemeDisabled,
-        watermarkDisabled: newState.watermarkDisabled,
-        default_client_uri: newState.default_client_uri,
-        default_redirect_uri: newState.default_redirect_uri,
-        default_post_logout_redirect_uri:
-          newState.default_post_logout_redirect_uri,
-      }));
-      resources.setState(() => ({ resources: newState.resources }));
-      setSelectedLanguage(newState.selectedLanguage);
-    },
-    reload: () => {
-      config.reload();
-      resources.reload();
-      featureConfig.refetch().finally(() => {});
-    },
-    reset: () => {
-      config.reset();
-      resources.reset();
-      setSelectedLanguage(config.state.fallbackLanguage);
-    },
-    save: async (ignoreConflict: boolean = false) => {
-      await config.save(ignoreConflict);
-      await resources.save(ignoreConflict);
-    },
+  const allExistingLanguageAreRemoved = useMemo(() => {
+    return initialSupportedLanguages.every(
+      (locale) => !state.supportedLanguages.includes(locale)
+    );
+  }, [initialSupportedLanguages, state.supportedLanguages]);
+
+  const [
+    isClearLocalizationConfirmationDialogVisible,
+    setIsClearLocalizationConfirmationDialogVisible,
+  ] = useState(false);
+
+  const dismissClearLocalizationConfirmationDialog = useCallback(() => {
+    setIsClearLocalizationConfirmationDialogVisible(false);
+  }, []);
+
+  const form: FormModel = useMemo(
+    () => ({
+      isLoading:
+        config.isLoading || resources.isLoading || featureConfig.loading,
+      isUpdating: config.isUpdating || resources.isUpdating,
+      isDirty: config.isDirty || resources.isDirty,
+      loadError: config.loadError ?? resources.loadError ?? featureConfig.error,
+      updateError: config.updateError ?? resources.updateError,
+      state,
+      setState: (fn) => {
+        const newState = fn(state);
+        config.setState(() => ({
+          supportedLanguages: newState.supportedLanguages,
+          fallbackLanguage: newState.fallbackLanguage,
+          darkThemeDisabled: newState.darkThemeDisabled,
+          watermarkDisabled: newState.watermarkDisabled,
+          default_client_uri: newState.default_client_uri,
+          default_redirect_uri: newState.default_redirect_uri,
+          default_post_logout_redirect_uri:
+            newState.default_post_logout_redirect_uri,
+        }));
+        resources.setState(() => ({ resources: newState.resources }));
+        setSelectedLanguage(newState.selectedLanguage);
+      },
+      reload: () => {
+        config.reload();
+        resources.reload();
+        featureConfig.refetch().finally(() => {});
+      },
+      reset: () => {
+        config.reset();
+        resources.reset();
+        setSelectedLanguage(config.state.fallbackLanguage);
+      },
+      save: async (ignoreConflict: boolean = false) => {
+        await config.save(ignoreConflict);
+        await resources.save(ignoreConflict);
+      },
+    }),
+    [config, featureConfig, resources, state]
+  );
+
+  const confirmFormSave = useCallback(async () => {
+    if (allExistingLanguageAreRemoved) {
+      setIsClearLocalizationConfirmationDialogVisible(true);
+      return;
+    }
+
+    await form.save();
+  }, [allExistingLanguageAreRemoved, form]);
+
+  const doFormSave = useCallback(async () => {
+    dismissClearLocalizationConfirmationDialog();
+    await form.save();
+  }, [dismissClearLocalizationConfirmationDialog, form]);
+
+  const formWithConfirmation = {
+    ...form,
+    save: confirmFormSave,
   };
 
   const imageSizeTooLargeErrorRule = useCallback(
@@ -983,10 +1022,19 @@ const UISettingsScreen: React.VFC = function UISettingsScreen() {
   }
 
   return (
-    <FormContainer form={form} canSave={true} errorRules={errorRules}>
+    <FormContainer
+      form={formWithConfirmation}
+      canSave={true}
+      errorRules={errorRules}
+    >
       <ResourcesConfigurationContent
         form={form}
         initialSupportedLanguages={initialSupportedLanguages}
+      />
+      <ReplaceLanguagesConfirmationDialog
+        visible={isClearLocalizationConfirmationDialogVisible}
+        onDismiss={dismissClearLocalizationConfirmationDialog}
+        onConfirm={doFormSave}
       />
     </FormContainer>
   );

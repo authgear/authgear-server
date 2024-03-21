@@ -20,6 +20,7 @@ import {
   List,
   Text,
   IRenderFunction,
+  IDropdownStyles,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
@@ -36,8 +37,8 @@ interface ManageLanguageWidgetProps {
   className?: string;
 
   // The supported languages.
-  supportedLanguagesForDropdown: LanguageTag[];
-  supportedLanguagesForEditing: LanguageTag[];
+  existingLanguages: LanguageTag[];
+  supportedLanguages: LanguageTag[];
 
   // The selected language.
   selectedLanguage: LanguageTag;
@@ -56,8 +57,9 @@ interface ManageLanguageWidgetDialogProps {
   presented: boolean;
   onDismiss: () => void;
   fallbackLanguage: LanguageTag;
+  existingLanguages: LanguageTag[];
   supportedLanguages: LanguageTag[];
-  onChangeLanguages?: (
+  onChangeLanguages: (
     supportedLanguages: LanguageTag[],
     fallbackLanguage: LanguageTag
   ) => void;
@@ -125,6 +127,12 @@ const Cell: React.VFC<CellProps> = function Cell(props: CellProps) {
       ) : null}
     </div>
   );
+};
+
+const dropdownStyles: Partial<IDropdownStyles> = {
+  dropdownItemDisabled: {
+    fontStyle: "italic",
+  },
 };
 
 const ManageLanguageWidgetDialog: React.VFC<ManageLanguageWidgetDialogProps> =
@@ -230,7 +238,7 @@ const ManageLanguageWidgetDialog: React.VFC<ManageLanguageWidgetDialogProps> =
     }, [onDismiss]);
 
     const onApplyClick = useCallback(() => {
-      onChangeLanguages?.(newSupportedLanguages, newFallbackLanguage);
+      onChangeLanguages(newSupportedLanguages, newFallbackLanguage);
       onDismiss();
     }, [
       onChangeLanguages,
@@ -277,13 +285,13 @@ const ManageLanguageWidgetDialog: React.VFC<ManageLanguageWidgetDialogProps> =
           <List items={listItems} onRenderCell={renderLocaleListItemCell} />
         </div>
         <DialogFooter>
-          <DefaultButton
-            onClick={onCancel}
-            text={<FormattedMessage id="cancel" />}
-          />
           <PrimaryButton
             onClick={onApplyClick}
             text={<FormattedMessage id="apply" />}
+          />
+          <DefaultButton
+            onClick={onCancel}
+            text={<FormattedMessage id="cancel" />}
           />
         </DialogFooter>
       </Dialog>
@@ -294,8 +302,8 @@ const ManageLanguageWidget: React.VFC<ManageLanguageWidgetProps> =
   function ManageLanguageWidget(props: ManageLanguageWidgetProps) {
     const {
       className,
-      supportedLanguagesForEditing,
-      supportedLanguagesForDropdown,
+      supportedLanguages,
+      existingLanguages,
       selectedLanguage,
       onChangeSelectedLanguage,
       fallbackLanguage,
@@ -321,24 +329,52 @@ const ManageLanguageWidget: React.VFC<ManageLanguageWidgetProps> =
       setIsDialogPresented(false);
     }, []);
 
-    const templateLocaleOptions = useMemo(() => {
+    const templateLocaleOptions: IDropdownOption[] = useMemo(() => {
       const options = [];
-      for (const locale of supportedLanguagesForDropdown) {
+
+      const combinedLocales = new Set([
+        ...existingLanguages,
+        ...supportedLanguages,
+      ]);
+
+      for (const locale of combinedLocales) {
+        const isNew = !existingLanguages.includes(locale);
+        const isRemoved = !supportedLanguages.includes(locale);
+
+        let localeDisplay = displayTemplateLocale(locale);
+        if (isRemoved) {
+          localeDisplay = renderToString(
+            "ManageLanguageWidget.option-removed",
+            {
+              LANG: localeDisplay,
+            }
+          );
+        }
+
         options.push({
           key: locale,
-          text: displayTemplateLocale(locale),
+          text: localeDisplay,
           data: {
             isFallbackLanguage: fallbackLanguage === locale,
           },
+          disabled: isRemoved || isNew,
         });
       }
 
       return options;
     }, [
-      supportedLanguagesForDropdown,
+      existingLanguages,
+      supportedLanguages,
       displayTemplateLocale,
       fallbackLanguage,
+      renderToString,
     ]);
+
+    const hasNewLanguage = useMemo(() => {
+      return supportedLanguages.some(
+        (locale) => !existingLanguages.includes(locale)
+      );
+    }, [existingLanguages, supportedLanguages]);
 
     const onChangeTemplateLocale = useCallback(
       (_e: unknown, option?: IDropdownOption) => {
@@ -389,31 +425,40 @@ const ManageLanguageWidget: React.VFC<ManageLanguageWidgetProps> =
         <ManageLanguageWidgetDialog
           presented={isDialogPresented}
           onDismiss={dismissDialog}
-          supportedLanguages={supportedLanguagesForEditing}
+          existingLanguages={existingLanguages}
+          supportedLanguages={supportedLanguages}
           fallbackLanguage={fallbackLanguage}
           onChangeLanguages={onChangeLanguages}
         />
         <div className={cn(className, styles.root)}>
-          <Label className={styles.titleLabel}>
-            <FormattedMessage id="ManageLanguageWidget.title" />
-          </Label>
-          <div className={styles.control}>
-            <Dropdown
-              id="language-widget"
-              className={styles.dropdown}
-              options={templateLocaleOptions}
-              onChange={onChangeTemplateLocale}
-              selectedKey={selectedLanguage}
-              onRenderTitle={onRenderTitle}
-              onRenderOption={onRenderOption}
-            />
-            <IconButton
-              iconProps={{
-                iconName: "Settings",
-              }}
-              onClick={presentDialog}
-            />
+          <div className={styles.container}>
+            <Label className={styles.titleLabel}>
+              <FormattedMessage id="ManageLanguageWidget.title" />
+            </Label>
+            <div className={styles.control}>
+              <Dropdown
+                id="language-widget"
+                className={styles.dropdown}
+                styles={dropdownStyles}
+                options={templateLocaleOptions}
+                onChange={onChangeTemplateLocale}
+                selectedKey={selectedLanguage}
+                onRenderTitle={onRenderTitle}
+                onRenderOption={onRenderOption}
+              />
+              <IconButton
+                iconProps={{
+                  iconName: "Settings",
+                }}
+                onClick={presentDialog}
+              />
+            </div>
           </div>
+          {hasNewLanguage ? (
+            <Text className={styles.hint} variant="small">
+              <FormattedMessage id="ManageLanguageWidget.save-to-select-new-language" />
+            </Text>
+          ) : null}
         </div>
       </>
     );
