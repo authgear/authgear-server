@@ -98,7 +98,11 @@ var IndexMappings = `
 		"zoneinfo": { "type": "keyword" },
 		"locale": { "type": "keyword" },
 		"country": { "type": "keyword" },
-		"postal_code": { "type": "keyword" }
+		"postal_code": { "type": "keyword" },
+		"role_key": { "type": "keyword" },
+		"role_name": { "type": "text" },
+		"group_key": { "type": "keyword" },
+		"group_name": { "type": "text" }
 	}
 }
 `
