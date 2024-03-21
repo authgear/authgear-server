@@ -47,7 +47,8 @@ func (n *NodeChangePasswordBegin) GetEffects() ([]interaction.Effect, error) {
 
 func (n *NodeChangePasswordBegin) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
 	return []interaction.Edge{&EdgeChangePassword{
-		Stage: n.Stage,
+		Stage:  n.Stage,
+		Reason: n.Reason,
 	}}, nil
 }
 
@@ -62,7 +63,8 @@ type InputChangePassword interface {
 }
 
 type EdgeChangePassword struct {
-	Stage authn.AuthenticationStage
+	Stage  authn.AuthenticationStage
+	Reason *interaction.AuthenticatorUpdateReason
 }
 
 func (e *EdgeChangePassword) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (node interaction.Node, err error) {
@@ -126,6 +128,12 @@ func (e *EdgeChangePassword) Instantiate(ctx *interaction.Context, graph *intera
 		},
 	})
 	if err != nil {
+		return
+	}
+
+	if !changed && e.Reason != nil && *e.Reason == interaction.AuthenticatorUpdateReasonExpiry {
+		// Password is expired, but the user did not change the password.
+		err = api.ErrPasswordReused
 		return
 	}
 
