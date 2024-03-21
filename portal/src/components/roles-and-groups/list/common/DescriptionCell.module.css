@@ -1,6 +1,6 @@
 .description {
+  @apply line-clamp-2;
   white-space: normal;
-  overflow: hidden;
   text-overflow: ellipsis;
   font-size: 12px;
   line-height: 16px;

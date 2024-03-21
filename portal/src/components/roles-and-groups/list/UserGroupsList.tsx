@@ -173,7 +173,7 @@ export const UserGroupsList: React.VFC<UserGroupsListProps> =
               item.roles.totalCount > 3 ? ` +${item.roles.totalCount - 3}` : "";
             return (
               <BaseCell>
-                <Text className="whitespace-normal">{`${text}${addtionalInfo}`}</Text>
+                <Text className="whitespace-normal line-clamp-2">{`${text}${addtionalInfo}`}</Text>
               </BaseCell>
             );
           }
