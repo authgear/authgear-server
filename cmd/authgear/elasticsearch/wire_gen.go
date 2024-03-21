@@ -50,6 +50,7 @@ func NewReindexer(ctx context.Context, pool *db.Pool, databaseCredentials *confi
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clock,
+		AppID:       appID,
 	}
 	identityConfig := NewEmptyIdentityConfig()
 	oauthStore := &oauth.Store{

@@ -949,6 +949,7 @@ export type QueryUsersArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
   groupKeys?: InputMaybe<Array<Scalars['String']['input']>>;
   last?: InputMaybe<Scalars['Int']['input']>;
+  roleKeys?: InputMaybe<Array<Scalars['String']['input']>>;
   searchKeyword?: InputMaybe<Scalars['String']['input']>;
   sortBy?: InputMaybe<UserSortBy>;
   sortDirection?: InputMaybe<SortDirection>;
