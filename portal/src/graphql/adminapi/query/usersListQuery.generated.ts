@@ -8,6 +8,8 @@ export type UsersListFragment = { __typename?: 'UserConnection', totalCount?: nu
 export type UsersListQueryQueryVariables = Types.Exact<{
   searchKeyword: Types.Scalars['String']['input'];
   pageSize: Types.Scalars['Int']['input'];
+  groupKeys?: Types.InputMaybe<Array<Types.Scalars['String']['input']> | Types.Scalars['String']['input']>;
+  roleKeys?: Types.InputMaybe<Array<Types.Scalars['String']['input']> | Types.Scalars['String']['input']>;
   cursor?: Types.InputMaybe<Types.Scalars['String']['input']>;
   sortBy?: Types.InputMaybe<Types.UserSortBy>;
   sortDirection?: Types.InputMaybe<Types.SortDirection>;
@@ -40,11 +42,13 @@ export const UsersListFragmentDoc = gql`
 }
     `;
 export const UsersListQueryDocument = gql`
-    query UsersListQuery($searchKeyword: String!, $pageSize: Int!, $cursor: String, $sortBy: UserSortBy, $sortDirection: SortDirection) {
+    query UsersListQuery($searchKeyword: String!, $pageSize: Int!, $groupKeys: [String!], $roleKeys: [String!], $cursor: String, $sortBy: UserSortBy, $sortDirection: SortDirection) {
   users(
     first: $pageSize
     after: $cursor
     searchKeyword: $searchKeyword
+    groupKeys: $groupKeys
+    roleKeys: $roleKeys
     sortBy: $sortBy
     sortDirection: $sortDirection
   ) {
@@ -67,6 +71,8 @@ export const UsersListQueryDocument = gql`
  *   variables: {
  *      searchKeyword: // value for 'searchKeyword'
  *      pageSize: // value for 'pageSize'
+ *      groupKeys: // value for 'groupKeys'
+ *      roleKeys: // value for 'roleKeys'
  *      cursor: // value for 'cursor'
  *      sortBy: // value for 'sortBy'
  *      sortDirection: // value for 'sortDirection'
