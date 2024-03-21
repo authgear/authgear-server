@@ -97,19 +97,12 @@ func (s *Store) ListEffectiveRolesByUserID(userID string) ([]*Role, error) {
 }
 
 func (s *Store) ListRolesByUserID(userID string) ([]*Role, error) {
-	q := s.SQLBuilder.Select(
-		"r.id",
-		"r.created_at",
-		"r.updated_at",
-		"r.key",
-		"r.name",
-		"r.description",
-	).
-		From(s.SQLBuilder.TableName("_auth_user_role"), "ur").
-		Join(s.SQLBuilder.TableName("_auth_role"), "r", "ur.role_id = r.id").
-		Where("ur.user_id = ?", userID)
+  userRoles, err := s.ListRolesByUserIDs([]string{userID})
+  if err != nil {
+    return nil, err
+  }
 
-	return s.queryRoles(q)
+  return userRoles[userID], nil
 }
 
 func (s *Store) ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageArgs) ([]string, uint64, error) {
