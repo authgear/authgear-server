@@ -28,12 +28,12 @@ func (s *Store) ListGroupsByUserIDs(userIDs []string) (map[string][]*Group, erro
 }
 
 func (s *Store) ListGroupsByUserID(userID string) ([]*Group, error) {
-  userGroups, err := s.ListGroupsByUserIDs([]string{userID})
-  if err != nil {
-    return nil, err
-  }
+	userGroups, err := s.ListGroupsByUserIDs([]string{userID})
+	if err != nil {
+		return nil, err
+	}
 
-  return userGroups[userID], nil
+	return userGroups[userID], nil
 }
 
 func (s *Store) ListUserIDsByGroupID(groupID string, pageArgs graphqlutil.PageArgs) ([]string, uint64, error) {

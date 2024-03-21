@@ -97,12 +97,12 @@ func (s *Store) ListEffectiveRolesByUserID(userID string) ([]*Role, error) {
 }
 
 func (s *Store) ListRolesByUserID(userID string) ([]*Role, error) {
-  userRoles, err := s.ListRolesByUserIDs([]string{userID})
-  if err != nil {
-    return nil, err
-  }
+	userRoles, err := s.ListRolesByUserIDs([]string{userID})
+	if err != nil {
+		return nil, err
+	}
 
-  return userRoles[userID], nil
+	return userRoles[userID], nil
 }
 
 func (s *Store) ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageArgs) ([]string, uint64, error) {
