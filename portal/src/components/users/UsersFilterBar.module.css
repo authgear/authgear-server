@@ -1,6 +1,7 @@
 .root {
-  @apply flex gap-4;
-  @apply mobile:flex-col;
+  @apply overflow-hidden;
+  @apply flex gap-4 flex-wrap;
+  @apply mobile:flex-col mobile:flex-nowrap;
 }
 
 .searchBox {
@@ -9,10 +10,13 @@
 }
 
 .filterContainer {
-  @apply flex gap-x-4;
+  @apply flex gap-x-4 overflow-hidden;
 }
 
 .filter {
-  @apply w-[100px] flex-none;
-  @apply mobile:flex-1;
+  /* Set flex basis to auto so it can wrap */
+  /* Set flex shrink to 1 so it will not take more than remaining spaces */
+  flex: 0 1 auto;
+  @apply min-w-[100px] max-w-[300px];
+  @apply mobile:flex-1 mobile:min-w-0 mobile:max-w-none;
 }
