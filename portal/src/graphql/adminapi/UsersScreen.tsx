@@ -1,11 +1,12 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  ICommandBarItemProps,
-  SearchBox,
-  ISearchBoxProps,
-  MessageBar,
-} from "@fluentui/react";
+import { MessageBar } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useQuery } from "@apollo/client";
 import NavBreadcrumb from "../../NavBreadcrumb";
@@ -24,95 +25,47 @@ import ShowError from "../../ShowError";
 import useDelayedValue from "../../hook/useDelayedValue";
 
 import styles from "./UsersScreen.module.css";
-import { onRenderCommandBarPrimaryButton } from "../../CommandBarPrimaryButton";
+import PrimaryButton from "../../PrimaryButton";
+import {
+  UsersFilter,
+  UsersFilterBar,
+} from "../../components/users/UsersFilterBar";
+import {
+  RolesListQueryDocument,
+  RolesListQueryQuery,
+  RolesListQueryQueryVariables,
+} from "./query/rolesListQuery.generated";
+import {
+  GroupsListQueryDocument,
+  GroupsListQueryQuery,
+  GroupsListQueryQueryVariables,
+} from "./query/groupsListQuery.generated";
 
 const pageSize = 10;
 // We have performance problem on the users query
 // limit to 10 items for now
 const searchResultSize = 10;
 
-const UsersScreen: React.VFC = function UsersScreen() {
-  const { searchEnabled } = useSystemConfig();
+function useRemoteData(options: {
+  filters: UsersFilter;
+  offset: number;
+  sortBy: UserSortBy | undefined;
+  sortDirection: SortDirection | undefined;
+}) {
+  const { filters, offset, sortBy, sortDirection } = options;
 
-  const [searchKeyword, setSearchKeyword] = useState("");
-  const debouncedSearchKey = useDelayedValue(searchKeyword, 500);
+  const isSearch = filters.searchKeyword !== "";
 
-  const [offset, setOffset] = useState(0);
-  const [sortBy, setSortBy] = useState<UserSortBy | undefined>(undefined);
-  const [sortDirection, setSortDirection] = useState<SortDirection | undefined>(
-    undefined
-  );
+  const debouncedSearchKey = useDelayedValue(filters.searchKeyword, 500);
 
-  const { renderToString } = useContext(Context);
-  const navigate = useNavigate();
+  const filterGroupKeys = useMemo(() => {
+    return filters.group == null ? undefined : [filters.group.group.key];
+  }, [filters.group]);
 
-  const isSearch = searchKeyword !== "";
+  const filterRoleKeys = useMemo(() => {
+    return filters.role == null ? undefined : [filters.role.role.key];
+  }, [filters.role]);
 
-  const items = useMemo(() => {
-    return [{ to: ".", label: <FormattedMessage id="UsersScreen.title" /> }];
-  }, []);
-
-  const onChangeSearchKeyword = useCallback((_e, value) => {
-    if (value != null) {
-      setSearchKeyword(value);
-      // Reset offset when search keyword was changed.
-      setOffset(0);
-    }
-  }, []);
-
-  const onClearSearchKeyword = useCallback((_e) => {
-    setSearchKeyword("");
-    // Reset offset when search keyword was changed.
-    setOffset(0);
-  }, []);
-
-  const searchBoxProps: ISearchBoxProps = useMemo(() => {
-    return {
-      className: styles.searchBox,
-      placeholder: renderToString("search"),
-      value: searchKeyword,
-      onChange: onChangeSearchKeyword,
-      onClear: onClearSearchKeyword,
-    };
-  }, [
-    renderToString,
-    searchKeyword,
-    onChangeSearchKeyword,
-    onClearSearchKeyword,
-  ]);
-
-  // If secondaryItems changes on every key stroke,
-  // input method such as cangjie cannot be used.
-  // Every key stroke is entered into the text box literally without giving us a chance to select character.
-  // This can be work around by using context.
-  const secondaryItems: ICommandBarItemProps[] = useMemo(() => {
-    if (searchEnabled) {
-      return [
-        {
-          key: "search",
-          // eslint-disable-next-line react/no-unstable-nested-components
-          onRender: () => <SearchBox {...searchBoxProps} />,
-        },
-      ];
-    }
-    return [];
-  }, [searchBoxProps, searchEnabled]);
-
-  const primaryItems: ICommandBarItemProps[] = useMemo(() => {
-    return [
-      {
-        key: "addUser",
-        text: renderToString("UsersScreen.add-user"),
-        iconProps: { iconName: "CirclePlus" },
-        onClick: () => navigate("./add-user"),
-        onRender: onRenderCommandBarPrimaryButton,
-      },
-    ];
-  }, [navigate, renderToString]);
-
-  // after: is exclusive so if we pass it "offset:0",
-  // The first item is excluded.
-  // Therefore we have adjust it by -1.
   const cursor = useMemo(() => {
     if (isSearch) {
       // Search always query all rows.
@@ -124,23 +77,109 @@ const UsersScreen: React.VFC = function UsersScreen() {
     return encodeOffsetToCursor(offset - 1);
   }, [isSearch, offset]);
 
+  const {
+    data,
+    error,
+    loading,
+    refetch: refetchUsersListData,
+  } = useQuery<UsersListQueryQuery, UsersListQueryQueryVariables>(
+    UsersListQueryDocument,
+    {
+      variables: {
+        pageSize: isSearch ? searchResultSize : pageSize,
+        cursor,
+        sortBy,
+        sortDirection,
+        searchKeyword: debouncedSearchKey,
+        groupKeys: filterGroupKeys,
+        roleKeys: filterRoleKeys,
+      },
+      fetchPolicy: "network-only",
+    }
+  );
+
+  const {
+    data: rolesListData,
+    loading: isRolesListDataLoading,
+    error: rolesListDataError,
+    refetch: refetchRolesListData,
+  } = useQuery<RolesListQueryQuery, RolesListQueryQueryVariables>(
+    RolesListQueryDocument,
+    {
+      variables: {
+        pageSize: 0,
+        searchKeyword: "",
+      },
+      fetchPolicy: "network-only",
+    }
+  );
+
+  const {
+    data: groupsListData,
+    loading: isGroupsListDataLoading,
+    error: groupsListDataError,
+    refetch: refetchGroupsListData,
+  } = useQuery<GroupsListQueryQuery, GroupsListQueryQueryVariables>(
+    GroupsListQueryDocument,
+    {
+      variables: {
+        pageSize: 0,
+        searchKeyword: "",
+      },
+      fetchPolicy: "network-only",
+    }
+  );
+
+  return {
+    isLoading: loading || isRolesListDataLoading || isGroupsListDataLoading,
+    error: error ?? rolesListDataError ?? groupsListDataError,
+    data,
+    isGroupsEmpty:
+      groupsListData?.groups == null || groupsListData.groups.totalCount === 0,
+    isRolesEmpty:
+      rolesListData?.roles == null || rolesListData.roles.totalCount === 0,
+    refetch: useCallback(
+      async () =>
+        Promise.all([
+          refetchUsersListData(),
+          refetchGroupsListData(),
+          refetchRolesListData(),
+        ]),
+      [refetchGroupsListData, refetchRolesListData, refetchUsersListData]
+    ),
+  };
+}
+
+const UsersScreen: React.VFC = function UsersScreen() {
+  const { searchEnabled } = useSystemConfig();
+
+  const [filters, setFilters] = useState<UsersFilter>({
+    searchKeyword: "",
+    role: null,
+    group: null,
+  });
+
+  const [offset, setOffset] = useState(0);
+  const [sortBy, setSortBy] = useState<UserSortBy | undefined>(undefined);
+  const [sortDirection, setSortDirection] = useState<SortDirection | undefined>(
+    undefined
+  );
+
+  const { renderToString } = useContext(Context);
+  const navigate = useNavigate();
+
+  const isSearch = filters.searchKeyword !== "";
+
+  const items = useMemo(() => {
+    return [{ to: ".", label: <FormattedMessage id="UsersScreen.title" /> }];
+  }, []);
+
   const onChangeOffset = useCallback((offset) => {
     setOffset(offset);
   }, []);
 
-  const { data, error, loading, refetch } = useQuery<
-    UsersListQueryQuery,
-    UsersListQueryQueryVariables
-  >(UsersListQueryDocument, {
-    variables: {
-      pageSize: isSearch ? searchResultSize : pageSize,
-      cursor,
-      sortBy,
-      sortDirection,
-      searchKeyword: debouncedSearchKey,
-    },
-    fetchPolicy: "network-only",
-  });
+  const { data, isLoading, isGroupsEmpty, isRolesEmpty, error, refetch } =
+    useRemoteData({ filters, offset, sortBy, sortDirection });
 
   const isTotalExceededLimit =
     (data?.users?.totalCount ?? 0) > searchResultSize;
@@ -171,18 +210,44 @@ const UsersScreen: React.VFC = function UsersScreen() {
     [sortBy, sortDirection]
   );
 
+  // We do not allow using filter and search at the same time
+  const isFiltering = filters.group !== null || filters.role !== null;
+  useEffect(() => {
+    if (isFiltering) {
+      setFilters((prev) => ({ ...prev, searchKeyword: "" }));
+    }
+  }, [isFiltering]);
+
   return (
     <CommandBarContainer
       className={styles.root}
-      isLoading={loading}
-      primaryItems={primaryItems}
-      secondaryItems={secondaryItems}
+      isLoading={isLoading}
       messageBar={messageBar}
+      hideCommandBar={true}
     >
       <ScreenContent className={styles.content} layout="list">
         <div className={styles.widget}>
-          <NavBreadcrumb className="block" items={items} />
-          {isSearch && isTotalExceededLimit && !loading ? (
+          <div className="flex gap-x-1">
+            <NavBreadcrumb
+              className="flex-1 overflow-hidden items-center"
+              items={items}
+            />
+            <PrimaryButton
+              text={renderToString("UsersScreen.add-user")}
+              iconProps={useMemo(() => ({ iconName: "Add" }), [])}
+              onClick={useCallback(() => navigate("./add-user"), [navigate])}
+            />
+          </div>
+          <UsersFilterBar
+            className="mt-12"
+            isSearchDisabled={isFiltering}
+            showSearchBar={searchEnabled}
+            showGroupFilter={!isGroupsEmpty}
+            showRoleFilter={!isRolesEmpty}
+            filters={filters}
+            onFilterChange={setFilters}
+          />
+          {isSearch && isTotalExceededLimit && !isLoading ? (
             <MessageBar className={styles.message}>
               <FormattedMessage id="UsersScreen.search.resultLimited" />
             </MessageBar>
@@ -191,7 +256,7 @@ const UsersScreen: React.VFC = function UsersScreen() {
         <UsersList
           className={styles.widget}
           isSearch={isSearch}
-          loading={loading}
+          loading={isLoading}
           users={data?.users ?? null}
           offset={offset}
           pageSize={pageSize}
@@ -200,6 +265,7 @@ const UsersScreen: React.VFC = function UsersScreen() {
           onColumnClick={onColumnClick}
           sortBy={sortBy}
           sortDirection={sortDirection}
+          showRolesAndGroups={!isRolesEmpty || !isGroupsEmpty}
         />
       </ScreenContent>
     </CommandBarContainer>

@@ -59,6 +59,8 @@ const AcceptAdminInvitationScreen = lazy(
   async () => import("./graphql/portal/AcceptAdminInvitationScreen")
 );
 
+const StoryBookScreen = lazy(async () => import("./StoryBookScreen"));
+
 async function loadSystemConfig(): Promise<SystemConfig> {
   const resp = await fetch("/api/system-config.json");
   const config = (await resp.json()) as PartialSystemConfig;
@@ -175,6 +177,15 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
             </Suspense>
           }
         />
+
+        <Route
+          path="/storybook"
+          element={
+            <Suspense fallback={<ShowLoading />}>
+              <StoryBookScreen />
+            </Suspense>
+          }
+        ></Route>
       </Routes>
     </BrowserRouter>
   );

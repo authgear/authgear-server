@@ -50,6 +50,9 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				"groupKeys": &graphql.ArgumentConfig{
 					Type: graphql.NewList(graphql.NewNonNull(graphql.String)),
 				},
+				"roleKeys": &graphql.ArgumentConfig{
+					Type: graphql.NewList(graphql.NewNonNull(graphql.String)),
+				},
 				"searchKeyword": &graphql.ArgumentConfig{
 					Type: graphql.String,
 				},
@@ -81,7 +84,14 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					groupKeys[i] = groupKeyIfaces[i].(string)
 				}
 
+				roleKeyIfaces, _ := p.Args["roleKeys"].([]interface{})
+				roleKeys := make([]string, len(roleKeyIfaces))
+				for i := range roleKeyIfaces {
+					roleKeys[i] = roleKeyIfaces[i].(string)
+				}
+
 				listOption := libuser.ListOptions{
+					RoleKeys:   roleKeys,
 					GroupKeys:  groupKeys,
 					SortOption: sortOption,
 				}

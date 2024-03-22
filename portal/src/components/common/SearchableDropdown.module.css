@@ -1,0 +1,12 @@
+.searchBoxRow {
+  @apply pt-2 pb-1 sticky top-0 bg-white z-10;
+}
+
+.optionsLoadingRow {
+  @apply p-4 flex items-center justify-center;
+}
+
+.emptyView {
+  @apply py-2 text-center;
+  color: #bfbfc3;
+}

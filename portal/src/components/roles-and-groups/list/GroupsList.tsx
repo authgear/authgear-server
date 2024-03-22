@@ -85,8 +85,8 @@ const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
       key: "action",
       fieldName: "action",
       name: renderToString("GroupsList.column.action"),
-      minWidth: 77,
-      maxWidth: 77,
+      minWidth: 87,
+      maxWidth: 87,
       columnActionsMode: ColumnActionsMode.disabled,
     },
   ];
@@ -154,6 +154,7 @@ const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
         case "action": {
           return (
             <ActionButtonCell
+              variant="destructive"
               text={renderToString("GroupsList.delete-group")}
               onClick={(e) => {
                 onClickDeleteGroup(e, item);

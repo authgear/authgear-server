@@ -9,85 +9,114 @@ import {
 import { Context as MessageContext } from "@oursky/react-messageformat";
 import { useParams } from "react-router-dom";
 
-import styles from "./GroupRolesList.module.css";
-import { Group, Role } from "../../../graphql/adminapi/globalTypes.generated";
+import styles from "./UserRolesList.module.css";
+import {
+  Group,
+  Role,
+  User,
+} from "../../../graphql/adminapi/globalTypes.generated";
 import Link from "../../../Link";
-import DeleteGroupRoleDialog, {
-  DeleteGroupRoleDialogData,
-} from "../dialog/DeleteGroupRoleDialog";
 import ActionButtonCell from "./common/ActionButtonCell";
 import TextCell from "./common/TextCell";
 import RolesAndGroupsBaseList from "./common/RolesAndGroupsBaseList";
+import DeleteUserRoleDialog, {
+  DeleteUserRoleDialogData,
+} from "../dialog/DeleteUserRoleDialog";
 
-export interface GroupRolesListItem
-  extends Pick<Group, "id" | "name" | "key"> {}
+export interface UserRolesListItem extends Pick<Role, "id" | "name" | "key"> {
+  groups: Pick<Group, "id" | "name" | "key">[];
+}
 
-export interface GroupRolesListGroup
-  extends Pick<Role, "id" | "name" | "key"> {}
+export interface UserRolesListUser
+  extends Pick<User, "id" | "formattedName" | "endUserAccountID"> {}
 
-export enum GroupRolesListColumnKey {
+export enum UserRolesListColumnKey {
   Name = "Name",
   Key = "Key",
+  Group = "Group",
   Action = "Action",
 }
 
-interface GroupRolesListProps {
-  group: GroupRolesListGroup;
+interface UserRolesListProps {
+  user: UserRolesListUser;
   className?: string;
-  roles: GroupRolesListItem[];
+  roles: UserRolesListItem[];
+  isSearch: boolean;
+  offset: number;
+  pageSize: number;
+  totalCount?: number;
+  onChangeOffset?: (offset: number) => void;
 }
 
-export const GroupRolesList: React.VFC<GroupRolesListProps> =
-  function GroupRolesList({ group, roles, className }) {
+export const UserRolesList: React.VFC<UserRolesListProps> =
+  function UserRolesList({
+    user,
+    roles,
+    className,
+    isSearch,
+    offset,
+    pageSize,
+    totalCount,
+    onChangeOffset,
+  }) {
     const { appID } = useParams() as { appID: string };
     const { renderToString } = useContext(MessageContext);
 
     const [deleteDialogData, setDeleteDialogData] =
-      useState<DeleteGroupRoleDialogData | null>(null);
+      useState<DeleteUserRoleDialogData | null>(null);
     const onDismissDeleteDialog = useCallback(
       () => setDeleteDialogData(null),
       []
     );
     const onClickDeleteRole = useCallback(
-      (e: React.MouseEvent<unknown>, item: GroupRolesListItem) => {
+      (e: React.MouseEvent<unknown>, item: UserRolesListItem) => {
         e.preventDefault();
         e.stopPropagation();
         setDeleteDialogData({
+          userID: user.id,
+          userFormattedName: user.formattedName ?? null,
+          userEndUserAccountID: user.endUserAccountID ?? null,
           roleID: item.id,
           roleKey: item.key,
           roleName: item.name ?? null,
-          groupID: group.id,
-          groupKey: group.key,
-          groupName: group.name ?? null,
         });
       },
-      [group]
+      [user]
     );
 
     const columns: IColumn[] = useMemo((): IColumn[] => {
       return [
         {
-          key: GroupRolesListColumnKey.Name,
+          key: UserRolesListColumnKey.Name,
           fieldName: "name",
-          name: renderToString("GroupRolesList.column.name"),
+          name: renderToString("UserRolesList.column.name"),
           minWidth: 100,
-          maxWidth: 300,
+          maxWidth: 200,
           isResizable: true,
           columnActionsMode: ColumnActionsMode.disabled,
         },
         {
-          key: GroupRolesListColumnKey.Key,
+          key: UserRolesListColumnKey.Key,
           fieldName: "key",
-          name: renderToString("GroupRolesList.column.key"),
+          name: renderToString("UserRolesList.column.key"),
+          minWidth: 100,
+          maxWidth: 200,
+          isResizable: true,
+          columnActionsMode: ColumnActionsMode.disabled,
+        },
+        {
+          key: UserRolesListColumnKey.Group,
+          fieldName: "group",
+          name: renderToString("UserRolesList.column.group"),
           minWidth: 100,
           maxWidth: 9999,
           isResizable: true,
           columnActionsMode: ColumnActionsMode.disabled,
         },
         {
-          key: GroupRolesListColumnKey.Action,
+          key: UserRolesListColumnKey.Action,
           fieldName: "action",
-          name: renderToString("GroupRolesList.column.action"),
+          name: renderToString("UserRolesList.column.action"),
           minWidth: 67,
           maxWidth: 67,
           columnActionsMode: ColumnActionsMode.disabled,
@@ -104,7 +133,7 @@ export const GroupRolesList: React.VFC<GroupRolesListProps> =
           <Link
             className="contents"
             to={`/project/${appID}/user-management/roles/${
-              (props.item as GroupRolesListItem).id
+              (props.item as UserRolesListItem).id
             }/details`}
           >
             <DetailsRow {...props} />
@@ -115,23 +144,32 @@ export const GroupRolesList: React.VFC<GroupRolesListProps> =
     );
 
     const onRenderItemColumn = useCallback(
-      (item: GroupRolesListItem, _index?: number, column?: IColumn) => {
+      (item: UserRolesListItem, _index?: number, column?: IColumn) => {
         switch (column?.key) {
-          case GroupRolesListColumnKey.Action: {
+          case UserRolesListColumnKey.Action: {
             return (
               <ActionButtonCell
                 variant="destructive"
-                text={renderToString("GroupRolesList.actions.remove")}
+                text={renderToString("UserRolesList.actions.remove")}
+                disabled={item.groups.length !== 0}
                 onClick={(e) => {
                   onClickDeleteRole(e, item);
                 }}
               />
             );
           }
+          case UserRolesListColumnKey.Group:
+            return (
+              <TextCell>
+                {item.groups.length === 0
+                  ? "-"
+                  : item.groups.map((group) => group.name).join(", ")}
+              </TextCell>
+            );
           default:
             return (
               <TextCell>
-                {item[column?.fieldName as keyof GroupRolesListItem] ?? ""}
+                {item[column?.fieldName as keyof UserRolesListItem] ?? ""}
               </TextCell>
             );
         }
@@ -139,7 +177,18 @@ export const GroupRolesList: React.VFC<GroupRolesListProps> =
       [onClickDeleteRole, renderToString]
     );
 
-    const listEmptyText = renderToString("GroupRolesList.empty");
+    const paginationProps = useMemo(
+      () => ({
+        isSearch,
+        offset,
+        pageSize,
+        totalCount,
+        onChangeOffset,
+      }),
+      [isSearch, offset, pageSize, totalCount, onChangeOffset]
+    );
+
+    const listEmptyText = renderToString("UserRolesList.empty");
 
     return (
       <>
@@ -150,12 +199,13 @@ export const GroupRolesList: React.VFC<GroupRolesListProps> =
             onRenderItemColumn={onRenderItemColumn}
             items={roles}
             columns={columns}
+            pagination={paginationProps}
+          />
+          <DeleteUserRoleDialog
+            data={deleteDialogData}
+            onDismiss={onDismissDeleteDialog}
           />
         </div>
-        <DeleteGroupRoleDialog
-          data={deleteDialogData}
-          onDismiss={onDismissDeleteDialog}
-        />
       </>
     );
   };

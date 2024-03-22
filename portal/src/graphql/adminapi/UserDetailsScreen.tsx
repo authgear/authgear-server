@@ -54,10 +54,12 @@ import styles from "./UserDetailsScreen.module.css";
 import { makeInvariantViolatedErrorParseRule } from "../../error/parse";
 import { IdentityType } from "./globalTypes.generated";
 import AnonymizeUserDialog from "./AnonymizeUserDialog";
+import UserDetailsScreenGroupListContainer from "../../components/roles-and-groups/list/UserDetailsScreenGroupListContainer";
+import UserDetailsScreenRoleListContainer from "../../components/roles-and-groups/list/UserDetailsScreenRoleListContainer";
 
 interface UserDetailsProps {
   form: SimpleFormModel<FormState>;
-  data: UserQueryNodeFragment | null;
+  data: UserQueryNodeFragment;
   appConfig: PortalAPIAppConfig | null;
 }
 
@@ -65,6 +67,8 @@ const USER_PROFILE_KEY = "user-profile";
 const ACCOUNT_SECURITY_PIVOT_KEY = "account-security";
 const CONNECTED_IDENTITIES_PIVOT_KEY = "connected-identities";
 const SESSION_PIVOT_KEY = "session";
+const ROLES_KEY = "roles";
+const GROUPS_KEY = "groups";
 
 interface FormState {
   userID: string;
@@ -227,6 +231,8 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     ACCOUNT_SECURITY_PIVOT_KEY,
     CONNECTED_IDENTITIES_PIVOT_KEY,
     SESSION_PIVOT_KEY,
+    ROLES_KEY,
+    GROUPS_KEY,
   ]);
   const { form, data, appConfig } = props;
   const { state, setState } = form;
@@ -286,32 +292,31 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     [setState]
   );
 
-  const web3Claims = data?.web3;
+  const web3Claims = data.web3;
 
-  const verifiedClaims = data?.verifiedClaims ?? [];
+  const verifiedClaims = data.verifiedClaims;
 
   const identities = useMemo(
     () =>
-      data?.identities?.edges?.map((edge) => edge?.node).filter(nonNullable) ??
+      data.identities?.edges?.map((edge) => edge?.node).filter(nonNullable) ??
       [],
-    [data?.identities]
+    [data.identities]
   );
 
   const authenticators = useMemo(
     () =>
-      data?.authenticators?.edges
+      data.authenticators?.edges
         ?.map((edge) => edge?.node)
         .filter(nonNullable) ?? [],
-    [data?.authenticators]
+    [data.authenticators]
   );
 
   const sessions =
-    data?.sessions?.edges?.map((edge) => edge?.node).filter(nonNullable) ?? [];
+    data.sessions?.edges?.map((edge) => edge?.node).filter(nonNullable) ?? [];
 
   const authorizations =
-    data?.authorizations?.edges
-      ?.map((edge) => edge?.node)
-      .filter(nonNullable) ?? [];
+    data.authorizations?.edges?.map((edge) => edge?.node).filter(nonNullable) ??
+    [];
 
   const profileImageEditable = useMemo(() => {
     const ptr = jsonPointerToString(["picture"]);
@@ -324,7 +329,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     [identities]
   );
 
-  if (data?.isAnonymized) {
+  if (data.isAnonymized) {
     return (
       <div className={styles.widget}>
         <UserDetailSummary
@@ -348,17 +353,25 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
   return (
     <div className={styles.widget}>
       <UserDetailSummary
-        isAnonymous={data?.isAnonymous ?? false}
-        isAnonymized={data?.isAnonymized ?? false}
-        profileImageURL={data?.standardAttributes.picture}
+        isAnonymous={data.isAnonymous}
+        isAnonymized={data.isAnonymized}
+        profileImageURL={data.standardAttributes.picture}
         profileImageEditable={profileImageEditable}
-        rawUserID={data?.id != null ? extractRawID(data.id) : ""}
-        formattedName={data?.formattedName ?? undefined}
-        endUserAccountIdentifier={data?.endUserAccountID ?? undefined}
-        createdAtISO={data?.createdAt ?? null}
-        lastLoginAtISO={data?.lastLoginAt ?? null}
+        rawUserID={extractRawID(data.id)}
+        formattedName={data.formattedName ?? undefined}
+        endUserAccountIdentifier={data.endUserAccountID ?? undefined}
+        createdAtISO={data.createdAt ?? null}
+        lastLoginAtISO={data.lastLoginAt ?? null}
       />
       <Pivot
+        styles={{
+          itemContainer: {
+            flex: "1 0 auto",
+            display: "flex",
+            flexDirection: "column",
+          },
+        }}
+        className={styles.pivot}
         overflowBehavior="menu"
         selectedKey={selectedKey}
         onLinkClick={onLinkClick}
@@ -412,6 +425,20 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
             authorizations={authorizations}
             oauthClientConfig={oauthClientConfig}
           />
+        </PivotItem>
+        <PivotItem
+          className={"flex-1 pt-8"}
+          itemKey={ROLES_KEY}
+          headerText={renderToString("UserDetails.roles.header")}
+        >
+          <UserDetailsScreenRoleListContainer user={data} />
+        </PivotItem>
+        <PivotItem
+          className={"flex-1 pt-8"}
+          itemKey={GROUPS_KEY}
+          headerText={renderToString("UserDetails.groups.header")}
+        >
+          <UserDetailsScreenGroupListContainer user={data} />
         </PivotItem>
       </Pivot>
     </div>
@@ -722,6 +749,7 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
 
     return (
       <FormContainer
+        className={styles.formContainer}
         errorRules={ERROR_RULES}
         form={form}
         primaryItems={primaryItems}
@@ -732,7 +760,7 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
           </>
         }
       >
-        <ScreenContent>
+        <ScreenContent className={styles.screenContent}>
           <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
           <UserDetails form={form} data={user} appConfig={effectiveAppConfig} />
         </ScreenContent>

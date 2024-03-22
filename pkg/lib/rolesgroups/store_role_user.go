@@ -1,6 +1,8 @@
 package rolesgroups
 
 import (
+	"sort"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -21,7 +23,8 @@ func (s *Store) ListRolesByUserIDs(userIDs []string) (map[string][]*Role, error)
 	).
 		From(s.SQLBuilder.TableName("_auth_user_role"), "ur").
 		Join(s.SQLBuilder.TableName("_auth_role"), "r", "ur.role_id = r.id").
-		Where("ur.user_id = ANY (?)", pq.Array(userIDs))
+		Where("ur.user_id = ANY (?)", pq.Array(userIDs)).
+		OrderBy("ur.created_at")
 
 	return s.queryRolesWithUserID(q)
 }
@@ -52,7 +55,8 @@ func (s *Store) ListEffectiveRolesByUserID(userID string) ([]*Role, error) {
 		Join(s.SQLBuilder.TableName("_auth_user_group"), "ug", "u.id = ug.user_id").
 		Join(s.SQLBuilder.TableName("_auth_group_role"), "gr", "ug.group_id = gr.group_id").
 		Join(s.SQLBuilder.TableName("_auth_role"), "r", "r.id = gr.role_id").
-		Where("ug.user_id = ?", userID)
+		Where("ug.user_id = ?", userID).
+		OrderBy("ug.created_at")
 
 	roleFromUserQuery := s.SQLBuilder.Select(
 		"r.id",
@@ -64,7 +68,8 @@ func (s *Store) ListEffectiveRolesByUserID(userID string) ([]*Role, error) {
 	).
 		From(s.SQLBuilder.TableName("_auth_user_role"), "ur").
 		Join(s.SQLBuilder.TableName("_auth_role"), "r", "ur.role_id = r.id").
-		Where("ur.user_id = ?", userID)
+		Where("ur.user_id = ?", userID).
+		OrderBy("ur.created_at")
 
 	roleFromGroups, err := s.queryRoles(roleFromGroupsQuery)
 	if err != nil {
@@ -76,6 +81,9 @@ func (s *Store) ListEffectiveRolesByUserID(userID string) ([]*Role, error) {
 	}
 
 	mergedList := append(roleFromGroups, roleFromUser...)
+	sort.Slice(mergedList, func(i, j int) bool {
+		return mergedList[i].CreatedAt.Unix() < mergedList[j].CreatedAt.Unix()
+	})
 	deduplicatedList := make([]*Role, 0)
 	check := make(map[string]bool, len(mergedList))
 	for i := range mergedList {
@@ -89,19 +97,12 @@ func (s *Store) ListEffectiveRolesByUserID(userID string) ([]*Role, error) {
 }
 
 func (s *Store) ListRolesByUserID(userID string) ([]*Role, error) {
-	q := s.SQLBuilder.Select(
-		"r.id",
-		"r.created_at",
-		"r.updated_at",
-		"r.key",
-		"r.name",
-		"r.description",
-	).
-		From(s.SQLBuilder.TableName("_auth_user_role"), "ur").
-		Join(s.SQLBuilder.TableName("_auth_role"), "r", "ur.role_id = r.id").
-		Where("ur.user_id = ?", userID)
+	userRoles, err := s.ListRolesByUserIDs([]string{userID})
+	if err != nil {
+		return nil, err
+	}
 
-	return s.queryRoles(q)
+	return userRoles[userID], nil
 }
 
 func (s *Store) ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageArgs) ([]string, uint64, error) {

@@ -1,5 +1,58 @@
 fragment UserQueryNode on User {
   id
+  roles {
+    totalCount
+    edges {
+      cursor
+      node {
+        createdAt
+        description
+        id
+        key
+        name
+        updatedAt
+      }
+    }
+  }
+  groups {
+    totalCount
+    edges {
+      cursor
+      node {
+        createdAt
+        description
+        id
+        key
+        roles {
+          edges {
+            node {
+              createdAt
+              description
+              id
+              key
+              name
+              updatedAt
+            }
+          }
+        }
+        name
+        roles {
+          totalCount
+          edges {
+            node {
+              createdAt
+              description
+              id
+              key
+              name
+              updatedAt
+            }
+          }
+        }
+        updatedAt
+      }
+    }
+  }
   authenticators {
     edges {
       node {

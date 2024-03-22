@@ -16,7 +16,10 @@ interface UserQueryResult
   user: UserQueryNodeFragment | null;
 }
 
-export function useUserQuery(userID: string): UserQueryResult {
+export function useUserQuery(
+  userID: string,
+  options?: { skip?: boolean }
+): UserQueryResult {
   const { data, loading, error, refetch } = useQuery<
     UserQueryQuery,
     UserQueryQueryVariables
@@ -24,6 +27,7 @@ export function useUserQuery(userID: string): UserQueryResult {
     variables: {
       userID,
     },
+    skip: options?.skip,
   });
 
   const user = useMemo(() => {

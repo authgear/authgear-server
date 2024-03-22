@@ -14,6 +14,34 @@ fragment UsersList on UserConnection {
       standardAttributes
       formattedName
       endUserAccountID
+      groups {
+        totalCount
+        edges {
+          cursor
+          node {
+            createdAt
+            description
+            id
+            key
+            name
+            updatedAt
+          }
+        }
+      }
+      effectiveRoles {
+        totalCount
+        edges {
+          cursor
+          node {
+            createdAt
+            description
+            id
+            key
+            name
+            updatedAt
+          }
+        }
+      }
     }
     cursor
   }
@@ -23,6 +51,8 @@ fragment UsersList on UserConnection {
 query UsersListQuery(
   $searchKeyword: String!
   $pageSize: Int!
+  $groupKeys: [String!]
+  $roleKeys: [String!]
   $cursor: String
   $sortBy: UserSortBy
   $sortDirection: SortDirection
@@ -31,6 +61,8 @@ query UsersListQuery(
     first: $pageSize
     after: $cursor
     searchKeyword: $searchKeyword
+    groupKeys: $groupKeys
+    roleKeys: $roleKeys
     sortBy: $sortBy
     sortDirection: $sortDirection
   ) {
