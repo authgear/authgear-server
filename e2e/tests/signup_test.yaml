@@ -1,4 +1,4 @@
-name: Test case 1
+name: Signup
 project: signup
 steps:
   - action: "create"
