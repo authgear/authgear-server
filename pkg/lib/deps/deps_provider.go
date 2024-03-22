@@ -138,6 +138,27 @@ func ProvideRedisQueueHTTPProto() httputil.HTTPProto {
 	return httputil.HTTPProto("https")
 }
 
+func ProvideEnd2EndHTTPRequest() *http.Request {
+	r, _ := http.NewRequest("GET", "", nil)
+	return r
+}
+
+func ProvideEnd2EndRemoteIP() httputil.RemoteIP {
+	return httputil.RemoteIP("127.0.0.1")
+}
+
+func ProvideEnd2EndUserAgentString() httputil.UserAgentString {
+	return httputil.UserAgentString("redis-queue")
+}
+
+func ProvideEnd2EndHTTPHost() httputil.HTTPHost {
+	return httputil.HTTPHost("127.0.0.1")
+}
+
+func ProvideEnd2EndHTTPProto() httputil.HTTPProto {
+	return httputil.HTTPProto("https")
+}
+
 var RequestDependencySet = wire.NewSet(
 	appRootDeps,
 	wire.FieldsOf(new(*RequestProvider),
@@ -186,4 +207,13 @@ var BackgroundDependencySet = wire.NewSet(
 
 	clock.DependencySet,
 	globaldb.DependencySet,
+)
+
+var End2EndDependencySet = wire.NewSet(
+	appRootDeps,
+	ProvideEnd2EndHTTPRequest,
+	ProvideEnd2EndRemoteIP,
+	ProvideEnd2EndUserAgentString,
+	ProvideEnd2EndHTTPHost,
+	ProvideEnd2EndHTTPProto,
 )

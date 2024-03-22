@@ -37,6 +37,12 @@ var ArgAppID = &cobraviper.StringArgument{
 	Usage:        "App ID",
 }
 
+var ArgConfigSourceDir = &cobraviper.StringArgument{
+	ArgumentName: "config-source-dir",
+	EnvName:      "CONFIG_SOURCE_DIR",
+	Usage:        "Config source directory",
+}
+
 var ArgOutputFolder = &cobraviper.StringArgument{
 	ArgumentName: "output-folder",
 	EnvName:      "OUTPUT_FOLDER",

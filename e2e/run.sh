@@ -4,7 +4,7 @@
 
 function setup {
     echo "[ ] Starting services..."
-    # docker compose build
+    # docker compose build authgear
     docker compose up -d
     sleep 5
 
@@ -32,22 +32,27 @@ function setup {
         authgear-portal database migrate up
     "
 
-    echo "[ ] Config source creation..."
     [ -d ./fixtures ] && for f in ./fixtures/*; do
         if [ -d "$f" ]; then
-            echo "[ ] Creating config source for $f..."
+            echo "[ ] Creating project $f..."
             docker compose exec portal bash -c "
                 authgear-portal internal configsource create $f \
                     --database-schema=\"$DATABASE_SCHEMA\" \
                     --database-url=\"$DATABASE_URL\"
-
-                authgear-portal internal domain create-default \
-                    --database-schema=\"$DATABASE_SCHEMA\" \
-                    --database-url=\"$DATABASE_URL\" \
-                    --default-domain-suffix=\".portal.localhost\"
+            "
+            docker compose exec authgear bash -c "
+                authgear internal e2e import-users --config-source-dir=\"$f\"
             "
         fi
     done
+
+    echo "[ ] Creating default domain..."
+    docker compose exec portal bash -c "
+        authgear-portal internal domain create-default \
+            --database-schema=\"$DATABASE_SCHEMA\" \
+            --database-url=\"$DATABASE_URL\" \
+            --default-domain-suffix=\".portal.localhost\"
+    "
 }
 
 function teardown {
