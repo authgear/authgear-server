@@ -4,7 +4,7 @@
 }
 
 .listWrapper {
-  flex: 1 0 0%;
+  @apply flex-1;
   min-height: 0;
   overflow-y: auto;
 }
@@ -72,4 +72,12 @@
 
 .anonymizedUserLabel {
   font-style: italic;
+}
+
+.list div[role="columnheader"]:first-child,
+.list div[role="gridcell"]:first-child {
+  @apply sticky z-10 mobile:static mobile:z-0;
+
+  left: 0;
+  background-color: white;
 }
