@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { ITag, ITagPickerProps, IconButton, TagPicker } from "@fluentui/react";
 import styles from "./StyledTagPicker.module.css";
 import { fixTagPickerStyles } from "./bugs";
@@ -75,6 +75,10 @@ const StyledTagPicker: React.VFC<StyledPickerProps> = function StyledTagPicker(
     },
     [onChange]
   );
+  const [calloutWidth, setCalloutWidth] = useState(0);
+  const onCalloutLayoutMounted = useCallback(() => {
+    setCalloutWidth(tagPickerRef.current?.offsetWidth ?? 0);
+  }, []);
 
   return (
     // NOTE: directly add ref to TagPicker doesn't work
@@ -96,6 +100,11 @@ const StyledTagPicker: React.VFC<StyledPickerProps> = function StyledTagPicker(
         }}
         pickerCalloutProps={{
           target: tagPickerRef,
+          calloutWidth: calloutWidth,
+          onLayerMounted: onCalloutLayoutMounted,
+        }}
+        pickerSuggestionsProps={{
+          className: "min-w-0",
         }}
         onChange={_onChange}
         selectedItems={selectedItems}
