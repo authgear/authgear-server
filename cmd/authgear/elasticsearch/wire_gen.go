@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
@@ -62,12 +63,18 @@ func NewReindexer(ctx context.Context, pool *db.Pool, databaseCredentials *confi
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clock,
+	}
 	reindexer := &Reindexer{
-		Handle:  handle,
-		AppID:   appID,
-		Users:   store,
-		OAuth:   oauthStore,
-		LoginID: loginidStore,
+		Handle:      handle,
+		AppID:       appID,
+		Users:       store,
+		OAuth:       oauthStore,
+		LoginID:     loginidStore,
+		RolesGroups: rolesgroupsStore,
 	}
 	return reindexer
 }

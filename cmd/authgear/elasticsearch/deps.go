@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -43,6 +44,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(user.Store), "*"),
 	wire.Struct(new(identityoauth.Store), "*"),
 	wire.Struct(new(identityloginid.Store), "*"),
+	wire.Struct(new(rolesgroups.Store), "*"),
 	wire.Struct(new(configsource.Store), "*"),
 	wire.Struct(new(AppLister), "*"),
 	wire.Struct(new(Reindexer), "*"),
