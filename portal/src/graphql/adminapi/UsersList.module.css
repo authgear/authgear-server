@@ -4,7 +4,7 @@
 }
 
 .listWrapper {
-  flex: 1 0 0%;
+  @apply flex-1;
   min-height: 0;
   overflow-y: auto;
 }
@@ -76,8 +76,8 @@
 
 .list div[role="columnheader"]:first-child,
 .list div[role="gridcell"]:first-child {
-  position: sticky;
+  @apply sticky z-10 mobile:static mobile:z-0;
+
   left: 0;
   background-color: white;
-  z-index: 1;
 }
