@@ -14,6 +14,34 @@ fragment UsersList on UserConnection {
       standardAttributes
       formattedName
       endUserAccountID
+      groups {
+        totalCount
+        edges {
+          cursor
+          node {
+            createdAt
+            description
+            id
+            key
+            name
+            updatedAt
+          }
+        }
+      }
+      effectiveRoles {
+        totalCount
+        edges {
+          cursor
+          node {
+            createdAt
+            description
+            id
+            key
+            name
+            updatedAt
+          }
+        }
+      }
     }
     cursor
   }

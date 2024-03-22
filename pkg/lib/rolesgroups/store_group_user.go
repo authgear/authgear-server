@@ -21,25 +21,19 @@ func (s *Store) ListGroupsByUserIDs(userIDs []string) (map[string][]*Group, erro
 	).
 		From(s.SQLBuilder.TableName("_auth_user_group"), "ug").
 		Join(s.SQLBuilder.TableName("_auth_group"), "g", "ug.group_id = g.id").
-		Where("ug.user_id = ANY (?)", pq.Array(userIDs))
+		Where("ug.user_id = ANY (?)", pq.Array(userIDs)).
+		OrderBy("ug.created_at")
 
 	return s.queryGroupsWithUserID(q)
 }
 
 func (s *Store) ListGroupsByUserID(userID string) ([]*Group, error) {
-	q := s.SQLBuilder.Select(
-		"g.id",
-		"g.created_at",
-		"g.updated_at",
-		"g.key",
-		"g.name",
-		"g.description",
-	).
-		From(s.SQLBuilder.TableName("_auth_user_group"), "ug").
-		Join(s.SQLBuilder.TableName("_auth_group"), "g", "ug.group_id = g.id").
-		Where("ug.user_id = ?", userID)
+	userGroups, err := s.ListGroupsByUserIDs([]string{userID})
+	if err != nil {
+		return nil, err
+	}
 
-	return s.queryGroups(q)
+	return userGroups[userID], nil
 }
 
 func (s *Store) ListUserIDsByGroupID(groupID string, pageArgs graphqlutil.PageArgs) ([]string, uint64, error) {

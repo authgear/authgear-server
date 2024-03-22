@@ -154,6 +154,7 @@ const RolesList: React.VFC<RolesListProps> = function RolesList(props) {
         case "action": {
           return (
             <ActionButtonCell
+              variant="destructive"
               text={renderToString("RolesList.delete-role")}
               onClick={(e) => {
                 onClickDeleteRole(e, item);

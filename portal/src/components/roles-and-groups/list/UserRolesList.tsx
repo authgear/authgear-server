@@ -146,6 +146,7 @@ export const UserRolesList: React.VFC<UserRolesListProps> =
           case UserRolesListColumnKey.Action: {
             return (
               <ActionButtonCell
+                variant="destructive"
                 text={renderToString("UserRolesList.actions.remove")}
                 disabled={item.groups.length !== 0}
                 onClick={(e) => {
