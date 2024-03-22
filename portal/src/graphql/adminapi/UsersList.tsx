@@ -345,6 +345,7 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
       <div className={cn(styles.root, className)}>
         <div className={cn(styles.listWrapper, isEmpty && styles.empty)}>
           <ShimmeredDetailsList
+            className={styles.list}
             enableShimmer={loading}
             enableUpdateAnimations={false}
             onRenderRow={onRenderUserRow}

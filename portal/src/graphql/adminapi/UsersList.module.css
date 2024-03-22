@@ -73,3 +73,11 @@
 .anonymizedUserLabel {
   font-style: italic;
 }
+
+.list div[role="columnheader"]:first-child,
+.list div[role="gridcell"]:first-child {
+  position: sticky;
+  left: 0;
+  background-color: white;
+  z-index: 1;
+}
