@@ -36,6 +36,19 @@ fragment UserQueryNode on User {
           }
         }
         name
+        roles {
+          totalCount
+          edges {
+            node {
+              createdAt
+              description
+              id
+              key
+              name
+              updatedAt
+            }
+          }
+        }
         updatedAt
       }
     }

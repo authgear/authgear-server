@@ -5,12 +5,17 @@ import {
   DetailsRow,
   IColumn,
   IDetailsRowProps,
+  Text,
 } from "@fluentui/react";
 import { Context as MessageContext } from "@oursky/react-messageformat";
 import { useParams } from "react-router-dom";
 
 import styles from "./UserGroupsList.module.css";
-import { Group, User } from "../../../graphql/adminapi/globalTypes.generated";
+import {
+  Group,
+  Role,
+  User,
+} from "../../../graphql/adminapi/globalTypes.generated";
 import Link from "../../../Link";
 import ActionButtonCell from "./common/ActionButtonCell";
 import TextCell from "./common/TextCell";
@@ -18,9 +23,14 @@ import RolesAndGroupsBaseList from "./common/RolesAndGroupsBaseList";
 import DeleteUserGroupDialog, {
   DeleteUserGroupDialogData,
 } from "../dialog/DeleteUserGroupDialog";
+import BaseCell from "./common/BaseCell";
 
-export interface UserGroupsListItem
-  extends Pick<Group, "id" | "name" | "key"> {}
+export interface UserGroupsListItem extends Pick<Group, "id" | "name" | "key"> {
+  roles: {
+    totalCount: number;
+    items: Pick<Role, "id" | "name" | "key">[] | null;
+  };
+}
 
 export interface UserGroupsListUser
   extends Pick<User, "id" | "formattedName" | "endUserAccountID"> {}
@@ -28,6 +38,7 @@ export interface UserGroupsListUser
 export enum UserGroupsListColumnKey {
   Name = "Name",
   Key = "Key",
+  Role = "Role",
   Action = "Action",
 }
 
@@ -85,7 +96,7 @@ export const UserGroupsList: React.VFC<UserGroupsListProps> =
           fieldName: "name",
           name: renderToString("UserGroupsList.column.name"),
           minWidth: 100,
-          maxWidth: 300,
+          maxWidth: 200,
           isResizable: true,
           columnActionsMode: ColumnActionsMode.disabled,
         },
@@ -93,6 +104,15 @@ export const UserGroupsList: React.VFC<UserGroupsListProps> =
           key: UserGroupsListColumnKey.Key,
           fieldName: "key",
           name: renderToString("UserGroupsList.column.key"),
+          minWidth: 100,
+          maxWidth: 200,
+          isResizable: true,
+          columnActionsMode: ColumnActionsMode.disabled,
+        },
+        {
+          key: UserGroupsListColumnKey.Role,
+          fieldName: "role",
+          name: renderToString("UserGroupsList.column.role"),
           minWidth: 100,
           maxWidth: 9999,
           isResizable: true,
@@ -140,6 +160,22 @@ export const UserGroupsList: React.VFC<UserGroupsListProps> =
                   onClickDeleteGroup(e, item);
                 }}
               />
+            );
+          }
+          case UserGroupsListColumnKey.Role: {
+            const text =
+              item.roles.totalCount === 0
+                ? "-"
+                : item.roles.items
+                    ?.slice(0, 3)
+                    .map((item) => item.name)
+                    .join(", ");
+            const addtionalInfo =
+              item.roles.totalCount > 3 ? ` +${item.roles.totalCount - 3}` : "";
+            return (
+              <BaseCell>
+                <Text className="whitespace-normal line-clamp-4">{`${text}${addtionalInfo}`}</Text>
+              </BaseCell>
             );
           }
           default:

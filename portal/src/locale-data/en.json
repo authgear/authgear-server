@@ -176,6 +176,7 @@
 
   "UserGroupsList.column.name": "Name",
   "UserGroupsList.column.key": "Group Key",
+  "UserGroupsList.column.role": "Role",
   "UserGroupsList.column.action": "Action",
   "UserGroupsList.actions.remove": "Remove",
   "UserGroupsList.empty": "No groups for this user",
