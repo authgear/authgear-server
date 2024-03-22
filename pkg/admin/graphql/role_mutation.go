@@ -4,6 +4,7 @@ import (
 	relay "github.com/authgear/graphql-go-relay"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/graphql-go/graphql"
@@ -208,7 +209,19 @@ var _ = registerMutationField(
 			roleID := resolvedNodeID.ID
 
 			gqlCtx := GQLContext(p.Context)
-			err := gqlCtx.RolesGroupsFacade.DeleteRole(roleID)
+			affectedUserIDs, err := gqlCtx.RolesGroupsFacade.ListAllUserIDsByEffectiveRoleIDs([]string{roleID})
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.RolesGroupsFacade.DeleteRole(roleID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationDeleteRoleExecutedEventPayload{
+				AffectedUserIDs: affectedUserIDs,
+			})
 			if err != nil {
 				return nil, err
 			}

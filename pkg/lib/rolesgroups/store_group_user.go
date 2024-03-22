@@ -49,7 +49,7 @@ func (s *Store) ListUserIDsByGroupID(groupID string, pageArgs graphqlutil.PageAr
 		return nil, 0, err
 	}
 
-	userIDs, err := s.queryUsers(q)
+	userIDs, err := s.queryUserIDs(q)
 	if err != nil {
 		return nil, 0, err
 	}

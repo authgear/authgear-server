@@ -102,6 +102,7 @@ type RolesGroupsFacade interface {
 	ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
 	ListUserIDsByGroupID(groupID string, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
 	ListEffectiveRolesByUserID(userID string) ([]*apimodel.Role, error)
+	ListAllUserIDsByEffectiveRoleIDs(roleIDs []string) ([]string, error)
 }
 
 type IdentityFacade interface {

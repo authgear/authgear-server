@@ -44,6 +44,7 @@ type RolesGroupsQueries interface {
 	ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
 	ListUserIDsByGroupID(groupID string, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
 	ListEffectiveRolesByUserID(userID string) ([]*model.Role, error)
+	ListAllUserIDsByEffectiveRoleIDs(roleIDs []string) ([]string, error)
 	CountRoles() (uint64, error)
 	CountGroups() (uint64, error)
 }
@@ -289,4 +290,8 @@ func (f *RolesGroupsFacade) ListUserIDsByGroupID(groupID string, pageArgs graphq
 
 func (f *RolesGroupsFacade) ListEffectiveRolesByUserID(userID string) ([]*model.Role, error) {
 	return f.RolesGroupsQueries.ListEffectiveRolesByUserID(userID)
+}
+
+func (f *RolesGroupsFacade) ListAllUserIDsByEffectiveRoleIDs(roleIDs []string) ([]string, error) {
+	return f.RolesGroupsQueries.ListAllUserIDsByEffectiveRoleIDs(roleIDs)
 }
