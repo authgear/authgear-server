@@ -69,6 +69,7 @@ privacy
 progress_activity
 public
 qr_code
+refresh
 repeat
 restore
 rule

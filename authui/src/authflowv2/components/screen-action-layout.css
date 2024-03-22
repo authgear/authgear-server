@@ -1,0 +1,36 @@
+@layer components {
+  .screen-action-layout {
+    /* Expected layout:
+        <header>
+          <title/>
+          <description/>
+        </header>
+        <flex-1 spacing/>
+        <footer>
+          <button/>
+        </footer>
+     */
+    @apply pt-14;
+
+    @apply grid gap-6;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+  }
+
+  @media (min-width: theme("screens.tablet")) {
+    .screen-action-layout {
+      /* Expected layout:
+        <header>
+          <title/>
+          <description/>
+        </header>
+        <64px spacing/>
+        <footer>
+          <button/>
+        </footer>
+     */
+      @apply pt-0 pb-0;
+      grid-template-rows: auto 1rem 1fr; /* 64 - 24(gap) * 2 = 16 */
+    }
+  }
+}

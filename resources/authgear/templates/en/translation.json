@@ -1030,5 +1030,10 @@
   "v2-login-id-name": "{ LoginIDType, select, email {email} phone {phone number} username {username} other {{ LoginIDKey, select, email {email} phone {phone number} username {username} other {identity} }} }",
   "v2-oauth-provider-name": "{ OAuthProviderType, select, google {Google} facebook {Facebook} github {GitHub} linkedin {LinkedIn} azureadv2 {Azure AD} azureadb2c {Azure AD B2C} adfs {AD FS} apple {Apple} wechat {Wechat} other {OAuth} }",
   "v2-error-network": "There was a problem performing this action. Please try again",
-  "v2-error-password-change-password-reused": "Please provide a new password that is different from the previous one."
+  "v2-error-password-change-password-reused": "Please provide a new password that is different from the previous one.",
+  "v2-wechat-auth-page-title": "Login with WeChat",
+  "v2-wechat-auth-page-app-description": "Click the below button to continue WeChat Login",
+  "v2-wechat-auth-page-with-qr-code-description": "Please scan the QR code in your WeChat app to sign in.",
+  "v2-wechat-auth-page-open-app": "Open WeChat app to login",
+  "v2-wechat-auth-page-proceed": "Proceed WeChat login"
 }

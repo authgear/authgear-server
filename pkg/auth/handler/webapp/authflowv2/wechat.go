@@ -1,4 +1,4 @@
-package webapp
+package authflowv2
 
 import (
 	htmltemplate "html/template"
@@ -8,6 +8,7 @@ import (
 	"github.com/boombuler/barcode/qr"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
@@ -19,14 +20,14 @@ import (
 )
 
 var TemplateWebAuthflowWechatHTML = template.RegisterHTML(
-	"web/authflow_wechat.html",
-	Components...,
+	"web/authflowv2/wechat.html",
+	handlerwebapp.Components...,
 )
 
-func ConfigureAuthflowWechatRoute(route httproute.Route) httproute.Route {
+func ConfigureAuthflowV2WechatRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "GET", "POST").
-		WithPathPattern(webapp.AuthflowRouteWechat)
+		WithPathPattern(AuthflowV2RouteWechat)
 }
 
 type AuthflowWechatViewModel struct {
@@ -34,13 +35,13 @@ type AuthflowWechatViewModel struct {
 	WechatRedirectURI htmltemplate.URL
 }
 
-type AuthflowWechatHandler struct {
-	Controller    *AuthflowController
+type AuthflowV2WechatHandler struct {
+	Controller    *handlerwebapp.AuthflowController
 	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      Renderer
+	Renderer      handlerwebapp.Renderer
 }
 
-func (h *AuthflowWechatHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
+func (h *AuthflowV2WechatHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
@@ -62,7 +63,7 @@ func (h *AuthflowWechatHandler) GetData(w http.ResponseWriter, r *http.Request, 
 	}
 	authorizationURL = urlutil.WithQueryParamsAdded(authorizationURL, map[string]string{"state": state.Encode()})
 
-	img, err := CreateQRCodeImage(authorizationURL.String(), 512, 512, qr.M)
+	img, err := handlerwebapp.CreateQRCodeImage(authorizationURL.String(), 512, 512, qr.M)
 	if err != nil {
 		return nil, err
 	}
@@ -96,8 +97,8 @@ func (h *AuthflowWechatHandler) GetData(w http.ResponseWriter, r *http.Request, 
 	return data, nil
 }
 
-func (h *AuthflowWechatHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var handlers AuthflowControllerHandlers
+func (h *AuthflowV2WechatHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var handlers handlerwebapp.AuthflowControllerHandlers
 
 	submit := func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data := screen.Screen.WechatCallbackData

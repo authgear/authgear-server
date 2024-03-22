@@ -36,6 +36,7 @@ import { NewPasswordFieldController } from "./authflowv2/new-password-field";
 import { AlertMessageController } from "./authflowv2/alert-message";
 import { DismissKeyboardOnScrollController } from "./authflowv2/dismissKeyboard";
 import { BodyScrollLockController } from "./authflowv2/bodyScrollLock";
+import { ClickToSwitchController } from "./clickToSwitch";
 
 axios.defaults.withCredentials = true;
 
@@ -98,5 +99,6 @@ Stimulus.register(
   DismissKeyboardOnScrollController
 );
 Stimulus.register("body-scroll-lock", BodyScrollLockController);
+Stimulus.register("click-to-switch", ClickToSwitchController);
 
 injectCSSAttrs(document.documentElement);

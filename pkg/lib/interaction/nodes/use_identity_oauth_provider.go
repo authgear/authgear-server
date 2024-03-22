@@ -83,6 +83,7 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 		ResponseMode: sso.ResponseModeFormPost,
 		Nonce:        nonce,
 		Prompt:       input.GetPrompt(),
+		State:        ctx.WebSessionID,
 	}
 	redirectURI, err := oauthProvider.GetAuthURL(param)
 	if err != nil {

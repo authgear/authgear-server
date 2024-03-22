@@ -101,4 +101,8 @@
   .primary-btn:not([data-loading="true"])::after {
     @apply hidden;
   }
+
+  .primary-btn--success {
+    background-color: var(--color-success);
+  }
 }
