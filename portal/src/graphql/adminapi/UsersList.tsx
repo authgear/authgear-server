@@ -325,79 +325,103 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
     []
   );
 
+  const renderUserInfoCell = useCallback((item: UserListItem) => {
+    return <UserInfo item={item} />;
+  }, []);
+  const renderActionCell = useCallback(
+    (item: UserListItem) => {
+      let variant: "destructive" | "default";
+      let text = "";
+      if (item.deleteAt != null) {
+        variant = "default";
+        text = renderToString("UsersList.cancel-removal");
+      } else if (item.isDisabled) {
+        variant = "default";
+        text = renderToString("UsersList.reenable-user");
+      } else if (item.isAnonymized) {
+        variant = "destructive";
+        text = "";
+      } else if (item.anonymizeAt != null) {
+        variant = "destructive";
+        text = renderToString("UsersList.cancel-anonymization");
+      } else {
+        variant = "destructive";
+        text = renderToString("UsersList.disable-user");
+      }
+
+      return (
+        <ActionButtonCell
+          variant={variant}
+          onClick={(e) => onUserActionClick(e, item)}
+          text={text}
+        />
+      );
+    },
+    [onUserActionClick, renderToString]
+  );
+  const renderRoleCell = useCallback((item: UserListItem) => {
+    let text = "-";
+    if (item.roles.totalCount !== 0) {
+      const addtionalInfo =
+        item.roles.totalCount === 1 ? "" : ` +${item.roles.totalCount - 1}`;
+      text = `${item.roles.items[0].name}${addtionalInfo}`;
+    }
+    return (
+      <BaseCell>
+        <Text className={"whitespace-normal text-inherit"}>{text}</Text>
+      </BaseCell>
+    );
+  }, []);
+  const renderGroupCell = useCallback((item: UserListItem) => {
+    let text = "-";
+    if (item.groups.totalCount !== 0) {
+      const addtionalInfo =
+        item.groups.totalCount === 1 ? "" : ` +${item.groups.totalCount - 1}`;
+      text = `${item.groups.items[0].name}${addtionalInfo}`;
+    }
+    return (
+      <BaseCell>
+        <Text className={"whitespace-normal text-inherit"}>{text}</Text>
+      </BaseCell>
+    );
+  }, []);
+  const renderDefaultCell = useCallback(
+    (item: UserListItem, column?: IColumn) => {
+      return (
+        <TextCell>
+          {item[column?.key as keyof UserListItem] ?? USER_LIST_PLACEHOLDER}
+        </TextCell>
+      );
+    },
+    []
+  );
+
   const onRenderUserItemColumn = useCallback(
-    // eslint-disable-next-line complexity
     (item: UserListItem, _index?: number, column?: IColumn) => {
       switch (column?.key) {
         case "info": {
-          return <UserInfo item={item} />;
+          return renderUserInfoCell(item);
         }
         case "action": {
-          const variant =
-            item.deleteAt != null
-              ? "default"
-              : item.isDisabled
-              ? "default"
-              : "destructive";
-
-          const text =
-            item.deleteAt != null
-              ? renderToString("UsersList.cancel-removal")
-              : item.isAnonymized
-              ? ""
-              : item.anonymizeAt != null
-              ? renderToString("UsersList.cancel-anonymization")
-              : item.isDisabled
-              ? renderToString("UsersList.reenable-user")
-              : renderToString("UsersList.disable-user");
-
-          return (
-            <ActionButtonCell
-              variant={variant}
-              onClick={(event) => onUserActionClick(event, item)}
-              text={text}
-            />
-          );
+          return renderActionCell(item);
         }
         case "groups": {
-          let text = "-";
-          if (item.groups.totalCount !== 0) {
-            const addtionalInfo =
-              item.groups.totalCount === 1
-                ? ""
-                : ` +${item.groups.totalCount - 1}`;
-            text = `${item.groups.items[0].name}${addtionalInfo}`;
-          }
-          return (
-            <BaseCell>
-              <Text className={"whitespace-normal text-inherit"}>{text}</Text>
-            </BaseCell>
-          );
+          return renderGroupCell(item);
         }
         case "roles": {
-          let text = "-";
-          if (item.roles.totalCount !== 0) {
-            const addtionalInfo =
-              item.roles.totalCount === 1
-                ? ""
-                : ` +${item.roles.totalCount - 1}`;
-            text = `${item.roles.items[0].name}${addtionalInfo}`;
-          }
-          return (
-            <BaseCell>
-              <Text className={"whitespace-normal text-inherit"}>{text}</Text>
-            </BaseCell>
-          );
+          return renderRoleCell(item);
         }
         default:
-          return (
-            <TextCell>
-              {item[column?.key as keyof UserListItem] ?? USER_LIST_PLACEHOLDER}
-            </TextCell>
-          );
+          return renderDefaultCell(item);
       }
     },
-    [onUserActionClick, renderToString]
+    [
+      renderActionCell,
+      renderDefaultCell,
+      renderGroupCell,
+      renderRoleCell,
+      renderUserInfoCell,
+    ]
   );
 
   const dismissDisableUserDialog = useCallback(() => {
