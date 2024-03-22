@@ -36,13 +36,28 @@ func (s *Store) ListGroupsByUserID(userID string) ([]*Group, error) {
 	return userGroups[userID], nil
 }
 
-func (s *Store) ListUserIDsByGroupID(groupID string, pageArgs graphqlutil.PageArgs) ([]string, uint64, error) {
-	q := s.SQLBuilder.Select(
+func (s *Store) queryUserIDsByGroupID(groupID string) db.SelectBuilder {
+	return s.SQLBuilder.Select(
 		"u.id",
 	).
 		From(s.SQLBuilder.TableName("_auth_user_group"), "ug").
 		Join(s.SQLBuilder.TableName("_auth_user"), "u", "ug.user_id = u.id").
 		Where("ug.group_id = ?", groupID)
+}
+
+func (s *Store) ListAllUserIDsByGroupID(groupID string) ([]string, error) {
+	q := s.queryUserIDsByGroupID(groupID)
+
+	userIDs, err := s.queryUserIDs(q)
+	if err != nil {
+		return nil, err
+	}
+
+	return userIDs, nil
+}
+
+func (s *Store) ListUserIDsByGroupID(groupID string, pageArgs graphqlutil.PageArgs) ([]string, uint64, error) {
+	q := s.queryUserIDsByGroupID(groupID)
 
 	q, offset, err := db.ApplyPageArgs(q, pageArgs)
 	if err != nil {

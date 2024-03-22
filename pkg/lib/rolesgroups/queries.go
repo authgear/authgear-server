@@ -191,6 +191,10 @@ func (q *Queries) ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageAr
 	return models, nil
 }
 
+func (q *Queries) ListAllUserIDsByGroupID(groupID string) ([]string, error) {
+	return q.Store.ListAllUserIDsByGroupID(groupID)
+}
+
 func (q *Queries) ListUserIDsByGroupID(groupID string, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error) {
 	userIDs, offset, err := q.Store.ListUserIDsByGroupID(groupID, pageArgs)
 	if err != nil {
