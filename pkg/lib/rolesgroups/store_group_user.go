@@ -42,7 +42,7 @@ func (s *Store) queryUserIDsByGroupIDs(groupIDs []string) db.SelectBuilder {
 	).
 		From(s.SQLBuilder.TableName("_auth_user_group"), "ug").
 		Join(s.SQLBuilder.TableName("_auth_user"), "u", "ug.user_id = u.id").
-		Where("ug.group_id = ?", groupIDs)
+		Where("ug.group_id = ANY (?)", pq.Array(groupIDs))
 }
 
 func (s *Store) ListAllUserIDsByGroupIDs(groupIDs []string) ([]string, error) {
