@@ -45,8 +45,8 @@ func (e *UserProfileUpdatedEventPayload) RequireReindexUserIDs() []string {
 	return []string{e.UserID()}
 }
 
-func (e *UserProfileUpdatedEventPayload) IsUserDeleted() bool {
-	return false
+func (e *UserProfileUpdatedEventPayload) DeletedUserIDs() []string {
+	return []string{}
 }
 
 var _ event.NonBlockingPayload = &UserProfileUpdatedEventPayload{}

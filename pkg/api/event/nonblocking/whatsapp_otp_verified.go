@@ -40,8 +40,8 @@ func (e *WhatsappOTPVerifiedEventPayload) RequireReindexUserIDs() []string {
 	return []string{}
 }
 
-func (e *WhatsappOTPVerifiedEventPayload) IsUserDeleted() bool {
-	return false
+func (e *WhatsappOTPVerifiedEventPayload) DeletedUserIDs() []string {
+	return []string{}
 }
 
 var _ event.NonBlockingPayload = &WhatsappOTPVerifiedEventPayload{}

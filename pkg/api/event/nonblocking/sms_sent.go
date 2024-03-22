@@ -42,8 +42,8 @@ func (e *SMSSentEventPayload) RequireReindexUserIDs() []string {
 	return []string{}
 }
 
-func (e *SMSSentEventPayload) IsUserDeleted() bool {
-	return false
+func (e *SMSSentEventPayload) DeletedUserIDs() []string {
+	return []string{}
 }
 
 var _ event.NonBlockingPayload = &SMSSentEventPayload{}

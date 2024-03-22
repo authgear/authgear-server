@@ -44,8 +44,8 @@ func (e *UserAnonymizationScheduledEventPayload) RequireReindexUserIDs() []strin
 	return []string{e.UserID()}
 }
 
-func (e *UserAnonymizationScheduledEventPayload) IsUserDeleted() bool {
-	return false
+func (e *UserAnonymizationScheduledEventPayload) DeletedUserIDs() []string {
+	return []string{}
 }
 
 var _ event.NonBlockingPayload = &UserAnonymizationScheduledEventPayload{}

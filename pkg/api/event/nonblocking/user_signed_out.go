@@ -48,8 +48,8 @@ func (e *UserSignedOutEventPayload) RequireReindexUserIDs() []string {
 	return []string{}
 }
 
-func (e *UserSignedOutEventPayload) IsUserDeleted() bool {
-	return false
+func (e *UserSignedOutEventPayload) DeletedUserIDs() []string {
+	return []string{}
 }
 
 var _ event.NonBlockingPayload = &UserSignedOutEventPayload{}

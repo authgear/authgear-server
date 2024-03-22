@@ -41,8 +41,8 @@ func (e *WhatsappSentEventPayload) RequireReindexUserIDs() []string {
 	return []string{}
 }
 
-func (e *WhatsappSentEventPayload) IsUserDeleted() bool {
-	return false
+func (e *WhatsappSentEventPayload) DeletedUserIDs() []string {
+	return []string{}
 }
 
 var _ event.NonBlockingPayload = &WhatsappSentEventPayload{}

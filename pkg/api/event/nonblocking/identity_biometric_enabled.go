@@ -48,8 +48,8 @@ func (e *IdentityBiometricEnabledEventPayload) RequireReindexUserIDs() []string 
 	return []string{}
 }
 
-func (e *IdentityBiometricEnabledEventPayload) IsUserDeleted() bool {
-	return false
+func (e *IdentityBiometricEnabledEventPayload) DeletedUserIDs() []string {
+	return []string{}
 }
 
 var _ event.NonBlockingPayload = &IdentityBiometricEnabledEventPayload{}

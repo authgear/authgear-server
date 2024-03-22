@@ -39,8 +39,8 @@ func (e *AdminAPIMutationSendResetPasswordMessageExecutedEventPayload) RequireRe
 	return []string{}
 }
 
-func (e *AdminAPIMutationSendResetPasswordMessageExecutedEventPayload) IsUserDeleted() bool {
-	return false
+func (e *AdminAPIMutationSendResetPasswordMessageExecutedEventPayload) DeletedUserIDs() []string {
+	return []string{}
 }
 
 var _ event.NonBlockingPayload = &AdminAPIMutationSendResetPasswordMessageExecutedEventPayload{}

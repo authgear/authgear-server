@@ -40,8 +40,8 @@ func (e *ProjectBillingSubscriptionStatusUpdatedEventPayload) RequireReindexUser
 	return []string{}
 }
 
-func (e *ProjectBillingSubscriptionStatusUpdatedEventPayload) IsUserDeleted() bool {
-	return false
+func (e *ProjectBillingSubscriptionStatusUpdatedEventPayload) DeletedUserIDs() []string {
+	return []string{}
 }
 
 var _ event.NonBlockingPayload = &ProjectBillingSubscriptionStatusUpdatedEventPayload{}

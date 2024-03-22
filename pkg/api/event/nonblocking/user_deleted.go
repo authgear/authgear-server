@@ -42,11 +42,11 @@ func (e *UserDeletedEventPayload) ForAudit() bool {
 }
 
 func (e *UserDeletedEventPayload) RequireReindexUserIDs() []string {
-	return []string{e.UserID()}
+	return []string{}
 }
 
-func (e *UserDeletedEventPayload) IsUserDeleted() bool {
-	return true
+func (e *UserDeletedEventPayload) DeletedUserIDs() []string {
+	return []string{e.UserID()}
 }
 
 var _ event.NonBlockingPayload = &UserDeletedEventPayload{}

@@ -40,8 +40,8 @@ func (e *ProjectCollaboratorInvitationAcceptedEventPayload) RequireReindexUserID
 	return []string{}
 }
 
-func (e *ProjectCollaboratorInvitationAcceptedEventPayload) IsUserDeleted() bool {
-	return false
+func (e *ProjectCollaboratorInvitationAcceptedEventPayload) DeletedUserIDs() []string {
+	return []string{}
 }
 
 var _ event.NonBlockingPayload = &ProjectCollaboratorInvitationAcceptedEventPayload{}

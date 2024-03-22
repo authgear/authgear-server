@@ -40,8 +40,8 @@ func (e *AdminAPIMutationGenerateOOBOTPCodeExecutedEventPayload) RequireReindexU
 	return []string{}
 }
 
-func (e *AdminAPIMutationGenerateOOBOTPCodeExecutedEventPayload) IsUserDeleted() bool {
-	return false
+func (e *AdminAPIMutationGenerateOOBOTPCodeExecutedEventPayload) DeletedUserIDs() []string {
+	return []string{}
 }
 
 var _ event.NonBlockingPayload = &AdminAPIMutationGenerateOOBOTPCodeExecutedEventPayload{}

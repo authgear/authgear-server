@@ -39,6 +39,6 @@ func (*ProjectAppCreatedEventPayload) RequireReindexUserIDs() []string {
 	return []string{}
 }
 
-func (*ProjectAppCreatedEventPayload) IsUserDeleted() bool {
-	return false
+func (*ProjectAppCreatedEventPayload) DeletedUserIDs() []string {
+	return []string{}
 }

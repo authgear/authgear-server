@@ -41,8 +41,8 @@ func (e *EmailSentEventPayload) RequireReindexUserIDs() []string {
 	return []string{}
 }
 
-func (e *EmailSentEventPayload) IsUserDeleted() bool {
-	return false
+func (e *EmailSentEventPayload) DeletedUserIDs() []string {
+	return []string{}
 }
 
 var _ event.NonBlockingPayload = &EmailSentEventPayload{}

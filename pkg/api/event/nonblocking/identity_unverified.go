@@ -67,8 +67,8 @@ func (e *IdentityUnverifiedEventPayload) RequireReindexUserIDs() []string {
 	return []string{}
 }
 
-func (e *IdentityUnverifiedEventPayload) IsUserDeleted() bool {
-	return false
+func (e *IdentityUnverifiedEventPayload) DeletedUserIDs() []string {
+	return []string{}
 }
 
 var _ event.NonBlockingPayload = &IdentityUnverifiedEventPayload{}

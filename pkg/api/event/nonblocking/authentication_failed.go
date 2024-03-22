@@ -47,8 +47,8 @@ func (e *AuthenticationFailedEventPayload) RequireReindexUserIDs() []string {
 	return []string{}
 }
 
-func (e *AuthenticationFailedEventPayload) IsUserDeleted() bool {
-	return false
+func (e *AuthenticationFailedEventPayload) DeletedUserIDs() []string {
+	return []string{}
 }
 
 var _ event.NonBlockingPayload = &AuthenticationFailedEventPayload{}

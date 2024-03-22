@@ -41,8 +41,8 @@ func (e *AdminAPIMutationScheduleAccountDeletionExecutedEventPayload) RequireRei
 	return []string{}
 }
 
-func (e *AdminAPIMutationScheduleAccountDeletionExecutedEventPayload) IsUserDeleted() bool {
-	return false
+func (e *AdminAPIMutationScheduleAccountDeletionExecutedEventPayload) DeletedUserIDs() []string {
+	return []string{}
 }
 
 var _ event.NonBlockingPayload = &AdminAPIMutationScheduleAccountDeletionExecutedEventPayload{}

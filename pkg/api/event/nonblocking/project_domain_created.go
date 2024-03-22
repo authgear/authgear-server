@@ -40,8 +40,8 @@ func (e *ProjectDomainCreatedEventPayload) RequireReindexUserIDs() []string {
 	return []string{}
 }
 
-func (e *ProjectDomainCreatedEventPayload) IsUserDeleted() bool {
-	return false
+func (e *ProjectDomainCreatedEventPayload) DeletedUserIDs() []string {
+	return []string{}
 }
 
 var _ event.NonBlockingPayload = &ProjectDomainCreatedEventPayload{}

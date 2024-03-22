@@ -55,8 +55,8 @@ func (e *UserSessionTerminatedEventPayload) RequireReindexUserIDs() []string {
 	return []string{}
 }
 
-func (e *UserSessionTerminatedEventPayload) IsUserDeleted() bool {
-	return false
+func (e *UserSessionTerminatedEventPayload) DeletedUserIDs() []string {
+	return []string{}
 }
 
 var _ event.NonBlockingPayload = &UserSessionTerminatedEventPayload{}

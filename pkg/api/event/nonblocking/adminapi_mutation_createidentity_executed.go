@@ -42,8 +42,8 @@ func (e *AdminAPIMutationCreateIdentityExecutedEventPayload) RequireReindexUserI
 	return []string{}
 }
 
-func (e *AdminAPIMutationCreateIdentityExecutedEventPayload) IsUserDeleted() bool {
-	return false
+func (e *AdminAPIMutationCreateIdentityExecutedEventPayload) DeletedUserIDs() []string {
+	return []string{}
 }
 
 var _ event.NonBlockingPayload = &AdminAPIMutationCreateIdentityExecutedEventPayload{}

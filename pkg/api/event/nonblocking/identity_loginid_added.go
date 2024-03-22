@@ -72,8 +72,8 @@ func (e *IdentityLoginIDAddedEventPayload) RequireReindexUserIDs() []string {
 	return []string{e.UserID()}
 }
 
-func (e *IdentityLoginIDAddedEventPayload) IsUserDeleted() bool {
-	return false
+func (e *IdentityLoginIDAddedEventPayload) DeletedUserIDs() []string {
+	return []string{}
 }
 
 var _ event.NonBlockingPayload = &IdentityLoginIDAddedEventPayload{}
