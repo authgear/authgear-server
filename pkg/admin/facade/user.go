@@ -31,7 +31,10 @@ type UserService interface {
 }
 
 type UserSearchService interface {
-	QueryUser(searchKeyword string, sortOption user.SortOption, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *libes.Stats, error)
+	QueryUser(searchKeyword string,
+		filterOptions user.FilterOptions,
+		sortOption user.SortOption,
+		pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *libes.Stats, error)
 }
 
 type UserFacade struct {
@@ -52,8 +55,12 @@ func (f *UserFacade) ListPage(listOption user.ListOptions, pageArgs graphqlutil.
 	})), nil
 }
 
-func (f *UserFacade) SearchPage(searchKeyword string, sortOption user.SortOption, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error) {
-	refs, stats, err := f.UserSearchService.QueryUser(searchKeyword, sortOption, pageArgs)
+func (f *UserFacade) SearchPage(
+	searchKeyword string,
+	filterOptions user.FilterOptions,
+	sortOption user.SortOption,
+	pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error) {
+	refs, stats, err := f.UserSearchService.QueryUser(searchKeyword, filterOptions, sortOption, pageArgs)
 	if err != nil {
 		return nil, nil, err
 	}

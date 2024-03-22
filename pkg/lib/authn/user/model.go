@@ -12,9 +12,16 @@ import (
 )
 
 type ListOptions struct {
-	GroupKeys  []string
-	RoleKeys   []string
 	SortOption SortOption
+}
+
+type FilterOptions struct {
+	GroupKeys []string
+	RoleKeys  []string
+}
+
+func (o FilterOptions) IsFilterEnabled() bool {
+	return len(o.GroupKeys) > 0 || len(o.RoleKeys) > 0
 }
 
 type SortBy string

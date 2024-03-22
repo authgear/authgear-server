@@ -121,6 +121,7 @@ func (s *Service) ReindexUser(userID string, isDelete bool) (err error) {
 
 func (s *Service) QueryUser(
 	searchKeyword string,
+	filterOptions libuser.FilterOptions,
 	sortOption libuser.SortOption,
 	pageArgs graphqlutil.PageArgs,
 ) ([]model.PageItemRef, *Stats, error) {
@@ -129,7 +130,7 @@ func (s *Service) QueryUser(
 	}
 
 	// Prepare body
-	bodyJSONValue := MakeSearchBody(s.AppID, searchKeyword, sortOption)
+	bodyJSONValue := MakeSearchBody(s.AppID, searchKeyword, filterOptions, sortOption)
 
 	// Prepare search_after
 	searchAfter, err := CursorToSearchAfter(model.PageCursor(pageArgs.After))
@@ -144,6 +145,7 @@ func (s *Service) QueryUser(
 	if err != nil {
 		return nil, nil, err
 	}
+	fmt.Println("bodyJSONBytes", string(bodyJSONBytes))
 	body := bytes.NewReader(bodyJSONBytes)
 
 	// Prepare size

@@ -91,18 +91,21 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				}
 
 				listOption := libuser.ListOptions{
-					RoleKeys:   roleKeys,
-					GroupKeys:  groupKeys,
 					SortOption: sortOption,
+				}
+
+				filterOptions := libuser.FilterOptions{
+					RoleKeys:  roleKeys,
+					GroupKeys: groupKeys,
 				}
 
 				var refs []apimodel.PageItemRef
 				var result *graphqlutil.PageResult
 				var err error
-				if searchKeyword == "" {
+				if searchKeyword == "" && !filterOptions.IsFilterEnabled() {
 					refs, result, err = gqlCtx.UserFacade.ListPage(listOption, pageArgs)
 				} else {
-					refs, result, err = gqlCtx.UserFacade.SearchPage(searchKeyword, sortOption, pageArgs)
+					refs, result, err = gqlCtx.UserFacade.SearchPage(searchKeyword, filterOptions, sortOption, pageArgs)
 				}
 				if err != nil {
 					return nil, err
