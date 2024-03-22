@@ -210,7 +210,7 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 
-			affectedUserIDs, err := gqlCtx.RolesGroupsFacade.ListAllUserIDsByGroupID(groupID)
+			affectedUserIDs, err := gqlCtx.RolesGroupsFacade.ListAllUserIDsByGroupIDs([]string{groupID})
 			if err != nil {
 				return nil, err
 			}

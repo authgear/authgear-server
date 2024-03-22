@@ -4,6 +4,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 type Queries struct {
@@ -191,8 +192,17 @@ func (q *Queries) ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageAr
 	return models, nil
 }
 
-func (q *Queries) ListAllUserIDsByGroupID(groupID string) ([]string, error) {
-	return q.Store.ListAllUserIDsByGroupID(groupID)
+func (q *Queries) ListAllUserIDsByGroupKeys(groupKeys []string) ([]string, error) {
+	groups, err := q.Store.GetManyGroupsByKeys(groupKeys)
+	if err != nil {
+		return nil, err
+	}
+	groupIDs := slice.Map(groups, func(group *Group) string { return group.ID })
+	return q.Store.ListAllUserIDsByGroupIDs(groupIDs)
+}
+
+func (q *Queries) ListAllUserIDsByGroupIDs(groupIDs []string) ([]string, error) {
+	return q.Store.ListAllUserIDsByGroupIDs(groupIDs)
 }
 
 func (q *Queries) ListUserIDsByGroupID(groupID string, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error) {
