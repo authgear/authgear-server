@@ -54,7 +54,10 @@ function useRemoteData(options: {
 }) {
   const { filters, offset, sortBy, sortDirection } = options;
 
-  const isSearch = filters.searchKeyword !== "";
+  const isSearch =
+    filters.searchKeyword !== "" ||
+    filters.role != null ||
+    filters.group != null;
 
   const debouncedSearchKey = useDelayedValue(filters.searchKeyword, 500);
 
@@ -132,6 +135,7 @@ function useRemoteData(options: {
 
   return {
     isLoading: loading || isRolesListDataLoading || isGroupsListDataLoading,
+    isSearch: isSearch,
     error: error ?? rolesListDataError ?? groupsListDataError,
     data,
     isGroupsEmpty:
@@ -168,8 +172,6 @@ const UsersScreen: React.VFC = function UsersScreen() {
   const { renderToString } = useContext(Context);
   const navigate = useNavigate();
 
-  const isSearch = filters.searchKeyword !== "";
-
   const items = useMemo(() => {
     return [{ to: ".", label: <FormattedMessage id="UsersScreen.title" /> }];
   }, []);
@@ -178,8 +180,15 @@ const UsersScreen: React.VFC = function UsersScreen() {
     setOffset(offset);
   }, []);
 
-  const { data, isLoading, isGroupsEmpty, isRolesEmpty, error, refetch } =
-    useRemoteData({ filters, offset, sortBy, sortDirection });
+  const {
+    data,
+    isLoading,
+    isGroupsEmpty,
+    isRolesEmpty,
+    error,
+    refetch,
+    isSearch,
+  } = useRemoteData({ filters, offset, sortBy, sortDirection });
 
   const isTotalExceededLimit =
     (data?.users?.totalCount ?? 0) > searchResultSize;
