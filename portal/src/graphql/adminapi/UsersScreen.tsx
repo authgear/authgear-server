@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MessageBar } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -210,14 +204,6 @@ const UsersScreen: React.VFC = function UsersScreen() {
     [sortBy, sortDirection]
   );
 
-  // We do not allow using filter and search at the same time
-  const isFiltering = filters.group !== null || filters.role !== null;
-  useEffect(() => {
-    if (isFiltering) {
-      setFilters((prev) => ({ ...prev, searchKeyword: "" }));
-    }
-  }, [isFiltering]);
-
   return (
     <CommandBarContainer
       className={styles.root}
@@ -240,7 +226,6 @@ const UsersScreen: React.VFC = function UsersScreen() {
           </div>
           <UsersFilterBar
             className="mt-12"
-            isSearchDisabled={isFiltering}
             showSearchBar={searchEnabled}
             showGroupFilter={!isGroupsEmpty}
             showRoleFilter={!isRolesEmpty}
