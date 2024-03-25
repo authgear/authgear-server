@@ -226,7 +226,7 @@ func MakeSearchBody(
 	filterOptions libuser.FilterOptions,
 	sortOption libuser.SortOption,
 ) map[string]interface{} {
-	should := []interface{}{}
+	var should []interface{}
 	if searchKeyword != "" {
 		should = makeSearchConditions(searchKeyword)
 	} else {
