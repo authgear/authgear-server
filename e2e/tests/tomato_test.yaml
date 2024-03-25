@@ -1,0 +1,163 @@
+name: New account with OAuth
+project: tomato
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup_login",
+        "name": "default"
+      }
+    assert:
+      - field: "action.type"
+        op: eq
+        value: "identify"
+
+  - input: |
+      {
+        "identification": "oauth",
+        "alias": "mock",
+        "redirect_uri": "https://mock"
+      }
+    assert:
+      - field: "action.type"
+        op: eq
+        value: "identify"
+
+  - input: |
+      {
+        "code": "mock"
+      }
+    assert:
+      - field: "error.reason"
+        op: eq
+        value: AuthenticationFlowNoPublicSignup
+---
+name: Signup flow
+project: tomato
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    assert:
+      - field: "error.reason"
+        op: eq
+        value: AuthenticationFlowNoPublicSignup
+---
+name: First time login
+project: tomato
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    assert:
+      - field: "action.type"
+        op: eq
+        value: "identify"
+
+  - input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_tomato_first_time"
+      }
+    assert:
+      - field: "action.type"
+        op: eq
+        value: "authenticate"
+
+  - input: |
+      {
+        "authentication": "primary_password",
+        "password": "auyeung1234"
+      }
+    assert:
+      - field: "action.type"
+        op: eq
+        value: authenticate
+
+  - input: |
+      {
+        "authentication": "primary_oob_otp_sms",
+        "index": 0
+      }
+
+  - input: |
+      {
+        "code": "000000"
+      }
+    assert:
+      - field: "action.type"
+        op: eq
+        value: change_password
+
+  - input: |
+      {
+        "new_password": "Auyeung1234auyeung1234!"
+      }
+    assert:
+      - field: "action.type"
+        op: eq
+        value: finished
+---
+name: Login
+project: tomato
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    assert:
+      - field: "action.type"
+        op: eq
+        value: "identify"
+
+  - input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_tomato_employee_id"
+      }
+    assert:
+      - field: "action.type"
+        op: eq
+        value: "authenticate"
+
+  - input: |
+      {
+        "authentication": "primary_password",
+        "password": "Wakanda4ever@Wakanda4ever"
+      }
+    assert:
+      - field: "action.type"
+        op: eq
+        value: authenticate
+
+  - input: |
+      {
+        "authentication": "primary_oob_otp_sms",
+        "index": 0
+      }
+
+  - input: |
+      {
+        "code": "111111"
+      }
+    assert:
+      - field: "error.reason"
+        op: eq
+        value: InvalidCredentials
+
+  - input: |
+      {
+        "code": "000000"
+      }
+    assert:
+      - field: "action.type"
+        op: eq
+        value: finished
