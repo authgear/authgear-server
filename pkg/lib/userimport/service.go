@@ -169,8 +169,8 @@ func (s *UserImportService) ImportRecords(ctx context.Context, request *Request)
 		if shouldReindexUser {
 			// Do it after the transaction has committed to ensure the user can be queried
 			err = s.Elasticsearch.EnqueueReindexUserTask(detail.UserID)
-			s.Logger.WithError(err).Error("failed to enqueue reindex user task")
 			if err != nil {
+				s.Logger.WithError(err).Error("failed to enqueue reindex user task")
 				return nil
 			}
 		}
