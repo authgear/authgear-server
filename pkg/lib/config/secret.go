@@ -149,6 +149,10 @@ func (c *SecretConfig) validateOAuthProviders(ctx *validation.Context, appConfig
 	oauth, ok := data.(*OAuthSSOProviderCredentials)
 	if ok {
 		for _, p := range appConfig.Identity.OAuth.Providers {
+			if p.Type == OAuthSSOProviderTypeMock {
+				continue
+			}
+
 			var matchedItem *OAuthSSOProviderCredentialsItem = nil
 			var matchedItemIndex int = -1
 			for index := range oauth.Items {

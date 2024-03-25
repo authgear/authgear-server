@@ -281,7 +281,8 @@ var _ = Schema.Add("OAuthSSOProviderType", `
 		"azureadb2c",
 		"adfs",
 		"apple",
-		"wechat"
+		"wechat",
+		"mock"
 	]
 }
 `)
@@ -345,6 +346,8 @@ func (t OAuthSSOProviderType) EmailRequired() bool {
 		return true
 	case OAuthSSOProviderTypeWechat:
 		return false
+	case OAuthSSOProviderTypeMock:
+		return false
 	}
 	panic(fmt.Sprintf("oauth: unknown provider type %s", string(t)))
 }
@@ -359,6 +362,7 @@ const (
 	OAuthSSOProviderTypeADFS       OAuthSSOProviderType = "adfs"
 	OAuthSSOProviderTypeApple      OAuthSSOProviderType = "apple"
 	OAuthSSOProviderTypeWechat     OAuthSSOProviderType = "wechat"
+	OAuthSSOProviderTypeMock       OAuthSSOProviderType = "mock"
 )
 
 var OAuthSSOProviderTypes = []OAuthSSOProviderType{
