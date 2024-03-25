@@ -37,11 +37,11 @@ func (e *ProjectBillingCheckoutCreatedEventPayload) ForAudit() bool {
 }
 
 func (e *ProjectBillingCheckoutCreatedEventPayload) RequireReindexUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 func (e *ProjectBillingCheckoutCreatedEventPayload) DeletedUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 var _ event.NonBlockingPayload = &ProjectBillingCheckoutCreatedEventPayload{}

@@ -41,7 +41,7 @@ func (e *AdminAPIMutationRemoveRoleFromGroupsExecutedEventPayload) RequireReinde
 }
 
 func (e *AdminAPIMutationRemoveRoleFromGroupsExecutedEventPayload) DeletedUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 var _ event.NonBlockingPayload = &AdminAPIMutationRemoveRoleFromGroupsExecutedEventPayload{}

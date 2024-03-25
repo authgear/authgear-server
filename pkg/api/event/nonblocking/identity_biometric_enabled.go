@@ -49,7 +49,7 @@ func (e *IdentityBiometricEnabledEventPayload) RequireReindexUserIDs() []string 
 }
 
 func (e *IdentityBiometricEnabledEventPayload) DeletedUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 var _ event.NonBlockingPayload = &IdentityBiometricEnabledEventPayload{}

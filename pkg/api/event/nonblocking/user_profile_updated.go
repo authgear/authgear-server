@@ -46,7 +46,7 @@ func (e *UserProfileUpdatedEventPayload) RequireReindexUserIDs() []string {
 }
 
 func (e *UserProfileUpdatedEventPayload) DeletedUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 var _ event.NonBlockingPayload = &UserProfileUpdatedEventPayload{}

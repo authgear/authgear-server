@@ -41,7 +41,7 @@ func (e *AdminAPIMutationAddRoleToGroupsExecutedEventPayload) RequireReindexUser
 }
 
 func (e *AdminAPIMutationAddRoleToGroupsExecutedEventPayload) DeletedUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 var _ event.NonBlockingPayload = &AdminAPIMutationAddRoleToGroupsExecutedEventPayload{}

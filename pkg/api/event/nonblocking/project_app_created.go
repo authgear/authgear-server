@@ -36,9 +36,9 @@ func (*ProjectAppCreatedEventPayload) ForAudit() bool {
 }
 
 func (*ProjectAppCreatedEventPayload) RequireReindexUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 func (*ProjectAppCreatedEventPayload) DeletedUserIDs() []string {
-	return []string{}
+	return nil
 }

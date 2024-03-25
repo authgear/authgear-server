@@ -36,11 +36,11 @@ func (e *AdminAPIMutationSendResetPasswordMessageExecutedEventPayload) ForAudit(
 }
 
 func (e *AdminAPIMutationSendResetPasswordMessageExecutedEventPayload) RequireReindexUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 func (e *AdminAPIMutationSendResetPasswordMessageExecutedEventPayload) DeletedUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 var _ event.NonBlockingPayload = &AdminAPIMutationSendResetPasswordMessageExecutedEventPayload{}

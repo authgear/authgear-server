@@ -38,11 +38,11 @@ func (e *AdminAPIMutationUnscheduleAccountDeletionExecutedEventPayload) ForAudit
 }
 
 func (e *AdminAPIMutationUnscheduleAccountDeletionExecutedEventPayload) RequireReindexUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 func (e *AdminAPIMutationUnscheduleAccountDeletionExecutedEventPayload) DeletedUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 var _ event.NonBlockingPayload = &AdminAPIMutationUnscheduleAccountDeletionExecutedEventPayload{}

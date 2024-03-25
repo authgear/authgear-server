@@ -37,11 +37,11 @@ func (e *ProjectCollaboratorInvitationAcceptedEventPayload) ForAudit() bool {
 }
 
 func (e *ProjectCollaboratorInvitationAcceptedEventPayload) RequireReindexUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 func (e *ProjectCollaboratorInvitationAcceptedEventPayload) DeletedUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 var _ event.NonBlockingPayload = &ProjectCollaboratorInvitationAcceptedEventPayload{}

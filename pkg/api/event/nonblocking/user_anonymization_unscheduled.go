@@ -45,7 +45,7 @@ func (e *UserAnonymizationUnscheduledEventPayload) RequireReindexUserIDs() []str
 }
 
 func (e *UserAnonymizationUnscheduledEventPayload) DeletedUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 var _ event.NonBlockingPayload = &UserAnonymizationUnscheduledEventPayload{}

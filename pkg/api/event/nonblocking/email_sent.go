@@ -38,11 +38,11 @@ func (e *EmailSentEventPayload) ForAudit() bool {
 }
 
 func (e *EmailSentEventPayload) RequireReindexUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 func (e *EmailSentEventPayload) DeletedUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 var _ event.NonBlockingPayload = &EmailSentEventPayload{}

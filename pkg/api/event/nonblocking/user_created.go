@@ -47,7 +47,7 @@ func (e *UserCreatedEventPayload) RequireReindexUserIDs() []string {
 }
 
 func (e *UserCreatedEventPayload) DeletedUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 var _ event.NonBlockingPayload = &UserCreatedEventPayload{}

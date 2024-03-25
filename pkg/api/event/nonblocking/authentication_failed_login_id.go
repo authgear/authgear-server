@@ -38,11 +38,11 @@ func (e *AuthenticationFailedLoginIDEventPayload) ForAudit() bool {
 }
 
 func (e *AuthenticationFailedLoginIDEventPayload) RequireReindexUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 func (e *AuthenticationFailedLoginIDEventPayload) DeletedUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 var _ event.NonBlockingPayload = &AuthenticationFailedLoginIDEventPayload{}

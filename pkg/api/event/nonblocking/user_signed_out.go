@@ -45,11 +45,11 @@ func (e *UserSignedOutEventPayload) ForAudit() bool {
 }
 
 func (e *UserSignedOutEventPayload) RequireReindexUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 func (e *UserSignedOutEventPayload) DeletedUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 var _ event.NonBlockingPayload = &UserSignedOutEventPayload{}

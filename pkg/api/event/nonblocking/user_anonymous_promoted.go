@@ -49,7 +49,7 @@ func (e *UserAnonymousPromotedEventPayload) RequireReindexUserIDs() []string {
 }
 
 func (e *UserAnonymousPromotedEventPayload) DeletedUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 var _ event.NonBlockingPayload = &UserAnonymousPromotedEventPayload{}

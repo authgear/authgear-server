@@ -39,11 +39,11 @@ func (e *AdminAPIMutationSetDisabledStatusExecutedEventPayload) ForAudit() bool 
 }
 
 func (e *AdminAPIMutationSetDisabledStatusExecutedEventPayload) RequireReindexUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 func (e *AdminAPIMutationSetDisabledStatusExecutedEventPayload) DeletedUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 var _ event.NonBlockingPayload = &AdminAPIMutationSetDisabledStatusExecutedEventPayload{}

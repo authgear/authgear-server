@@ -42,7 +42,7 @@ func (e *UserDeletedEventPayload) ForAudit() bool {
 }
 
 func (e *UserDeletedEventPayload) RequireReindexUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 func (e *UserDeletedEventPayload) DeletedUserIDs() []string {

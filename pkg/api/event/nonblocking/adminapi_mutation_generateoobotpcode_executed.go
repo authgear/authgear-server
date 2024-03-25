@@ -37,11 +37,11 @@ func (e *AdminAPIMutationGenerateOOBOTPCodeExecutedEventPayload) ForAudit() bool
 }
 
 func (e *AdminAPIMutationGenerateOOBOTPCodeExecutedEventPayload) RequireReindexUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 func (e *AdminAPIMutationGenerateOOBOTPCodeExecutedEventPayload) DeletedUserIDs() []string {
-	return []string{}
+	return nil
 }
 
 var _ event.NonBlockingPayload = &AdminAPIMutationGenerateOOBOTPCodeExecutedEventPayload{}
