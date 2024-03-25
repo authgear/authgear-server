@@ -56,6 +56,12 @@ func PrepareFallback(
 				return err
 			}
 		}
+		if resrc.Location.Fs.GetFsLevel() == resource.FsLevelCustom && langTag == intl.BuiltinBaseLanguage {
+			err := add(defaultLanguageTag, resrc)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	// Add the resources of fallback language.

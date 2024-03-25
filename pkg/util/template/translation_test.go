@@ -449,6 +449,25 @@ func TestTranslationResource(t *testing.T) {
 					"some-key-2": { "LanguageTag": "zh-HK", "Value": "zh-HK some-key-2 in fs A" }
 				}`))
 			})
+
+			Convey("should resolve when keys are provided in custom fs level with not supported language", func() {
+				writeFile(fsB, "en", `{
+					"email.default.sender": "no-reply+en@custom.com"
+				}`)
+				er := resource.EffectiveResource{
+					DefaultTag:    "ja-JP",
+					SupportedTags: []string{"ja-JP"},
+				}
+				data, err := read(er)
+				So(err, ShouldBeNil)
+				So(data, ShouldEqual, compact(`{
+					"app.name": { "LanguageTag": "ja-JP", "Value": "en app.name in fs A" },
+					"email.default.sender": { "LanguageTag": "ja-JP", "Value": "no-reply+en@custom.com" },
+					"some-key-1": { "LanguageTag": "ja-JP", "Value": "en some-key-1 in fs A" },
+					"some-key-2": { "LanguageTag": "ja-JP", "Value": "en some-key-2 in fs A" }
+				}`))
+
+			})
 		})
 	})
 
