@@ -12,7 +12,7 @@ const IndexNameUser = "user"
 const PrefixMinChars = 3
 
 func makeSearchConditions(searchKeyword string) []interface{} {
-	return []interface{}{
+	should := []interface{}{
 		map[string]interface{}{
 			"term": map[string]interface{}{
 				"id": searchKeyword,
@@ -218,22 +218,6 @@ func makeSearchConditions(searchKeyword string) []interface{} {
 			},
 		},
 	}
-}
-
-func MakeSearchBody(
-	appID config.AppID,
-	searchKeyword string,
-	filterOptions libuser.FilterOptions,
-	sortOption libuser.SortOption,
-) map[string]interface{} {
-	var should []interface{}
-	if searchKeyword != "" {
-		should = makeSearchConditions(searchKeyword)
-	} else {
-		should = []interface{}{map[string]interface{}{
-			"match_all": map[string]interface{}{},
-		}}
-	}
 
 	// For unknown reason, if the search keyword is shorter than the prefix min chars,
 	// elasticsearch will throw runtime exception.
@@ -310,6 +294,68 @@ func MakeSearchBody(
 		}...)
 	}
 
+	return should
+}
+
+func makeFilterConditions(
+	filterOptions libuser.FilterOptions) []interface{} {
+
+	filters := []interface{}{}
+
+	if len(filterOptions.RoleKeys) > 0 {
+		roleKeyShoulds := slice.Map(filterOptions.RoleKeys, func(roleKey string) interface{} {
+			return map[string]interface{}{
+				"term": map[string]interface{}{
+					"role_key": map[string]interface{}{
+						"value": roleKey,
+					},
+				},
+			}
+		})
+		filters = append(filters, map[string]interface{}{
+			"bool": map[string]interface{}{
+				"minimum_should_match": 1,
+				"should":               roleKeyShoulds,
+			},
+		})
+	}
+
+	if len(filterOptions.GroupKeys) > 0 {
+		groupKeyShoulds := slice.Map(filterOptions.GroupKeys, func(groupKey string) interface{} {
+			return map[string]interface{}{
+				"term": map[string]interface{}{
+					"group_key": map[string]interface{}{
+						"value": groupKey,
+					},
+				},
+			}
+		})
+		filters = append(filters, map[string]interface{}{
+			"bool": map[string]interface{}{
+				"minimum_should_match": 1,
+				"should":               groupKeyShoulds,
+			},
+		})
+	}
+
+	return filters
+}
+
+func MakeSearchBody(
+	appID config.AppID,
+	searchKeyword string,
+	filterOptions libuser.FilterOptions,
+	sortOption libuser.SortOption,
+) map[string]interface{} {
+	var should []interface{}
+	if searchKeyword != "" {
+		should = makeSearchConditions(searchKeyword)
+	} else {
+		should = []interface{}{map[string]interface{}{
+			"match_all": map[string]interface{}{},
+		}}
+	}
+
 	filter := []interface{}{
 		map[string]interface{}{
 			"term": map[string]interface{}{
@@ -319,40 +365,8 @@ func MakeSearchBody(
 	}
 
 	if filterOptions.IsFilterEnabled() {
-		filterShould := []interface{}{}
 
-		if len(filterOptions.RoleKeys) > 0 {
-			shoulds := slice.Map(filterOptions.RoleKeys, func(roleKey string) interface{} {
-				return map[string]interface{}{
-					"term": map[string]interface{}{
-						"role_key": map[string]interface{}{
-							"value": roleKey,
-						},
-					},
-				}
-			})
-			filterShould = append(filterShould, shoulds...)
-		}
-
-		if len(filterOptions.GroupKeys) > 0 {
-			shoulds := slice.Map(filterOptions.GroupKeys, func(groupKey string) interface{} {
-				return map[string]interface{}{
-					"term": map[string]interface{}{
-						"group_key": map[string]interface{}{
-							"value": groupKey,
-						},
-					},
-				}
-			})
-			filterShould = append(filterShould, shoulds...)
-		}
-
-		filter = append(filter, map[string]interface{}{
-			"bool": map[string]interface{}{
-				"minimum_should_match": 1,
-				"should":               filterShould,
-			},
-		})
+		filter = append(filter, makeFilterConditions(filterOptions)...)
 	}
 
 	body := map[string]interface{}{

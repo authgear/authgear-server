@@ -1727,7 +1727,14 @@ func TestMakeSearchBody(t *testing.T) {
 												"value": "role2"
 											}
 										}
-									},
+									}
+								]
+							}
+						},
+						{
+							"bool": {
+								"minimum_should_match": 1,
+								"should": [
 									{
 										"term": {
 											"group_key": {
@@ -2052,7 +2059,106 @@ func TestMakeSearchBody(t *testing.T) {
 												"value": "role2"
 											}
 										}
+									}
+								]
+							}
+						},
+						{
+							"bool": {
+								"minimum_should_match": 1,
+								"should": [
+									{
+										"term": {
+											"group_key": {
+												"value": "group1"
+											}
+										}
 									},
+									{
+										"term": {
+											"group_key": {
+												"value": "group2"
+											}
+										}
+									}
+								]
+							}
+						}
+					],
+					"should": [
+						{
+							"match_all": {}
+						}
+					]
+				}
+			},
+			"sort": [{ "created_at": { "order": "desc" } }]
+		}
+		`)
+
+		test("", libuser.FilterOptions{
+			RoleKeys: []string{"role1", "role2"},
+		}, libuser.SortOption{}, `
+		{
+			"query": {
+				"bool": {
+					"minimum_should_match": 1,
+					"filter": [
+						{
+							"term": {
+								"app_id": "APP_ID"
+							}
+						},
+						{
+							"bool": {
+								"minimum_should_match": 1,
+								"should": [
+									{
+										"term": {
+											"role_key": {
+												"value": "role1"
+											}
+										}
+									},
+									{
+										"term": {
+											"role_key": {
+												"value": "role2"
+											}
+										}
+									}
+								]
+							}
+						}
+					],
+					"should": [
+						{
+							"match_all": {}
+						}
+					]
+				}
+			},
+			"sort": [{ "created_at": { "order": "desc" } }]
+		}
+		`)
+
+		test("", libuser.FilterOptions{
+			GroupKeys: []string{"group1", "group2"},
+		}, libuser.SortOption{}, `
+		{
+			"query": {
+				"bool": {
+					"minimum_should_match": 1,
+					"filter": [
+						{
+							"term": {
+								"app_id": "APP_ID"
+							}
+						},
+						{
+							"bool": {
+								"minimum_should_match": 1,
+								"should": [
 									{
 										"term": {
 											"group_key": {
