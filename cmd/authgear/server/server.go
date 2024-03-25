@@ -101,6 +101,13 @@ func (c *Controller) Start() {
 			ListenAddress: u.Host,
 			Handler:       pprofutil.NewServeMux(),
 		}))
+
+		specs = append(specs, redisqueue.NewConsumer(
+			infraredisqueue.QueueUserReindex,
+			p,
+			configSrcController,
+			redisqueue.UserReindex,
+		))
 	}
 
 	if c.ServeResolver {
