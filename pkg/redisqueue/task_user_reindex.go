@@ -11,12 +11,17 @@ import (
 
 func UserReindex(ctx context.Context, appProvider *deps.AppProvider, task *redisqueue.Task) (output json.RawMessage, err error) {
 	esService := newElasticsearchService(ctx, appProvider)
-	var param elasticsearch.ReindexRequest
-	err = json.Unmarshal(task.Input, &param)
+	var request elasticsearch.ReindexRequest
+	err = json.Unmarshal(task.Input, &request)
+	if err != nil {
+		return
+	}
+	result := esService.ExecReindexUser(request)
+	resultBytes, err := json.Marshal(result)
 	if err != nil {
 		return
 	}
 
-	// TODO
+	output = json.RawMessage(resultBytes)
 	return
 }

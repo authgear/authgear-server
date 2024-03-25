@@ -486,10 +486,13 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Store:    writeStore,
 	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
+	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := p.TaskQueue
 	elasticsearchService := elasticsearch.Service{
+		Database:    handle,
+		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
 		Client:      client,
 		Users:       userQueries,
@@ -650,6 +653,8 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Coordinator: coordinator,
 	}
 	service4 := &elasticsearch.Service{
+		Database:    handle,
+		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
 		Client:      client,
 		Users:       userQueries,
@@ -682,6 +687,9 @@ var (
 )
 
 func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elasticsearch.Service {
+	handle := p.AppDatabase
+	factory := p.LoggerFactory
+	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
 	appContext := p.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
@@ -691,7 +699,6 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	handle := p.AppDatabase
 	sqlExecutor := appdb.NewSQLExecutor(ctx, handle)
 	clockClock := _wireSystemClockValue
 	store := &user.Store{
@@ -831,7 +838,6 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	factory := p.LoggerFactory
 	logger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
@@ -1052,6 +1058,8 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 	}
 	queue := p.TaskQueue
 	elasticsearchService := &elasticsearch.Service{
+		Database:    handle,
+		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
 		Client:      client,
 		Users:       userQueries,

@@ -571,10 +571,13 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Store:    writeStore,
 	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
+	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	noopTaskQueue := NewNoopTaskQueue()
 	elasticsearchService := elasticsearch.Service{
+		Database:    handle,
+		Logger:      elasticsearchServiceLogger,
 		AppID:       configAppID,
 		Client:      client,
 		Users:       userQueries,

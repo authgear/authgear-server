@@ -604,10 +604,13 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Store:    writeStore,
 	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
+	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
 	elasticsearchService := elasticsearch.Service{
+		Database:    appdbHandle,
+		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
 		Client:      client,
 		Users:       userQueries,
