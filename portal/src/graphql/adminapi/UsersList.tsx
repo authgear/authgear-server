@@ -368,7 +368,7 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
     }
     return (
       <BaseCell>
-        <Text className={"whitespace-normal text-inherit"}>{text}</Text>
+        <Text className={"whitespace-normal"}>{text}</Text>
       </BaseCell>
     );
   }, []);
@@ -381,7 +381,7 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
     }
     return (
       <BaseCell>
-        <Text className={"whitespace-normal text-inherit"}>{text}</Text>
+        <Text className={"whitespace-normal"}>{text}</Text>
       </BaseCell>
     );
   }, []);
