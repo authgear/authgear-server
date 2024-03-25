@@ -206,6 +206,36 @@ func TestMakeSearchBody(t *testing.T) {
 								"value": "SH"
 							}
 						}
+					},
+					{
+						"term": {
+							"role_key": {
+								"case_insensitive": true,
+								"value": "SH"
+							}
+						}
+					},
+					{
+						"match": {
+							"role_name": {
+								"query": "SH"
+							}
+						}
+					},
+					{
+						"term": {
+							"group_key": {
+								"case_insensitive": true,
+								"value": "SH"
+							}
+						}
+					},
+					{
+						"match": {
+							"group_name": {
+								"query": "SH"
+							}
+						}
 					}
 					]
 				}
@@ -400,6 +430,36 @@ func TestMakeSearchBody(t *testing.T) {
 							"postal_code": {
 								"case_insensitive": true,
 								"value": "KEYWORD"
+							}
+						}
+					},
+					{
+						"term": {
+							"role_key": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"role_name": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"term": {
+							"group_key": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"group_name": {
+								"query": "KEYWORD"
 							}
 						}
 					},
@@ -663,6 +723,36 @@ func TestMakeSearchBody(t *testing.T) {
 						}
 					},
 					{
+						"term": {
+							"role_key": {
+								"case_insensitive": true,
+								"value": "example.com"
+							}
+						}
+					},
+					{
+						"match": {
+							"role_name": {
+								"query": "example.com"
+							}
+						}
+					},
+					{
+						"term": {
+							"group_key": {
+								"case_insensitive": true,
+								"value": "example.com"
+							}
+						}
+					},
+					{
+						"match": {
+							"group_name": {
+								"query": "example.com"
+							}
+						}
+					},
+					{
 						"prefix": {
 							"email_text": {
 								"value": "example.com",
@@ -922,6 +1012,36 @@ func TestMakeSearchBody(t *testing.T) {
 						}
 					},
 					{
+						"term": {
+							"role_key": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"role_name": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"term": {
+							"group_key": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"group_name": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
 						"prefix": {
 							"email_text": {
 								"value": "KEYWORD",
@@ -1177,6 +1297,36 @@ func TestMakeSearchBody(t *testing.T) {
 							"postal_code": {
 								"case_insensitive": true,
 								"value": "KEYWORD"
+							}
+						}
+					},
+					{
+						"term": {
+							"role_key": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"role_name": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"term": {
+							"group_key": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"group_name": {
+								"query": "KEYWORD"
 							}
 						}
 					},
@@ -1443,6 +1593,36 @@ func TestMakeSearchBody(t *testing.T) {
 						}
 					},
 					{
+						"term": {
+							"role_key": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"role_name": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"term": {
+							"group_key": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"group_name": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
 						"prefix": {
 							"email_text": {
 								"value": "KEYWORD",
@@ -1512,6 +1692,394 @@ func TestMakeSearchBody(t *testing.T) {
 			{ "created_at": { "order": "asc" } }
 			]
 		}
+		`)
+	})
+
+	Convey("QueryUserOptions.SearchBody keyword with filter options", t, func() {
+		test("KEYWORD", libuser.FilterOptions{
+			GroupKeys: []string{"group1", "group2"},
+			RoleKeys:  []string{"role1", "role2"},
+		}, libuser.SortOption{}, `
+		{
+			"query": {
+				"bool": {
+					"minimum_should_match": 1,
+					"filter": [
+						{
+							"term": {
+								"app_id": "APP_ID"
+							}
+						},
+						{
+							"bool": {
+								"minimum_should_match": 1,
+								"should": [
+									{
+										"term": {
+											"role_key": {
+												"value": "role1"
+											}
+										}
+									},
+									{
+										"term": {
+											"role_key": {
+												"value": "role2"
+											}
+										}
+									},
+									{
+										"term": {
+											"group_key": {
+												"value": "group1"
+											}
+										}
+									},
+									{
+										"term": {
+											"group_key": {
+												"value": "group2"
+											}
+										}
+									}
+								]
+							}
+						}
+					],
+					"should": [
+						{
+							"term": {
+								"id": "KEYWORD"
+							}
+						},
+						{
+							"term": {
+								"email": {
+									"value": "KEYWORD",
+									"case_insensitive": true
+								}
+							}
+						},
+						{
+							"term": {
+								"email_local_part": {
+									"value": "KEYWORD",
+									"case_insensitive": true
+								}
+							}
+						},
+						{
+							"term": {
+								"email_domain": {
+									"value": "KEYWORD",
+									"case_insensitive": true
+								}
+							}
+						},
+						{
+							"term": {
+								"preferred_username": {
+									"value": "KEYWORD",
+									"case_insensitive": true
+								}
+							}
+						},
+						{
+							"term": {
+								"phone_number": {
+									"value": "KEYWORD",
+									"case_insensitive": true
+								}
+							}
+						},
+						{
+							"term": {
+								"phone_number_country_code": {
+									"value": "KEYWORD",
+									"case_insensitive": true
+								}
+							}
+						},
+						{
+							"term": {
+								"phone_number_national_number": {
+									"value": "KEYWORD",
+									"case_insensitive": true
+								}
+							}
+						},
+						{
+							"term": {
+								"oauth_subject_id": {
+									"value": "KEYWORD",
+									"case_insensitive": true
+								}
+							}
+						},
+						{
+							"match": {
+								"family_name": {
+									"query": "KEYWORD"
+								}
+							}
+						},
+						{
+							"match": {
+								"given_name": {
+									"query": "KEYWORD"
+								}
+							}
+						},
+						{
+							"match": {
+								"middle_name": {
+									"query": "KEYWORD"
+								}
+							}
+						},
+						{
+							"match": {
+								"name": {
+									"query": "KEYWORD"
+								}
+							}
+						},
+						{
+							"match": {
+								"nickname": {
+									"query": "KEYWORD"
+								}
+							}
+						},
+						{
+							"match": {
+								"formatted": {
+									"query": "KEYWORD"
+								}
+							}
+						},
+						{
+							"match": {
+								"street_address": {
+									"query": "KEYWORD"
+								}
+							}
+						},
+						{
+							"match": {
+								"locality": {
+									"query": "KEYWORD"
+								}
+							}
+						},
+						{
+							"match": {
+								"region": {
+									"query": "KEYWORD"
+								}
+							}
+						},
+						{
+							"term": {
+								"gender": {
+									"case_insensitive": true,
+									"value": "KEYWORD"
+								}
+							}
+						},
+						{
+							"term": {
+								"zoneinfo": {
+									"case_insensitive": true,
+									"value": "KEYWORD"
+								}
+							}
+						},
+						{
+							"term": {
+								"locale": {
+									"case_insensitive": true,
+									"value": "KEYWORD"
+								}
+							}
+						},
+						{
+							"term": {
+								"country": {
+									"case_insensitive": true,
+									"value": "KEYWORD"
+								}
+							}
+						},
+						{
+							"term": {
+								"postal_code": {
+									"case_insensitive": true,
+									"value": "KEYWORD"
+								}
+							}
+						},
+						{
+							"term": {
+								"role_key": {
+									"case_insensitive": true,
+									"value": "KEYWORD"
+								}
+							}
+						},
+						{
+							"match": {
+								"role_name": {
+									"query": "KEYWORD"
+								}
+							}
+						},
+						{
+							"term": {
+								"group_key": {
+									"case_insensitive": true,
+									"value": "KEYWORD"
+								}
+							}
+						},
+						{
+							"match": {
+								"group_name": {
+									"query": "KEYWORD"
+								}
+							}
+						},
+						{
+							"prefix": {
+								"email_text": {
+									"value": "KEYWORD",
+									"case_insensitive": true,
+									"rewrite": "constant_score_boolean"
+								}
+							}
+						},
+						{
+							"prefix": {
+								"email_local_part_text": {
+									"value": "KEYWORD",
+									"case_insensitive": true,
+									"rewrite": "constant_score_boolean"
+								}
+							}
+						},
+						{
+							"prefix": {
+								"email_domain_text": {
+									"value": "KEYWORD",
+									"case_insensitive": true,
+									"rewrite": "constant_score_boolean"
+								}
+							}
+						},
+						{
+							"prefix": {
+								"preferred_username_text": {
+									"value": "KEYWORD",
+									"case_insensitive": true,
+									"rewrite": "constant_score_boolean"
+								}
+							}
+						},
+						{
+							"prefix": {
+								"phone_number_text": {
+									"value": "KEYWORD",
+									"case_insensitive": true,
+									"rewrite": "constant_score_boolean"
+								}
+							}
+						},
+						{
+							"prefix": {
+								"phone_number_national_number_text": {
+									"value": "KEYWORD",
+									"case_insensitive": true,
+									"rewrite": "constant_score_boolean"
+								}
+							}
+						},
+						{
+							"prefix": {
+								"oauth_subject_id_text": {
+									"value": "KEYWORD",
+									"case_insensitive": true,
+									"rewrite": "constant_score_boolean"
+								}
+							}
+						}
+					]
+				}
+			},
+			"sort": [{ "created_at": { "order": "desc" } }]
+		}		
+		`)
+	})
+
+	Convey("QueryUserOptions.SearchBody filter without search keyword", t, func() {
+		test("", libuser.FilterOptions{
+			GroupKeys: []string{"group1", "group2"},
+			RoleKeys:  []string{"role1", "role2"},
+		}, libuser.SortOption{}, `
+		{
+			"query": {
+				"bool": {
+					"minimum_should_match": 1,
+					"filter": [
+						{
+							"term": {
+								"app_id": "APP_ID"
+							}
+						},
+						{
+							"bool": {
+								"minimum_should_match": 1,
+								"should": [
+									{
+										"term": {
+											"role_key": {
+												"value": "role1"
+											}
+										}
+									},
+									{
+										"term": {
+											"role_key": {
+												"value": "role2"
+											}
+										}
+									},
+									{
+										"term": {
+											"group_key": {
+												"value": "group1"
+											}
+										}
+									},
+									{
+										"term": {
+											"group_key": {
+												"value": "group2"
+											}
+										}
+									}
+								]
+							}
+						}
+					],
+					"should": [
+						{
+							"match_all": {}
+						}
+					]
+				}
+			},
+			"sort": [{ "created_at": { "order": "desc" } }]
+		}		
 		`)
 	})
 }
