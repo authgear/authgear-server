@@ -1,0 +1,36 @@
+name: OAuth
+project: oauth
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    assert:
+      - field: "type"
+        op: eq
+        value: "signup"
+      - field: "action.type"
+        op: eq
+        value: "identify"
+
+  - input: |
+      {
+        "identification": "oauth",
+        "alias": "mock",
+        "redirect_uri": "https://mock"
+      }
+    assert:
+      - field: "action.type"
+        op: eq
+        value: "identify"
+
+  - input: |
+      {
+        "code": "mock"
+      }
+    assert:
+      - field: "action.type"
+        op: eq
+        value: finished

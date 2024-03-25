@@ -141,6 +141,7 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	rawQueries := &user.RawQueries{
 		Store: store,
