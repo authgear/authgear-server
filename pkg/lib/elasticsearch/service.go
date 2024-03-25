@@ -145,7 +145,6 @@ func (s *Service) QueryUser(
 	if err != nil {
 		return nil, nil, err
 	}
-	fmt.Println("bodyJSONBytes", string(bodyJSONBytes))
 	body := bytes.NewReader(bodyJSONBytes)
 
 	// Prepare size
