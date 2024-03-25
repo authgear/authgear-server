@@ -386,7 +386,7 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
     );
   }, []);
   const renderDefaultCell = useCallback(
-    (item: UserListItem, column?: IColumn) => {
+    (item: UserListItem, column: IColumn | undefined) => {
       return (
         <TextCell>
           {item[column?.key as keyof UserListItem] ?? USER_LIST_PLACEHOLDER}
@@ -411,8 +411,9 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
         case "roles": {
           return renderRoleCell(item);
         }
-        default:
-          return renderDefaultCell(item);
+        default: {
+          return renderDefaultCell(item, column);
+        }
       }
     },
     [
