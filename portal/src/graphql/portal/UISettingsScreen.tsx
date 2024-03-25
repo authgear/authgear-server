@@ -62,7 +62,7 @@ import WidgetDescription from "../../WidgetDescription";
 import Toggle from "../../Toggle";
 import { ErrorParseRule, ParsedAPIError } from "../../error/parse";
 import { APIError } from "../../error/error";
-import ReplaceLanguagesConfirmationDialog from "./ReplaceLanguagesConfirmationDialog";
+import { useDelayedSave } from "../../hook/useDelayedSave";
 
 const ImageMaxSizeInKB = 100;
 
@@ -245,6 +245,18 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
         });
       },
       [setState]
+    );
+
+    const enqueueSave = useDelayedSave(props.form);
+    const onChangeAndSaveLanguages = useCallback(
+      async (
+        supportedLanguages: LanguageTag[],
+        fallbackLanguage: LanguageTag
+      ) => {
+        onChangeLanguages(supportedLanguages, fallbackLanguage);
+        enqueueSave();
+      },
+      [enqueueSave, onChangeLanguages]
     );
 
     const getValueIgnoreEmptyString = useCallback(
@@ -673,6 +685,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             fallbackLanguage={state.fallbackLanguage}
             onChangeSelectedLanguage={setSelectedLanguage}
             onChangeLanguages={onChangeLanguages}
+            onChangeAndSaveLanguages={onChangeAndSaveLanguages}
           />
         </div>
         <ScreenDescription className={styles.widget}>
@@ -887,21 +900,6 @@ const UISettingsScreen: React.VFC = function UISettingsScreen() {
     ]
   );
 
-  const allExistingLanguageAreRemoved = useMemo(() => {
-    return initialSupportedLanguages.every(
-      (locale) => !state.supportedLanguages.includes(locale)
-    );
-  }, [initialSupportedLanguages, state.supportedLanguages]);
-
-  const [
-    isClearLocalizationConfirmationDialogVisible,
-    setIsClearLocalizationConfirmationDialogVisible,
-  ] = useState(false);
-
-  const dismissClearLocalizationConfirmationDialog = useCallback(() => {
-    setIsClearLocalizationConfirmationDialogVisible(false);
-  }, []);
-
   const form: FormModel = useMemo(
     () => ({
       isLoading:
@@ -943,25 +941,6 @@ const UISettingsScreen: React.VFC = function UISettingsScreen() {
     }),
     [config, featureConfig, resources, state]
   );
-
-  const confirmFormSave = useCallback(async () => {
-    if (allExistingLanguageAreRemoved) {
-      setIsClearLocalizationConfirmationDialogVisible(true);
-      return;
-    }
-
-    await form.save();
-  }, [allExistingLanguageAreRemoved, form]);
-
-  const doFormSave = useCallback(async () => {
-    dismissClearLocalizationConfirmationDialog();
-    await form.save();
-  }, [dismissClearLocalizationConfirmationDialog, form]);
-
-  const formWithConfirmation = {
-    ...form,
-    save: confirmFormSave,
-  };
 
   const imageSizeTooLargeErrorRule = useCallback(
     (apiError: APIError): ParsedAPIError[] => {
@@ -1022,19 +1001,10 @@ const UISettingsScreen: React.VFC = function UISettingsScreen() {
   }
 
   return (
-    <FormContainer
-      form={formWithConfirmation}
-      canSave={true}
-      errorRules={errorRules}
-    >
+    <FormContainer form={form} canSave={true} errorRules={errorRules}>
       <ResourcesConfigurationContent
         form={form}
         initialSupportedLanguages={initialSupportedLanguages}
-      />
-      <ReplaceLanguagesConfirmationDialog
-        visible={isClearLocalizationConfirmationDialogVisible}
-        onDismiss={dismissClearLocalizationConfirmationDialog}
-        onConfirm={doFormSave}
       />
     </FormContainer>
   );
