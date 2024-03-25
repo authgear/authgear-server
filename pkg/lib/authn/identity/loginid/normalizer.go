@@ -10,6 +10,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
 type Normalizer interface {
@@ -31,6 +32,8 @@ func (f *NormalizerFactory) NormalizerWithLoginIDType(loginIDKeyType model.Login
 		return &UsernameNormalizer{
 			Config: f.Config.Types.Username,
 		}
+	case model.LoginIDKeyTypePhone:
+		return &PhoneNumberNormalizer{}
 	}
 
 	return &NullNormalizer{}
@@ -108,6 +111,22 @@ func (n *UsernameNormalizer) Normalize(loginID string) (string, error) {
 }
 
 func (n *UsernameNormalizer) ComputeUniqueKey(normalizeLoginID string) (string, error) {
+	return normalizeLoginID, nil
+}
+
+type PhoneNumberNormalizer struct {
+}
+
+func (n *PhoneNumberNormalizer) Normalize(loginID string) (string, error) {
+	e164, err := phone.ParseCombinedPhoneNumber(loginID)
+	if err != nil {
+		return "", err
+	}
+
+	return e164, nil
+}
+
+func (n *PhoneNumberNormalizer) ComputeUniqueKey(normalizeLoginID string) (string, error) {
 	return normalizeLoginID, nil
 }
 
