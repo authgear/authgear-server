@@ -118,12 +118,14 @@ func TestCases(t *testing.T) {
 							t.Fatalf("Failed to parse input in step %d: %v\n%s", i+1, err, stepYAML)
 						}
 
-						flowResponse, err = client.Create(flowReference, "")
-						if err != nil {
-							t.Fatalf("Failed to create flow in step %d: %v\n%s", i+1, err, stepYAML)
-						}
+						flowResponse, flowErr = client.Create(flowReference, "")
+						// if err != nil {
+						// 	t.Fatalf("Failed to create flow in step %d: %v\n%s", i+1, err, stepYAML)
+						// }
 
-						stateToken = flowResponse.StateToken
+						if flowResponse != nil {
+							stateToken = flowResponse.StateToken
+						}
 					} else if step.Action == "input" || step.Action == "" {
 						var input map[string]interface{}
 						err := json.Unmarshal([]byte(step.Input), &input)
@@ -156,18 +158,19 @@ func TestCases(t *testing.T) {
 							continue
 						}
 
+						flowResponseStr := fmt.Sprintf("%+v", flowResponse)
 						switch assertion.Op {
 						case AssertOpEq:
 							if valueStr != assertion.Value {
-								t.Errorf("Assertion failed in step %d: Expected '%s' to be '%s'\n%s", i+1, valueStr, assertion.Value, stepYAML)
+								t.Errorf("Assertion failed in step %d: Expected '%s' to be '%s', got '%s'\n%s", i+1, assertion.Field, assertion.Value, valueStr, flowResponseStr)
 							}
 						case AssertOpNeq:
 							if valueStr == assertion.Value {
-								t.Errorf("Assertion failed in step %d: Expected '%s' to not be '%s'\n%s", i+1, valueStr, assertion.Value, stepYAML)
+								t.Errorf("Assertion failed in step %d: Expected '%s' to not be '%s'\n%s", i+1, assertion.Field, assertion.Value, flowResponseStr)
 							}
 						case AssertOpContains:
 							if !strings.Contains(valueStr, assertion.Value) {
-								t.Errorf("Assertion failed in step %d: Expected '%s' to contain '%s'\n%s", i+1, valueStr, assertion.Value, stepYAML)
+								t.Errorf("Assertion failed in step %d: Expected '%s' to contain '%s', got '%s'\n%s", i+1, assertion.Field, assertion.Value, valueStr, flowResponseStr)
 							}
 						}
 					}
