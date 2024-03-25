@@ -14,15 +14,15 @@ import (
 func TestMakeSearchBody(t *testing.T) {
 	appID := "APP_ID"
 
-	test := func(searchKeyword string, sortOption libuser.SortOption, expected string) {
-		val := MakeSearchBody(config.AppID(appID), searchKeyword, sortOption)
+	test := func(searchKeyword string, filterOptions libuser.FilterOptions, sortOption libuser.SortOption, expected string) {
+		val := MakeSearchBody(config.AppID(appID), searchKeyword, filterOptions, sortOption)
 		bytes, err := json.Marshal(val)
 		So(err, ShouldBeNil)
 		So(string(bytes), ShouldEqualJSON, expected)
 	}
 
 	Convey("QueryUserOptions.SearchBody short keyword", t, func() {
-		test("SH", libuser.SortOption{}, `
+		test("SH", libuser.FilterOptions{}, libuser.SortOption{}, `
 		{
 			"query": {
 				"bool": {
@@ -218,7 +218,7 @@ func TestMakeSearchBody(t *testing.T) {
 	})
 
 	Convey("QueryUserOptions.SearchBody keyword only", t, func() {
-		test("KEYWORD", libuser.SortOption{}, `
+		test("KEYWORD", libuser.FilterOptions{}, libuser.SortOption{}, `
 		{
 			"query": {
 				"bool": {
@@ -477,7 +477,7 @@ func TestMakeSearchBody(t *testing.T) {
 	})
 
 	Convey("QueryUserOptions.SearchBody keyword with regexp characters", t, func() {
-		test("example.com", libuser.SortOption{}, `
+		test("example.com", libuser.FilterOptions{}, libuser.SortOption{}, `
 		{
 			"query": {
 				"bool": {
@@ -736,7 +736,7 @@ func TestMakeSearchBody(t *testing.T) {
 	})
 
 	Convey("QueryUserOptions.SearchBody sort by created_at", t, func() {
-		test("KEYWORD", libuser.SortOption{SortBy: libuser.SortByCreatedAt}, `
+		test("KEYWORD", libuser.FilterOptions{}, libuser.SortOption{SortBy: libuser.SortByCreatedAt}, `
 		{
 			"query": {
 				"bool": {
@@ -995,7 +995,7 @@ func TestMakeSearchBody(t *testing.T) {
 	})
 
 	Convey("QueryUserOptions.SearchBody sort by last_login_at", t, func() {
-		test("KEYWORD", libuser.SortOption{SortBy: libuser.SortByLastLoginAt}, `
+		test("KEYWORD", libuser.FilterOptions{}, libuser.SortOption{SortBy: libuser.SortByLastLoginAt}, `
 		{
 			"query": {
 				"bool": {
@@ -1254,7 +1254,7 @@ func TestMakeSearchBody(t *testing.T) {
 	})
 
 	Convey("QueryUserOptions.SearchBody sort asc", t, func() {
-		test("KEYWORD", libuser.SortOption{
+		test("KEYWORD", libuser.FilterOptions{}, libuser.SortOption{
 			SortBy:        libuser.SortByCreatedAt,
 			SortDirection: model.SortDirectionAsc,
 		}, `
