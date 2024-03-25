@@ -12,6 +12,7 @@ var QueueUserReindex = "user-reindex"
 
 var ProducerDependencySet = wire.NewSet(
 	NewUserImportProducer,
+	NewUserReindexProducer,
 )
 
 type UserImportProducer struct {

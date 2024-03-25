@@ -39,6 +39,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/lockout"
 	"github.com/authgear/authgear-server/pkg/lib/meter"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -608,7 +609,9 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -618,6 +621,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,

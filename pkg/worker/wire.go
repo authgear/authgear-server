@@ -25,10 +25,3 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 		wire.Bind(new(task.Task), new(*workertasks.SendMessagesTask)),
 	))
 }
-
-func newReindexUserTask(p *deps.TaskProvider) task.Task {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(task.Task), new(*workertasks.ReindexUserTask)),
-	))
-}

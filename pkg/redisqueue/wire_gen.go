@@ -38,6 +38,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/lockout"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/pq"
@@ -490,7 +491,9 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := p.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     ctx,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -500,6 +503,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -653,6 +657,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Coordinator: coordinator,
 	}
 	service4 := &elasticsearch.Service{
+		Context:     ctx,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -662,6 +667,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	userimportLogger := userimport.NewLogger(factory)
 	userImportService := &userimport.UserImportService{
@@ -1057,7 +1063,9 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 		RolesAndGroups:     queries,
 	}
 	queue := p.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := &elasticsearch.Service{
+		Context:     ctx,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -1067,6 +1075,7 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	return elasticsearchService
 }

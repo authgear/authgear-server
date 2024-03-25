@@ -523,5 +523,8 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(interaction.OAuthRedirectURIBuilder), new(*endpoints.Endpoints)),
 	),
 
-	redisqueue.ProducerDependencySet,
+	wire.NewSet(
+		redisqueue.ProducerDependencySet,
+		wire.Bind(new(libes.UserReindexCreateProducer), new(*redisqueue.UserReindexProducer)),
+	),
 )

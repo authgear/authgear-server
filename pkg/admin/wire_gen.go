@@ -553,7 +553,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := &elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -563,6 +565,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	rawCommands := &user.RawCommands{
 		Store: store,
@@ -627,6 +630,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	service5 := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -636,6 +640,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,

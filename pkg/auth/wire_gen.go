@@ -60,6 +60,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/lockout"
@@ -1757,7 +1758,9 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -1767,6 +1770,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -2616,7 +2620,9 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -2626,6 +2632,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -3964,7 +3971,9 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -3974,6 +3983,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -4540,7 +4550,9 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -4550,6 +4562,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -5444,7 +5457,9 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -5454,6 +5469,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -6269,7 +6285,9 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -6279,6 +6297,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -7271,7 +7290,9 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -7281,6 +7302,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -8169,7 +8191,9 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -8179,6 +8203,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -9066,7 +9091,9 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -9076,6 +9103,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -9951,7 +9979,9 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -9961,6 +9991,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -10831,7 +10862,9 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -10841,6 +10874,7 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -11643,7 +11677,9 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -11653,6 +11689,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -12640,7 +12677,9 @@ func newWebAppAuthflowSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -12650,6 +12689,7 @@ func newWebAppAuthflowSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -13637,7 +13677,9 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -13647,6 +13689,7 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -14702,7 +14745,9 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -14712,6 +14757,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -15572,7 +15618,9 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -15582,6 +15630,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -16446,7 +16495,9 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -16456,6 +16507,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -17322,7 +17374,9 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -17332,6 +17386,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -18196,7 +18251,9 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -18206,6 +18263,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -19068,7 +19126,9 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -19078,6 +19138,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -19942,7 +20003,9 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -19952,6 +20015,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -20817,7 +20881,9 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -20827,6 +20893,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -21691,7 +21758,9 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -21701,6 +21770,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -22565,7 +22635,9 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -22575,6 +22647,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -23441,7 +23514,9 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -23451,6 +23526,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -24315,7 +24391,9 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -24325,6 +24403,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -25189,7 +25268,9 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -25199,6 +25280,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -26067,7 +26149,9 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -26077,6 +26161,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -26941,7 +27026,9 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -26951,6 +27038,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -27819,7 +27907,9 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -27829,6 +27919,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -28693,7 +28784,9 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -28703,6 +28796,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -29575,7 +29669,9 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -29585,6 +29681,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -30471,7 +30568,9 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -30481,6 +30580,7 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -31356,7 +31456,9 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -31366,6 +31468,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -32230,7 +32333,9 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -32240,6 +32345,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -33100,7 +33206,9 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -33110,6 +33218,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -33974,7 +34083,9 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -33984,6 +34095,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -34844,7 +34956,9 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -34854,6 +34968,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -35724,7 +35839,9 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -35734,6 +35851,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -36594,7 +36712,9 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -36604,6 +36724,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -37466,7 +37587,9 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -37476,6 +37599,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -38336,7 +38460,9 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -38346,6 +38472,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -39238,7 +39365,9 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -39248,6 +39377,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -40119,7 +40249,9 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -40129,6 +40261,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -41013,7 +41146,9 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -41023,6 +41158,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -41891,7 +42027,9 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -41901,6 +42039,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -42762,7 +42901,9 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -42772,6 +42913,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -43641,7 +43783,9 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -43651,6 +43795,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -44512,7 +44657,9 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -44522,6 +44669,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -45383,7 +45531,9 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -45393,6 +45543,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -46254,7 +46405,9 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -46264,6 +46417,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -47126,7 +47280,9 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -47136,6 +47292,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -48017,7 +48174,9 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -48027,6 +48186,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -48893,7 +49053,9 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -48903,6 +49065,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -49764,7 +49927,9 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -49774,6 +49939,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -50640,7 +50806,9 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -50650,6 +50818,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -51511,7 +51680,9 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -51521,6 +51692,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -52389,7 +52561,9 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -52399,6 +52573,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -53261,7 +53436,9 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -53271,6 +53448,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -54131,7 +54309,9 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -54141,6 +54321,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -55017,7 +55198,9 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -55027,6 +55210,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -55887,7 +56071,9 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -55897,6 +56083,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -56689,7 +56876,9 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -56699,6 +56888,7 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -57666,7 +57856,9 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -57676,6 +57868,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -58536,7 +58729,9 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -58546,6 +58741,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -59424,7 +59620,9 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -59434,6 +59632,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -60256,7 +60455,9 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -60266,6 +60467,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -61087,7 +61289,9 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -61097,6 +61301,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -61967,7 +62172,9 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -61977,6 +62184,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -62838,7 +63046,9 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -62848,6 +63058,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -63708,7 +63919,9 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -63718,6 +63931,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -64598,7 +64812,9 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -64608,6 +64824,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -65408,7 +65625,9 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -65418,6 +65637,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -66213,7 +66433,9 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -66223,6 +66445,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -67055,7 +67278,9 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -67065,6 +67290,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -67867,7 +68093,9 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -67877,6 +68105,7 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -68720,7 +68949,9 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -68730,6 +68961,7 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -69564,7 +69796,9 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -69574,6 +69808,7 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -70458,7 +70693,9 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -70468,6 +70705,7 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -71391,7 +71629,9 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -71401,6 +71641,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -72336,7 +72577,9 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -72346,6 +72589,7 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -73268,7 +73512,9 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -73278,6 +73524,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -74204,7 +74451,9 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -74214,6 +74463,7 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -75119,7 +75369,9 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -75129,6 +75381,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -76034,7 +76287,9 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -76044,6 +76299,7 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -76943,7 +77199,9 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -76953,6 +77211,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -77852,7 +78111,9 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -77862,6 +78123,7 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -78763,7 +79025,9 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -78773,6 +79037,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -79674,7 +79939,9 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -79684,6 +79951,7 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -80583,7 +80851,9 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -80593,6 +80863,7 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -81492,7 +81763,9 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -81502,6 +81775,7 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -82401,7 +82675,9 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -82411,6 +82687,7 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -83310,7 +83587,9 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -83320,6 +83599,7 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -84219,7 +84499,9 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -84229,6 +84511,7 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -85128,7 +85411,9 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -85138,6 +85423,7 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -86037,7 +86323,9 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -86047,6 +86335,7 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -86946,7 +87235,9 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -86956,6 +87247,7 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -87857,7 +88149,9 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -87867,6 +88161,7 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -88768,7 +89063,9 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -88778,6 +89075,7 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -89678,7 +89976,9 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -89688,6 +89988,7 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -90592,7 +90893,9 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -90602,6 +90905,7 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -91507,7 +91811,9 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -91517,6 +91823,7 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -92416,7 +92723,9 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -92426,6 +92735,7 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -93325,7 +93635,9 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -93335,6 +93647,7 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -94234,7 +94547,9 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -94244,6 +94559,7 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -95143,7 +95459,9 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -95153,6 +95471,7 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -96052,7 +96371,9 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -96062,6 +96383,7 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -96961,7 +97283,9 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -96971,6 +97295,7 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -97870,7 +98195,9 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -97880,6 +98207,7 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -98779,7 +99107,9 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -98789,6 +99119,7 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -99688,7 +100019,9 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -99698,6 +100031,7 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -100597,7 +100931,9 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -100607,6 +100943,7 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -101506,7 +101843,9 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -101516,6 +101855,7 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -102415,7 +102755,9 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -102425,6 +102767,7 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -103324,7 +103667,9 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -103334,6 +103679,7 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -104233,7 +104579,9 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -104243,6 +104591,7 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -105144,7 +105493,9 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -105154,6 +105505,7 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -106055,7 +106407,9 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -106065,6 +106419,7 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -106964,7 +107319,9 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -106974,6 +107331,7 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -107942,7 +108300,9 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -107952,6 +108312,7 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -108742,7 +109103,9 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -108752,6 +109115,7 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -109620,7 +109984,9 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -109630,6 +109996,7 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -110498,7 +110865,9 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -110508,6 +110877,7 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -111407,7 +111777,9 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -111417,6 +111789,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -112316,7 +112689,9 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -112326,6 +112701,7 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -113225,7 +113601,9 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -113235,6 +113613,7 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -114431,7 +114810,9 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -114441,6 +114822,7 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -115340,7 +115722,9 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -115350,6 +115734,7 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -116348,7 +116733,9 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -116358,6 +116745,7 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -117737,7 +118125,9 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -117747,6 +118137,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -118336,7 +118727,9 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -118346,6 +118739,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -119605,7 +119999,9 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
@@ -119615,6 +120011,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   queue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,

@@ -26,11 +26,9 @@ func (s *Sink) ReceiveNonBlockingEvent(e *event.Event) error {
 	deletedUserIDs := payload.DeletedUserIDs()
 	if len(reindexRequiredUserIDs) > 0 {
 		for _, userID := range reindexRequiredUserIDs {
-			err := s.Database.ReadOnly(func() error {
-				return s.Service.ReindexUser(userID, false)
-			})
+			err := s.Service.EnqueueReindexUserTask(userID)
 			if err != nil {
-				s.Logger.WithError(err).Error("failed to reindex user")
+				s.Logger.WithError(err).Error("failed to enqueue reindex user task")
 				return err
 			}
 		}
@@ -38,11 +36,9 @@ func (s *Sink) ReceiveNonBlockingEvent(e *event.Event) error {
 
 	if len(deletedUserIDs) > 0 {
 		for _, userID := range deletedUserIDs {
-			err := s.Database.ReadOnly(func() error {
-				return s.Service.ReindexUser(userID, true)
-			})
+			err := s.Service.EnqueueReindexUserTask(userID)
 			if err != nil {
-				s.Logger.WithError(err).Error("failed to delete indexed user")
+				s.Logger.WithError(err).Error("failed to enqueue reindex user task for deleted user")
 				return err
 			}
 		}

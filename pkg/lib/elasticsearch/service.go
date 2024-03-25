@@ -2,6 +2,7 @@ package elasticsearch
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -17,6 +18,7 @@ import (
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
@@ -35,7 +37,13 @@ func NewElasticsearchServiceLogger(lf *log.Factory) *ElasticsearchServiceLogger 
 	return &ElasticsearchServiceLogger{lf.New("elasticsearch-service")}
 }
 
+type UserReindexCreateProducer interface {
+	NewTask(appID string, input json.RawMessage) *redisqueue.Task
+	EnqueueTask(ctx context.Context, task *redisqueue.Task) error
+}
+
 type Service struct {
+	Context     context.Context
 	Database    *appdb.Handle
 	Logger      *ElasticsearchServiceLogger
 	AppID       config.AppID
@@ -45,6 +53,7 @@ type Service struct {
 	LoginID     *identityloginid.Store
 	RolesGroups *rolesgroups.Store
 	TaskQueue   task.Queue
+	Producer    UserReindexCreateProducer
 }
 
 type queryUserResponse struct {
@@ -59,8 +68,20 @@ type queryUserResponse struct {
 	} `json:"hits"`
 }
 
-func (s *Service) ReindexUser(userID string, isDelete bool) error {
-	// FIXME(tung): Remove this function
+func (s *Service) EnqueueReindexUserTask(userID string) error {
+	request := ReindexRequest{UserID: userID}
+
+	rawMessage, err := json.Marshal(request)
+	if err != nil {
+		return err
+	}
+
+	task := s.Producer.NewTask(string(s.AppID), rawMessage)
+	err = s.Producer.EnqueueTask(s.Context, task)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
