@@ -85,70 +85,78 @@ func (s *Service) EnqueueReindexUserTask(userID string) error {
 	return nil
 }
 
+func (s *Service) getSource(userID string) (*model.ElasticsearchUserSource, error) {
+	u, err := s.Users.Get(userID, accesscontrol.RoleGreatest)
+	if errors.Is(err, libuser.ErrUserNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	oauthIdentities, err := s.OAuth.List(u.ID)
+	if err != nil {
+		return nil, err
+	}
+	loginIDIdentities, err := s.LoginID.List(u.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	effectiveRoles, err := s.RolesGroups.ListEffectiveRolesByUserID(u.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	groups, err := s.RolesGroups.ListGroupsByUserID(u.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	raw := &model.ElasticsearchUserRaw{
+		ID:                 u.ID,
+		AppID:              string(s.AppID),
+		CreatedAt:          u.CreatedAt,
+		UpdatedAt:          u.UpdatedAt,
+		LastLoginAt:        u.LastLoginAt,
+		IsDisabled:         u.IsDisabled,
+		StandardAttributes: u.StandardAttributes,
+		EffectiveRoles:     slice.Map(effectiveRoles, func(r *rolesgroups.Role) *model.Role { return r.ToModel() }),
+		Groups:             slice.Map(groups, func(g *rolesgroups.Group) *model.Group { return g.ToModel() }),
+	}
+
+	var arrClaims []map[model.ClaimName]string
+	for _, oauthI := range oauthIdentities {
+		arrClaims = append(arrClaims, oauthI.ToInfo().IdentityAwareStandardClaims())
+		raw.OAuthSubjectID = append(raw.OAuthSubjectID, oauthI.ProviderSubjectID)
+	}
+	for _, loginIDI := range loginIDIdentities {
+		arrClaims = append(arrClaims, loginIDI.ToInfo().IdentityAwareStandardClaims())
+	}
+
+	for _, claims := range arrClaims {
+		if email, ok := claims[model.ClaimEmail]; ok {
+			raw.Email = append(raw.Email, email)
+		}
+		if phoneNumber, ok := claims[model.ClaimPhoneNumber]; ok {
+			raw.PhoneNumber = append(raw.PhoneNumber, phoneNumber)
+		}
+		if preferredUsername, ok := claims[model.ClaimPreferredUsername]; ok {
+			raw.PreferredUsername = append(raw.PreferredUsername, preferredUsername)
+		}
+	}
+
+	return RawToSource(raw), nil
+}
+
 func (s *Service) ExecReindexUser(request ReindexRequest) (result ReindexResult) {
 	var source *model.ElasticsearchUserSource = nil
 	err := s.Database.ReadOnly(func() error {
-		u, err := s.Users.Get(request.UserID, accesscontrol.RoleGreatest)
-		if errors.Is(err, libuser.ErrUserNotFound) {
-			return nil
-		}
+		s, err := s.getSource(request.UserID)
 		if err != nil {
 			return err
 		}
-
-		oauthIdentities, err := s.OAuth.List(u.ID)
-		if err != nil {
-			return err
-		}
-		loginIDIdentities, err := s.LoginID.List(u.ID)
-		if err != nil {
-			return err
-		}
-
-		effectiveRoles, err := s.RolesGroups.ListEffectiveRolesByUserID(u.ID)
-		if err != nil {
-			return err
-		}
-
-		groups, err := s.RolesGroups.ListGroupsByUserID(u.ID)
-		if err != nil {
-			return err
-		}
-
-		raw := &model.ElasticsearchUserRaw{
-			ID:                 u.ID,
-			AppID:              string(s.AppID),
-			CreatedAt:          u.CreatedAt,
-			UpdatedAt:          u.UpdatedAt,
-			LastLoginAt:        u.LastLoginAt,
-			IsDisabled:         u.IsDisabled,
-			StandardAttributes: u.StandardAttributes,
-			EffectiveRoles:     slice.Map(effectiveRoles, func(r *rolesgroups.Role) *model.Role { return r.ToModel() }),
-			Groups:             slice.Map(groups, func(g *rolesgroups.Group) *model.Group { return g.ToModel() }),
-		}
-
-		var arrClaims []map[model.ClaimName]string
-		for _, oauthI := range oauthIdentities {
-			arrClaims = append(arrClaims, oauthI.ToInfo().IdentityAwareStandardClaims())
-			raw.OAuthSubjectID = append(raw.OAuthSubjectID, oauthI.ProviderSubjectID)
-		}
-		for _, loginIDI := range loginIDIdentities {
-			arrClaims = append(arrClaims, loginIDI.ToInfo().IdentityAwareStandardClaims())
-		}
-
-		for _, claims := range arrClaims {
-			if email, ok := claims[model.ClaimEmail]; ok {
-				raw.Email = append(raw.Email, email)
-			}
-			if phoneNumber, ok := claims[model.ClaimPhoneNumber]; ok {
-				raw.PhoneNumber = append(raw.PhoneNumber, phoneNumber)
-			}
-			if preferredUsername, ok := claims[model.ClaimPreferredUsername]; ok {
-				raw.PreferredUsername = append(raw.PreferredUsername, preferredUsername)
-			}
-		}
-
-		source = RawToSource(raw)
+		source = s
 		return nil
 	})
 
