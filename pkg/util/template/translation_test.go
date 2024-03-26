@@ -466,7 +466,48 @@ func TestTranslationResource(t *testing.T) {
 					"some-key-1": { "LanguageTag": "ja-JP", "Value": "en some-key-1 in fs A" },
 					"some-key-2": { "LanguageTag": "ja-JP", "Value": "en some-key-2 in fs A" }
 				}`))
+			})
 
+			Convey("app fs has precedence over custom fs when the language is supported", func() {
+				writeFile(fsB, "en", `{
+					"email.default.sender": "no-reply+en@custom.com"
+				}`)
+				writeFile(fsC, "ja-JP", `{
+					"email.default.sender": "no-reply+ja@app.com"
+				}`)
+				er := resource.EffectiveResource{
+					DefaultTag:    "ja-JP",
+					SupportedTags: []string{"ja-JP"},
+				}
+				data, err := read(er)
+				So(err, ShouldBeNil)
+				So(data, ShouldEqual, compact(`{
+					"app.name": { "LanguageTag": "ja-JP", "Value": "en app.name in fs A" },
+					"email.default.sender": { "LanguageTag": "ja-JP", "Value": "no-reply+ja@app.com" },
+					"some-key-1": { "LanguageTag": "ja-JP", "Value": "en some-key-1 in fs A" },
+					"some-key-2": { "LanguageTag": "ja-JP", "Value": "en some-key-2 in fs A" }
+				}`))
+			})
+
+			Convey("app fs has NO precedence over custom fs when the language is unsupported", func() {
+				writeFile(fsB, "en", `{
+					"email.default.sender": "no-reply+en@custom.com"
+				}`)
+				writeFile(fsC, "en", `{
+					"email.default.sender": "no-reply+en@app.com"
+				}`)
+				er := resource.EffectiveResource{
+					DefaultTag:    "ja-JP",
+					SupportedTags: []string{"ja-JP"},
+				}
+				data, err := read(er)
+				So(err, ShouldBeNil)
+				So(data, ShouldEqual, compact(`{
+					"app.name": { "LanguageTag": "ja-JP", "Value": "en app.name in fs A" },
+					"email.default.sender": { "LanguageTag": "ja-JP", "Value": "no-reply+en@custom.com" },
+					"some-key-1": { "LanguageTag": "ja-JP", "Value": "en some-key-1 in fs A" },
+					"some-key-2": { "LanguageTag": "ja-JP", "Value": "en some-key-2 in fs A" }
+				}`))
 			})
 		})
 	})
