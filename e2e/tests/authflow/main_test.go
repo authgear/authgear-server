@@ -8,11 +8,11 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/authgear/authgear-server/pkg/lib/authflowclient"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	. "github.com/smartystreets/goconvey/convey"
 	"gopkg.in/yaml.v2"
 )
 
@@ -31,15 +31,17 @@ func TestAuthflow(t *testing.T) {
 			return err
 		}
 
-		t.Run(path, func(t *testing.T) {
-			t.Parallel()
+		var wg sync.WaitGroup
 
-			for _, testCase := range testCases {
-				Convey(testCase.Name, t, func() {
-					runTestCases(t, testCase)
-				})
-			}
-		})
+		for _, testCase := range testCases {
+			wg.Add(1)
+			go func(tc TestCase) {
+				defer wg.Done()
+				runTestCases(t, tc)
+			}(testCase)
+		}
+
+		wg.Wait()
 
 		return nil
 	})
