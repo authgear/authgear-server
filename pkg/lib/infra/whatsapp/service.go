@@ -52,7 +52,7 @@ func (s *Service) resolveTemplateLanguage(supportedLanguages []string) string {
 		intl.Fallback(*s.LocalizationConfig.FallbackLanguage),
 	)
 	// First, resolve once based on supported language in config
-	// This is to avoid inconsistency of ui lanuage and whatsapp message language
+	// This is to avoid inconsistency of ui language and whatsapp message language
 	_, resolvedTag := intl.BestMatch(preferredLanguageTags, configSupportedLanguageTags)
 	supportedLanguageTags := intl.Supported(supportedLanguages, intl.Fallback(supportedLanguages[0]))
 

@@ -79,6 +79,7 @@ func TestMatch(t *testing.T) {
 			[]string{"zh-CN", "zh-HK", "zh-TW", "en-US"},
 			2,
 		)
+		// Should select zh-HK with exact confidence
 		test(
 			[]string{"zh-Hant-HK"},
 			[]string{"zh-CN", "zh-HK", "zh-TW", "en-US"},
