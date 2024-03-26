@@ -117,6 +117,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	authenticationFlowChain := httproute.Chain(
 		apiChain,
 		p.Middleware(newAuthenticationFlowIntlMiddleware),
+		p.Middleware(newAuthenticationFlowRateLimitMiddleware),
 	)
 
 	apiAuthenticatedChain := httproute.Chain(

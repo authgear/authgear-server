@@ -119450,6 +119450,11 @@ func newAuthenticationFlowIntlMiddleware(p *deps.RequestProvider) httproute.Midd
 	return intlMiddleware
 }
 
+func newAuthenticationFlowRateLimitMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	rateLimitMiddleware := &authenticationflow.RateLimitMiddleware{}
+	return rateLimitMiddleware
+}
+
 func newImplementationSwitcherMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	appContext := appProvider.AppContext

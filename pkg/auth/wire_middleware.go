@@ -197,6 +197,13 @@ func newAuthenticationFlowIntlMiddleware(p *deps.RequestProvider) httproute.Midd
 	))
 }
 
+func newAuthenticationFlowRateLimitMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*authenticationflow.RateLimitMiddleware)),
+	))
+}
+
 func newImplementationSwitcherMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,
