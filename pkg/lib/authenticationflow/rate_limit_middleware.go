@@ -19,16 +19,16 @@ type RateLimitMiddleware struct {
 	RateLimiter RateLimiter
 	RemoteIP    httputil.RemoteIP
 	JSON        JSONResponseWriter
+	Config      *config.AppConfig
 }
+
+const (
+	AuthowAPIPerIP ratelimit.BucketName = "AuthflowAPIPerIP"
+)
 
 func (m *RateLimitMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		enabled := true
-		spec := ratelimit.NewBucketSpec(&config.RateLimitConfig{
-			Enabled: &enabled,
-			Period:  "1m",
-			Burst:   1200,
-		}, "AuthflowApiPerIP", string(m.RemoteIP))
+		spec := ratelimit.NewBucketSpec(m.Config.AuthenticationFlow.RateLimits.PerIP, AuthowAPIPerIP, string(m.RemoteIP))
 		err := m.RateLimiter.Allow(spec)
 		if errors.Is(err, ratelimit.ErrRateLimited(spec.Name)) {
 			m.JSON.WriteResponse(w, &api.Response{

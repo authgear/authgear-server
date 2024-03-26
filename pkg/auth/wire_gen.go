@@ -119483,6 +119483,7 @@ func newAuthenticationFlowRateLimitMiddleware(p *deps.RequestProvider) httproute
 		RateLimiter: limiter,
 		RemoteIP:    remoteIP,
 		JSON:        jsonResponseWriter,
+		Config:      appConfig,
 	}
 	return rateLimitMiddleware
 }
