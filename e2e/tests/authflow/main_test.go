@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"testing"
 
 	"github.com/authgear/authgear-server/pkg/lib/authflowclient"
@@ -31,17 +30,9 @@ func TestAuthflow(t *testing.T) {
 			return err
 		}
 
-		var wg sync.WaitGroup
-
 		for _, testCase := range testCases {
-			wg.Add(1)
-			go func(tc TestCase) {
-				defer wg.Done()
-				runTestCases(t, tc)
-			}(testCase)
+			runTestCase(t, testCase)
 		}
-
-		wg.Wait()
 
 		return nil
 	})
@@ -74,7 +65,8 @@ func loadTestCasesFromPath(path string) ([]TestCase, error) {
 	return testCases, nil
 }
 
-func runTestCases(t *testing.T, testCase TestCase) {
+func runTestCase(t *testing.T, testCase TestCase) {
+	t.Logf("running test case: %s\n", testCase.Name)
 	client := authflowclient.NewClient(context.Background(), "localhost:4000", httputil.HTTPHost(fmt.Sprintf("%s.portal.localhost:4000", testCase.Project)))
 
 	var stateToken string
@@ -94,6 +86,7 @@ func runTestCases(t *testing.T, testCase TestCase) {
 			err := json.Unmarshal([]byte(step.Input), &flowReference)
 			if err != nil {
 				t.Errorf("failed to parse input in '%s': %v\n", stepName, err)
+				return
 			}
 
 			flowResponse, flowErr = client.Create(flowReference, "")
@@ -106,6 +99,7 @@ func runTestCases(t *testing.T, testCase TestCase) {
 			err := json.Unmarshal([]byte(step.Input), &input)
 			if err != nil {
 				t.Errorf("failed to parse JSON input in '%s': %v\n", stepName, err)
+				return
 			}
 
 			flowResponse, flowErr = client.Input(nil, nil, stateToken, input)
@@ -118,13 +112,14 @@ func runTestCases(t *testing.T, testCase TestCase) {
 		for _, assertion := range step.Assert {
 			value, ok := TranslateAssertValue(flowResponse, flowErr, assertion.Field)
 			if !ok {
-				t.Errorf("field '%s' not found in '%s'\n", assertion.Field, stepName)
-				continue
+				t.Errorf("field '%s' not found in '%s'\n%v\n%v", assertion.Field, stepName, flowResponse, flowErr)
+				return
 			}
 
 			assertErr := PerformAssertion(assertion, value)
 			if assertErr != nil {
-				t.Errorf("assertion failed in '%s': %v\n", stepName, assertErr)
+				t.Errorf("assertion failed in '%s': %v\n%v\n%v", stepName, assertErr, flowResponse, flowErr)
+				return
 			}
 		}
 	}
