@@ -8,7 +8,7 @@ steps:
         "name": "default"
       }
     assert:
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: "identify"
 
@@ -19,7 +19,7 @@ steps:
         "redirect_uri": "https://mock"
       }
     assert:
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: "identify"
 
@@ -56,7 +56,7 @@ steps:
         "name": "default"
       }
     assert:
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: "identify"
 
@@ -66,7 +66,7 @@ steps:
         "login_id": "e2e_tomato_first_time"
       }
     assert:
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: "authenticate"
 
@@ -76,7 +76,7 @@ steps:
         "password": "auyeung1234"
       }
     assert:
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: authenticate
 
@@ -91,7 +91,7 @@ steps:
         "code": "000000"
       }
     assert:
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: change_password
 
@@ -100,7 +100,7 @@ steps:
         "new_password": "Auyeung1234auyeung1234!"
       }
     assert:
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: finished
 ---
@@ -114,7 +114,7 @@ steps:
         "name": "default"
       }
     assert:
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: "identify"
 
@@ -124,7 +124,7 @@ steps:
         "login_id": "e2e_tomato_employee_id"
       }
     assert:
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: "authenticate"
 
@@ -134,7 +134,7 @@ steps:
         "password": "Wakanda4ever@Wakanda4ever"
       }
     assert:
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: authenticate
 
@@ -158,7 +158,7 @@ steps:
         "code": "000000"
       }
     assert:
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: finished
 ---
@@ -172,7 +172,7 @@ steps:
           "name": "default"
       }
     assert:
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: "identify"
 
@@ -182,7 +182,7 @@ steps:
         "login_id": "e2e_tomato_recovery_email@authgear.com"
       }
     assert:
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: select_destination
 
@@ -191,7 +191,7 @@ steps:
         "index": 0
       }
     assert:
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: "verify_account_recovery_code"
 
@@ -200,7 +200,7 @@ steps:
         "account_recovery_code": "000000"
       }
     assert:
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: "reset_password"
 
@@ -209,7 +209,7 @@ steps:
         "new_password": "Abcd1234Abcd1234!"
       }
     assert:
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: "finished"
 ---
@@ -223,7 +223,7 @@ steps:
           "name": "default"
       }
     assert:
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: "identify"
 
@@ -233,7 +233,7 @@ steps:
         "login_id": "+85223382341"
       }
     assert:
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: select_destination
 
@@ -242,7 +242,7 @@ steps:
         "index": 0
       }
     assert:
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: "verify_account_recovery_code"
 
@@ -251,7 +251,7 @@ steps:
         "account_recovery_code": "000000"
       }
     assert:
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: "reset_password"
 
@@ -260,6 +260,6 @@ steps:
         "new_password": "Abcd1234Abcd1234!"
       }
     assert:
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: "finished"

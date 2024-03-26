@@ -4,7 +4,7 @@
 
 function setup {
     echo "[ ] Starting services..."
-    # docker compose build authgear
+    docker compose build authgear
     docker compose up -d
     sleep 5
 
@@ -62,7 +62,7 @@ function teardown {
 
 function runtests {
     echo "[ ] Run tests..."
-    go test -v ./tests/... -timeout 1m30s
+    go test ./tests/... -timeout 1m30s
 }
 
 function main {
