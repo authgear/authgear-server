@@ -58,6 +58,19 @@ func PrepareFallback(
 		}
 	}
 
+	// Add the custom resource of intl.BuiltinBaseLanguage then.
+	// This allows a specific deployment to change email.default.sender with
+	// a single en translation.json
+	for _, resrc := range resources {
+		langTag := extractLanguageTag(resrc)
+		if resrc.Location.Fs.GetFsLevel() == resource.FsLevelCustom && langTag == intl.BuiltinBaseLanguage {
+			err := add(defaultLanguageTag, resrc)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	// Add the resources of fallback language.
 	for _, resrc := range resources {
 		langTag := extractLanguageTag(resrc)
