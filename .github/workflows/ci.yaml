@@ -13,106 +13,106 @@ on:
     - '!gh-pages'
 
 jobs:
-  # authui-test:
-  #   runs-on: ubuntu-22.04
-  #   steps:
-  #   - uses: actions/checkout@v3
-  #   - uses: actions/setup-node@v3
-  #     with:
-  #       node-version-file: "./.tool-versions"
-  #   - run: npm ci
-  #     working-directory: ./authui
-  #   - run: npm run typecheck
-  #     working-directory: ./authui
-  #     if: ${{ !cancelled() }}
-  #   - run: npm run eslint
-  #     working-directory: ./authui
-  #     if: ${{ !cancelled() }}
-  #   - run: npm run stylelint
-  #     working-directory: ./authui
-  #     if: ${{ !cancelled() }}
-  #   - run: npm run prettier
-  #     working-directory: ./authui
-  #     if: ${{ !cancelled() }}
-  #   - run: npm run build
-  #     working-directory: ./authui
-  #     if: ${{ !cancelled() }}
+  authui-test:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version-file: "./.tool-versions"
+    - run: npm ci
+      working-directory: ./authui
+    - run: npm run typecheck
+      working-directory: ./authui
+      if: ${{ !cancelled() }}
+    - run: npm run eslint
+      working-directory: ./authui
+      if: ${{ !cancelled() }}
+    - run: npm run stylelint
+      working-directory: ./authui
+      if: ${{ !cancelled() }}
+    - run: npm run prettier
+      working-directory: ./authui
+      if: ${{ !cancelled() }}
+    - run: npm run build
+      working-directory: ./authui
+      if: ${{ !cancelled() }}
 
-  # portal-test:
-  #   runs-on: ubuntu-22.04
-  #   steps:
-  #   - uses: actions/checkout@v3
-  #   - uses: ./.github/actions/libvips
-  #   - uses: actions/setup-node@v3
-  #     with:
-  #       node-version-file: "./.tool-versions"
-  #   - run: npm ci
-  #     working-directory: ./portal
-  #   - run: npm run typecheck
-  #     working-directory: ./portal
-  #     if: ${{ !cancelled() }}
-  #   - run: npm run eslint
-  #     working-directory: ./portal
-  #     if: ${{ !cancelled() }}
-  #   - run: npm run stylelint
-  #     working-directory: ./portal
-  #     if: ${{ !cancelled() }}
-  #   - run: npm run fmt
-  #     working-directory: ./portal
-  #     if: ${{ !cancelled() }}
-  #   - run: npm run test
-  #     working-directory: ./portal
-  #     if: ${{ !cancelled() }}
-  #   - run: npm run gentype
-  #     working-directory: ./portal
-  #     if: ${{ !cancelled() }}
-  #   - run: make check-tidy
-  #     working-directory: ./portal
-  #     if: ${{ !cancelled() }}
-  #   - run: npm run build
-  #     working-directory: ./portal
-  #     if: ${{ !cancelled() }}
+  portal-test:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ./.github/actions/libvips
+    - uses: actions/setup-node@v3
+      with:
+        node-version-file: "./.tool-versions"
+    - run: npm ci
+      working-directory: ./portal
+    - run: npm run typecheck
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+    - run: npm run eslint
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+    - run: npm run stylelint
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+    - run: npm run fmt
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+    - run: npm run test
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+    - run: npm run gentype
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+    - run: make check-tidy
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+    - run: npm run build
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
 
-  # portal-image:
-  #   runs-on: ubuntu-22.04
-  #   needs: portal-test
-  #   env:
-  #     TARGET: portal
-  #     IMAGE_NAME: authgear-portal
-  #   steps:
-  #   - uses: actions/checkout@v3
-  #   - uses: ./.github/actions/libvips
-  #   - run: make build-image TARGET=$TARGET IMAGE_NAME=$IMAGE_NAME
-  #   - run: make tag-image IMAGE_NAME=$IMAGE_NAME
-  #   - uses: docker/login-action@v2
-  #     if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
-  #     with:
-  #       registry: quay.io
-  #       username: ${{ secrets.QUAY_USERNAME }}
-  #       password: ${{ secrets.QUAY_ROBOT_TOKEN }}
-  #   - run: make push-image IMAGE_NAME=$IMAGE_NAME
-  #     if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
+  portal-image:
+    runs-on: ubuntu-22.04
+    needs: portal-test
+    env:
+      TARGET: portal
+      IMAGE_NAME: authgear-portal
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ./.github/actions/libvips
+    - run: make build-image TARGET=$TARGET IMAGE_NAME=$IMAGE_NAME
+    - run: make tag-image IMAGE_NAME=$IMAGE_NAME
+    - uses: docker/login-action@v2
+      if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
+      with:
+        registry: quay.io
+        username: ${{ secrets.QUAY_USERNAME }}
+        password: ${{ secrets.QUAY_ROBOT_TOKEN }}
+    - run: make push-image IMAGE_NAME=$IMAGE_NAME
+      if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
 
-  # authgear-test:
-  #   runs-on: ubuntu-22.04
-  #   steps:
-  #   - uses: actions/checkout@v3
-  #   - uses: ./.github/actions/libvips
-  #   - uses: actions/setup-go@v4
-  #     with:
-  #       go-version-file: "./go.mod"
-  #   - uses: actions/setup-node@v3
-  #     with:
-  #       node-version-file: "./.tool-versions"
-  #   - run: make vendor
-  #   - run: make lint
-  #     if: ${{ !cancelled() }}
-  #   - run: make test
-  #     if: ${{ !cancelled() }}
-  #   - run: make fmt
-  #     if: ${{ !cancelled() }}
-  #   - run: make check-tidy
-  #     if: ${{ !cancelled() }}
+  authgear-test:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ./.github/actions/libvips
+    - uses: actions/setup-go@v4
+      with:
+        go-version-file: "./go.mod"
+    - uses: actions/setup-node@v3
+      with:
+        node-version-file: "./.tool-versions"
+    - run: make vendor
+    - run: make lint
+      if: ${{ !cancelled() }}
+    - run: make test
+      if: ${{ !cancelled() }}
+    - run: make fmt
+      if: ${{ !cancelled() }}
+    - run: make check-tidy
+      if: ${{ !cancelled() }}
 
   authgear-e2e:
     runs-on: ubuntu-22.04
@@ -153,43 +153,43 @@ jobs:
         docker save authgear-server-e2e-authgear:latest -o ~/.cache/images/authgear.tar
         docker save authgear-server-e2e-portal:latest -o ~/.cache/images/portal.tar
 
-  # authgear-image:
-  #   runs-on: ubuntu-22.04
-  #   needs: ["authgear-test", "authui-test"]
-  #   env:
-  #     TARGET: authgear
-  #     IMAGE_NAME: authgear-server
-  #   steps:
-  #   - uses: actions/checkout@v3
-  #   - uses: ./.github/actions/libvips
-  #   - run: make build-image TARGET=$TARGET IMAGE_NAME=$IMAGE_NAME
-  #   - run: make tag-image IMAGE_NAME=$IMAGE_NAME
-  #   - uses: docker/login-action@v2
-  #     if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
-  #     with:
-  #       registry: quay.io
-  #       username: ${{ secrets.QUAY_USERNAME }}
-  #       password: ${{ secrets.QUAY_ROBOT_TOKEN }}
-  #   - run: make push-image IMAGE_NAME=$IMAGE_NAME
-  #     if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
+  authgear-image:
+    runs-on: ubuntu-22.04
+    needs: ["authgear-test", "authui-test"]
+    env:
+      TARGET: authgear
+      IMAGE_NAME: authgear-server
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ./.github/actions/libvips
+    - run: make build-image TARGET=$TARGET IMAGE_NAME=$IMAGE_NAME
+    - run: make tag-image IMAGE_NAME=$IMAGE_NAME
+    - uses: docker/login-action@v2
+      if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
+      with:
+        registry: quay.io
+        username: ${{ secrets.QUAY_USERNAME }}
+        password: ${{ secrets.QUAY_ROBOT_TOKEN }}
+    - run: make push-image IMAGE_NAME=$IMAGE_NAME
+      if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
 
-  # release:
-  #   runs-on: ubuntu-22.04
-  #   needs: ["portal-test", "authgear-test"]
-  #   if: startsWith(github.ref, 'refs/tags/') && !startsWith(github.ref, 'refs/tags/staging-')
-  #   steps:
-  #   - uses: actions/checkout@v3
-  #   - uses: ./.github/actions/libvips
-  #   - uses: actions/setup-go@v4
-  #     with:
-  #       go-version-file: "./go.mod"
-  #   - uses: actions/setup-node@v3
-  #     with:
-  #       node-version-file: "./.tool-versions"
-  #   - run: make vendor
-  #   - run: make binary
-  #   - uses: softprops/action-gh-release@v1
-  #     with:
-  #       draft: true
-  #       files: |
-  #         ./dist/*
+  release:
+    runs-on: ubuntu-22.04
+    needs: ["portal-test", "authgear-test"]
+    if: startsWith(github.ref, 'refs/tags/') && !startsWith(github.ref, 'refs/tags/staging-')
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ./.github/actions/libvips
+    - uses: actions/setup-go@v4
+      with:
+        go-version-file: "./go.mod"
+    - uses: actions/setup-node@v3
+      with:
+        node-version-file: "./.tool-versions"
+    - run: make vendor
+    - run: make binary
+    - uses: softprops/action-gh-release@v1
+      with:
+        draft: true
+        files: |
+          ./dist/*

@@ -548,12 +548,13 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	taskQueue := p.TaskQueue
 	elasticsearchService := elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     userQueries,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: taskQueue,
+		AppID:       appID,
+		Client:      client,
+		Users:       userQueries,
+		OAuth:       oauthStore,
+		LoginID:     loginidStore,
+		RolesGroups: rolesgroupsStore,
+		TaskQueue:   taskQueue,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -707,12 +708,13 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 		Coordinator: coordinator,
 	}
 	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     userQueries,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: taskQueue,
+		AppID:       appID,
+		Client:      client,
+		Users:       userQueries,
+		OAuth:       oauthStore,
+		LoginID:     loginidStore,
+		RolesGroups: rolesgroupsStore,
+		TaskQueue:   taskQueue,
 	}
 	userimportLogger := userimport.NewLogger(factory)
 	userImportService := &userimport.UserImportService{
