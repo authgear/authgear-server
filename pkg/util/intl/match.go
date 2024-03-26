@@ -57,3 +57,55 @@ func Match(preferredLanguageTags []string, supportedLanguageTags SupportedLangua
 
 	return idx, tag
 }
+
+// matcher.Match will not return tags with higher confidence
+// For example, with supported tags zh-CN, zh-HK
+// matcher.Match("zh-Hant") will return zh-CN, which confidence is Low,
+// but not zh-HK which confidence is High.
+// This function is an implementation of Match trying to return an option with higher confidence.
+func BestMatch(preferredLanguageTags []string, supportedLanguageTags SupportedLanguages) (int, language.Tag) {
+	if len(supportedLanguageTags) <= 0 {
+		return -1, language.Und
+	}
+
+	supportedTags := toLanguageTags(supportedLanguageTags)
+	preferredTags := toLanguageTags(preferredLanguageTags)
+
+	if len(preferredTags) <= 0 {
+		return 0, supportedTags[0]
+	}
+
+	var selectedTagIdx int = -1
+	var selectedTagConfidence language.Confidence
+	for _, pt := range preferredTags {
+		preferredTag := pt
+
+		for idx, t := range supportedTags {
+			supportedTag := t
+			matcher := GetMatcher([]language.Tag{supportedTag})
+			_, _, confidence := matcher.Match(preferredTag)
+
+			// If exact match, choose this option without considering others
+			if confidence == language.Exact {
+				selectedTagIdx = idx
+				selectedTagConfidence = confidence
+				break
+			}
+
+			// Else, select the option with highest confidence
+			if confidence > selectedTagConfidence || selectedTagIdx == -1 {
+				selectedTagIdx = idx
+				selectedTagConfidence = confidence
+			}
+		}
+
+		// If confidence is not No, use this match as the result and do not look at other preferred tags
+		if selectedTagConfidence != language.No {
+			break
+		}
+	}
+
+	tag := supportedTags[selectedTagIdx]
+
+	return selectedTagIdx, tag
+}
