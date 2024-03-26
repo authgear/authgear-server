@@ -47,7 +47,7 @@ func (s *Service) resolveTemplateLanguage(supportedLanguages []string) string {
 	}
 	preferredLanguageTags := intl.GetPreferredLanguageTags(s.Context)
 	supportedLanguageTags := intl.Supported(supportedLanguages, intl.Fallback(supportedLanguages[0]))
-	idx, _ := intl.Match(preferredLanguageTags, supportedLanguageTags)
+	idx, _ := intl.BestMatch(preferredLanguageTags, supportedLanguageTags)
 	return supportedLanguageTags[idx]
 }
 
