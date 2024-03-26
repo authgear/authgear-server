@@ -226,3 +226,7 @@ func NewNotFound(msg string) error {
 func NewDataRace(msg string) error {
 	return DataRace.WithReason(string(DataRace)).New(msg)
 }
+
+func NewTooManyRequest(msg string) error {
+	return TooManyRequest.WithReason(string(TooManyRequest)).New(msg)
+}
