@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/signalutil"
@@ -26,6 +27,7 @@ type TaskProcessor func(ctx context.Context, appProvider *deps.AppProvider, task
 
 type Consumer struct {
 	QueueName              string
+	clock                  clock.Clock
 	rootProvider           *deps.RootProvider
 	configSourceController *configsource.Controller
 	taskProcessor          TaskProcessor
@@ -44,6 +46,7 @@ var _ signalutil.Daemon = &Consumer{}
 func NewConsumer(queueName string, rootProvider *deps.RootProvider, configSourceController *configsource.Controller, taskProcessor TaskProcessor) *Consumer {
 	return &Consumer{
 		QueueName:              queueName,
+		clock:                  clock.NewSystemClock(),
 		rootProvider:           rootProvider,
 		configSourceController: configSourceController,
 		taskProcessor:          taskProcessor,
@@ -179,6 +182,8 @@ func (c *Consumer) dequeue(ctx context.Context) {
 	}
 
 	task.Status = redisqueue.TaskStatusCompleted
+	completedAt := c.clock.NowUTC()
+	task.CompletedAt = &completedAt
 	task.Output = output
 
 	taskBytes, err := json.Marshal(task)
