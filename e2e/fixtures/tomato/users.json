@@ -18,6 +18,25 @@
         "type": "bcrypt",
         "password_hash": "$2y$10$ze9h.zFQCg9ew9X4orQE2OkuLJZvTDs/YwOuptGkzkiFvwsES16hK"
       }
+    },
+    {
+      "preferred_username": "e2e_tomato_recovery_email",
+      "email": "e2e_tomato_recovery_email@authgear.com",
+      "phone_number": "+85223382340",
+
+      "password": {
+        "type": "bcrypt",
+        "password_hash": "$2y$10$ze9h.zFQCg9ew9X4orQE2OkuLJZvTDs/YwOuptGkzkiFvwsES16hK"
+      }
+    },
+    {
+      "preferred_username": "e2e_tomato_recovery_sms",
+      "phone_number": "+85223382341",
+
+      "password": {
+        "type": "bcrypt",
+        "password_hash": "$2y$10$ze9h.zFQCg9ew9X4orQE2OkuLJZvTDs/YwOuptGkzkiFvwsES16hK"
+      }
     }
   ]
 }
