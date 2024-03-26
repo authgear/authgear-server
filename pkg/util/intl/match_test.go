@@ -42,6 +42,13 @@ func TestMatch(t *testing.T) {
 			2,
 		)
 
+		// Simply select zh-HK
+		test(
+			[]string{"zh-hk"},
+			[]string{"zh-TW", "zh-HK", "en-US"},
+			1,
+		)
+
 		// Should select supported tag with higher confidence
 		test(
 			[]string{"zh-Hant"},
@@ -78,4 +85,48 @@ func TestMatch(t *testing.T) {
 			1,
 		)
 	})
+}
+
+type BenchmarkTestFixture struct {
+	Preferred []string
+	Supported []string
+}
+
+var benchmarkTestFixtures []*BenchmarkTestFixture = []*BenchmarkTestFixture{
+	{
+		Preferred: []string{},
+		Supported: []string{"en", "ja", "zh"},
+	},
+	{
+		Preferred: []string{"ja-JP", "en-US", "zh-Hant-HK"},
+		Supported: []string{"zh", "en", "ja"},
+	},
+	{
+		Preferred: []string{"zh-hk"},
+		Supported: []string{"zh-TW", "zh-HK", "en-US"},
+	},
+	{
+		Preferred: []string{"zh-Hant"},
+		Supported: []string{"zh-CN", "zh-HK", "zh-TW", "en-US"},
+	},
+	{
+		Preferred: []string{"zh-HK", "zh-Hant-HK", "zh-TW", "zh"},
+		Supported: []string{"zh-CN", "zh-HK", "zh-TW", "zh-SG", "zh-MC", "en-US", "en-GB", "ja-JP"},
+	},
+}
+
+func BenchmarkMatch(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		for _, f := range benchmarkTestFixtures {
+			Match(f.Preferred, f.Supported)
+		}
+	}
+}
+
+func BenchmarkBestMatch(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		for _, f := range benchmarkTestFixtures {
+			BestMatch(f.Preferred, f.Supported)
+		}
+	}
 }
