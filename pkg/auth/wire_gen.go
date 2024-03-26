@@ -119445,6 +119445,11 @@ func newWorkflowIntlMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	return intlMiddleware
 }
 
+func newAuthenticationFlowIntlMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	intlMiddleware := &authenticationflow.IntlMiddleware{}
+	return intlMiddleware
+}
+
 func newImplementationSwitcherMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	appContext := appProvider.AppContext
