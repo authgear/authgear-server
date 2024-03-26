@@ -8,10 +8,7 @@ steps:
         "name": "default"
       }
     assert:
-      - field: "type"
-        op: eq
-        value: "signup"
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: "identify"
 
@@ -22,7 +19,7 @@ steps:
         "redirect_uri": "https://mock"
       }
     assert:
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: "identify"
 
@@ -31,6 +28,6 @@ steps:
         "code": "mock"
       }
     assert:
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: finished

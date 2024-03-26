@@ -8,10 +8,7 @@ steps:
         "name": "default"
       }
     assert:
-      - field: "type"
-        op: eq
-        value: "login"
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: "identify"
 
@@ -21,7 +18,7 @@ steps:
         "login_id": "e2e_login"
       }
     assert:
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: "authenticate"
 
@@ -31,7 +28,7 @@ steps:
         "password": "password"
       }
     assert:
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: finished
 ---
@@ -45,10 +42,7 @@ steps:
         "name": "default"
       }
     assert:
-      - field: "type"
-        op: eq
-        value: "login"
-      - field: "action.type"
+      - field: "result.action.type"
         op: eq
         value: "identify"
 
