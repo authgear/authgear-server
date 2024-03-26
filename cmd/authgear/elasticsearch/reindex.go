@@ -20,7 +20,9 @@ import (
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 type queryUserResponse struct {
@@ -41,11 +43,12 @@ type Item struct {
 }
 
 type Reindexer struct {
-	Handle  *appdb.Handle
-	AppID   config.AppID
-	Users   *user.Store
-	OAuth   *identityoauth.Store
-	LoginID *identityloginid.Store
+	Handle      *appdb.Handle
+	AppID       config.AppID
+	Users       *user.Store
+	OAuth       *identityoauth.Store
+	LoginID     *identityloginid.Store
+	RolesGroups *rolesgroups.Store
 }
 
 func (q *Reindexer) QueryPage(after model.PageCursor, first uint64) ([]Item, error) {
@@ -72,6 +75,17 @@ func (q *Reindexer) QueryPage(after model.PageCursor, first uint64) ([]Item, err
 		if err != nil {
 			return nil, err
 		}
+
+		effectiveRoles, err := q.RolesGroups.ListEffectiveRolesByUserID(u.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		groups, err := q.RolesGroups.ListGroupsByUserID(u.ID)
+		if err != nil {
+			return nil, err
+		}
+
 		// rawStandardAttributes is used in the re-index command
 		// Since the fields that we use for search won't need processing
 		// The re-index command should have greatest permission to access all fields.
@@ -86,6 +100,8 @@ func (q *Reindexer) QueryPage(after model.PageCursor, first uint64) ([]Item, err
 			LastLoginAt:        u.MostRecentLoginAt,
 			IsDisabled:         u.IsDisabled,
 			StandardAttributes: rawStandardAttributes,
+			EffectiveRoles:     slice.Map(effectiveRoles, func(r *rolesgroups.Role) *model.Role { return r.ToModel() }),
+			Groups:             slice.Map(groups, func(g *rolesgroups.Group) *model.Group { return g.ToModel() }),
 		}
 
 		var arrClaims []map[string]interface{}

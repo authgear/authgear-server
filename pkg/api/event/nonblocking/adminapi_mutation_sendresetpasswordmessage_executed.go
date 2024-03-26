@@ -35,12 +35,12 @@ func (e *AdminAPIMutationSendResetPasswordMessageExecutedEventPayload) ForAudit(
 	return true
 }
 
-func (e *AdminAPIMutationSendResetPasswordMessageExecutedEventPayload) ReindexUserNeeded() bool {
-	return false
+func (e *AdminAPIMutationSendResetPasswordMessageExecutedEventPayload) RequireReindexUserIDs() []string {
+	return nil
 }
 
-func (e *AdminAPIMutationSendResetPasswordMessageExecutedEventPayload) IsUserDeleted() bool {
-	return false
+func (e *AdminAPIMutationSendResetPasswordMessageExecutedEventPayload) DeletedUserIDs() []string {
+	return nil
 }
 
 var _ event.NonBlockingPayload = &AdminAPIMutationSendResetPasswordMessageExecutedEventPayload{}

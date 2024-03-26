@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	relay "github.com/authgear/graphql-go-relay"
@@ -65,6 +66,13 @@ var _ = registerMutationField(
 				UserIDs:  userIDs,
 			}
 			groupID, err := gqlCtx.RolesGroupsFacade.AddGroupToUsers(options)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationAddGroupToUsersExecutedEventPayload{
+				AffectedUserIDs: userIDs,
+			})
 			if err != nil {
 				return nil, err
 			}
@@ -138,6 +146,13 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationRemoveGroupFromUsersExecutedEventPayload{
+				AffectedUserIDs: userIDs,
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"group": gqlCtx.Groups.Load(groupID),
 			}).Value, nil
@@ -204,6 +219,13 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationAddUserToGroupsExecutedEventPayload{
+				AffectedUserIDs: []string{userID},
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"user": gqlCtx.Users.Load(userID),
 			}).Value, nil
@@ -266,6 +288,13 @@ var _ = registerMutationField(
 				GroupKeys: groupKeys,
 			}
 			err := gqlCtx.RolesGroupsFacade.RemoveUserFromGroups(options)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationRemoveUserFromGroupsExecutedEventPayload{
+				AffectedUserIDs: []string{userID},
+			})
 			if err != nil {
 				return nil, err
 			}

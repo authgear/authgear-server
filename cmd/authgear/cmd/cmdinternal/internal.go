@@ -72,6 +72,31 @@ var cmdInternalElasticsearchDeleteIndex = &cobra.Command{
 	},
 }
 
+var cmdInternalElasticsearchUpdateIndex = &cobra.Command{
+	Use:   "update-index",
+	Short: "Update the mappings of search index of all apps",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		binder := authgearcmd.GetBinder()
+
+		esURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgElasticsearchURL)
+		if err != nil {
+			return err
+		}
+
+		client, err := cmdes.MakeClient(esURL)
+		if err != nil {
+			return err
+		}
+
+		err = cmdes.UpdateIndex(client)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	},
+}
+
 var cmdInternalElasticsearchReindex = &cobra.Command{
 	Use:   "reindex { app-id | --all }",
 	Short: "Reindex all documents of a given app into the search index",
@@ -162,6 +187,7 @@ func init() {
 	cmdInternal.AddCommand(cmdInternalElasticsearch)
 	binder.BindString(cmdInternalElasticsearch.PersistentFlags(), authgearcmd.ArgElasticsearchURL)
 	cmdInternalElasticsearch.AddCommand(cmdInternalElasticsearchCreateIndex)
+	cmdInternalElasticsearch.AddCommand(cmdInternalElasticsearchUpdateIndex)
 	cmdInternalElasticsearch.AddCommand(cmdInternalElasticsearchDeleteIndex)
 	cmdInternalElasticsearch.AddCommand(cmdInternalElasticsearchReindex)
 

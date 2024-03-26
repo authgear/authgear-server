@@ -4,17 +4,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 const IndexNameUser = "user"
 
 const PrefixMinChars = 3
 
-func MakeSearchBody(
-	appID config.AppID,
-	searchKeyword string,
-	sortOption libuser.SortOption,
-) map[string]interface{} {
+func makeSearchConditions(searchKeyword string) []interface{} {
 	should := []interface{}{
 		map[string]interface{}{
 			"term": map[string]interface{}{
@@ -189,6 +186,37 @@ func MakeSearchBody(
 				},
 			},
 		},
+		// Roles and Groups
+		map[string]interface{}{
+			"term": map[string]interface{}{
+				"role_key": map[string]interface{}{
+					"value":            searchKeyword,
+					"case_insensitive": true,
+				},
+			},
+		},
+		map[string]interface{}{
+			"match": map[string]interface{}{
+				"role_name": map[string]interface{}{
+					"query": searchKeyword,
+				},
+			},
+		},
+		map[string]interface{}{
+			"term": map[string]interface{}{
+				"group_key": map[string]interface{}{
+					"value":            searchKeyword,
+					"case_insensitive": true,
+				},
+			},
+		},
+		map[string]interface{}{
+			"match": map[string]interface{}{
+				"group_name": map[string]interface{}{
+					"query": searchKeyword,
+				},
+			},
+		},
 	}
 
 	// For unknown reason, if the search keyword is shorter than the prefix min chars,
@@ -266,18 +294,87 @@ func MakeSearchBody(
 		}...)
 	}
 
+	return should
+}
+
+func makeFilterConditions(
+	filterOptions libuser.FilterOptions) []interface{} {
+
+	filters := []interface{}{}
+
+	if len(filterOptions.RoleKeys) > 0 {
+		roleKeyShoulds := slice.Map(filterOptions.RoleKeys, func(roleKey string) interface{} {
+			return map[string]interface{}{
+				"term": map[string]interface{}{
+					"role_key": map[string]interface{}{
+						"value": roleKey,
+					},
+				},
+			}
+		})
+		filters = append(filters, map[string]interface{}{
+			"bool": map[string]interface{}{
+				"minimum_should_match": 1,
+				"should":               roleKeyShoulds,
+			},
+		})
+	}
+
+	if len(filterOptions.GroupKeys) > 0 {
+		groupKeyShoulds := slice.Map(filterOptions.GroupKeys, func(groupKey string) interface{} {
+			return map[string]interface{}{
+				"term": map[string]interface{}{
+					"group_key": map[string]interface{}{
+						"value": groupKey,
+					},
+				},
+			}
+		})
+		filters = append(filters, map[string]interface{}{
+			"bool": map[string]interface{}{
+				"minimum_should_match": 1,
+				"should":               groupKeyShoulds,
+			},
+		})
+	}
+
+	return filters
+}
+
+func MakeSearchBody(
+	appID config.AppID,
+	searchKeyword string,
+	filterOptions libuser.FilterOptions,
+	sortOption libuser.SortOption,
+) map[string]interface{} {
+	var should []interface{}
+	if searchKeyword != "" {
+		should = makeSearchConditions(searchKeyword)
+	} else {
+		should = []interface{}{map[string]interface{}{
+			"match_all": map[string]interface{}{},
+		}}
+	}
+
+	filter := []interface{}{
+		map[string]interface{}{
+			"term": map[string]interface{}{
+				"app_id": appID,
+			},
+		},
+	}
+
+	if filterOptions.IsFilterEnabled() {
+
+		filter = append(filter, makeFilterConditions(filterOptions)...)
+	}
+
 	body := map[string]interface{}{
 		"query": map[string]interface{}{
 			"bool": map[string]interface{}{
 				"minimum_should_match": 1,
-				"filter": []interface{}{
-					map[string]interface{}{
-						"term": map[string]interface{}{
-							"app_id": appID,
-						},
-					},
-				},
-				"should": should,
+				"filter":               filter,
+				"should":               should,
 			},
 		},
 	}

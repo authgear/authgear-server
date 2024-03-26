@@ -5,10 +5,21 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/util/phone"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 type Stats struct {
 	TotalCount int
+}
+
+func makeStringFlatMapper[T any](stringExtractor func(T) *string) func(item T) []string {
+	return func(item T) []string {
+		str := stringExtractor(item)
+		if str != nil {
+			return []string{*str}
+		}
+		return []string{}
+	}
 }
 
 func RawToSource(raw *model.ElasticsearchUserRaw) *model.ElasticsearchUserSource {
@@ -65,6 +76,10 @@ func RawToSource(raw *model.ElasticsearchUserRaw) *model.ElasticsearchUserSource
 		Region:                extractAddressString(raw.StandardAttributes, stdattrs.Region),
 		PostalCode:            extractAddressString(raw.StandardAttributes, stdattrs.PostalCode),
 		Country:               extractAddressString(raw.StandardAttributes, stdattrs.Country),
+		RoleKey:               slice.Map(raw.EffectiveRoles, func(r *model.Role) string { return r.Key }),
+		RoleName:              slice.FlatMap(raw.EffectiveRoles, makeStringFlatMapper(func(r *model.Role) *string { return r.Name })),
+		GroupKey:              slice.Map(raw.Groups, func(g *model.Group) string { return g.Key }),
+		GroupName:             slice.FlatMap(raw.Groups, makeStringFlatMapper(func(g *model.Group) *string { return g.Name })),
 	}
 
 	var emailLocalPart []string

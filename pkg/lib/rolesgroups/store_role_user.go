@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 	"github.com/lib/pq"
@@ -118,12 +119,44 @@ func (s *Store) ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageArgs
 		return nil, 0, err
 	}
 
-	userIDs, err := s.queryUsers(q)
+	userIDs, err := s.queryUserIDs(q)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	return userIDs, offset, nil
+}
+
+func (s *Store) ListAllUserIDsByEffectiveRoleIDs(roleIDs []string) ([]string, error) {
+	userRoleUserIDsQuery := s.SQLBuilder.Select(
+		"ur.user_id",
+	).
+		From(s.SQLBuilder.TableName("_auth_user_role"), "ur").
+		Where("ur.role_id = ANY (?)", pq.Array(roleIDs))
+
+	userRoleUserIDs, err := s.queryUserIDs(userRoleUserIDsQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	userGroupRoleUserIDsQuery := s.SQLBuilder.Select(
+		"ug.user_id",
+	).
+		From(s.SQLBuilder.TableName("_auth_user_group"), "ug").
+		Join(s.SQLBuilder.TableName("_auth_group_role"), "gr", "ug.group_id = gr.group_id").
+		Where("gr.role_id = ANY (?)", pq.Array(roleIDs))
+
+	userGroupRoleUserIDs, err := s.queryUserIDs(userGroupRoleUserIDsQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	combinedUserIDs := []string{}
+	combinedUserIDs = append(combinedUserIDs, userRoleUserIDs...)
+	combinedUserIDs = append(combinedUserIDs, userGroupRoleUserIDs...)
+
+	userIDsSet := setutil.NewSetFromSlice(combinedUserIDs, setutil.Identity[string])
+	return setutil.SetToSlice(combinedUserIDs, userIDsSet, setutil.Identity[string]), nil
 }
 
 type AddRoleToUsersOptions struct {

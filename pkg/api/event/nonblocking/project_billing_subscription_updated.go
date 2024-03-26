@@ -36,12 +36,12 @@ func (e *ProjectBillingSubscriptionUpdatedEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *ProjectBillingSubscriptionUpdatedEventPayload) ReindexUserNeeded() bool {
-	return false
+func (e *ProjectBillingSubscriptionUpdatedEventPayload) RequireReindexUserIDs() []string {
+	return nil
 }
 
-func (e *ProjectBillingSubscriptionUpdatedEventPayload) IsUserDeleted() bool {
-	return false
+func (e *ProjectBillingSubscriptionUpdatedEventPayload) DeletedUserIDs() []string {
+	return nil
 }
 
 var _ event.NonBlockingPayload = &ProjectBillingSubscriptionUpdatedEventPayload{}

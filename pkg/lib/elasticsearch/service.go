@@ -15,9 +15,11 @@ import (
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
+	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/tasks"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 type UserQueries interface {
@@ -25,12 +27,13 @@ type UserQueries interface {
 }
 
 type Service struct {
-	AppID     config.AppID
-	Client    *elasticsearch.Client
-	Users     UserQueries
-	OAuth     *identityoauth.Store
-	LoginID   *identityloginid.Store
-	TaskQueue task.Queue
+	AppID       config.AppID
+	Client      *elasticsearch.Client
+	Users       UserQueries
+	OAuth       *identityoauth.Store
+	LoginID     *identityloginid.Store
+	RolesGroups *rolesgroups.Store
+	TaskQueue   task.Queue
 }
 
 type queryUserResponse struct {
@@ -67,6 +70,16 @@ func (s *Service) ReindexUser(userID string, isDelete bool) (err error) {
 		return
 	}
 
+	effectiveRoles, err := s.RolesGroups.ListEffectiveRolesByUserID(u.ID)
+	if err != nil {
+		return
+	}
+
+	groups, err := s.RolesGroups.ListGroupsByUserID(u.ID)
+	if err != nil {
+		return
+	}
+
 	raw := &model.ElasticsearchUserRaw{
 		ID:                 u.ID,
 		AppID:              string(s.AppID),
@@ -75,6 +88,8 @@ func (s *Service) ReindexUser(userID string, isDelete bool) (err error) {
 		LastLoginAt:        u.LastLoginAt,
 		IsDisabled:         u.IsDisabled,
 		StandardAttributes: u.StandardAttributes,
+		EffectiveRoles:     slice.Map(effectiveRoles, func(r *rolesgroups.Role) *model.Role { return r.ToModel() }),
+		Groups:             slice.Map(groups, func(g *rolesgroups.Group) *model.Group { return g.ToModel() }),
 	}
 
 	var arrClaims []map[model.ClaimName]string
@@ -106,6 +121,7 @@ func (s *Service) ReindexUser(userID string, isDelete bool) (err error) {
 
 func (s *Service) QueryUser(
 	searchKeyword string,
+	filterOptions libuser.FilterOptions,
 	sortOption libuser.SortOption,
 	pageArgs graphqlutil.PageArgs,
 ) ([]model.PageItemRef, *Stats, error) {
@@ -114,7 +130,7 @@ func (s *Service) QueryUser(
 	}
 
 	// Prepare body
-	bodyJSONValue := MakeSearchBody(s.AppID, searchKeyword, sortOption)
+	bodyJSONValue := MakeSearchBody(s.AppID, searchKeyword, filterOptions, sortOption)
 
 	// Prepare search_after
 	searchAfter, err := CursorToSearchAfter(model.PageCursor(pageArgs.After))

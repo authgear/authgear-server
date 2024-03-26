@@ -42,12 +42,12 @@ func (e *IdentityBiometricDisabledEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *IdentityBiometricDisabledEventPayload) ReindexUserNeeded() bool {
-	return false
+func (e *IdentityBiometricDisabledEventPayload) RequireReindexUserIDs() []string {
+	return nil
 }
 
-func (e *IdentityBiometricDisabledEventPayload) IsUserDeleted() bool {
-	return false
+func (e *IdentityBiometricDisabledEventPayload) DeletedUserIDs() []string {
+	return nil
 }
 
 var _ event.NonBlockingPayload = &IdentityBiometricDisabledEventPayload{}

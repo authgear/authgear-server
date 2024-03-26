@@ -575,12 +575,13 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	noopTaskQueue := NewNoopTaskQueue()
 	elasticsearchService := elasticsearch.Service{
-		AppID:     configAppID,
-		Client:    client,
-		Users:     userQueries,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: noopTaskQueue,
+		AppID:       configAppID,
+		Client:      client,
+		Users:       userQueries,
+		OAuth:       oauthStore,
+		LoginID:     loginidStore,
+		RolesGroups: rolesgroupsStore,
+		TaskQueue:   noopTaskQueue,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,

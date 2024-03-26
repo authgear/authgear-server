@@ -63,12 +63,12 @@ func (e *IdentityUnverifiedEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *IdentityUnverifiedEventPayload) ReindexUserNeeded() bool {
-	return false
+func (e *IdentityUnverifiedEventPayload) RequireReindexUserIDs() []string {
+	return nil
 }
 
-func (e *IdentityUnverifiedEventPayload) IsUserDeleted() bool {
-	return false
+func (e *IdentityUnverifiedEventPayload) DeletedUserIDs() []string {
+	return nil
 }
 
 var _ event.NonBlockingPayload = &IdentityUnverifiedEventPayload{}

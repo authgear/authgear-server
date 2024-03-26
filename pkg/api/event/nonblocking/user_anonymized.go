@@ -41,12 +41,12 @@ func (e *UserAnonymizedEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *UserAnonymizedEventPayload) ReindexUserNeeded() bool {
-	return true
+func (e *UserAnonymizedEventPayload) RequireReindexUserIDs() []string {
+	return []string{e.UserID()}
 }
 
-func (e *UserAnonymizedEventPayload) IsUserDeleted() bool {
-	return false
+func (e *UserAnonymizedEventPayload) DeletedUserIDs() []string {
+	return nil
 }
 
 var _ event.NonBlockingPayload = &UserAnonymizedEventPayload{}

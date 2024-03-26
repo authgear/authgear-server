@@ -47,12 +47,12 @@ func (e *MockNonBlockingEvent1) ForAudit() bool {
 	return true
 }
 
-func (e *MockNonBlockingEvent1) ReindexUserNeeded() bool {
-	return true
+func (e *MockNonBlockingEvent1) RequireReindexUserIDs() []string {
+	return []string{e.UserID()}
 }
 
-func (e *MockNonBlockingEvent1) IsUserDeleted() bool {
-	return false
+func (e *MockNonBlockingEvent1) DeletedUserIDs() []string {
+	return nil
 }
 
 type MockNonBlockingEvent2 struct {
@@ -74,12 +74,12 @@ func (e *MockNonBlockingEvent2) ForAudit() bool {
 	return true
 }
 
-func (e *MockNonBlockingEvent2) ReindexUserNeeded() bool {
-	return true
+func (e *MockNonBlockingEvent2) RequireReindexUserIDs() []string {
+	return []string{e.UserID()}
 }
 
-func (e *MockNonBlockingEvent2) IsUserDeleted() bool {
-	return false
+func (e *MockNonBlockingEvent2) DeletedUserIDs() []string {
+	return nil
 }
 
 type MockNonBlockingEvent3 struct {
@@ -101,12 +101,12 @@ func (e *MockNonBlockingEvent3) ForAudit() bool {
 	return true
 }
 
-func (e *MockNonBlockingEvent3) ReindexUserNeeded() bool {
-	return true
+func (e *MockNonBlockingEvent3) RequireReindexUserIDs() []string {
+	return []string{e.UserID()}
 }
 
-func (e *MockNonBlockingEvent3) IsUserDeleted() bool {
-	return false
+func (e *MockNonBlockingEvent3) DeletedUserIDs() []string {
+	return nil
 }
 
 type MockNonBlockingEvent4 struct {
@@ -128,12 +128,12 @@ func (e *MockNonBlockingEvent4) ForAudit() bool {
 	return true
 }
 
-func (e *MockNonBlockingEvent4) ReindexUserNeeded() bool {
-	return true
+func (e *MockNonBlockingEvent4) RequireReindexUserIDs() []string {
+	return []string{e.UserID()}
 }
 
-func (e *MockNonBlockingEvent4) IsUserDeleted() bool {
-	return false
+func (e *MockNonBlockingEvent4) DeletedUserIDs() []string {
+	return nil
 }
 
 type MockBlockingEvent1 struct {

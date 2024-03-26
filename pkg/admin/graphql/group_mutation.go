@@ -4,6 +4,7 @@ import (
 	relay "github.com/authgear/graphql-go-relay"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/graphql-go/graphql"
@@ -155,7 +156,20 @@ var _ = registerMutationField(
 			}
 
 			gqlCtx := GQLContext(p.Context)
-			err := gqlCtx.RolesGroupsFacade.UpdateGroup(options)
+
+			affectedUserIDs, err := gqlCtx.RolesGroupsFacade.ListAllUserIDsByGroupIDs([]string{groupID})
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.RolesGroupsFacade.UpdateGroup(options)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationUpdateGroupExecutedEventPayload{
+				AffectedUserIDs: affectedUserIDs,
+			})
 			if err != nil {
 				return nil, err
 			}
@@ -208,7 +222,20 @@ var _ = registerMutationField(
 			groupID := resolvedNodeID.ID
 
 			gqlCtx := GQLContext(p.Context)
-			err := gqlCtx.RolesGroupsFacade.DeleteGroup(groupID)
+
+			affectedUserIDs, err := gqlCtx.RolesGroupsFacade.ListAllUserIDsByGroupIDs([]string{groupID})
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.RolesGroupsFacade.DeleteGroup(groupID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationDeleteGroupExecutedEventPayload{
+				AffectedUserIDs: affectedUserIDs,
+			})
 			if err != nil {
 				return nil, err
 			}

@@ -36,12 +36,12 @@ func (e *ProjectDomainVerifiedEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *ProjectDomainVerifiedEventPayload) ReindexUserNeeded() bool {
-	return false
+func (e *ProjectDomainVerifiedEventPayload) RequireReindexUserIDs() []string {
+	return nil
 }
 
-func (e *ProjectDomainVerifiedEventPayload) IsUserDeleted() bool {
-	return false
+func (e *ProjectDomainVerifiedEventPayload) DeletedUserIDs() []string {
+	return nil
 }
 
 var _ event.NonBlockingPayload = &ProjectDomainVerifiedEventPayload{}

@@ -1,6 +1,7 @@
 package graphql
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/graphql-go/graphql"
@@ -56,7 +57,20 @@ var _ = registerMutationField(
 			}
 
 			gqlCtx := GQLContext(p.Context)
+
+			affectedUserIDs, err := gqlCtx.RolesGroupsFacade.ListAllUserIDsByGroupKeys(groupKeys)
+			if err != nil {
+				return nil, err
+			}
+
 			roleID, err := gqlCtx.RolesGroupsFacade.AddRoleToGroups(options)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationAddRoleToGroupsExecutedEventPayload{
+				AffectedUserIDs: affectedUserIDs,
+			})
 			if err != nil {
 				return nil, err
 			}
@@ -118,7 +132,20 @@ var _ = registerMutationField(
 			}
 
 			gqlCtx := GQLContext(p.Context)
+
+			affectedUserIDs, err := gqlCtx.RolesGroupsFacade.ListAllUserIDsByGroupKeys(groupKeys)
+			if err != nil {
+				return nil, err
+			}
+
 			roleID, err := gqlCtx.RolesGroupsFacade.RemoveRoleFromGroups(options)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationRemoveRoleFromGroupsExecutedEventPayload{
+				AffectedUserIDs: affectedUserIDs,
+			})
 			if err != nil {
 				return nil, err
 			}
@@ -180,7 +207,20 @@ var _ = registerMutationField(
 			}
 
 			gqlCtx := GQLContext(p.Context)
+
+			affectedUserIDs, err := gqlCtx.RolesGroupsFacade.ListAllUserIDsByGroupKeys([]string{groupKey})
+			if err != nil {
+				return nil, err
+			}
+
 			groupID, err := gqlCtx.RolesGroupsFacade.AddGroupToRoles(options)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationAddGroupToRolesExecutedEventPayload{
+				AffectedUserIDs: affectedUserIDs,
+			})
 			if err != nil {
 				return nil, err
 			}
@@ -240,9 +280,21 @@ var _ = registerMutationField(
 				GroupKey: groupKey,
 				RoleKeys: roleKeys,
 			}
-
 			gqlCtx := GQLContext(p.Context)
+
+			affectedUserIDs, err := gqlCtx.RolesGroupsFacade.ListAllUserIDsByGroupKeys([]string{groupKey})
+			if err != nil {
+				return nil, err
+			}
+
 			groupID, err := gqlCtx.RolesGroupsFacade.RemoveGroupFromRoles(options)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationRemoveGroupFromRolesExecutedEventPayload{
+				AffectedUserIDs: affectedUserIDs,
+			})
 			if err != nil {
 				return nil, err
 			}

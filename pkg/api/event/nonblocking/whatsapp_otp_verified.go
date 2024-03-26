@@ -36,12 +36,12 @@ func (e *WhatsappOTPVerifiedEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *WhatsappOTPVerifiedEventPayload) ReindexUserNeeded() bool {
-	return false
+func (e *WhatsappOTPVerifiedEventPayload) RequireReindexUserIDs() []string {
+	return nil
 }
 
-func (e *WhatsappOTPVerifiedEventPayload) IsUserDeleted() bool {
-	return false
+func (e *WhatsappOTPVerifiedEventPayload) DeletedUserIDs() []string {
+	return nil
 }
 
 var _ event.NonBlockingPayload = &WhatsappOTPVerifiedEventPayload{}

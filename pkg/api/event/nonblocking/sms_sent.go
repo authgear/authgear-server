@@ -38,12 +38,12 @@ func (e *SMSSentEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *SMSSentEventPayload) ReindexUserNeeded() bool {
-	return false
+func (e *SMSSentEventPayload) RequireReindexUserIDs() []string {
+	return nil
 }
 
-func (e *SMSSentEventPayload) IsUserDeleted() bool {
-	return false
+func (e *SMSSentEventPayload) DeletedUserIDs() []string {
+	return nil
 }
 
 var _ event.NonBlockingPayload = &SMSSentEventPayload{}

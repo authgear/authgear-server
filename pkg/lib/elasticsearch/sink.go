@@ -22,13 +22,29 @@ func (s *Sink) ReceiveBlockingEvent(e *event.Event) error {
 
 func (s *Sink) ReceiveNonBlockingEvent(e *event.Event) error {
 	payload := e.Payload.(event.NonBlockingPayload)
-	if payload.ReindexUserNeeded() {
-		err := s.Database.ReadOnly(func() error {
-			return s.Service.ReindexUser(payload.UserID(), payload.IsUserDeleted())
-		})
-		if err != nil {
-			s.Logger.WithError(err).Error("failed to reindex user")
-			return err
+	reindexRequiredUserIDs := payload.RequireReindexUserIDs()
+	deletedUserIDs := payload.DeletedUserIDs()
+	if len(reindexRequiredUserIDs) > 0 {
+		for _, userID := range reindexRequiredUserIDs {
+			err := s.Database.ReadOnly(func() error {
+				return s.Service.ReindexUser(userID, false)
+			})
+			if err != nil {
+				s.Logger.WithError(err).Error("failed to reindex user")
+				return err
+			}
+		}
+	}
+
+	if len(deletedUserIDs) > 0 {
+		for _, userID := range deletedUserIDs {
+			err := s.Database.ReadOnly(func() error {
+				return s.Service.ReindexUser(userID, true)
+			})
+			if err != nil {
+				s.Logger.WithError(err).Error("failed to delete indexed user")
+				return err
+			}
 		}
 	}
 	return nil

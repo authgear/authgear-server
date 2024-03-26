@@ -44,6 +44,9 @@ type RolesGroupsQueries interface {
 	ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
 	ListUserIDsByGroupID(groupID string, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
 	ListEffectiveRolesByUserID(userID string) ([]*model.Role, error)
+	ListAllUserIDsByGroupIDs(groupIDs []string) ([]string, error)
+	ListAllUserIDsByGroupKeys(groupKeys []string) ([]string, error)
+	ListAllUserIDsByEffectiveRoleIDs(roleIDs []string) ([]string, error)
 	CountRoles() (uint64, error)
 	CountGroups() (uint64, error)
 }
@@ -275,6 +278,14 @@ func (f *RolesGroupsFacade) ListUserIDsByRoleID(roleID string, pageArgs graphqlu
 	})), nil
 }
 
+func (f *RolesGroupsFacade) ListAllUserIDsByGroupIDs(groupIDs []string) ([]string, error) {
+	return f.RolesGroupsQueries.ListAllUserIDsByGroupIDs(groupIDs)
+}
+
+func (f *RolesGroupsFacade) ListAllUserIDsByGroupKeys(groupKeys []string) ([]string, error) {
+	return f.RolesGroupsQueries.ListAllUserIDsByGroupKeys(groupKeys)
+}
+
 func (f *RolesGroupsFacade) ListUserIDsByGroupID(groupID string, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, *graphqlutil.PageResult, error) {
 	refs, err := f.RolesGroupsQueries.ListUserIDsByGroupID(groupID, pageArgs)
 	if err != nil {
@@ -289,4 +300,8 @@ func (f *RolesGroupsFacade) ListUserIDsByGroupID(groupID string, pageArgs graphq
 
 func (f *RolesGroupsFacade) ListEffectiveRolesByUserID(userID string) ([]*model.Role, error) {
 	return f.RolesGroupsQueries.ListEffectiveRolesByUserID(userID)
+}
+
+func (f *RolesGroupsFacade) ListAllUserIDsByEffectiveRoleIDs(roleIDs []string) ([]string, error) {
+	return f.RolesGroupsQueries.ListAllUserIDsByEffectiveRoleIDs(roleIDs)
 }

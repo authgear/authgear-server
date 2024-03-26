@@ -10,6 +10,103 @@ import (
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 )
 
+// DO NOT delete or update properties
+// Only add new properties
+var IndexMappings = `
+{
+	"properties": {
+		"app_id": { "type": "keyword" },
+		"id": { "type": "keyword" },
+		"created_at": { "type": "date" },
+		"updated_at": { "type": "date" },
+		"last_login_at": { "type": "date" },
+		"is_disabled": { "type": "boolean" },
+		"email": { "type": "keyword" },
+		"email_text": {
+			"type": "text",
+			"analyzer": "keyword",
+			"index_prefixes": {
+				"min_chars": 3,
+				"max_chars": 19
+			}
+		},
+		"email_local_part": { "type": "keyword" },
+		"email_local_part_text": {
+			"type": "text",
+			"analyzer": "keyword",
+			"index_prefixes": {
+				"min_chars": 3,
+				"max_chars": 10
+			}
+		},
+		"email_domain": { "type": "keyword" },
+		"email_domain_text": {
+			"type": "text",
+			"analyzer": "keyword",
+			"index_prefixes": {
+				"min_chars": 3,
+				"max_chars": 10
+			}
+		},
+		"preferred_username": { "type": "keyword" },
+		"preferred_username_text": {
+			"type": "text",
+			"analyzer": "keyword",
+			"index_prefixes": {
+				"min_chars": 3,
+				"max_chars": 19
+			}
+		},
+		"phone_number": { "type": "keyword" },
+		"phone_number_text": {
+			"type": "text",
+			"analyzer": "keyword",
+			"index_prefixes": {
+				"min_chars": 3,
+				"max_chars": 19
+			}
+		},
+		"phone_number_country_code": { "type": "keyword" },
+		"phone_number_national_number": { "type": "keyword" },
+		"phone_number_national_number_text": {
+			"type": "text",
+			"analyzer": "keyword",
+			"index_prefixes": {
+				"min_chars": 3,
+				"max_chars": 15
+			}
+		},
+		"oauth_subject_id": { "type": "keyword" },
+		"oauth_subject_id_text": {
+			"type": "text",
+			"analyzer": "keyword",
+			"index_prefixes": {
+				"min_chars": 3,
+				"max_chars": 19
+			}
+		},
+		"family_name": { "type": "text" },
+		"given_name": { "type": "text" },
+		"middle_name": { "type": "text" },
+		"name": { "type": "text" },
+		"nickname": { "type": "text" },
+		"formatted": { "type": "text" },
+		"street_address": { "type": "text" },
+		"locality": { "type": "text" },
+		"region": { "type": "text" },
+		"gender": { "type": "keyword" },
+		"zoneinfo": { "type": "keyword" },
+		"locale": { "type": "keyword" },
+		"country": { "type": "keyword" },
+		"postal_code": { "type": "keyword" },
+		"role_key": { "type": "keyword" },
+		"role_name": { "type": "text" },
+		"group_key": { "type": "keyword" },
+		"group_name": { "type": "text" }
+	}
+}
+`
+
 func CreateIndex(es *elasticsearch.Client) error {
 	// index_prefixes is only available on text.
 	// Therefore we have to store both keyword and text.
@@ -40,7 +137,7 @@ func CreateIndex(es *elasticsearch.Client) error {
 	// So if the query search is "example.com", it can still match the "name" field in the above example.
 	// By applying the analyzer to the search query instead of the field,
 	// we keep the characteristics of "more specific search query gives more specific search result".
-	bodyStr := `
+	bodyStr := fmt.Sprintf(`
 	{
 		"settings": {
 			"analysis": {
@@ -53,96 +150,10 @@ func CreateIndex(es *elasticsearch.Client) error {
 				}
 			}
 		},
-		"mappings": {
-			"properties": {
-				"app_id": { "type": "keyword" },
-				"id": { "type": "keyword" },
-				"created_at": { "type": "date" },
-				"updated_at": { "type": "date" },
-				"last_login_at": { "type": "date" },
-				"is_disabled": { "type": "boolean" },
-				"email": { "type": "keyword" },
-				"email_text": {
-					"type": "text",
-					"analyzer": "keyword",
-					"index_prefixes": {
-						"min_chars": 3,
-						"max_chars": 19
-					}
-				},
-				"email_local_part": { "type": "keyword" },
-				"email_local_part_text": {
-					"type": "text",
-					"analyzer": "keyword",
-					"index_prefixes": {
-						"min_chars": 3,
-						"max_chars": 10
-					}
-				},
-				"email_domain": { "type": "keyword" },
-				"email_domain_text": {
-					"type": "text",
-					"analyzer": "keyword",
-					"index_prefixes": {
-						"min_chars": 3,
-						"max_chars": 10
-					}
-				},
-				"preferred_username": { "type": "keyword" },
-				"preferred_username_text": {
-					"type": "text",
-					"analyzer": "keyword",
-					"index_prefixes": {
-						"min_chars": 3,
-						"max_chars": 19
-					}
-				},
-				"phone_number": { "type": "keyword" },
-				"phone_number_text": {
-					"type": "text",
-					"analyzer": "keyword",
-					"index_prefixes": {
-						"min_chars": 3,
-						"max_chars": 19
-					}
-				},
-				"phone_number_country_code": { "type": "keyword" },
-				"phone_number_national_number": { "type": "keyword" },
-				"phone_number_national_number_text": {
-					"type": "text",
-					"analyzer": "keyword",
-					"index_prefixes": {
-						"min_chars": 3,
-						"max_chars": 15
-					}
-				},
-				"oauth_subject_id": { "type": "keyword" },
-				"oauth_subject_id_text": {
-					"type": "text",
-					"analyzer": "keyword",
-					"index_prefixes": {
-						"min_chars": 3,
-						"max_chars": 19
-					}
-				},
-				"family_name": { "type": "text" },
-				"given_name": { "type": "text" },
-				"middle_name": { "type": "text" },
-				"name": { "type": "text" },
-				"nickname": { "type": "text" },
-				"formatted": { "type": "text" },
-				"street_address": { "type": "text" },
-				"locality": { "type": "text" },
-				"region": { "type": "text" },
-				"gender": { "type": "keyword" },
-				"zoneinfo": { "type": "keyword" },
-				"locale": { "type": "keyword" },
-				"country": { "type": "keyword" },
-				"postal_code": { "type": "keyword" }
-			}
+		"mappings": %s
 		}
 	}
-	`
+	`, IndexMappings)
 	res, err := es.Indices.Create(libes.IndexNameUser, func(o *esapi.IndicesCreateRequest) {
 		o.Body = bytes.NewReader([]byte(bodyStr))
 	})
@@ -158,6 +169,21 @@ func CreateIndex(es *elasticsearch.Client) error {
 
 func DeleteIndex(es *elasticsearch.Client) error {
 	res, err := es.Indices.Delete([]string{libes.IndexNameUser})
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	if res.IsError() {
+		return fmt.Errorf("%v", res)
+	}
+	return nil
+}
+
+func UpdateIndex(es *elasticsearch.Client) error {
+	bodyStr := IndexMappings
+	res, err := es.Indices.PutMapping(bytes.NewReader([]byte(bodyStr)), func(o *esapi.IndicesPutMappingRequest) {
+		o.Index = []string{libes.IndexNameUser}
+	})
 	if err != nil {
 		return err
 	}

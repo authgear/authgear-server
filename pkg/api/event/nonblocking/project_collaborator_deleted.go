@@ -37,12 +37,12 @@ func (e *ProjectCollaboratorDeletedEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *ProjectCollaboratorDeletedEventPayload) ReindexUserNeeded() bool {
-	return false
+func (e *ProjectCollaboratorDeletedEventPayload) RequireReindexUserIDs() []string {
+	return nil
 }
 
-func (e *ProjectCollaboratorDeletedEventPayload) IsUserDeleted() bool {
-	return false
+func (e *ProjectCollaboratorDeletedEventPayload) DeletedUserIDs() []string {
+	return nil
 }
 
 var _ event.NonBlockingPayload = &ProjectCollaboratorDeletedEventPayload{}

@@ -54,7 +54,11 @@ type AuditLogFacade interface {
 
 type UserFacade interface {
 	ListPage(listOption libuser.ListOptions, args graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
-	SearchPage(searchKeyword string, sortOption libuser.SortOption, args graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
+	SearchPage(
+		searchKeyword string,
+		filterOptions libuser.FilterOptions,
+		sortOption libuser.SortOption,
+		args graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
 	Create(identityDef model.IdentityDef, password string) (string, error)
 	ResetPassword(id string, password string) error
 	SetDisabled(id string, isDisabled bool, reason *string) error
@@ -102,6 +106,9 @@ type RolesGroupsFacade interface {
 	ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
 	ListUserIDsByGroupID(groupID string, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
 	ListEffectiveRolesByUserID(userID string) ([]*apimodel.Role, error)
+	ListAllUserIDsByGroupIDs(groupIDs []string) ([]string, error)
+	ListAllUserIDsByGroupKeys(groupKeys []string) ([]string, error)
+	ListAllUserIDsByEffectiveRoleIDs(roleIDs []string) ([]string, error)
 }
 
 type IdentityFacade interface {

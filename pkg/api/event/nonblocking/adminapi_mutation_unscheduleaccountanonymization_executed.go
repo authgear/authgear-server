@@ -37,12 +37,12 @@ func (e *AdminAPIMutationUnscheduleAccountAnonymizationExecutedEventPayload) For
 	return true
 }
 
-func (e *AdminAPIMutationUnscheduleAccountAnonymizationExecutedEventPayload) ReindexUserNeeded() bool {
-	return false
+func (e *AdminAPIMutationUnscheduleAccountAnonymizationExecutedEventPayload) RequireReindexUserIDs() []string {
+	return nil
 }
 
-func (e *AdminAPIMutationUnscheduleAccountAnonymizationExecutedEventPayload) IsUserDeleted() bool {
-	return false
+func (e *AdminAPIMutationUnscheduleAccountAnonymizationExecutedEventPayload) DeletedUserIDs() []string {
+	return nil
 }
 
 var _ event.NonBlockingPayload = &AdminAPIMutationUnscheduleAccountAnonymizationExecutedEventPayload{}

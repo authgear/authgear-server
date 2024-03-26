@@ -38,12 +38,12 @@ func (e *AdminAPIMutationCreateSessionExecutedEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *AdminAPIMutationCreateSessionExecutedEventPayload) ReindexUserNeeded() bool {
-	return false
+func (e *AdminAPIMutationCreateSessionExecutedEventPayload) RequireReindexUserIDs() []string {
+	return nil
 }
 
-func (e *AdminAPIMutationCreateSessionExecutedEventPayload) IsUserDeleted() bool {
-	return false
+func (e *AdminAPIMutationCreateSessionExecutedEventPayload) DeletedUserIDs() []string {
+	return nil
 }
 
 var _ event.NonBlockingPayload = &AdminAPIMutationCreateSessionExecutedEventPayload{}

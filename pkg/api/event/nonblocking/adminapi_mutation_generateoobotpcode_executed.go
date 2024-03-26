@@ -36,12 +36,12 @@ func (e *AdminAPIMutationGenerateOOBOTPCodeExecutedEventPayload) ForAudit() bool
 	return true
 }
 
-func (e *AdminAPIMutationGenerateOOBOTPCodeExecutedEventPayload) ReindexUserNeeded() bool {
-	return false
+func (e *AdminAPIMutationGenerateOOBOTPCodeExecutedEventPayload) RequireReindexUserIDs() []string {
+	return nil
 }
 
-func (e *AdminAPIMutationGenerateOOBOTPCodeExecutedEventPayload) IsUserDeleted() bool {
-	return false
+func (e *AdminAPIMutationGenerateOOBOTPCodeExecutedEventPayload) DeletedUserIDs() []string {
+	return nil
 }
 
 var _ event.NonBlockingPayload = &AdminAPIMutationGenerateOOBOTPCodeExecutedEventPayload{}
