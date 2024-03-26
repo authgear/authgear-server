@@ -52,6 +52,15 @@ func (f Form) GenerateCode(cfg *config.TestModeConfig, featureCfg *config.TestMo
 		}
 		return c.Generate()
 	case secretcode.LinkOTPSecretCodeType:
+		if cfg.Email.Enabled {
+			if r, ok := cfg.Email.MatchTarget(target); ok {
+				fixedCode := r.FixedCode
+				if fixedCode == "" {
+					fixedCode = c.Generate()
+				}
+				return c.GenerateFixed(fixedCode)
+			}
+		}
 		if featureCfg.DeterministicLinkOTP.Enabled {
 			return c.GenerateDeterministic(userID)
 		} else {

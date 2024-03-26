@@ -165,6 +165,12 @@ test_mode:
     rules:
     - regex: .*
       suppressed: true
+  email:
+    enabled: true
+    rules:
+    - regex: .*
+      suppressed: true
+      fixed_code: "000000"
 ui:
   dark_theme_disabled: true
   forgot_password:
