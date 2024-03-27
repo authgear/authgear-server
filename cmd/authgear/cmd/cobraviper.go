@@ -50,3 +50,9 @@ var ArgInputFolder = &cobraviper.StringArgument{
 	Short:        "i",
 	Usage:        "Path to input folder",
 }
+
+var ArgCustomSQL = &cobraviper.StringArgument{
+	ArgumentName: "custom-sql",
+	EnvName:      "CUSTOM_SQL",
+	Usage:        "Custom SQL statement",
+}

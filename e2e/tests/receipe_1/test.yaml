@@ -63,7 +63,7 @@ steps:
   - input: |
       {
         "identification": "username",
-        "login_id": "e2e_tomato_first_time"
+        "login_id": "e2e_recipe_1_first_time"
       }
     assert:
       - field: "result.action.type"
@@ -123,7 +123,7 @@ steps:
   - input: |
       {
         "identification": "username",
-        "login_id": "e2e_tomato_employee_id"
+        "login_id": "e2e_recipe_1_employee_id"
       }
     assert:
       - field: "result.action.type"
@@ -183,7 +183,7 @@ steps:
   - input: |
       {
         "identification": "email",
-        "login_id": "e2e_tomato_recovery_email@authgear.com"
+        "login_id": "e2e_recipe_1_recovery_email@authgear.com"
       }
     assert:
       - field: "result.action.type"
@@ -269,3 +269,75 @@ steps:
       - field: "result.action.type"
         op: eq
         value: "finished"
+---
+name: Password expiry
+before:
+  - type: user_import
+    user_import: users.json
+  - type: custom_sql
+    custom_sql:
+      path: expire_user.sql
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    assert:
+      - field: "result.action.type"
+        op: eq
+        value: "identify"
+
+  - input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_recipe_1_employee_id"
+      }
+    assert:
+      - field: "result.action.type"
+        op: eq
+        value: "authenticate"
+
+  - input: |
+      {
+        "authentication": "primary_password",
+        "password": "Wakanda4ever@Wakanda4ever"
+      }
+    assert:
+      - field: "result.action.type"
+        op: eq
+        value: authenticate
+
+  - input: |
+      {
+        "authentication": "primary_oob_otp_sms",
+        "index": 0
+      }
+
+  - input: |
+      {
+        "code": "111111"
+      }
+    assert:
+      - field: "error.reason"
+        op: eq
+        value: InvalidCredentials
+
+  - input: |
+      {
+        "code": "000000"
+      }
+    assert:
+      - field: "result.action.type"
+        op: eq
+        value: change_password
+
+  - input: |
+      {
+        "new_password": "Auyeung1234auyeung1234!"
+      }
+    assert:
+      - field: "result.action.type"
+        op: eq
+        value: finished
