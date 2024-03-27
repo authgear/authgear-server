@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
+	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -52,8 +53,8 @@ func (n *Normalizer) normalizeEmail(t T) error {
 
 func (n *Normalizer) normalizePhoneNumber(t T) error {
 	if phoneNumber, ok := t[PhoneNumber].(string); ok && phoneNumber != "" {
-		phoneNormalizer := n.LoginIDNormalizerFactory.NormalizerWithLoginIDType(model.LoginIDKeyTypePhone)
-		phoneNumber, err := phoneNormalizer.Normalize(phoneNumber)
+		phoneNumberParser := &phone.LegalParser{}
+		phoneNumber, err := phoneNumberParser.ParseInputPhoneNumber(phoneNumber)
 		if err != nil {
 			return err
 		}
