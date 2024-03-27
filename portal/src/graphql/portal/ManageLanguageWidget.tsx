@@ -20,7 +20,6 @@ import {
   List,
   Text,
   IRenderFunction,
-  IDropdownStyles,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
@@ -32,6 +31,7 @@ import styles from "./ManageLanguageWidget.module.css";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import LinkButton from "../../LinkButton";
+import ReplaceLanguagesConfirmationDialog from "./ReplaceLanguagesConfirmationDialog";
 
 interface ManageLanguageWidgetProps {
   className?: string;
@@ -51,6 +51,10 @@ interface ManageLanguageWidgetProps {
     supportedLanguages: LanguageTag[],
     fallbackLanguage: LanguageTag
   ) => void;
+  onChangeAndSaveLanguages: (
+    supportedLanguages: LanguageTag[],
+    fallbackLanguage: LanguageTag
+  ) => void;
 }
 
 interface ManageLanguageWidgetDialogProps {
@@ -60,6 +64,10 @@ interface ManageLanguageWidgetDialogProps {
   existingLanguages: LanguageTag[];
   supportedLanguages: LanguageTag[];
   onChangeLanguages: (
+    supportedLanguages: LanguageTag[],
+    fallbackLanguage: LanguageTag
+  ) => void;
+  onChangeAndSaveLanguages: (
     supportedLanguages: LanguageTag[],
     fallbackLanguage: LanguageTag
   ) => void;
@@ -129,20 +137,16 @@ const Cell: React.VFC<CellProps> = function Cell(props: CellProps) {
   );
 };
 
-const dropdownStyles: Partial<IDropdownStyles> = {
-  dropdownItemDisabled: {
-    fontStyle: "italic",
-  },
-};
-
 const ManageLanguageWidgetDialog: React.VFC<ManageLanguageWidgetDialogProps> =
   function ManageLanguageWidgetDialog(props: ManageLanguageWidgetDialogProps) {
     const {
       presented,
       onDismiss,
       fallbackLanguage,
+      existingLanguages,
       supportedLanguages,
       onChangeLanguages,
+      onChangeAndSaveLanguages,
     } = props;
 
     const { renderToString } = useContext(Context);
@@ -169,6 +173,21 @@ const ManageLanguageWidgetDialog: React.VFC<ManageLanguageWidgetDialogProps> =
     const filteredItems = useMemo(() => {
       return search(searchString);
     }, [search, searchString]);
+
+    const [
+      isClearLocalizationConfirmationDialogVisible,
+      setIsClearLocalizationConfirmationDialogVisible,
+    ] = useState(false);
+
+    const dismissClearLocalizationConfirmationDialog = useCallback(() => {
+      setIsClearLocalizationConfirmationDialogVisible(false);
+    }, []);
+
+    const allExistingLanguageAreRemoved = useMemo(() => {
+      return existingLanguages.every(
+        (locale) => !newSupportedLanguages.includes(locale)
+      );
+    }, [existingLanguages, newSupportedLanguages]);
 
     const onSearch = useCallback((_e, value?: string) => {
       if (value == null) {
@@ -238,12 +257,30 @@ const ManageLanguageWidgetDialog: React.VFC<ManageLanguageWidgetDialogProps> =
     }, [onDismiss]);
 
     const onApplyClick = useCallback(() => {
+      if (allExistingLanguageAreRemoved) {
+        setIsClearLocalizationConfirmationDialogVisible(true);
+        return;
+      }
+
       onChangeLanguages(newSupportedLanguages, newFallbackLanguage);
       onDismiss();
     }, [
+      allExistingLanguageAreRemoved,
       onChangeLanguages,
       newSupportedLanguages,
       newFallbackLanguage,
+      onDismiss,
+    ]);
+
+    const onConfirmReplaceLanguages = useCallback(() => {
+      onChangeAndSaveLanguages(newSupportedLanguages, newFallbackLanguage);
+      dismissClearLocalizationConfirmationDialog();
+      onDismiss();
+    }, [
+      onChangeAndSaveLanguages,
+      newSupportedLanguages,
+      newFallbackLanguage,
+      dismissClearLocalizationConfirmationDialog,
       onDismiss,
     ]);
 
@@ -259,42 +296,49 @@ const ManageLanguageWidgetDialog: React.VFC<ManageLanguageWidgetDialogProps> =
     }, [supportedLanguages, fallbackLanguage]);
 
     return (
-      <Dialog
-        hidden={!presented}
-        onDismiss={onCancel}
-        title={
-          <FormattedMessage id="ManageLanguageWidget.add-or-remove-languages" />
-        }
-        modalProps={modalProps}
-        styles={DIALOG_STYLES}
-      >
-        <Text className={styles.dialogDesc}>
-          <FormattedMessage id="ManageLanguageWidget.default-language-description" />
-        </Text>
-        <SearchBox
-          className={styles.searchBox}
-          placeholder={renderToString("search")}
-          value={searchString}
-          onChange={onSearch}
-          onClear={onClear}
+      <>
+        <Dialog
+          hidden={!presented}
+          onDismiss={onCancel}
+          title={
+            <FormattedMessage id="ManageLanguageWidget.add-or-remove-languages" />
+          }
+          modalProps={modalProps}
+          styles={DIALOG_STYLES}
+        >
+          <Text className={styles.dialogDesc}>
+            <FormattedMessage id="ManageLanguageWidget.default-language-description" />
+          </Text>
+          <SearchBox
+            className={styles.searchBox}
+            placeholder={renderToString("search")}
+            value={searchString}
+            onChange={onSearch}
+            onClear={onClear}
+          />
+          <Text variant="small" className={styles.dialogColumnHeader}>
+            <FormattedMessage id="ManageLanguageWidget.languages" />
+          </Text>
+          <div className={styles.dialogListWrapper}>
+            <List items={listItems} onRenderCell={renderLocaleListItemCell} />
+          </div>
+          <DialogFooter>
+            <PrimaryButton
+              onClick={onApplyClick}
+              text={<FormattedMessage id="apply" />}
+            />
+            <DefaultButton
+              onClick={onCancel}
+              text={<FormattedMessage id="cancel" />}
+            />
+          </DialogFooter>
+        </Dialog>
+        <ReplaceLanguagesConfirmationDialog
+          visible={isClearLocalizationConfirmationDialogVisible}
+          onDismiss={dismissClearLocalizationConfirmationDialog}
+          onConfirm={onConfirmReplaceLanguages}
         />
-        <Text variant="small" className={styles.dialogColumnHeader}>
-          <FormattedMessage id="ManageLanguageWidget.languages" />
-        </Text>
-        <div className={styles.dialogListWrapper}>
-          <List items={listItems} onRenderCell={renderLocaleListItemCell} />
-        </div>
-        <DialogFooter>
-          <PrimaryButton
-            onClick={onApplyClick}
-            text={<FormattedMessage id="apply" />}
-          />
-          <DefaultButton
-            onClick={onCancel}
-            text={<FormattedMessage id="cancel" />}
-          />
-        </DialogFooter>
-      </Dialog>
+      </>
     );
   };
 
@@ -308,6 +352,7 @@ const ManageLanguageWidget: React.VFC<ManageLanguageWidgetProps> =
       onChangeSelectedLanguage,
       fallbackLanguage,
       onChangeLanguages,
+      onChangeAndSaveLanguages,
     } = props;
 
     const { renderToString } = useContext(Context);
@@ -388,7 +433,16 @@ const ManageLanguageWidget: React.VFC<ManageLanguageWidgetProps> =
     const onRenderOption: IRenderFunction<IDropdownOption> = useCallback(
       (option?: IDropdownOption) => {
         return (
-          <Text>
+          <Text
+            styles={(_, theme) => ({
+              root: option?.disabled
+                ? {
+                    fontStyle: "italic",
+                    color: theme.semanticColors.disabledText,
+                  }
+                : undefined,
+            })}
+          >
             <FormattedMessage
               id="ManageLanguageWidget.language-label"
               values={{
@@ -429,6 +483,7 @@ const ManageLanguageWidget: React.VFC<ManageLanguageWidgetProps> =
           supportedLanguages={supportedLanguages}
           fallbackLanguage={fallbackLanguage}
           onChangeLanguages={onChangeLanguages}
+          onChangeAndSaveLanguages={onChangeAndSaveLanguages}
         />
         <div className={cn(className, styles.root)}>
           <div className={styles.container}>
@@ -439,7 +494,6 @@ const ManageLanguageWidget: React.VFC<ManageLanguageWidgetProps> =
               <Dropdown
                 id="language-widget"
                 className={styles.dropdown}
-                styles={dropdownStyles}
                 options={templateLocaleOptions}
                 onChange={onChangeTemplateLocale}
                 selectedKey={selectedLanguage}

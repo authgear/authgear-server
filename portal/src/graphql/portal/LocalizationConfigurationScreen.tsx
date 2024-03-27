@@ -60,7 +60,7 @@ import { useResourceForm } from "../../hook/useResourceForm";
 import FormContainer from "../../FormContainer";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import styles from "./LocalizationConfigurationScreen.module.css";
-import ReplaceLanguagesConfirmationDialog from "./ReplaceLanguagesConfirmationDialog";
+import { useDelayedSave } from "../../hook/useDelayedSave";
 
 interface ConfigFormState {
   supportedLanguages: string[];
@@ -214,6 +214,18 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
         });
       },
       [setState]
+    );
+
+    const enqueueSave = useDelayedSave(props.form);
+    const onChangeAndSaveLanguages = useCallback(
+      async (
+        supportedLanguages: LanguageTag[],
+        fallbackLanguage: LanguageTag
+      ) => {
+        onChangeLanguages(supportedLanguages, fallbackLanguage);
+        enqueueSave();
+      },
+      [enqueueSave, onChangeLanguages]
     );
 
     const [selectedKey, setSelectedKey] = useState<string>(PIVOT_KEY_DEFAULT);
@@ -805,6 +817,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             fallbackLanguage={state.fallbackLanguage}
             onChangeSelectedLanguage={setSelectedLanguage}
             onChangeLanguages={onChangeLanguages}
+            onChangeAndSaveLanguages={onChangeAndSaveLanguages}
           />
         </div>
         <ScreenDescription className={styles.widget}>
@@ -971,21 +984,6 @@ const LocalizationConfigurationScreen: React.VFC =
       ]
     );
 
-    const allExistingLanguageAreRemoved = useMemo(() => {
-      return initialSupportedLanguages.every(
-        (locale) => !state.supportedLanguages.includes(locale)
-      );
-    }, [initialSupportedLanguages, state.supportedLanguages]);
-
-    const [
-      isClearLocalizationConfirmationDialogVisible,
-      setIsClearLocalizationConfirmationDialogVisible,
-    ] = useState(false);
-
-    const dismissClearLocalizationConfirmationDialog = useCallback(() => {
-      setIsClearLocalizationConfirmationDialogVisible(false);
-    }, []);
-
     const form: FormModel = useMemo(
       () => ({
         isLoading: config.isLoading || resources.isLoading,
@@ -1020,25 +1018,6 @@ const LocalizationConfigurationScreen: React.VFC =
       [config, resources, state]
     );
 
-    const confirmFormSave = useCallback(async () => {
-      if (allExistingLanguageAreRemoved) {
-        setIsClearLocalizationConfirmationDialogVisible(true);
-        return;
-      }
-
-      await form.save();
-    }, [allExistingLanguageAreRemoved, form]);
-
-    const doFormSave = useCallback(async () => {
-      dismissClearLocalizationConfirmationDialog();
-      await form.save();
-    }, [dismissClearLocalizationConfirmationDialog, form]);
-
-    const formWithConfirmation = {
-      ...form,
-      save: confirmFormSave,
-    };
-
     if (form.isLoading) {
       return <ShowLoading />;
     }
@@ -1048,7 +1027,7 @@ const LocalizationConfigurationScreen: React.VFC =
     }
 
     return (
-      <FormContainer form={formWithConfirmation} canSave={true}>
+      <FormContainer form={form} canSave={true}>
         <ResourcesConfigurationContent
           form={form}
           initialSupportedLanguages={initialSupportedLanguages}
@@ -1056,11 +1035,6 @@ const LocalizationConfigurationScreen: React.VFC =
           passwordlessViaSMSEnabled={passwordlessViaSMSEnabled}
           passwordlessViaEmailOTPMode={passwordlessViaEmailOTPMode}
           verificationEnabled={verificationEnabled}
-        />
-        <ReplaceLanguagesConfirmationDialog
-          visible={isClearLocalizationConfirmationDialogVisible}
-          onDismiss={dismissClearLocalizationConfirmationDialog}
-          onConfirm={doFormSave}
         />
       </FormContainer>
     );
