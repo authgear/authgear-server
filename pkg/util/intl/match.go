@@ -44,7 +44,7 @@ func GetMatcher(supported []language.Tag) language.Matcher {
 // using fallbackLanguageTag as fallback.
 // NOTE(tung): Replaced by BestMatch. Use BestMatch instead.
 // This function were keep just for reference and testing
-func Match(preferredLanguageTags []string, supportedLanguageTags SupportedLanguages) (int, language.Tag) {
+func Match_Deprecated(preferredLanguageTags []string, supportedLanguageTags SupportedLanguages) (int, language.Tag) {
 	if len(supportedLanguageTags) <= 0 {
 		return -1, language.Und
 	}

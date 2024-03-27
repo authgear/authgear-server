@@ -9,7 +9,7 @@ import (
 func TestMatch(t *testing.T) {
 	Convey("Match", t, func() {
 		test := func(preferred []string, supported []string, expected int) {
-			actual, _ := Match(preferred, supported)
+			actual, _ := Match_Deprecated(preferred, supported)
 			So(actual, ShouldEqual, expected)
 		}
 
@@ -119,7 +119,7 @@ var benchmarkTestFixtures []*BenchmarkTestFixture = []*BenchmarkTestFixture{
 func BenchmarkMatch(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		for _, f := range benchmarkTestFixtures {
-			Match(f.Preferred, f.Supported)
+			Match_Deprecated(f.Preferred, f.Supported)
 		}
 	}
 }
