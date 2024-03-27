@@ -584,6 +584,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		AppID:       configAppID,
 		Client:      client,
 		Users:       userQueries,
+		UserStore:   store,
 		OAuth:       oauthStore,
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,

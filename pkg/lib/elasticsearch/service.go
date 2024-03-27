@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	identityloginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	identityoauth "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -49,6 +50,7 @@ type Service struct {
 	AppID       config.AppID
 	Client      *elasticsearch.Client
 	Users       UserQueries
+	UserStore   *user.Store
 	OAuth       *identityoauth.Store
 	LoginID     *identityloginid.Store
 	RolesGroups *rolesgroups.Store
@@ -321,4 +323,8 @@ func (s *Service) deleteUser(userID string) error {
 		return err
 	}
 	return nil
+}
+
+func (s *Service) MarkUsersAsReindexRequired(userIDs []string) error {
+	return s.UserStore.MarkAsReindexRequired(userIDs)
 }

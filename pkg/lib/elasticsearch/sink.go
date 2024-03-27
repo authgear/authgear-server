@@ -25,6 +25,7 @@ func (s *Sink) ReceiveNonBlockingEvent(e *event.Event) error {
 	reindexRequiredUserIDs := payload.RequireReindexUserIDs()
 	deletedUserIDs := payload.DeletedUserIDs()
 	if len(reindexRequiredUserIDs) > 0 {
+		s.Service.MarkUsersAsReindexRequired(reindexRequiredUserIDs)
 		for _, userID := range reindexRequiredUserIDs {
 			err := s.Service.EnqueueReindexUserTask(userID)
 			if err != nil {
@@ -35,6 +36,7 @@ func (s *Sink) ReceiveNonBlockingEvent(e *event.Event) error {
 	}
 
 	if len(deletedUserIDs) > 0 {
+		s.Service.MarkUsersAsReindexRequired(reindexRequiredUserIDs)
 		for _, userID := range deletedUserIDs {
 			err := s.Service.EnqueueReindexUserTask(userID)
 			if err != nil {

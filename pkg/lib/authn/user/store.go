@@ -395,3 +395,18 @@ func (s *Store) Anonymize(userID string) error {
 
 	return nil
 }
+
+func (s *Store) MarkAsReindexRequired(userIDs []string) error {
+	now := s.Clock.NowUTC()
+	builder := s.SQLBuilder.
+		Update(s.SQLBuilder.TableName("_auth_user")).
+		Set("require_reindex_after", now).
+		Where("id = ANY (?)", pq.Array(userIDs))
+
+	_, err := s.SQLExecutor.ExecWith(builder)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

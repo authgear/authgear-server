@@ -617,6 +617,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		AppID:       appID,
 		Client:      client,
 		Users:       userQueries,
+		UserStore:   userStore,
 		OAuth:       oauthStore,
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
