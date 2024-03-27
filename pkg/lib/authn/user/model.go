@@ -218,19 +218,21 @@ func (s AccountStatus) makeTransitionError(targetType AccountStatusType) error {
 }
 
 type User struct {
-	ID                 string
-	CreatedAt          time.Time
-	UpdatedAt          time.Time
-	MostRecentLoginAt  *time.Time
-	LessRecentLoginAt  *time.Time
-	IsDisabled         bool
-	DisableReason      *string
-	IsDeactivated      bool
-	DeleteAt           *time.Time
-	IsAnonymized       bool
-	AnonymizeAt        *time.Time
-	StandardAttributes map[string]interface{}
-	CustomAttributes   map[string]interface{}
+	ID                  string
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
+	MostRecentLoginAt   *time.Time
+	LessRecentLoginAt   *time.Time
+	IsDisabled          bool
+	DisableReason       *string
+	IsDeactivated       bool
+	DeleteAt            *time.Time
+	IsAnonymized        bool
+	AnonymizeAt         *time.Time
+	StandardAttributes  map[string]interface{}
+	CustomAttributes    map[string]interface{}
+	LastIndexedAt       *time.Time
+	RequireReindexAfter time.Time
 }
 
 func (u *User) GetMeta() model.Meta {

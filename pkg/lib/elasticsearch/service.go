@@ -72,6 +72,14 @@ type queryUserResponse struct {
 	} `json:"hits"`
 }
 
+type action string
+
+const (
+	actionReindex action = "reindex"
+	actionDelete  action = "delete"
+	actionSkip    action = "skip"
+)
+
 func (s *Service) EnqueueReindexUserTask(userID string) error {
 	request := ReindexRequest{UserID: userID}
 
@@ -89,32 +97,41 @@ func (s *Service) EnqueueReindexUserTask(userID string) error {
 	return nil
 }
 
-func (s *Service) getSource(userID string) (*model.ElasticsearchUserSource, error) {
+func (s *Service) getSource(userID string) (*model.ElasticsearchUserSource, action, error) {
+	rawUser, err := s.UserStore.Get(userID)
+	if errors.Is(err, libuser.ErrUserNotFound) {
+		return nil, actionDelete, nil
+	}
+	if rawUser.LastIndexedAt != nil && rawUser.LastIndexedAt.After(rawUser.RequireReindexAfter) {
+		// Already latest state, skip the update
+		return nil, actionSkip, nil
+	}
+
 	u, err := s.Users.Get(userID, accesscontrol.RoleGreatest)
 	if errors.Is(err, libuser.ErrUserNotFound) {
-		return nil, nil
+		return nil, actionDelete, nil
 	}
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	oauthIdentities, err := s.OAuth.List(u.ID)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	loginIDIdentities, err := s.LoginID.List(u.ID)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	effectiveRoles, err := s.RolesGroups.ListEffectiveRolesByUserID(u.ID)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	groups, err := s.RolesGroups.ListGroupsByUserID(u.ID)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	raw := &model.ElasticsearchUserRaw{
@@ -150,21 +167,10 @@ func (s *Service) getSource(userID string) (*model.ElasticsearchUserSource, erro
 		}
 	}
 
-	return RawToSource(raw), nil
+	return RawToSource(raw), actionReindex, nil
 }
 
 func (s *Service) ExecReindexUser(request ReindexRequest) (result ReindexResult) {
-	startedAt := s.Clock.NowUTC()
-	var source *model.ElasticsearchUserSource = nil
-	err := s.Database.ReadOnly(func() error {
-		s, err := s.getSource(request.UserID)
-		if err != nil {
-			return err
-		}
-		source = s
-		return nil
-	})
-
 	failure := func(err error) ReindexResult {
 		s.Logger.WithFields(map[string]interface{}{"user_id": request.UserID}).
 			WithError(err).
@@ -176,26 +182,46 @@ func (s *Service) ExecReindexUser(request ReindexRequest) (result ReindexResult)
 		}
 	}
 
-	if err != nil {
-		return failure(err)
-	}
-
-	if source == nil {
-		err = s.deleteUser(request.UserID)
-	} else {
-		err = s.reindexUser(source)
-	}
-
-	if err != nil {
-		return failure(err)
-	}
-
-	err = s.Database.WithTx(func() error {
-		return s.UserStore.UpdateLastIndexedAt([]string{request.UserID}, startedAt)
+	startedAt := s.Clock.NowUTC()
+	var source *model.ElasticsearchUserSource = nil
+	var actionToExec action
+	err := s.Database.ReadOnly(func() error {
+		s, a, err := s.getSource(request.UserID)
+		if err != nil {
+			return err
+		}
+		source = s
+		actionToExec = a
+		return nil
 	})
 
 	if err != nil {
 		return failure(err)
+	}
+
+	switch actionToExec {
+	case actionDelete:
+		err = s.deleteUser(request.UserID)
+		if err != nil {
+			return failure(err)
+		}
+
+	case actionReindex:
+		err = s.reindexUser(source)
+		if err != nil {
+			return failure(err)
+		}
+		err = s.Database.WithTx(func() error {
+			return s.UserStore.UpdateLastIndexedAt([]string{request.UserID}, startedAt)
+		})
+		if err != nil {
+			return failure(err)
+		}
+
+	case actionSkip:
+		// Do nothing
+	default:
+		panic(fmt.Errorf("elasticsearch: unknown action %s", actionToExec))
 	}
 
 	return ReindexResult{

@@ -91,7 +91,7 @@ func (s *Store) Create(u *User) (err error) {
 			u.AnonymizeAt,
 			stdAttrsBytes,
 			customAttrsBytes,
-			u.CreatedAt,
+			u.RequireReindexAfter,
 		)
 
 	_, err = s.SQLExecutor.ExecWith(builder)
@@ -117,6 +117,8 @@ func (s *Store) selectQuery(alias string) db.SelectBuilder {
 				"delete_at",
 				"is_anonymized",
 				"anonymize_at",
+				"last_indexed_at",
+				"require_reindex_after",
 				"standard_attributes",
 				"custom_attributes",
 			).
@@ -138,6 +140,8 @@ func (s *Store) selectQuery(alias string) db.SelectBuilder {
 			fieldWithAlias("delete_at"),
 			fieldWithAlias("is_anonymized"),
 			fieldWithAlias("anonymize_at"),
+			fieldWithAlias("last_indexed_at"),
+			fieldWithAlias("require_reindex_after"),
 			fieldWithAlias("standard_attributes"),
 			fieldWithAlias("custom_attributes"),
 		).
@@ -162,6 +166,8 @@ func (s *Store) scan(scn db.Scanner) (*User, error) {
 		&u.DeleteAt,
 		&u.IsAnonymized,
 		&u.AnonymizeAt,
+		&u.LastIndexedAt,
+		&u.RequireReindexAfter,
 		&stdAttrsBytes,
 		&customAttrsBytes,
 	); err != nil {
