@@ -75,10 +75,12 @@ func RawToSource(raw *model.ElasticsearchUserRaw) *model.ElasticsearchUserSource
 		emailDomain = append(emailDomain, domain)
 	}
 
+	phoneNumberParser := &phone.LegalAndValidParser{}
+
 	var phoneNumberCountryCode []string
 	var phoneNumberNationalNumber []string
 	for _, phoneNumber := range raw.PhoneNumber {
-		nationalNumber, callingCode, err := phone.ParseE164ToCallingCodeAndNumber(phoneNumber)
+		nationalNumber, callingCode, err := phoneNumberParser.SplitE164(phoneNumber)
 		if err == nil {
 			phoneNumberCountryCode = append(phoneNumberCountryCode, callingCode)
 			phoneNumberNationalNumber = append(phoneNumberNationalNumber, nationalNumber)
