@@ -219,7 +219,10 @@ func (s *Service) ExecReindexUser(request ReindexRequest) (result ReindexResult)
 		}
 
 	case actionSkip:
-		// Do nothing
+		s.Logger.WithFields(logrus.Fields{
+			"app_id":  s.AppID,
+			"user_id": request.UserID,
+		}).Info("skipping reindexing user because it is already up to date")
 	default:
 		panic(fmt.Errorf("elasticsearch: unknown action %s", actionToExec))
 	}
