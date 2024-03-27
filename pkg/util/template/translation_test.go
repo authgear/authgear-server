@@ -433,10 +433,10 @@ func TestTranslationResource(t *testing.T) {
 				data, err = read(er)
 				So(err, ShouldBeNil)
 				So(data, ShouldEqual, compact(`{
-					"app.name": { "LanguageTag": "en", "Value": "en app.name in fs A" },
+					"app.name": { "LanguageTag": "zh-HK", "Value": "zh-HK app.name in fs A" },
 					"email.default.sender": { "LanguageTag": "jp", "Value": "no-reply+jp@app.com" },
 					"some-key-1": { "LanguageTag": "jp", "Value": "jp some-key-1 in fs C" },
-					"some-key-2": { "LanguageTag": "en", "Value": "en some-key-2 in fs A" }
+					"some-key-2": { "LanguageTag": "zh-HK", "Value": "zh-HK some-key-2 in fs A" }
 				}`))
 
 				er.PreferredTags = []string{"ko"}
