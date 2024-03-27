@@ -61,7 +61,7 @@ const RolesScreen: React.VFC = function RolesScreen() {
     setOffset(0);
   }, []);
 
-  const { data, loading, previousData } = useQuery<
+  const { data, loading } = useQuery<
     RolesListQueryQuery,
     RolesListQueryQueryVariables
   >(RolesListQueryDocument, {
@@ -73,9 +73,9 @@ const RolesScreen: React.VFC = function RolesScreen() {
     fetchPolicy: "network-only",
   });
 
-  const isInitialLoading = loading && previousData == null;
+  const isLoading = loading || data == null;
 
-  const isEmpty = !isInitialLoading && data?.roles?.totalCount === 0;
+  const isEmpty = !isLoading && data.roles?.totalCount === 0;
 
   const searchBoxProps: ISearchBoxProps = useMemo(() => {
     return {
@@ -118,7 +118,7 @@ const RolesScreen: React.VFC = function RolesScreen() {
         <RolesList
           className={styles.list}
           isSearch={isSearch}
-          loading={isInitialLoading}
+          loading={isLoading}
           offset={offset}
           pageSize={pageSize}
           roles={data?.roles ?? null}
