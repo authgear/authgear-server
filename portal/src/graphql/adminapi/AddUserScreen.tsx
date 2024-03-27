@@ -77,16 +77,33 @@ function isPasswordNeeded(
     return false;
   }
 
+  const filterAuthenticators = (allowedTypes: PrimaryAuthenticatorType[]) => {
+    return primaryAuthenticators.filter((authenticator) =>
+      allowedTypes.includes(authenticator)
+    );
+  };
+
+  let relatedAuthenticators: PrimaryAuthenticatorType[];
   switch (loginIdKeySelected) {
     case "email":
-      return !primaryAuthenticators.includes("oob_otp_email");
+      relatedAuthenticators = filterAuthenticators([
+        "oob_otp_email",
+        "password",
+      ]);
+      break;
     case "phone":
-      return !primaryAuthenticators.includes("oob_otp_sms");
+      relatedAuthenticators = filterAuthenticators(["oob_otp_sms", "password"]);
+      break;
     case "username":
-      return true;
+      relatedAuthenticators = filterAuthenticators(["password"]);
+      break;
     default:
-      return false;
+      relatedAuthenticators = filterAuthenticators([]);
   }
+
+  return (
+    relatedAuthenticators.length > 0 && relatedAuthenticators[0] === "password"
+  );
 }
 
 function getEnabledLoginIDTypes(
