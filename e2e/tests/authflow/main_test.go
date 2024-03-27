@@ -2,6 +2,8 @@ package tests
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -31,7 +33,11 @@ func TestAuthflow(t *testing.T) {
 		}
 
 		for _, testCase := range testCases {
-			runTestCase(t, testCase)
+			tc := testCase
+			t.Run(testCase.Name, func(t *testing.T) {
+				t.Parallel()
+				runTestCase(t, tc)
+			})
 		}
 
 		return nil
@@ -67,7 +73,34 @@ func loadTestCasesFromPath(path string) ([]TestCase, error) {
 
 func runTestCase(t *testing.T, testCase TestCase) {
 	t.Logf("running test case: %s\n", testCase.Name)
-	client := authflowclient.NewClient(context.Background(), "localhost:4000", httputil.HTTPHost(fmt.Sprintf("%s.portal.localhost:4000", testCase.Project)))
+
+	ctx := context.Background()
+
+	appID := generateAppID()
+	e2eCmd := &End2EndCmd{
+		AppID:    appID,
+		TestCase: testCase,
+	}
+
+	err := e2eCmd.CreateConfigSource()
+	if err != nil {
+		t.Errorf("failed to create config source: %v", err)
+		return
+	}
+
+	for _, beforeHook := range testCase.Before {
+		switch beforeHook.Type {
+		case BeforeHookTypeUserImport:
+			err = e2eCmd.ImportUsers(appID, beforeHook.UserImport)
+			if err != nil {
+				t.Errorf("failed to import users: %v", err)
+				return
+			}
+		}
+	}
+
+	hostName := httputil.HTTPHost(fmt.Sprintf("%s.portal.localhost:4000", appID))
+	client := authflowclient.NewClient(ctx, "localhost:4000", hostName)
 
 	var stateToken string
 
@@ -123,4 +156,13 @@ func runTestCase(t *testing.T, testCase TestCase) {
 			}
 		}
 	}
+}
+
+func generateAppID() string {
+	id := make([]byte, 16)
+	_, err := rand.Read(id)
+	if err != nil {
+		panic(err)
+	}
+	return hex.EncodeToString(id)
 }

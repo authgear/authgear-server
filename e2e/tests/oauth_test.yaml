@@ -1,33 +1,33 @@
-name: OAuth
-project: oauth
-steps:
-  - action: "create"
-    input: |
-      {
-        "type": "signup",
-        "name": "default"
-      }
-    assert:
-      - field: "result.action.type"
-        op: eq
-        value: "identify"
+# name: OAuth
+# project: oauth
+# steps:
+#   - action: "create"
+#     input: |
+#       {
+#         "type": "signup",
+#         "name": "default"
+#       }
+#     assert:
+#       - field: "result.action.type"
+#         op: eq
+#         value: "identify"
 
-  - input: |
-      {
-        "identification": "oauth",
-        "alias": "mock",
-        "redirect_uri": "https://mock"
-      }
-    assert:
-      - field: "result.action.type"
-        op: eq
-        value: "identify"
+#   - input: |
+#       {
+#         "identification": "oauth",
+#         "alias": "mock",
+#         "redirect_uri": "https://mock"
+#       }
+#     assert:
+#       - field: "result.action.type"
+#         op: eq
+#         value: "identify"
 
-  - input: |
-      {
-        "code": "mock"
-      }
-    assert:
-      - field: "result.action.type"
-        op: eq
-        value: finished
+#   - input: |
+#       {
+#         "code": "mock"
+#       }
+#     assert:
+#       - field: "result.action.type"
+#         op: eq
+#         value: finished

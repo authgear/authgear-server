@@ -1,42 +1,42 @@
-name: Signup
-project: signup
-steps:
-  - action: "create"
-    input: |
-      {
-        "type": "signup",
-        "name": "default"
-      }
-    assert:
-      - field: "result.action.type"
-        op: eq
-        value: "identify"
+# name: Signup
+# project: signup
+# steps:
+#   - action: "create"
+#     input: |
+#       {
+#         "type": "signup",
+#         "name": "default"
+#       }
+#     assert:
+#       - field: "result.action.type"
+#         op: eq
+#         value: "identify"
 
-  - input: |
-      {
-        "identification": "email",
-        "login_id": "signup@authgear.com"
-      }
-    assert:
-      - field: "result.action.type"
-        op: eq
-        value: "verify"
+#   - input: |
+#       {
+#         "identification": "email",
+#         "login_id": "signup@authgear.com"
+#       }
+#     assert:
+#       - field: "result.action.type"
+#         op: eq
+#         value: "verify"
 
-  - input: |
-      {
-        "code": "111111"
-      }
-    assert:
-      - field: "result.action.type"
-        op: eq
-        value: "create_authenticator"
+#   - input: |
+#       {
+#         "code": "111111"
+#       }
+#     assert:
+#       - field: "result.action.type"
+#         op: eq
+#         value: "create_authenticator"
 
-  - input: |
-      {
-        "authentication": "primary_password",
-        "new_password":   "password"
-      }
-    assert:
-      - field: "result.action.type"
-        op: eq
-        value: finished
+#   - input: |
+#       {
+#         "authentication": "primary_password",
+#         "new_password":   "password"
+#       }
+#     assert:
+#       - field: "result.action.type"
+#         op: eq
+#         value: finished

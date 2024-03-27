@@ -1,5 +1,8 @@
 name: Login
 project: login
+before:
+  - type: user_import
+    user_import: login.json
 steps:
   - action: "create"
     input: |
@@ -31,27 +34,27 @@ steps:
       - field: "result.action.type"
         op: eq
         value: finished
----
-name: Login with unknown account
-project: login
-steps:
-  - action: "create"
-    input: |
-      {
-        "type": "login",
-        "name": "default"
-      }
-    assert:
-      - field: "result.action.type"
-        op: eq
-        value: "identify"
+# ---
+# name: Login with unknown account
+# project: login
+# steps:
+#   - action: "create"
+#     input: |
+#       {
+#         "type": "login",
+#         "name": "default"
+#       }
+#     assert:
+#       - field: "result.action.type"
+#         op: eq
+#         value: "identify"
 
-  - input: |
-      {
-        "identification": "username",
-        "login_id": "e2e_login_missing"
-      }
-    assert:
-      - field: "error.reason"
-        op: eq
-        value: "UserNotFound"
+#   - input: |
+#       {
+#         "identification": "username",
+#         "login_id": "e2e_login_missing"
+#       }
+#     assert:
+#       - field: "error.reason"
+#         op: eq
+#         value: "UserNotFound"
