@@ -13,23 +13,16 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/userimport"
 )
 
-type End2End struct {
-	Context context.Context
-
-	ConfigSource configsource.Config
-}
-
-type NoopTaskQueue struct{}
-
-func (q NoopTaskQueue) Enqueue(param task.Param) {
-}
-
-func (c *End2End) CreateUserFixtures(jsonPath string) error {
+func (c *End2End) ImportUsers(configSourceDir string, jsonPath string) error {
 	cfg, err := LoadConfigFromEnv()
 	if err != nil {
 		return err
 	}
-	cfg.ConfigSource = &c.ConfigSource
+	cfg.ConfigSource = &configsource.Config{
+		Type:      configsource.TypeLocalFS,
+		Watch:     false,
+		Directory: configSourceDir,
+	}
 
 	taskQueueFactory := deps.TaskQueueFactory(func(provider *deps.AppProvider) task.Queue {
 		return NoopTaskQueue{}

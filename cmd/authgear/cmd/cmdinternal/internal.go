@@ -195,7 +195,11 @@ func init() {
 	binder.BindString(cmdInternalElasticsearchReindex.PersistentFlags(), authgearcmd.ArgDatabaseSchema)
 	_ = cmdInternalElasticsearchReindex.Flags().Bool("all", false, "All apps")
 
-	cmdInternal.AddCommand(cmdInternalE2EImportUser)
+	cmdInternal.AddCommand(cmdInternalE2E)
+	cmdInternalE2E.AddCommand(cmdInternalE2ECreateConfigSource)
+	cmdInternalE2E.AddCommand(cmdInternalE2EImportUser)
+
+	binder.BindString(cmdInternalE2ECreateConfigSource.PersistentFlags(), authgearcmd.ArgConfigSourceDir)
 	binder.BindString(cmdInternalE2EImportUser.PersistentFlags(), authgearcmd.ArgConfigSourceDir)
 
 	authgearcmd.Root.AddCommand(cmdInternal)
