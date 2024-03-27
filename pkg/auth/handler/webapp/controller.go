@@ -297,3 +297,23 @@ func (c *Controller) InteractionPost(inputFn func() (interface{}, error)) (*weba
 
 	return c.Page.PostWithInput(s, inputFn)
 }
+
+func (c *Controller) InteractionOAuthCallback(oauthInput InputOAuthCallback, oauthState string) (*webapp.Result, error) {
+	inputFn := func() (input interface{}, err error) {
+		input = &oauthInput
+		return
+	}
+	// OAuth callback could be triggered by form post from another site (e.g. google)
+	// Therefore cookies might not be sent in this case
+	// Use the state as web session id
+	s, err := c.Page.GetSession(oauthState)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := c.rewindSessionHistory(s); err != nil {
+		return nil, err
+	}
+
+	return c.Page.PostWithInput(s, inputFn)
+}

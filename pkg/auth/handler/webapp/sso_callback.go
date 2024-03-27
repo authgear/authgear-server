@@ -62,10 +62,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		handler := func() error {
-			result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
-				input = &data
-				return
-			})
+			result, err := ctrl.InteractionOAuthCallback(data, state)
 			if err != nil {
 				return err
 			}
