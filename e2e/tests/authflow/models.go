@@ -9,7 +9,7 @@ type TestCase struct {
 	Before             []BeforeHook       `yaml:"before"`
 }
 
-func (tc *TestCase) GetFullName() string {
+func (tc *TestCase) FullName() string {
 	return tc.Path + "/" + tc.Name
 }
 
@@ -46,26 +46,10 @@ type Step struct {
 	Name   string     `yaml:"name"`
 	Action StepAction `yaml:"action"`
 	Input  string     `yaml:"input"`
-	Assert []Assert   `yaml:"assert"`
+	Output *Output    `yaml:"output"`
 }
 
-type AssertField string
-
-const (
-	AssertFieldActionType  AssertField = "result.action.type"
-	AssertFieldErrorReason AssertField = "error.reason"
-)
-
-type AssertOp string
-
-const (
-	AssertOpEq       AssertOp = "eq"
-	AssertOpNeq      AssertOp = "ne"
-	AssertOpContains AssertOp = "contains"
-)
-
-type Assert struct {
-	Field AssertField `yaml:"field"`
-	Op    AssertOp    `yaml:"op"`
-	Value string      `yaml:"value"`
+type Output struct {
+	Result string `yaml:"result"`
+	Error  string `yaml:"error"`
 }

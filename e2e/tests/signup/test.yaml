@@ -6,36 +6,48 @@ steps:
         "type": "signup",
         "name": "default"
       }
-    assert:
-      - field: "result.action.type"
-        op: eq
-        value: "identify"
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
 
   - input: |
       {
         "identification": "email",
         "login_id": "signup@authgear.com"
       }
-    assert:
-      - field: "result.action.type"
-        op: eq
-        value: "verify"
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
 
   - input: |
       {
         "code": "111111"
       }
-    assert:
-      - field: "result.action.type"
-        op: eq
-        value: "create_authenticator"
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
 
   - input: |
       {
         "authentication": "primary_password",
         "new_password":   "password"
       }
-    assert:
-      - field: "result.action.type"
-        op: eq
-        value: finished
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }

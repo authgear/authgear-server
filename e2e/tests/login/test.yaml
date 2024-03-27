@@ -16,30 +16,46 @@ steps:
         "type": "login",
         "name": "default"
       }
-    assert:
-      - field: "result.action.type"
-        op: eq
-        value: "identify"
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "login",
+          "name": "default",
+          "action": {
+              "type": "identify",
+              "data": {
+                  "type": "identification_data",
+                  "options": "[[array]]"
+              }
+          }
+        }
 
   - input: |
       {
         "identification": "username",
         "login_id": "e2e_login"
       }
-    assert:
-      - field: "result.action.type"
-        op: eq
-        value: "authenticate"
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
 
   - input: |
       {
         "authentication": "primary_password",
         "password": "password"
       }
-    assert:
-      - field: "result.action.type"
-        op: eq
-        value: finished
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
 ---
 name: Login with unknown account
 steps:
@@ -49,17 +65,21 @@ steps:
         "type": "login",
         "name": "default"
       }
-    assert:
-      - field: "result.action.type"
-        op: eq
-        value: "identify"
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
 
   - input: |
       {
         "identification": "username",
         "login_id": "e2e_login_missing"
       }
-    assert:
-      - field: "error.reason"
-        op: eq
-        value: "UserNotFound"
+    output:
+      error: |
+        {
+          "reason": "UserNotFound"
+        }
