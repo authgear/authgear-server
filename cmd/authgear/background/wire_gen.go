@@ -578,6 +578,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	noopTaskQueue := NewNoopTaskQueue()
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     ctx,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,

@@ -1760,6 +1760,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -2624,6 +2625,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -3976,6 +3978,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -4556,6 +4559,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -5465,6 +5469,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -6295,6 +6300,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -7302,6 +7308,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -8205,6 +8212,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -9107,6 +9115,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -9997,6 +10006,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -10882,6 +10892,7 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -11699,6 +11710,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -12702,6 +12714,7 @@ func newWebAppAuthflowSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -13705,6 +13718,7 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -14776,6 +14790,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -15651,6 +15666,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -16530,6 +16546,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -17411,6 +17428,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -18290,6 +18308,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -19167,6 +19186,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -20046,6 +20066,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -20926,6 +20947,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -21805,6 +21827,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -22684,6 +22707,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -23565,6 +23589,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -24444,6 +24469,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -25323,6 +25349,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -26206,6 +26233,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -27085,6 +27113,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -27968,6 +27997,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -28847,6 +28877,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -29734,6 +29765,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -30635,6 +30667,7 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -31525,6 +31558,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -32404,6 +32438,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -33279,6 +33314,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -34158,6 +34194,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -35033,6 +35070,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -35918,6 +35956,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -36793,6 +36832,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -37670,6 +37710,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -38545,6 +38586,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -39452,6 +39494,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -40338,6 +40381,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -41237,6 +41281,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -42120,6 +42165,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -42996,6 +43042,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -43880,6 +43927,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -44756,6 +44804,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -45632,6 +45681,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -46508,6 +46558,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -47385,6 +47436,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -48281,6 +48333,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -49162,6 +49215,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -50038,6 +50092,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -50919,6 +50974,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -51795,6 +51851,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -52678,6 +52735,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -53555,6 +53613,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -54430,6 +54489,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -55321,6 +55381,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -56196,6 +56257,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -57003,6 +57065,7 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -57985,6 +58048,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -58860,6 +58924,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -59753,6 +59818,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -60590,6 +60656,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -61426,6 +61493,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -62311,6 +62379,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -63187,6 +63256,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -64062,6 +64132,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -64957,6 +65028,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -65772,6 +65844,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -66582,6 +66655,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -67429,6 +67503,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -68246,6 +68321,7 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -69104,6 +69180,7 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -69953,6 +70030,7 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -70852,6 +70930,7 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -71790,6 +71869,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -72740,6 +72820,7 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -73677,6 +73758,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -74618,6 +74700,7 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -75538,6 +75621,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -76458,6 +76542,7 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -77372,6 +77457,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -78286,6 +78372,7 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -79202,6 +79289,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -80118,6 +80206,7 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -81032,6 +81121,7 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -81946,6 +82036,7 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -82860,6 +82951,7 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -83774,6 +83866,7 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -84688,6 +84781,7 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -85602,6 +85696,7 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -86516,6 +86611,7 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -87430,6 +87526,7 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -88346,6 +88443,7 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -89262,6 +89360,7 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -90177,6 +90276,7 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -91096,6 +91196,7 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -92016,6 +92117,7 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -92930,6 +93032,7 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -93844,6 +93947,7 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -94758,6 +94862,7 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -95672,6 +95777,7 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -96586,6 +96692,7 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -97500,6 +97607,7 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -98414,6 +98522,7 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -99328,6 +99437,7 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -100242,6 +100352,7 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -101156,6 +101267,7 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -102070,6 +102182,7 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -102984,6 +103097,7 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -103898,6 +104012,7 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -104812,6 +104927,7 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -105728,6 +105844,7 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -106644,6 +106761,7 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -107558,6 +107676,7 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -108541,6 +108660,7 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -109346,6 +109466,7 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -110229,6 +110350,7 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -111112,6 +111234,7 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -112026,6 +112149,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -112940,6 +113064,7 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -113854,6 +113979,7 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -115065,6 +115191,7 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -115979,6 +116106,7 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -116992,6 +117120,7 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -118386,6 +118515,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -118989,6 +119119,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
@@ -120263,6 +120394,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,

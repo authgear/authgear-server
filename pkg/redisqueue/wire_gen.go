@@ -493,6 +493,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	queue := p.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clock,
 		Context:     ctx,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -658,6 +659,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Coordinator: coordinator,
 	}
 	service4 := &elasticsearch.Service{
+		Clock:       clock,
 		Context:     ctx,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
@@ -695,6 +697,7 @@ var (
 )
 
 func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elasticsearch.Service {
+	clockClock := _wireSystemClockValue
 	handle := p.AppDatabase
 	factory := p.LoggerFactory
 	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
@@ -708,7 +711,6 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	sqlExecutor := appdb.NewSQLExecutor(ctx, handle)
-	clockClock := _wireSystemClockValue
 	store := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -1067,6 +1069,7 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 	queue := p.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := &elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     ctx,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
