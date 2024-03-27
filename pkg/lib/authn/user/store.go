@@ -410,3 +410,17 @@ func (s *Store) MarkAsReindexRequired(userIDs []string) error {
 
 	return nil
 }
+
+func (s *Store) UpdateLastIndexedAt(userIDs []string, at time.Time) error {
+	builder := s.SQLBuilder.
+		Update(s.SQLBuilder.TableName("_auth_user")).
+		Set("last_indexed_at", at).
+		Where("id = ANY (?)", pq.Array(userIDs))
+
+	_, err := s.SQLExecutor.ExecWith(builder)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

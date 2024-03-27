@@ -23,6 +23,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/slice"
@@ -44,6 +45,7 @@ type UserReindexCreateProducer interface {
 }
 
 type Service struct {
+	Clock       clock.Clock
 	Context     context.Context
 	Database    *appdb.Handle
 	Logger      *ElasticsearchServiceLogger
@@ -152,6 +154,7 @@ func (s *Service) getSource(userID string) (*model.ElasticsearchUserSource, erro
 }
 
 func (s *Service) ExecReindexUser(request ReindexRequest) (result ReindexResult) {
+	startedAt := s.Clock.NowUTC()
 	var source *model.ElasticsearchUserSource = nil
 	err := s.Database.ReadOnly(func() error {
 		s, err := s.getSource(request.UserID)
@@ -185,12 +188,21 @@ func (s *Service) ExecReindexUser(request ReindexRequest) (result ReindexResult)
 
 	if err != nil {
 		return failure(err)
-	} else {
-		return ReindexResult{
-			UserID:    request.UserID,
-			IsSuccess: true,
-		}
 	}
+
+	err = s.Database.WithTx(func() error {
+		return s.UserStore.UpdateLastIndexedAt([]string{request.UserID}, startedAt)
+	})
+
+	if err != nil {
+		return failure(err)
+	}
+
+	return ReindexResult{
+		UserID:    request.UserID,
+		IsSuccess: true,
+	}
+
 }
 
 func (s *Service) QueryUser(
