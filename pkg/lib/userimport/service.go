@@ -81,7 +81,7 @@ type RolesGroupsCommands interface {
 }
 
 type ElasticsearchService interface {
-	ReindexUser(userID string, isDelete bool) error
+	EnqueueReindexUserTask(userID string) error
 }
 
 type UserImportService struct {
@@ -149,18 +149,30 @@ func (s *UserImportService) ImportRecords(ctx context.Context, request *Request)
 		}
 
 		result.Details = append(result.Details, detail)
+		shouldReindexUser := false
 
 		switch detail.Outcome {
 		case OutcomeInserted:
 			result.Summary.Inserted += 1
+			shouldReindexUser = true
 		case OutcomeUpdated:
 			result.Summary.Updated += 1
+			shouldReindexUser = true
 		case OutcomeSkipped:
 			result.Summary.Skipped += 1
 		case OutcomeFailed:
 			result.Summary.Failed += 1
 		default:
 			result.Summary.Failed += 1
+		}
+
+		if shouldReindexUser {
+			// Do it after the transaction has committed to ensure the user can be queried
+			err = s.Elasticsearch.EnqueueReindexUserTask(detail.UserID)
+			if err != nil {
+				s.Logger.WithError(err).Error("failed to enqueue reindex user task")
+				return nil
+			}
 		}
 	}
 
@@ -297,11 +309,6 @@ func (s *UserImportService) insertRecordInTxn(ctx context.Context, detail *Detai
 	}
 
 	err = s.insertMFATOTPInTxn(ctx, detail, record, userID)
-	if err != nil {
-		return
-	}
-
-	err = s.Elasticsearch.ReindexUser(userID, false)
 	if err != nil {
 		return
 	}
@@ -799,11 +806,6 @@ func (s *UserImportService) upsertRecordInTxn(ctx context.Context, detail *Detai
 	}
 
 	err = s.upsertMFAOOBOTPPhoneInTxn(ctx, detail, record, info.UserID)
-	if err != nil {
-		return
-	}
-
-	err = s.Elasticsearch.ReindexUser(info.UserID, false)
 	if err != nil {
 		return
 	}

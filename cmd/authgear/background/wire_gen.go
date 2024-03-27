@@ -44,6 +44,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/lockout"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/pq"
@@ -571,10 +572,15 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Store:    writeStore,
 	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
+	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	noopTaskQueue := NewNoopTaskQueue()
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
+		Context:     ctx,
+		Database:    handle,
+		Logger:      elasticsearchServiceLogger,
 		AppID:       configAppID,
 		Client:      client,
 		Users:       userQueries,
@@ -582,6 +588,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
 		TaskQueue:   noopTaskQueue,
+		Producer:    userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,

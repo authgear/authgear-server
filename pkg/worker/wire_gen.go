@@ -8,7 +8,6 @@ package worker
 
 import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
-	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
@@ -137,19 +136,3 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 var (
 	_wireSystemClockValue = clock.NewSystemClock()
 )
-
-func newReindexUserTask(p *deps.TaskProvider) task.Task {
-	appProvider := p.AppProvider
-	appContext := appProvider.AppContext
-	config := appContext.Config
-	secretConfig := config.SecretConfig
-	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
-	client := elasticsearch.NewClient(elasticsearchCredentials)
-	factory := appProvider.LoggerFactory
-	reindexUserLogger := tasks.NewReindexUserLogger(factory)
-	reindexUserTask := &tasks.ReindexUserTask{
-		Client: client,
-		Logger: reindexUserLogger,
-	}
-	return reindexUserTask
-}

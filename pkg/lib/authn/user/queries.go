@@ -70,6 +70,10 @@ func (p *Queries) Get(id string, role accesscontrol.Role) (*model.User, error) {
 		return nil, err
 	}
 
+	if len(users) != 1 {
+		return nil, ErrUserNotFound
+	}
+
 	return users[0], nil
 }
 
