@@ -4,7 +4,6 @@ import React, {
   useMemo,
   useState,
   useEffect,
-  CSSProperties,
 } from "react";
 import cn from "classnames";
 import {
@@ -21,7 +20,6 @@ import {
   List,
   Text,
   IRenderFunction,
-  useTheme,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
@@ -358,7 +356,6 @@ const ManageLanguageWidget: React.VFC<ManageLanguageWidgetProps> =
     } = props;
 
     const { renderToString } = useContext(Context);
-    const theme = useTheme();
 
     const [isDialogPresented, setIsDialogPresented] = useState(false);
 
@@ -435,15 +432,17 @@ const ManageLanguageWidget: React.VFC<ManageLanguageWidgetProps> =
 
     const onRenderOption: IRenderFunction<IDropdownOption> = useCallback(
       (option?: IDropdownOption) => {
-        const style: CSSProperties | undefined = option?.disabled
-          ? {
-              fontStyle: "italic",
-              color: theme.semanticColors.disabledText,
-            }
-          : undefined;
-
         return (
-          <Text style={style}>
+          <Text
+            styles={(_, theme) => ({
+              root: option?.disabled
+                ? {
+                    fontStyle: "italic",
+                    color: theme.semanticColors.disabledText,
+                  }
+                : undefined,
+            })}
+          >
             <FormattedMessage
               id="ManageLanguageWidget.language-label"
               values={{
@@ -454,7 +453,7 @@ const ManageLanguageWidget: React.VFC<ManageLanguageWidgetProps> =
           </Text>
         );
       },
-      [theme.semanticColors.disabledText]
+      []
     );
 
     const onRenderTitle: IRenderFunction<IDropdownOption[]> = useCallback(
