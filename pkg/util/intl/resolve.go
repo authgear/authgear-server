@@ -18,7 +18,7 @@ func Resolve(preferred []string, fallback string, supported []string) (int, lang
 		supportedLanguagesIdx[item] = i
 	}
 
-	idx, tag := Match(preferred, supportedLanguageTags)
+	idx, tag := BestMatch(preferred, supportedLanguageTags)
 	if idx == -1 {
 		return idx, tag
 	}

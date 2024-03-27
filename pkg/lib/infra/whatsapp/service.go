@@ -24,7 +24,8 @@ type Service struct {
 	DevMode                           config.DevMode
 	FeatureTestModeWhatsappSuppressed config.FeatureTestModeWhatsappSuppressed
 	TestModeWhatsappConfig            *config.TestModeWhatsappConfig
-	Config                            *config.WhatsappConfig
+	WhatsappConfig                    *config.WhatsappConfig
+	LocalizationConfig                *config.LocalizationConfig
 	OnPremisesClient                  *OnPremisesClient
 	TokenStore                        *TokenStore
 }
@@ -46,8 +47,17 @@ func (s *Service) resolveTemplateLanguage(supportedLanguages []string) string {
 		panic("whatsapp: template has no supported language")
 	}
 	preferredLanguageTags := intl.GetPreferredLanguageTags(s.Context)
+	configSupportedLanguageTags := intl.Supported(
+		s.LocalizationConfig.SupportedLanguages,
+		intl.Fallback(*s.LocalizationConfig.FallbackLanguage),
+	)
+	// First, resolve once based on supported language in config
+	// This is to avoid inconsistency of ui language and whatsapp message language
+	_, resolvedTag := intl.BestMatch(preferredLanguageTags, configSupportedLanguageTags)
 	supportedLanguageTags := intl.Supported(supportedLanguages, intl.Fallback(supportedLanguages[0]))
-	idx, _ := intl.Match(preferredLanguageTags, supportedLanguageTags)
+
+	// Then, resolve to a language supported by the whatsapp template
+	idx, _ := intl.BestMatch([]string{resolvedTag.String()}, supportedLanguageTags)
 	return supportedLanguageTags[idx]
 }
 
@@ -83,7 +93,7 @@ func (s *Service) getOTPTemplate() (*config.WhatsappTemplateConfig, error) {
 		}, nil
 	}
 
-	switch s.Config.APIType {
+	switch s.WhatsappConfig.APIType {
 	case config.WhatsappAPITypeOnPremises:
 		if s.OnPremisesClient == nil {
 			return nil, ErrNoAvailableClient
@@ -151,7 +161,7 @@ func (s *Service) SendTemplate(opts *SendTemplateOptions) error {
 		return nil
 	}
 
-	switch s.Config.APIType {
+	switch s.WhatsappConfig.APIType {
 	case config.WhatsappAPITypeOnPremises:
 		if s.OnPremisesClient == nil {
 			return ErrNoAvailableClient

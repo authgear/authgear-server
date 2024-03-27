@@ -103,6 +103,7 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	featureTestModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
 	testModeWhatsappConfig := testModeConfig.Whatsapp
 	whatsappConfig := messagingConfig.Whatsapp
+	localizationConfig := appConfig.Localization
 	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
 	handle := appProvider.Redis
 	appID := appConfig.ID
@@ -119,7 +120,8 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}

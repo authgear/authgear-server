@@ -1905,7 +1905,8 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -4697,7 +4698,8 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -5648,7 +5650,8 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -6476,7 +6479,8 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -7450,7 +7454,8 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -8351,7 +8356,8 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -9251,7 +9257,8 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -10139,7 +10146,8 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -11022,7 +11030,8 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -11889,7 +11898,8 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -12889,7 +12899,8 @@ func newWebAppAuthflowSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -13889,7 +13900,8 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -14905,7 +14917,8 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -15778,7 +15791,8 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -16655,7 +16669,8 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -17534,7 +17549,8 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -18411,7 +18427,8 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -19286,7 +19303,8 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -20163,7 +20181,8 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -21041,7 +21060,8 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -21918,7 +21938,8 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -22795,7 +22816,8 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -23674,7 +23696,8 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -24551,7 +24574,8 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -25428,7 +25452,8 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -26309,7 +26334,8 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -27186,7 +27212,8 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -28067,7 +28094,8 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -28944,7 +28972,8 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -29829,7 +29858,8 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -30728,7 +30758,8 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -31616,7 +31647,8 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -32493,7 +32525,8 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -33366,7 +33399,8 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -34243,7 +34277,8 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -35116,7 +35151,8 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -35999,7 +36035,8 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -36872,7 +36909,8 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -37747,7 +37785,8 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -38620,7 +38659,8 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -39525,7 +39565,8 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -40409,7 +40450,8 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -41306,7 +41348,8 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -42187,7 +42230,8 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -43061,7 +43105,8 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -43943,7 +43988,8 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -44817,7 +44863,8 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -45691,7 +45738,8 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -46565,7 +46613,8 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -47440,7 +47489,8 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -48334,7 +48384,8 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -49213,7 +49264,8 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -50087,7 +50139,8 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -50966,7 +51019,8 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -51840,7 +51894,8 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -52721,7 +52776,8 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -53596,7 +53652,8 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -54469,7 +54526,8 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -55358,7 +55416,8 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -56231,7 +56290,8 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -57088,7 +57148,8 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -58016,7 +58077,8 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -58889,7 +58951,8 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -59780,7 +59843,8 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -60615,7 +60679,8 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -61449,7 +61514,8 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -62332,7 +62398,8 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -63206,7 +63273,8 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -64079,7 +64147,8 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -65022,7 +65091,8 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -65837,7 +65907,8 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -66645,7 +66716,8 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -67488,7 +67560,8 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -68309,7 +68382,8 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -69165,7 +69239,8 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -70014,7 +70089,8 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -70905,7 +70981,8 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -71841,7 +71918,8 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -72789,7 +72867,8 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -73724,7 +73803,8 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -74663,7 +74743,8 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -75581,7 +75662,8 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -76499,7 +76581,8 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -77411,7 +77494,8 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -78323,7 +78407,8 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -79237,7 +79322,8 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -80151,7 +80237,8 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -81063,7 +81150,8 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -81975,7 +82063,8 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -82887,7 +82976,8 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -83799,7 +83889,8 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -84711,7 +84802,8 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -85623,7 +85715,8 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -86535,7 +86628,8 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -87447,7 +87541,8 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -88361,7 +88456,8 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -89275,7 +89371,8 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -90188,7 +90285,8 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -91105,7 +91203,8 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -92023,7 +92122,8 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -92935,7 +93035,8 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -93847,7 +93948,8 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -94759,7 +94861,8 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -95671,7 +95774,8 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -96583,7 +96687,8 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -97495,7 +97600,8 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -98407,7 +98513,8 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -99319,7 +99426,8 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -100231,7 +100339,8 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -101143,7 +101252,8 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -102055,7 +102165,8 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -102967,7 +103078,8 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -103879,7 +103991,8 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -104791,7 +104904,8 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -105705,7 +105819,8 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -106619,7 +106734,8 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -107531,7 +107647,8 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -108460,7 +108577,8 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -109315,7 +109433,8 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -110196,7 +110315,8 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -111077,7 +111197,8 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -111989,7 +112110,8 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -112901,7 +113023,8 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -113813,7 +113936,8 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -115022,7 +115146,8 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -115934,7 +116059,8 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -116945,7 +117071,8 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}
@@ -118887,7 +119014,8 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		Config:                            whatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
 		TokenStore:                        tokenStore,
 	}

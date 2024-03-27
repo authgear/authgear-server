@@ -21,7 +21,7 @@ func Match(preferred []string, fallback string, items []LanguageItem) (matched L
 
 	supportedLanguageTags := intl.Supported(rawSupported, intl.Fallback(fallback))
 
-	idx, _ := intl.Match(preferred, supportedLanguageTags)
+	idx, _ := intl.BestMatch(preferred, supportedLanguageTags)
 	tag := supportedLanguageTags[idx]
 
 	item, ok := languageTagToItem[tag]
