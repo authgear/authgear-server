@@ -158,3 +158,13 @@ var ArgApexDomain = &cobraviper.StringArgument{
 	ArgumentName: "apex-domain",
 	Usage:        "The apex domain of the domain. It must NOT contain a port number.",
 }
+
+var ArgConfigSourceDir = &cobraviper.StringArgument{
+	ArgumentName: "config-source-dir",
+	Usage:        "Config source directory",
+}
+
+var ArgAppID = &cobraviper.StringArgument{
+	ArgumentName: "app-id",
+	Usage:        "App ID",
+}

@@ -1,9 +1,21 @@
 package tests
 
 type TestCase struct {
-	Name    string `yaml:"name"`
-	Project string `yaml:"project"`
-	Steps   []Step `yaml:"steps"`
+	Name    string       `yaml:"name"`
+	Project string       `yaml:"project"`
+	Steps   []Step       `yaml:"steps"`
+	Before  []BeforeHook `yaml:"before"`
+}
+
+type BeforeHookType string
+
+const (
+	BeforeHookTypeUserImport BeforeHookType = "user_import"
+)
+
+type BeforeHook struct {
+	Type       BeforeHookType `yaml:"type"`
+	UserImport string         `yaml:"user_import"`
 }
 
 type StepAction string
