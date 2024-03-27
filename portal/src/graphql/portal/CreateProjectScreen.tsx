@@ -27,12 +27,14 @@ import FormPhoneTextField from "../../FormPhoneTextField";
 interface FormState {
   appID: string;
   phoneNumber: string;
+  validPhoneNumber: string;
 }
 
 function makeDefaultState(): FormState {
   return {
     appID: randomProjectName(),
     phoneNumber: "",
+    validPhoneNumber: "",
   };
 }
 
@@ -76,7 +78,7 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
 
   const submit = useCallback(
     async (state: FormState) => {
-      return createApp(state.appID, state.phoneNumber);
+      return createApp(state.appID, state.validPhoneNumber);
     },
     [createApp]
   );
@@ -106,10 +108,8 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
   );
 
   const onChangePhoneNumber = useCallback(
-    (_e, newValue) => {
-      if (newValue != null) {
-        setState((prev) => ({ ...prev, phoneNumber: newValue }));
-      }
+    (validPhoneNumber, phoneNumber: string) => {
+      setState((prev) => ({ ...prev, phoneNumber, validPhoneNumber }));
     },
     [setState]
   );
