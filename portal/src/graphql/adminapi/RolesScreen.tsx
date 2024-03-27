@@ -16,6 +16,7 @@ import { RoleAndGroupsLayout } from "../../RoleAndGroupsLayout";
 import { RolesEmptyView } from "../../components/roles-and-groups/empty-view/RolesEmptyView";
 import { ReactRouterLinkComponent } from "../../ReactRouterLink";
 import { RolesAndGroupsEmptyView } from "../../components/roles-and-groups/empty-view/RolesAndGroupsEmptyView";
+import ShowError from "../../ShowError";
 
 const pageSize = 10;
 const searchResultSize = -1;
@@ -61,7 +62,7 @@ const RolesScreen: React.VFC = function RolesScreen() {
     setOffset(0);
   }, []);
 
-  const { data, loading } = useQuery<
+  const { data, loading, error, refetch } = useQuery<
     RolesListQueryQuery,
     RolesListQueryQueryVariables
   >(RolesListQueryDocument, {
@@ -105,6 +106,10 @@ const RolesScreen: React.VFC = function RolesScreen() {
       />
     ) : null;
   }, [appID, isEmpty]);
+
+  if (error != null) {
+    return <ShowError error={error} onRetry={refetch} />;
+  }
 
   return (
     <RoleAndGroupsLayout
