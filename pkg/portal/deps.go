@@ -84,6 +84,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(service.SubscriptionConfigSourceStore), new(*configsource.Store)),
 	wire.Bind(new(service.SubscriptionPlanStore), new(*plan.Store)),
 	wire.Bind(new(service.UsageStore), new(*usage.GlobalDBStore)),
+	wire.Bind(new(service.OnboardServiceAdminAPIService), new(*service.AdminAPIService)),
 
 	loader.DependencySet,
 	wire.Bind(new(loader.UserLoaderAdminAPIService), new(*service.AdminAPIService)),
@@ -113,6 +114,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(graphql.NFTService), new(*service.NFTService)),
 	wire.Bind(new(graphql.DenoService), new(*hook.DenoClientImpl)),
 	wire.Bind(new(graphql.AuditService), new(*service.AuditService)),
+	wire.Bind(new(graphql.OnboardService), new(*service.OnboardService)),
 
 	transport.DependencySet,
 	wire.Bind(new(transport.AdminAPIService), new(*service.AdminAPIService)),

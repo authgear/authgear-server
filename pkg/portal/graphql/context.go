@@ -104,6 +104,10 @@ type TutorialService interface {
 	Skip(appID string) (err error)
 }
 
+type OnboardService interface {
+	SubmitOnboardEntry(entry model.OnboardEntry, actorID string) error
+}
+
 type AnalyticChartService interface {
 	GetActiveUserChart(appID string, periodical string, rangeFrom time.Time, rangeTo time.Time) (*analytic.Chart, error)
 	GetTotalUserCountChart(appID string, rangeFrom time.Time, rangeTo time.Time) (*analytic.Chart, error)
@@ -181,6 +185,7 @@ type Context struct {
 	NFTService           NFTService
 	DenoService          DenoService
 	AuditService         AuditService
+	OnboardService       OnboardService
 }
 
 func (c *Context) Logger() *log.Logger {

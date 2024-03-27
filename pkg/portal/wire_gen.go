@@ -334,6 +334,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clock,
 		LoggerFactory:   logFactory,
 	}
+	onboardService := &service.OnboardService{
+		AuthgearConfig: authgearConfig,
+		AdminAPI:       adminAPIService,
+	}
 	graphqlContext := &graphql.Context{
 		Request:                 request,
 		GQLLogger:               logger,
@@ -355,6 +359,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		NFTService:              nftService,
 		DenoService:             denoClientImpl,
 		AuditService:            auditService,
+		OnboardService:          onboardService,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		DevMode:        devMode,
