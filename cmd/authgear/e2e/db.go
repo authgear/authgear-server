@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/lib/pq"
 )
 
@@ -21,8 +20,4 @@ func openDB(dbURL string, dbSchema string) *sql.DB {
 	}
 
 	return db
-}
-
-func newSQLBuilder() sq.StatementBuilderType {
-	return sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 }

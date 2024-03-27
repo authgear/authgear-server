@@ -57,7 +57,7 @@ func TestAuthflow(t *testing.T) {
 		}
 
 		tc := testCase
-		t.Run(tc.GetFullName(), func(t *testing.T) {
+		t.Run(tc.FullName(), func(t *testing.T) {
 			t.Parallel()
 			runTestCase(t, tc)
 		})
@@ -167,16 +167,24 @@ func runTestCase(t *testing.T, testCase TestCase) {
 			stateToken = flowResponse.StateToken
 		}
 
-		for _, assertion := range step.Assert {
-			value, ok := TranslateAssertValue(flowResponse, flowErr, assertion.Field)
-			if !ok {
-				t.Errorf("field '%s' not found in '%s'\n%v\n%v", assertion.Field, stepName, flowResponse, flowErr)
+		if step.Output != nil {
+			errorViolations, resultViolations, err := MatchOutput(*step.Output, flowResponse, flowErr)
+			if err != nil {
+				t.Errorf("failed to match output in '%s': %v\n", stepName, err)
 				return
 			}
-
-			assertErr := PerformAssertion(assertion, value)
-			if assertErr != nil {
-				t.Errorf("assertion failed in '%s': %v\n%v\n%v", stepName, assertErr, flowResponse, flowErr)
+			if len(errorViolations) > 0 {
+				t.Errorf("error output mismatch in '%s': %v\n", stepName, flowErr)
+				for _, violation := range errorViolations {
+					t.Errorf("  %s: %s. Expected %s, got %s", violation.Path, violation.Message, violation.Expected, violation.Actual)
+				}
+				return
+			}
+			if len(resultViolations) > 0 {
+				t.Errorf("result output mismatch in '%s': %v\n", stepName, flowResponse)
+				for _, violation := range resultViolations {
+					t.Errorf("  %s: %s. Expected %s, got %s", violation.Path, violation.Message, violation.Expected, violation.Actual)
+				}
 				return
 			}
 		}

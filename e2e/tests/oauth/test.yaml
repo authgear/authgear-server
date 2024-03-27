@@ -23,10 +23,13 @@ steps:
         "type": "signup",
         "name": "default"
       }
-    assert:
-      - field: "result.action.type"
-        op: eq
-        value: "identify"
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
 
   - input: |
       {
@@ -34,16 +37,22 @@ steps:
         "alias": "mock",
         "redirect_uri": "https://mock"
       }
-    assert:
-      - field: "result.action.type"
-        op: eq
-        value: "identify"
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
 
   - input: |
       {
         "code": "mock"
       }
-    assert:
-      - field: "result.action.type"
-        op: eq
-        value: finished
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
