@@ -75,6 +75,7 @@ func (s *Store) Create(u *User) (err error) {
 			"anonymize_at",
 			"standard_attributes",
 			"custom_attributes",
+			"require_reindex_after",
 		).
 		Values(
 			u.ID,
@@ -90,6 +91,7 @@ func (s *Store) Create(u *User) (err error) {
 			u.AnonymizeAt,
 			stdAttrsBytes,
 			customAttrsBytes,
+			u.CreatedAt,
 		)
 
 	_, err = s.SQLExecutor.ExecWith(builder)

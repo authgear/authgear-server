@@ -75,12 +75,14 @@ func (i *Importer) ImportRecord(record []string, opts ImportOptions, now time.Ti
 			"updated_at",
 			"is_disabled",
 			"standard_attributes",
+			"require_reindex_after",
 		).Values(
 			userID,
 			now,
 			now,
 			false,
 			stdAttrs,
+			now,
 		).Suffix("ON CONFLICT (id) DO UPDATE SET standard_attributes = EXCLUDED.standard_attributes"),
 		i.SQLBuilderApp.Insert(i.SQLBuilderApp.TableName("_auth_identity")).Columns(
 			"id",
