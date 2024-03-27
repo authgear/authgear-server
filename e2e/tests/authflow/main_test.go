@@ -18,6 +18,8 @@ import (
 )
 
 func TestAuthflow(t *testing.T) {
+	allTestCases := []TestCase{}
+
 	err := filepath.Walk("..", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -31,20 +33,34 @@ func TestAuthflow(t *testing.T) {
 		if err != nil {
 			return err
 		}
-
-		for _, testCase := range testCases {
-			tc := testCase
-			t.Run(testCase.Name, func(t *testing.T) {
-				t.Parallel()
-				runTestCase(t, tc)
-			})
-		}
+		allTestCases = append(allTestCases, testCases...)
 
 		return nil
 	})
 
 	if err != nil {
-		t.Fatalf("error: %v", err)
+		t.Errorf("error: %v", err)
+		return
+	}
+
+	hasFocus := false
+	for _, testCase := range allTestCases {
+		if testCase.Focus {
+			hasFocus = true
+			break
+		}
+	}
+
+	for _, testCase := range allTestCases {
+		if hasFocus && !testCase.Focus {
+			continue
+		}
+
+		tc := testCase
+		t.Run(tc.GetFullName(), func(t *testing.T) {
+			t.Parallel()
+			runTestCase(t, tc)
+		})
 	}
 }
 
@@ -65,6 +81,7 @@ func loadTestCasesFromPath(path string) ([]TestCase, error) {
 		if err != nil {
 			return nil, err
 		}
+		testCase.Path = path
 		testCases = append(testCases, testCase)
 	}
 
@@ -91,7 +108,7 @@ func runTestCase(t *testing.T, testCase TestCase) {
 	for _, beforeHook := range testCase.Before {
 		switch beforeHook.Type {
 		case BeforeHookTypeUserImport:
-			err = e2eCmd.ImportUsers(appID, beforeHook.UserImport)
+			err = e2eCmd.ImportUsers(beforeHook.UserImport)
 			if err != nil {
 				t.Errorf("failed to import users: %v", err)
 				return

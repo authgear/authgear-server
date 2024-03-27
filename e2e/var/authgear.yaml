@@ -28,12 +28,6 @@ authentication:
   recovery_code:
     count: 16
     disabled: false
-  secondary_authentication_mode: required
-  secondary_authenticators:
-  - oob_otp_sms
-  - oob_otp_email
-  - password
-  - totp
 authenticator:
   oob_otp:
     email:
@@ -101,26 +95,7 @@ messaging:
 oauth:
   clients:
   - access_token_lifetime_seconds: 1800
-    client_id: portal
-    name: Portal
-    post_logout_redirect_uris:
-    - http://portal.localhost:8000/
-    - http://portal.localhost:8010/
-    redirect_uris:
-    - http://portal.localhost:8000/oauth-redirect
-    - http://portal.localhost:8010/oauth-redirect
-    - com.authgear.example://host/path
-    - com.authgear.example.rn://host/path
-    - com.authgear.exampleapp.flutter://host/path
-    - com.authgear.exampleapp.xamarin://host/path
-    refresh_token_idle_timeout_enabled: true
-    refresh_token_idle_timeout_seconds: 2592000
-    refresh_token_lifetime_seconds: 31449600
-    response_types:
-    - none
-    x_max_concurrent_session: 1
-  - access_token_lifetime_seconds: 1800
-    client_id: 79c8f2767094120f
+    client_id: e2e
     grant_types:
     - authorization_code
     - refresh_token
@@ -139,8 +114,32 @@ oauth:
     - code
     - none
     x_application_type: spa
+  - access_token_lifetime_seconds: 1800
+    client_id: portal
+    name: Portal
+    post_logout_redirect_uris:
+    - http://portal.localhost:8000/
+    - http://portal.localhost:8010/
+    redirect_uris:
+    - http://portal.localhost:8000/oauth-redirect
+    - http://portal.localhost:8010/oauth-redirect
+    - com.authgear.example://host/path
+    - com.authgear.example.rn://host/path
+    - com.authgear.exampleapp.flutter://host/path
+    - com.authgear.exampleapp.xamarin://host/path
+    refresh_token_idle_timeout_enabled: true
+    refresh_token_idle_timeout_seconds: 2592000
+    refresh_token_lifetime_seconds: 31449600
+    response_types:
+    - none
+    x_max_concurrent_session: 1
 test_mode:
   oob_otp:
+    enabled: true
+    rules:
+    - fixed_code: "111111"
+      regex: .*
+  email:
     enabled: true
     rules:
     - fixed_code: "111111"

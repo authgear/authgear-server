@@ -96,7 +96,8 @@ func init() {
 	binder.BindString(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), portalcmd.ArgNamespace)
 
 	binder.BindString(cmdInternalE2ECreateConfigSource.Flags(), portalcmd.ArgAppID)
-	binder.BindString(cmdInternalE2ECreateConfigSource.Flags(), portalcmd.ArgConfigSourceDir)
+	binder.BindString(cmdInternalE2ECreateConfigSource.Flags(), portalcmd.ArgConfigSource)
+	binder.BindString(cmdInternalE2ECreateConfigSource.Flags(), portalcmd.ArgConfigOverride)
 
 	portalcmd.Root.AddCommand(cmdInternal)
 }
