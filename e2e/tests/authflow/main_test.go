@@ -113,6 +113,14 @@ func runTestCase(t *testing.T, testCase TestCase) {
 				t.Errorf("failed to import users: %v", err)
 				return
 			}
+		case BeforeHookTypeCustomSQL:
+			err = e2eCmd.ExecuteCustomSQL(beforeHook.CustomSQL.Path)
+			if err != nil {
+				t.Errorf("failed to execute custom SQL: %v", err)
+				return
+			}
+		default:
+			t.Errorf("unknown before hook type: %s", beforeHook.Type)
 		}
 	}
 

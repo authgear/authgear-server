@@ -43,3 +43,25 @@ var cmdInternalE2EImportUser = &cobra.Command{
 		return nil
 	},
 }
+
+var cmdInternalE2EExecuteCustomSQL = &cobra.Command{
+	Use:   "exec-sql",
+	Short: "Execute custom SQL for e2e tests",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		binder := authgearcmd.GetBinder()
+
+		appID := binder.GetString(cmd, authgearcmd.ArgAppID)
+		customSQL := binder.GetString(cmd, authgearcmd.ArgCustomSQL)
+
+		instance := e2e.End2End{
+			Context: cmd.Context(),
+		}
+
+		err := instance.ExecuteCustomSQL(appID, customSQL)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	},
+}

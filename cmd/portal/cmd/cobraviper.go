@@ -173,3 +173,8 @@ var ArgAppID = &cobraviper.StringArgument{
 	ArgumentName: "app-id",
 	Usage:        "App ID",
 }
+
+var ArgCustomSQL = &cobraviper.StringArgument{
+	ArgumentName: "custom-sql",
+	Usage:        "Custom SQL",
+}

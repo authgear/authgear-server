@@ -2,7 +2,7 @@
   "identifier": "preferred_username",
   "records": [
     {
-      "preferred_username": "e2e_tomato_first_time",
+      "preferred_username": "e2e_recipe_1_first_time",
       "phone_number": "+85223382338",
 
       "password": {
@@ -11,7 +11,7 @@
       }
     },
     {
-      "preferred_username": "e2e_tomato_employee_id",
+      "preferred_username": "e2e_recipe_1_employee_id",
       "phone_number": "+85223382339",
 
       "password": {
@@ -20,8 +20,8 @@
       }
     },
     {
-      "preferred_username": "e2e_tomato_recovery_email",
-      "email": "e2e_tomato_recovery_email@authgear.com",
+      "preferred_username": "e2e_recipe_1_recovery_email",
+      "email": "e2e_recipe_1_recovery_email@authgear.com",
       "phone_number": "+85223382340",
 
       "password": {
@@ -30,8 +30,17 @@
       }
     },
     {
-      "preferred_username": "e2e_tomato_recovery_sms",
+      "preferred_username": "e2e_recipe_1_recovery_sms",
       "phone_number": "+85223382341",
+
+      "password": {
+        "type": "bcrypt",
+        "password_hash": "$2y$10$ze9h.zFQCg9ew9X4orQE2OkuLJZvTDs/YwOuptGkzkiFvwsES16hK"
+      }
+    },
+    {
+      "preferred_username": "e2e_recipe_1_expiry",
+      "email": "e2e_recipe_1_expiry@authgear.com",
 
       "password": {
         "type": "bcrypt",
