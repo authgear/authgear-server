@@ -85,6 +85,13 @@ func TestMatch(t *testing.T) {
 			[]string{"zh-CN", "zh-HK", "zh-TW", "en-US"},
 			1,
 		)
+
+		// Should use preceding preferred language if possible
+		test(
+			[]string{"ja-JP", "en-GB", "zh-HK"},
+			[]string{"zh-HK", "zh-TW", "en-US"},
+			2,
+		)
 	})
 }
 
