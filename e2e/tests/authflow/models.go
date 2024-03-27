@@ -1,10 +1,21 @@
 package tests
 
 type TestCase struct {
-	Name    string       `yaml:"name"`
-	Project string       `yaml:"project"`
-	Steps   []Step       `yaml:"steps"`
-	Before  []BeforeHook `yaml:"before"`
+	Name               string             `yaml:"name"`
+	Path               string             `yaml:"path"`
+	Focus              bool               `yaml:"focus"`
+	AuthgearYAMLSource AuthgearYAMLSource `yaml:"authgear.yaml"`
+	Steps              []Step             `yaml:"steps"`
+	Before             []BeforeHook       `yaml:"before"`
+}
+
+func (tc *TestCase) GetFullName() string {
+	return tc.Path + "/" + tc.Name
+}
+
+type AuthgearYAMLSource struct {
+	Extend   string `yaml:"extend"`
+	Override string `yaml:"override"`
 }
 
 type BeforeHookType string

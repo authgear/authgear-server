@@ -22,14 +22,15 @@ var cmdInternalE2ECreateConfigSource = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		binder := portalcmd.GetBinder()
 
-		configSourceDir := binder.GetString(cmd, portalcmd.ArgConfigSourceDir)
+		configSource := binder.GetString(cmd, portalcmd.ArgConfigSource)
+		configOverride := binder.GetString(cmd, portalcmd.ArgConfigOverride)
 		appID := binder.GetString(cmd, portalcmd.ArgAppID)
 
 		instance := e2e.End2End{
 			Context: cmd.Context(),
 		}
 
-		err := instance.CreateApp(appID, configSourceDir)
+		err := instance.CreateApp(appID, configSource, configOverride)
 		if err != nil {
 			return err
 		}
