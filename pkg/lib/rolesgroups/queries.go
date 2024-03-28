@@ -19,6 +19,14 @@ func (q *Queries) GetRole(id string) (*model.Role, error) {
 	return role.ToModel(), nil
 }
 
+func (q *Queries) GetGroup(id string) (*model.Group, error) {
+	group, err := q.Store.GetGroupByID(id)
+	if err != nil {
+		return nil, err
+	}
+	return group.ToModel(), nil
+}
+
 func (q *Queries) GetManyRoles(ids []string) ([]*model.Role, error) {
 	roles, err := q.Store.GetManyRoles(ids)
 	if err != nil {

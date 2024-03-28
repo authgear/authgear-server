@@ -2,6 +2,7 @@ package nonblocking
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
 const (
@@ -9,7 +10,9 @@ const (
 )
 
 type AdminAPIMutationUpdateGroupExecutedEventPayload struct {
-	AffectedUserIDs []string `json:"-"`
+	AffectedUserIDs []string    `json:"-"`
+	OriginalGroup   model.Group `json:"original_group"`
+	NewGroup        model.Group `json:"new_group"`
 }
 
 func (e *AdminAPIMutationUpdateGroupExecutedEventPayload) NonBlockingEventType() event.Type {
@@ -32,8 +35,7 @@ func (e *AdminAPIMutationUpdateGroupExecutedEventPayload) ForHook() bool {
 }
 
 func (e *AdminAPIMutationUpdateGroupExecutedEventPayload) ForAudit() bool {
-	// FIXME(tung): Should be true
-	return false
+	return true
 }
 
 func (e *AdminAPIMutationUpdateGroupExecutedEventPayload) RequireReindexUserIDs() []string {

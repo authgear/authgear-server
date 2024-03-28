@@ -157,6 +157,11 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 
+			originalGroup, err := gqlCtx.RolesGroupsFacade.GetGroup(groupID)
+			if err != nil {
+				return nil, err
+			}
+
 			affectedUserIDs, err := gqlCtx.RolesGroupsFacade.ListAllUserIDsByGroupIDs([]string{groupID})
 			if err != nil {
 				return nil, err
@@ -167,8 +172,15 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			newGroup, err := gqlCtx.RolesGroupsFacade.GetGroup(groupID)
+			if err != nil {
+				return nil, err
+			}
+
 			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationUpdateGroupExecutedEventPayload{
 				AffectedUserIDs: affectedUserIDs,
+				OriginalGroup:   *originalGroup,
+				NewGroup:        *newGroup,
 			})
 			if err != nil {
 				return nil, err

@@ -111,6 +111,7 @@ type RolesGroupsFacade interface {
 	ListAllUserIDsByEffectiveRoleIDs(roleIDs []string) ([]string, error)
 
 	GetRole(roleID string) (*apimodel.Role, error)
+	GetGroup(groupID string) (*apimodel.Group, error)
 }
 
 type IdentityFacade interface {
