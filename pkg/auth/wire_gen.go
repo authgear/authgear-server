@@ -12228,6 +12228,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	ssoCallbackHandler := &webapp.SSOCallbackHandler{
 		AuthflowController: authflowController,
 		ControllerFactory:  controllerFactory,
+		UIConfig:           uiConfig,
 	}
 	return ssoCallbackHandler
 }
@@ -13229,6 +13230,7 @@ func newWebAppAuthflowSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	ssoCallbackHandler := &webapp.SSOCallbackHandler{
 		AuthflowController: authflowController,
 		ControllerFactory:  controllerFactory,
+		UIConfig:           uiConfig,
 	}
 	return ssoCallbackHandler
 }
@@ -14230,6 +14232,7 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 	ssoCallbackHandler := &webapp.SSOCallbackHandler{
 		AuthflowController: authflowController,
 		ControllerFactory:  controllerFactory,
+		UIConfig:           uiConfig,
 	}
 	return ssoCallbackHandler
 }

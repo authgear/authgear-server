@@ -3,6 +3,7 @@ package webapp
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -15,6 +16,7 @@ func ConfigureSSOCallbackRoute(route httproute.Route) httproute.Route {
 type SSOCallbackHandler struct {
 	AuthflowController *AuthflowController
 	ControllerFactory  ControllerFactory
+	UIConfig           *config.UIConfig
 }
 
 func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -29,8 +31,10 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	errorDescription := r.Form.Get("error_description")
 	errorURI := r.Form.Get("error_uri")
 
-	switch {
-	case state != "":
+	switch h.UIConfig.Implementation.WithDefault() {
+	case config.UIImplementationAuthflow:
+		fallthrough
+	case config.UIImplementationAuthflowV2:
 		// authflow
 		h.AuthflowController.HandleOAuthCallback(w, r, AuthflowOAuthCallbackResponse{
 			State:            state,
@@ -58,10 +62,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		handler := func() error {
-			result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
-				input = &data
-				return
-			})
+			result, err := ctrl.InteractionOAuthCallback(data, state)
 			if err != nil {
 				return err
 			}
