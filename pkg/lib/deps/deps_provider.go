@@ -43,7 +43,6 @@ var envConfigDeps = wire.NewSet(
 
 var rootDeps = wire.NewSet(
 	wire.FieldsOf(new(*RootProvider),
-		"MainListenAddr",
 		"EnvironmentConfig",
 		"ConfigSourceConfig",
 		"DatabasePool",

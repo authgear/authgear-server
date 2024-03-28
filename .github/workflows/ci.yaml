@@ -139,8 +139,6 @@ jobs:
       run: |
         docker load -i ~/.cache/images/db.tar || true
         docker load -i ~/.cache/images/redis.tar || true
-        docker load -i ~/.cache/images/authgear.tar || true
-        docker load -i ~/.cache/images/portal.tar || true
 
     - run: make -C e2e run
       if: ${{ !cancelled() }}
@@ -150,8 +148,6 @@ jobs:
     - run: |
         docker save postgres-pg-partman:latest -o ~/.cache/images/db.tar
         docker save redis:6.2.6 -o ~/.cache/images/redis.tar
-        docker save authgear-server-e2e-authgear:latest -o ~/.cache/images/authgear.tar
-        docker save authgear-server-e2e-portal:latest -o ~/.cache/images/portal.tar
 
   authgear-image:
     runs-on: ubuntu-22.04
