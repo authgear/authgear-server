@@ -14,10 +14,16 @@ fragment GroupsList on GroupConnection {
 
 query GroupsListQuery(
   $searchKeyword: String!
+  $excludedIDs: [ID!]
   $pageSize: Int!
   $cursor: String
 ) {
-  groups(first: $pageSize, after: $cursor, searchKeyword: $searchKeyword) {
+  groups(
+    first: $pageSize
+    after: $cursor
+    searchKeyword: $searchKeyword
+    excludedIDs: $excludedIDs
+  ) {
     ...GroupsList
   }
 }

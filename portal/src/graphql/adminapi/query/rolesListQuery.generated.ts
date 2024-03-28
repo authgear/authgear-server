@@ -7,6 +7,7 @@ export type RolesListFragment = { __typename?: 'RoleConnection', totalCount?: nu
 
 export type RolesListQueryQueryVariables = Types.Exact<{
   searchKeyword: Types.Scalars['String']['input'];
+  excludedIDs?: Types.InputMaybe<Array<Types.Scalars['ID']['input']> | Types.Scalars['ID']['input']>;
   pageSize: Types.Scalars['Int']['input'];
   cursor?: Types.InputMaybe<Types.Scalars['String']['input']>;
 }>;
@@ -30,8 +31,13 @@ export const RolesListFragmentDoc = gql`
 }
     `;
 export const RolesListQueryDocument = gql`
-    query RolesListQuery($searchKeyword: String!, $pageSize: Int!, $cursor: String) {
-  roles(first: $pageSize, after: $cursor, searchKeyword: $searchKeyword) {
+    query RolesListQuery($searchKeyword: String!, $excludedIDs: [ID!], $pageSize: Int!, $cursor: String) {
+  roles(
+    first: $pageSize
+    after: $cursor
+    searchKeyword: $searchKeyword
+    excludedIDs: $excludedIDs
+  ) {
     ...RolesList
   }
 }
@@ -50,6 +56,7 @@ export const RolesListQueryDocument = gql`
  * const { data, loading, error } = useRolesListQueryQuery({
  *   variables: {
  *      searchKeyword: // value for 'searchKeyword'
+ *      excludedIDs: // value for 'excludedIDs'
  *      pageSize: // value for 'pageSize'
  *      cursor: // value for 'cursor'
  *   },

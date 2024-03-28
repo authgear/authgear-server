@@ -918,6 +918,7 @@ export type QueryAuditLogsArgs = {
 export type QueryGroupsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
+  excludedIDs?: InputMaybe<Array<Scalars['ID']['input']>>;
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
   searchKeyword?: InputMaybe<Scalars['String']['input']>;
@@ -937,6 +938,7 @@ export type QueryNodesArgs = {
 export type QueryRolesArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
+  excludedIDs?: InputMaybe<Array<Scalars['ID']['input']>>;
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
   searchKeyword?: InputMaybe<Scalars['String']['input']>;
