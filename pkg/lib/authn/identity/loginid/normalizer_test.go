@@ -164,4 +164,26 @@ func TestNormalizers(t *testing.T) {
 			}
 		})
 	})
+
+	Convey("PhoneNumberNormalizer", t, func() {
+		Convey("normalize to e164", func() {
+			cases := []Case{
+				{"+85298887766", "+85298887766"},
+				{
+					"+852-98887766",
+					"+85298887766",
+				},
+				{
+					"+852-98-88-77-66",
+					"+85298887766",
+				},
+			}
+
+			n := &PhoneNumberNormalizer{}
+
+			for _, c := range cases {
+				f(c, n)
+			}
+		})
+	})
 }
