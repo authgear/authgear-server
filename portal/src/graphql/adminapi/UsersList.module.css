@@ -79,5 +79,13 @@
   @apply sticky z-10 mobile:static mobile:z-0;
 
   left: 0;
+  background-color: inherit;
+}
+
+.list div[role="row"] div[role="presentation"] {
   background-color: white;
+}
+
+.list div[role="row"] div[role="presentation"]:hover {
+  background-color: #f3f2f1;
 }
