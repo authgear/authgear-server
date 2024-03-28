@@ -9,7 +9,8 @@ const (
 )
 
 type AdminAPIMutationAddUserToRolesExecutedEventPayload struct {
-	AffectedUserIDs []string `json:"-"`
+	UserID_  string   `json:"user_id"`
+	RoleKeys []string `json:"role_keys"`
 }
 
 func (e *AdminAPIMutationAddUserToRolesExecutedEventPayload) NonBlockingEventType() event.Type {
@@ -32,12 +33,11 @@ func (e *AdminAPIMutationAddUserToRolesExecutedEventPayload) ForHook() bool {
 }
 
 func (e *AdminAPIMutationAddUserToRolesExecutedEventPayload) ForAudit() bool {
-	// FIXME(tung): Should be true
-	return false
+	return true
 }
 
 func (e *AdminAPIMutationAddUserToRolesExecutedEventPayload) RequireReindexUserIDs() []string {
-	return e.AffectedUserIDs
+	return []string{e.UserID_}
 }
 
 func (e *AdminAPIMutationAddUserToRolesExecutedEventPayload) DeletedUserIDs() []string {
