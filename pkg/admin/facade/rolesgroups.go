@@ -35,6 +35,7 @@ type RolesGroupsCommands interface {
 }
 
 type RolesGroupsQueries interface {
+	GetRole(id string) (*model.Role, error)
 	ListRoles(options *rolesgroups.ListRolesOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
 	ListGroups(options *rolesgroups.ListGroupsOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
 	ListGroupsByRoleID(roleID string) ([]*model.Group, error)
@@ -304,4 +305,8 @@ func (f *RolesGroupsFacade) ListEffectiveRolesByUserID(userID string) ([]*model.
 
 func (f *RolesGroupsFacade) ListAllUserIDsByEffectiveRoleIDs(roleIDs []string) ([]string, error) {
 	return f.RolesGroupsQueries.ListAllUserIDsByEffectiveRoleIDs(roleIDs)
+}
+
+func (f *RolesGroupsFacade) GetRole(roleID string) (*model.Role, error) {
+	return f.RolesGroupsQueries.GetRole(roleID)
 }

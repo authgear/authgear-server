@@ -11,6 +11,14 @@ type Queries struct {
 	Store *Store
 }
 
+func (q *Queries) GetRole(id string) (*model.Role, error) {
+	role, err := q.Store.GetRoleByID(id)
+	if err != nil {
+		return nil, err
+	}
+	return role.ToModel(), nil
+}
+
 func (q *Queries) GetManyRoles(ids []string) ([]*model.Role, error) {
 	roles, err := q.Store.GetManyRoles(ids)
 	if err != nil {
