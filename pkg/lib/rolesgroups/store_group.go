@@ -209,7 +209,11 @@ func (s *Store) ListGroups(options *ListGroupsOptions, pageArgs graphqlutil.Page
 		OrderBy("key ASC")
 
 	if options.SearchKeyword != "" {
-		q = q.Where("key ILIKE ('%' || ? || '%') OR name ILIKE ('%' || ? || '%')", options.SearchKeyword, options.SearchKeyword)
+		q = q.Where("(key ILIKE ('%' || ? || '%') OR name ILIKE ('%' || ? || '%'))", options.SearchKeyword, options.SearchKeyword)
+	}
+
+	if len(options.ExcludedIDs) > 0 {
+		q = q.Where("id != ALL (?)", pq.Array(options.ExcludedIDs))
 	}
 
 	q, offset, err := db.ApplyPageArgs(q, pageArgs)

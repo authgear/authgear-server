@@ -84,6 +84,11 @@ function AddTagsDialog({
     };
   }, [title]);
 
+  const onEmptyResolveSuggestions = useCallback(
+    async (selectedTags?: ITag[]) => onResolveSuggestions("", selectedTags),
+    [onResolveSuggestions]
+  );
+
   return (
     <>
       <Dialog
@@ -104,6 +109,7 @@ function AddTagsDialog({
               selectedItems={tags}
               onChange={onChangeTags}
               onResolveSuggestions={onResolveSuggestions}
+              onEmptyResolveSuggestions={onEmptyResolveSuggestions}
               onClearTags={onClearTags}
             />
           </div>

@@ -14,10 +14,16 @@ fragment RolesList on RoleConnection {
 
 query RolesListQuery(
   $searchKeyword: String!
+  $excludedIDs: [ID!]
   $pageSize: Int!
   $cursor: String
 ) {
-  roles(first: $pageSize, after: $cursor, searchKeyword: $searchKeyword) {
+  roles(
+    first: $pageSize
+    after: $cursor
+    searchKeyword: $searchKeyword
+    excludedIDs: $excludedIDs
+  ) {
     ...RolesList
   }
 }

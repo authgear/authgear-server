@@ -1003,7 +1003,7 @@ type Query {
   auditLogs(activityTypes: [AuditLogActivityType!], after: String, before: String, first: Int, last: Int, rangeFrom: DateTime, rangeTo: DateTime, sortDirection: SortDirection, userIDs: [ID!]): AuditLogConnection
 
   """All groups"""
-  groups(after: String, before: String, first: Int, last: Int, searchKeyword: String): GroupConnection
+  groups(after: String, before: String, excludedIDs: [ID!], first: Int, last: Int, searchKeyword: String): GroupConnection
 
   """Fetches an object given its ID"""
   node(
@@ -1018,7 +1018,7 @@ type Query {
   ): [Node]!
 
   """All roles"""
-  roles(after: String, before: String, first: Int, last: Int, searchKeyword: String): RoleConnection
+  roles(after: String, before: String, excludedIDs: [ID!], first: Int, last: Int, searchKeyword: String): RoleConnection
 
   """All users"""
   users(after: String, before: String, first: Int, groupKeys: [String!], last: Int, roleKeys: [String!], searchKeyword: String, sortBy: UserSortBy, sortDirection: SortDirection): UserConnection

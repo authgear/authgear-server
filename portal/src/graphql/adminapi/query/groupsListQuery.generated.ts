@@ -7,6 +7,7 @@ export type GroupsListFragment = { __typename?: 'GroupConnection', totalCount?: 
 
 export type GroupsListQueryQueryVariables = Types.Exact<{
   searchKeyword: Types.Scalars['String']['input'];
+  excludedIDs?: Types.InputMaybe<Array<Types.Scalars['ID']['input']> | Types.Scalars['ID']['input']>;
   pageSize: Types.Scalars['Int']['input'];
   cursor?: Types.InputMaybe<Types.Scalars['String']['input']>;
 }>;
@@ -30,8 +31,13 @@ export const GroupsListFragmentDoc = gql`
 }
     `;
 export const GroupsListQueryDocument = gql`
-    query GroupsListQuery($searchKeyword: String!, $pageSize: Int!, $cursor: String) {
-  groups(first: $pageSize, after: $cursor, searchKeyword: $searchKeyword) {
+    query GroupsListQuery($searchKeyword: String!, $excludedIDs: [ID!], $pageSize: Int!, $cursor: String) {
+  groups(
+    first: $pageSize
+    after: $cursor
+    searchKeyword: $searchKeyword
+    excludedIDs: $excludedIDs
+  ) {
     ...GroupsList
   }
 }
@@ -50,6 +56,7 @@ export const GroupsListQueryDocument = gql`
  * const { data, loading, error } = useGroupsListQueryQuery({
  *   variables: {
  *      searchKeyword: // value for 'searchKeyword'
+ *      excludedIDs: // value for 'excludedIDs'
  *      pageSize: // value for 'pageSize'
  *      cursor: // value for 'cursor'
  *   },

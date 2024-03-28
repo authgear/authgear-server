@@ -67,7 +67,12 @@ export const AddRoleGroupsDialog: React.VFC<AddRoleGroupsDialogProps> =
         const selectedGroupIDs = new Set(
           selectedTags?.map((tag) => (tag as GroupTag).group.id)
         );
-        const result = await refetch({ searchKeyword: filter, pageSize: 100 });
+        const excludedIDs = new Set([...selectedGroupIDs, ...existingGroupIDs]);
+        const result = await refetch({
+          searchKeyword: filter,
+          excludedIDs: [...excludedIDs],
+          pageSize: 100,
+        });
 
         if (result.data.groups?.edges == null) {
           return [];
@@ -75,15 +80,6 @@ export const AddRoleGroupsDialog: React.VFC<AddRoleGroupsDialogProps> =
         return result.data.groups.edges.flatMap<GroupTag>((edge) => {
           const node = edge?.node;
           if (node == null) {
-            return [];
-          }
-          // Filter out existing groups
-          if (existingGroupIDs.has(node.id)) {
-            return [];
-          }
-
-          // Filter out selected groups
-          if (selectedGroupIDs.has(node.id)) {
             return [];
           }
 

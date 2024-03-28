@@ -68,7 +68,12 @@ export const AddUserRolesDialog: React.VFC<AddUserRolesDialogProps> =
         const selectedRoleIDs = new Set(
           selectedTags?.map((tag) => (tag as RoleTag).role.id)
         );
-        const result = await refetch({ searchKeyword: filter, pageSize: 100 });
+        const excludedIDs = new Set([...selectedRoleIDs, ...existingRoleIDs]);
+        const result = await refetch({
+          searchKeyword: filter,
+          excludedIDs: [...excludedIDs],
+          pageSize: 100,
+        });
 
         if (result.data.roles?.edges == null) {
           return [];
@@ -76,15 +81,6 @@ export const AddUserRolesDialog: React.VFC<AddUserRolesDialogProps> =
         return result.data.roles.edges.flatMap<RoleTag>((edge) => {
           const node = edge?.node;
           if (node == null) {
-            return [];
-          }
-          // Filter out existing roles
-          if (existingRoleIDs.has(node.id)) {
-            return [];
-          }
-
-          // Filter out selected roles
-          if (selectedRoleIDs.has(node.id)) {
             return [];
           }
 
