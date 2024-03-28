@@ -34,9 +34,9 @@ function RoleAndGroupsFormContainerContent({
 
 export const RoleAndGroupsFormContainer: React.VFC<RoleAndGroupsFormContainerProps> =
   function RoleAndGroupsFormContainer(props) {
-    const { form } = props;
+    const { form, canSave } = props;
     return (
-      <FormContainerBase form={form}>
+      <FormContainerBase form={form} canSave={canSave}>
         <RoleAndGroupsFormContainerContent {...props} />
       </FormContainerBase>
     );

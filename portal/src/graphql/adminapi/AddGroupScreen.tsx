@@ -188,6 +188,11 @@ const AddGroupScreen: React.VFC = function AddGroupScreen() {
     validate,
   });
 
+  const canSave = useMemo(
+    () => form.state.groupName !== "",
+    [form.state.groupName]
+  );
+
   useEffect(() => {
     if (form.submissionResult != null) {
       const groupID = form.submissionResult;
@@ -197,7 +202,7 @@ const AddGroupScreen: React.VFC = function AddGroupScreen() {
 
   return (
     <RoleAndGroupsLayout headerBreadcrumbs={breadcrumbs}>
-      <RoleAndGroupsFormContainer form={form}>
+      <RoleAndGroupsFormContainer form={form} canSave={canSave}>
         <AddGroupScreenForm />
       </RoleAndGroupsFormContainer>
     </RoleAndGroupsLayout>

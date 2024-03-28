@@ -80,6 +80,11 @@ const AddRoleScreen: React.VFC = function AddRoleScreen() {
     validate,
   });
 
+  const canSave = useMemo(
+    () => form.state.roleKey !== "" && form.state.roleName !== "",
+    [form.state.roleKey, form.state.roleName]
+  );
+
   const breadcrumbs = useMemo<BreadcrumbItem[]>(() => {
     return [
       {
@@ -99,7 +104,7 @@ const AddRoleScreen: React.VFC = function AddRoleScreen() {
 
   return (
     <RoleAndGroupsLayout headerBreadcrumbs={breadcrumbs}>
-      <RoleAndGroupsFormContainer form={form}>
+      <RoleAndGroupsFormContainer form={form} canSave={canSave}>
         <AddRolesScreenForm />
       </RoleAndGroupsFormContainer>
     </RoleAndGroupsLayout>
