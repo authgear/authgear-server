@@ -207,7 +207,8 @@ var _ = Schema.Add("TestModeEmailRule", `
 	"additionalProperties": false,
 	"properties": {
 		"regex": { "type": "string", "format": "x_re2_regex" },
-		"suppressed": { "type": "boolean" }
+		"suppressed": { "type": "boolean" },
+		"fixed_code": { "type": "string" }
 	},
 	"required": ["regex"]
 }
@@ -216,6 +217,7 @@ var _ = Schema.Add("TestModeEmailRule", `
 type TestModeEmailRule struct {
 	Regex      string `json:"regex,omitempty"`
 	Suppressed bool   `json:"suppressed,omitempty"`
+	FixedCode  string `json:"fixed_code,omitempty"`
 }
 
 var _ rule = &TestModeEmailRule{}

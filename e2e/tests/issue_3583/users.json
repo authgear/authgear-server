@@ -1,0 +1,16 @@
+{
+  "identifier": "preferred_username",
+  "records": [
+    {
+      "preferred_username": "e2e_issue_3583",
+      "phone_number": "+85223382338",
+
+      "phone_number_verified": true,
+
+      "password": {
+        "type": "bcrypt",
+        "password_hash": "$2y$10$/wLavnCmYGP/zzpw/mR1iOK5y5hGyrEFJtmaIbvFf9VA6l2O4NMKO"
+      }
+    }
+  ]
+}

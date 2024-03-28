@@ -360,3 +360,22 @@ func Parse(inputYAML []byte) (*AppConfig, error) {
 func PopulateDefaultValues(config *AppConfig) {
 	SetFieldDefaults(config)
 }
+
+func Export(config *AppConfig) ([]byte, error) {
+	PopulateDefaultValues(config)
+
+	var buf bytes.Buffer
+	encoder := json.NewEncoder(&buf)
+	err := encoder.Encode(config)
+	if err != nil {
+		return nil, err
+	}
+
+	jsonData := buf.Bytes()
+	yamlData, err := yaml.JSONToYAML(jsonData)
+	if err != nil {
+		return nil, err
+	}
+
+	return yamlData, nil
+}

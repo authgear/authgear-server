@@ -1,0 +1,77 @@
+# https://github.com/authgear/authgear-server/pull/3660/commits/79d3a36cb349e01916ddc466fd4f93fe9528eadd
+
+name: OTP Lockout
+authgear.yaml:
+  override: |
+    authentication:
+        identities:
+          - login_id
+        primary_authenticators:
+          - password
+          - oob_otp_sms
+        lockout:
+          backoff_factor: 2
+          history_duration: 5m
+          lockout_type: per_user
+          max_attempts: 2
+          maximum_duration: 1m
+          minimum_duration: 1m
+          oob_otp:
+            enabled: true
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - input: |
+      {
+        "identification": "phone",
+        "login_id": "+85223382338"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - input: |
+      {
+        "authentication": "primary_oob_otp_sms",
+        "index": 1,
+        "channel": "sms"
+      }
+
+  - input: |
+      {
+        "code": "987654"
+      }
+    output:
+      error: |
+        {
+          "reason": "InvalidCredentials"
+        }
+
+  - input: |
+      {
+        "code": "987654"
+      }
+    output:
+      error: |
+        {
+          "reason": "AccountLockout"
+        }
