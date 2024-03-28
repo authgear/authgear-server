@@ -212,6 +212,60 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		"ADMIN_API_MUTATION_UPDATE_USER_EXECUTED": &graphql.EnumValueConfig{
 			Value: "admin_api.mutation.update_user.executed",
 		},
+		"ADMIN_API_MUTATION_UPDATE_ROLE_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.update_role.executed",
+		},
+		"ADMIN_API_MUTATION_UPDATE_GROUP_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.update_group.executed",
+		},
+		"ADMIN_API_MUTATION_ADD_GROUP_TO_ROLES_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.add_group_to_roles.executed",
+		},
+		"ADMIN_API_MUTATION_ADD_ROLE_TO_GROUPS_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.add_role_to_groups.executed",
+		},
+		"ADMIN_API_MUTATION_REMOVE_GROUP_FROM_ROLES_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.remove_group_from_roles.executed",
+		},
+		"ADMIN_API_MUTATION_REMOVE_ROLE_FROM_GROUPS_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.remove_role_from_groups.executed",
+		},
+		"ADMIN_API_MUTATION_ADD_GROUP_TO_USERS_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.add_group_to_users.executed",
+		},
+		"ADMIN_API_MUTATION_ADD_USER_TO_GROUPS_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.add_user_to_groups.executed",
+		},
+		"ADMIN_API_MUTATION_REMOVE_GROUP_FROM_USERS_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.remove_group_from_users.executed",
+		},
+		"ADMIN_API_MUTATION_REMOVE_USER_FROM_GROUPS_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.remove_user_from_groups.executed",
+		},
+		"ADMIN_API_MUTATION_ADD_ROLE_TO_USERS_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.add_role_to_users.executed",
+		},
+		"ADMIN_API_MUTATION_ADD_USER_TO_ROLES_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.add_user_to_roles.executed",
+		},
+		"ADMIN_API_MUTATION_REMOVE_ROLE_FROM_USERS_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.remove_role_from_users.executed",
+		},
+		"ADMIN_API_MUTATION_REMOVE_USER_FROM_ROLES_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.remove_user_from_roles.executed",
+		},
+		"ADMIN_API_MUTATION_DELETE_GROUP_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.delete_group.executed",
+		},
+		"ADMIN_API_MUTATION_DELETE_ROLE_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.delete_role.executed",
+		},
+		"ADMIN_API_MUTATION_CREATE_GROUP_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.create_group.executed",
+		},
+		"ADMIN_API_MUTATION_CREATE_ROLE_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.create_role.executed",
+		},
 		"PROJECT_APP_UPDATED": &graphql.EnumValueConfig{
 			Value: "project.app.updated",
 		},

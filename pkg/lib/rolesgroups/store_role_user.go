@@ -127,6 +127,22 @@ func (s *Store) ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageArgs
 	return userIDs, offset, nil
 }
 
+func (s *Store) ListAllUserIDsByRoleID(roleIDs []string) ([]string, error) {
+	q := s.SQLBuilder.Select(
+		"u.id",
+	).
+		From(s.SQLBuilder.TableName("_auth_user_role"), "ur").
+		Join(s.SQLBuilder.TableName("_auth_user"), "u", "ur.user_id = u.id").
+		Where("ur.role_id = ANY (?)", pq.Array(roleIDs))
+
+	userIDs, err := s.queryUserIDs(q)
+	if err != nil {
+		return nil, err
+	}
+
+	return userIDs, nil
+}
+
 func (s *Store) ListAllUserIDsByEffectiveRoleIDs(roleIDs []string) ([]string, error) {
 	userRoleUserIDsQuery := s.SQLBuilder.Select(
 		"ur.user_id",

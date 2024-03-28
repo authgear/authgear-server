@@ -10,6 +10,8 @@ const (
 
 type AdminAPIMutationAddGroupToRolesExecutedEventPayload struct {
 	AffectedUserIDs []string `json:"-"`
+	GroupKey        string   `json:"group_key"`
+	RoleKeys        []string `json:"role_keys"`
 }
 
 func (e *AdminAPIMutationAddGroupToRolesExecutedEventPayload) NonBlockingEventType() event.Type {
@@ -32,8 +34,7 @@ func (e *AdminAPIMutationAddGroupToRolesExecutedEventPayload) ForHook() bool {
 }
 
 func (e *AdminAPIMutationAddGroupToRolesExecutedEventPayload) ForAudit() bool {
-	// FIXME(tung): Should be true
-	return false
+	return true
 }
 
 func (e *AdminAPIMutationAddGroupToRolesExecutedEventPayload) RequireReindexUserIDs() []string {

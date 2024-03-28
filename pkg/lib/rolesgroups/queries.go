@@ -11,6 +11,22 @@ type Queries struct {
 	Store *Store
 }
 
+func (q *Queries) GetRole(id string) (*model.Role, error) {
+	role, err := q.Store.GetRoleByID(id)
+	if err != nil {
+		return nil, err
+	}
+	return role.ToModel(), nil
+}
+
+func (q *Queries) GetGroup(id string) (*model.Group, error) {
+	group, err := q.Store.GetGroupByID(id)
+	if err != nil {
+		return nil, err
+	}
+	return group.ToModel(), nil
+}
+
 func (q *Queries) GetManyRoles(ids []string) ([]*model.Role, error) {
 	roles, err := q.Store.GetManyRoles(ids)
 	if err != nil {
@@ -192,6 +208,10 @@ func (q *Queries) ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageAr
 		models[i] = model.PageItemRef{ID: r, Cursor: cursor}
 	}
 	return models, nil
+}
+
+func (q *Queries) ListAllUserIDsByRoleIDs(roleIDs []string) ([]string, error) {
+	return q.Store.ListAllUserIDsByRoleID(roleIDs)
 }
 
 func (q *Queries) ListAllUserIDsByGroupKeys(groupKeys []string) ([]string, error) {

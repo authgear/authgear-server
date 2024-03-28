@@ -71,7 +71,8 @@ var _ = registerMutationField(
 			}
 
 			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationAddRoleToUsersExecutedEventPayload{
-				AffectedUserIDs: userIDs,
+				UserIDs: userIDs,
+				RoleKey: roleKey,
 			})
 			if err != nil {
 				return nil, err
@@ -147,7 +148,8 @@ var _ = registerMutationField(
 			}
 
 			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationRemoveRoleFromUsersExecutedEventPayload{
-				AffectedUserIDs: userIDs,
+				UserIDs: userIDs,
+				RoleKey: roleKey,
 			})
 			if err != nil {
 				return nil, err
@@ -220,7 +222,8 @@ var _ = registerMutationField(
 			}
 
 			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationAddUserToRolesExecutedEventPayload{
-				AffectedUserIDs: []string{userID},
+				UserID_:  userID,
+				RoleKeys: roleKeys,
 			})
 			if err != nil {
 				return nil, err
@@ -292,7 +295,8 @@ var _ = registerMutationField(
 				return nil, err
 			}
 			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationRemoveUserFromRolesExecutedEventPayload{
-				AffectedUserIDs: []string{userID},
+				UserID_:  userID,
+				RoleKeys: roleKeys,
 			})
 			if err != nil {
 				return nil, err
