@@ -7,7 +7,7 @@ import (
 )
 
 func TestLegalParser(t *testing.T) {
-	parser := &LegalParser{}
+	parser := &legalParser{}
 	Convey("Phone", t, func() {
 		Convey("checkE164", func() {
 			good := "+85223456789"

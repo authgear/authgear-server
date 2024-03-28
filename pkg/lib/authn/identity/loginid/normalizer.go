@@ -118,8 +118,7 @@ type PhoneNumberNormalizer struct {
 }
 
 func (n *PhoneNumberNormalizer) Normalize(loginID string) (string, error) {
-	phoneNumberParser := &phone.LegalParser{}
-	e164, err := phoneNumberParser.ParseInputPhoneNumber(loginID)
+	e164, err := phone.LegalParser.ParseInputPhoneNumber(loginID)
 	if err != nil {
 		return "", err
 	}

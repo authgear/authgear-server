@@ -53,8 +53,7 @@ func (n *Normalizer) normalizeEmail(t T) error {
 
 func (n *Normalizer) normalizePhoneNumber(t T) error {
 	if phoneNumber, ok := t[PhoneNumber].(string); ok && phoneNumber != "" {
-		phoneNumberParser := &phone.LegalParser{}
-		phoneNumber, err := phoneNumberParser.ParseInputPhoneNumber(phoneNumber)
+		phoneNumber, err := phone.LegalParser.ParseInputPhoneNumber(phoneNumber)
 		if err != nil {
 			return err
 		}

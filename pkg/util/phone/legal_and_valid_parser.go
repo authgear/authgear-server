@@ -8,9 +8,9 @@ import (
 )
 
 // LegalAndValidParser parses a legal and valid phone number. A legal and valid phone number is a phone number that passes phonenumbers.Parse() and phonenumbers.IsValidNumber().
-type LegalAndValidParser struct{}
+type legalAndValidParser struct{}
 
-func (p *LegalAndValidParser) ParseInputPhoneNumber(phone string) (e164 string, err error) {
+func (p *legalAndValidParser) ParseInputPhoneNumber(phone string) (e164 string, err error) {
 	isNumericString, _ := regexp.Match(`^\+[0-9\ \-]*$`, []byte(phone))
 	if !isNumericString {
 		err = ErrNotInE164Format
@@ -29,14 +29,14 @@ func (p *LegalAndValidParser) ParseInputPhoneNumber(phone string) (e164 string, 
 	return
 }
 
-func (p *LegalAndValidParser) ParseCountryCallingCodeAndNationalNumber(nationalNumber string, countryCallingCode string) (e164 string, err error) {
+func (p *legalAndValidParser) ParseCountryCallingCodeAndNationalNumber(nationalNumber string, countryCallingCode string) (e164 string, err error) {
 	rawInput := combineCallingCodeWithNumber(nationalNumber, countryCallingCode)
 	e164, err = p.ParseInputPhoneNumber(rawInput)
 	return
 
 }
 
-func (p *LegalAndValidParser) SplitE164(e164 string) (nationalNumber string, countryCallingCode string, err error) {
+func (p *legalAndValidParser) SplitE164(e164 string) (nationalNumber string, countryCallingCode string, err error) {
 	err = p.CheckE164(e164)
 	if err != nil {
 		return
@@ -51,7 +51,7 @@ func (p *LegalAndValidParser) SplitE164(e164 string) (nationalNumber string, cou
 	return
 }
 
-func (p *LegalAndValidParser) CheckE164(phone string) error {
+func (p *legalAndValidParser) CheckE164(phone string) error {
 	formatted, err := p.ParseInputPhoneNumber(phone)
 	if err != nil {
 		return err
@@ -62,7 +62,7 @@ func (p *LegalAndValidParser) CheckE164(phone string) error {
 	return nil
 }
 
-func (p *LegalAndValidParser) IsNorthAmericaNumber(e164 string) (bool, error) {
+func (p *legalAndValidParser) IsNorthAmericaNumber(e164 string) (bool, error) {
 	_, callingCode, err := p.SplitE164(e164)
 	if err != nil {
 		return false, err

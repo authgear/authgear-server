@@ -36,9 +36,8 @@ func GetMostAppropriateIdentification(f *authflow.FlowResponse, loginID string, 
 
 	// Else, guess the type
 
-	phoneNumberParser := &phone.LegalAndValidParser{}
 	lookLikeAPhoneNumber := func(loginID string) bool {
-		err := phoneNumberParser.CheckE164(loginID)
+		err := phone.LegalAndValidParser.CheckE164(loginID)
 		if err == nil {
 			return true
 		}

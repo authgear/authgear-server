@@ -8,9 +8,9 @@ import (
 )
 
 // LegalParser parses a legal phone number. A legal phone number is a phone number that passes phonenumbers.Parse().
-type LegalParser struct{}
+type legalParser struct{}
 
-func (p *LegalParser) ParseInputPhoneNumber(phone string) (e164 string, err error) {
+func (p *legalParser) ParseInputPhoneNumber(phone string) (e164 string, err error) {
 	isNumericString, _ := regexp.Match(`^\+[0-9\ \-]*$`, []byte(phone))
 	if !isNumericString {
 		err = ErrNotInE164Format
@@ -24,14 +24,14 @@ func (p *LegalParser) ParseInputPhoneNumber(phone string) (e164 string, err erro
 	return
 }
 
-func (p *LegalParser) ParseCountryCallingCodeAndNationalNumber(nationalNumber string, countryCallingCode string) (e164 string, err error) {
+func (p *legalParser) ParseCountryCallingCodeAndNationalNumber(nationalNumber string, countryCallingCode string) (e164 string, err error) {
 	rawInput := combineCallingCodeWithNumber(nationalNumber, countryCallingCode)
 	e164, err = p.ParseInputPhoneNumber(rawInput)
 	return
 
 }
 
-func (p *LegalParser) SplitE164(e164 string) (nationalNumber string, countryCallingCode string, err error) {
+func (p *legalParser) SplitE164(e164 string) (nationalNumber string, countryCallingCode string, err error) {
 	err = p.CheckE164(e164)
 	if err != nil {
 		return
@@ -46,7 +46,7 @@ func (p *LegalParser) SplitE164(e164 string) (nationalNumber string, countryCall
 	return
 }
 
-func (p *LegalParser) CheckE164(phone string) error {
+func (p *legalParser) CheckE164(phone string) error {
 	formatted, err := p.ParseInputPhoneNumber(phone)
 	if err != nil {
 		return err
@@ -57,7 +57,7 @@ func (p *LegalParser) CheckE164(phone string) error {
 	return nil
 }
 
-func (p *LegalParser) IsNorthAmericaNumber(e164 string) (bool, error) {
+func (p *legalParser) IsNorthAmericaNumber(e164 string) (bool, error) {
 	_, callingCode, err := p.SplitE164(e164)
 	if err != nil {
 		return false, err
