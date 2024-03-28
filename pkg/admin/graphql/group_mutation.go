@@ -76,6 +76,18 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			group, err := gqlCtx.RolesGroupsFacade.GetGroup(groupID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationCreateGroupExecutedEventPayload{
+				Group: *group,
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"group": gqlCtx.Groups.Load(groupID),
 			}).Value, nil
