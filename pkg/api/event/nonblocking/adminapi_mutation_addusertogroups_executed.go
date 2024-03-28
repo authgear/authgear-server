@@ -9,7 +9,8 @@ const (
 )
 
 type AdminAPIMutationAddUserToGroupsExecutedEventPayload struct {
-	AffectedUserIDs []string `json:"-"`
+	UserID_   string   `json:"user_id"`
+	GroupKeys []string `json:"group_keys"`
 }
 
 func (e *AdminAPIMutationAddUserToGroupsExecutedEventPayload) NonBlockingEventType() event.Type {
@@ -32,12 +33,11 @@ func (e *AdminAPIMutationAddUserToGroupsExecutedEventPayload) ForHook() bool {
 }
 
 func (e *AdminAPIMutationAddUserToGroupsExecutedEventPayload) ForAudit() bool {
-	// FIXME(tung): Should be true
-	return false
+	return true
 }
 
 func (e *AdminAPIMutationAddUserToGroupsExecutedEventPayload) RequireReindexUserIDs() []string {
-	return e.AffectedUserIDs
+	return []string{e.UserID_}
 }
 
 func (e *AdminAPIMutationAddUserToGroupsExecutedEventPayload) DeletedUserIDs() []string {
