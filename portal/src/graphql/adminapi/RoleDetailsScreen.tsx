@@ -211,6 +211,11 @@ function RoleDetailsScreenSettingsFormContainer({
     validate,
   });
 
+  const canSave = useMemo(
+    () => form.state.roleName !== "" && form.state.roleKey !== "",
+    [form.state.roleKey, form.state.roleName]
+  );
+
   const [deleteRoleDialogData, setDeleteRoleDialogData] =
     useState<DeleteRoleDialogData | null>(null);
   const onClickDeleteRole = useCallback(() => {
@@ -233,7 +238,7 @@ function RoleDetailsScreenSettingsFormContainer({
 
   return (
     <>
-      <RoleAndGroupsFormContainer form={form}>
+      <RoleAndGroupsFormContainer form={form} canSave={canSave}>
         <RoleDetailsScreenSettingsForm onClickDeleteRole={onClickDeleteRole} />
       </RoleAndGroupsFormContainer>
 

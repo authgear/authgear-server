@@ -191,6 +191,11 @@ export const GroupDetailsSettingsForm: React.VFC<{
     validate,
   });
 
+  const canSave = useMemo(
+    () => form.state.groupName !== "",
+    [form.state.groupName]
+  );
+
   const [deleteGroupDialogData, setDeleteGroupDialogData] =
     useState<DeleteGroupDialogData | null>(null);
   const onClickDeleteGroup = useCallback(() => {
@@ -213,7 +218,7 @@ export const GroupDetailsSettingsForm: React.VFC<{
 
   return (
     <>
-      <RoleAndGroupsFormContainer form={form}>
+      <RoleAndGroupsFormContainer form={form} canSave={canSave}>
         <GroupDetailsSettingsFormContent
           onClickDeleteGroup={onClickDeleteGroup}
         />
