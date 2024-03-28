@@ -18,7 +18,7 @@ func (e *AdminAPIMutationRemoveUserFromRolesExecutedEventPayload) NonBlockingEve
 }
 
 func (e *AdminAPIMutationRemoveUserFromRolesExecutedEventPayload) UserID() string {
-	return ""
+	return e.UserID_
 }
 
 func (e *AdminAPIMutationRemoveUserFromRolesExecutedEventPayload) GetTriggeredBy() event.TriggeredByType {
