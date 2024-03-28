@@ -14,6 +14,10 @@ func TestAuthflow(t *testing.T) {
 	hasFocus := false
 	for _, testCase := range testCases {
 		if testCase.Focus {
+			if hasFocus {
+				t.Fatal("multiple focus test cases")
+			}
+
 			hasFocus = true
 			break
 		}

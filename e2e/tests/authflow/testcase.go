@@ -136,6 +136,8 @@ func runTestCase(t *testing.T, testCase TestCase) {
 			errorViolations, resultViolations, err := MatchOutput(*step.Output, flowResponse, flowErr)
 			if err != nil {
 				t.Errorf("failed to match output in '%s': %v\n", stepName, err)
+				t.Errorf("  result: %v\n", flowResponse)
+				t.Errorf("  error: %v\n", flowErr)
 				return
 			}
 			if len(errorViolations) > 0 {
