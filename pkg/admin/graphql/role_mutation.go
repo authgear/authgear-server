@@ -76,6 +76,18 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			role, err := gqlCtx.RolesGroupsFacade.GetRole(roleID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationCreateRoleExecutedEventPayload{
+				Role: *role,
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"role": gqlCtx.Roles.Load(roleID),
 			}).Value, nil
