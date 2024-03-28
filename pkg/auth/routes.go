@@ -114,6 +114,12 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.Middleware(newWorkflowIntlMiddleware),
 	)
 
+	authenticationFlowChain := httproute.Chain(
+		apiChain,
+		p.Middleware(newAuthenticationFlowIntlMiddleware),
+		p.Middleware(newAuthenticationFlowRateLimitMiddleware),
+	)
+
 	apiAuthenticatedChain := httproute.Chain(
 		apiChain,
 		p.Middleware(newAPIRRequireAuthenticatedMiddlewareMiddleware),
@@ -234,6 +240,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	siweAPIRoute := httproute.Route{Middleware: siweAPIChain}
 	apiRoute := httproute.Route{Middleware: apiChain}
 	workflowRoute := httproute.Route{Middleware: workflowChain}
+	authenticationFlowRoute := httproute.Route{Middleware: authenticationFlowChain}
 	apiAuthenticatedRoute := httproute.Route{Middleware: apiAuthenticatedChain}
 	oauthAPIScopedRoute := httproute.Route{Middleware: oauthAPIScopedChain}
 	webappPageRoute := httproute.Route{Middleware: webappPageChain}
@@ -429,10 +436,10 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(apihandler.ConfigureWorkflowWebsocketRoute(workflowRoute), p.Handler(newAPIWorkflowWebsocketHandler))
 	router.Add(apihandler.ConfigureWorkflowV2Route(workflowRoute), p.Handler(newAPIWorkflowV2Handler))
 
-	router.Add(apihandler.ConfigureAuthenticationFlowV1CreateRoute(workflowRoute), p.Handler(newAPIAuthenticationFlowV1CreateHandler))
-	router.Add(apihandler.ConfigureAuthenticationFlowV1InputRoute(workflowRoute), p.Handler(newAPIAuthenticationFlowV1InputHandler))
-	router.Add(apihandler.ConfigureAuthenticationFlowV1GetRoute(workflowRoute), p.Handler(newAPIAuthenticationFlowV1GetHandler))
-	router.Add(apihandler.ConfigureAuthenticationFlowV1WebsocketRoute(workflowRoute), p.Handler(newAPIAuthenticationFlowV1WebsocketHandler))
+	router.Add(apihandler.ConfigureAuthenticationFlowV1CreateRoute(authenticationFlowRoute), p.Handler(newAPIAuthenticationFlowV1CreateHandler))
+	router.Add(apihandler.ConfigureAuthenticationFlowV1InputRoute(authenticationFlowRoute), p.Handler(newAPIAuthenticationFlowV1InputHandler))
+	router.Add(apihandler.ConfigureAuthenticationFlowV1GetRoute(authenticationFlowRoute), p.Handler(newAPIAuthenticationFlowV1GetHandler))
+	router.Add(apihandler.ConfigureAuthenticationFlowV1WebsocketRoute(authenticationFlowRoute), p.Handler(newAPIAuthenticationFlowV1WebsocketHandler))
 
 	router.NotFound(webappPageRoute, &webapphandler.ImplementationSwitcherHandler{
 		Interaction: p.Handler(newWebAppNotFoundHandler),

@@ -120369,6 +120369,49 @@ func newWorkflowIntlMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	return intlMiddleware
 }
 
+func newAuthenticationFlowIntlMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	intlMiddleware := &authenticationflow.IntlMiddleware{}
+	return intlMiddleware
+}
+
+func newAuthenticationFlowRateLimitMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	logger := ratelimit.NewLogger(factory)
+	appContext := appProvider.AppContext
+	config := appContext.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	handle := appProvider.Redis
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: handle,
+	}
+	featureConfig := config.FeatureConfig
+	rateLimitsFeatureConfig := featureConfig.RateLimits
+	limiter := &ratelimit.Limiter{
+		Logger:  logger,
+		Storage: storageRedis,
+		Config:  rateLimitsFeatureConfig,
+	}
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
+	jsonResponseWriter := &httputil.JSONResponseWriter{
+		Logger: jsonResponseWriterLogger,
+	}
+	rateLimitMiddleware := &authenticationflow.RateLimitMiddleware{
+		RateLimiter: limiter,
+		RemoteIP:    remoteIP,
+		JSON:        jsonResponseWriter,
+		Config:      appConfig,
+	}
+	return rateLimitMiddleware
+}
+
 func newImplementationSwitcherMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	appContext := appProvider.AppContext

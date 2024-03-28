@@ -216,6 +216,7 @@ var DependencySet = wire.NewSet(
 
 	api.DependencySet,
 	wire.Bind(new(api.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
+	wire.Bind(new(authenticationflow.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
 )
 
 func ProvideOAuthConfig() *config.OAuthConfig {

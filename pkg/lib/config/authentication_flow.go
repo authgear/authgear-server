@@ -40,7 +40,8 @@ var _ = Schema.Add("AuthenticationFlowConfig", `
 			"type": "array",
 			"minItems": 1,
 			"items": { "$ref": "#/$defs/AuthenticationFlowAccountRecoveryFlow" }
-		}
+		},
+		"rate_limits": { "$ref": "#/$defs/AuthenticationFlowRateLimitsConfig" }
 	}
 }
 `)
@@ -785,6 +786,8 @@ type AuthenticationFlowConfig struct {
 	SignupLoginFlows     []*AuthenticationFlowSignupLoginFlow     `json:"signup_login_flows,omitempty"`
 	ReauthFlows          []*AuthenticationFlowReauthFlow          `json:"reauth_flows,omitempty"`
 	AccountRecoveryFlows []*AuthenticationFlowAccountRecoveryFlow `json:"account_recovery_flows,omitempty"`
+
+	RateLimits *AuthenticationFlowRateLimitsConfig `json:"rate_limits,omitempty"`
 }
 
 type AuthenticationFlowSignupFlow struct {

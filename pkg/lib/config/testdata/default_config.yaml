@@ -252,11 +252,11 @@ ui:
       - "ZW"
   forgot_password:
     phone:
-    - channel: sms
-      otp_form: code
+      - channel: sms
+        otp_form: code
     email:
-    - channel: email
-      otp_form: link
+      - channel: email
+        otp_form: link
 localization:
   fallback_language: en
   supported_languages: ["en"]
@@ -636,4 +636,9 @@ test_mode:
     enabled: false
   email:
     enabled: false
-authentication_flow: {}
+authentication_flow:
+  rate_limits:
+    per_ip:
+      enabled: true
+      period: 1m
+      burst: 1200
