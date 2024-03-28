@@ -74,6 +74,16 @@ export interface APIDenoCheckError {
   reason: "DenoCheckError";
 }
 
+export interface APIRoleDuplicateKeyError {
+  errorName: string;
+  reason: "RoleDuplicateKey";
+}
+
+export interface APIGroupDuplicateKeyError {
+  errorName: string;
+  reason: "GroupDuplicateKey";
+}
+
 export type APIError = { message?: string } & (
   | NetworkError
   | RequestEntityTooLargeError
@@ -109,6 +119,8 @@ export type APIError = { message?: string } & (
   | APIAlchemyProtocolError
   | APIDenoCheckError
   | APIResourceUpdateConflictError
+  | APIRoleDuplicateKeyError
+  | APIGroupDuplicateKeyError
 );
 
 export function isAPIError(value: unknown): value is APIError {

@@ -23,6 +23,7 @@ import { useNavigate } from "react-router-dom";
 import { useErrorMessageBarContext } from "../../ErrorMessageBar";
 import { useFormTopErrors } from "../../form";
 import { RoleAndGroupsFormContainer } from "../../components/roles-and-groups/form/RoleAndGroupsFormContainer";
+import { makeReasonErrorParseRule } from "../../error/parse";
 
 interface FormState {
   roleKey: string;
@@ -35,7 +36,6 @@ const defaultState: FormState = {
   roleName: "",
   roleDescription: "",
 };
-
 const AddRoleScreen: React.VFC = function AddRoleScreen() {
   const navigate = useNavigate();
 
@@ -142,6 +142,16 @@ function AddRolesScreenForm() {
 
   const { renderToString } = useContext(MessageContext);
 
+  const roleKeyFieldErrorRules = useMemo(
+    () => [
+      makeReasonErrorParseRule(
+        "RoleDuplicateKey",
+        "errors.roles.key.duplicated"
+      ),
+    ],
+    []
+  );
+
   return (
     <div>
       <RoleAndGroupsVeriticalFormLayout>
@@ -161,6 +171,7 @@ function AddRolesScreenForm() {
         </div>
         <div>
           <FormTextField
+            errorRules={roleKeyFieldErrorRules}
             required={true}
             fieldName="key"
             parentJSONPointer=""

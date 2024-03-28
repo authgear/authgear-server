@@ -23,6 +23,7 @@ import FormTextField from "../../FormTextField";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import WidgetDescription from "../../WidgetDescription";
+import { makeReasonErrorParseRule } from "../../error/parse";
 
 interface FormState {
   groupKey: string;
@@ -72,6 +73,16 @@ function AddGroupScreenForm() {
 
   const { renderToString } = useContext(MessageContext);
 
+  const groupKeyFieldErrorRules = useMemo(
+    () => [
+      makeReasonErrorParseRule(
+        "GroupDuplicateKey",
+        "errors.groups.key.duplicated"
+      ),
+    ],
+    []
+  );
+
   return (
     <div>
       <RoleAndGroupsVeriticalFormLayout>
@@ -91,6 +102,7 @@ function AddGroupScreenForm() {
         </div>
         <div>
           <FormTextField
+            errorRules={groupKeyFieldErrorRules}
             required={true}
             fieldName="key"
             parentJSONPointer=""
