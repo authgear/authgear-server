@@ -108,6 +108,7 @@ type RolesGroupsFacade interface {
 	ListEffectiveRolesByUserID(userID string) ([]*apimodel.Role, error)
 	ListAllUserIDsByGroupIDs(groupIDs []string) ([]string, error)
 	ListAllUserIDsByGroupKeys(groupKeys []string) ([]string, error)
+	ListAllUserIDsByRoleIDs(roleIDs []string) ([]string, error)
 	ListAllUserIDsByEffectiveRoleIDs(roleIDs []string) ([]string, error)
 
 	GetRole(roleID string) (*apimodel.Role, error)

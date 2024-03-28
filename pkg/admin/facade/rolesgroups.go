@@ -48,6 +48,7 @@ type RolesGroupsQueries interface {
 	ListEffectiveRolesByUserID(userID string) ([]*model.Role, error)
 	ListAllUserIDsByGroupIDs(groupIDs []string) ([]string, error)
 	ListAllUserIDsByGroupKeys(groupKeys []string) ([]string, error)
+	ListAllUserIDsByRoleIDs(roleIDs []string) ([]string, error)
 	ListAllUserIDsByEffectiveRoleIDs(roleIDs []string) ([]string, error)
 	CountRoles() (uint64, error)
 	CountGroups() (uint64, error)
@@ -306,6 +307,10 @@ func (f *RolesGroupsFacade) ListEffectiveRolesByUserID(userID string) ([]*model.
 
 func (f *RolesGroupsFacade) ListAllUserIDsByEffectiveRoleIDs(roleIDs []string) ([]string, error) {
 	return f.RolesGroupsQueries.ListAllUserIDsByEffectiveRoleIDs(roleIDs)
+}
+
+func (f *RolesGroupsFacade) ListAllUserIDsByRoleIDs(roleIDs []string) ([]string, error) {
+	return f.RolesGroupsQueries.ListAllUserIDsByRoleIDs(roleIDs)
 }
 
 func (f *RolesGroupsFacade) GetRole(roleID string) (*model.Role, error) {
