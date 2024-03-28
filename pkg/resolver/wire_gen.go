@@ -611,12 +611,14 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clock)
 	elasticsearchService := elasticsearch.Service{
+		Clock:       clock,
 		Context:     contextContext,
 		Database:    appdbHandle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
 		Client:      client,
 		Users:       userQueries,
+		UserStore:   userStore,
 		OAuth:       oauthStore,
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
