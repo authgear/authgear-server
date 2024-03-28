@@ -1,0 +1,76 @@
+# https://github.com/authgear/authgear-server/issues/3585
+
+name: 2FA & Change password
+authgear.yaml:
+  override: |
+    authentication:
+      secondary_authentication_mode: required
+      secondary_authenticators:
+      - oob_otp_sms
+    authenticator:
+      password:
+        force_change: true
+        policy:
+          min_length: 1000
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_issue_3585"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - input: |
+      {
+        "authentication": "primary_password",
+        "password": "auyeung1234"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - input: |
+      {
+        "authentication": "secondary_oob_otp_sms",
+        "channel": "sms",
+        "index": 0
+      }
+
+  - input: |
+      {
+        "code": "111111"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "change_password"
+          }
+        }

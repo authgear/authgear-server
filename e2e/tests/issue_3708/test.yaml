@@ -1,0 +1,62 @@
+# https://github.com/authgear/authgear-server/issues/3708
+
+name: Recovery email rate limit
+authgear.yaml:
+  override: |
+    authentication:
+      rate_limits:
+        oob_otp:
+          email:
+            trigger_cooldown: 60s
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+          "type": "account_recovery",
+          "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - input: |
+      {
+        "identification": "email",
+        "login_id": "e2e_issue_3708@authgear.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "select_destination"
+          }
+        }
+
+  - input: |
+      {
+        "index": 0
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify_account_recovery_code"
+          }
+        }
+
+  - input: |
+      {
+        "resend": true
+      }
+    output:
+      error: |
+        {
+          "reason": "RateLimited"
+        }
