@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   IButtonProps,
   // eslint-disable-next-line no-restricted-imports
   DefaultButton as FluentUIDefaultButton,
+  IButtonStyles,
 } from "@fluentui/react";
 
 export interface DefaultButtonProps
@@ -13,8 +14,19 @@ export interface DefaultButtonProps
 const DefaultButton: React.VFC<DefaultButtonProps> = function DefaultButton(
   props: DefaultButtonProps
 ) {
+  const { styles, ...rest } = props;
+
+  const _styles: IButtonStyles = useMemo(
+    () => ({
+      root: {
+        backgroundColor: "#ffffff",
+      },
+      ...styles,
+    }),
+    [styles]
+  );
   // @ts-expect-error
-  return <FluentUIDefaultButton {...props} />;
+  return <FluentUIDefaultButton {...rest} styles={_styles} />;
 };
 
 export default DefaultButton;
