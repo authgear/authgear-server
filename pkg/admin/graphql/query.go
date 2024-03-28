@@ -129,6 +129,9 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				"searchKeyword": &graphql.ArgumentConfig{
 					Type: graphql.String,
 				},
+				"excludedIDs": &graphql.ArgumentConfig{
+					Type: graphql.NewList(graphql.NewNonNull(graphql.ID)),
+				},
 			}),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				gqlCtx := GQLContext(p.Context)
@@ -137,8 +140,24 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 
 				searchKeyword, _ := p.Args["searchKeyword"].(string)
 
+				excludedIDsIfaces, _ := p.Args["excludedIDs"].([]interface{})
+				excludedNodeIDs := make([]string, len(excludedIDsIfaces))
+				for i, v := range excludedIDsIfaces {
+					excludedNodeIDs[i] = v.(string)
+				}
+
+				excludedIDs := make([]string, len(excludedIDsIfaces))
+				for i, v := range excludedNodeIDs {
+					resolvedNodeID := relay.FromGlobalID(v)
+					if resolvedNodeID == nil || resolvedNodeID.Type != typeRole {
+						return nil, apierrors.NewInvalid("invalid role ID")
+					}
+					excludedIDs[i] = resolvedNodeID.ID
+				}
+
 				options := &rolesgroups.ListRolesOptions{
 					SearchKeyword: searchKeyword,
+					ExcludedIDs:   excludedIDs,
 				}
 
 				refs, result, err := gqlCtx.RolesGroupsFacade.ListRoles(options, pageArgs)
@@ -164,6 +183,9 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				"searchKeyword": &graphql.ArgumentConfig{
 					Type: graphql.String,
 				},
+				"excludedIDs": &graphql.ArgumentConfig{
+					Type: graphql.NewList(graphql.NewNonNull(graphql.ID)),
+				},
 			}),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				gqlCtx := GQLContext(p.Context)
@@ -172,8 +194,24 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 
 				searchKeyword, _ := p.Args["searchKeyword"].(string)
 
+				excludedIDsIfaces, _ := p.Args["excludedIDs"].([]interface{})
+				excludedNodeIDs := make([]string, len(excludedIDsIfaces))
+				for i, v := range excludedIDsIfaces {
+					excludedNodeIDs[i] = v.(string)
+				}
+
+				excludedIDs := make([]string, len(excludedIDsIfaces))
+				for i, v := range excludedNodeIDs {
+					resolvedNodeID := relay.FromGlobalID(v)
+					if resolvedNodeID == nil || resolvedNodeID.Type != typeGroup {
+						return nil, apierrors.NewInvalid("invalid group ID")
+					}
+					excludedIDs[i] = resolvedNodeID.ID
+				}
+
 				options := &rolesgroups.ListGroupsOptions{
 					SearchKeyword: searchKeyword,
+					ExcludedIDs:   excludedIDs,
 				}
 
 				refs, result, err := gqlCtx.RolesGroupsFacade.ListGroups(options, pageArgs)

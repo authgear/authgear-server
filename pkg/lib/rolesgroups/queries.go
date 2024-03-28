@@ -69,6 +69,7 @@ func (q *Queries) ListRolesByGroupID(groupID string) ([]*model.Role, error) {
 
 type ListRolesOptions struct {
 	SearchKeyword string
+	ExcludedIDs   []string
 }
 
 func (q *Queries) ListRoles(options *ListRolesOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error) {
@@ -92,6 +93,7 @@ func (q *Queries) ListRoles(options *ListRolesOptions, pageArgs graphqlutil.Page
 
 type ListGroupsOptions struct {
 	SearchKeyword string
+	ExcludedIDs   []string
 }
 
 func (q *Queries) ListGroups(options *ListGroupsOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error) {
