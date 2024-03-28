@@ -91,6 +91,8 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 
 	router.Add(transport.ConfigureOsanoRoute(notFoundRoute), p.Handler(newOsanoHandler))
 
+	router.Add(transport.ConfigureGeoipRoute(notFoundRoute), p.Handler(newGeoipHandler))
+
 	router.NotFound(notFoundRoute, p.Handler(newStaticAssetsHandler))
 
 	return router

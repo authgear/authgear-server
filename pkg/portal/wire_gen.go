@@ -632,3 +632,8 @@ func newOsanoHandler(p *deps.RequestProvider) http.Handler {
 	}
 	return osanoHandler
 }
+
+func newGeoipHandler(p *deps.RequestProvider) http.Handler {
+	geoipHandler := &transport.GeoipHandler{}
+	return geoipHandler
+}

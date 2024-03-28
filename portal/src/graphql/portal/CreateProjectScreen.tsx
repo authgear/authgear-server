@@ -185,6 +185,7 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
               <FormPhoneTextField
                 parentJSONPointer=""
                 fieldName="phone_number"
+                initialCountry="auto"
                 inputValue={phoneNumber}
                 onChange={onChangePhoneNumber}
                 label={renderToString("CreateProjectScreen.phone-number.label")}

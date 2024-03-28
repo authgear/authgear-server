@@ -11,6 +11,7 @@ export interface PhoneTextFieldProps {
   disabled?: boolean;
   pinnedList?: string[];
   allowlist?: string[];
+  initialCountry?: string;
   inputValue: string;
   onChange: (validValue: string, inputValue: string) => void;
   errorMessage?: React.ReactNode;
@@ -35,6 +36,15 @@ export default class PhoneTextField extends React.Component<PhoneTextFieldProps>
       autoPlaceholder: "aggressive",
       customContainer: styles.container,
     };
+    if (this.props.initialCountry === "auto") {
+      options.initialCountry = "auto";
+      options.geoIpLookup = (callback) => {
+        fetch("/api/geoip")
+          .then(async (res) => res.json())
+          .then((data) => callback(data.country_code || "us"))
+          .catch(() => callback("us"));
+      };
+    }
     if (this.props.allowlist != null) {
       options.onlyCountries = [...this.props.allowlist];
     }
