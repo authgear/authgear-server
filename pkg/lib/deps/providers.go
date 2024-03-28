@@ -24,7 +24,6 @@ import (
 )
 
 type RootProvider struct {
-	MainListenAddr     config.MainListenAddr
 	EnvironmentConfig  *config.EnvironmentConfig
 	ConfigSourceConfig *configsource.Config
 	LoggerFactory      *log.Factory
@@ -38,7 +37,6 @@ type RootProvider struct {
 }
 
 func NewRootProvider(
-	mainListenAddr config.MainListenAddr,
 	cfg *config.EnvironmentConfig,
 	configSourceConfig *configsource.Config,
 	builtinResourceDirectory string,
@@ -73,7 +71,6 @@ func NewRootProvider(
 	}
 
 	p = RootProvider{
-		MainListenAddr:     mainListenAddr,
 		EnvironmentConfig:  cfg,
 		ConfigSourceConfig: configSourceConfig,
 		LoggerFactory:      loggerFactory,

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
@@ -37,7 +36,6 @@ func (c *End2End) ImportUsers(appID string, jsonPath string) error {
 	})
 
 	p, err := deps.NewRootProvider(
-		config.MainListenAddr(cfg.MainListenAddr),
 		cfg.EnvironmentConfig,
 		cfg.ConfigSource,
 		cfg.BuiltinResourceDirectory,
