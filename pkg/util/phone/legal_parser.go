@@ -7,8 +7,7 @@ import (
 	"github.com/nyaruka/phonenumbers"
 )
 
-// Login ID normalizer uses LegalParser
-// What is Legal? phonenumbers.Parse does not return err.
+// LegalParser parses a legal phone number. A legal phone number is a phone number that passes phonenumbers.Parse().
 type LegalParser struct{}
 
 func (p *LegalParser) ParseInputPhoneNumber(phone string) (e164 string, err error) {

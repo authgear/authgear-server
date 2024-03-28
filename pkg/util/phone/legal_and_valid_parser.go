@@ -7,8 +7,7 @@ import (
 	"github.com/nyaruka/phonenumbers"
 )
 
-// Other places except Login ID normalizer uses LegalAndValidParser.
-// What is Legal and Valid? phonenumbers.Parse does not return err, and phonenumbers.IsValidNumber returns true.
+// LegalAndValidParser parses a legal and valid phone number. A legal and valid phone number is a phone number that passes phonenumbers.Parse() and phonenumbers.IsValidNumber().
 type LegalAndValidParser struct{}
 
 func (p *LegalAndValidParser) ParseInputPhoneNumber(phone string) (e164 string, err error) {
