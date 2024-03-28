@@ -1,7 +1,6 @@
 package authenticationflow
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api"
@@ -30,7 +29,7 @@ func (m *RateLimitMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		spec := ratelimit.NewBucketSpec(m.Config.AuthenticationFlow.RateLimits.PerIP, AuthowAPIPerIP, string(m.RemoteIP))
 		err := m.RateLimiter.Allow(spec)
-		if errors.Is(err, ratelimit.ErrRateLimited(spec.Name)) {
+		if ratelimit.IsRateLimitErrorWithBucketName(err, spec.Name) {
 			m.JSON.WriteResponse(w, &api.Response{
 				Error: apierrors.NewTooManyRequest("Reach Rate Limit"),
 			})
