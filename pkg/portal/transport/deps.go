@@ -13,4 +13,5 @@ var DependencySet = wire.NewSet(
 	NewStripeWebhookLogger,
 	wire.Struct(new(StripeWebhookHandler), "*"),
 	wire.Struct(new(OsanoHandler), "*"),
+	wire.Struct(new(GeoipHandler), "*"),
 )

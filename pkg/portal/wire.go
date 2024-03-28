@@ -93,3 +93,10 @@ func newOsanoHandler(p *deps.RequestProvider) http.Handler {
 		wire.Bind(new(http.Handler), new(*transport.OsanoHandler)),
 	))
 }
+
+func newGeoipHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.GeoipHandler)),
+	))
+}
