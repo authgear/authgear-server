@@ -5,6 +5,7 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/admin/model"
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
@@ -709,7 +710,12 @@ var _ = registerMutationField(
 			gqlCtx := GQLContext(p.Context)
 
 			userModelVal, err := gqlCtx.Users.Load(userID).Value()
-			userModel := *userModelVal.(*apimodel.User)
+			// This is a footgun.
+			// https://yourbasic.org/golang/gotcha-why-nil-error-not-equal-nil/
+			if userModelVal == (*apimodel.User)(nil) {
+				return nil, api.ErrUserNotFound
+			}
+			userModel := userModelVal.(*apimodel.User)
 
 			if err != nil {
 				return nil, err
@@ -721,7 +727,7 @@ var _ = registerMutationField(
 			}
 
 			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationDeleteUserExecutedEventPayload{
-				UserModel: userModel,
+				UserModel: *userModel,
 			})
 			if err != nil {
 				return nil, err
