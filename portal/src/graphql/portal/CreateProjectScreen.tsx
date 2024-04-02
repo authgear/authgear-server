@@ -23,6 +23,7 @@ import {
 } from "../../GTMProvider";
 import PrimaryButton from "../../PrimaryButton";
 import FormPhoneTextField from "../../FormPhoneTextField";
+import { useViewerQuery } from "./query/viewerQuery";
 
 interface FormState {
   appID: string;
@@ -73,6 +74,7 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
   const { appHostSuffix } = useSystemConfig();
   const { createApp } = useCreateAppMutation();
   const { renderToString } = useContext(Context);
+  const { viewer } = useViewerQuery();
 
   const isFirstProject = numberOfApps === 0;
 
@@ -185,6 +187,7 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
               <FormPhoneTextField
                 parentJSONPointer=""
                 fieldName="phone_number"
+                initialCountry={viewer?.geoIPCountryCode ?? undefined}
                 inputValue={phoneNumber}
                 onChange={onChangePhoneNumber}
                 label={renderToString("CreateProjectScreen.phone-number.label")}

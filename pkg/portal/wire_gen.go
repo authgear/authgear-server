@@ -89,6 +89,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	logFactory := rootProvider.LoggerFactory
 	logger := graphql.NewLogger(logFactory)
+	trustProxy := environmentConfig.TrustProxy
 	authgearConfig := rootProvider.AuthgearConfig
 	adminAPIConfig := rootProvider.AdminAPIConfig
 	controller := rootProvider.ConfigSourceController
@@ -169,7 +170,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	inProcessQueue := &task.InProcessQueue{
 		Executor: inProcessExecutor,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	requestOriginProvider := &endpoint.RequestOriginProvider{
@@ -341,6 +341,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	graphqlContext := &graphql.Context{
 		Request:                 request,
 		GQLLogger:               logger,
+		TrustProxy:              trustProxy,
 		Users:                   userLoader,
 		Apps:                    appLoader,
 		Domains:                 domainLoader,
