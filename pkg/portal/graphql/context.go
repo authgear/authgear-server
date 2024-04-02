@@ -166,6 +166,7 @@ type Context struct {
 	Request   *http.Request
 	GQLLogger Logger
 
+	TrustProxy              config.TrustProxy
 	Users                   UserLoader
 	Apps                    AppLoader
 	Domains                 DomainLoader

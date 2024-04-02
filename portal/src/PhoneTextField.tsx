@@ -11,6 +11,7 @@ export interface PhoneTextFieldProps {
   disabled?: boolean;
   pinnedList?: string[];
   allowlist?: string[];
+  initialCountry?: string;
   inputValue: string;
   onChange: (validValue: string, inputValue: string) => void;
   errorMessage?: React.ReactNode;

@@ -8,6 +8,8 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/session"
+	"github.com/authgear/authgear-server/pkg/util/geoip"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 const typeViewer = "Viewer"
@@ -33,6 +35,9 @@ var nodeViewer = node(
 			"projectOwnerCount": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.Int),
 			},
+			"geoIPCountryCode": &graphql.Field{
+				Type: graphql.String,
+			},
 		},
 	}),
 	&model.User{},
@@ -48,6 +53,19 @@ var nodeViewer = node(
 			return nil, nil
 		}
 
-		return gqlCtx.Users.Load(id).Value, nil
+		userIface, err := gqlCtx.Users.Load(id).Value()
+		if err != nil {
+			return nil, err
+		}
+
+		user := userIface.(*model.User)
+
+		requestIP := httputil.GetIP(gqlCtx.Request, bool(gqlCtx.TrustProxy))
+		geoipInfo, ok := geoip.DefaultDatabase.IPString(requestIP)
+		if ok {
+			user.GeoIPCountryCode = geoipInfo.CountryCode
+		}
+
+		return user, nil
 	},
 )

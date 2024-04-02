@@ -6,4 +6,5 @@ type User struct {
 	FormattedName     string `json:"formattedName,omitempty"`
 	ProjectQuota      *int   `json:"projectQuota,omitempty"`
 	ProjectOwnerCount int    `json:"projectOwnerCount,"`
+	GeoIPCountryCode  string `json:"geoIPCountryCode,omitempty"`
 }
