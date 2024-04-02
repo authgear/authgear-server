@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -19,6 +20,14 @@ func (e *EdgeUpdateIdentityEnd) Instantiate(ctx *interaction.Context, graph *int
 	oldInfo, err := ctx.Identities.Get(identityID)
 	if err != nil {
 		return nil, err
+	}
+
+	if oldInfo.UserID != graph.MustGetUserID() {
+		return nil, api.NewInvariantViolated(
+			"IdentityNotBelongToUser",
+			"identity does not belong to the user",
+			nil,
+		)
 	}
 
 	newInfo, err := ctx.Identities.Get(identityID)

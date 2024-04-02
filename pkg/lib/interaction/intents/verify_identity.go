@@ -3,6 +3,7 @@ package intents
 import (
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
@@ -31,6 +32,15 @@ func (i *IntentVerifyIdentity) InstantiateRootNode(ctx *interaction.Context, gra
 	if err != nil {
 		return nil, err
 	}
+
+	if identityInfo.UserID != i.UserID {
+		return nil, api.NewInvariantViolated(
+			"IdentityNotBelongToUser",
+			"identity does not belong to the user",
+			nil,
+		)
+	}
+
 	return &nodes.NodeEnsureVerificationBegin{
 		Identity:        identityInfo,
 		RequestedByUser: true,
