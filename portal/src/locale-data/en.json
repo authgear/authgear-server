@@ -978,7 +978,7 @@
   "AcceptAdminInvitationScreen.duplicated-collaborator-error": "Admin already exist",
   "AcceptAdminInvitationScreen.invalid-code.title": "Invalid Invite",
   "AcceptAdminInvitationScreen.invalid-code.description": "The invite link is invalid or expired. Please contact the admin to resent an invite.",
-  "AcceptAdminInvitationScreen.not-authenticaed.title": "You're invited to join Authgear with a tenent called {appID}",
+  "AcceptAdminInvitationScreen.not-authenticaed.title": "You're invited to join {b, react, children{{appID}}} on Authgear.",
   "AcceptAdminInvitationScreen.not-authenticated.description": "You will need to create a new Authgear account or login to your existing account.",
   "AcceptAdminInvitationScreen.not-invitee.title": "The invitee email does not match your logged in email",
   "AcceptAdminInvitationScreen.not-invitee.description": "Try logout and login as a different user?",
