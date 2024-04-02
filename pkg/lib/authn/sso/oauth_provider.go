@@ -69,15 +69,6 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 	if !ok {
 		return nil
 	}
-
-	if providerConfig.Type == config.OAuthSSOProviderTypeMock {
-		return &MockImpl{
-			ProviderConfig:               config.OAuthSSOProviderConfig{},
-			Credentials:                  config.OAuthSSOProviderCredentialsItem{},
-			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
-		}
-	}
-
 	credentials, ok := p.Credentials.Lookup(alias)
 	if !ok {
 		return nil

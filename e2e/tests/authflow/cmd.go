@@ -53,7 +53,6 @@ func (e *End2EndCmd) resolvePath(p string) string {
 }
 func (e *End2EndCmd) execCmd(cmd string) error {
 	execCmd := exec.Command("sh", "-c", cmd)
-	fmt.Println(execCmd.String())
 	execCmd.Dir = "../../"
 	execCmd.Stdout = os.Stdout
 	execCmd.Stderr = os.Stderr

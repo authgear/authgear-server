@@ -1,58 +1,58 @@
-name: OAuth
-authgear.yaml:
-  override: |
-    authentication:
-        identities:
-          - oauth
-        primary_authenticators:
-          - password
+# name: OAuth
+# authgear.yaml:
+#   override: |
+#     authentication:
+#         identities:
+#           - oauth
+#         primary_authenticators:
+#           - password
 
-    identity:
-      oauth:
-        providers:
-          - alias: mock
-            client_id: "mock"
-            type: mock
-before:
-  - type: user_import
-    user_import: users.json
-steps:
-  - action: "create"
-    input: |
-      {
-        "type": "signup",
-        "name": "default"
-      }
-    output:
-      result: |
-        {
-          "action": {
-            "type": "identify"
-          }
-        }
+#     identity:
+#       oauth:
+#         providers:
+#           - alias: mock
+#             client_id: "mock"
+#             type: mock
+# before:
+#   - type: user_import
+#     user_import: users.json
+# steps:
+#   - action: "create"
+#     input: |
+#       {
+#         "type": "signup",
+#         "name": "default"
+#       }
+#     output:
+#       result: |
+#         {
+#           "action": {
+#             "type": "identify"
+#           }
+#         }
 
-  - input: |
-      {
-        "identification": "oauth",
-        "alias": "mock",
-        "redirect_uri": "https://mock"
-      }
-    output:
-      result: |
-        {
-          "action": {
-            "type": "identify"
-          }
-        }
+#   - input: |
+#       {
+#         "identification": "oauth",
+#         "alias": "mock",
+#         "redirect_uri": "https://mock"
+#       }
+#     output:
+#       result: |
+#         {
+#           "action": {
+#             "type": "identify"
+#           }
+#         }
 
-  - input: |
-      {
-        "code": "mock"
-      }
-    output:
-      result: |
-        {
-          "action": {
-            "type": "finished"
-          }
-        }
+#   - input: |
+#       {
+#         "code": "mock"
+#       }
+#     output:
+#       result: |
+#         {
+#           "action": {
+#             "type": "finished"
+#           }
+#         }

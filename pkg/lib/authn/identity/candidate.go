@@ -80,8 +80,6 @@ func IsOAuthSSOProviderTypeDisabled(typ config.OAuthSSOProviderType, featureConf
 		return featureConfig.Apple.Disabled
 	case config.OAuthSSOProviderTypeWechat:
 		return featureConfig.Wechat.Disabled
-	case config.OAuthSSOProviderTypeMock:
-		return false
 	default:
 		panic(fmt.Sprintf("node: unknown oauth sso type: %T", typ))
 	}

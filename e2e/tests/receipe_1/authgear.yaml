@@ -117,11 +117,11 @@ identity:
         block_reserved_usernames: true
         case_sensitive: false
         exclude_keywords_enabled: false
-  oauth:
-    providers:
-    - alias: mock
-      client_id: mock
-      type: mock
+  # oauth:
+  #   providers:
+  #   - alias: mock
+  #     client_id: mock
+  #     type: mock
 localization:
   fallback_language: en
   supported_languages:
