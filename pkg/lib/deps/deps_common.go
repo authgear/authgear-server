@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/app2app"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/authflowclient"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	authenticatoroob "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	authenticatorpasskey "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
@@ -483,10 +482,6 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		authenticationflow.DependencySet,
-	),
-
-	wire.NewSet(
-		authflowclient.DependencySet,
 	),
 
 	wire.NewSet(

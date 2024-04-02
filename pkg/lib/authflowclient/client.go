@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
@@ -27,7 +26,7 @@ type Client struct {
 	HTTPHost      httputil.HTTPHost
 }
 
-func NewClient(ctx context.Context, mainListenAddr config.MainListenAddr, httpHost httputil.HTTPHost) *Client {
+func NewClient(ctx context.Context, mainListenAddr string, httpHost httputil.HTTPHost) *Client {
 	// Always use http because we are going to call ourselves locally.
 	localEndpointString := fmt.Sprintf("http://%v", mainListenAddr)
 	localEndpointURL, err := url.Parse(localEndpointString)

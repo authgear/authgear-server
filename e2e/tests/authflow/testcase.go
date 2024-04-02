@@ -17,7 +17,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func loadAllTestCases(path string) ([]TestCase, error) {
+func LoadAllTestCases(path string) ([]TestCase, error) {
 	var testCases []TestCase
 	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -53,7 +53,7 @@ func loadAllTestCases(path string) ([]TestCase, error) {
 	return testCases, err
 }
 
-func runTestCase(t *testing.T, testCase TestCase) {
+func RunTestCase(t *testing.T, testCase TestCase) {
 	t.Logf("running test case: %s\n", testCase.Name)
 
 	ctx := context.Background()

@@ -5,7 +5,7 @@ import (
 )
 
 func TestAuthflow(t *testing.T) {
-	testCases, err := loadAllTestCases("..")
+	testCases, err := LoadAllTestCases("..")
 	if err != nil {
 		t.Errorf("error: %v", err)
 		return
@@ -33,7 +33,7 @@ func TestAuthflow(t *testing.T) {
 				return
 			}
 
-			runTestCase(t, tc)
+			RunTestCase(t, tc)
 		})
 	}
 }
