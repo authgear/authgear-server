@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/lib/authflowclient"
+	authflowclient "github.com/authgear/authgear-server/e2e/tests/authflow/client"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"gopkg.in/yaml.v2"
 )

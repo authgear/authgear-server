@@ -1,4 +1,4 @@
-package authflowclient
+package e2eclient
 
 import (
 	"bytes"

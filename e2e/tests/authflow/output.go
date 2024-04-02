@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	authflowclient "github.com/authgear/authgear-server/e2e/tests/authflow/client"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/lib/authflowclient"
 )
 
 func MatchOutput(output Output, flowResult *authflowclient.FlowResponse, flowError error) (resultViolations []MatchViolation, errorViolations []MatchViolation, err error) {
