@@ -407,11 +407,6 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			app, err := gqlCtx.AppService.Create(actorID, appID)
-			if err != nil {
-				return nil, err
-			}
-
 			if phoneNumber != "" {
 				entry := model.OnboardEntry{
 					PhoneNumber: phoneNumber,
@@ -423,6 +418,11 @@ var _ = registerMutationField(
 				if err != nil {
 					return nil, err
 				}
+			}
+
+			app, err := gqlCtx.AppService.Create(actorID, appID)
+			if err != nil {
+				return nil, err
 			}
 
 			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectAppCreatedEventPayload{
