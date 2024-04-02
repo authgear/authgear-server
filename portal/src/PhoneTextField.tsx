@@ -36,6 +36,9 @@ export default class PhoneTextField extends React.Component<PhoneTextFieldProps>
       autoPlaceholder: "aggressive",
       customContainer: styles.container,
     };
+    if (this.props.initialCountry != null) {
+      options.initialCountry = this.props.initialCountry;
+    }
     if (this.props.allowlist != null) {
       options.onlyCountries = [...this.props.allowlist];
     }
