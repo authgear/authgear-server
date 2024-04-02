@@ -2,7 +2,6 @@ package e2e
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io/fs"
@@ -11,22 +10,11 @@ import (
 
 	"dario.cat/mergo"
 	cp "github.com/otiai10/copy"
-	"gopkg.in/yaml.v2"
+	"sigs.k8s.io/yaml"
 
-	"github.com/authgear/authgear-server/cmd/portal/internal"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
-	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 )
-
-type End2End struct {
-	Context context.Context
-}
-
-type NoopTaskQueue struct{}
-
-func (q NoopTaskQueue) Enqueue(param task.Param) {
-}
 
 var BuiltInConfigSourceDir = "./var"
 
@@ -41,20 +29,20 @@ func (c *End2End) CreateApp(appID string, baseConfigSourceDir string, override s
 		return err
 	}
 
-	err = internal.Create(&internal.CreateOptions{
-		DatabaseURL:    cfg.GlobalDatabase.DatabaseURL,
-		DatabaseSchema: cfg.GlobalDatabase.DatabaseSchema,
-		ResourceDir:    configSourceDir,
-	})
+	err = CreatePortalConfigSource(
+		cfg.GlobalDatabase.DatabaseURL,
+		cfg.GlobalDatabase.DatabaseSchema,
+		configSourceDir,
+	)
 	if err != nil {
 		return err
 	}
 
-	err = internal.CreateDefaultDomain(internal.CreateDefaultDomainOptions{
-		DatabaseURL:         cfg.GlobalDatabase.DatabaseURL,
-		DatabaseSchema:      cfg.GlobalDatabase.DatabaseSchema,
-		DefaultDomainSuffix: ".portal.localhost",
-	})
+	err = CreatePortalDefaultDomain(
+		cfg.GlobalDatabase.DatabaseURL,
+		cfg.GlobalDatabase.DatabaseSchema,
+		".portal.localhost",
+	)
 	if err != nil {
 		return err
 	}
@@ -99,7 +87,7 @@ func (c *End2End) createTempConfigSource(appID string, baseConfigSource string, 
 	}
 
 	var overrideCfg config.AppConfig
-	jsonData, err := yaml.Marshal([]byte(overrideYAML))
+	jsonData, err := yaml.YAMLToJSON([]byte(overrideYAML))
 	if err != nil {
 		return "", err
 	}
@@ -118,7 +106,7 @@ func (c *End2End) createTempConfigSource(appID string, baseConfigSource string, 
 	cfg.ID = config.AppID(appID)
 	cfg.HTTP.PublicOrigin = fmt.Sprintf("http://%s.portal.localhost:4000", appID)
 
-	newAuthgearYAML, err := config.Export(cfg)
+	newAuthgearYAML, err := exportConfig(cfg)
 	if err != nil {
 		return "", err
 	}
@@ -129,4 +117,21 @@ func (c *End2End) createTempConfigSource(appID string, baseConfigSource string, 
 	}
 
 	return tempAppDir, nil
+}
+
+func exportConfig(config *config.AppConfig) ([]byte, error) {
+	var buf bytes.Buffer
+	encoder := json.NewEncoder(&buf)
+	err := encoder.Encode(config)
+	if err != nil {
+		return nil, err
+	}
+
+	jsonData := buf.Bytes()
+	yamlData, err := yaml.JSONToYAML(jsonData)
+	if err != nil {
+		return nil, err
+	}
+
+	return yamlData, nil
 }

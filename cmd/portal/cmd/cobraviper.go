@@ -158,23 +158,3 @@ var ArgApexDomain = &cobraviper.StringArgument{
 	ArgumentName: "apex-domain",
 	Usage:        "The apex domain of the domain. It must NOT contain a port number.",
 }
-
-var ArgConfigSource = &cobraviper.StringArgument{
-	ArgumentName: "config-source",
-	Usage:        "Config source",
-}
-
-var ArgConfigOverride = &cobraviper.StringArgument{
-	ArgumentName: "config-override",
-	Usage:        "Config override",
-}
-
-var ArgAppID = &cobraviper.StringArgument{
-	ArgumentName: "app-id",
-	Usage:        "App ID",
-}
-
-var ArgCustomSQL = &cobraviper.StringArgument{
-	ArgumentName: "custom-sql",
-	Usage:        "Custom SQL",
-}

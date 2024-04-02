@@ -10,6 +10,10 @@ function setup {
     make -C .. build BIN_NAME=dist/authgear-portal TARGET=portal
     export PATH=$PATH:../dist
 
+    echo "[ ] Building e2e..."
+    make build
+    export PATH=$PATH:./dist
+
     echo "[ ] Starting authgear..."
     authgear start > authgear.log 2>&1 &
     for i in $(seq 10); do \

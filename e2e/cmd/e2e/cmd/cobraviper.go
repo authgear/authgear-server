@@ -50,3 +50,18 @@ var ArgInputFolder = &cobraviper.StringArgument{
 	Short:        "i",
 	Usage:        "Path to input folder",
 }
+
+var ArgConfigSource = &cobraviper.StringArgument{
+	ArgumentName: "config-source",
+	Usage:        "Config source",
+}
+
+var ArgConfigOverride = &cobraviper.StringArgument{
+	ArgumentName: "config-override",
+	Usage:        "Config override",
+}
+
+var ArgCustomSQL = &cobraviper.StringArgument{
+	ArgumentName: "custom-sql",
+	Usage:        "Custom SQL",
+}
