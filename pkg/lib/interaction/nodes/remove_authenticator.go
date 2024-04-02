@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -33,6 +34,14 @@ func (e *EdgeRemoveAuthenticator) Instantiate(ctx *interaction.Context, graph *i
 	info, err := ctx.Authenticators.Get(authenticatorID)
 	if err != nil {
 		return nil, err
+	}
+
+	if info.UserID != graph.MustGetUserID() {
+		return nil, api.NewInvariantViolated(
+			"AuthenticatorNotBelongToUser",
+			"authenticator does not belong to the user",
+			nil,
+		)
 	}
 
 	return &NodeRemoveAuthenticator{
