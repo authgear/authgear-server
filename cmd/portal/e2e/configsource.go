@@ -5,18 +5,18 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 
-	"io/fs"
-
 	"dario.cat/mergo"
+	cp "github.com/otiai10/copy"
+	"gopkg.in/yaml.v2"
+
 	"github.com/authgear/authgear-server/cmd/portal/internal"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
-	cp "github.com/otiai10/copy"
-	"sigs.k8s.io/yaml"
 )
 
 type End2End struct {
@@ -99,7 +99,7 @@ func (c *End2End) createTempConfigSource(appID string, baseConfigSource string, 
 	}
 
 	var overrideCfg config.AppConfig
-	jsonData, err := yaml.YAMLToJSON([]byte(overrideYAML))
+	jsonData, err := yaml.Marshal([]byte(overrideYAML))
 	if err != nil {
 		return "", err
 	}
