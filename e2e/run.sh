@@ -1,7 +1,5 @@
 #!/bin/bash -e
 
-. .env
-
 function setup {
     echo "[ ] Starting services..."
     docker compose up -d
@@ -49,7 +47,7 @@ function main {
     teardown || true
     setup
     runtests
-    # teardown
+    teardown
 }
 
 BASEDIR=$(cd $(dirname "$0") && pwd)

@@ -2,8 +2,6 @@ package config
 
 import "strings"
 
-type MainListenAddr string
-
 type TrustProxy bool
 
 type DevMode bool
