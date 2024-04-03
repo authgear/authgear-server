@@ -12,7 +12,7 @@ const (
 type AdminAPIMutationDeleteRoleExecutedEventPayload struct {
 	AffectedUserIDs []string   `json:"-"`
 	Role            model.Role `json:"role"`
-	RoleGroupIDs    []string   `json:"group_ids"`
+	RoleGroupIDs    []string   `json:"role_group_ids"`
 	RoleUserIDs     []string   `json:"role_user_ids"`
 }
 

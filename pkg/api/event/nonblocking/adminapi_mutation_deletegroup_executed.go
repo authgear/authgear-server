@@ -11,7 +11,7 @@ const (
 
 type AdminAPIMutationDeleteGroupExecutedEventPayload struct {
 	Group        model.Group `json:"group"`
-	GroupRoleIDs []string    `json:"role_ids"`
+	GroupRoleIDs []string    `json:"group_role_ids"`
 	GroupUserIDs []string    `json:"group_user_ids"`
 }
 
