@@ -27,15 +27,15 @@ import { useViewerQuery } from "./query/viewerQuery";
 
 interface FormState {
   appID: string;
-  phoneNumber: string;
-  validPhoneNumber: string;
+  rawPhoneInput: string;
+  maybeInvalidFullPhoneNumber: string;
 }
 
 function makeDefaultState(): FormState {
   return {
     appID: randomProjectName(),
-    phoneNumber: "",
-    validPhoneNumber: "",
+    rawPhoneInput: "",
+    maybeInvalidFullPhoneNumber: "",
   };
 }
 
@@ -80,7 +80,7 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
 
   const submit = useCallback(
     async (state: FormState) => {
-      return createApp(state.appID, state.validPhoneNumber);
+      return createApp(state.appID, state.maybeInvalidFullPhoneNumber);
     },
     [createApp]
   );
@@ -96,7 +96,7 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
     updateError,
     save,
     isUpdating,
-    state: { appID, phoneNumber },
+    state: { appID, rawPhoneInput },
     setState,
   } = form;
 
@@ -110,8 +110,13 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
   );
 
   const onChangePhoneNumber = useCallback(
-    (validPhoneNumber, phoneNumber: string) => {
-      setState((prev) => ({ ...prev, phoneNumber, validPhoneNumber }));
+    (values: { rawInputValue: string; partialValue?: string }) => {
+      const { rawInputValue, partialValue } = values;
+      setState((prev) => ({
+        ...prev,
+        rawPhoneInput: rawInputValue,
+        maybeInvalidFullPhoneNumber: partialValue ?? "",
+      }));
     },
     [setState]
   );
@@ -188,7 +193,7 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
                 parentJSONPointer=""
                 fieldName="phone_number"
                 initialCountry={viewer?.geoIPCountryCode ?? undefined}
-                inputValue={phoneNumber}
+                inputValue={rawPhoneInput}
                 onChange={onChangePhoneNumber}
                 label={renderToString("CreateProjectScreen.phone-number.label")}
               />

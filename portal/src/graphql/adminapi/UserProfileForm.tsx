@@ -319,15 +319,16 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
   );
 
   const onChangePhoneNumber = useCallback(
-    (valid: string, input: string) => {
+    (values: { e164?: string; rawInputValue: string }) => {
       if (onChangeCustomAttributes == null) {
         return;
       }
+      const { e164, rawInputValue } = values;
 
       onChangeCustomAttributes({
         ...customAttributes,
-        [pointer]: valid ? valid : input,
-        ["phone_number" + pointer]: input,
+        [pointer]: e164 != null ? e164 : rawInputValue,
+        ["phone_number" + pointer]: rawInputValue,
       });
     },
     [customAttributes, onChangeCustomAttributes, pointer]

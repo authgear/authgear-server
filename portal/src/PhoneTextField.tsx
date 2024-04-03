@@ -5,6 +5,24 @@ import intlTelInput from "intl-tel-input";
 import { SystemConfigContext } from "./context/SystemConfigContext";
 import styles from "./PhoneTextField.module.css";
 
+export interface PhoneTextFieldValues {
+  // Suppose the input now looks like
+  // +852 23
+  //
+  // then
+  //
+  // rawInputValue === "23"
+  // e164 === undefined
+  // partialValue === "+85223"
+  // alpha2 === "HK"
+  // countryCallingCode === "852"
+  rawInputValue: string;
+  e164?: string;
+  partialValue?: string;
+  alpha2?: string;
+  countryCallingCode?: string;
+}
+
 export interface PhoneTextFieldProps {
   className?: string;
   label?: string;
@@ -13,8 +31,15 @@ export interface PhoneTextFieldProps {
   allowlist?: string[];
   initialCountry?: string;
   inputValue: string;
-  onChange: (validValue: string, inputValue: string) => void;
+  onChange: (values: PhoneTextFieldValues) => void;
   errorMessage?: React.ReactNode;
+}
+
+function makePartialValue(
+  countryCallingCode: string,
+  rawInputValue: string
+): string {
+  return `+${countryCallingCode}${rawInputValue}`;
 }
 
 export default class PhoneTextField extends React.Component<PhoneTextFieldProps> {
@@ -77,15 +102,36 @@ export default class PhoneTextField extends React.Component<PhoneTextFieldProps>
 
   emitOnChange(): void {
     if (this.instance != null && this.inputRef.current != null) {
-      const isValid = this.instance.isPossibleNumber();
-      if (isValid) {
-        const valid = this.instance.getNumber();
-        if (valid != null) {
-          this.props.onChange(valid, this.inputRef.current.value);
+      const rawInputValue = this.inputRef.current.value;
+      const countryData = this.instance.getSelectedCountryData();
+      const alpha2 = countryData.iso2;
+      const countryCallingCode = countryData.dialCode;
+      // The output of getNumber() is very unstable.
+      // If isPossibleNumber(), then it has +countryCallingCode,
+      // otherwise it is rawInputValue with some spaces in it.
+      const maybeInvalid = this.instance.getNumber();
+      let e164;
+      if (this.instance.isPossibleNumber()) {
+        if (maybeInvalid != null) {
+          e164 = maybeInvalid;
         }
-      } else {
-        this.props.onChange("", this.inputRef.current.value);
       }
+      let partialValue;
+      if (e164 != null) {
+        partialValue = e164;
+      } else if (countryCallingCode != null) {
+        partialValue = makePartialValue(countryCallingCode, rawInputValue);
+      }
+
+      const values = {
+        e164,
+        rawInputValue,
+        alpha2,
+        countryCallingCode,
+        partialValue,
+      };
+
+      this.props.onChange(values);
     }
   }
 
