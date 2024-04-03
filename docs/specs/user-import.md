@@ -224,7 +224,7 @@ I want to import users from my old system into Authgear. This is a one-off opera
   "users": [
     {
       "email": "user@example.com",
-      "email_verified": true
+      "email_verified": true,
       "password": {
         "type": "bcrypt",
         "password_hash": "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy"
@@ -245,7 +245,7 @@ Some user data was incorrect in the previous one-off import. I have corrected th
   "users": [
     {
       "email": "user@example.com",
-      "email_verified": true
+      "email_verified": true,
       "name": "John Doe",
       "password": {
         "type": "bcrypt",
