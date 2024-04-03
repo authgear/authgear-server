@@ -3,6 +3,11 @@ import React, { createRef } from "react";
 import { Text, Label } from "@fluentui/react";
 import intlTelInput from "intl-tel-input";
 import { SystemConfigContext } from "./context/SystemConfigContext";
+import {
+  cleanRawInputValue,
+  trimCountryCallingCode,
+  makePartialValue,
+} from "./util/phone";
 import styles from "./PhoneTextField.module.css";
 
 export interface PhoneTextFieldValues {
@@ -35,13 +40,6 @@ export interface PhoneTextFieldProps {
   errorMessage?: React.ReactNode;
 }
 
-function makePartialValue(
-  countryCallingCode: string,
-  rawInputValue: string
-): string {
-  return `+${countryCallingCode}${rawInputValue}`;
-}
-
 export default class PhoneTextField extends React.Component<PhoneTextFieldProps> {
   inputRef: React.RefObject<HTMLInputElement>;
   instance: IntlTelInputInstance | null;
@@ -60,6 +58,7 @@ export default class PhoneTextField extends React.Component<PhoneTextFieldProps>
     const options: IntlTelInputInitOptions = {
       autoPlaceholder: "aggressive",
       customContainer: styles.container,
+      formatOnDisplay: false,
     };
     if (this.props.initialCountry != null) {
       options.initialCountry = this.props.initialCountry;
@@ -79,6 +78,7 @@ export default class PhoneTextField extends React.Component<PhoneTextFieldProps>
       this.instance = instance;
 
       this.inputRef.current.addEventListener("input", this.onInputChange);
+      this.inputRef.current.addEventListener("blur", this.onInputBlur);
       this.inputRef.current.addEventListener(
         "countrychange",
         this.onCountryChange
@@ -92,8 +92,31 @@ export default class PhoneTextField extends React.Component<PhoneTextFieldProps>
     }
   }
 
-  onInputChange = (): void => {
+  onInputChange = (e: Event): void => {
+    // Accept only + and digits.
+    if (e.target instanceof HTMLInputElement) {
+      const value = e.target.value;
+      const cleaned = cleanRawInputValue(value);
+      e.target.value = cleaned;
+    }
+
     this.emitOnChange();
+  };
+
+  onInputBlur = (e: Event): void => {
+    if (e.target instanceof HTMLInputElement) {
+      const values = this.prepareValues();
+      if (values != null) {
+        const { countryCallingCode, rawInputValue } = values;
+        if (countryCallingCode != null) {
+          const value = trimCountryCallingCode(
+            rawInputValue,
+            countryCallingCode
+          );
+          e.target.value = value;
+        }
+      }
+    }
   };
 
   onCountryChange = (): void => {
@@ -101,6 +124,13 @@ export default class PhoneTextField extends React.Component<PhoneTextFieldProps>
   };
 
   emitOnChange(): void {
+    const values = this.prepareValues();
+    if (values != null) {
+      this.props.onChange(values);
+    }
+  }
+
+  prepareValues(): PhoneTextFieldValues | undefined {
     if (this.instance != null && this.inputRef.current != null) {
       const rawInputValue = this.inputRef.current.value;
       const countryData = this.instance.getSelectedCountryData();
@@ -120,7 +150,7 @@ export default class PhoneTextField extends React.Component<PhoneTextFieldProps>
       if (e164 != null) {
         partialValue = e164;
       } else if (countryCallingCode != null) {
-        partialValue = makePartialValue(countryCallingCode, rawInputValue);
+        partialValue = makePartialValue(rawInputValue, countryCallingCode);
       }
 
       const values = {
@@ -130,9 +160,10 @@ export default class PhoneTextField extends React.Component<PhoneTextFieldProps>
         countryCallingCode,
         partialValue,
       };
-
-      this.props.onChange(values);
+      return values;
     }
+
+    return undefined;
   }
 
   render(): JSX.Element {
@@ -158,6 +189,7 @@ export default class PhoneTextField extends React.Component<PhoneTextFieldProps>
           type="text"
           ref={this.inputRef}
           disabled={disabled}
+          pattern="^[\+0-9]*$"
         />
         {errorMessage ? (
           <Text
