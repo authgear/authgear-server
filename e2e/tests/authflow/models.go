@@ -1,8 +1,10 @@
 package tests
 
 type TestCase struct {
-	Name               string             `yaml:"name"`
-	Path               string             `yaml:"path"`
+	Name string `yaml:"name"`
+	Path string `yaml:"path"`
+	// Applying focus to a test case will make it the only test case to run,
+	// mainly used for debugging new test cases.
 	Focus              bool               `yaml:"focus"`
 	AuthgearYAMLSource AuthgearYAMLSource `yaml:"authgear.yaml"`
 	Steps              []Step             `yaml:"steps"`
