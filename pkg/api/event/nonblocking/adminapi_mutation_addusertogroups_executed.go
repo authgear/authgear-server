@@ -9,8 +9,8 @@ const (
 )
 
 type AdminAPIMutationAddUserToGroupsExecutedEventPayload struct {
-	UserID_   string   `json:"user_id"`
-	GroupKeys []string `json:"group_keys"`
+	UserID_  string   `json:"user_id"`
+	GroupIDs []string `json:"group_ids"`
 }
 
 func (e *AdminAPIMutationAddUserToGroupsExecutedEventPayload) NonBlockingEventType() event.Type {

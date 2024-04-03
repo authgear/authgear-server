@@ -10,8 +10,8 @@ const (
 
 type AdminAPIMutationAddGroupToRolesExecutedEventPayload struct {
 	AffectedUserIDs []string `json:"-"`
-	GroupKey        string   `json:"group_key"`
-	RoleKeys        []string `json:"role_keys"`
+	GroupID         string   `json:"group_id"`
+	RoleIDs         []string `json:"role_ids"`
 }
 
 func (e *AdminAPIMutationAddGroupToRolesExecutedEventPayload) NonBlockingEventType() event.Type {

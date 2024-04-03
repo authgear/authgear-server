@@ -10,8 +10,8 @@ const (
 
 type AdminAPIMutationRemoveRoleFromGroupsExecutedEventPayload struct {
 	AffectedUserIDs []string `json:"-"`
-	RoleKey         string   `json:"role_key"`
-	GroupKeys       []string `json:"group_keys"`
+	RoleID          string   `json:"role_id"`
+	GroupIDs        []string `json:"group_ids"`
 }
 
 func (e *AdminAPIMutationRemoveRoleFromGroupsExecutedEventPayload) NonBlockingEventType() event.Type {

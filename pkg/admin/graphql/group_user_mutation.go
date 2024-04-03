@@ -3,8 +3,10 @@ package graphql
 import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 )
@@ -71,8 +73,8 @@ var _ = registerMutationField(
 			}
 
 			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationAddGroupToUsersExecutedEventPayload{
-				UserIDs:  userIDs,
-				GroupKey: groupKey,
+				UserIDs: userIDs,
+				GroupID: groupID,
 			})
 			if err != nil {
 				return nil, err
@@ -148,8 +150,8 @@ var _ = registerMutationField(
 			}
 
 			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationRemoveGroupFromUsersExecutedEventPayload{
-				UserIDs:  userIDs,
-				GroupKey: groupKey,
+				UserIDs: userIDs,
+				GroupID: groupID,
 			})
 			if err != nil {
 				return nil, err
@@ -212,18 +214,23 @@ var _ = registerMutationField(
 			}
 			gqlCtx := GQLContext(p.Context)
 
+			groups, err := gqlCtx.RolesGroupsFacade.ListAllGroupsByKeys(groupKeys)
+			if err != nil {
+				return nil, err
+			}
+
 			options := &rolesgroups.AddUserToGroupsOptions{
 				UserID:    userID,
 				GroupKeys: groupKeys,
 			}
-			err := gqlCtx.RolesGroupsFacade.AddUserToGroups(options)
+			err = gqlCtx.RolesGroupsFacade.AddUserToGroups(options)
 			if err != nil {
 				return nil, err
 			}
 
 			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationAddUserToGroupsExecutedEventPayload{
-				UserID_:   userID,
-				GroupKeys: groupKeys,
+				UserID_:  userID,
+				GroupIDs: slice.Map(groups, func(g *model.Group) string { return g.ID }),
 			})
 			if err != nil {
 				return nil, err
@@ -286,18 +293,23 @@ var _ = registerMutationField(
 			}
 			gqlCtx := GQLContext(p.Context)
 
+			groups, err := gqlCtx.RolesGroupsFacade.ListAllGroupsByKeys(groupKeys)
+			if err != nil {
+				return nil, err
+			}
+
 			options := &rolesgroups.RemoveUserFromGroupsOptions{
 				UserID:    userID,
 				GroupKeys: groupKeys,
 			}
-			err := gqlCtx.RolesGroupsFacade.RemoveUserFromGroups(options)
+			err = gqlCtx.RolesGroupsFacade.RemoveUserFromGroups(options)
 			if err != nil {
 				return nil, err
 			}
 
 			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationRemoveUserFromGroupsExecutedEventPayload{
-				UserID_:   userID,
-				GroupKeys: groupKeys,
+				UserID_:  userID,
+				GroupIDs: slice.Map(groups, func(g *model.Group) string { return g.ID }),
 			})
 			if err != nil {
 				return nil, err

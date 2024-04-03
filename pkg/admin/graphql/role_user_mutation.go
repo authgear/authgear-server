@@ -3,8 +3,10 @@ package graphql
 import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 )
@@ -212,18 +214,23 @@ var _ = registerMutationField(
 			}
 			gqlCtx := GQLContext(p.Context)
 
+			roles, err := gqlCtx.RolesGroupsFacade.ListAllRolesByKeys(roleKeys)
+			if err != nil {
+				return nil, err
+			}
+
 			options := &rolesgroups.AddUserToRolesOptions{
 				UserID:   userID,
 				RoleKeys: roleKeys,
 			}
-			err := gqlCtx.RolesGroupsFacade.AddUserToRoles(options)
+			err = gqlCtx.RolesGroupsFacade.AddUserToRoles(options)
 			if err != nil {
 				return nil, err
 			}
 
 			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationAddUserToRolesExecutedEventPayload{
-				UserID_:  userID,
-				RoleKeys: roleKeys,
+				UserID_: userID,
+				RoleIDs: slice.Map(roles, func(r *model.Role) string { return r.ID }),
 			})
 			if err != nil {
 				return nil, err
@@ -286,17 +293,22 @@ var _ = registerMutationField(
 			}
 			gqlCtx := GQLContext(p.Context)
 
+			roles, err := gqlCtx.RolesGroupsFacade.ListAllRolesByKeys(roleKeys)
+			if err != nil {
+				return nil, err
+			}
+
 			options := &rolesgroups.RemoveUserFromRolesOptions{
 				UserID:   userID,
 				RoleKeys: roleKeys,
 			}
-			err := gqlCtx.RolesGroupsFacade.RemoveUserFromRoles(options)
+			err = gqlCtx.RolesGroupsFacade.RemoveUserFromRoles(options)
 			if err != nil {
 				return nil, err
 			}
 			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationRemoveUserFromRolesExecutedEventPayload{
-				UserID_:  userID,
-				RoleKeys: roleKeys,
+				UserID_: userID,
+				RoleIDs: slice.Map(roles, func(r *model.Role) string { return r.ID }),
 			})
 			if err != nil {
 				return nil, err

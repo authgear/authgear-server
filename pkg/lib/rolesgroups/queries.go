@@ -262,6 +262,22 @@ func (q *Queries) ListAllUserIDsByEffectiveRoleIDs(roleIDs []string) ([]string, 
 	return q.Store.ListAllUserIDsByEffectiveRoleIDs(roleIDs)
 }
 
+func (f *Queries) ListAllRolesByKeys(keys []string) ([]*model.Role, error) {
+	roles, err := f.Store.GetManyRolesByKeys(keys)
+	if err != nil {
+		return nil, err
+	}
+	return slice.Map(roles, func(r *Role) *model.Role { return r.ToModel() }), nil
+}
+
+func (f *Queries) ListAllGroupsByKeys(keys []string) ([]*model.Group, error) {
+	groups, err := f.Store.GetManyGroupsByKeys(keys)
+	if err != nil {
+		return nil, err
+	}
+	return slice.Map(groups, func(g *Group) *model.Group { return g.ToModel() }), nil
+}
+
 func (q *Queries) CountRoles() (uint64, error) {
 	return q.Store.CountRoles()
 }

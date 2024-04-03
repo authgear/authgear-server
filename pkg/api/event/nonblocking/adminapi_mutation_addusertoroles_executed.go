@@ -9,8 +9,8 @@ const (
 )
 
 type AdminAPIMutationAddUserToRolesExecutedEventPayload struct {
-	UserID_  string   `json:"user_id"`
-	RoleKeys []string `json:"role_keys"`
+	UserID_ string   `json:"user_id"`
+	RoleIDs []string `json:"role_ids"`
 }
 
 func (e *AdminAPIMutationAddUserToRolesExecutedEventPayload) NonBlockingEventType() event.Type {
