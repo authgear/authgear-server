@@ -43,9 +43,10 @@ function LoginIDField(props: LoginIDFieldProps) {
   const [inputValue, setInputValue] = useState("");
   const { onChange } = props;
   const onChangeValues = useCallback(
-    (valid: string, input: string) => {
-      onChange(valid);
-      setInputValue(input);
+    (values: { e164?: string; rawInputValue: string }) => {
+      const { e164, rawInputValue } = values;
+      onChange(e164 ?? "");
+      setInputValue(rawInputValue);
     },
     [onChange]
   );
