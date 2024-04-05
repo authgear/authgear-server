@@ -59,7 +59,7 @@ var rootDeps = wire.NewSet(
 	configsource.DependencySet,
 )
 
-var appRootDeps = wire.NewSet(
+var AppRootDeps = wire.NewSet(
 	rootDeps,
 	wire.FieldsOf(new(*AppProvider),
 		"RootProvider",
@@ -137,29 +137,8 @@ func ProvideRedisQueueHTTPProto() httputil.HTTPProto {
 	return httputil.HTTPProto("https")
 }
 
-func ProvideEnd2EndHTTPRequest() *http.Request {
-	r, _ := http.NewRequest("GET", "", nil)
-	return r
-}
-
-func ProvideEnd2EndRemoteIP() httputil.RemoteIP {
-	return httputil.RemoteIP("127.0.0.1")
-}
-
-func ProvideEnd2EndUserAgentString() httputil.UserAgentString {
-	return httputil.UserAgentString("redis-queue")
-}
-
-func ProvideEnd2EndHTTPHost() httputil.HTTPHost {
-	return httputil.HTTPHost("127.0.0.1")
-}
-
-func ProvideEnd2EndHTTPProto() httputil.HTTPProto {
-	return httputil.HTTPProto("https")
-}
-
 var RequestDependencySet = wire.NewSet(
-	appRootDeps,
+	AppRootDeps,
 	wire.FieldsOf(new(*RequestProvider),
 		"AppProvider",
 		"Request",
@@ -173,7 +152,7 @@ var RequestDependencySet = wire.NewSet(
 )
 
 var RedisQueueDependencySet = wire.NewSet(
-	appRootDeps,
+	AppRootDeps,
 	ProvideRedisQueueHTTPRequest,
 	ProvideRedisQueueRemoteIP,
 	ProvideRedisQueueUserAgentString,
@@ -182,7 +161,7 @@ var RedisQueueDependencySet = wire.NewSet(
 )
 
 var TaskDependencySet = wire.NewSet(
-	appRootDeps,
+	AppRootDeps,
 	wire.FieldsOf(new(*TaskProvider),
 		"AppProvider",
 		"Context",
@@ -206,13 +185,4 @@ var BackgroundDependencySet = wire.NewSet(
 
 	clock.DependencySet,
 	globaldb.DependencySet,
-)
-
-var End2EndDependencySet = wire.NewSet(
-	appRootDeps,
-	ProvideEnd2EndHTTPRequest,
-	ProvideEnd2EndRemoteIP,
-	ProvideEnd2EndUserAgentString,
-	ProvideEnd2EndHTTPHost,
-	ProvideEnd2EndHTTPProto,
 )

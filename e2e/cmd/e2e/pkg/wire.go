@@ -41,7 +41,7 @@ func newInProcessQueue(p *deps.AppProvider, e *executor.InProcessExecutor) *queu
 
 func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImportService {
 	panic(wire.Build(
-		deps.End2EndDependencySet,
+		End2EndDependencySet,
 		deps.CommonDependencySet,
 	))
 }
