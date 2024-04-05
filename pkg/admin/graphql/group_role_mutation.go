@@ -2,8 +2,10 @@ package graphql
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/graphql-go/graphql"
 )
 
@@ -63,6 +65,11 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			groups, err := gqlCtx.RolesGroupsFacade.ListAllGroupsByKeys(groupKeys)
+			if err != nil {
+				return nil, err
+			}
+
 			roleID, err := gqlCtx.RolesGroupsFacade.AddRoleToGroups(options)
 			if err != nil {
 				return nil, err
@@ -70,6 +77,8 @@ var _ = registerMutationField(
 
 			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationAddRoleToGroupsExecutedEventPayload{
 				AffectedUserIDs: affectedUserIDs,
+				RoleID:          roleID,
+				GroupIDs:        slice.Map(groups, func(r *model.Group) string { return r.ID }),
 			})
 			if err != nil {
 				return nil, err
@@ -138,6 +147,11 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			groups, err := gqlCtx.RolesGroupsFacade.ListAllGroupsByKeys(groupKeys)
+			if err != nil {
+				return nil, err
+			}
+
 			roleID, err := gqlCtx.RolesGroupsFacade.RemoveRoleFromGroups(options)
 			if err != nil {
 				return nil, err
@@ -145,6 +159,8 @@ var _ = registerMutationField(
 
 			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationRemoveRoleFromGroupsExecutedEventPayload{
 				AffectedUserIDs: affectedUserIDs,
+				RoleID:          roleID,
+				GroupIDs:        slice.Map(groups, func(r *model.Group) string { return r.ID }),
 			})
 			if err != nil {
 				return nil, err
@@ -213,6 +229,11 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			roles, err := gqlCtx.RolesGroupsFacade.ListAllRolesByKeys(roleKeys)
+			if err != nil {
+				return nil, err
+			}
+
 			groupID, err := gqlCtx.RolesGroupsFacade.AddGroupToRoles(options)
 			if err != nil {
 				return nil, err
@@ -220,6 +241,8 @@ var _ = registerMutationField(
 
 			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationAddGroupToRolesExecutedEventPayload{
 				AffectedUserIDs: affectedUserIDs,
+				GroupID:         groupID,
+				RoleIDs:         slice.Map(roles, func(r *model.Role) string { return r.ID }),
 			})
 			if err != nil {
 				return nil, err
@@ -287,6 +310,11 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			roles, err := gqlCtx.RolesGroupsFacade.ListAllRolesByKeys(roleKeys)
+			if err != nil {
+				return nil, err
+			}
+
 			groupID, err := gqlCtx.RolesGroupsFacade.RemoveGroupFromRoles(options)
 			if err != nil {
 				return nil, err
@@ -294,6 +322,8 @@ var _ = registerMutationField(
 
 			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationRemoveGroupFromRolesExecutedEventPayload{
 				AffectedUserIDs: affectedUserIDs,
+				RoleIDs:         slice.Map(roles, func(r *model.Role) string { return r.ID }),
+				GroupID:         groupID,
 			})
 			if err != nil {
 				return nil, err

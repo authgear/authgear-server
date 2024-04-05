@@ -2,6 +2,7 @@ package nonblocking
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
 const (
@@ -9,7 +10,10 @@ const (
 )
 
 type AdminAPIMutationDeleteRoleExecutedEventPayload struct {
-	AffectedUserIDs []string `json:"-"`
+	AffectedUserIDs []string   `json:"-"`
+	Role            model.Role `json:"role"`
+	RoleGroupIDs    []string   `json:"role_group_ids"`
+	RoleUserIDs     []string   `json:"role_user_ids"`
 }
 
 func (e *AdminAPIMutationDeleteRoleExecutedEventPayload) NonBlockingEventType() event.Type {
@@ -32,8 +36,7 @@ func (e *AdminAPIMutationDeleteRoleExecutedEventPayload) ForHook() bool {
 }
 
 func (e *AdminAPIMutationDeleteRoleExecutedEventPayload) ForAudit() bool {
-	// FIXME(tung): Should be true
-	return false
+	return true
 }
 
 func (e *AdminAPIMutationDeleteRoleExecutedEventPayload) RequireReindexUserIDs() []string {

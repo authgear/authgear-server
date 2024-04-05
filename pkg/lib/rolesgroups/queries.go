@@ -11,6 +11,22 @@ type Queries struct {
 	Store *Store
 }
 
+func (q *Queries) GetRole(id string) (*model.Role, error) {
+	role, err := q.Store.GetRoleByID(id)
+	if err != nil {
+		return nil, err
+	}
+	return role.ToModel(), nil
+}
+
+func (q *Queries) GetGroup(id string) (*model.Group, error) {
+	group, err := q.Store.GetGroupByID(id)
+	if err != nil {
+		return nil, err
+	}
+	return group.ToModel(), nil
+}
+
 func (q *Queries) GetManyRoles(ids []string) ([]*model.Role, error) {
 	roles, err := q.Store.GetManyRoles(ids)
 	if err != nil {
@@ -194,6 +210,10 @@ func (q *Queries) ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageAr
 	return models, nil
 }
 
+func (q *Queries) ListAllUserIDsByRoleIDs(roleIDs []string) ([]string, error) {
+	return q.Store.ListAllUserIDsByRoleID(roleIDs)
+}
+
 func (q *Queries) ListAllUserIDsByGroupKeys(groupKeys []string) ([]string, error) {
 	groups, err := q.Store.GetManyGroupsByKeys(groupKeys)
 	if err != nil {
@@ -242,6 +262,22 @@ func (q *Queries) ListEffectiveRolesByUserID(userID string) ([]*model.Role, erro
 
 func (q *Queries) ListAllUserIDsByEffectiveRoleIDs(roleIDs []string) ([]string, error) {
 	return q.Store.ListAllUserIDsByEffectiveRoleIDs(roleIDs)
+}
+
+func (f *Queries) ListAllRolesByKeys(keys []string) ([]*model.Role, error) {
+	roles, err := f.Store.GetManyRolesByKeys(keys)
+	if err != nil {
+		return nil, err
+	}
+	return slice.Map(roles, func(r *Role) *model.Role { return r.ToModel() }), nil
+}
+
+func (f *Queries) ListAllGroupsByKeys(keys []string) ([]*model.Group, error) {
+	groups, err := f.Store.GetManyGroupsByKeys(keys)
+	if err != nil {
+		return nil, err
+	}
+	return slice.Map(groups, func(g *Group) *model.Group { return g.ToModel() }), nil
 }
 
 func (q *Queries) CountRoles() (uint64, error) {
