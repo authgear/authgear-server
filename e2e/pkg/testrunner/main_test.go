@@ -1,11 +1,11 @@
-package tests
+package testrunner
 
 import (
 	"testing"
 )
 
 func TestAuthflow(t *testing.T) {
-	testCases, err := LoadAllTestCases("..")
+	testCases, err := LoadAllTestCases("../../tests")
 	if err != nil {
 		t.Errorf("error: %v", err)
 		return

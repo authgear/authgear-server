@@ -44,7 +44,7 @@ function teardown {
 
 function runtests {
     echo "[ ] Run tests..."
-    go test ./tests/... -timeout 1m30s
+    go test ./... -timeout 1m30s
 }
 
 function main {

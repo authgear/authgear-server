@@ -1,4 +1,4 @@
-package tests
+package testrunner
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	authflowclient "github.com/authgear/authgear-server/e2e/tests/authflow/client"
+	authflowclient "github.com/authgear/authgear-server/e2e/pkg/e2eclient"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"gopkg.in/yaml.v2"
 )

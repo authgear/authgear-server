@@ -126,8 +126,8 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 	identityConfig := appConfig.Identity
 	loginIDConfig := identityConfig.LoginID
 	appID := appConfig.ID
-	remoteIP := deps.ProvideEnd2EndRemoteIP()
-	userAgentString := deps.ProvideEnd2EndUserAgentString()
+	remoteIP := ProvideEnd2EndRemoteIP()
+	userAgentString := ProvideEnd2EndUserAgentString()
 	factory := p.LoggerFactory
 	logger := event.NewLogger(factory)
 	clockClock := _wireSystemClockValue
@@ -142,6 +142,7 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	rawQueries := &user.RawQueries{
 		Store: store,
@@ -212,7 +213,7 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	request := deps.ProvideEnd2EndHTTPRequest()
+	request := ProvideEnd2EndHTTPRequest()
 	rootProvider := p.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
@@ -226,8 +227,8 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	httpProto := deps.ProvideEnd2EndHTTPProto()
-	httpHost := deps.ProvideEnd2EndHTTPHost()
+	httpProto := ProvideEnd2EndHTTPProto()
+	httpHost := ProvideEnd2EndHTTPHost()
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources

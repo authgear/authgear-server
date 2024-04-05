@@ -1,10 +1,10 @@
-package tests
+package testrunner
 
 import (
 	"encoding/json"
 	"fmt"
 
-	authflowclient "github.com/authgear/authgear-server/e2e/tests/authflow/client"
+	authflowclient "github.com/authgear/authgear-server/e2e/pkg/e2eclient"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 

@@ -1,4 +1,4 @@
-package tests
+package testrunner
 
 import (
 	"encoding/json"

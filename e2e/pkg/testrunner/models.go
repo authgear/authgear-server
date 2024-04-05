@@ -1,4 +1,4 @@
-package tests
+package testrunner
 
 type TestCase struct {
 	Name string `yaml:"name"`
