@@ -160,6 +160,11 @@ test_mode:
     rules:
     - fixed_code: "000000"
       regex: .*
+  link_otp:
+    enabled: true
+    rules:
+    - fixed_code: "000000"
+      regex: .*
   sms:
     enabled: true
     rules:
@@ -170,7 +175,6 @@ test_mode:
     rules:
     - regex: .*
       suppressed: true
-      fixed_code: "000000"
 ui:
   dark_theme_disabled: true
   forgot_password:

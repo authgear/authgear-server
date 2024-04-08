@@ -63,16 +63,16 @@ func (f Form) generateOOBOTPCode(c secretcode.OOBOTPSecretCodeType, cfg *config.
 }
 
 func (f Form) generateLinkOTPCode(c secretcode.LinkOTPSecretCodeType, cfg *config.TestModeConfig, featureCfg *config.TestModeFeatureConfig, target string, userID string) string {
-	if cfg.Email.Enabled {
-		if r, ok := cfg.Email.MatchTarget(target); ok {
-			fixedOTP := r.FixedCode
-			if fixedOTP == "" && featureCfg.DeterministicLinkOTP.Enabled {
-				return c.GenerateDeterministic(userID)
+	if cfg.LinkOTP.Enabled {
+		if r, ok := cfg.LinkOTP.MatchTarget(target); ok {
+			linkOTP := r.FixedCode
+			if linkOTP == "" && featureCfg.DeterministicLinkOTP.Enabled {
+				linkOTP = c.GenerateDeterministic(userID)
 			}
-			if fixedOTP == "" {
-				fixedOTP = c.Generate()
+			if linkOTP == "" {
+				linkOTP = c.Generate()
 			}
-			return c.GenerateFixed(fixedOTP)
+			return linkOTP
 		}
 	}
 	if featureCfg.DeterministicLinkOTP.Enabled {

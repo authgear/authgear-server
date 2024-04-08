@@ -143,9 +143,9 @@ func TestGenerateCode(t *testing.T) {
 			name: "Link - Should prefer config over feature config",
 			form: FormLink,
 			cfg: &config.TestModeConfig{
-				Email: &config.TestModeEmailConfig{
+				LinkOTP: &config.TestModeLinkOTPConfig{
 					Enabled: true,
-					Rules: []*config.TestModeEmailRule{
+					Rules: []*config.TestModeLinkOTPRule{
 						{
 							Regex:     ".*",
 							FixedCode: "config_code",
@@ -166,9 +166,9 @@ func TestGenerateCode(t *testing.T) {
 			name: "Link - Should use feature config if config not enabled",
 			form: FormLink,
 			cfg: &config.TestModeConfig{
-				Email: &config.TestModeEmailConfig{
+				LinkOTP: &config.TestModeLinkOTPConfig{
 					Enabled: false,
-					Rules: []*config.TestModeEmailRule{
+					Rules: []*config.TestModeLinkOTPRule{
 						{
 							Regex:     ".*",
 							FixedCode: "config_code",
@@ -189,9 +189,9 @@ func TestGenerateCode(t *testing.T) {
 			name: "Link - Should use feature config if config has no fixed code",
 			form: FormLink,
 			cfg: &config.TestModeConfig{
-				Email: &config.TestModeEmailConfig{
+				LinkOTP: &config.TestModeLinkOTPConfig{
 					Enabled: true,
-					Rules: []*config.TestModeEmailRule{
+					Rules: []*config.TestModeLinkOTPRule{
 						{
 							Regex:     ".*",
 							FixedCode: "",
@@ -212,9 +212,9 @@ func TestGenerateCode(t *testing.T) {
 			name: "Link - Should generate code if no fixed code",
 			form: FormLink,
 			cfg: &config.TestModeConfig{
-				Email: &config.TestModeEmailConfig{
+				LinkOTP: &config.TestModeLinkOTPConfig{
 					Enabled: false,
-					Rules: []*config.TestModeEmailRule{
+					Rules: []*config.TestModeLinkOTPRule{
 						{
 							Regex:     ".*",
 							FixedCode: "",

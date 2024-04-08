@@ -630,6 +630,8 @@ captcha: {}
 test_mode:
   oob_otp:
     enabled: false
+  link_otp:
+      enabled: false
   sms:
     enabled: false
   whatsapp:
