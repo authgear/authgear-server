@@ -12,47 +12,74 @@ Here is an example of the configuration:
 
 ```yaml
 identity:
-  providers:
-    - alias: google
-      client_id: exampleclientid
-      type: google
-      account_linking:
-        enabled: true
-        idp_claim_key: "email"
-        match_against_claim_key: "email"
+  on_conflict:
+    signup: "login_and_link"
+  oauth:
+    providers:
+      - alias: google
+        client_id: exampleclientid
+        type: google
+        link_by:
+          pointer: "/email"
+      - alias: azureadv2
+        client_id: exampleclientid
+        type: azureadv2
+        link_by:
+          pointer: "/preferred_username"
+      
 ```
 
-- The `account_linking` object was added.
-- `account_linking.enabled`: A boolean indicates if account linking is enabled for this provider.
-- `account_linking.idp_claim_key`: The key which used to read a claim value from from userinfo of the idp.
-- `account_linking.match_against_claim_key`: The key which used to read a claim value from from userinfo of authgear. If the value matched with the value read using `account_linking.idp_claim_key` in the idp userinfo, an account linking will be performed.
+- The `link_by` object was added to provider config.
+- `link_by.pointer`: The pointer to the claim which used to match the oauth account to an authgear user. For example `"/email"`. It could be a standard claim, or a custom claim. Sensible options will be displayed in portal, but no valiation will be done at server because we would like to keep the flexibility to use any claim for any provider. The default value is `pointer: "/email"`, except that for wechat, it is default `null`.
+
+- The `identity.on_conflict.signup` config was added to specify the behavior if an conflict occurred during signup. The possible values are:
+  - `"error"`: Reject the signup with an error. This is the default.
+  - `"login"`: Switch to login flow of the existing account.
+  - `"login_and_link"`: Switch to login flow of the existing account. After that, add the new identity which triggered the conflict to the logged in account.
+  - `"create_new_account"`: Create a new account with this new identity, ignoring the conflict.
+  - `"hook"`: Use a hook to decide the behavior.
+
+At this stage, we will only implement `error`, `login` and `login_and_link`.
 
 ## Trigger conditions and actions
 
 - Whenever an oauth identity is used, and there is no existing user for that identity.
 
-  1. If `account_linking.enabled` is not `true`, do nothing. Else,
-  2. Get the value of claim from the idp profile using `account_linking.idp_claim_key`. If the value is empty, do nothing.
-  3. Query from existing users using `account_linking.match_against_claim_key`, where the claim value is matching the value in 2.
-  4. If there is exactly one match, add the oauth identity to the existing user as a new identity. Else, create a new user.
+  1. If `link_by` is null, do nothing. Else,
+  2. Get the value of claim from the idp claim using `link_by`. If the value is empty, do nothing.
+  3. Query from existing identities using the claim key specified by `link_by`, where the claim value is matching the value in 2.
+  4. Do:
 
-  - If there are more than one match, throw an error and reject the login.
+  - If there is at least one match,
+    - If `identity.on_conflict.signup=error`, return an error and terminate the signup flow.
+    - If `identity.on_conflict.signup=login`, trigger login flow for that existing user, and discard the new identity.
+    - If `identity.on_conflict.signup=login_and_link`, trigger login flow for that existing user, and add the new oauth identity to that user after the flow was completed sucessfully.
+    - If `identity.on_conflict.signup=create_new_account`, create a new user with that oauth identity.
+    - If `identity.on_conflict.signup=hook`, trigger a hook and use the result to determine what to do.
+  - If there is no match, create a new user.
 
-- Whenever a new user create an identity during signup.
-  1. For every `identity.providers` with `account_linking.enabled` equal to `true`, do:
-  - 1.1. Use `account_linking.match_against_claim_key` to obtain a value from the new user. If the value is empty, do nothing.
-  - 1.2. Use `account_linking.idp_claim_key` to query users with an oauth identity of the current provider matching the value in 1.1.
-  2. (TBC) If there is at least one user found in 1, block the login and ask user to signin with with the found identity.
+- Whenever a new user creates an new identity during signup.
+  1. For every `identity.providers` with non-null `link_by`, use `link_by` to obtain a value from the new identity. If the value is empty, do nothing.
+  2. Use the value we get in 1 to query for existing oauth identities with the same claim specified in `link_by`.
+  3. If there is at least one identify found in step 2,
+    - If `identity.on_conflict.signup=error`, return an error and terminate the signup flow.
+    - If `identity.on_conflict.signup=login`, trigger login flow for that existing user, and discard the new identity.
+    - If `identity.on_conflict.signup=login_and_link`, trigger login flow for that existing user, and add the new identity to that user after the flow was completed sucessfully.
+    - If `identity.on_conflict.signup=create_new_account`, create a new user with the new identity.
+    - If `identity.on_conflict.signup=hook`, trigger a hook and use the result to determine what to do.
+
+## Future enhancements
+
+- Currently, the developer may have no idea how the claims are generated from the external idp user claims if they did not look at the source code. In the future, we should support customizing the transformation logic by providing custom script or hook so that the developer has more control on the linking behavior.
+
+- Only `error` `login` `login_and_link` will be implemented for `identity.on_conflict.signup` at the moment. `create_new_account` and `hook` could be added in a later stage.
 
 ## Caveats
 
-- Linkedin
-
-  - The current integration called the me and contact apis, and combined them into one object as the profile. As the generated profile is not directly equals to the response of apis, user could have no idea what to set in `account_linking.idp_claim_key`.
-  - Maybe we should re-implement the integration using the v2 api which is oidc compatible. https://learn.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/sign-in-with-linkedin-v2
-
 - Wechat
-  - The user profile returned is not using oidc standard claims, but it shouldn't cause any problem as `account_linking.idp_claim_key` can be any keys.
+  - Account linking is probably not usable with wechat because the wechat profile doesn't provide any information about email or phone number.
+
+- For `identity.on_conflict.signup=login_and_link`, the user might add an email identity to an existing account with oauth login. This could be an unexpected side effect because the user probably just forgot he registered with oauth intead of email.
 
 ## References
 
