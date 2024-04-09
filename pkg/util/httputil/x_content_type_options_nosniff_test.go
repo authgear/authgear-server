@@ -8,11 +8,11 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestStaticSecurityHeaders(t *testing.T) {
-	Convey("StaticSecurityHeaders", t, func() {
+func TestXContentTypeOptionsNosniff(t *testing.T) {
+	Convey("XContentTypeOptionsNosniff", t, func() {
 		makeHandler := func() http.Handler {
 			dummy := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-			h := StaticSecurityHeaders(dummy)
+			h := XContentTypeOptionsNosniff(dummy)
 			return h
 		}
 

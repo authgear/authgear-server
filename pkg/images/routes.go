@@ -20,7 +20,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	rootChain := httproute.Chain(
 		p.RootMiddleware(newPanicMiddleware),
 		p.RootMiddleware(newSentryMiddleware),
-		httproute.MiddlewareFunc(httputil.StaticSecurityHeaders),
+		httproute.MiddlewareFunc(httputil.XContentTypeOptionsNosniff),
 		&deps.RequestMiddleware{
 			RootProvider: p,
 			ConfigSource: configSource,
