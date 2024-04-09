@@ -12,6 +12,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
 
+//go:generate mockgen -source=dynamic_csp_middleware.go -destination=dynamic_csp_middleware_mock_test.go -package webapp
+
 // CSPNonceCookieDef is a HTTP session cookie.
 // The nonce has to be stable within a browsing session because
 // Turbo uses XHR to load new pages.
@@ -74,6 +76,10 @@ func (m *DynamicCSPMiddleware) Handle(next http.Handler) http.Handler {
 		})
 		if err != nil {
 			panic(err)
+		}
+
+		if len(frameAncestors) == 0 {
+			w.Header().Set("X-Frame-Options", "DENY")
 		}
 
 		w.Header().Set("Content-Security-Policy", httputil.CSPJoin(cspDirectives))

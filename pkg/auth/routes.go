@@ -55,7 +55,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.RootMiddleware(newPanicMiddleware),
 		p.RootMiddleware(newBodyLimitMiddleware),
 		p.RootMiddleware(newSentryMiddleware),
-		httproute.MiddlewareFunc(httputil.StaticSecurityHeaders),
+		httproute.MiddlewareFunc(httputil.XContentTypeOptionsNosniff),
 		RequestMiddleware(p, configSource, newRequestMiddleware),
 		p.Middleware(newContextHolderMiddleware),
 	)
@@ -63,7 +63,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	// This route is intentionally simple.
 	// This does not check Host and allow any origin.
 	generatedStaticChain := httproute.Chain(
-		httproute.MiddlewareFunc(httputil.StaticSecurityHeaders),
+		httproute.MiddlewareFunc(httputil.XContentTypeOptionsNosniff),
 		httproute.MiddlewareFunc(middleware.CORSStar),
 		httputil.GzipMiddleware{},
 	)

@@ -20,13 +20,15 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 	}, p.RootHandler(newHealthzHandler))
 
 	securityMiddleware := httproute.Chain(
-		httproute.MiddlewareFunc(httputil.StaticSecurityHeaders),
+		httproute.MiddlewareFunc(httputil.XContentTypeOptionsNosniff),
+		httproute.MiddlewareFunc(httputil.XFrameOptionsDeny),
 		httputil.StaticCSPHeader{
 			CSPDirectives: []string{
 				"script-src 'self' 'unsafe-inline' unpkg.com",
 				"object-src 'none'",
 				"base-uri 'none'",
 				"block-all-mixed-content",
+				// This must be kept in sync with httputil.XFrameOptionsDeny
 				"frame-ancestors 'none'",
 			},
 		},

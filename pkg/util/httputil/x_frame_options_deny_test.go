@@ -8,20 +8,20 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestStaticSecurityHeaders(t *testing.T) {
-	Convey("StaticSecurityHeaders", t, func() {
+func TestXFrameOptionsDeny(t *testing.T) {
+	Convey("XFrameOptionsDeny", t, func() {
 		makeHandler := func() http.Handler {
 			dummy := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-			h := StaticSecurityHeaders(dummy)
+			h := XFrameOptionsDeny(dummy)
 			return h
 		}
 
-		Convey("disable content type sniffing", func() {
+		Convey("output x-frame-options: DENY", func() {
 			w := httptest.NewRecorder()
 			r, _ := http.NewRequest("GET", "/", nil)
 			makeHandler().ServeHTTP(w, r)
 
-			So(w.Result().Header.Get("X-Content-Type-Options"), ShouldEqual, "nosniff")
+			So(w.Result().Header.Get("X-Frame-Options"), ShouldEqual, "DENY")
 		})
 	})
 }

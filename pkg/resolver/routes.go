@@ -24,7 +24,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.RootMiddleware(newPanicMiddleware),
 		p.RootMiddleware(newBodyLimitMiddleware),
 		p.RootMiddleware(newSentryMiddleware),
-		httproute.MiddlewareFunc(httputil.StaticSecurityHeaders),
+		httproute.MiddlewareFunc(httputil.XContentTypeOptionsNosniff),
 		&deps.RequestMiddleware{
 			RootProvider: p,
 			ConfigSource: configSource,
