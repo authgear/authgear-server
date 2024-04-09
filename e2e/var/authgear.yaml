@@ -129,7 +129,7 @@ test_mode:
   email:
     enabled: true
     rules:
-    - fixed_code: "111111"
+    - suppressed: true
       regex: .*
 ui:
   dark_theme_disabled: false

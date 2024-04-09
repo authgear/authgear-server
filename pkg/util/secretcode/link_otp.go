@@ -32,10 +32,6 @@ func (LinkOTPSecretCodeType) GenerateDeterministic(data string) string {
 	return fmt.Sprintf("%x", hash)
 }
 
-func (LinkOTPSecretCodeType) GenerateFixed(fixedCode string) string {
-	return fixedCode
-}
-
 func (LinkOTPSecretCodeType) Compare(a, b string) bool {
 	formattedCode := strings.TrimSpace(a)
 	targetCode := strings.TrimSpace(b)

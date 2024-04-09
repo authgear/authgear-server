@@ -35,50 +35,30 @@ func (f Form) GenerateCode(cfg *config.TestModeConfig, featureCfg *config.TestMo
 	codeType := f.codeType()
 	switch c := codeType.(type) {
 	case secretcode.OOBOTPSecretCodeType:
-		return f.generateOOBOTPCode(c, cfg, featureCfg, target)
+		if cfg.FixedOOBOTP.Enabled {
+			if r, ok := cfg.FixedOOBOTP.MatchTarget(target); ok {
+				fixedOTP := r.FixedCode
+				if fixedOTP == "" && featureCfg.FixedOOBOTP.Enabled {
+					fixedOTP = featureCfg.FixedOOBOTP.Code
+				}
+				if fixedOTP == "" {
+					fixedOTP = c.Generate()
+				}
+				return c.GenerateFixed(fixedOTP)
+			}
+		}
+		if featureCfg.FixedOOBOTP.Enabled {
+			return c.GenerateFixed(featureCfg.FixedOOBOTP.Code)
+		}
+		return c.Generate()
 	case secretcode.LinkOTPSecretCodeType:
-		return f.generateLinkOTPCode(c, cfg, featureCfg, target, userID)
-	default:
-		panic("unknown otp form")
-	}
-}
-
-func (f Form) generateOOBOTPCode(c secretcode.OOBOTPSecretCodeType, cfg *config.TestModeConfig, featureCfg *config.TestModeFeatureConfig, target string) string {
-	if cfg.FixedOOBOTP.Enabled {
-		if r, ok := cfg.FixedOOBOTP.MatchTarget(target); ok {
-			fixedOTP := r.FixedCode
-			if fixedOTP == "" && featureCfg.FixedOOBOTP.Enabled {
-				fixedOTP = featureCfg.FixedOOBOTP.Code
-			}
-			if fixedOTP == "" {
-				fixedOTP = c.Generate()
-			}
-			return c.GenerateFixed(fixedOTP)
+		if featureCfg.DeterministicLinkOTP.Enabled {
+			return c.GenerateDeterministic(userID)
+		} else {
+			return c.Generate()
 		}
 	}
-	if featureCfg.FixedOOBOTP.Enabled {
-		return c.GenerateFixed(featureCfg.FixedOOBOTP.Code)
-	}
-	return c.Generate()
-}
-
-func (f Form) generateLinkOTPCode(c secretcode.LinkOTPSecretCodeType, cfg *config.TestModeConfig, featureCfg *config.TestModeFeatureConfig, target string, userID string) string {
-	if cfg.LinkOTP.Enabled {
-		if r, ok := cfg.LinkOTP.MatchTarget(target); ok {
-			linkOTP := r.FixedCode
-			if linkOTP == "" && featureCfg.DeterministicLinkOTP.Enabled {
-				linkOTP = c.GenerateDeterministic(userID)
-			}
-			if linkOTP == "" {
-				linkOTP = c.Generate()
-			}
-			return linkOTP
-		}
-	}
-	if featureCfg.DeterministicLinkOTP.Enabled {
-		return c.GenerateDeterministic(userID)
-	}
-	return c.Generate()
+	panic("unknown otp form")
 }
 
 func (f Form) VerifyCode(input string, expected string) bool {

@@ -140,15 +140,14 @@ func TestGenerateCode(t *testing.T) {
 			expected: "[[random_code]]",
 		},
 		{
-			name: "Link - Should prefer config over feature config",
+			name: "Link - Should respect config",
 			form: FormLink,
 			cfg: &config.TestModeConfig{
-				LinkOTP: &config.TestModeLinkOTPConfig{
+				Email: &config.TestModeEmailConfig{
 					Enabled: true,
-					Rules: []*config.TestModeLinkOTPRule{
+					Rules: []*config.TestModeEmailRule{
 						{
-							Regex:     ".*",
-							FixedCode: "config_code",
+							Regex: ".*",
 						},
 					},
 				},
@@ -160,18 +159,17 @@ func TestGenerateCode(t *testing.T) {
 			},
 			target:   "test@example.com",
 			userID:   "user1",
-			expected: "config_code",
+			expected: secretcode.LinkOTPSecretCode.GenerateDeterministic("user1"),
 		},
 		{
 			name: "Link - Should use feature config if config not enabled",
 			form: FormLink,
 			cfg: &config.TestModeConfig{
-				LinkOTP: &config.TestModeLinkOTPConfig{
+				Email: &config.TestModeEmailConfig{
 					Enabled: false,
-					Rules: []*config.TestModeLinkOTPRule{
+					Rules: []*config.TestModeEmailRule{
 						{
-							Regex:     ".*",
-							FixedCode: "config_code",
+							Regex: ".*",
 						},
 					},
 				},
@@ -189,12 +187,11 @@ func TestGenerateCode(t *testing.T) {
 			name: "Link - Should use feature config if config has no fixed code",
 			form: FormLink,
 			cfg: &config.TestModeConfig{
-				LinkOTP: &config.TestModeLinkOTPConfig{
+				Email: &config.TestModeEmailConfig{
 					Enabled: true,
-					Rules: []*config.TestModeLinkOTPRule{
+					Rules: []*config.TestModeEmailRule{
 						{
-							Regex:     ".*",
-							FixedCode: "",
+							Regex: ".*",
 						},
 					},
 				},
@@ -209,15 +206,14 @@ func TestGenerateCode(t *testing.T) {
 			expected: secretcode.LinkOTPSecretCode.GenerateDeterministic("user1"),
 		},
 		{
-			name: "Link - Should generate code if no fixed code",
+			name: "Link - Should generate code if no deterministic code",
 			form: FormLink,
 			cfg: &config.TestModeConfig{
-				LinkOTP: &config.TestModeLinkOTPConfig{
+				Email: &config.TestModeEmailConfig{
 					Enabled: false,
-					Rules: []*config.TestModeLinkOTPRule{
+					Rules: []*config.TestModeEmailRule{
 						{
-							Regex:     ".*",
-							FixedCode: "",
+							Regex: ".*",
 						},
 					},
 				},

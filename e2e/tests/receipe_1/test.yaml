@@ -159,74 +159,74 @@ steps:
             "type": "finished"
           }
         }
----
-name: Recovery - Email
-before:
-  - type: user_import
-    user_import: users.json
-steps:
-  - action: "create"
-    input: |
-      {
-          "type": "account_recovery",
-          "name": "default"
-      }
-    output:
-      result: |
-        {
-          "action": {
-            "type": "identify"
-          }
-        }
+# ---
+# name: Recovery - Email
+# before:
+#   - type: user_import
+#     user_import: users.json
+# steps:
+#   - action: "create"
+#     input: |
+#       {
+#           "type": "account_recovery",
+#           "name": "default"
+#       }
+#     output:
+#       result: |
+#         {
+#           "action": {
+#             "type": "identify"
+#           }
+#         }
 
-  - input: |
-      {
-        "identification": "email",
-        "login_id": "e2e_recipe_1_recovery_email@authgear.com"
-      }
-    output:
-      result: |
-        {
-          "action": {
-            "type": "select_destination"
-          }
-        }
+#   - input: |
+#       {
+#         "identification": "email",
+#         "login_id": "e2e_recipe_1_recovery_email@authgear.com"
+#       }
+#     output:
+#       result: |
+#         {
+#           "action": {
+#             "type": "select_destination"
+#           }
+#         }
 
-  - input: |
-      {
-        "index": 0
-      }
-    output:
-      result: |
-        {
-          "action": {
-            "type": "verify_account_recovery_code"
-          }
-        }
+#   - input: |
+#       {
+#         "index": 0
+#       }
+#     output:
+#       result: |
+#         {
+#           "action": {
+#             "type": "verify_account_recovery_code"
+#           }
+#         }
 
-  - input: |
-      {
-        "account_recovery_code": "000000"
-      }
-    output:
-      result: |
-        {
-          "action": {
-            "type": "reset_password"
-          }
-        }
+#   - input: |
+#       {
+#         "account_recovery_code": "000000"
+#       }
+#     output:
+#       result: |
+#         {
+#           "action": {
+#             "type": "reset_password"
+#           }
+#         }
 
-  - input: |
-      {
-        "new_password": "Abcd1234Abcd1234!"
-      }
-    output:
-      result: |
-        {
-          "action": {
-            "type": "finished"
-          }
-        }
+#   - input: |
+#       {
+#         "new_password": "Abcd1234Abcd1234!"
+#       }
+#     output:
+#       result: |
+#         {
+#           "action": {
+#             "type": "finished"
+#           }
+#         }
 ---
 name: Recovery - SMS
 before:

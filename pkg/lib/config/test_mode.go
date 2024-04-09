@@ -17,7 +17,6 @@ var _ = Schema.Add("TestModeConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"oob_otp": { "$ref": "#/$defs/TestModeOOBOTPConfig" },
-		"link_otp": { "$ref": "#/$defs/TestModeLinkOTPConfig" },
 		"sms": { "$ref": "#/$defs/TestModeSMSConfig" },
 		"whatsapp": { "$ref": "#/$defs/TestModeWhatsappConfig" },
 		"email": { "$ref": "#/$defs/TestModeEmailConfig" }
@@ -27,7 +26,6 @@ var _ = Schema.Add("TestModeConfig", `
 
 type TestModeConfig struct {
 	FixedOOBOTP *TestModeOOBOTPConfig   `json:"oob_otp,omitempty"`
-	LinkOTP     *TestModeLinkOTPConfig  `json:"link_otp,omitempty"`
 	SMS         *TestModeSMSConfig      `json:"sms,omitempty"`
 	Whatsapp    *TestModeWhatsappConfig `json:"whatsapp,omitempty"`
 	Email       *TestModeEmailConfig    `json:"email,omitempty"`
@@ -81,55 +79,6 @@ func (r *TestModeOOBOTPRule) GetRegex() *regexp.Regexp {
 }
 
 var _ rule = &TestModeOOBOTPRule{}
-
-var _ = Schema.Add("TestModeLinkOTPConfig", `
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"enabled": { "type": "boolean" },
-		"rules": { "type": "array", "items": { "$ref": "#/$defs/TestModeLinkOTPRule" } }
-	}
-}
-`)
-
-type TestModeLinkOTPConfig struct {
-	Enabled bool                   `json:"enabled,omitempty"`
-	Rules   []*TestModeLinkOTPRule `json:"rules,omitempty"`
-}
-
-var _ rules[*TestModeLinkOTPRule] = &TestModeLinkOTPConfig{}
-
-func (c *TestModeLinkOTPConfig) GetRules() []*TestModeLinkOTPRule {
-	return c.Rules
-}
-
-func (c *TestModeLinkOTPConfig) MatchTarget(target string) (*TestModeLinkOTPRule, bool) {
-	return matchTestModeRulesWithTarget[*TestModeLinkOTPRule](c, target)
-}
-
-var _ = Schema.Add("TestModeLinkOTPRule", `
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"regex": { "type": "string", "format": "x_re2_regex" },
-		"fixed_code": { "type": "string" }
-	},
-	"required": ["regex"]
-}
-`)
-
-type TestModeLinkOTPRule struct {
-	Regex     string `json:"regex,omitempty"`
-	FixedCode string `json:"fixed_code,omitempty"`
-}
-
-func (r *TestModeLinkOTPRule) GetRegex() *regexp.Regexp {
-	return regexp.MustCompile(r.Regex)
-}
-
-var _ rule = &TestModeLinkOTPRule{}
 
 var _ = Schema.Add("TestModeSMSConfig", `
 {
@@ -258,8 +207,7 @@ var _ = Schema.Add("TestModeEmailRule", `
 	"additionalProperties": false,
 	"properties": {
 		"regex": { "type": "string", "format": "x_re2_regex" },
-		"suppressed": { "type": "boolean" },
-		"fixed_code": { "type": "string" }
+		"suppressed": { "type": "boolean" }
 	},
 	"required": ["regex"]
 }
