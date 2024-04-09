@@ -20,6 +20,7 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 
 	securityMiddleware := httproute.Chain(
 		httproute.MiddlewareFunc(httputil.XContentTypeOptionsNosniff),
+		httproute.MiddlewareFunc(httputil.XFrameOptionsDeny),
 		httputil.StaticCSPHeader{
 			CSPDirectives: []string{
 				// FIXME(regeneratorRuntime)
@@ -33,6 +34,7 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 				"object-src 'none'",
 				"base-uri 'none'",
 				"block-all-mixed-content",
+				// This must be kept in sync with httputil.XFrameOptionsDeny
 				"frame-ancestors 'none'",
 			},
 		},
