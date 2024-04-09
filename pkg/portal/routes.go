@@ -38,6 +38,7 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 				"frame-ancestors 'none'",
 			},
 		},
+		httproute.MiddlewareFunc(httputil.PermissionsPolicyHeader),
 	)
 
 	rootChain := httproute.Chain(
