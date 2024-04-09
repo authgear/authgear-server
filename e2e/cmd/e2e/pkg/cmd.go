@@ -30,6 +30,5 @@ func ExecCmd(cmd string) error {
 	execCmd := exec.Command("sh", "-c", cmd)
 	execCmd.Dir = "."
 	execCmd.Stdout = os.Stdout
-	execCmd.Stderr = os.Stderr
 	return execCmd.Run()
 }

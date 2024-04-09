@@ -6,73 +6,49 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
+	texttemplate "text/template"
 
+	"github.com/Masterminds/sprig"
 	authflowclient "github.com/authgear/authgear-server/e2e/pkg/e2eclient"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"gopkg.in/yaml.v2"
 )
 
-func LoadAllTestCases(path string) ([]TestCase, error) {
-	var testCases []TestCase
-	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if filepath.Ext(path) != ".yaml" {
-			return nil
-		}
-
-		data, err := os.ReadFile(path)
-		if err != nil {
-			return err
-		}
-
-		decoder := yaml.NewDecoder(strings.NewReader(string(data)))
-		for {
-			var testCase TestCase
-			err := decoder.Decode(&testCase)
-			if err == io.EOF {
-				break
-			}
-			if err != nil {
-				return err
-			}
-			testCase.Path = path
-			testCases = append(testCases, testCase)
-		}
-
-		return nil
-	})
-
-	return testCases, err
+type TestCase struct {
+	Name string `yaml:"name"`
+	Path string `yaml:"path"`
+	// Applying focus to a test case will make it the only test case to run,
+	// mainly used for debugging new test cases.
+	Focus              bool               `yaml:"focus"`
+	AuthgearYAMLSource AuthgearYAMLSource `yaml:"authgear.yaml"`
+	Steps              []Step             `yaml:"steps"`
+	Before             []BeforeHook       `yaml:"before"`
 }
 
-func RunTestCase(t *testing.T, testCase TestCase) {
-	t.Logf("running test case: %s\n", testCase.Name)
+func (tc *TestCase) FullName() string {
+	return tc.Path + "/" + tc.Name
+}
+
+func (tc *TestCase) Run(t *testing.T) {
+	t.Logf("running test case: %s\n", tc.Name)
 
 	ctx := context.Background()
 
 	appID := generateAppID()
-	e2eCmd := &End2EndCmd{
+	cmd := &End2EndCmd{
 		AppID:    appID,
-		TestCase: testCase,
+		TestCase: *tc,
 	}
 
 	// Create project per test case
-	err := e2eCmd.CreateConfigSource()
+	err := cmd.CreateConfigSource()
 	if err != nil {
 		t.Errorf("failed to create config source: %v", err)
 		return
 	}
 
-	// Execute before hooks to prepare fixtures
-	ok := executeBeforeAll(t, e2eCmd, testCase)
+	ok := tc.executeBeforeAll(t, cmd)
 	if !ok {
 		return
 	}
@@ -83,31 +59,36 @@ func RunTestCase(t *testing.T, testCase TestCase) {
 		httputil.HTTPHost(fmt.Sprintf("%s.portal.localhost:4000", appID)),
 	)
 
+	var stepResults []StepResult
 	var state string
 
-	for i, step := range testCase.Steps {
+	for i, step := range tc.Steps {
 		if step.Name == "" {
 			step.Name = fmt.Sprintf("step %d", i+1)
 		}
 
-		state, ok = executeStep(t, e2eCmd, client, step, state)
+		var result *StepResult
+		result, state, ok = tc.executeStep(t, cmd, client, appID, stepResults, state, step)
 		if !ok {
 			return
 		}
+
+		stepResults = append(stepResults, *result)
 	}
 }
 
-func executeBeforeAll(t *testing.T, e2eCmd *End2EndCmd, testCase TestCase) (ok bool) {
-	for _, beforeHook := range testCase.Before {
+// Execute before hooks to prepare fixtures
+func (tc *TestCase) executeBeforeAll(t *testing.T, cmd *End2EndCmd) (ok bool) {
+	for _, beforeHook := range tc.Before {
 		switch beforeHook.Type {
 		case BeforeHookTypeUserImport:
-			err := e2eCmd.ImportUsers(beforeHook.UserImport)
+			err := cmd.ImportUsers(beforeHook.UserImport)
 			if err != nil {
 				t.Errorf("failed to import users: %v", err)
 				return false
 			}
 		case BeforeHookTypeCustomSQL:
-			err := e2eCmd.ExecuteCustomSQL(beforeHook.CustomSQL.Path)
+			err := cmd.ExecuteCustomSQL(beforeHook.CustomSQL.Path)
 			if err != nil {
 				t.Errorf("failed to execute custom SQL: %v", err)
 				return false
@@ -121,11 +102,17 @@ func executeBeforeAll(t *testing.T, e2eCmd *End2EndCmd, testCase TestCase) (ok b
 	return true
 }
 
-func executeStep(t *testing.T, e2eCmd *End2EndCmd, client *authflowclient.Client, step Step, state string) (nextState string, ok bool) {
+func (tc *TestCase) executeStep(
+	t *testing.T,
+	cmd *End2EndCmd,
+	client *authflowclient.Client,
+	appID string,
+	prevSteps []StepResult,
+	state string,
+	step Step,
+) (result *StepResult, nextState string, ok bool) {
 	var flowResponse *authflowclient.FlowResponse
 	var flowErr error
-
-	nextState = state
 
 	switch step.Action {
 	case StepActionCreate:
@@ -141,11 +128,15 @@ func executeStep(t *testing.T, e2eCmd *End2EndCmd, client *authflowclient.Client
 	case StepActionInput:
 		fallthrough
 	default:
-		var input map[string]interface{}
-		err := json.Unmarshal([]byte(step.Input), &input)
-		if err != nil {
-			t.Errorf("failed to parse JSON input in '%s': %v\n", step.Name, err)
+		if len(prevSteps) == 0 {
+			t.Errorf("no previous step result in '%s'", step.Name)
 			return
+		}
+
+		lastStep := prevSteps[len(prevSteps)-1]
+		input, ok := prepareInput(t, cmd, lastStep, step.Input)
+		if !ok {
+			return nil, state, false
 		}
 
 		flowResponse, flowErr = client.Input(nil, nil, state, input)
@@ -154,15 +145,63 @@ func executeStep(t *testing.T, e2eCmd *End2EndCmd, client *authflowclient.Client
 	if step.Output != nil {
 		ok := validateOutput(t, step, flowResponse, flowErr)
 		if !ok {
-			return "", false
+			return nil, state, false
 		}
 	}
 
+	nextState = state
 	if flowResponse != nil {
 		nextState = flowResponse.StateToken
 	}
 
-	return nextState, true
+	result = &StepResult{
+		Result: flowResponse,
+		Error:  flowErr,
+	}
+
+	return result, nextState, true
+}
+
+func prepareInput(t *testing.T, cmd *End2EndCmd, prev StepResult, input string) (prepared map[string]interface{}, ok bool) {
+	tmpl := texttemplate.New("")
+	tmpl.Funcs(makeTemplateFuncMap(cmd))
+
+	_, err := tmpl.Parse(input)
+	if err != nil {
+		t.Errorf("failed to parse input: %v\n", err)
+		return nil, false
+	}
+
+	data := make(map[string]interface{})
+	data["Prev"] = prev
+
+	var buf strings.Builder
+	err = tmpl.Execute(&buf, data)
+	if err != nil {
+		t.Errorf("failed to execute input: %v\n", err)
+		return nil, false
+	}
+
+	var inputMap map[string]interface{}
+	err = json.Unmarshal([]byte(buf.String()), &inputMap)
+	if err != nil {
+		t.Errorf("failed to parse input: %v\n", err)
+		return nil, false
+	}
+
+	return inputMap, true
+}
+
+func makeTemplateFuncMap(cmd *End2EndCmd) texttemplate.FuncMap {
+	templateFuncMap := sprig.HermeticHtmlFuncMap()
+	templateFuncMap["linkOTPCode"] = func(claimName string, claimValue string) string {
+		otpCode, err := cmd.GetLinkOTPCodeByClaim(claimName, claimValue)
+		if err != nil {
+			panic(err)
+		}
+		return otpCode
+	}
+	return templateFuncMap
 }
 
 func validateOutput(t *testing.T, step Step, flowResponse *authflowclient.FlowResponse, flowErr error) (ok bool) {

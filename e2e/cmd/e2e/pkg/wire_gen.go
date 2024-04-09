@@ -748,3 +748,42 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 var (
 	_wireRandValue = idpsession.Rand(rand.SecureRand)
 )
+
+func newLoginIDSerivce(p *deps.AppProvider, c context.Context) *loginid.Provider {
+	appContext := p.AppContext
+	config := appContext.Config
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	handle := p.AppDatabase
+	sqlExecutor := appdb.NewSQLExecutor(c, handle)
+	store := &loginid.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	identityConfig := appConfig.Identity
+	loginIDConfig := identityConfig.LoginID
+	manager := appContext.Resources
+	typeCheckerFactory := &loginid.TypeCheckerFactory{
+		Config:    loginIDConfig,
+		Resources: manager,
+	}
+	checker := &loginid.Checker{
+		Config:             loginIDConfig,
+		TypeCheckerFactory: typeCheckerFactory,
+	}
+	normalizerFactory := &loginid.NormalizerFactory{
+		Config: loginIDConfig,
+	}
+	clockClock := _wireSystemClockValue
+	provider := &loginid.Provider{
+		Store:             store,
+		Config:            loginIDConfig,
+		Checker:           checker,
+		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
+	}
+	return provider
+}

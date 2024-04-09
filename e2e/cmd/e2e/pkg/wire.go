@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/wire"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
@@ -40,6 +41,13 @@ func newInProcessQueue(p *deps.AppProvider, e *executor.InProcessExecutor) *queu
 }
 
 func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImportService {
+	panic(wire.Build(
+		End2EndDependencySet,
+		deps.CommonDependencySet,
+	))
+}
+
+func newLoginIDSerivce(p *deps.AppProvider, c context.Context) *loginid.Provider {
 	panic(wire.Build(
 		End2EndDependencySet,
 		deps.CommonDependencySet,

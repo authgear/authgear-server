@@ -1,19 +1,6 @@
 package testrunner
 
-type TestCase struct {
-	Name string `yaml:"name"`
-	Path string `yaml:"path"`
-	// Applying focus to a test case will make it the only test case to run,
-	// mainly used for debugging new test cases.
-	Focus              bool               `yaml:"focus"`
-	AuthgearYAMLSource AuthgearYAMLSource `yaml:"authgear.yaml"`
-	Steps              []Step             `yaml:"steps"`
-	Before             []BeforeHook       `yaml:"before"`
-}
-
-func (tc *TestCase) FullName() string {
-	return tc.Path + "/" + tc.Name
-}
+import authflowclient "github.com/authgear/authgear-server/e2e/pkg/e2eclient"
 
 type AuthgearYAMLSource struct {
 	Extend   string `yaml:"extend"`
@@ -54,4 +41,9 @@ type Step struct {
 type Output struct {
 	Result string `yaml:"result"`
 	Error  string `yaml:"error"`
+}
+
+type StepResult struct {
+	Result *authflowclient.FlowResponse
+	Error  error
 }

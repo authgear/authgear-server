@@ -1,2 +1,6 @@
 *.log
 /dist/*
+
+!authgear.yaml
+!authgear.features.yaml
+!authgear.secrets.yaml

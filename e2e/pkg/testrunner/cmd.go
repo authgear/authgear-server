@@ -2,7 +2,6 @@ package testrunner
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
 	"path"
 )
@@ -19,7 +18,10 @@ func (e *End2EndCmd) CreateConfigSource() error {
 		e.resolvePath(e.TestCase.AuthgearYAMLSource.Extend),
 		e.TestCase.AuthgearYAMLSource.Override,
 	)
-	return e.execCmd(cmd)
+	if _, err := e.execCmd(cmd); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (e *End2EndCmd) ImportUsers(jsonPath string) error {
@@ -28,7 +30,10 @@ func (e *End2EndCmd) ImportUsers(jsonPath string) error {
 		e.resolvePath(jsonPath),
 		e.AppID,
 	)
-	return e.execCmd(cmd)
+	if _, err := e.execCmd(cmd); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (e *End2EndCmd) ExecuteCustomSQL(sqlPath string) error {
@@ -37,6 +42,19 @@ func (e *End2EndCmd) ExecuteCustomSQL(sqlPath string) error {
 		e.AppID,
 		e.resolvePath(sqlPath),
 	)
+	if _, err := e.execCmd(cmd); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (e *End2EndCmd) GetLinkOTPCodeByClaim(claim string, value string) (string, error) {
+	cmd := fmt.Sprintf(
+		"./dist/authgear-e2e link-otp-code %s %s --app-id %s",
+		claim,
+		value,
+		e.AppID,
+	)
 	return e.execCmd(cmd)
 }
 
@@ -44,10 +62,13 @@ func (e *End2EndCmd) resolvePath(p string) string {
 	return path.Join("./tests/authflow/", path.Dir(e.TestCase.Path), p)
 }
 
-func (e *End2EndCmd) execCmd(cmd string) error {
+func (e *End2EndCmd) execCmd(cmd string) (string, error) {
 	execCmd := exec.Command("sh", "-c", cmd)
 	execCmd.Dir = "../../"
-	execCmd.Stdout = os.Stdout
-	execCmd.Stderr = os.Stderr
-	return execCmd.Run()
+	output, err := execCmd.Output()
+	if err != nil {
+		return "", err
+	}
+
+	return string(output), nil
 }

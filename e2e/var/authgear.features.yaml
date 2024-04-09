@@ -1,0 +1,3 @@
+test_mode:
+  deterministic_link_otp:
+    enabled: true
