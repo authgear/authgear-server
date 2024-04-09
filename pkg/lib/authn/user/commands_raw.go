@@ -24,7 +24,7 @@ func (c *RawCommands) New(userID string) *User {
 		IsDisabled:          false,
 		DisableReason:       nil,
 		StandardAttributes:  make(map[string]interface{}),
-		RequireReindexAfter: now,
+		RequireReindexAfter: &now,
 	}
 	return user
 }

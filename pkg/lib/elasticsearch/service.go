@@ -102,7 +102,7 @@ func (s *Service) getSource(userID string) (*model.ElasticsearchUserSource, acti
 	if errors.Is(err, libuser.ErrUserNotFound) {
 		return nil, actionDelete, nil
 	}
-	if rawUser.LastIndexedAt != nil && rawUser.LastIndexedAt.After(rawUser.RequireReindexAfter) {
+	if rawUser.LastIndexedAt != nil && rawUser.RequireReindexAfter != nil && rawUser.LastIndexedAt.After(*rawUser.RequireReindexAfter) {
 		// Already latest state, skip the update
 		return nil, actionSkip, nil
 	}

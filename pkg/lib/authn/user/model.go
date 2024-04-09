@@ -232,7 +232,7 @@ type User struct {
 	StandardAttributes  map[string]interface{}
 	CustomAttributes    map[string]interface{}
 	LastIndexedAt       *time.Time
-	RequireReindexAfter time.Time
+	RequireReindexAfter *time.Time
 }
 
 func (u *User) GetMeta() model.Meta {
