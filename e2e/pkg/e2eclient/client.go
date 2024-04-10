@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"time"
 
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -16,7 +15,8 @@ import (
 var httpClient = &http.Client{}
 
 func init() {
-	httpClient.Timeout = 30 * time.Second
+	// Use go test -timeout instead of setting timeout here.
+	httpClient.Timeout = 0
 }
 
 type Client struct {

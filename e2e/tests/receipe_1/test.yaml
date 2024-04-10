@@ -161,7 +161,6 @@ steps:
         }
 ---
 name: Recovery - Email
-focus: true
 before:
   - type: user_import
     user_import: users.json
