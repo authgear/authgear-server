@@ -6,8 +6,8 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwk"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/portal/appresource"
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
+	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
 type AppListItem struct {
@@ -21,7 +21,7 @@ type App struct {
 }
 
 type AppResource struct {
-	DescriptedPath appresource.DescriptedPath
+	DescriptedPath resource.DescriptedPath
 	Context        *config.AppContext
 }
 

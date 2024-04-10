@@ -10,10 +10,10 @@ import (
 	"github.com/spf13/afero"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
-	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
@@ -115,7 +115,7 @@ func (s *ConfigService) CreateDomain(appID string, domainID string, domain strin
 	return nil
 }
 
-func (s *ConfigService) DeleteDomain(domain *model.Domain) error {
+func (s *ConfigService) DeleteDomain(domain *apimodel.Domain) error {
 	if s.DomainImplementation == portalconfig.DomainImplementationTypeKubernetes {
 		err := s.Kubernetes.DeleteResourcesForDomain(domain.ID)
 		if err != nil {

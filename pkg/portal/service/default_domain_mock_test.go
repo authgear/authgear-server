@@ -7,7 +7,7 @@ package service
 import (
 	reflect "reflect"
 
-	model "github.com/authgear/authgear-server/pkg/portal/model"
+	model "github.com/authgear/authgear-server/pkg/api/model"
 	gomock "github.com/golang/mock/gomock"
 )
 

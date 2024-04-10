@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
 	"strconv"
 
@@ -11,6 +12,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/resource"
@@ -18,17 +20,31 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
+//go:generate mockgen -source=resources.go -destination=resources_mock_test.go -package configsource
+
 const (
 	AuthgearYAML        = "authgear.yaml"
 	AuthgearSecretYAML  = "authgear.secrets.yaml"
 	AuthgearFeatureYAML = "authgear.features.yaml"
 )
 
+type DomainService interface {
+	ListDomains(appID string) ([]*apimodel.Domain, error)
+}
+
 var ErrEffectiveSecretConfig = apierrors.NewForbidden("cannot view effective secret config")
 
 type contextKeyFeatureConfigType string
 
 const ContextKeyFeatureConfig = contextKeyFeatureConfigType(AuthgearFeatureYAML)
+
+type contextKeyAppHostSuffixes string
+
+var ContextKeyAppHostSuffixes = contextKeyAppHostSuffixes("APP_HOST_SUFFIXES")
+
+type domainServiceContextKeyType struct{}
+
+var ContextKeyDomainService = domainServiceContextKeyType{}
 
 type clockContextKeyType struct{}
 
@@ -112,6 +128,16 @@ func (d AuthgearYAMLDescriptor) UpdateResource(ctx context.Context, _ []resource
 		return nil, fmt.Errorf("missing feature config in context")
 	}
 
+	appHostSuffixes, ok := ctx.Value(ContextKeyAppHostSuffixes).(*config.AppHostSuffixes)
+	if !ok {
+		return nil, fmt.Errorf("missing app host suffixes in context")
+	}
+
+	domainService, ok := ctx.Value(ContextKeyDomainService).(DomainService)
+	if !ok || domainService == nil {
+		return nil, fmt.Errorf("missing domain service in context")
+	}
+
 	original, err := config.Parse(resrc.Data)
 	if err != nil {
 		return nil, fmt.Errorf("cannot parse original app config %w", err)
@@ -122,7 +148,7 @@ func (d AuthgearYAMLDescriptor) UpdateResource(ctx context.Context, _ []resource
 		return nil, fmt.Errorf("cannot parse incoming app config: %w", err)
 	}
 
-	err = d.validate(original, incoming, fc)
+	err = d.validate(original, incoming, fc, *appHostSuffixes, domainService)
 	if err != nil {
 		return nil, err
 	}
@@ -133,10 +159,18 @@ func (d AuthgearYAMLDescriptor) UpdateResource(ctx context.Context, _ []resource
 	}, nil
 }
 
-func (d AuthgearYAMLDescriptor) validate(original *config.AppConfig, incoming *config.AppConfig, fc *config.FeatureConfig) error {
+func (d AuthgearYAMLDescriptor) validate(original *config.AppConfig, incoming *config.AppConfig, fc *config.FeatureConfig, appHostSuffixes []string, domainService DomainService) error {
 	validationCtx := &validation.Context{}
 
-	// Check custom attributes not removed nor edited.
+	d.validateCustomAttributes(validationCtx, original, incoming)
+	d.validateFeatureConfig(validationCtx, incoming, original, fc)
+	d.validatePublicOrigin(validationCtx, incoming, original, appHostSuffixes, domainService)
+
+	return validationCtx.Error(fmt.Sprintf("invalid %v", AuthgearYAML))
+}
+
+// Check custom attributes not removed nor edited.
+func (d AuthgearYAMLDescriptor) validateCustomAttributes(validationCtx *validation.Context, original *config.AppConfig, incoming *config.AppConfig) {
 	for _, originalCustomAttr := range original.UserProfile.CustomAttributes.Attributes {
 		found := false
 		for i, incomingCustomAttr := range incoming.UserProfile.CustomAttributes.Attributes {
@@ -168,8 +202,10 @@ func (d AuthgearYAMLDescriptor) validate(original *config.AppConfig, incoming *c
 			)
 		}
 	}
+}
 
-	// Enforce feature config.
+// Enforce feature config.
+func (d AuthgearYAMLDescriptor) validateFeatureConfig(validationCtx *validation.Context, incoming *config.AppConfig, original *config.AppConfig, fc *config.FeatureConfig) {
 	featureConfigErr := func() error {
 		incomingFCError := d.validateBasedOnFeatureConfig(incoming, fc)
 		incomingAggregatedError, ok := incomingFCError.(*validation.AggregatedError)
@@ -187,8 +223,59 @@ func (d AuthgearYAMLDescriptor) validate(original *config.AppConfig, incoming *c
 	}()
 
 	validationCtx.AddError(featureConfigErr)
+}
 
-	return validationCtx.Error(fmt.Sprintf("invalid %v", AuthgearYAML))
+// Check public origin.
+func (d AuthgearYAMLDescriptor) validatePublicOrigin(validationCtx *validation.Context, incoming *config.AppConfig, original *config.AppConfig, appHostSuffixes []string, domainService DomainService) {
+	if incoming.HTTP.PublicOrigin != original.HTTP.PublicOrigin {
+		validOrigin := false
+
+		incomingUrl, err := url.Parse(incoming.HTTP.PublicOrigin)
+		if err != nil {
+			validationCtx.Child(
+				"http",
+				"public_origin",
+			).EmitErrorMessage(
+				fmt.Sprintf("failed to parse public origin: %v", err),
+			)
+			return
+		}
+
+		for _, appHostSuffix := range appHostSuffixes {
+			appHost := string(incoming.ID) + appHostSuffix
+			if incomingUrl.Host == appHost {
+				validOrigin = true
+				break
+			}
+		}
+
+		availableDomains, err := domainService.ListDomains(string(incoming.ID))
+		if err != nil {
+			validationCtx.Child(
+				"http",
+				"public_origin",
+			).EmitErrorMessage(
+				fmt.Sprintf("failed to list domains: %v", err),
+			)
+			return
+		}
+
+		for _, domain := range availableDomains {
+			if incomingUrl.Host == domain.Domain {
+				validOrigin = true
+				break
+			}
+		}
+
+		if !validOrigin {
+			validationCtx.Child(
+				"http",
+				"public_origin",
+			).EmitErrorMessage(
+				fmt.Sprintf("public origin is not allowed"),
+			)
+		}
+	}
 }
 
 func (d AuthgearYAMLDescriptor) validateBasedOnFeatureConfig(appConfig *config.AppConfig, fc *config.FeatureConfig) error {
