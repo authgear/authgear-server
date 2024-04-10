@@ -1,0 +1,17 @@
+version: "3"
+
+services:
+  db:
+    image: postgres-pg-partman:latest
+    build:
+      context: ../postgres
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+    ports:
+      - "15432:5432"
+
+  redis:
+    image: redis:6.2.6
+    ports:
+      - "16379:6379"

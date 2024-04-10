@@ -1,0 +1,161 @@
+authentication:
+  identities:
+  - login_id
+  - anonymous
+  primary_authenticators:
+  - password
+  - oob_otp_email
+  - oob_otp_sms
+  rate_limits:
+    oob_otp:
+      email:
+        trigger_cooldown: 60s
+      sms:
+        trigger_cooldown: 60s
+  recovery_code:
+    count: 16
+    disabled: false
+authenticator:
+  oob_otp:
+    email:
+      code_valid_period: 3600s
+      email_otp_mode: login_link
+      maximum: 99
+    sms:
+      code_valid_period: 3600s
+      maximum: 99
+      phone_otp_mode: whatsapp_sms
+  password:
+    force_change: true
+    policy:
+      min_length: 8
+forgot_password:
+  valid_periods:
+    code: 300s
+    link: 1200s
+http:
+  public_origin: http://accounts.portal.localhost:3100
+id: accounts
+identity:
+  login_id:
+    keys:
+    - key: phone
+      max_length: 40
+      modify_disabled: false
+      type: phone
+    - key: email
+      max_length: 320
+      modify_disabled: false
+      type: email
+    - key: username
+      max_length: 40
+      modify_disabled: false
+      type: username
+    types:
+      email:
+        block_free_email_provider_domains: false
+        block_plus_sign: false
+        case_sensitive: false
+        domain_allowlist_enabled: false
+        domain_blocklist_enabled: false
+        ignore_dot_sign: false
+      username:
+        ascii_only: true
+        block_reserved_usernames: true
+        case_sensitive: false
+        exclude_keywords_enabled: false
+localization:
+  fallback_language: en
+  supported_languages:
+  - en
+  - zh-HK
+  - zh-TW
+  - zh-CN
+messaging:
+  rate_limits:
+    sms_per_target:
+      burst: 1440
+      enabled: true
+      period: 24h
+  whatsapp:
+    api_type: on-premises
+oauth:
+  clients:
+  - access_token_lifetime_seconds: 1800
+    client_id: e2e
+    grant_types:
+    - authorization_code
+    - refresh_token
+    name: reactweb
+    post_logout_redirect_uris:
+    - http://localhost:4000/after-logout
+    - http://localhost:4000
+    redirect_uris:
+    - http://localhost:4000/after-authentication
+    - http://localhost:4000
+    - http://localhost:4000/promote-anonymous-user-redirect
+    refresh_token_idle_timeout_enabled: true
+    refresh_token_idle_timeout_seconds: 2592000
+    refresh_token_lifetime_seconds: 31449600
+    response_types:
+    - code
+    - none
+    x_application_type: spa
+  - access_token_lifetime_seconds: 1800
+    client_id: portal
+    name: Portal
+    post_logout_redirect_uris:
+    - http://portal.localhost:8000/
+    - http://portal.localhost:8010/
+    redirect_uris:
+    - http://portal.localhost:8000/oauth-redirect
+    - http://portal.localhost:8010/oauth-redirect
+    - com.authgear.example://host/path
+    - com.authgear.example.rn://host/path
+    - com.authgear.exampleapp.flutter://host/path
+    - com.authgear.exampleapp.xamarin://host/path
+    refresh_token_idle_timeout_enabled: true
+    refresh_token_idle_timeout_seconds: 2592000
+    refresh_token_lifetime_seconds: 31449600
+    response_types:
+    - none
+    x_max_concurrent_session: 1
+test_mode:
+  oob_otp:
+    enabled: true
+    rules:
+    - fixed_code: "111111"
+      regex: .*
+  email:
+    enabled: true
+    rules:
+    - suppressed: true
+      regex: .*
+ui:
+  dark_theme_disabled: false
+  forgot_password:
+    email:
+    - channel: email
+      otp_form: code
+    phone:
+    - channel: sms
+      otp_form: code
+  implementation: authflowv2
+  watermark_disabled: false
+verification:
+  claims:
+    email:
+      enabled: true
+      required: true
+    phone_number:
+      enabled: true
+      required: true
+  code_valid_period: 3600s
+  criteria: any
+  rate_limits:
+    email:
+      trigger_cooldown: 60s
+      trigger_per_user:
+        enabled: false
+    sms:
+      trigger_cooldown: 60s

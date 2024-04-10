@@ -59,7 +59,7 @@ var rootDeps = wire.NewSet(
 	configsource.DependencySet,
 )
 
-var appRootDeps = wire.NewSet(
+var AppRootDeps = wire.NewSet(
 	rootDeps,
 	wire.FieldsOf(new(*AppProvider),
 		"RootProvider",
@@ -138,7 +138,7 @@ func ProvideRedisQueueHTTPProto() httputil.HTTPProto {
 }
 
 var RequestDependencySet = wire.NewSet(
-	appRootDeps,
+	AppRootDeps,
 	wire.FieldsOf(new(*RequestProvider),
 		"AppProvider",
 		"Request",
@@ -152,7 +152,7 @@ var RequestDependencySet = wire.NewSet(
 )
 
 var RedisQueueDependencySet = wire.NewSet(
-	appRootDeps,
+	AppRootDeps,
 	ProvideRedisQueueHTTPRequest,
 	ProvideRedisQueueRemoteIP,
 	ProvideRedisQueueUserAgentString,
@@ -161,7 +161,7 @@ var RedisQueueDependencySet = wire.NewSet(
 )
 
 var TaskDependencySet = wire.NewSet(
-	appRootDeps,
+	AppRootDeps,
 	wire.FieldsOf(new(*TaskProvider),
 		"AppProvider",
 		"Context",

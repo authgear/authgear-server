@@ -38,7 +38,7 @@ func (f Form) GenerateCode(cfg *config.TestModeConfig, featureCfg *config.TestMo
 		if cfg.FixedOOBOTP.Enabled {
 			if r, ok := cfg.FixedOOBOTP.MatchTarget(target); ok {
 				fixedOTP := r.FixedCode
-				if fixedOTP == "" {
+				if fixedOTP == "" && featureCfg.FixedOOBOTP.Enabled {
 					fixedOTP = featureCfg.FixedOOBOTP.Code
 				}
 				if fixedOTP == "" {

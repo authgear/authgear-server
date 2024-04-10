@@ -31,7 +31,7 @@ go-mod-outdated:
 
 .PHONY: generate
 generate:
-	go generate ./pkg/... ./cmd/...
+	go generate ./pkg/... ./cmd/... ./e2e/...
 
 .PHONY: test
 test:

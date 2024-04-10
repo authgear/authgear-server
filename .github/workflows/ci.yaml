@@ -114,6 +114,41 @@ jobs:
     - run: make check-tidy
       if: ${{ !cancelled() }}
 
+  authgear-e2e:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ./.github/actions/libvips
+
+    - uses: actions/setup-go@v4
+      with:
+        go-version-file: "./go.mod"
+    - run: make vendor
+
+    # Cache docker images
+    - run: mkdir -p ~/.cache/images
+    - id: cache-docker-images
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/images
+        key: ${{ runner.os }}-e2e-docker-images
+      continue-on-error: true
+      env:
+        SEGMENT_DOWNLOAD_TIMEOUT_MINS: 5
+    - if: ${{ steps.cache-docker-images.outputs.cache-hit == 'true' }}
+      run: |
+        docker load -i ~/.cache/images/db.tar || true
+        docker load -i ~/.cache/images/redis.tar || true
+
+    - run: make -C e2e run
+      if: ${{ !cancelled() }}
+      env:
+        COMPOSE_INTERACTIVE_NO_CLI: 1
+
+    - run: |
+        docker save postgres-pg-partman:latest -o ~/.cache/images/db.tar
+        docker save redis:6.2.6 -o ~/.cache/images/redis.tar
+
   authgear-image:
     runs-on: ubuntu-22.04
     needs: ["authgear-test", "authui-test"]

@@ -1,0 +1,17 @@
+{
+  "identifier": "preferred_username",
+  "records": [
+    {
+      "preferred_username": "e2e_issue_3585",
+
+      "password": {
+        "type": "bcrypt",
+        "password_hash": "$2y$10$ffowit0BtS5vbIK7gfMQSuHDLZxdt3KvLQuo7YowtZOAlYi3VGoC."
+      },
+
+      "mfa": {
+        "phone_number": "+85223382338"
+      }
+    }
+  ]
+}
