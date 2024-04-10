@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	identityloginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	identityoauth "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -22,6 +23,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/slice"
@@ -43,12 +45,14 @@ type UserReindexCreateProducer interface {
 }
 
 type Service struct {
+	Clock       clock.Clock
 	Context     context.Context
 	Database    *appdb.Handle
 	Logger      *ElasticsearchServiceLogger
 	AppID       config.AppID
 	Client      *elasticsearch.Client
 	Users       UserQueries
+	UserStore   *user.Store
 	OAuth       *identityoauth.Store
 	LoginID     *identityloginid.Store
 	RolesGroups *rolesgroups.Store
@@ -68,6 +72,14 @@ type queryUserResponse struct {
 	} `json:"hits"`
 }
 
+type action string
+
+const (
+	actionReindex action = "reindex"
+	actionDelete  action = "delete"
+	actionSkip    action = "skip"
+)
+
 func (s *Service) EnqueueReindexUserTask(userID string) error {
 	request := ReindexRequest{UserID: userID}
 
@@ -85,32 +97,41 @@ func (s *Service) EnqueueReindexUserTask(userID string) error {
 	return nil
 }
 
-func (s *Service) getSource(userID string) (*model.ElasticsearchUserSource, error) {
+func (s *Service) getSource(userID string) (*model.ElasticsearchUserSource, action, error) {
+	rawUser, err := s.UserStore.Get(userID)
+	if errors.Is(err, libuser.ErrUserNotFound) {
+		return nil, actionDelete, nil
+	}
+	if rawUser.LastIndexedAt != nil && rawUser.RequireReindexAfter != nil && rawUser.LastIndexedAt.After(*rawUser.RequireReindexAfter) {
+		// Already latest state, skip the update
+		return nil, actionSkip, nil
+	}
+
 	u, err := s.Users.Get(userID, accesscontrol.RoleGreatest)
 	if errors.Is(err, libuser.ErrUserNotFound) {
-		return nil, nil
+		return nil, actionDelete, nil
 	}
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	oauthIdentities, err := s.OAuth.List(u.ID)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	loginIDIdentities, err := s.LoginID.List(u.ID)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	effectiveRoles, err := s.RolesGroups.ListEffectiveRolesByUserID(u.ID)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	groups, err := s.RolesGroups.ListGroupsByUserID(u.ID)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	raw := &model.ElasticsearchUserRaw{
@@ -146,20 +167,10 @@ func (s *Service) getSource(userID string) (*model.ElasticsearchUserSource, erro
 		}
 	}
 
-	return RawToSource(raw), nil
+	return RawToSource(raw), actionReindex, nil
 }
 
 func (s *Service) ExecReindexUser(request ReindexRequest) (result ReindexResult) {
-	var source *model.ElasticsearchUserSource = nil
-	err := s.Database.ReadOnly(func() error {
-		s, err := s.getSource(request.UserID)
-		if err != nil {
-			return err
-		}
-		source = s
-		return nil
-	})
-
 	failure := func(err error) ReindexResult {
 		s.Logger.WithFields(map[string]interface{}{"user_id": request.UserID}).
 			WithError(err).
@@ -171,24 +182,56 @@ func (s *Service) ExecReindexUser(request ReindexRequest) (result ReindexResult)
 		}
 	}
 
-	if err != nil {
-		return failure(err)
-	}
-
-	if source == nil {
-		err = s.deleteUser(request.UserID)
-	} else {
-		err = s.reindexUser(source)
-	}
-
-	if err != nil {
-		return failure(err)
-	} else {
-		return ReindexResult{
-			UserID:    request.UserID,
-			IsSuccess: true,
+	startedAt := s.Clock.NowUTC()
+	var source *model.ElasticsearchUserSource = nil
+	var actionToExec action
+	err := s.Database.ReadOnly(func() error {
+		s, a, err := s.getSource(request.UserID)
+		if err != nil {
+			return err
 		}
+		source = s
+		actionToExec = a
+		return nil
+	})
+
+	if err != nil {
+		return failure(err)
 	}
+
+	switch actionToExec {
+	case actionDelete:
+		err = s.deleteUser(request.UserID)
+		if err != nil {
+			return failure(err)
+		}
+
+	case actionReindex:
+		err = s.reindexUser(source)
+		if err != nil {
+			return failure(err)
+		}
+		err = s.Database.WithTx(func() error {
+			return s.UserStore.UpdateLastIndexedAt([]string{request.UserID}, startedAt)
+		})
+		if err != nil {
+			return failure(err)
+		}
+
+	case actionSkip:
+		s.Logger.WithFields(logrus.Fields{
+			"app_id":  s.AppID,
+			"user_id": request.UserID,
+		}).Info("skipping reindexing user because it is already up to date")
+	default:
+		panic(fmt.Errorf("elasticsearch: unknown action %s", actionToExec))
+	}
+
+	return ReindexResult{
+		UserID:    request.UserID,
+		IsSuccess: true,
+	}
+
 }
 
 func (s *Service) QueryUser(
@@ -321,4 +364,8 @@ func (s *Service) deleteUser(userID string) error {
 		return err
 	}
 	return nil
+}
+
+func (s *Service) MarkUsersAsReindexRequired(userIDs []string) error {
+	return s.UserStore.MarkAsReindexRequired(userIDs)
 }

@@ -555,12 +555,14 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := &elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
 		Client:      client,
 		Users:       userQueries,
+		UserStore:   store,
 		OAuth:       oauthStore,
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,
@@ -630,12 +632,14 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	service5 := elasticsearch.Service{
+		Clock:       clockClock,
 		Context:     contextContext,
 		Database:    handle,
 		Logger:      elasticsearchServiceLogger,
 		AppID:       appID,
 		Client:      client,
 		Users:       userQueries,
+		UserStore:   store,
 		OAuth:       oauthStore,
 		LoginID:     loginidStore,
 		RolesGroups: rolesgroupsStore,

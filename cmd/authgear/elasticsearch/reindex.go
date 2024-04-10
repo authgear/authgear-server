@@ -21,6 +21,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
@@ -43,6 +44,7 @@ type Item struct {
 }
 
 type Reindexer struct {
+	Clock       clock.Clock
 	Handle      *appdb.Handle
 	AppID       config.AppID
 	Users       *user.Store
@@ -168,6 +170,7 @@ func (q *Reindexer) reindex(ctx context.Context, bulkIndexer esutil.BulkIndexer)
 	var first uint64 = 50
 	var after model.PageCursor = ""
 	var items []Item
+	startAt := q.Clock.NowUTC()
 
 	for {
 		err = q.Handle.WithTx(func() (err error) {
@@ -217,6 +220,17 @@ func (q *Reindexer) reindex(ctx context.Context, bulkIndexer esutil.BulkIndexer)
 							fmt.Fprintf(os.Stderr, "%v\n", err)
 						} else {
 							fmt.Fprintf(os.Stderr, "%v: %v\n", res.Error.Type, res.Error.Reason)
+						}
+					},
+					OnSuccess: func(
+						ctx context.Context,
+						item esutil.BulkIndexerItem,
+						res esutil.BulkIndexerResponseItem) {
+						err := q.Handle.WithTx(func() error {
+							return q.Users.UpdateLastIndexedAt([]string{source.ID}, startAt)
+						})
+						if err != nil {
+							fmt.Fprintf(os.Stderr, "Failed to update last_indexed_at of user %s. %v\n", source.ID, err)
 						}
 					},
 				},
