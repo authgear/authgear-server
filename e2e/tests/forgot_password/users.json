@@ -1,0 +1,14 @@
+{
+  "identifier": "preferred_username",
+  "records": [
+    {
+      "preferred_username": "e2e_forgot_password_email",
+      "email": "e2e_forgot_password_email@authgear.com",
+
+      "password": {
+        "type": "bcrypt",
+        "password_hash": "$2y$10$/wLavnCmYGP/zzpw/mR1iOK5y5hGyrEFJtmaIbvFf9VA6l2O4NMKO"
+      }
+    }
+  ]
+}
