@@ -1,6 +1,6 @@
 .PHONY: build
 build:
-	go build -o ./dist/authgear-e2e ./cmd/e2e
+	go build -o $(BIN_NAME) ./cmd/$(TARGET)
 
 .PHONY: run
 run:

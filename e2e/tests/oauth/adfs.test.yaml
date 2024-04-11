@@ -1,0 +1,59 @@
+name: ADFS
+authgear.yaml:
+  override: |
+    authentication:
+        identities:
+          - oauth
+        primary_authenticators:
+          - password
+
+    identity:
+      oauth:
+        providers:
+          - alias: adfs
+            client_id: "adfs"
+            discovery_document_endpoint: "https://adfs.example.com/.well-known/openid-configuration"
+            type: adfs
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - input: |
+      {
+        "identification": "oauth",
+        "alias": "adfs",
+        "redirect_uri": "https://mock"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "oauth_authorization_url": "[[string]]"
+            }
+          }
+        }
+
+  - input: |
+      {
+        "code": "adfs"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }

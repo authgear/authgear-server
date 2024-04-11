@@ -20,6 +20,16 @@
       }
     },
     {
+      "preferred_username": "e2e_recipe_1_adfs",
+      "email": "mock@authgear.com",
+      "email_verified": true,
+
+      "password": {
+        "type": "bcrypt",
+        "password_hash": "$2y$10$ze9h.zFQCg9ew9X4orQE2OkuLJZvTDs/YwOuptGkzkiFvwsES16hK"
+      }
+    },
+    {
       "preferred_username": "e2e_recipe_1_recovery_email",
       "email": "e2e_recipe_1_recovery_email@authgear.com",
       "phone_number": "+85223382340",

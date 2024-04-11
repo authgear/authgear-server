@@ -11,13 +11,15 @@ function setup {
     export PATH=$PATH:../dist
 
     echo "[ ] Building e2e..."
-    make build
+    make build BIN_NAME=dist/e2e TARGET=e2e
+    make build BIN_NAME=dist/e2e-proxy TARGET=proxy
     export PATH=$PATH:./dist
 
     echo "[ ] Starting authgear..."
-    authgear start > authgear.log 2>&1 &
+    authgear start > ./logs/authgear.log 2>&1 &
+    success=false
     for i in $(seq 10); do \
-        if [ "$(curl -sL -w '%{http_code}' -o /dev/null ${MAIN_LISTEN_ADDR}/healthz)" = "200" ]; then
+        if [ "$(curl -sL -w '%{http_code}' -o /dev/null http://localhost:4000/healthz)" = "200" ]; then
             echo "    - started authgear."
             success=true
             break
@@ -26,6 +28,22 @@ function setup {
     done
     if [ "$success" = false ]; then
         echo "Error: Failed to start authgear."
+        exit 1
+    fi
+
+    echo "[ ] Starting e2e-proxy..."
+    e2e-proxy > ./logs/e2e-proxy.log 2>&1 &
+    success=false
+    for i in $(seq 10); do \
+        if [ "$(curl -sL -w '%{http_code}' -o /dev/null http://localhost:8080)" = "400" ]; then
+            echo "    - started e2e-proxy."
+            success=true
+            break
+        fi
+        sleep 1
+    done
+    if [ "$success" = false ]; then
+        echo "Error: Failed to start e2e-proxy."
         exit 1
     fi
 
@@ -39,6 +57,7 @@ function setup {
 function teardown {
     echo "[ ] Teardown..."
     kill -9 $(lsof -ti:4000) > /dev/null 2>&1 || true
+    kill -9 $(lsof -ti:8080) > /dev/null 2>&1 || true
     docker compose down
 }
 
