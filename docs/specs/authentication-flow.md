@@ -275,34 +275,6 @@ login_flows:
   # If the condition does not hold, this step is no-op.
   - type: change_password
     target_step: step1
-
-- name: account_linking
-  account_linking:
-    conditions:
-    # The standard_attribute to determine whether two identities are the "same".
-    # Account linking happens when the existing identity is Email Login ID,
-    # and the incoming identity is any OAuth identity.
-    - standard_attribute: /email
-      existing:
-        identification: email
-      incoming:
-        identification: oauth
-    # Account linking happens when the existing identity is any OAuth identity,
-    # and the incoming identity is Email Login ID.
-    - standard_attribute: /email
-      existing:
-        identification: oauth
-      incoming:
-        identification: email
-  steps:
-  - type: identify
-    one_of:
-    - identification: oauth
-    - identification: email
-      steps:
-      - type: authenticate
-        one_of:
-        - authentication: primary_password
 ```
 
 ### SignupLoginFlow
