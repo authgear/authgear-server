@@ -164,7 +164,10 @@ func (d AuthgearYAMLDescriptor) validate(original *config.AppConfig, incoming *c
 
 	d.validateCustomAttributes(validationCtx, original, incoming)
 	d.validateFeatureConfig(validationCtx, incoming, original, fc)
-	d.validatePublicOrigin(validationCtx, incoming, original, appHostSuffixes, domainService)
+	err := d.validatePublicOrigin(validationCtx, incoming, original, appHostSuffixes, domainService)
+	if err != nil {
+		return err
+	}
 
 	return validationCtx.Error(fmt.Sprintf("invalid %v", AuthgearYAML))
 }
@@ -226,19 +229,13 @@ func (d AuthgearYAMLDescriptor) validateFeatureConfig(validationCtx *validation.
 }
 
 // Check public origin.
-func (d AuthgearYAMLDescriptor) validatePublicOrigin(validationCtx *validation.Context, incoming *config.AppConfig, original *config.AppConfig, appHostSuffixes []string, domainService DomainService) {
+func (d AuthgearYAMLDescriptor) validatePublicOrigin(validationCtx *validation.Context, incoming *config.AppConfig, original *config.AppConfig, appHostSuffixes []string, domainService DomainService) error {
 	if incoming.HTTP.PublicOrigin != original.HTTP.PublicOrigin {
 		validOrigin := false
 
 		incomingUrl, err := url.Parse(incoming.HTTP.PublicOrigin)
 		if err != nil {
-			validationCtx.Child(
-				"http",
-				"public_origin",
-			).EmitErrorMessage(
-				fmt.Sprintf("failed to parse public origin: %v", err),
-			)
-			return
+			return err
 		}
 
 		for _, appHostSuffix := range appHostSuffixes {
@@ -251,13 +248,7 @@ func (d AuthgearYAMLDescriptor) validatePublicOrigin(validationCtx *validation.C
 
 		availableDomains, err := domainService.ListDomains(string(incoming.ID))
 		if err != nil {
-			validationCtx.Child(
-				"http",
-				"public_origin",
-			).EmitErrorMessage(
-				fmt.Sprintf("failed to list domains: %v", err),
-			)
-			return
+			return err
 		}
 
 		for _, domain := range availableDomains {
@@ -276,6 +267,8 @@ func (d AuthgearYAMLDescriptor) validatePublicOrigin(validationCtx *validation.C
 			)
 		}
 	}
+
+	return nil
 }
 
 func (d AuthgearYAMLDescriptor) validateBasedOnFeatureConfig(appConfig *config.AppConfig, fc *config.FeatureConfig) error {
