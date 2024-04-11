@@ -18,26 +18,225 @@ identity:
         client_id: exampleclientid
         type: google
         link_by:
-          identity: "email"
+          existing:
+            pointer: "/email"
+          incoming:
+            pointer: "/email"
       - alias: azureadv2
         client_id: exampleclientid
         type: azureadv2
         link_by:
-          identity: "username"
-          idp_claim: "/preferred_username"
+          existing:
+            pointer: "/phone_number"
+          incoming:
+            pointer: "/phone_number"
+        raw_profile_mappings:
+          - from:
+              pointer: "/primary_phone"
+            to:
+              pointer: "/phone_number"
 ```
 
-- The `link_by` object was added to provider config. This section defines how an account in an external idp can be linked (i.e. matched) to an existing authgear user. Nullable. When null, no linking is available (i.e. Conflicts will never occur). It contains the following fields:
-  - `link_by.identity`: The identity used to match an existing account in authgear. Possible values are `email`, `phone`, `username`. The default is `email`.
-  - `link_by.idp_claim`: A key of the user info from the external idp. The key will be used to extract a value from the user info json of the external idp, and match with any authgear user identity specified by `link_by.identity`. If it is not specified, authgear will automatically choose a suitable claim to match with the selected `link_by.identity`. If authgear is unable to choose a suitable claim, it will be an invalid config.
-    - For example, `/email` will be choosed for a google account if `link_by.identity` is set to `email`. However, if `link_by.identity` is `phone`, the user must specify `link_by.idp_claim` because authgear have no idea which claim from the google user info can be used to match with a phone identity.
-    - Generic oidc idp integration is not supportted at the moment, but when supportted, the following defaults can be used.
-      - If `link_by.identity=email`, then `idp_claim=/email`.
-      - If `link_by.identity=username`, then `idp_claim=/preferred_username`.
-      - If `link_by.identity=phone`, then `idp_claim=/phone_number`.
-    - If neccessary, the user can use a hook to perform transformation on the idp user info. This is to handle use cases like multiple claims in the idp user info could be used. For example, an idp might separate the country code and the national number into two claims. In this case, the developer must use a hook to transform the related claims into a single claim, and match with that claim instead. This will not be implemented at current stage.
+### Define the linking logic using `link_by`
 
-This config is only for defining the matching logic. During a signup flow, when a match exist, conflicts occurs. The action to resolve the conflict was defined in the authflow config. Please see the below for the authflow config for reolving conflicts.
+- The `link_by` object was added to provider config. This section defines how an account in an external idp can be linked (i.e. matched) to an existing authgear user identity. It contains the following fields:
+  - `link_by.existing.pointer`: The json pointer to get a value from the existing authgear user.
+  - `link_by.incoming.pointer`: The json pointer to get a value from the external idp user info.
+
+Here is an example of how `link_by.existing.pointer` and `link_by.incoming.pointer` will be used:
+
+Assume there is an user A, with the following identites:
+
+- Email: a@example.com
+- Phone: +85200000001
+- Username: auser
+
+The email identity `a@example.com` will have the following claims:
+
+```json
+{
+  "email": "a@example.com"
+}
+```
+
+The phone identity `+85200000001` will have the following claims:
+
+```json
+{
+  "phone_number": "+85200000001"
+}
+```
+
+The username identity `auser` will have the following claims:
+
+```json
+{
+  "preferred_username": "auser"
+}
+```
+
+And assume the user is trying to login with a new oauth identity, which the idp profile is:
+
+```json
+{
+  "sub": "91e1b9cf-1dde-4fe5-ba0d-d57a9f20e099",
+  "email": "a@example.com",
+  "phone_number": "+85200000002"
+}
+```
+
+Assume we have the following provider settings:
+
+```yaml
+identity:
+  oauth:
+    providers:
+      - alias: adfs
+        client_id: exampleclientid
+        type: adfs
+        link_by:
+          existing:
+            pointer: "/email"
+          incoming:
+            pointer: "/email"
+```
+
+1. As `link_by.incoming.pointer` is `"/email"`, we will first get a value from the external idp profile by the key `"email"`, which gets `a@example.com`.
+
+2. Then, we will search existing identities using the json pointer defined in `link_by.incoming.pointer`, which is `"/email"`. So we will find all identities which having is having a field `"email": "a@example.com"`. So we found the existing email identity `a@example.com`.
+
+As another example, assume we have the following provider settings:
+
+```yaml
+identity:
+  oauth:
+    providers:
+      - alias: adfs
+        client_id: exampleclientid
+        type: adfs
+        link_by:
+          existing:
+            pointer: "/phone_number"
+          incoming:
+            pointer: "/phone_number"
+```
+
+1. As `link_by.incoming.pointer` is `"/phone_number"`, we will first get a value from the external idp profile by the key `"phone_number"`, which gets `+85200000001`.
+
+2. Then, we will search existing identities using the json pointer defined in `link_by.incoming.pointer`, which is `"/phone_number"`. So we will find all identities which having is having a field `"email": "+85200000002"`. However, the existing phone identity doesn't contain this field (It is `"email": "+85200000001"`). In this case, no match will be found.
+
+### Define the profile field mapping using `raw_profile_mappings`
+
+All oauth identities will be converted to a set of claims, and be stored inside authgear. The stored claims has two functions:
+
+- It affects the standard attributes of the user. For example, an `"email"` claim will be populated to the user's `"email"` standard attribute.
+- It affects how an existing oauth identity be search and matched with an incoming new oauth identity, which was mentioned in the above `link_by` section.
+
+There are implicit mappings implemented for each provider, but they might not satisfy all use cases. Therefore, we introduced a `raw_profile_mappings` config for customizing the behavior.
+
+Example:
+
+```yaml
+identity:
+  oauth:
+    providers:
+      - alias: azureadv2
+        client_id: exampleclientid
+        type: azureadv2
+        link_by:
+          existing:
+            pointer: "/phone_number"
+          incoming:
+            pointer: "/phone_number"
+        raw_profile_mappings:
+          - from:
+              pointer: "/primary_phone"
+            to:
+              pointer: "/phone_number"
+```
+
+- The `raw_profile_mappings` config is an array, which contains objects with two fields:
+  - `from.pointer`: This field specifies a json pointer to the raw profile of the external idp.
+  - `to.pointer`: Thie field specifies a json pointer of the authgear claim json, where the value in `from.pointer` will be write to.
+
+As an example, assume the external idp profile is this json:
+
+```json
+{
+  "sub": "91e1b9cf-1dde-4fe5-ba0d-d57a9f20e099",
+  "name": "User A",
+  "email": "a@example.com",
+  "primary_phone": "+85200000001",
+  "secondary_phone": "+85200000002"
+}
+```
+
+Now you want to map "primary_phone" to the "phone_number" claim, so we defined the following mapping:
+
+```yaml
+raw_profile_mappings:
+  - from:
+      pointer: "/primary_phone"
+    to:
+      pointer: "/phone_number"
+```
+
+Then authgear will map the value of "primary_phone" ("+85200000001") from the external idp profile to "phone_number" of the stored claim. So it result in:
+
+```json
+{
+  "name": "User A",
+  "email": "a@example.com",
+  "phone_number": "+85200000001"
+}
+```
+
+"name" and "email" exist due to implicit mappings of the provider `adfs`. And "phone_number" existing due to the config in `raw_profile_mappings`.
+
+#### Relationship with `link_by`
+
+The field used for linking, as specified in `link_by.incoming.pointer` and `link_by.existing.pointer`, is always referring to the mapped profile object.
+
+As an example, assume we have the following config:
+
+```yaml
+identity:
+  oauth:
+    providers:
+      - alias: azureadv2
+        client_id: exampleclientid
+        type: azureadv2
+        link_by:
+          existing:
+            pointer: "/phone_number"
+          incoming:
+            pointer: "/phone_number"
+        raw_profile_mappings:
+          - from:
+              pointer: "/primary_phone"
+            to:
+              pointer: "/phone_number"
+```
+
+And assume we got an external idp raw profile:
+
+```json
+{
+  "sub": "91e1b9cf-1dde-4fe5-ba0d-d57a9f20e099",
+  "name": "User A",
+  "email": "a@example.com",
+  "primary_phone": "+85200000001",
+  "secondary_phone": "+85200000002"
+}
+```
+
+"primary_phone" in the raw profile will first be mapped to "phone_number" according to the config of `raw_profile_mappings`, then used to link with existing accounts according to `link_by.incoming.pointer`. Therefore, if there is an existing phone login id `+85200000001`, it can be matched.
+
+#### Custom transformation of the raw idp profile by hook
+
+If neccessary, the user can use a hook to perform transformation on the idp user info. This is to handle use cases like multiple claims in the idp user info could be used. For example, an idp might separate the country code and the national number into two claims. In this case, the developer must use a hook to transform the related claims into a single claim, and match with that claim instead. This will not be implemented at current stage.
+
+### Define the conflict behavior in signup flow
 
 ```yaml
 signup_flows:
