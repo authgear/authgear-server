@@ -249,13 +249,19 @@ func execTemplate(cmd *End2EndCmd, prev *StepResult, content string) (string, er
 	tmpl := texttemplate.New("")
 	tmpl.Funcs(makeTemplateFuncMap(cmd))
 
-	_, err := tmpl.Parse(content)
+	// Treat ${{ as {{ for oneline templates
+	_, err := tmpl.Parse(strings.ReplaceAll(content, "${{", "{{"))
 	if err != nil {
 		return "", err
 	}
 
 	data := make(map[string]interface{})
-	data["Prev"] = prev
+
+	// Add prev result to data
+	data["prev"], err = toMap(prev)
+	if err != nil {
+		return "", err
+	}
 
 	var buf strings.Builder
 	err = tmpl.Execute(&buf, data)
@@ -313,4 +319,23 @@ func generateAppID() string {
 		panic(err)
 	}
 	return hex.EncodeToString(id)
+}
+
+func toMap(data interface{}) (map[string]interface{}, error) {
+	if data == nil {
+		return nil, nil
+	}
+
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	var mapData map[string]interface{}
+	err = json.Unmarshal(jsonData, &mapData)
+	if err != nil {
+		panic(err)
+	}
+
+	return mapData, nil
 }

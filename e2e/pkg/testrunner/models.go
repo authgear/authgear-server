@@ -50,6 +50,6 @@ type Output struct {
 }
 
 type StepResult struct {
-	Result interface{}
-	Error  error
+	Result interface{} `json:"result"`
+	Error  error       `json:"error"`
 }
