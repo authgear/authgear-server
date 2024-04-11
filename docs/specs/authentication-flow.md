@@ -13,6 +13,7 @@
     + [LoginFlow](#loginflow)
     + [SignupLoginFlow](#signuploginflow)
     + [ReauthFlow](#reauthflow)
+    + [Flow selection](#flow-selection)
   * [Use case examples](#use-case-examples)
     + [Use case example 1: Latte](#use-case-example-1-latte)
     + [Use case example 2: Uber](#use-case-example-2-uber)
@@ -358,9 +359,9 @@ reauth_flows:
 
 ### Flow selection
 
-By default, authentication flow with name `default` is used. Multiple flows per type can be specified in the configuration.
+By default, authentication flow with name `default` is used. Since there can be multiple flows of same type, we want client to be able to select a flow group to use.
 
-Example:
+For example, given following authentication flows:
 
 ```yaml
 authentication_flow:
@@ -385,30 +386,74 @@ authentication_flow:
     - name: email_password_2fa
       steps:
       # ...
+  reauth_flows:
+    - name: sms_code
+      steps:
+      # ...
+    - name: password
+      steps:
+      # ...
+  promote_flows:
+    - name: password
+      steps:
+      # ...
+    - name: sms_code
+      steps:
+      # ...
+  account_recovery_flows:
+    - name: email
+      steps:
+      # ...
+    - name: sms
+      steps:
+      # ...
+```
+
+Authentication flow groups need to be defined and whitelisted per client using the following configuration:
+
+```yaml
+ui:
+  authentication_flow:
+    groups:
+    - name: oauth_only
+      login_flow: oauth_only
+      signup_flow: oauth_only
+      reauth_flow: password
+      promote_flow: password
+      account_recovery_flow: email
+    - name: email_password_2fa
+      login_flow: email_password_2fa
+      signup_flow: email_password_2fa
+      reauth_flow: sms_code
+      promote_flow: sms_code
+      account_recovery_flow: sms
 
 oauth:
   clients:
     - client_id: public_app
       # Only allow OAuth login for public_app
-      x_authentication_flows_allowlist:
-      - type: login
-        name: oauth_only
-      - type: signup_login
-        name: oauth_only
+      x_authentication_flow_group_allowlist:
+      - oauth_only
     - client_id: internal
       # Allow both OAuth login and email_password_2fa for internal
-      x_authentication_flows_allowlist:
-      - type: login
-        name: oauth_only
-      - type: login
-        name: email_password_2fa
-      - type: signup
-        name: email_password_2fa
+      x_authentication_flow_group_allowlist:
+      - oauth_only
+      - email_password_2fa
 ```
 
-After configuration, selection can be specified with `x_authentication_flow_type` and `x_authentication_flow_name` in the [authentication request](/docs/specs/oidc.md#x_authentication_flow_type)
+To authorize using a flow group, use `x_authentication_flow_group` and `x_page` in the [authentication request](/docs/specs/oidc.md#x_authentication_flow_group)
 
-For clients with `x_authentication_flows_allowlist` specified, only the allowed flows can be run. First flow in the list will be used as fallback if authentication request does not include a flow name.
+For clients with `x_authentication_flow_group_allowlist` specified, only the specified flow groups can be used.
+
+#### Flow group constraints
+
+- After a flow group is selected, the client can only use the specified flow names in the group. An exception to this constraint is account linking where the client can initiate any login subflow.
+  - In this case, other flow types will still be constrained by the initial flow group.
+
+- When using custom UI, the constraint is only applied on the initial flow selection. The client can switch to any flow name freely after the initial selection.
+
+- Although a flow group will always specify allow flow types, `public_signup_disabled` will still be respected. If `public_signup_disabled` is set to true, the client can only use the flow group for login.
+
 
 ## Use case examples
 

@@ -19,8 +19,7 @@
     + [nonce](#nonce)
     + [x_page](#x_page)
     + [x_settings_action](#x_settings_action)
-    + [x_authentication_flow_type](#x_authentication_flow_type)
-    + [x_authentication_flow_name](#x_authentication_flow_name)
+    + [x_authentication_flow_group](#x_authentication_flow_group)
   * [Token Request](#token-request)
     + [grant_type](#grant_type)
     + [id_token_hint](#id_token_hint-1)
@@ -238,19 +237,13 @@ When it is specified, the user will be redirected to the corresponding auth ui p
 
 Supported values: `change_password`.
 
-### x_authentication_flow_type
+### x_authentication_flow_group
 
-When it is specified, the user perform authentication through custom authentication flow. After completing the action.
+When it is specified, the user perform authentication through custom authentication flow group.
 
-This option is mutually exclusive with `x_page`. If both are specified, the request will be rejected.
+It can be used in conjunction with `x_page` to decide whether to execute login or signup flow.
 
-Supported values: `login`, `signup`, `login_signup`.
-
-### x_authentication_flow_name
-
-It must used in conjunction with `x_authentication_flow_type`. It specifies which variant of given authentication flow type to use. If not specified, the `default` variant will be used.
-
-If the specified variant is not supported, authorization request will be rejected.
+If the specified group is not found or not included in the [client's allow list](/docs/specs/authentication-flow.md#flow-selection), the request will be rejected.
 
 ## Token Request
 
