@@ -135,7 +135,7 @@ identity:
 
 1. As `link_by.incoming.pointer` is `"/phone_number"`, we will first get a value from the external idp profile by the key `"phone_number"`, which gets `+85200000001`.
 
-2. Then, we will search existing identities using the json pointer defined in `link_by.incoming.pointer`, which is `"/phone_number"`. So we will find all identities which having is having a field `"email": "+85200000002"`. However, the existing phone identity doesn't contain this field (It is `"email": "+85200000001"`). In this case, no match will be found.
+2. Then, we will search existing identities using the json pointer defined in `link_by.incoming.pointer`, which is `"/phone_number"`. So we will find all identities which is having a field `"phone_number": "+85200000002"`. However, the existing phone identity doesn't contain this field (It is `"phone_number": "+85200000001"`). In this case, no match will be found.
 
 ### Define the profile field mapping using `raw_profile_mappings`
 
