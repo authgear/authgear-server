@@ -32,7 +32,7 @@ steps:
       {
         "identification": "oauth",
         "alias": "facebook",
-        "redirect_uri": "https://mock"
+        "redirect_uri": "http://mock"
       }
     output:
       result: |
@@ -45,9 +45,18 @@ steps:
           }
         }
 
+  - action: oauth_redirect
+    to: "{{ .Prev.Result.Action.Data.oauth_authorization_url }}"
+    redirect_uri: http://mock
+    output:
+      result: |
+        {
+          "code": "[[string]]"
+        }
+
   - input: |
       {
-        "code": "facebook"
+        "code": "{{ .Prev.Result.code }}"
       }
     output:
       result: |

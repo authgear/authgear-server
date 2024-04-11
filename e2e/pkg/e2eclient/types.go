@@ -1,8 +1,6 @@
 package e2eclient
 
 import (
-	"encoding/json"
-
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
@@ -12,10 +10,10 @@ type FlowReference struct {
 }
 
 type FlowAction struct {
-	Type           string          `json:"type"`
-	Identification string          `json:"identification,omitempty"`
-	Authentication string          `json:"authentication,omitempty"`
-	Data           json.RawMessage `json:"data,omitempty"`
+	Type           string                 `json:"type"`
+	Identification string                 `json:"identification,omitempty"`
+	Authentication string                 `json:"authentication,omitempty"`
+	Data           map[string]interface{} `json:"data,omitempty"`
 }
 
 type FlowResponse struct {

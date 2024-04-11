@@ -11,8 +11,8 @@ function setup {
     export PATH=$PATH:../dist
 
     echo "[ ] Building e2e..."
-    make build BIN_NAME=dist/e2e TARGET=e2e
-    make build BIN_NAME=dist/e2e-proxy TARGET=proxy
+    go build -o dist/e2e ./cmd/e2e
+    go build -o dist/e2e-proxy ./cmd/proxy
     export PATH=$PATH:./dist
 
     echo "[ ] Starting authgear..."
@@ -61,7 +61,7 @@ function teardown {
     docker compose down
 }
 
-function runtests {
+function tests {
     echo "[ ] Run tests..."
     go test ./... -timeout 1m30s
 }
@@ -69,7 +69,7 @@ function runtests {
 function main {
     teardown || true
     setup
-    runtests
+    tests
     teardown
 }
 
@@ -77,5 +77,9 @@ BASEDIR=$(cd $(dirname "$0") && pwd)
 PROJECTDIR=$(cd "${BASEDIR}/.." && pwd)
 (
     cd "${BASEDIR}"
-    main $@
+    if [ "$1" ]; then
+        $1
+    else
+        main $@
+    fi
 )

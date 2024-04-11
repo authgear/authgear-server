@@ -48,16 +48,7 @@ func (ss *SessionStore) NewSession(clientID string, scope string, user User) (*S
 func (ss *SessionStore) GetSessionByID(id string) (*Session, error) {
 	session, ok := ss.Store[id]
 	if !ok {
-		// return nil, errors.New("session not found")
-
-		// Since e2e tests will not interact to authorize,
-		// we will create a new dummy session on read instead
-		session, _ = ss.NewSession(
-			id,
-			"openid",
-			DefaultUser(),
-		)
-		return session, nil
+		return nil, errors.New("session not found")
 	}
 	return session, nil
 }

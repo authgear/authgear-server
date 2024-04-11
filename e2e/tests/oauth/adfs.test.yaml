@@ -33,7 +33,7 @@ steps:
       {
         "identification": "oauth",
         "alias": "adfs",
-        "redirect_uri": "https://mock"
+        "redirect_uri": "http://mock"
       }
     output:
       result: |
@@ -46,9 +46,18 @@ steps:
           }
         }
 
+  - action: oauth_redirect
+    to: "{{ .Prev.Result.Action.Data.oauth_authorization_url }}"
+    redirect_uri: http://mock
+    output:
+      result: |
+        {
+          "code": "[[string]]"
+        }
+
   - input: |
       {
-        "code": "adfs"
+        "code": "{{ .Prev.Result.code }}"
       }
     output:
       result: |

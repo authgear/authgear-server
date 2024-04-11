@@ -32,19 +32,31 @@ steps:
       {
         "identification": "oauth",
         "alias": "google",
-        "redirect_uri": "https://mock"
+        "redirect_uri": "http://mock"
       }
     output:
       result: |
         {
           "action": {
-            "type": "identify"
+            "type": "identify",
+            "data": {
+              "oauth_authorization_url": "[[string]]"
+            }
           }
+        }
+
+  - action: oauth_redirect
+    to: "{{ .Prev.Result.Action.Data.oauth_authorization_url }}"
+    redirect_uri: http://mock
+    output:
+      result: |
+        {
+          "code": "[[string]]"
         }
 
   - input: |
       {
-        "code": "google"
+        "code": "{{ .Prev.Result.code }}"
       }
     output:
       result: |
