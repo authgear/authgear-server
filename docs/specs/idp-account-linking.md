@@ -27,13 +27,17 @@ identity:
           idp_claim: "/preferred_username"
 ```
 
-- The `link_by` object was added to provider config. This section defines how an account in an external idp can be linked (i.e. matched) to an existing authgear user. It contains the following fields. Nullable. When null, no linking is available (i.e. Conflicts will never occur).
-  - `link_by.identity`: The identity used to match an account in authgear. Possible values are `email`, `phone`, `username`. The default is `email`.
-  - `link_by.idp_claim`: A key of the user info from the external idp. The key will be used to extract a value from the user info json, and match with any authgear user by looking at `link_by.identity`. If it is not specified, authgear will automatically choose a suitable claim to match with the selected `link_by.identity`. If authgear is unable to choose a suitable claim, it is an error.
+- The `link_by` object was added to provider config. This section defines how an account in an external idp can be linked (i.e. matched) to an existing authgear user. Nullable. When null, no linking is available (i.e. Conflicts will never occur). It contains the following fields:
+  - `link_by.identity`: The identity used to match an existing account in authgear. Possible values are `email`, `phone`, `username`. The default is `email`.
+  - `link_by.idp_claim`: A key of the user info from the external idp. The key will be used to extract a value from the user info json of the external idp, and match with any authgear user identity specified by `link_by.identity`. If it is not specified, authgear will automatically choose a suitable claim to match with the selected `link_by.identity`. If authgear is unable to choose a suitable claim, it will be an invalid config.
     - For example, `/email` will be choosed for a google account if `link_by.identity` is set to `email`. However, if `link_by.identity` is `phone`, the user must specify `link_by.idp_claim` because authgear have no idea which claim from the google user info can be used to match with a phone identity.
+    - Generic oidc idp integration is not supportted at the moment, but when supportted, the following defaults can be used.
+      - If `link_by.identity=email`, then `idp_claim=/email`.
+      - If `link_by.identity=username`, then `idp_claim=/preferred_username`.
+      - If `link_by.identity=phone`, then `idp_claim=/phone_number`.
     - If neccessary, the user can use a hook to perform transformation on the idp user info. This is to handle use cases like multiple claims in the idp user info could be used. For example, an idp might separate the country code and the national number into two claims. In this case, the developer must use a hook to transform the related claims into a single claim, and match with that claim instead. This will not be implemented at current stage.
 
-For related steps in authflow, please see the below [Action on conflict](#action-on-conflict) section.
+This config is only for defining the matching logic. During a signup flow, when a match exist, conflicts occurs. The action to resolve the conflict was defined in the authflow config. Please see the below for the authflow config for reolving conflicts.
 
 ```yaml
 signup_flows:
@@ -88,6 +92,8 @@ login_flows:
     - This will not be implemented at the moment.
   - `"hook"`: Use a hook to decide the behavior.
     - This will not be implemented at the moment.
+
+For details, please see the below [Action on conflict](#action-on-conflict) section.
 
 ## Action on conflict
 
