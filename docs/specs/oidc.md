@@ -17,7 +17,10 @@
     + [acr_values](#acr_values)
     + [code_challenge_method](#code_challenge_method)
     + [nonce](#nonce)
+    + [x_page](#x_page)
     + [x_settings_action](#x_settings_action)
+    + [x_authentication_flow_type](#x_authentication_flow_type)
+    + [x_authentication_flow_name](#x_authentication_flow_name)
   * [Token Request](#token-request)
     + [grant_type](#grant_type)
     + [id_token_hint](#id_token_hint-1)
@@ -221,11 +224,33 @@ Only `S256` is supported. `plain` is not supported.
 
 To mitigate replay attacks, provide a `nonce` in the authentication request. Authgear will include the `nonce` Claim in the ID Token, and the client must verify that the `nonce` claim value is equal to the value of the `nonce` parameter sent in the authentication request. The `nonce` is recommended but it is optional. The `nonce` value is a case sensitive string. Reference: [Authentication Request](https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.3.1.2.1).
 
+### x_page
+
+It specifies either the login or signup page to be shown to the user.
+
+This option is mutually exclusive with `x_authentication_flow_type`. If both are specified, the request will be rejected.
+
+Supported values: `login`, `signup`
+
 ### x_settings_action
 
 When it is specified, the user will be redirected to the corresponding auth ui pages of the settings action. After completing the action, the user will be redirected back to the app through redirect URI.
 
 Supported values: `change_password`.
+
+### x_authentication_flow_type
+
+When it is specified, the user perform authentication through custom authentication flow. After completing the action.
+
+This option is mutually exclusive with `x_page`. If both are specified, the request will be rejected.
+
+Supported values: `login`, `signup`, `login_signup`.
+
+### x_authentication_flow_name
+
+It must used in conjunction with `x_authentication_flow_type`. It specifies which variant of given authentication flow type to use. If not specified, the `default` variant will be used.
+
+If the specified variant is not supported, authorization request will be rejected.
 
 ## Token Request
 

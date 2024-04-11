@@ -151,6 +151,62 @@ async function onClickSave() {
 }
 ```
 
+### Custom authentication flow
+
+The SDK allows the developer to choose custom authentication flow using the `flow` field in `AuthorizeOptions` and `ReauthenticateOptions`.
+
+It is mutually exclusive with the `page` field, which is used to specify whehter the login or signup page should be shown.
+
+```typescript
+interface AuthorizeOptions {
+  // ... fields omitted for brevity.
+
+  flow: {
+    type: "login" | "signup" | "signup_login";
+    name: string;
+  };
+}
+
+interface ReauthenticateOptions {
+  // ... fields omitted for brevity.
+
+  flow: {
+    type: "reauth";
+    name: string;
+  };
+}
+
+```
+
+`flow.type` is the type of the authentication flow. It can be one of the following values:
+- `login`
+- `signup`
+- `signup_login`
+
+`flow.name` is the name of the authentication flow. The name must be registered in the Authgear portal, otherwise the SDK will throw an error.
+
+### Intended usage
+
+```typescript
+// Signup with a custom flow of name "my_custom_flow".
+const options: AuthorizeOptions = {
+  redirectURI: "myapp://host/path",
+  flow: {
+    type: "signup",
+    name: "my_custom_flow",
+  },
+};
+
+// Reauthenticate with a custom flow of name "my_custom_flow".
+const options: ReauthenticateOptions = {
+  redirectURI: "myapp://host/path",
+  flow: {
+    type: "login",
+    name: "my_custom_flow",
+  },
+};
+```
+
 ## Logout
 
 Logout is provided by the following API

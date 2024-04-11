@@ -356,6 +356,60 @@ reauth_flows:
     - authentication: secondary_sms_code
 ```
 
+### Flow selection
+
+By default, authentication flow with name `default` is used. Multiple flows per type can be specified in the configuration.
+
+Example:
+
+```yaml
+authentication_flow:
+  signup_flows:
+    - name: oauth_only
+      steps:
+      # ...
+    - name: email_password_2fa
+      steps:
+      # ...
+  login_flows:
+    - name: oauth_only
+      steps:
+      # ...
+    - name: email_password_2fa
+      steps:
+      # ...
+  signup_login_flows:
+    - name: oauth_only
+      steps:
+      # ...
+    - name: email_password_2fa
+      steps:
+      # ...
+
+oauth:
+  clients:
+    - client_id: public_app
+      # Only allow OAuth login for public_app
+      x_authentication_flows_allowlist:
+      - type: login
+        name: oauth_only
+      - type: signup_login
+        name: oauth_only
+    - client_id: internal
+      # Allow both OAuth login and email_password_2fa for internal
+      x_authentication_flows_allowlist:
+      - type: login
+        name: oauth_only
+      - type: login
+        name: email_password_2fa
+      - type: signup
+        name: email_password_2fa
+```
+
+After configuration, selection can be specified with `x_authentication_flow_type` and `x_authentication_flow_name` in the [authentication request](/docs/specs/oidc.md#x_authentication_flow_type)
+
+For clients with `x_authentication_flows_allowlist` specified, only the allowed flows can be run. First flow in the list will be used as fallback if authentication request does not include a flow name.
+
 ## Use case examples
 
 ### Use case example 1: Latte
