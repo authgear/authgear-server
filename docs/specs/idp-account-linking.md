@@ -1,5 +1,17 @@
 # Identity Provider Account Linking
 
+- [Introduction](#introduction)
+- [Configuration](#configuration)
+  - [Define the linking logic using `link_by`](#define-the-linking-logic-using-link_by)
+  - [Define the profile field mapping using `raw_profile_mappings`](#define-the-profile-field-mapping-using-raw_profile_mappings)
+    - [Relationship with `link_by`](#relationship-with-link_by)
+    - [Custom transformation of the raw idp profile by hook](#custom-transformation-of-the-raw-idp-profile-by-hook)
+  - [Define the conflict behavior in signup flow](#define-the-conflict-behavior-in-signup-flow)
+- [Action on conflict](#action-on-conflict)
+- [Login and Link Flow](#login-and-link-flow)
+- [Q&A](#qa)
+- [References](#references)
+
 ## Introduction
 
 A single user could have accounts in multiple identity providers, such as Google, Facebook, Github. We want to provide a way to identify and link accounts from different identity providers into a single authgear account.
