@@ -20,6 +20,7 @@ func TestAzureadv2Impl(t *testing.T) {
 				Type:     config.OAuthSSOProviderTypeAzureADv2,
 				Tenant:   "common",
 			},
+			HTTPClient: http.DefaultClient,
 		}
 
 		gock.New("https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration").

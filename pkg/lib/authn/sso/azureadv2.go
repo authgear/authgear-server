@@ -15,6 +15,7 @@ type Azureadv2Impl struct {
 	ProviderConfig               config.OAuthSSOProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
+	HTTPClient                   *http.Client
 }
 
 func (f *Azureadv2Impl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error) {
@@ -61,7 +62,7 @@ func (f *Azureadv2Impl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error)
 		endpoint = fmt.Sprintf("https://login.microsoftonline.com/%s/v2.0/.well-known/openid-configuration", tenant)
 	}
 
-	return FetchOIDCDiscoveryDocument(http.DefaultClient, endpoint)
+	return FetchOIDCDiscoveryDocument(f.HTTPClient, endpoint)
 }
 
 func (*Azureadv2Impl) Type() config.OAuthSSOProviderType {
@@ -99,14 +100,14 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, p
 		return
 	}
 	// OPTIMIZE(sso): Cache JWKs
-	keySet, err := c.FetchJWKs(http.DefaultClient)
+	keySet, err := c.FetchJWKs(f.HTTPClient)
 	if err != nil {
 		return
 	}
 
 	var tokenResp AccessTokenResp
 	jwtToken, err := c.ExchangeCode(
-		http.DefaultClient,
+		f.HTTPClient,
 		f.Clock,
 		r.Code,
 		keySet,

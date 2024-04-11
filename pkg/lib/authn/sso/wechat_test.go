@@ -1,6 +1,7 @@
 package sso
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -15,6 +16,7 @@ func TestWechatImpl(t *testing.T) {
 				ClientID: "client_id",
 				Type:     config.OAuthSSOProviderTypeWechat,
 			},
+			HTTPClient: http.DefaultClient,
 		}
 
 		u, err := g.GetAuthURL(GetAuthURLParam{

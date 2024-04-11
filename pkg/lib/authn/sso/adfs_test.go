@@ -20,6 +20,7 @@ func TestADFSImpl(t *testing.T) {
 				Type:                      config.OAuthSSOProviderTypeADFS,
 				DiscoveryDocumentEndpoint: "https://localhost/.well-known/openid-configuration",
 			},
+			HTTPClient: http.DefaultClient,
 		}
 
 		gock.New("https://localhost/.well-known/openid-configuration").

@@ -19,6 +19,7 @@ func TestGoogleImpl(t *testing.T) {
 				ClientID: "client_id",
 				Type:     config.OAuthSSOProviderTypeGoogle,
 			},
+			HTTPClient: http.DefaultClient,
 		}
 
 		gock.New(googleOIDCDiscoveryDocumentURL).

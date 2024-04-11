@@ -24,6 +24,7 @@ type GithubImpl struct {
 	ProviderConfig               config.OAuthSSOProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
+	HTTPClient                   *http.Client
 }
 
 func (*GithubImpl) Type() config.OAuthSSOProviderType {
@@ -111,7 +112,7 @@ func (g *GithubImpl) exchangeCode(r OAuthAuthorizationResponse, param GetAuthInf
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := g.HTTPClient.Do(req)
 	if err != nil {
 		return
 	}
@@ -145,7 +146,7 @@ func (g *GithubImpl) fetchUserInfo(accessTokenResp AccessTokenResp) (userProfile
 	}
 	req.Header.Add("Authorization", authorizationHeader)
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := g.HTTPClient.Do(req)
 	if resp != nil {
 		defer resp.Body.Close()
 	}

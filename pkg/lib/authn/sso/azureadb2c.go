@@ -15,6 +15,7 @@ type Azureadb2cImpl struct {
 	ProviderConfig               config.OAuthSSOProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
+	HTTPClient                   *http.Client
 }
 
 func (f *Azureadb2cImpl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error) {
@@ -28,7 +29,7 @@ func (f *Azureadb2cImpl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error
 		policy,
 	)
 
-	return FetchOIDCDiscoveryDocument(http.DefaultClient, endpoint)
+	return FetchOIDCDiscoveryDocument(f.HTTPClient, endpoint)
 }
 
 func (f *Azureadb2cImpl) Type() config.OAuthSSOProviderType {
@@ -66,14 +67,14 @@ func (f *Azureadb2cImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, 
 		return
 	}
 	// OPTIMIZE(sso): Cache JWKs
-	keySet, err := c.FetchJWKs(http.DefaultClient)
+	keySet, err := c.FetchJWKs(f.HTTPClient)
 	if err != nil {
 		return
 	}
 
 	var tokenResp AccessTokenResp
 	jwtToken, err := c.ExchangeCode(
-		http.DefaultClient,
+		f.HTTPClient,
 		f.Clock,
 		r.Code,
 		keySet,

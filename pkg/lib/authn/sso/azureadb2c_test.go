@@ -21,6 +21,7 @@ func TestAzureadb2cImpl(t *testing.T) {
 				Tenant:   "tenant",
 				Policy:   "policy",
 			},
+			HTTPClient: http.DefaultClient,
 		}
 
 		gock.New("https://tenant.b2clogin.com/tenant.onmicrosoft.com/policy/v2.0/.well-known/openid-configuration").

@@ -61,6 +61,7 @@ func (r wechatUserInfoResp) OpenID() string {
 }
 
 func wechatFetchAccessTokenResp(
+	client *http.Client,
 	code string,
 	appid string,
 	secret string,
@@ -71,7 +72,7 @@ func wechatFetchAccessTokenResp(
 	v.Add("appid", appid)
 	v.Add("secret", secret)
 
-	resp, err := http.PostForm(wechatAccessTokenURL, v)
+	resp, err := client.PostForm(wechatAccessTokenURL, v)
 	if resp != nil {
 		defer resp.Body.Close()
 	}
@@ -110,6 +111,7 @@ func wechatFetchAccessTokenResp(
 }
 
 func wechatFetchUserProfile(
+	client *http.Client,
 	accessTokenResp wechatAccessTokenResp,
 ) (userProfile wechatUserInfoResp, err error) {
 	v := url.Values{}
@@ -117,7 +119,7 @@ func wechatFetchUserProfile(
 	v.Set("access_token", accessTokenResp.AccessToken())
 	v.Set("lang", "en")
 
-	resp, err := http.PostForm(wechatUserInfoURL, v)
+	resp, err := client.PostForm(wechatUserInfoURL, v)
 	if resp != nil {
 		defer resp.Body.Close()
 	}

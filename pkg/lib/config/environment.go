@@ -79,4 +79,9 @@ type EnvironmentConfig struct {
 
 	// AppHostSuffixes originates from the portal config.
 	AppHostSuffixes AppHostSuffixes `envconfig:"APP_HOST_SUFFIXES"`
+
+	// End2EndHTTPProxy sets the HTTP proxy for end-to-end tests
+	End2EndHTTPProxy string `envconfig:"E2E_HTTP_PROXY"`
+	// End2EndSSLCertFile sets additional SSL certificate file for end-to-end tests
+	End2EndSSLCertFile string `envconfig:"E2E_SSL_CERT_FILE"`
 }

@@ -78,6 +78,7 @@ func (r AccessTokenResp) TokenType() string {
 }
 
 func fetchAccessTokenResp(
+	client *http.Client,
 	code string,
 	accessTokenURL string,
 	redirectURL string,
@@ -92,7 +93,7 @@ func fetchAccessTokenResp(
 	v.Add("client_secret", clientSecret)
 
 	// nolint: gosec
-	resp, err := http.PostForm(accessTokenURL, v)
+	resp, err := client.PostForm(accessTokenURL, v)
 	if resp != nil {
 		defer resp.Body.Close()
 	}

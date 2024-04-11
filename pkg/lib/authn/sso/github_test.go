@@ -1,6 +1,7 @@
 package sso
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -14,6 +15,7 @@ func TestGithubImpl(t *testing.T) {
 				ClientID: "client_id",
 				Type:     config.OAuthSSOProviderTypeGithub,
 			},
+			HTTPClient: http.DefaultClient,
 		}
 
 		u, err := g.GetAuthURL(GetAuthURLParam{
