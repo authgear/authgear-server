@@ -219,11 +219,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	hookLogger := hook.NewLogger(logFactory)
 	denoClientImpl := ProvideDenoClient(denoEndpoint, hookLogger)
 	managerFactory := &factory.ManagerFactory{
-		Context:          context,
-		AppBaseResources: appBaseResources,
-		Tutorials:        tutorialService,
-		DenoClient:       denoClientImpl,
-		Clock:            clock,
+		Context:           context,
+		AppBaseResources:  appBaseResources,
+		Tutorials:         tutorialService,
+		DenoClient:        denoClientImpl,
+		Clock:             clock,
+		EnvironmentConfig: environmentConfig,
+		DomainService:     domainService,
 	}
 	store := &plan.Store{
 		Clock:       clock,

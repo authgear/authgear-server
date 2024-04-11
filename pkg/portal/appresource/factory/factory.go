@@ -8,16 +8,19 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
+	portalservice "github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
 type ManagerFactory struct {
-	Context          context.Context
-	AppBaseResources deps.AppBaseResources
-	Tutorials        *tutorial.Service
-	DenoClient       *hook.DenoClientImpl
-	Clock            clock.Clock
+	Context           context.Context
+	AppBaseResources  deps.AppBaseResources
+	Tutorials         *tutorial.Service
+	DenoClient        *hook.DenoClientImpl
+	Clock             clock.Clock
+	EnvironmentConfig *config.EnvironmentConfig
+	DomainService     *portalservice.DomainService
 }
 
 func (f *ManagerFactory) NewManagerWithAppContext(appContext *config.AppContext) *appresource.Manager {
@@ -26,6 +29,8 @@ func (f *ManagerFactory) NewManagerWithAppContext(appContext *config.AppContext)
 		AppResourceManager: appContext.Resources,
 		AppFS:              appContext.AppFs,
 		AppFeatureConfig:   appContext.Config.FeatureConfig,
+		AppHostSuffixes:    &f.EnvironmentConfig.AppHostSuffixes,
+		DomainService:      f.DomainService,
 		Tutorials:          f.Tutorials,
 		DenoClient:         f.DenoClient,
 		Clock:              f.Clock,
@@ -41,6 +46,8 @@ func (f *ManagerFactory) NewManagerWithNewAppFS(appFs resource.Fs) *appresource.
 		// The newly generated config should not violate any app plan
 		// use default unlimited feature config for the app creation
 		AppFeatureConfig: config.NewEffectiveDefaultFeatureConfig(),
+		AppHostSuffixes:  &f.EnvironmentConfig.AppHostSuffixes,
+		DomainService:    f.DomainService,
 		Tutorials:        f.Tutorials,
 		DenoClient:       f.DenoClient,
 		Clock:            f.Clock,

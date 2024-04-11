@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/afero"
 	"sigs.k8s.io/yaml"
 
+	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	configtest "github.com/authgear/authgear-server/pkg/lib/config/test"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
@@ -42,13 +43,19 @@ func TestManager(t *testing.T) {
 		tutorialService.EXPECT().OnUpdateResource(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
 		denoClient := NewMockDenoClient(ctrl)
 		denoClient.EXPECT().Check(gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
+		domainService := NewMockDomainService(ctrl)
+		domainService.EXPECT().ListDomains(gomock.Any()).AnyTimes().Return([]*apimodel.Domain{
+			{ID: "domain-id", AppID: "app-id", Domain: "test"},
+		}, nil)
 
 		portalResMgr := &appresource.Manager{
 			Context:            context.Background(),
 			AppResourceManager: resMgr,
 			AppFS:              appResourceFs,
 			AppFeatureConfig:   cfg.FeatureConfig,
+			AppHostSuffixes:    &config.AppHostSuffixes{},
 			Tutorials:          tutorialService,
+			DomainService:      domainService,
 			DenoClient:         denoClient,
 			Clock:              clock.NewMockClock(),
 		}

@@ -4,9 +4,9 @@ import (
 	"errors"
 	"net"
 
+	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
-	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
@@ -15,7 +15,7 @@ import (
 var ErrHostSuffixNotConfigured = errors.New("host suffix not configured")
 
 type DefaultDomainDomainService interface {
-	CreateDomain(appID string, domain string, isVerified bool, isCustom bool) (*model.Domain, error)
+	CreateDomain(appID string, domain string, isVerified bool, isCustom bool) (*apimodel.Domain, error)
 }
 
 type DefaultDomainService struct {

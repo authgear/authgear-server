@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
+	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/web3"
 )
 
@@ -218,7 +219,7 @@ var nodeApp = node(
 					for _, p := range descriptedPaths {
 						appRes = append(appRes, &model.AppResource{
 							Context:        app.Context,
-							DescriptedPath: p,
+							DescriptedPath: resource.DescriptedPath(p),
 						})
 					}
 					return appRes, nil

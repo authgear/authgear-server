@@ -62,10 +62,10 @@ type AppService interface {
 }
 
 type DomainService interface {
-	ListDomains(appID string) ([]*model.Domain, error)
-	CreateCustomDomain(appID string, domain string) (*model.Domain, error)
+	ListDomains(appID string) ([]*apimodel.Domain, error)
+	CreateCustomDomain(appID string, domain string) (*apimodel.Domain, error)
 	DeleteDomain(appID string, id string) error
-	VerifyDomain(appID string, id string) (*model.Domain, error)
+	VerifyDomain(appID string, id string) (*apimodel.Domain, error)
 }
 
 type CollaboratorService interface {

@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/afero"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
@@ -34,11 +35,17 @@ type TutorialService interface {
 	OnUpdateResource(ctx context.Context, appID string, resourcesInAllFss []resource.ResourceFile, resourceInTargetFs *resource.ResourceFile, data []byte) (err error)
 }
 
+type DomainService interface {
+	ListDomains(appID string) ([]*apimodel.Domain, error)
+}
+
 type Manager struct {
 	Context            context.Context
 	AppResourceManager *resource.Manager
 	AppFS              resource.Fs
 	AppFeatureConfig   *config.FeatureConfig
+	AppHostSuffixes    *config.AppHostSuffixes
+	DomainService      DomainService
 	Tutorials          TutorialService
 	DenoClient         DenoClient
 	Clock              clock.Clock
@@ -320,6 +327,8 @@ func (m *Manager) applyUpdates(appID string, appFs resource.Fs, updates []Update
 		ctx := m.Context
 		ctx = context.WithValue(ctx, configsource.ContextKeyFeatureConfig, m.AppFeatureConfig)
 		ctx = context.WithValue(ctx, configsource.ContextKeyClock, m.Clock)
+		ctx = context.WithValue(ctx, configsource.ContextKeyAppHostSuffixes, m.AppHostSuffixes)
+		ctx = context.WithValue(ctx, configsource.ContextKeyDomainService, m.DomainService)
 		ctx = context.WithValue(ctx, hook.ContextKeyDenoClient, m.DenoClient)
 
 		err = m.Tutorials.OnUpdateResource(ctx, appID, all, resrc, u.Data)

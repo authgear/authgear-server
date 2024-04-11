@@ -8,6 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	model "github.com/authgear/authgear-server/pkg/api/model"
 	resource "github.com/authgear/authgear-server/pkg/util/resource"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -84,4 +85,42 @@ func (m *MockTutorialService) OnUpdateResource(ctx context.Context, appID string
 func (mr *MockTutorialServiceMockRecorder) OnUpdateResource(ctx, appID, resourcesInAllFss, resourceInTargetFs, data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnUpdateResource", reflect.TypeOf((*MockTutorialService)(nil).OnUpdateResource), ctx, appID, resourcesInAllFss, resourceInTargetFs, data)
+}
+
+// MockDomainService is a mock of DomainService interface.
+type MockDomainService struct {
+	ctrl     *gomock.Controller
+	recorder *MockDomainServiceMockRecorder
+}
+
+// MockDomainServiceMockRecorder is the mock recorder for MockDomainService.
+type MockDomainServiceMockRecorder struct {
+	mock *MockDomainService
+}
+
+// NewMockDomainService creates a new mock instance.
+func NewMockDomainService(ctrl *gomock.Controller) *MockDomainService {
+	mock := &MockDomainService{ctrl: ctrl}
+	mock.recorder = &MockDomainServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockDomainService) EXPECT() *MockDomainServiceMockRecorder {
+	return m.recorder
+}
+
+// ListDomains mocks base method.
+func (m *MockDomainService) ListDomains(appID string) ([]*model.Domain, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListDomains", appID)
+	ret0, _ := ret[0].([]*model.Domain)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListDomains indicates an expected call of ListDomains.
+func (mr *MockDomainServiceMockRecorder) ListDomains(appID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListDomains", reflect.TypeOf((*MockDomainService)(nil).ListDomains), appID)
 }

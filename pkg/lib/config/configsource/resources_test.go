@@ -4,8 +4,10 @@ import (
 	"context"
 	"testing"
 
+	gomock "github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
+	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	configtest "github.com/authgear/authgear-server/pkg/lib/config/test"
 	"github.com/authgear/authgear-server/pkg/util/resource"
@@ -13,10 +15,18 @@ import (
 
 func TestAuthgearYAML(t *testing.T) {
 	Convey("AuthgearYAML custom attributes", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		domainService := NewMockDomainService(ctrl)
+		domainService.EXPECT().ListDomains("test").Return([]*apimodel.Domain{}, nil).AnyTimes()
+
 		path := "authgear.yaml"
 		featureConfig := config.NewEffectiveDefaultFeatureConfig()
 		ctx := context.Background()
 		ctx = context.WithValue(ctx, ContextKeyFeatureConfig, featureConfig)
+		ctx = context.WithValue(ctx, ContextKeyAppHostSuffixes, &config.AppHostSuffixes{})
+		ctx = context.WithValue(ctx, ContextKeyDomainService, domainService)
 		app := resource.LeveledAferoFs{FsLevel: resource.FsLevelApp}
 		descriptor := &AuthgearYAMLDescriptor{}
 
@@ -197,15 +207,149 @@ user_profile:
 		})
 	})
 
+	Convey("AuthgearYAML public origin", t, func() {
+		path := "authgear.yaml"
+		app := resource.LeveledAferoFs{FsLevel: resource.FsLevelApp}
+		descriptor := &AuthgearYAMLDescriptor{}
+
+		Convey("Public origin can be changed to builtin appHostSuffix", func() {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			domainService := NewMockDomainService(ctrl)
+			domainService.EXPECT().ListDomains("test").Return([]*apimodel.Domain{}, nil).AnyTimes()
+
+			featureConfig := config.NewEffectiveDefaultFeatureConfig()
+
+			ctx := context.Background()
+			ctx = context.WithValue(ctx, ContextKeyFeatureConfig, featureConfig)
+			ctx = context.WithValue(ctx, ContextKeyAppHostSuffixes, &config.AppHostSuffixes{".builtin.com"})
+			ctx = context.WithValue(ctx, ContextKeyDomainService, domainService)
+
+			_, err := descriptor.UpdateResource(
+				ctx,
+				nil,
+				&resource.ResourceFile{
+					Location: resource.Location{
+						Fs:   app,
+						Path: path,
+					},
+					Data: []byte(`id: test
+http:
+  public_origin: http://test
+`),
+				},
+				[]byte(`id: test
+http:
+  public_origin: http://test.builtin.com
+`),
+			)
+
+			So(err, ShouldBeNil)
+		})
+
+		Convey("Public origin can be changed to custom domain", func() {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			domainService := NewMockDomainService(ctrl)
+			domainService.EXPECT().ListDomains("test").Return([]*apimodel.Domain{
+				{
+					ID:     "domain-id",
+					AppID:  "test",
+					Domain: "customdomain.com",
+				},
+			}, nil).AnyTimes()
+
+			featureConfig := config.NewEffectiveDefaultFeatureConfig()
+
+			ctx := context.Background()
+			ctx = context.WithValue(ctx, ContextKeyFeatureConfig, featureConfig)
+			ctx = context.WithValue(ctx, ContextKeyAppHostSuffixes, &config.AppHostSuffixes{})
+			ctx = context.WithValue(ctx, ContextKeyDomainService, domainService)
+
+			_, err := descriptor.UpdateResource(
+				ctx,
+				nil,
+				&resource.ResourceFile{
+					Location: resource.Location{
+						Fs:   app,
+						Path: path,
+					},
+					Data: []byte(`id: test
+http:
+  public_origin: http://test
+`),
+				},
+				[]byte(`id: test
+http:
+  public_origin: http://customdomain.com
+`),
+			)
+
+			So(err, ShouldBeNil)
+		})
+
+		Convey("Public origin cannot be changed to unknown domain", func() {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			domainService := NewMockDomainService(ctrl)
+			domainService.EXPECT().ListDomains("test").Return([]*apimodel.Domain{
+				{
+					ID:     "domain-id",
+					AppID:  "test",
+					Domain: "customdomain.com",
+				},
+			}, nil).AnyTimes()
+
+			featureConfig := config.NewEffectiveDefaultFeatureConfig()
+
+			ctx := context.Background()
+			ctx = context.WithValue(ctx, ContextKeyFeatureConfig, featureConfig)
+			ctx = context.WithValue(ctx, ContextKeyAppHostSuffixes, &config.AppHostSuffixes{})
+			ctx = context.WithValue(ctx, ContextKeyDomainService, domainService)
+
+			_, err := descriptor.UpdateResource(
+				ctx,
+				nil,
+				&resource.ResourceFile{
+					Location: resource.Location{
+						Fs:   app,
+						Path: path,
+					},
+					Data: []byte(`id: test
+http:
+  public_origin: http://test
+`),
+				},
+				[]byte(`id: test
+http:
+  public_origin: http://incorrectdomain.com
+`),
+			)
+
+			So(err, ShouldBeError, "invalid authgear.yaml:\n/http/public_origin: public origin is not allowed")
+		})
+	})
+
 	Convey("AuthgearYAML feature config", t, func() {
 		path := "authgear.yaml"
 		app := resource.LeveledAferoFs{FsLevel: resource.FsLevelApp}
 		descriptor := &AuthgearYAMLDescriptor{}
 
 		Convey("test unlimited plan", func() {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			domainService := NewMockDomainService(ctrl)
+			domainService.EXPECT().ListDomains("test").Return([]*apimodel.Domain{}, nil).AnyTimes()
+
 			featureConfig := configtest.FixtureFeatureConfig(configtest.FixtureUnlimitedPlanName)
 			ctx := context.Background()
 			ctx = context.WithValue(ctx, ContextKeyFeatureConfig, featureConfig)
+			ctx = context.WithValue(ctx, ContextKeyAppHostSuffixes, &config.AppHostSuffixes{})
+			ctx = context.WithValue(ctx, ContextKeyDomainService, domainService)
 
 			Convey("should not return feature config error", func() {
 				_, err := descriptor.UpdateResource(
@@ -284,9 +428,17 @@ oauth:
 		})
 
 		Convey("test limited plan", func() {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			domainService := NewMockDomainService(ctrl)
+			domainService.EXPECT().ListDomains("test").Return([]*apimodel.Domain{}, nil).AnyTimes()
+
 			featureConfig := configtest.FixtureFeatureConfig(configtest.FixtureLimitedPlanName)
 			ctx := context.Background()
 			ctx = context.WithValue(ctx, ContextKeyFeatureConfig, featureConfig)
+			ctx = context.WithValue(ctx, ContextKeyAppHostSuffixes, &config.AppHostSuffixes{})
+			ctx = context.WithValue(ctx, ContextKeyDomainService, domainService)
 
 			Convey("should return feature config error", func() {
 				_, err := descriptor.UpdateResource(

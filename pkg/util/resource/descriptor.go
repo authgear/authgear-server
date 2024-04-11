@@ -22,6 +22,11 @@ type Match struct {
 	LanguageTag string
 }
 
+type DescriptedPath struct {
+	Descriptor Descriptor
+	Path       string
+}
+
 type Descriptor interface {
 	MatchResource(path string) (*Match, bool)
 	FindResources(fs Fs) ([]Location, error)

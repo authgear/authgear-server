@@ -1,12 +1,12 @@
 package loader
 
 import (
-	"github.com/authgear/authgear-server/pkg/portal/model"
+	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type DomainLoaderDomainService interface {
-	GetMany(ids []string) ([]*model.Domain, error)
+	GetMany(ids []string) ([]*apimodel.Domain, error)
 }
 
 type DomainLoader struct {
@@ -38,7 +38,7 @@ func (l *DomainLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
 	}
 
 	// Create map.
-	entityMap := make(map[string]*model.Domain)
+	entityMap := make(map[string]*apimodel.Domain)
 	for _, domain := range domains {
 		entityMap[domain.ID] = domain
 	}
