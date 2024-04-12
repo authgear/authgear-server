@@ -249,8 +249,7 @@ func execTemplate(cmd *End2EndCmd, prev *StepResult, content string) (string, er
 	tmpl := texttemplate.New("")
 	tmpl.Funcs(makeTemplateFuncMap(cmd))
 
-	// Treat ${{ as {{ for oneline templates
-	_, err := tmpl.Parse(strings.ReplaceAll(content, "${{", "{{"))
+	_, err := tmpl.Parse(content)
 	if err != nil {
 		return "", err
 	}

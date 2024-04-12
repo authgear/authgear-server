@@ -46,7 +46,7 @@ steps:
         }
 
   - action: oauth_redirect
-    to: ${{ .prev.result.action.data.oauth_authorization_url }}
+    to: "{{ .prev.result.action.data.oauth_authorization_url }}"
     redirect_uri: http://mock
     output:
       result: |
