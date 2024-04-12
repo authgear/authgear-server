@@ -138,7 +138,8 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"tos_uri": { "type": "string", "format": "uri" },
 		"x_custom_ui_uri": { "type": "string", "format": "uri" },
 		"x_app2app_enabled": { "type": "boolean" },
-		"x_app2app_insecure_device_key_binding_enabled": { "type": "boolean" }
+		"x_app2app_insecure_device_key_binding_enabled": { "type": "boolean" },
+		"x_authentication_flow_group_allowlist": { "type": "array", "items": { "type": "string", "minLength": 1 } }
 	},
 	"required": ["name", "client_id", "redirect_uris"],
 	"allOf": [
@@ -196,6 +197,7 @@ type OAuthClientConfig struct {
 	CustomUIURI                            string                     `json:"x_custom_ui_uri,omitempty"`
 	App2appEnabled                         bool                       `json:"x_app2app_enabled,omitempty"`
 	App2appInsecureDeviceKeyBindingEnabled bool                       `json:"x_app2app_insecure_device_key_binding_enabled,omitempty"`
+	AuthenticationFlowGroupAllowlist       []string                   `json:"x_authentication_flow_group_allowlist,omitempty"`
 }
 
 func (c *OAuthClientConfig) DefaultRedirectURI() string {

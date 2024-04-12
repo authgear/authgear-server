@@ -119,6 +119,9 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 
 	// Validation 8: validate lockout configs
 	c.validateLockout(ctx)
+
+	// Validation 9: validate authentication flow
+	c.validateAuthenticationFlow(ctx)
 }
 
 func (c *AppConfig) validateTokenLifetime(ctx *validation.Context) {
@@ -324,6 +327,33 @@ func (c *AppConfig) validateLockout(ctx *validation.Context) {
 			"maximum": maxDuration.Seconds(),
 			"actual":  minDuration.Seconds(),
 		})
+	}
+}
+
+func (c *AppConfig) validateAuthenticationFlow(ctx *validation.Context) {
+	groupNames := map[string]struct{}{}
+
+	// Ensure no duplicated group
+	for _, group := range c.UI.AuthenticationFlow.Groups {
+		if _, ok := groupNames[group.Name]; ok {
+			ctx.Child("ui", "authentication_flow", "groups").EmitErrorMessage("duplicated group")
+		}
+
+		groupNames[group.Name] = struct{}{}
+	}
+
+	// Ensure client's group allowlist is valid
+	for i, client := range c.OAuth.Clients {
+		if client.AuthenticationFlowGroupAllowlist == nil {
+			continue
+		}
+
+		for j, group := range client.AuthenticationFlowGroupAllowlist {
+			if _, ok := groupNames[group]; !ok {
+				ctx.Child("oauth", "clients", strconv.Itoa(i), "authentication_flow_group_allowlist", strconv.Itoa(j)).
+					EmitErrorMessage("invalid authentication flow group")
+			}
+		}
 	}
 }
 
