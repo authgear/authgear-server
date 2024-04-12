@@ -1,4 +1,4 @@
-# Identity Provider Account Linking
+# Account Linking
 
 - [Introduction](#introduction)
 - [Configuration](#configuration)
