@@ -10,6 +10,9 @@
 - [Action on conflict](#action-on-conflict)
 - [Login and Link Flow](#login-and-link-flow)
 - [Q&A](#qa)
+  - [Why we need to login the user before linking the account?](#why-we-need-to-login-the-user-before-linking-the-account)
+  - [Why we need to continue the original signup flow instead of simply adding the oauth identity to the user?](#why-we-need-to-continue-the-original-signup-flow-instead-of-simply-adding-the-oauth-identity-to-the-user)
+  - [Why `on_conflict` is only available on `identification: oauth` but not other login ids such as `identification: email`?](#why-on_conflict-is-only-available-on-identification-oauth-but-not-other-login-ids-such-as-identification-email)
 - [References](#references)
 
 ## Introduction
@@ -467,41 +470,43 @@ Resulting user:
 
 ## Q&A
 
-- Why we need to login the user before linking the account?
+### Why we need to login the user before linking the account?
 
-  - This is to prevent the user account being taken over using a oauth idenity. For example, if an idp allows registering an user account without verifying the email, that idp can be used to create accounts to take over authgear accounts if we link the account without running the login flow. Therefore passing the login flow before linking the account is neccessary.
+This is to prevent the user account being taken over using a oauth idenity. For example, if an idp allows registering an user account without verifying the email, that idp can be used to create accounts to take over authgear accounts if we link the account without running the login flow. Therefore passing the login flow before linking the account is neccessary.
 
-- Why we need to continue the original signup flow instead of simply adding the oauth identity to the user?
+### Why we need to continue the original signup flow instead of simply adding the oauth identity to the user?
 
-  - Consider the following:
-    - Assume we have the following signup flow:
-    ```yaml
-    signup_flows:
-      - name: default
-        steps:
-          - name: identify
-            type: identify
-            one_of:
-              - identification: email
-                steps:
-                  - name: email_setup_primary_email
-                    type: create_authenticator
-                    one_of:
-                      - authentication: primary_password
-              - identification: oauth
-                on_conflict:
-                  action: login_and_link
-                  login_flow: default
-                  target_step: step_1
-                steps:
-                  - type: create_authenticator
-                    one_of:
-                      - authentication: secondary_totp
-    ```
-  - If we add the oauth identity to the user without completing the whole signup flow, the step that create `secondary_totp` would be skipped. Which may break the assumption that all users created by signup flow with oauth identity will have `secondary_totp` setup. Therefore we should continue the signup flow. However, we should skip unncessary steps to prevent duplicated authenticators of the same type being added.
+Consider the following signup flow config:
 
-- Why `on_conflict` is only available on `identification: oauth` but not other login ids such as `identification: email`?
-  - We think that the common use case is to link an oauth account to an existing login id, but not the reverse. So it is not supportted at the moment. However, theoretically it is possible to support `on_conflict` of other `identification` methods too. This could be added in the future.
+```yaml
+signup_flows:
+  - name: default
+    steps:
+      - name: identify
+        type: identify
+        one_of:
+          - identification: email
+            steps:
+              - name: email_setup_primary_email
+                type: create_authenticator
+                one_of:
+                  - authentication: primary_password
+          - identification: oauth
+            on_conflict:
+              action: login_and_link
+              login_flow: default
+              target_step: step_1
+            steps:
+              - type: create_authenticator
+                one_of:
+                  - authentication: secondary_totp
+```
+
+If we add the oauth identity to the user without completing the whole signup flow, the step that create `secondary_totp` would be skipped. Which may break the assumption that all users created by signup flow with oauth identity will have `secondary_totp` setup. Therefore we should continue the signup flow. However, we should skip unncessary steps to prevent duplicated authenticators of the same type being added.
+
+### Why `on_conflict` is only available on `identification: oauth` but not other login ids such as `identification: email`?
+
+We think that the common use case is to link an oauth account to an existing login id, but not the reverse. So it is not supportted at the moment. However, theoretically it is possible to support `on_conflict` of other `identification` methods too. This could be added in the future.
 
 ## References
 
