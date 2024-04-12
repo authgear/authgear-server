@@ -82,6 +82,6 @@ type EnvironmentConfig struct {
 
 	// End2EndHTTPProxy sets the HTTP proxy for end-to-end tests
 	End2EndHTTPProxy string `envconfig:"E2E_HTTP_PROXY"`
-	// End2EndSSLCertFile sets additional SSL certificate file for end-to-end tests
-	End2EndSSLCertFile string `envconfig:"E2E_SSL_CERT_FILE"`
+	// End2EndTLSCACertFile sets additional CA certificate for end-to-end tests
+	End2EndTLSCACertFile string `envconfig:"E2E_TLS_CA_CERT_FILE"`
 }
