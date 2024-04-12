@@ -5,7 +5,6 @@
     + [Signup Flow in essence](#signup-flow-in-essence)
     + [Login Flow in essence](#login-flow-in-essence)
     + [Reauth Flow in essence](#reauth-flow-in-essence)
-    + [AccountLinking Flow in essence](#accountlinking-flow-in-essence)
   * [Design](#design)
     + [Design Principles](#design-principles)
     + [Design of the configuration](#design-of-the-configuration)
@@ -67,7 +66,6 @@ How Authentication Flow is implemented is intentionally left unspecified in this
 - Support SignupLogin Flow, a flow which switches to a Signup Flow, or a Login Flow, depending on the claimed Identity.
 - The Default UI is driven by generated Authentication Flows, according to the configuration of the app.
 - The developer can use the HTTP API on both the Web platform, and the mobile platforms (iOS and Android).
-- (Future works) Support AccountLink Flow.
 
 ## Non-goals
 
@@ -100,15 +98,6 @@ If the User identifies themselves with the OAuth Identity `johndoe@gmail.com`, t
 ### Reauth Flow in essence
 - Authenticate the User with any Authenticators.
 
-### AccountLinking Flow in essence
-
-AccountLink Flow happens within a Login Flow.
-Each Login Flow can optionally specify the conditions when a AccountLinking Flow can happen.
-If no conditions are specified or no conditions are matched, an error is returned, telling the User to sign in with the existing Identity instead.
-
-The Login Flow is then proceeded as if the existing Identity is selected.
-
-At the end of the flow, the new Identity is added to the User.
 
 ## Design
 
