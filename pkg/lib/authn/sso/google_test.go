@@ -11,7 +11,8 @@ import (
 
 func TestGoogleImpl(t *testing.T) {
 	Convey("GoogleImpl", t, func() {
-		gock.InterceptClient(http.DefaultClient)
+		client := OAuthHTTPClient{&http.Client{}}
+		gock.InterceptClient(client.Client)
 		defer gock.Off()
 
 		g := &GoogleImpl{
@@ -19,7 +20,7 @@ func TestGoogleImpl(t *testing.T) {
 				ClientID: "client_id",
 				Type:     config.OAuthSSOProviderTypeGoogle,
 			},
-			HTTPClient: http.DefaultClient,
+			HTTPClient: client,
 		}
 
 		gock.New(googleOIDCDiscoveryDocumentURL).

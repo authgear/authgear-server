@@ -11,7 +11,8 @@ import (
 
 func TestADFSImpl(t *testing.T) {
 	Convey("ADFSImpl", t, func() {
-		gock.InterceptClient(http.DefaultClient)
+		client := OAuthHTTPClient{&http.Client{}}
+		gock.InterceptClient(client.Client)
 		defer gock.Off()
 
 		g := &ADFSImpl{
@@ -20,7 +21,7 @@ func TestADFSImpl(t *testing.T) {
 				Type:                      config.OAuthSSOProviderTypeADFS,
 				DiscoveryDocumentEndpoint: "https://localhost/.well-known/openid-configuration",
 			},
-			HTTPClient: http.DefaultClient,
+			HTTPClient: client,
 		}
 
 		gock.New("https://localhost/.well-known/openid-configuration").

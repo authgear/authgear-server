@@ -24,7 +24,7 @@ type GithubImpl struct {
 	ProviderConfig               config.OAuthSSOProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
-	HTTPClient                   *http.Client
+	HTTPClient                   OAuthHTTPClient
 }
 
 func (*GithubImpl) Type() config.OAuthSSOProviderType {

@@ -3,7 +3,6 @@ package sso
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -15,7 +14,7 @@ type Azureadv2Impl struct {
 	ProviderConfig               config.OAuthSSOProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
-	HTTPClient                   *http.Client
+	HTTPClient                   OAuthHTTPClient
 }
 
 func (f *Azureadv2Impl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error) {

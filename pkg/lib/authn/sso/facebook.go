@@ -1,7 +1,6 @@
 package sso
 
 import (
-	"net/http"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
@@ -20,7 +19,7 @@ type FacebookImpl struct {
 	ProviderConfig               config.OAuthSSOProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
-	HTTPClient                   *http.Client
+	HTTPClient                   OAuthHTTPClient
 }
 
 func (*FacebookImpl) Type() config.OAuthSSOProviderType {

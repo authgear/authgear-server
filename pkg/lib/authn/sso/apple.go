@@ -2,7 +2,6 @@ package sso
 
 import (
 	"context"
-	"net/http"
 	"strings"
 
 	"github.com/lestrrat-go/jwx/v2/jwa"
@@ -28,7 +27,7 @@ type AppleImpl struct {
 	ProviderConfig               config.OAuthSSOProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
-	HTTPClient                   *http.Client
+	HTTPClient                   OAuthHTTPClient
 }
 
 func (f *AppleImpl) createClientSecret() (clientSecret string, err error) {

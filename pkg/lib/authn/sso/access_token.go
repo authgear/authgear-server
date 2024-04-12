@@ -2,7 +2,6 @@ package sso
 
 import (
 	"encoding/json"
-	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
@@ -78,7 +77,7 @@ func (r AccessTokenResp) TokenType() string {
 }
 
 func fetchAccessTokenResp(
-	client *http.Client,
+	client OAuthHTTPClient,
 	code string,
 	accessTokenURL string,
 	redirectURL string,

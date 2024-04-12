@@ -2,7 +2,6 @@ package sso
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -15,7 +14,7 @@ type ADFSImpl struct {
 	ProviderConfig               config.OAuthSSOProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
-	HTTPClient                   *http.Client
+	HTTPClient                   OAuthHTTPClient
 }
 
 func (*ADFSImpl) Type() config.OAuthSSOProviderType {

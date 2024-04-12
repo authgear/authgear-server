@@ -11,10 +11,10 @@ import (
 	"github.com/google/wire"
 )
 
-func ProvideHTTPClient(env *config.EnvironmentConfig) *http.Client {
-	client := &http.Client{}
+func ProvideOAuthHTTPClient(env *config.EnvironmentConfig) OAuthHTTPClient {
+	client := OAuthHTTPClient{&http.Client{}}
 
-	if env.End2EndHTTPProxy != "" || env.End2EndSSLCertFile != "" {
+	if env.End2EndHTTPProxy != "" || env.End2EndTLSCACertFile != "" {
 		transport := &http.Transport{
 			TLSClientConfig: &tls.Config{
 				// TLS 1.2 is minimum version by default
@@ -22,12 +22,12 @@ func ProvideHTTPClient(env *config.EnvironmentConfig) *http.Client {
 			},
 		}
 
-		if env.End2EndSSLCertFile != "" {
+		if env.End2EndTLSCACertFile != "" {
 			caCertPool, err := x509.SystemCertPool()
 			if err != nil {
 				panic(err)
 			}
-			caCert, err := os.ReadFile(env.End2EndSSLCertFile)
+			caCert, err := os.ReadFile(env.End2EndTLSCACertFile)
 			if err != nil {
 				panic(err)
 			}
@@ -50,6 +50,6 @@ func ProvideHTTPClient(env *config.EnvironmentConfig) *http.Client {
 }
 
 var DependencySet = wire.NewSet(
-	ProvideHTTPClient,
+	ProvideOAuthHTTPClient,
 	wire.Struct(new(OAuthProviderFactory), "*"),
 )

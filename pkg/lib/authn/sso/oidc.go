@@ -31,7 +31,7 @@ type OIDCDiscoveryDocument struct {
 	JWKSUri               string `json:"jwks_uri"`
 }
 
-func FetchOIDCDiscoveryDocument(client *http.Client, endpoint string) (*OIDCDiscoveryDocument, error) {
+func FetchOIDCDiscoveryDocument(client OAuthHTTPClient, endpoint string) (*OIDCDiscoveryDocument, error) {
 	resp, err := client.Get(endpoint)
 	if resp != nil {
 		defer resp.Body.Close()
@@ -60,7 +60,7 @@ func (d *OIDCDiscoveryDocument) MakeOAuthURL(params AuthorizationURLParams) stri
 	return MakeAuthorizationURL(d.AuthorizationEndpoint, params.Query())
 }
 
-func (d *OIDCDiscoveryDocument) FetchJWKs(client *http.Client) (jwk.Set, error) {
+func (d *OIDCDiscoveryDocument) FetchJWKs(client OAuthHTTPClient) (jwk.Set, error) {
 	resp, err := client.Get(d.JWKSUri)
 	if resp != nil {
 		defer resp.Body.Close()
@@ -75,7 +75,7 @@ func (d *OIDCDiscoveryDocument) FetchJWKs(client *http.Client) (jwk.Set, error) 
 }
 
 func (d *OIDCDiscoveryDocument) ExchangeCode(
-	client *http.Client,
+	client OAuthHTTPClient,
 	clock clock.Clock,
 	code string,
 	jwks jwk.Set,

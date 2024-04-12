@@ -1931,13 +1931,13 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -4732,13 +4732,13 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -5688,13 +5688,13 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -6521,13 +6521,13 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -7499,13 +7499,13 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -8405,13 +8405,13 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -9310,13 +9310,13 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -10203,13 +10203,13 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -11091,13 +11091,13 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -12016,13 +12016,13 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -13022,13 +13022,13 @@ func newWebAppAuthflowSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -14028,13 +14028,13 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -14997,13 +14997,13 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -15875,13 +15875,13 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -16757,13 +16757,13 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -17641,13 +17641,13 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -18523,13 +18523,13 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -19403,13 +19403,13 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -20285,13 +20285,13 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -21168,13 +21168,13 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -22050,13 +22050,13 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -22932,13 +22932,13 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -23816,13 +23816,13 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -24698,13 +24698,13 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -25580,13 +25580,13 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -26466,13 +26466,13 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -27348,13 +27348,13 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -28234,13 +28234,13 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -29116,13 +29116,13 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -30006,13 +30006,13 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -30910,13 +30910,13 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -31803,13 +31803,13 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -32685,13 +32685,13 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -33563,13 +33563,13 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -34445,13 +34445,13 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -35323,13 +35323,13 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -36211,13 +36211,13 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -37089,13 +37089,13 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -37969,13 +37969,13 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -38847,13 +38847,13 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -39757,13 +39757,13 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -40646,13 +40646,13 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -41548,13 +41548,13 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -42434,13 +42434,13 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -43313,13 +43313,13 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -44200,13 +44200,13 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -45079,13 +45079,13 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -45958,13 +45958,13 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -46837,13 +46837,13 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -47717,13 +47717,13 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -48616,13 +48616,13 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -49500,13 +49500,13 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -50379,13 +50379,13 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -51263,13 +51263,13 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -52142,13 +52142,13 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -53028,13 +53028,13 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -53908,13 +53908,13 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -54786,13 +54786,13 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -55680,13 +55680,13 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -56558,13 +56558,13 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -57473,13 +57473,13 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -58353,13 +58353,13 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -59231,13 +59231,13 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -60127,13 +60127,13 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -60967,13 +60967,13 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -61806,13 +61806,13 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -62694,13 +62694,13 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -63573,13 +63573,13 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -64451,13 +64451,13 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -68751,13 +68751,13 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -69612,13 +69612,13 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -70466,13 +70466,13 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -71362,13 +71362,13 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -72303,13 +72303,13 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -73256,13 +73256,13 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -74196,13 +74196,13 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -75140,13 +75140,13 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -76063,13 +76063,13 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -76986,13 +76986,13 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -77903,13 +77903,13 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -78820,13 +78820,13 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -79739,13 +79739,13 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -80658,13 +80658,13 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -81575,13 +81575,13 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -82492,13 +82492,13 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -83409,13 +83409,13 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -84326,13 +84326,13 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -85243,13 +85243,13 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -86160,13 +86160,13 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -87077,13 +87077,13 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -87994,13 +87994,13 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -88913,13 +88913,13 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -89832,13 +89832,13 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -90750,13 +90750,13 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -91672,13 +91672,13 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -92595,13 +92595,13 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -93512,13 +93512,13 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -94429,13 +94429,13 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -95346,13 +95346,13 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -96263,13 +96263,13 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -97180,13 +97180,13 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -98097,13 +98097,13 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -99014,13 +99014,13 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -99931,13 +99931,13 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -100848,13 +100848,13 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -101765,13 +101765,13 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -102682,13 +102682,13 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -103599,13 +103599,13 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -104516,13 +104516,13 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -105433,13 +105433,13 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -106352,13 +106352,13 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -107271,13 +107271,13 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -108188,13 +108188,13 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -109069,13 +109069,13 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -109982,13 +109982,13 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -110868,13 +110868,13 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -111754,13 +111754,13 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -112671,13 +112671,13 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -113588,13 +113588,13 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -114505,13 +114505,13 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -115719,13 +115719,13 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -116636,13 +116636,13 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -117652,13 +117652,13 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	requestOptionsService := &passkey2.RequestOptionsService{
 		ConfigService:   configService,
@@ -119548,13 +119548,13 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	httpClient := sso.ProvideHTTPClient(environmentConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
-		HTTPClient:                   httpClient,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,

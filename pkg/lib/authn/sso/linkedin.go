@@ -1,8 +1,6 @@
 package sso
 
 import (
-	"net/http"
-
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
@@ -19,7 +17,7 @@ type LinkedInImpl struct {
 	ProviderConfig               config.OAuthSSOProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
-	HTTPClient                   *http.Client
+	HTTPClient                   OAuthHTTPClient
 }
 
 func (*LinkedInImpl) Type() config.OAuthSSOProviderType {

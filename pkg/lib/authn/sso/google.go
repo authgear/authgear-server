@@ -2,7 +2,6 @@ package sso
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -18,7 +17,7 @@ type GoogleImpl struct {
 	ProviderConfig               config.OAuthSSOProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
-	HTTPClient                   *http.Client
+	HTTPClient                   OAuthHTTPClient
 }
 
 func (f *GoogleImpl) GetAuthURL(param GetAuthURLParam) (string, error) {

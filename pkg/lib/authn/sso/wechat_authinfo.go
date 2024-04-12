@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"net/url"
 )
 
@@ -61,7 +60,7 @@ func (r wechatUserInfoResp) OpenID() string {
 }
 
 func wechatFetchAccessTokenResp(
-	client *http.Client,
+	client OAuthHTTPClient,
 	code string,
 	appid string,
 	secret string,
@@ -111,7 +110,7 @@ func wechatFetchAccessTokenResp(
 }
 
 func wechatFetchUserProfile(
-	client *http.Client,
+	client OAuthHTTPClient,
 	accessTokenResp wechatAccessTokenResp,
 ) (userProfile wechatUserInfoResp, err error) {
 	v := url.Values{}

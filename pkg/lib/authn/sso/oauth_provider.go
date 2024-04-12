@@ -1,8 +1,6 @@
 package sso
 
 import (
-	"net/http"
-
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -64,7 +62,7 @@ type OAuthProviderFactory struct {
 	Credentials                  *config.OAuthSSOProviderCredentials
 	Clock                        clock.Clock
 	StandardAttributesNormalizer StandardAttributesNormalizer
-	HTTPClient                   *http.Client
+	HTTPClient                   OAuthHTTPClient
 }
 
 func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {

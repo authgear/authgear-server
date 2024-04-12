@@ -1,7 +1,6 @@
 package sso
 
 import (
-	"net/http"
 	"testing"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -15,7 +14,7 @@ func TestLinkedInImpl(t *testing.T) {
 				ClientID: "client_id",
 				Type:     config.OAuthSSOProviderTypeLinkedIn,
 			},
-			HTTPClient: http.DefaultClient,
+			HTTPClient: OAuthHTTPClient{},
 		}
 
 		u, err := g.GetAuthURL(GetAuthURLParam{

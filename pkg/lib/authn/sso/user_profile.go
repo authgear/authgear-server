@@ -7,7 +7,7 @@ import (
 )
 
 func fetchUserProfile(
-	client *http.Client,
+	client OAuthHTTPClient,
 	accessTokenResp AccessTokenResp,
 	userProfileURL string,
 ) (userProfile map[string]interface{}, err error) {
