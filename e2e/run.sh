@@ -63,7 +63,7 @@ function teardown {
 
 function tests {
     echo "[ ] Run tests..."
-    go test ./... -timeout 1m30s
+    go test ./... -timeout 3m -parallel 5
 }
 
 function main {
