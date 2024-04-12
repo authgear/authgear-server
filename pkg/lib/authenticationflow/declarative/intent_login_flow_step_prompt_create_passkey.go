@@ -16,9 +16,10 @@ func init() {
 }
 
 type IntentLoginFlowStepPromptCreatePasskey struct {
-	StepName    string        `json:"step_name,omitempty"`
-	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
-	UserID      string        `json:"user_id,omitempty"`
+	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
+	StepName      string                 `json:"step_name,omitempty"`
+	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
+	UserID        string                 `json:"user_id,omitempty"`
 }
 
 var _ authflow.Intent = &IntentLoginFlowStepPromptCreatePasskey{}

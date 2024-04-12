@@ -21,9 +21,10 @@ func init() {
 }
 
 type IntentLoginFlowStepChangePassword struct {
-	StepName    string        `json:"step_name,omitempty"`
-	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
-	UserID      string        `json:"user_id,omitempty"`
+	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
+	StepName      string                 `json:"step_name,omitempty"`
+	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
+	UserID        string                 `json:"user_id,omitempty"`
 }
 
 var _ authflow.Intent = &IntentLoginFlowStepChangePassword{}
@@ -41,7 +42,7 @@ func (*IntentLoginFlowStepChangePassword) CanReactTo(ctx context.Context, deps *
 }
 
 func (i *IntentLoginFlowStepChangePassword) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, _ authflow.Input) (*authflow.Node, error) {
-	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	current, err := i.currentFlowObject(deps)
 	if err != nil {
 		return nil, err
 	}
@@ -83,6 +84,18 @@ func (i *IntentLoginFlowStepChangePassword) ReactTo(ctx context.Context, deps *a
 		Authenticator: info,
 		Reason:        &changeReason,
 	}), nil
+}
+
+func (i *IntentLoginFlowStepChangePassword) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
+	rootObject, err := flowRootObject(deps, i.FlowReference)
+	if err != nil {
+		return nil, err
+	}
+	current, err := authflow.FlowObject(rootObject, i.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
+	return current, nil
 }
 
 func (*IntentLoginFlowStepChangePassword) step(o config.AuthenticationFlowObject) *config.AuthenticationFlowLoginFlowStep {

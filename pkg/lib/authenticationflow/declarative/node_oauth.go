@@ -83,13 +83,14 @@ func (n *NodeOAuth) reactTo(ctx context.Context, deps *authflow.Dependencies, fl
 		info, dup, err := newIdentityInfo(deps, n.NewUserID, spec)
 		if apierrors.IsAPIError(err) && apierrors.AsAPIError(err).HasCause("DuplicatedIdentity") {
 			// TODO(tung): Check the config to decide what to do
+			flowReference := authflow.FlowReference{
+				Type: authflow.FlowTypeLogin,
+				// FIXME(tung): This should be read from config
+				Name: "default",
+			}
 			loginIntent := IntentLoginFlow{
-				TargetUserID: dup.UserID,
-				FlowReference: authflow.FlowReference{
-					Type: authflow.FlowTypeLogin,
-					// FIXME(tung): This should be read from config
-					Name: "default",
-				},
+				TargetUserID:  dup.UserID,
+				FlowReference: flowReference,
 			}
 			return authflow.NewSubFlow(&loginIntent), nil
 		}

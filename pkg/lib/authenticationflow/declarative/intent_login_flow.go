@@ -60,7 +60,8 @@ func (i *IntentLoginFlow) ReactTo(ctx context.Context, deps *authflow.Dependenci
 	switch {
 	case len(flows.Nearest.Nodes) == 0:
 		return authflow.NewSubFlow(&IntentLoginFlowSteps{
-			JSONPointer: i.JSONPointer,
+			FlowReference: i.FlowReference,
+			JSONPointer:   i.JSONPointer,
 		}), nil
 	case len(flows.Nearest.Nodes) == 1:
 		n, err := NewNodeDoCreateSession(ctx, deps, flows, &NodeDoCreateSession{
