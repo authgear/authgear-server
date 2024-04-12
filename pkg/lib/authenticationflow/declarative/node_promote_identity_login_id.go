@@ -66,7 +66,7 @@ func (n *NodePromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authflow
 			// promote
 			if apierrors.IsKind(err, api.UserNotFound) {
 				spec := n.makeLoginIDSpec(loginID)
-				info, err := newIdentityInfo(deps, n.UserID, spec)
+				info, _, err := newIdentityInfo(deps, n.UserID, spec)
 				if err != nil {
 					return nil, err
 				}
