@@ -142,9 +142,9 @@ identity:
 All oauth identities will be converted to a set of claims, and be stored inside authgear. The stored claims has two functions:
 
 - It affects the standard attributes of the user. For example, an `"email"` claim will be populated to the user's `"email"` standard attribute.
-- It affects how an existing oauth identity be search and matched with an incoming new oauth identity, which was mentioned in the above `link_by` section.
+- It affects how an existing oauth identity be searched and matched with an incoming new oauth identity, which was mentioned in the above `link_by` section.
 
-There are implicit mappings implemented for each provider, but they might not satisfy all use cases. Therefore, we introduced a `raw_profile_mappings` config for customizing the behavior.
+There are builtin mappings implemented for each provider, but they might not satisfy all use cases. Therefore, we introduced a `raw_profile_mappings` config for customizing the behavior.
 
 Example:
 
@@ -452,7 +452,7 @@ on_conflict:
                     - type: view_recovery_code
 ```
 
-7. As the next step of the original flow is create primary password authenticator, the user will need to created primary authenticator.
+7. As the next step of the original flow is create primary password authenticator, the user will need to create primary authenticator.
 8. As the original user already has a primary password authenticator, the step will be skipped.
 9. And the next step will be create `secondary_totp`. As the user don't have a secondary totp, the user should create a totp in this step.
 10. Finally, all created identities and authenticators will be added to the existing user, together with the new oauth identity.
