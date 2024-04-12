@@ -416,7 +416,7 @@ on_conflict:
 ```
 
 3. The login flow `default` will be executed, and starting from the specified step `step_1`.
-4. The selected identity `Email: a@example.com` will be automatically used to pass the first identity step.
+4. The selected identity `Email: a@example.com` will be automatically used to pass the first identify step.
 
 ```yaml
 - identification: email
@@ -455,10 +455,9 @@ on_conflict:
                     - type: view_recovery_code
 ```
 
-7. As the next step of the original flow is create primary password authenticator, the user will need to create primary authenticator.
-8. As the original user already has a primary password authenticator, the step will be skipped.
-9. And the next step will be create `secondary_totp`. As the user don't have a secondary totp, the user should create a totp in this step.
-10. Finally, all created identities and authenticators will be added to the existing user, together with the new oauth identity.
+7. As the next step of the original flow is create primary password authenticator, the user will need to create primary password authenticator if he doesn't have one. As the original user already has a primary password authenticator, the step will be skipped.
+8. And the next step will be create `secondary_totp`. As the user don't have a secondary totp, the user should create a totp in this step.
+9. Finally, all created identities and authenticators will be added to the existing user, together with the new oauth identity.
 
 Resulting user:
 
