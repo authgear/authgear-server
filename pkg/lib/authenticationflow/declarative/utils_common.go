@@ -565,25 +565,26 @@ func getOTPForm(purpose otp.Purpose, claimName model.ClaimName, cfg *config.Auth
 	}
 }
 
-func newIdentityInfo(deps *authflow.Dependencies, newUserID string, spec *identity.Spec) (*identity.Info, error) {
+func newIdentityInfo(deps *authflow.Dependencies, newUserID string, spec *identity.Spec) (newIden *identity.Info, duplicated *identity.Info, err error) {
 	// FIXME(authflow): allow bypassing email blocklist for Admin API.
 	info, err := deps.Identities.New(newUserID, spec, identity.NewIdentityOptions{})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	duplicate, err := deps.Identities.CheckDuplicated(info)
 	if err != nil && !errors.Is(err, identity.ErrIdentityAlreadyExists) {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if err != nil {
 		spec := info.ToSpec()
+		// FIXME(tung): There could be multiple identities
 		otherSpec := duplicate.ToSpec()
-		return nil, identityFillDetails(api.ErrDuplicatedIdentity, &spec, &otherSpec)
+		return nil, duplicate, identityFillDetails(api.ErrDuplicatedIdentity, &spec, &otherSpec)
 	}
 
-	return info, nil
+	return info, nil, nil
 }
 
 func findExactOneIdentityInfo(deps *authflow.Dependencies, spec *identity.Spec) (*identity.Info, error) {

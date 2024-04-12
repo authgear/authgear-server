@@ -48,7 +48,7 @@ func (n *NodeCreateIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.
 		loginID := inputTakeLoginID.GetLoginID()
 		spec := n.makeLoginIDSpec(loginID)
 
-		info, err := newIdentityInfo(deps, n.UserID, spec)
+		info, _, err := newIdentityInfo(deps, n.UserID, spec)
 		if err != nil {
 			return nil, err
 		}

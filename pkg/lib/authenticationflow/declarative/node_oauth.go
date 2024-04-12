@@ -5,6 +5,7 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
@@ -79,7 +80,19 @@ func (n *NodeOAuth) OutputData(ctx context.Context, deps *authflow.Dependencies,
 func (n *NodeOAuth) reactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, spec *identity.Spec) (*authflow.Node, error) {
 	// signup
 	if n.NewUserID != "" {
-		info, err := newIdentityInfo(deps, n.NewUserID, spec)
+		info, dup, err := newIdentityInfo(deps, n.NewUserID, spec)
+		if apierrors.IsAPIError(err) && apierrors.AsAPIError(err).HasCause("DuplicatedIdentity") {
+			// TODO(tung): Check the config to decide what to do
+			loginIntent := IntentLoginFlow{
+				TargetUserID: dup.UserID,
+				FlowReference: authflow.FlowReference{
+					Type: authflow.FlowTypeLogin,
+					// FIXME(tung): This should be read from config
+					Name: "default",
+				},
+			}
+			return authflow.NewSubFlow(&loginIntent), nil
+		}
 		if err != nil {
 			return nil, err
 		}
