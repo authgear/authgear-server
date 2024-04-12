@@ -14,6 +14,7 @@
     + [SignupLoginFlow](#signuploginflow)
     + [ReauthFlow](#reauthflow)
     + [Flow selection](#flow-selection)
+      + [Flow group constraints](#flow-group-constraints)
   * [Use case examples](#use-case-examples)
     + [Use case example 1: Latte](#use-case-example-1-latte)
     + [Use case example 2: Uber](#use-case-example-2-uber)
@@ -443,7 +444,21 @@ oauth:
 
 To authorize using a flow group, use `x_authentication_flow_group` and `x_page` in the [authentication request](/docs/specs/oidc.md#x_authentication_flow_group)
 
-For clients with `x_authentication_flow_group_allowlist` specified, only the specified flow groups can be used.
+For clients with `x_authentication_flow_group_allowlist` specified, only the specified flow groups can be used. Otherwise it can use any flow group.
+
+If `ui.authentication_flow.groups` is not specified, a default group will be used. The default flow group can be overridden with `name: default`:
+
+```yaml
+ui:
+  authentication_flow:
+    groups:
+    - name: default
+      login_flow: my_custom_flow
+      signup_flow: default
+      reauth_flow: my_custom_flow
+      promote_flow: default
+      account_recovery_flow: default
+```
 
 #### Flow group constraints
 
