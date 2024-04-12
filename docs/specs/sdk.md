@@ -153,7 +153,9 @@ async function onClickSave() {
 
 ### Custom authentication flow
 
-The SDK allows the developer to choose custom authentication flow using the `authflow` field in `AuthorizeOptions` and `ReauthenticateOptions`.
+The SDK allows the developer to choose custom [authentication flow group](/docs/specs/authentication-flow.md#flow-selection) using the `authenticationFlowGroup` field in `AuthorizeOptions` and `ReauthenticateOptions`.
+
+The group name assigned must be registered in the Authgear portal and included in [client's allowlist](/docs/specs/authentication-flow.md#flow-selection), otherwise the SDK will throw an error.
 
 It can be used in conjunction with `page` field in `AuthorizeOptions` to specify whether to use login or signup flow.
 
@@ -162,57 +164,43 @@ interface AuthorizeOptions {
   // ... fields omitted for brevity.
 
   page?: "login" | "signup";
-  authflow?: {
-    group?: string;
-  };
+  authenticationFlowGroup?: string;
 }
 
 interface ReauthenticateOptions {
   // ... fields omitted for brevity.
 
-  authflow?: {
-    group?: string;
-  };
+  authenticationFlowGroup?: string;
 }
 
 interface PromoteOptions {
   // ... fields omitted for brevity.
 
-  authflow?: {
-    group?: string;
-  };
+  authenticationFlowGroup?: string;
 }
 
 ```
 
-`authflow.group` is the name of the authentication flow group. The name must be registered in the Authgear portal and included in [client's allowlist](/docs/specs/authentication-flow.md#flow-selection), otherwise the SDK will throw an error.
-
 ### Intended usage
 
 ```typescript
-// Signup with a custom flow group of name "my_custom_flow".
+// Signup with a custom flow group of name "my_custom_flow_group".
 const options: AuthorizeOptions = {
   redirectURI: "myapp://host/path",
   page: "signup",
-  authflow: {
-    group: "my_custom_flow",
-  },
+  authenticationFlowGroup: "my_custom_flow_group",
 };
 
-// Reauthenticate with a custom flow of name "my_custom_flow".
+// Reauthenticate with a custom flow of name "my_custom_flow_group".
 const options: ReauthenticateOptions = {
   redirectURI: "myapp://host/path",
-  authflow: {
-    group: "my_custom_flow",
-  },
+  authenticationFlowGroup: "my_custom_flow_group",
 };
 
-// Promote the current user to a new user with a custom flow of name "my_custom_flow".
+// Promote the current user to a new user with a custom flow of name "my_custom_flow_group".
 const options: PromoteOptions = {
   redirectURI: "myapp://host/path",
-  authflow: {
-    group: "my_custom_flow",
-  },
+  authenticationFlowGroup: "my_custom_flow_group",
 };
 ```
 
