@@ -17,6 +17,7 @@ type LinkedInImpl struct {
 	ProviderConfig               config.OAuthSSOProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
+	HTTPClient                   OAuthHTTPClient
 }
 
 func (*LinkedInImpl) Type() config.OAuthSSOProviderType {
@@ -46,6 +47,7 @@ func (f *LinkedInImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthIn
 
 func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	accessTokenResp, err := fetchAccessTokenResp(
+		f.HTTPClient,
 		r.Code,
 		linkedinTokenURL,
 		param.RedirectURI,
@@ -56,12 +58,12 @@ func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 		return
 	}
 
-	meResponse, err := fetchUserProfile(accessTokenResp, linkedinMeURL)
+	meResponse, err := fetchUserProfile(f.HTTPClient, accessTokenResp, linkedinMeURL)
 	if err != nil {
 		return
 	}
 
-	contactResponse, err := fetchUserProfile(accessTokenResp, linkedinContactURL)
+	contactResponse, err := fetchUserProfile(f.HTTPClient, accessTokenResp, linkedinContactURL)
 	if err != nil {
 		return
 	}

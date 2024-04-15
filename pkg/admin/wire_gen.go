@@ -870,11 +870,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
+		HTTPClient:                   oAuthHTTPClient,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,

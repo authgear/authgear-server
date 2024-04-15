@@ -15,6 +15,7 @@ func TestWechatImpl(t *testing.T) {
 				ClientID: "client_id",
 				Type:     config.OAuthSSOProviderTypeWechat,
 			},
+			HTTPClient: OAuthHTTPClient{},
 		}
 
 		u, err := g.GetAuthURL(GetAuthURLParam{

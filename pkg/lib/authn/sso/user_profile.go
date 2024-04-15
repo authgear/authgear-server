@@ -7,6 +7,7 @@ import (
 )
 
 func fetchUserProfile(
+	client OAuthHTTPClient,
 	accessTokenResp AccessTokenResp,
 	userProfileURL string,
 ) (userProfile map[string]interface{}, err error) {
@@ -20,7 +21,7 @@ func fetchUserProfile(
 	}
 	req.Header.Add("Authorization", authorizationHeader)
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := client.Do(req)
 	if resp != nil {
 		defer resp.Body.Close()
 	}

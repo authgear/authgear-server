@@ -2,7 +2,6 @@ package sso
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -15,6 +14,7 @@ type ADFSImpl struct {
 	ProviderConfig               config.OAuthSSOProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
+	HTTPClient                   OAuthHTTPClient
 }
 
 func (*ADFSImpl) Type() config.OAuthSSOProviderType {
@@ -27,7 +27,7 @@ func (f *ADFSImpl) Config() config.OAuthSSOProviderConfig {
 
 func (f *ADFSImpl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error) {
 	endpoint := f.ProviderConfig.DiscoveryDocumentEndpoint
-	return FetchOIDCDiscoveryDocument(http.DefaultClient, endpoint)
+	return FetchOIDCDiscoveryDocument(f.HTTPClient, endpoint)
 }
 
 func (f *ADFSImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
@@ -58,14 +58,14 @@ func (f *ADFSImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param 
 	}
 
 	// OPTIMIZE(sso): Cache JWKs
-	keySet, err := c.FetchJWKs(http.DefaultClient)
+	keySet, err := c.FetchJWKs(f.HTTPClient)
 	if err != nil {
 		return
 	}
 
 	var tokenResp AccessTokenResp
 	jwtToken, err := c.ExchangeCode(
-		http.DefaultClient,
+		f.HTTPClient,
 		f.Clock,
 		r.Code,
 		keySet,

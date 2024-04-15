@@ -14,6 +14,7 @@ func TestAppleImpl(t *testing.T) {
 				ClientID: "client_id",
 				Type:     config.OAuthSSOProviderTypeApple,
 			},
+			HTTPClient: OAuthHTTPClient{},
 		}
 
 		u, err := g.GetAuthURL(GetAuthURLParam{

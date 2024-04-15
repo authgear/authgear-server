@@ -13,6 +13,7 @@ type WechatImpl struct {
 	ProviderConfig               config.OAuthSSOProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
+	HTTPClient                   OAuthHTTPClient
 }
 
 func (*WechatImpl) Type() config.OAuthSSOProviderType {
@@ -43,6 +44,7 @@ func (w *WechatImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfo
 
 func (w *WechatImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _ GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	accessTokenResp, err := wechatFetchAccessTokenResp(
+		w.HTTPClient,
 		r.Code,
 		w.ProviderConfig.ClientID,
 		w.Credentials.ClientSecret,
@@ -51,7 +53,7 @@ func (w *WechatImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _
 		return
 	}
 
-	rawProfile, err := wechatFetchUserProfile(accessTokenResp)
+	rawProfile, err := wechatFetchUserProfile(w.HTTPClient, accessTokenResp)
 	if err != nil {
 		return
 	}

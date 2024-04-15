@@ -62,6 +62,7 @@ type OAuthProviderFactory struct {
 	Credentials                  *config.OAuthSSOProviderCredentials
 	Clock                        clock.Clock
 	StandardAttributesNormalizer StandardAttributesNormalizer
+	HTTPClient                   OAuthHTTPClient
 }
 
 func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
@@ -81,24 +82,28 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 			ProviderConfig:               *providerConfig,
 			Credentials:                  *credentials,
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
+			HTTPClient:                   p.HTTPClient,
 		}
 	case config.OAuthSSOProviderTypeFacebook:
 		return &FacebookImpl{
 			ProviderConfig:               *providerConfig,
 			Credentials:                  *credentials,
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
+			HTTPClient:                   p.HTTPClient,
 		}
 	case config.OAuthSSOProviderTypeGithub:
 		return &GithubImpl{
 			ProviderConfig:               *providerConfig,
 			Credentials:                  *credentials,
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
+			HTTPClient:                   p.HTTPClient,
 		}
 	case config.OAuthSSOProviderTypeLinkedIn:
 		return &LinkedInImpl{
 			ProviderConfig:               *providerConfig,
 			Credentials:                  *credentials,
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
+			HTTPClient:                   p.HTTPClient,
 		}
 	case config.OAuthSSOProviderTypeAzureADv2:
 		return &Azureadv2Impl{
@@ -106,6 +111,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 			ProviderConfig:               *providerConfig,
 			Credentials:                  *credentials,
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
+			HTTPClient:                   p.HTTPClient,
 		}
 	case config.OAuthSSOProviderTypeAzureADB2C:
 		return &Azureadb2cImpl{
@@ -113,6 +119,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 			ProviderConfig:               *providerConfig,
 			Credentials:                  *credentials,
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
+			HTTPClient:                   p.HTTPClient,
 		}
 	case config.OAuthSSOProviderTypeADFS:
 		return &ADFSImpl{
@@ -120,6 +127,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 			ProviderConfig:               *providerConfig,
 			Credentials:                  *credentials,
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
+			HTTPClient:                   p.HTTPClient,
 		}
 	case config.OAuthSSOProviderTypeApple:
 		return &AppleImpl{
@@ -127,12 +135,14 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 			ProviderConfig:               *providerConfig,
 			Credentials:                  *credentials,
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
+			HTTPClient:                   p.HTTPClient,
 		}
 	case config.OAuthSSOProviderTypeWechat:
 		return &WechatImpl{
 			ProviderConfig:               *providerConfig,
 			Credentials:                  *credentials,
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
+			HTTPClient:                   p.HTTPClient,
 		}
 	}
 	return nil

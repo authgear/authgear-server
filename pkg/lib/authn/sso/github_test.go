@@ -14,6 +14,7 @@ func TestGithubImpl(t *testing.T) {
 				ClientID: "client_id",
 				Type:     config.OAuthSSOProviderTypeGithub,
 			},
+			HTTPClient: OAuthHTTPClient{},
 		}
 
 		u, err := g.GetAuthURL(GetAuthURLParam{

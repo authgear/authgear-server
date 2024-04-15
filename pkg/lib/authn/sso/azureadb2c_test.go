@@ -11,7 +11,8 @@ import (
 
 func TestAzureadb2cImpl(t *testing.T) {
 	Convey("Azureadb2cImpl", t, func() {
-		gock.InterceptClient(http.DefaultClient)
+		client := OAuthHTTPClient{&http.Client{}}
+		gock.InterceptClient(client.Client)
 		defer gock.Off()
 
 		g := &Azureadb2cImpl{
@@ -21,6 +22,7 @@ func TestAzureadb2cImpl(t *testing.T) {
 				Tenant:   "tenant",
 				Policy:   "policy",
 			},
+			HTTPClient: client,
 		}
 
 		gock.New("https://tenant.b2clogin.com/tenant.onmicrosoft.com/policy/v2.0/.well-known/openid-configuration").

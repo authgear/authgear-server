@@ -14,6 +14,7 @@ func TestFacebookImpl(t *testing.T) {
 				ClientID: "client_id",
 				Type:     config.OAuthSSOProviderTypeFacebook,
 			},
+			HTTPClient: OAuthHTTPClient{},
 		}
 
 		u, err := g.GetAuthURL(GetAuthURLParam{

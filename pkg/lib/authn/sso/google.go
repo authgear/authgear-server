@@ -2,7 +2,6 @@ package sso
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -18,10 +17,11 @@ type GoogleImpl struct {
 	ProviderConfig               config.OAuthSSOProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
+	HTTPClient                   OAuthHTTPClient
 }
 
 func (f *GoogleImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
-	d, err := FetchOIDCDiscoveryDocument(http.DefaultClient, googleOIDCDiscoveryDocumentURL)
+	d, err := FetchOIDCDiscoveryDocument(f.HTTPClient, googleOIDCDiscoveryDocumentURL)
 	if err != nil {
 		return "", err
 	}
@@ -50,19 +50,19 @@ func (f *GoogleImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfo
 }
 
 func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
-	d, err := FetchOIDCDiscoveryDocument(http.DefaultClient, googleOIDCDiscoveryDocumentURL)
+	d, err := FetchOIDCDiscoveryDocument(f.HTTPClient, googleOIDCDiscoveryDocumentURL)
 	if err != nil {
 		return
 	}
 	// OPTIMIZE(sso): Cache JWKs
-	keySet, err := d.FetchJWKs(http.DefaultClient)
+	keySet, err := d.FetchJWKs(f.HTTPClient)
 	if err != nil {
 		return
 	}
 
 	var tokenResp AccessTokenResp
 	jwtToken, err := d.ExchangeCode(
-		http.DefaultClient,
+		f.HTTPClient,
 		f.Clock,
 		r.Code,
 		keySet,

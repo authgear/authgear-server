@@ -14,6 +14,7 @@ func TestLinkedInImpl(t *testing.T) {
 				ClientID: "client_id",
 				Type:     config.OAuthSSOProviderTypeLinkedIn,
 			},
+			HTTPClient: OAuthHTTPClient{},
 		}
 
 		u, err := g.GetAuthURL(GetAuthURLParam{

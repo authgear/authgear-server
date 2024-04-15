@@ -11,13 +11,15 @@ function setup {
     export PATH=$PATH:../dist
 
     echo "[ ] Building e2e..."
-    make build
+    go build -o dist/e2e ./cmd/e2e
+    go build -o dist/e2e-proxy ./cmd/proxy
     export PATH=$PATH:./dist
 
     echo "[ ] Starting authgear..."
-    authgear start > authgear.log 2>&1 &
+    authgear start > ./logs/authgear.log 2>&1 &
+    success=false
     for i in $(seq 10); do \
-        if [ "$(curl -sL -w '%{http_code}' -o /dev/null ${MAIN_LISTEN_ADDR}/healthz)" = "200" ]; then
+        if [ "$(curl -sL -w '%{http_code}' -o /dev/null http://localhost:4000/healthz)" = "200" ]; then
             echo "    - started authgear."
             success=true
             break
@@ -26,6 +28,22 @@ function setup {
     done
     if [ "$success" = false ]; then
         echo "Error: Failed to start authgear."
+        exit 1
+    fi
+
+    echo "[ ] Starting e2e-proxy..."
+    e2e-proxy > ./logs/e2e-proxy.log 2>&1 &
+    success=false
+    for i in $(seq 10); do \
+        if [ "$(curl -sL -w '%{http_code}' -o /dev/null http://localhost:8080)" = "400" ]; then
+            echo "    - started e2e-proxy."
+            success=true
+            break
+        fi
+        sleep 1
+    done
+    if [ "$success" = false ]; then
+        echo "Error: Failed to start e2e-proxy."
         exit 1
     fi
 
@@ -39,18 +57,19 @@ function setup {
 function teardown {
     echo "[ ] Teardown..."
     kill -9 $(lsof -ti:4000) > /dev/null 2>&1 || true
+    kill -9 $(lsof -ti:8080) > /dev/null 2>&1 || true
     docker compose down
 }
 
-function runtests {
+function tests {
     echo "[ ] Run tests..."
-    go test ./... -timeout 1m30s
+    go test ./... -timeout 3m -parallel 5
 }
 
 function main {
     teardown || true
     setup
-    runtests
+    tests
     teardown
 }
 
@@ -58,5 +77,9 @@ BASEDIR=$(cd $(dirname "$0") && pwd)
 PROJECTDIR=$(cd "${BASEDIR}/.." && pwd)
 (
     cd "${BASEDIR}"
-    main $@
+    if [ "$1" ]; then
+        $1
+    else
+        main $@
+    fi
 )

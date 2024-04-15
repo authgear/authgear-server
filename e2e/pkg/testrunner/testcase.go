@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"strings"
 	"testing"
 	texttemplate "text/template"
@@ -68,7 +69,7 @@ func (tc *TestCase) Run(t *testing.T) {
 		}
 
 		var result *StepResult
-		result, state, ok = tc.executeStep(t, cmd, client, appID, stepResults, state, step)
+		result, state, ok = tc.executeStep(t, cmd, client, stepResults, state, step)
 		if !ok {
 			return
 		}
@@ -106,7 +107,6 @@ func (tc *TestCase) executeStep(
 	t *testing.T,
 	cmd *End2EndCmd,
 	client *authflowclient.Client,
-	appID string,
 	prevSteps []StepResult,
 	state string,
 	step Step,
@@ -125,6 +125,62 @@ func (tc *TestCase) executeStep(
 
 		flowResponse, flowErr = client.Create(flowReference, "")
 
+		if step.Output != nil {
+			ok := validateOutput(t, step, flowResponse, flowErr)
+			if !ok {
+				return nil, state, false
+			}
+		}
+
+		nextState = state
+		if flowResponse != nil {
+			nextState = flowResponse.StateToken
+		}
+
+		result = &StepResult{
+			Result: flowResponse,
+			Error:  flowErr,
+		}
+
+	case StepActionOAuthRedirect:
+		var lastStep *StepResult
+
+		if len(prevSteps) != 0 {
+			lastStep = &prevSteps[len(prevSteps)-1]
+		}
+
+		var parsedTo string
+		parsedTo, ok = prepareTo(t, cmd, lastStep, step.To)
+		if !ok {
+			return nil, state, false
+		}
+
+		finalURL, err := client.OAuthRedirect(parsedTo, step.RedirectURI)
+		if err != nil {
+			t.Errorf("failed to follow OAuth redirect in '%s': %v\n", step.Name, err)
+			return
+		}
+
+		finalURLParsed, err := url.Parse(finalURL)
+		if err != nil {
+			t.Errorf("failed to parse final URL in '%s': %v\n", step.Name, err)
+			return
+		}
+
+		finalURLQueryMap := make(map[string]string)
+		for key, values := range finalURLParsed.Query() {
+			if len(values) > 0 {
+				finalURLQueryMap[key] = values[0]
+			}
+		}
+
+		nextState = state
+
+		result = &StepResult{
+			Result: finalURLQueryMap,
+			Error:  nil,
+		}
+
 	case StepActionInput:
 		fallthrough
 	default:
@@ -134,62 +190,85 @@ func (tc *TestCase) executeStep(
 		}
 
 		lastStep := prevSteps[len(prevSteps)-1]
-		input, ok := prepareInput(t, cmd, lastStep, step.Input)
+		input, ok := prepareInput(t, cmd, &lastStep, step.Input)
 		if !ok {
 			return nil, state, false
 		}
 
 		flowResponse, flowErr = client.Input(nil, nil, state, input)
-	}
 
-	if step.Output != nil {
-		ok := validateOutput(t, step, flowResponse, flowErr)
-		if !ok {
-			return nil, state, false
+		if step.Output != nil {
+			ok := validateOutput(t, step, flowResponse, flowErr)
+			if !ok {
+				return nil, state, false
+			}
 		}
-	}
 
-	nextState = state
-	if flowResponse != nil {
-		nextState = flowResponse.StateToken
-	}
+		nextState = state
+		if flowResponse != nil {
+			nextState = flowResponse.StateToken
+		}
 
-	result = &StepResult{
-		Result: flowResponse,
-		Error:  flowErr,
+		result = &StepResult{
+			Result: flowResponse,
+			Error:  flowErr,
+		}
 	}
 
 	return result, nextState, true
 }
 
-func prepareInput(t *testing.T, cmd *End2EndCmd, prev StepResult, input string) (prepared map[string]interface{}, ok bool) {
-	tmpl := texttemplate.New("")
-	tmpl.Funcs(makeTemplateFuncMap(cmd))
-
-	_, err := tmpl.Parse(input)
+func prepareInput(t *testing.T, cmd *End2EndCmd, prev *StepResult, input string) (prepared map[string]interface{}, ok bool) {
+	parsedInput, err := execTemplate(cmd, prev, input)
 	if err != nil {
 		t.Errorf("failed to parse input: %v\n", err)
 		return nil, false
 	}
 
-	data := make(map[string]interface{})
-	data["Prev"] = prev
-
-	var buf strings.Builder
-	err = tmpl.Execute(&buf, data)
-	if err != nil {
-		t.Errorf("failed to execute input: %v\n", err)
-		return nil, false
-	}
-
 	var inputMap map[string]interface{}
-	err = json.Unmarshal([]byte(buf.String()), &inputMap)
+	err = json.Unmarshal([]byte(parsedInput), &inputMap)
 	if err != nil {
 		t.Errorf("failed to parse input: %v\n", err)
 		return nil, false
 	}
 
 	return inputMap, true
+}
+
+func prepareTo(t *testing.T, cmd *End2EndCmd, prev *StepResult, to string) (prepared string, ok bool) {
+	parsedTo, err := execTemplate(cmd, prev, to)
+	if err != nil {
+		t.Errorf("failed to parse to: %v\n", err)
+		return "", false
+	}
+
+	return parsedTo, true
+}
+
+func execTemplate(cmd *End2EndCmd, prev *StepResult, content string) (string, error) {
+	tmpl := texttemplate.New("")
+	tmpl.Funcs(makeTemplateFuncMap(cmd))
+
+	_, err := tmpl.Parse(content)
+	if err != nil {
+		return "", err
+	}
+
+	data := make(map[string]interface{})
+
+	// Add prev result to data
+	data["prev"], err = toMap(prev)
+	if err != nil {
+		return "", err
+	}
+
+	var buf strings.Builder
+	err = tmpl.Execute(&buf, data)
+	if err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }
 
 func makeTemplateFuncMap(cmd *End2EndCmd) texttemplate.FuncMap {
@@ -239,4 +318,23 @@ func generateAppID() string {
 		panic(err)
 	}
 	return hex.EncodeToString(id)
+}
+
+func toMap(data interface{}) (map[string]interface{}, error) {
+	if data == nil {
+		return nil, nil
+	}
+
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	var mapData map[string]interface{}
+	err = json.Unmarshal(jsonData, &mapData)
+	if err != nil {
+		panic(err)
+	}
+
+	return mapData, nil
 }

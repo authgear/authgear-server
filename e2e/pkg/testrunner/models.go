@@ -1,7 +1,5 @@
 package testrunner
 
-import authflowclient "github.com/authgear/authgear-server/e2e/pkg/e2eclient"
-
 type AuthgearYAMLSource struct {
 	Extend   string `yaml:"extend"`
 	Override string `yaml:"override"`
@@ -27,15 +25,23 @@ type BeforeHook struct {
 type StepAction string
 
 const (
-	StepActionCreate StepAction = "create"
-	StepActionInput  StepAction = "input"
+	StepActionCreate        StepAction = "create"
+	StepActionInput         StepAction = "input"
+	StepActionOAuthRedirect StepAction = "oauth_redirect"
 )
 
 type Step struct {
 	Name   string     `yaml:"name"`
 	Action StepAction `yaml:"action"`
-	Input  string     `yaml:"input"`
-	Output *Output    `yaml:"output"`
+
+	// `action` == "create" or "input"
+	Input string `yaml:"input"`
+
+	// `action` == "oauth_redirect"
+	To          string `yaml:"to"`
+	RedirectURI string `yaml:"redirect_uri"`
+
+	Output *Output `yaml:"output"`
 }
 
 type Output struct {
@@ -44,6 +50,6 @@ type Output struct {
 }
 
 type StepResult struct {
-	Result *authflowclient.FlowResponse
-	Error  error
+	Result interface{} `json:"result"`
+	Error  error       `json:"error"`
 }

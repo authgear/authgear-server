@@ -13,7 +13,7 @@ type End2EndCmd struct {
 
 func (e *End2EndCmd) CreateConfigSource() error {
 	cmd := fmt.Sprintf(
-		"./dist/authgear-e2e create-configsource --app-id %s --config-source %s --config-override \"%s\"",
+		"./dist/e2e create-configsource --app-id %s --config-source %s --config-override \"%s\"",
 		e.AppID,
 		e.resolvePath(e.TestCase.AuthgearYAMLSource.Extend),
 		e.TestCase.AuthgearYAMLSource.Override,
@@ -26,7 +26,7 @@ func (e *End2EndCmd) CreateConfigSource() error {
 
 func (e *End2EndCmd) ImportUsers(jsonPath string) error {
 	cmd := fmt.Sprintf(
-		"./dist/authgear-e2e import-users %s --app-id %s",
+		"./dist/e2e import-users %s --app-id %s",
 		e.resolvePath(jsonPath),
 		e.AppID,
 	)
@@ -38,7 +38,7 @@ func (e *End2EndCmd) ImportUsers(jsonPath string) error {
 
 func (e *End2EndCmd) ExecuteCustomSQL(sqlPath string) error {
 	cmd := fmt.Sprintf(
-		"./dist/authgear-e2e exec-sql --app-id %s --custom-sql \"%s\"",
+		"./dist/e2e exec-sql --app-id %s --custom-sql \"%s\"",
 		e.AppID,
 		e.resolvePath(sqlPath),
 	)
@@ -50,7 +50,7 @@ func (e *End2EndCmd) ExecuteCustomSQL(sqlPath string) error {
 
 func (e *End2EndCmd) GetLinkOTPCodeByClaim(claim string, value string) (string, error) {
 	cmd := fmt.Sprintf(
-		"./dist/authgear-e2e link-otp-code %s %s --app-id %s",
+		"./dist/e2e link-otp-code %s %s --app-id %s",
 		claim,
 		value,
 		e.AppID,

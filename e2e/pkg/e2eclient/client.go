@@ -3,25 +3,62 @@ package e2eclient
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
+	"strings"
 
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 var httpClient = &http.Client{}
+var oauthClient = &http.Client{}
 
 func init() {
 	// Use go test -timeout instead of setting timeout here.
 	httpClient.Timeout = 0
+	oauthClient.Timeout = 0
+
+	// Intercept HTTP requests to the OAuth server.
+	caCertPool, err := x509.SystemCertPool()
+	if err != nil {
+		panic(err)
+	}
+	caCert, err := os.ReadFile("../../ssl/ca.crt")
+	if err != nil {
+		panic(err)
+	}
+	caCertPool.AppendCertsFromPEM(caCert)
+
+	proxyUrl, err := url.Parse("http://localhost:8080")
+	if err != nil {
+		panic(err)
+	}
+
+	oauthClient.Transport = &http.Transport{
+		TLSClientConfig: &tls.Config{
+			// TLS 1.2 is minimum version by default
+			MinVersion: tls.VersionTLS12,
+			RootCAs:    caCertPool,
+		},
+		Proxy: http.ProxyURL(proxyUrl),
+	}
+
+	// Disable redirect following to extract OAuth callback code.
+	oauthClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
 }
 
 type Client struct {
 	Context       context.Context
 	HTTPClient    *http.Client
+	OAuthClient   *http.Client
 	LocalEndpoint *url.URL
 	HTTPHost      httputil.HTTPHost
 }
@@ -40,11 +77,13 @@ func NewClient(ctx context.Context, mainListenAddr string, httpHost httputil.HTT
 	return &Client{
 		Context:       ctx,
 		HTTPClient:    httpClient,
+		OAuthClient:   oauthClient,
 		LocalEndpoint: localEndpointURL,
 		HTTPHost:      httpHost,
 	}
 }
 
+// Create creates a new authentication flow.
 func (c *Client) Create(flowReference FlowReference, urlQuery string) (*FlowResponse, error) {
 	endpoint := c.LocalEndpoint.JoinPath("/api/v1/authentication_flows")
 	endpoint.RawQuery = urlQuery
@@ -57,6 +96,7 @@ func (c *Client) Create(flowReference FlowReference, urlQuery string) (*FlowResp
 	return c.doRequest(nil, req)
 }
 
+// Get retrieves the flow state.
 func (c *Client) Get(stateToken string) (*FlowResponse, error) {
 	endpoint := c.LocalEndpoint.JoinPath("/api/v1/authentication_flows/states")
 
@@ -72,6 +112,33 @@ func (c *Client) Get(stateToken string) (*FlowResponse, error) {
 	return c.doRequest(nil, req)
 }
 
+// OAuthRedirect follows the OAuth redirect until the URL matches the given prefix.
+func (c *Client) OAuthRedirect(url string, redirectUntil string) (finalURL string, err error) {
+	for {
+		req, err := http.NewRequestWithContext(c.Context, "GET", url, nil)
+		if err != nil {
+			return "", err
+		}
+
+		resp, err := c.OAuthClient.Do(req)
+		if err != nil {
+			return "", err
+		}
+
+		if resp.StatusCode != http.StatusFound {
+			return "", fmt.Errorf("unexpected status code at %s: %v", req.URL.String(), resp.StatusCode)
+		}
+
+		location := resp.Header.Get("Location")
+		if strings.HasPrefix(location, redirectUntil) {
+			return location, nil
+		}
+
+		url = location
+	}
+}
+
+// Input submits the input to the flow.
 func (c *Client) Input(w http.ResponseWriter, r *http.Request, stateToken string, input map[string]interface{}) (*FlowResponse, error) {
 	endpoint := c.LocalEndpoint.JoinPath("/api/v1/authentication_flows/states/input")
 

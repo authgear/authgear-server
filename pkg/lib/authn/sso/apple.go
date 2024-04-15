@@ -2,7 +2,6 @@ package sso
 
 import (
 	"context"
-	"net/http"
 	"strings"
 
 	"github.com/lestrrat-go/jwx/v2/jwa"
@@ -28,6 +27,7 @@ type AppleImpl struct {
 	ProviderConfig               config.OAuthSSOProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
+	HTTPClient                   OAuthHTTPClient
 }
 
 func (f *AppleImpl) createClientSecret() (clientSecret string, err error) {
@@ -87,7 +87,7 @@ func (f *AppleImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoP
 }
 
 func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
-	keySet, err := appleOIDCConfig.FetchJWKs(http.DefaultClient)
+	keySet, err := appleOIDCConfig.FetchJWKs(f.HTTPClient)
 	if err != nil {
 		return
 	}
@@ -99,7 +99,7 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param
 
 	var tokenResp AccessTokenResp
 	jwtToken, err := appleOIDCConfig.ExchangeCode(
-		http.DefaultClient,
+		f.HTTPClient,
 		f.Clock,
 		r.Code,
 		keySet,

@@ -83,6 +83,7 @@ require (
 	github.com/alicebob/miniredis/v2 v2.31.0
 	github.com/cert-manager/cert-manager v1.13.2
 	github.com/go-webauthn/webauthn v0.8.6
+	github.com/google/martian v2.1.0+incompatible
 	github.com/lestrrat-go/jwx/v2 v2.0.16
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/spruceid/siwe-go v0.2.1
@@ -92,6 +93,8 @@ require (
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
 	gopkg.in/yaml.v3 v3.0.1
 )
+
+require github.com/go-jose/go-jose/v3 v3.0.1
 
 require (
 	cloud.google.com/go v0.110.8 // indirect
@@ -122,7 +125,7 @@ require (
 	github.com/go-openapi/swag v0.22.3 // indirect
 	github.com/go-webauthn/x v0.1.4 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang-jwt/jwt/v5 v5.0.0 // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
@@ -134,6 +137,7 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
 	github.com/gopherjs/gopherjs v1.17.2 // indirect
+	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/securecookie v1.1.2 // indirect
 	github.com/h2non/parth v0.0.0-20190131123155-b4df798d6542 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect

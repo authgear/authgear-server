@@ -11,7 +11,8 @@ import (
 
 func TestAzureadv2Impl(t *testing.T) {
 	Convey("Azureadv2Impl", t, func() {
-		gock.InterceptClient(http.DefaultClient)
+		client := OAuthHTTPClient{&http.Client{}}
+		gock.InterceptClient(client.Client)
 		defer gock.Off()
 
 		g := &Azureadv2Impl{
@@ -20,6 +21,7 @@ func TestAzureadv2Impl(t *testing.T) {
 				Type:     config.OAuthSSOProviderTypeAzureADv2,
 				Tenant:   "common",
 			},
+			HTTPClient: client,
 		}
 
 		gock.New("https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration").

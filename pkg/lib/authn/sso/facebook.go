@@ -19,6 +19,7 @@ type FacebookImpl struct {
 	ProviderConfig               config.OAuthSSOProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
+	HTTPClient                   OAuthHTTPClient
 }
 
 func (*FacebookImpl) Type() config.OAuthSSOProviderType {
@@ -50,6 +51,7 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 	authInfo = AuthInfo{}
 
 	accessTokenResp, err := fetchAccessTokenResp(
+		f.HTTPClient,
 		r.Code,
 		facebookTokenURL,
 		param.RedirectURI,
@@ -88,7 +90,7 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 	//   "short_name": "John"
 	// }
 
-	userProfile, err := fetchUserProfile(accessTokenResp, userProfileURL.String())
+	userProfile, err := fetchUserProfile(f.HTTPClient, accessTokenResp, userProfileURL.String())
 	if err != nil {
 		return
 	}
