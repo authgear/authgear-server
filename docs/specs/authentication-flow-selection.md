@@ -49,29 +49,20 @@ Following table explains how authentication flow is selected in the default UI:
 | --- | --- | --- |
 | Defined | `x_authentication_flow_group` is present  | Selected flow group is checked against the allowlist and used if valid. |
 | Defined | `x_authentication_flow_group` is **NOT** present  | First flow group in the allowlist is used. |
-| Not defined | `x_authentication_flow_group` is present  | Request is rejected. |
+| Not defined | `x_authentication_flow_group` is present  | Selected flow group is used. |
 | Not defined | `x_authentication_flow_group` is **NOT** present  | Default flow group is used. |
 
 ### Custom UI
+Unlike Default UI, Custom UI can create flows using Authflow API. The flow group allowlist cannot be used to restrict the flows created by Custom UI.
 
-Custom UI may send authorization request like Default UI or use Authflow API to initiate a flow.
+Instead, it computes the effective flow allowlist using union of `x_authentication_flow_group_allowlist` and `x_authentication_flow_allowlist`. `x_authentication_flow_group` of [authentication request](/docs/specs/oidc.md#x_authentication_flow_group) is Custom UI.
 
-For the former case, the behaviour is the similar to Default UI:
-
-| Flow Group Allowlist | Flow Allowlist | Authorization Request | Behaviour |
-| --- | --- | --- | --- |
-| Defined | N/A | `x_authentication_flow_group` is present  | Selected flow group is checked against the allowlist and used if valid. |
-| Defined | N/A | `x_authentication_flow_group` is **NOT** present  | First flow group in the allowlist is used. |
-| Not defined | N/A | `x_authentication_flow_group` is present  | Request is rejected. |
-| Not defined | Defined | `x_authentication_flow_group` is **NOT** present  | First item in the each flow allowlist is used. |
-| Not defined | Not defined | `x_authentication_flow_group` is **NOT** present  | Default flow group is used. |
-
-For the latter case, the allowed flow is computed from union of flow group allowlist and flow allowlist:
+Following table explains how authentication flow is selected in the custom UI:
 
 | Flow Group Allowlist | Flow Allowlist | Behaviour |
 | --- | --- | --- |
-| Defined | Defined | Flow group is checked against the allowlist. If valid, the flow group is used. Otherwise, the flow allowlist is used. Otherwise the request is rejected. |
-| Defined | Not defined | Flow group is checked against the allowlist. If valid, the flow group is used. Otherwise, the request is rejected. |
+| Defined | Defined | All flow names in flow groups allowlist and flow allowlist are checked against. |
+| Defined | Not defined | All flow names allowed flow groups are checked against. |
 | Not defined | Defined | Flow allowlist is used. |
 | Not defined | Not defined | All flows are allowed. |
 
@@ -90,12 +81,14 @@ ui:
     - name: oauth_only
       login_flow: oauth_only
       signup_flow: oauth_only
+      signup_login_flow: oauth_only
       reauth_flow: password
       promote_flow: password
       account_recovery_flow: email
     - name: email_password_2fa
       login_flow: email_password_2fa
       signup_flow: email_password_2fa
+      signup_login_flow: email_password_2fa
       reauth_flow: sms_code
       promote_flow: sms_code
       account_recovery_flow: sms
@@ -127,7 +120,7 @@ In the example, client app `public_app` is only allowed to use `oauth_only` flow
 
 ### Flow Allowlist
 
-Each client app may have an allowlist of flows defined with `x_authentication_flow_allowlist`. Once specified, the authorization request will be rejected if specified flow is not in the allowlist.
+Each client app may have an allowlist of flows defined with `x_authentication_flow_allowlist`. The effective allowlist is computed by taking union of `x_authentication_flow_group_allowlist` and `x_authentication_flow_allowlist`. Once specified, the Authflow API will only allow the flows specified in the allowlist.
 
 For example, given following configuration:
 
