@@ -5,7 +5,6 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 
-	"github.com/authgear/authgear-server/pkg/util/base32"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 )
 
@@ -26,10 +25,18 @@ func NewS256Verifier(codeVerifier string) *Verifier {
 }
 
 func GenerateS256Verifier() *Verifier {
-	return NewS256Verifier(corerand.StringWithAlphabet(
-		16,
-		base32.Alphabet,
-		corerand.SecureRand))
+	// https://datatracker.ietf.org/doc/html/rfc7636#section-4.1
+	// It is RECOMMENDED that the output of
+	// a suitable random number generator be used to create a 32-octet
+	// sequence.  The octet sequence is then base64url-encoded to produce a
+	// 43-octet URL safe string to use as the code verifier.
+	randBytes := make([]byte, 32)
+	_, err := corerand.SecureRand.Read(randBytes)
+	if err != nil {
+		panic(err)
+	}
+	codeVerifier := base64.RawURLEncoding.EncodeToString(randBytes)
+	return NewS256Verifier(codeVerifier)
 }
 
 func (v *Verifier) Challenge() string {
