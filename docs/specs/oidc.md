@@ -97,7 +97,8 @@ Supported [standard client metadata](https://openid.net/specs/openid-connect-reg
 - `refresh_token_lifetime`: Refresh token lifetime in seconds, default to max(access_token_lifetime, 86400). It must be greater than or equal to `access_token_lifetime`.
 - `x_application_type`: Indicate the application type. See [Clients](#clients) for the meaning of the value. The application type is not changeable after creation on the portal. Supported values: `spa`, `traditional_webapp`, `native`, `confidential`, `third_party_app`.
 - `x_max_concurrent_session`: Indicate whether the client restricts the number of concurrent sessions, `0` means no restriction, default is `0`. Currently, only `0` or `1` are supported. If `x_max_concurrent_session` is `1`, all refresh tokens of the client will be revoked when a new one is requested.
-- `x_authentication_flow_group_allowlist`: Indicate the allowed authentication flow groups.
+- `x_authentication_flow_group_allowlist`: Indicate the allowed authentication flow groups. See [Flow Group Allowlist](./authentication-flow-selection.md#flow-group-allowlist) for details.
+- `x_authentication_flow_allowlist`: Indicate the allowed authentication flows. See [Flow Allowlist](./authentication-flow-selection.md#flow-allowlist) for details.
 
 #### Generic RP Client Metadata example
 
@@ -228,7 +229,7 @@ To mitigate replay attacks, provide a `nonce` in the authentication request. Aut
 
 It specifies either the login or signup page to be shown to the user.
 
-It can be used in conjunction with `x_authentication_flow_group` use authentication flows in custom [authentication flow group](/docs/specs/authentication-flow.md#flow-selection).
+It can be used in conjunction with `x_authentication_flow_group` to override authentication flow in the default UI. For details, see [Authentication Flow Selection in Default UI](./authentication-flow-selection.md#default-ui).
 
 Supported values: `login`, `signup`
 
@@ -240,11 +241,11 @@ Supported values: `change_password`.
 
 ### x_authentication_flow_group
 
-When it is specified, the user perform authentication through custom authentication flow group.
+Overrides the authentication flow group in the default UI. details, see [Authentication Flow Selection in Default UI](./authentication-flow-selection.md#default-ui).
 
 It can be used in conjunction with `x_page` to decide whether to execute login or signup flow.
 
-If the specified group is not found or not included in the [client's allow list](/docs/specs/authentication-flow.md#flow-selection), the request will be rejected.
+If the specified group is not found or not included in the [client's allow list](/docs/specs/authentication-flow.md#flow-group-allowlist), the request will be rejected.
 
 ## Token Request
 
