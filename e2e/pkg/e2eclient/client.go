@@ -17,8 +17,14 @@ import (
 )
 
 var httpClient = &http.Client{}
+var oauthClient = &http.Client{}
 
 func init() {
+	// Use go test -timeout instead of setting timeout here.
+	httpClient.Timeout = 0
+	oauthClient.Timeout = 0
+
+	// Intercept HTTP requests to the OAuth server.
 	caCertPool, err := x509.SystemCertPool()
 	if err != nil {
 		panic(err)
@@ -34,7 +40,7 @@ func init() {
 		panic(err)
 	}
 
-	httpClient.Transport = &http.Transport{
+	oauthClient.Transport = &http.Transport{
 		TLSClientConfig: &tls.Config{
 			// TLS 1.2 is minimum version by default
 			MinVersion: tls.VersionTLS12,
@@ -44,17 +50,15 @@ func init() {
 	}
 
 	// Disable redirect following to extract OAuth callback code.
-	httpClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+	oauthClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		return http.ErrUseLastResponse
 	}
-
-	// Use go test -timeout instead of setting timeout here.
-	httpClient.Timeout = 0
 }
 
 type Client struct {
 	Context       context.Context
 	HTTPClient    *http.Client
+	OAuthClient   *http.Client
 	LocalEndpoint *url.URL
 	HTTPHost      httputil.HTTPHost
 }
@@ -73,6 +77,7 @@ func NewClient(ctx context.Context, mainListenAddr string, httpHost httputil.HTT
 	return &Client{
 		Context:       ctx,
 		HTTPClient:    httpClient,
+		OAuthClient:   oauthClient,
 		LocalEndpoint: localEndpointURL,
 		HTTPHost:      httpHost,
 	}
@@ -115,7 +120,7 @@ func (c *Client) OAuthRedirect(url string, redirectUntil string) (finalURL strin
 			return "", err
 		}
 
-		resp, err := c.HTTPClient.Do(req)
+		resp, err := c.OAuthClient.Do(req)
 		if err != nil {
 			return "", err
 		}
