@@ -348,11 +348,42 @@ func (c *AppConfig) validateAuthenticationFlow(ctx *validation.Context) {
 			continue
 		}
 
-		for j, group := range client.AuthenticationFlowGroupAllowlist {
+		for j, group := range *client.AuthenticationFlowGroupAllowlist {
 			if _, ok := groupNames[group]; !ok {
 				ctx.Child("oauth", "clients", strconv.Itoa(i), "authentication_flow_group_allowlist", strconv.Itoa(j)).
 					EmitErrorMessage("invalid authentication flow group")
 			}
+		}
+	}
+
+	// Ensure client's flow allowlist is valid
+	for i, client := range c.OAuth.Clients {
+		if client.AuthenticationFlowAllowlist == nil {
+			continue
+		}
+
+		allowlist := client.AuthenticationFlowAllowlist
+
+		validateFlowAllowlist(ctx, allowlist.SignupFlows, c.AuthenticationFlow.SignupFlows, "signup_flows", i)
+		validateFlowAllowlist(ctx, allowlist.PromoteFlows, c.AuthenticationFlow.PromoteFlows, "promote_flows", i)
+		validateFlowAllowlist(ctx, allowlist.LoginFlows, c.AuthenticationFlow.LoginFlows, "login_flows", i)
+		validateFlowAllowlist(ctx, allowlist.SignupLoginFlows, c.AuthenticationFlow.SignupLoginFlows, "signup_login_flows", i)
+		validateFlowAllowlist(ctx, allowlist.ReauthFlows, c.AuthenticationFlow.ReauthFlows, "reauth_flows", i)
+		validateFlowAllowlist(ctx, allowlist.AccountRecoveryFlows, c.AuthenticationFlow.AccountRecoveryFlows, "account_recovery_flows", i)
+	}
+}
+
+func validateFlowAllowlist[TA AuthenticationFlowObjectFlowRoot](ctx *validation.Context, allowlist []string, definedFlows []TA, flowType string, clientIndex int) {
+	allowedFlowNames := make(map[string]struct{})
+	allowedFlowNames["default"] = struct{}{}
+	for _, f := range definedFlows {
+		allowedFlowNames[f.GetName()] = struct{}{}
+	}
+
+	for j, flow := range allowlist {
+		if _, ok := allowedFlowNames[flow]; !ok {
+			ctx.Child("oauth", "clients", strconv.Itoa(clientIndex), "authentication_flow_allowlist", flowType, strconv.Itoa(j)).
+				EmitErrorMessage("allowed authentication flow is not defined")
 		}
 	}
 }

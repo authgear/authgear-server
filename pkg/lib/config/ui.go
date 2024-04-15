@@ -48,12 +48,6 @@ type UIConfig struct {
 	AuthenticationFlow *UIAuthenticationFlowConfig `json:"authentication_flow,omitempty"`
 }
 
-func (c *UIConfig) SetDefaults() {
-	if c.AuthenticationFlow == nil {
-		c.AuthenticationFlow = &UIAuthenticationFlowConfig{}
-	}
-}
-
 var _ = Schema.Add("PhoneInputConfig", `
 {
 	"type": "object",
@@ -176,7 +170,7 @@ var _ = Schema.Add("UIAuthenticationFlowGroup", `
 `)
 
 type UIAuthenticationFlowConfig struct {
-	Groups []*UIAuthenticationFlowGroup `json:"groups,omitempty"`
+	Groups []UIAuthenticationFlowGroup `json:"groups,omitempty"`
 }
 
 type UIAuthenticationFlowGroup struct {
