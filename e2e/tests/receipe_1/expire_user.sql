@@ -8,6 +8,6 @@ with a as (
 UPDATE _auth_authenticator
 SET updated_at = '2000-01-01 10:10:10'
 FROM a
-WHERE a.login_id = 'e2e_recipe_1_expiry@authgear.com'
+WHERE a.login_id = 'e2e_recipe_1_expiry@example.com'
 AND id = a.authenticator_id
 AND app_id = '{{ .AppID }}';

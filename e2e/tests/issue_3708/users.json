@@ -3,7 +3,7 @@
   "records": [
     {
       "preferred_username": "e2e_issue_3708",
-      "email": "e2e_issue_3708@authgear.com",
+      "email": "e2e_issue_3708@example.com",
 
       "password": {
         "type": "bcrypt",
