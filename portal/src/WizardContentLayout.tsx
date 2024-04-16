@@ -10,6 +10,7 @@ import {
   EventDataAttributes,
   useMakeAuthgearGTMEventDataAttributes,
 } from "./gtm_v1";
+import { useCapture } from "./gtm_v2";
 
 export interface WizardTitleProps {
   children?: React.ReactNode;
@@ -54,14 +55,20 @@ export default function WizardContentLayout(
     trackSkipButtonClick,
     trackSkipButtonEventData,
   } = props;
+  const capture = useCapture();
   const onClickBackButton = useCallback(
     (e) => {
       e.preventDefault();
       e.stopPropagation();
+      capture("projectWizard.clicked-back");
       navigate(-1);
     },
-    [navigate]
+    [navigate, capture]
   );
+
+  const onClickSkip = useCallback(() => {
+    capture("projectWizard.clicked-skip");
+  }, [capture]);
 
   const makeGTMEventDataAttributes = useMakeAuthgearGTMEventDataAttributes();
   const gtmEventDataAttributes = useMemo(() => {
@@ -92,6 +99,7 @@ export default function WizardContentLayout(
         <Link
           className={styles.skip}
           to={`/project/${appID}`}
+          onClick={onClickSkip}
           {...(trackSkipButtonClick ? gtmEventDataAttributes : {})}
         >
           <FormattedMessage id="WizardContentLayout.skip.label" />
