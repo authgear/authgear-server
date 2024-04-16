@@ -9,7 +9,7 @@ import {
   AuthgearGTMEventType,
   EventDataAttributes,
   useMakeAuthgearGTMEventDataAttributes,
-} from "./GTMProvider";
+} from "./gtm_v1";
 
 export interface WizardTitleProps {
   children?: React.ReactNode;

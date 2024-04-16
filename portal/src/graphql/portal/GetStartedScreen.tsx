@@ -40,7 +40,7 @@ import styles from "./GetStartedScreen.module.css";
 import {
   AuthgearGTMEventType,
   useMakeAuthgearGTMEventDataAttributes,
-} from "../../GTMProvider";
+} from "../../gtm_v1";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import ActionButton from "../../ActionButton";
 import LinkButton from "../../LinkButton";

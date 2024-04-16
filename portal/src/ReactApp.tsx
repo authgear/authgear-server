@@ -36,13 +36,14 @@ import InternalRedirect from "./InternalRedirect";
 import { LoadingContextProvider } from "./hook/loading";
 import { ErrorContextProvider } from "./hook/error";
 import ShowLoading from "./ShowLoading";
-import GTMProvider, {
+import GTMProvider from "./GTMProvider";
+import {
   AuthgearGTMEvent,
   AuthgearGTMEventType,
   useMakeAuthgearGTMEventDataAttributes,
   useGTMDispatch,
   useAuthgearGTMEventBase,
-} from "./GTMProvider";
+} from "./gtm_v1";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 import { extractRawID } from "./util/graphql";
 

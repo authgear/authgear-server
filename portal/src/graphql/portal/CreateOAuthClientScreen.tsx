@@ -36,7 +36,7 @@ import {
   AuthgearGTMEventType,
   useAuthgearGTMEventBase,
   useGTMDispatch,
-} from "../../GTMProvider";
+} from "../../gtm_v1";
 import {
   AppSecretConfigFormModel,
   useAppSecretConfigForm,

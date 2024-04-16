@@ -53,7 +53,7 @@ import { useSystemConfig } from "../../context/SystemConfigContext";
 import {
   AuthgearGTMEventType,
   useMakeAuthgearGTMEventDataAttributes,
-} from "../../GTMProvider";
+} from "../../gtm_v1";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";

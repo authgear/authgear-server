@@ -42,7 +42,7 @@ import {
   AuthgearGTMEventType,
   useAuthgearGTMEventBase,
   useGTMDispatch,
-} from "../../GTMProvider";
+} from "../../gtm_v1";
 import HorizontalDivider from "../../HorizontalDivider";
 
 const TOOLTIP_HOST_STYLES = {

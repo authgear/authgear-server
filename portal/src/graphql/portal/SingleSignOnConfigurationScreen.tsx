@@ -44,7 +44,7 @@ import {
   AuthgearGTMEventType,
   useAuthgearGTMEventBase,
   useGTMDispatch,
-} from "../../GTMProvider";
+} from "../../gtm_v1";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 import { AppSecretKey } from "./globalTypes.generated";
