@@ -92,7 +92,7 @@ Currently, only `oauth` is supported in account linking. However, account linkin
 
 We define linkings between the new oauth identity and any existing identities using the `oauth_claim` and `user_profile_attribute` fields.
 
-- `oauth_claim`: An object containing a json pointer, specified in `oauth_claim.pointer`, pointing to a claim of the incoming oauth user profile. Note that, for oidc compatible providers, this pointer is used to access value from the oidc claims, which is from the user info endpoint. For non-oidc compatible providers, please read the [SSO Providers](#todo) document for the corresponing logics authgear implemented to obtain a user profile from the provider.
+- `oauth_claim`: An object containing a json pointer, specified in `oauth_claim.pointer`, pointing to a claim of the incoming oauth user profile. Note that, for oidc compatible providers, this pointer is used to access value from the oidc claims, which is from the user info endpoint. For non-oidc compatible providers, please read the [SSO Providers](#./sso-providers.md) document for the corresponing logics authgear implemented to obtain a user profile from the provider.
 
 - `user_profile_attribute`: An object containing a json pointer, specified in `user_profile_attribute.pointer`, pointing to a value of the user profile of an existing authgear user, or the attribute of an existing authgear identity. For the meaning of attribute of authgear identity, please read the [Identity Attribute](#identity-attribute) section.
 
@@ -185,7 +185,7 @@ OAuth identities also contributes attributes of the user profile, but it is more
 
 ### The built-in oauth identity standard attributes
 
-For each supporteed oauth provider types, authgear has implemented a built-in standard attribute mappings. You could find the mappings of each provider in the [SSO Providers](#todo) document.
+For each supporteed oauth provider types, authgear has implemented a built-in standard attribute mappings. You could find the mappings of each provider in the [SSO Providers](#./sso-providers.md) document.
 
 ### Customizing the oauth identity attributes
 
