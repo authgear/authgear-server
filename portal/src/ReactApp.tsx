@@ -46,6 +46,7 @@ import {
 } from "./gtm_v1";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 import { extractRawID } from "./util/graphql";
+import { useIdentify } from "./gtm_v2";
 
 const AppsScreen = lazy(async () => import("./graphql/portal/AppsScreen"));
 const CreateProjectScreen = lazy(
@@ -234,21 +235,26 @@ const LoadCurrentUser: React.VFC<LoadCurrentUserProps> =
   function LoadCurrentUser({ children }: LoadCurrentUserProps) {
     const { loading, viewer } = useViewerQuery();
 
+    const identify = useIdentify();
     const gtmEvent = useAuthgearGTMEventBase();
     const sendDataToGTM = useGTMDispatch();
     useEffect(() => {
       if (viewer) {
+        const userID = extractRawID(viewer.id);
+        const email = viewer.email ?? undefined;
+
         const event: AuthgearGTMEvent = {
           ...gtmEvent,
           event: AuthgearGTMEventType.Identified,
           event_data: {
-            user_id: extractRawID(viewer.id),
-            email: viewer.email ?? undefined,
+            user_id: userID,
+            email,
           },
         };
         sendDataToGTM(event);
+        identify(userID, email);
       }
-    }, [viewer, gtmEvent, sendDataToGTM]);
+    }, [viewer, gtmEvent, sendDataToGTM, identify]);
 
     if (loading) {
       return (

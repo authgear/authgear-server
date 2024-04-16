@@ -21,6 +21,7 @@ import styles from "./ScreenHeader.module.css";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import { useBoolean } from "@fluentui/react-hooks";
 import ExternalLink from "./ExternalLink";
+import { useReset } from "./gtm_v2";
 
 interface LogoProps {
   isNavbarHeader?: boolean;
@@ -180,6 +181,7 @@ const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
   const { viewer } = useViewerQuery();
   const [isNavbarOpen, { setTrue: openNavbar, setFalse: dismissNavbar }] =
     useBoolean(false);
+  const reset = useReset();
 
   const redirectURI = window.location.origin + "/";
 
@@ -188,10 +190,13 @@ const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
       .logout({
         redirectURI,
       })
+      .then(() => {
+        reset();
+      })
       .catch((err) => {
         console.error(err);
       });
-  }, [redirectURI]);
+  }, [redirectURI, reset]);
 
   const scheduleDemoLink = useMemo(() => {
     const url = new URL("https://www.authgear.com/schedule-demo");
