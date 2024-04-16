@@ -2,17 +2,21 @@
 
 - [Introduction](#introduction)
 - [Configuration](#configuration)
-  - [Define the linking logic using `link_by`](#define-the-linking-logic-using-link_by)
-  - [Define the profile field mapping using `raw_profile_mappings`](#define-the-profile-field-mapping-using-raw_profile_mappings)
-    - [Relationship with `link_by`](#relationship-with-link_by)
-    - [Custom transformation of the raw idp profile by hook](#custom-transformation-of-the-raw-idp-profile-by-hook)
-  - [Define the conflict behavior in signup flow](#define-the-conflict-behavior-in-signup-flow)
-- [Action on conflict](#action-on-conflict)
+  - [Defining how the linkage occurs and the corresponding action](#defining-how-the-linkage-occurs-and-the-corresponding-action)
+    - [Defining Linkages](#defining-linkages)
+    - [Linking Actions](#linking-actions)
+  - [Defining a default for all flows](#defining-a-default-for-all-flows)
+    - [Default Behaviors](#default-behaviors)
+      - [The Current Defaults](#the-current-defaults)
+      - [The default linking of different provider types](#the-default-linking-of-different-provider-types)
+- [Identity Attributes](#identity-attributes)
+  - [The built-in oauth identity standard attributes](#the-built-in-oauth-identity-standard-attributes)
+  - [Customizing the oauth identity attributes](#customizing-the-oauth-identity-attributes)
 - [Login and Link Flow](#login-and-link-flow)
 - [Q&A](#qa)
   - [Why we need to login the user before linking the account?](#why-we-need-to-login-the-user-before-linking-the-account)
   - [Why we need to continue the original signup flow instead of simply adding the oauth identity to the user?](#why-we-need-to-continue-the-original-signup-flow-instead-of-simply-adding-the-oauth-identity-to-the-user)
-  - [Why `on_conflict` is only available on `identification: oauth` but not other login ids such as `identification: email`?](#why-on_conflict-is-only-available-on-identification-oauth-but-not-other-login-ids-such-as-identification-email)
+  - [Why only `oauth` identities supports `account_linking`?](#why-only-oauth-identities-supports-account_linking)
 - [References](#references)
 
 ## Introduction
@@ -23,324 +27,212 @@ This spec documents a feature that allows users to link a oauth account to an ex
 
 ## Configuration
 
-Here is an example of the account linking configuration:
+### Defining how the linkage occurs and the corresponding action
+
+To use account linking, you must define two things:
+
+1. How the linkage occurs. That is, by what condition, authgear should try to link your oauth account to an existing account.
+2. What should be done when the linkage occurs.
+
+Let's explain with the following example:
 
 ```yaml
-identity:
-  oauth:
-    providers:
-      - alias: google
-        client_id: exampleclientid
-        type: google
-        link_by:
-          existing:
-            pointer: "/email"
-          incoming:
-            pointer: "/email"
-      - alias: azureadv2
-        client_id: exampleclientid
-        type: azureadv2
-        link_by:
-          existing:
-            pointer: "/phone_number"
-          incoming:
-            pointer: "/phone_number"
-        raw_profile_mappings:
-          - from:
-              pointer: "/primary_phone"
-            to:
-              pointer: "/phone_number"
+authentication_flow:
+  signup_flows:
+    - name: default
+      account_linking:
+        oauth:
+          - alias: adfs
+            incoming_claim:
+              pointer: "/preferred_username"
+            existing_attribute:
+              pointer: "/preferred_username"
+            action: login_and_link
+            login_flow: default
+      steps:
+        - name: identify
+          type: identify
+          one_of:
+            - identification: email
+              steps:
+                - name: authenticate_primary_email
+                  type: create_authenticator
+                  one_of:
+                    - authentication: primary_password
+            - identification: oauth
 ```
 
-### Define the linking logic using `link_by`
+The `account_linking` section inside `signup_flows` defined the account linking behavior of the `default` signup flow. It have the following meanings:
 
-- The `link_by` object was added to provider config. This section defines how an account in an external idp can be linked (i.e. matched) to an existing authgear user identity. It contains the following fields:
-  - `link_by.existing.pointer`: The json pointer to get a value from the existing authgear user.
-  - `link_by.incoming.pointer`: The json pointer to get a value from the external idp user info.
+- When user is trying to sign up with an `oauth` identity, which belongs to the oauth provider with alias `adfs`, account linking may occurs. The related provider is specified by the `alias` field, which should match one of the providers specified in the `identity.oauth.providers` config.
+- Linking should occur if the new oauth identity is having a `"email"` claim, which the value is equal to the `"email"` attribute of any existing user's identity. For details, please read the [Defining Linkages](#defining-linkages) section.
+- When the linking occurs, it should trigger a login using the `"default"` login flow. After the login, the new oauth identity will be linked to the account logged in. For details, please read the [Linking Actions](#linking-actions) section.
 
-Here is an example of how `link_by.existing.pointer` and `link_by.incoming.pointer` will be used:
-
-Assume there is an user A, with the following identites:
-
-- Email: a@example.com
-- Phone: +85200000001
-- Username: auser
-
-The email identity `a@example.com` will have the following claims:
-
-```json
-{
-  "email": "a@example.com"
-}
-```
-
-The phone identity `+85200000001` will have the following claims:
-
-```json
-{
-  "phone_number": "+85200000001"
-}
-```
-
-The username identity `auser` will have the following claims:
-
-```json
-{
-  "preferred_username": "auser"
-}
-```
-
-And assume the user is trying to login with a new oauth identity, which the idp profile is:
-
-```json
-{
-  "sub": "91e1b9cf-1dde-4fe5-ba0d-d57a9f20e099",
-  "email": "a@example.com",
-  "phone_number": "+85200000002"
-}
-```
-
-Assume we have the following provider settings:
+The configs under `account_linking.oauth` only controls account linking behavior when the new identity is an `oauth` identity. As a result, only the `identification: oauth` step may trigger account linking.
 
 ```yaml
-identity:
-  oauth:
-    providers:
-      - alias: adfs
-        client_id: exampleclientid
-        type: adfs
-        link_by:
-          existing:
-            pointer: "/email"
-          incoming:
-            pointer: "/email"
+name: default
+steps:
+  - name: identify
+    type: identify
+    one_of:
+      - identification: email
+        steps:
+          - name: authenticate_primary_email
+            type: create_authenticator
+            one_of:
+              - authentication: primary_password
+      - identification: oauth # <-- Only this step may trigger account linking
 ```
 
-1. As `link_by.incoming.pointer` is `"/email"`, we will first get a value from the external idp profile by the key `"email"`, which gets `a@example.com`.
+Currently, only `oauth` is supported in account linking. However, account linking of `login_id` may also be supported in the future.
 
-2. Then, we will search existing identities using the json pointer defined in `link_by.incoming.pointer`, which is `"/email"`. So we will find all identities which having is having a field `"email": "a@example.com"`. So we found the existing email identity `a@example.com`.
+#### Defining Linkages
 
-As another example, assume we have the following provider settings:
+We define linkages between the new oauth identity and any existing identities using the `incoming_claim` and `existing_attribute` fields.
 
-```yaml
-identity:
-  oauth:
-    providers:
-      - alias: adfs
-        client_id: exampleclientid
-        type: adfs
-        link_by:
-          existing:
-            pointer: "/phone_number"
-          incoming:
-            pointer: "/phone_number"
-```
+- `incoming_claim`: An object containing a json pointer, specified in `incoming_claim.pointer`, pointing to a claim of the incoming oauth user profile. Note that, for oidc compatible providers, this pointer is used to access value from the oidc claims, which is from the user info endpoint. For non-oidc compatible providers, please read the [SSO Providers](#todo) document for the corresponing logics authgear implemented to obtain a user profile from the provider.
 
-1. As `link_by.incoming.pointer` is `"/phone_number"`, we will first get a value from the external idp profile by the key `"phone_number"`, which gets `+85200000001`.
+- `existing_attribute`: An object containing a json pointer, specified in `existing_attribute.pointer`, pointing to an attribute of an existing authgear identity. For the meaning of attribute of authgear identity, please read the [Identity Attribute](#identity-attribute) section.
 
-2. Then, we will search existing identities using the json pointer defined in `link_by.incoming.pointer`, which is `"/phone_number"`. So we will find all identities which is having a field `"phone_number": "+85200000002"`. However, the existing phone identity doesn't contain this field (It is `"phone_number": "+85200000001"`). In this case, no match will be found.
+Whenever the value pointed by `incoming_claim.pointer` of the new oauth identity matches the value pointed by `existing_attribute.pointer` of any existing authgear identity, account linking will be triggered by this linkage.
 
-### Define the profile field mapping using `raw_profile_mappings`
+For what should happen on linking, please read the following [Linking Actions](#linking-actions) section.
 
-All oauth identities will be converted to a set of claims, and be stored inside authgear. The stored claims has two functions:
+#### Linking Actions
 
-- It affects the standard attributes of the user. For example, an `"email"` claim will be populated to the user's `"email"` standard attribute.
-- It affects how an existing oauth identity be searched and matched with an incoming new oauth identity, which was mentioned in the above `link_by` section.
+We define the action to link the new oauth identity with the existing identity's owner user account using the `action` field.
 
-There are builtin mappings implemented for each provider, but they might not satisfy all use cases. Therefore, we introduced a `raw_profile_mappings` config for customizing the behavior.
-
-Example:
-
-```yaml
-identity:
-  oauth:
-    providers:
-      - alias: azureadv2
-        client_id: exampleclientid
-        type: azureadv2
-        link_by:
-          existing:
-            pointer: "/phone_number"
-          incoming:
-            pointer: "/phone_number"
-        raw_profile_mappings:
-          - from:
-              pointer: "/primary_phone"
-            to:
-              pointer: "/phone_number"
-```
-
-- The `raw_profile_mappings` config is an array, which contains objects with two fields:
-  - `from.pointer`: This field specifies a json pointer to the raw profile of the external idp.
-  - `to.pointer`: Thie field specifies a json pointer of the authgear claim json, where the value in `from.pointer` will be write to.
-
-As an example, assume the external idp profile is this json:
-
-```json
-{
-  "sub": "91e1b9cf-1dde-4fe5-ba0d-d57a9f20e099",
-  "name": "User A",
-  "email": "a@example.com",
-  "primary_phone": "+85200000001",
-  "secondary_phone": "+85200000002"
-}
-```
-
-Now you want to map "primary_phone" to the "phone_number" claim, so we defined the following mapping:
-
-```yaml
-raw_profile_mappings:
-  - from:
-      pointer: "/primary_phone"
-    to:
-      pointer: "/phone_number"
-```
-
-Then authgear will map the value of "primary_phone" ("+85200000001") from the external idp profile to "phone_number" of the stored claim. So it result in:
-
-```json
-{
-  "name": "User A",
-  "email": "a@example.com",
-  "phone_number": "+85200000001"
-}
-```
-
-"name" and "email" exist due to implicit mappings of the provider `adfs`. And "phone_number" existing due to the config in `raw_profile_mappings`.
-
-#### Relationship with `link_by`
-
-The field used for linking, as specified in `link_by.incoming.pointer` and `link_by.existing.pointer`, is always referring to the mapped profile object.
-
-As an example, assume we have the following config:
-
-```yaml
-identity:
-  oauth:
-    providers:
-      - alias: azureadv2
-        client_id: exampleclientid
-        type: azureadv2
-        link_by:
-          existing:
-            pointer: "/phone_number"
-          incoming:
-            pointer: "/phone_number"
-        raw_profile_mappings:
-          - from:
-              pointer: "/primary_phone"
-            to:
-              pointer: "/phone_number"
-```
-
-And assume we got an external idp raw profile:
-
-```json
-{
-  "sub": "91e1b9cf-1dde-4fe5-ba0d-d57a9f20e099",
-  "name": "User A",
-  "email": "a@example.com",
-  "primary_phone": "+85200000001",
-  "secondary_phone": "+85200000002"
-}
-```
-
-"primary_phone" in the raw profile will first be mapped to "phone_number" according to the config of `raw_profile_mappings`, then used to link with existing accounts according to `link_by.incoming.pointer`. Therefore, if there is an existing phone login id `+85200000001`, it can be matched.
-
-#### Custom transformation of the raw idp profile by hook
-
-If neccessary, the user can use a hook to perform transformation on the idp user info. This is to handle use cases like multiple claims in the idp user info could be used. For example, an idp might separate the country code and the national number into two claims. In this case, the developer must use a hook to transform the related claims into a single claim, and match with that claim instead. This will not be implemented at current stage.
-
-### Define the conflict behavior in signup flow
-
-```yaml
-signup_flows:
-  - name: default
-    steps:
-      - name: identify
-        type: identify
-        one_of:
-          - identification: email
-            steps:
-              - name: authenticate_primary_email
-                type: create_authenticator
-                one_of:
-                  - authentication: primary_password
-          - identification: oauth
-            on_conflict: # This section was added
-              action: "login_and_link"
-              login_flow: "default"
-              target_step: "step_1"
-
-login_flows:
-  - name: default
-    steps:
-      - name: step_1
-        type: identify
-        one_of:
-          - identification: oauth
-          - identification: email
-            steps:
-              - name: authenticate_primary_email
-                type: authenticate
-                one_of:
-                  - authentication: primary_password
-      - type: check_account_status
-      - type: terminate_other_sessions
-```
-
-- The `on_conflict` section was added to the identify step of the signup flow to specify the behavior if an conflict occurred during signup. Currently, it can only be configured with `identification: oauth`. The possible values of `on_conflict.action` are:
-  - `"error"`: Reject the signup with an error. This is the default.
-  - `"login"`: Switch to login flow of the existing account. `login_flow` must be specified when using this option.
+- `action`: Defines the desire action if this linkage was triggered.
+  The possible values are:
+  - `error`: Reject the signup with an error.
+  - `login`: Switch to login flow of the existing account.
     - This will not be implemented as it seems a duplicate of `"error"`.
-  - `"login_and_link"`: Switch to login flow of the existing account. After that, add the new identity which triggered the conflict to the logged in account. When `login_and_link` is choosed, the following fields must be specified:
-    - `on_conflict.login_flow`: The login flow to switch to when an conflict occurs.
-    - `on_conflict.target_step`: The step inside the login flow which we will start from. The selected step must satisfy the below conditions:
-      - It must be a `identify` step.
-      - It must be the first `identify` step.
-      - It must be a step at the root level. i.e., It cannot be a nested step inside any `one_of` branches.
-    - Read the [Login and link flow](#login-and-link-flow) for the detailed behavior.
-  - `"create_new_account"`: Create a new account with this new identity, ignoring the conflict.
-    - This will not be implemented at the moment.
-  - `"create_new_account_or_link"`: Allow the user to choose between behavior of `login_and_link` and `create_new_account`.
-    - This will not be implemented at the moment.
-  - `"hook"`: Use a hook to decide the behavior.
-    - This will not be implemented at the moment.
+  - `login_and_link`: Switch to login flow of the existing account. After user completing the login flow, add the new oauth identity to the logged in account. When `login_and_link` is choosed, the following additional configs are available:
+    - `login_flow`: The login flow name to switch to when an linking occurs. The selected login flow must start with a `identity` step. This field can be omitted. If omitted, the default value will be the same flow name
+    - Read the [Login and link flow](#login-and-link-flow) section for the detailed behavior of this option.
+  - `always_link_without_login`: This is similar to `login_and_link`, but no login is required. Caution: This could become a risk that someone will be able to takeover some authgear accounts using identities from the oauth provider. Only use this option if you trust the oauth provider and knows the linking logics works as you expected.
+  - `link_without_login_when_verified`: This is similar to `login_and_link`, but no login is required only if the oauth provider claims that the email in the user's claim is verified, by using the `email_verified` claim.
+  - `create_new_account`: Create a new account with this new identity, ignoring the link.
+  - `create_new_account_or_link`: Allow the user to choose between behavior of `login_and_link` and `create_new_account`.
+  - `hook`: Use a hook to decide the behavior.
 
-For details, please see the below [Action on conflict](#action-on-conflict) section.
+Currently, only `error` and `login_and_link` will be implemented.
 
-## Action on conflict
+### Defining a default for all flows
 
-- Whenever an oauth identity is used, and there is no existing user for that identity.
+All config mentioned above was defined inside a single flow object of a `signup_flows`. However, you may simply want a config applied to all signup flows. Therefore, we have the `default_account_linking` section for this purpose. Here is an example:
 
-  1. If `link_by` is null, do nothing. Else,
-  2. Get the value of claim from the idp claim using `link_by`. If the value is empty, do nothing.
-  3. Query from existing identities using the claim key specified by `link_by`, where the claim value is matching the value in 2.
-  4. Do:
+```yaml
+authentication_flow:
+  default_account_linking:
+    oauth:
+      - alias: google
+        incoming_claim:
+          pointer: "/email"
+        existing_attribute:
+          pointer: "/email"
+        action: login_and_link
+        login_flow: default
+```
 
-  - If there is at least one match,
-    - If `on_conflict=error`, return an error and terminate the signup flow.
-    - If `on_conflict=login`, trigger login flow for that existing user, and discard the new identity.
-    - If `on_conflict=login_and_link`, trigger login flow for that existing user, and link the new oauth identity to that user after the flow was completed sucessfully. Read the [Login and link flow](#login-and-link-flow) for the detailed behavior.
-    - If `on_conflict=create_new_account`, create a new user with that oauth identity.
-    - If `on_conflict=hook`, trigger a hook and use the result to determine what to do.
-  - If there is no match, create a new user.
+It supports all configs as mentioned in the above [Defining how the linkage occurs and the corresponding action](#defining-how-the-linkage-occurs-and-the-corresponding-action).
 
-- Whenever a new user creates an new login id during signup.
+If `authentication_flow.default_account_linking` is specified, it will be applied to all signup flows. If any signup flows does not have the `account_linking` config specified, it will be treated as having same configs inside `authentication_flow.default_account_linking`.
 
-  1. For every `identity.providers` with non-null `link_by`, use `link_by` to obtain a value from the new identity. If the value is empty, do nothing.
-  2. Use the value we get in 1 to query for existing oauth identities with the same claim specified in `link_by`.
-  3. If there is at least one identify found in step 2, return an error.
+For detail about default behaviors, please read the [Default Behaviors](#default-behaviors) section.
+
+### Default Behaviors
+
+The account linking config will be read according to the below precedence:
+
+1. If exist, always use the configurations in `account_linking` inside the current flow object in `signup_flows`.
+2. Else, use the `authentication_flow.default_account_linking` confuguration, if exist.
+3. Else, it is the built in default behavior. Please read the following sections for detail.
+
+#### The Current Defaults
+
+The current defaults are identical to the following config:
+
+```yaml
+incoming_claim:
+  pointer: "/email"
+existing_attribute:
+  pointer: "/email"
+action: error
+```
+
+These defaults will be applied to all oauth providers if account linking is not configured for that provider.
+
+Please refer to [Defining Linkages](#defining-linkages) and [Linking Actions](#linking-actions) sections for the meanings of the configs.
+
+#### The default linking of different provider types
+
+Different default account linking configs could be provided for different type of providers. However, this is not implemented at the moment.
+
+## Identity Attributes
+
+In authgear, each identity contributes to some standard attributes of the authgear user profile. Please see the following table for the standard attributes contributed by the email, username and phone identities.
+
+| Identity Type | Value            | Standard Attributes                   |
+| ------------- | ---------------- | ------------------------------------- |
+| Email         | `id@example.com` | `{ "email": "id@example.com" }`       |
+| Username      | `example`        | `{ "preferred_username": "example" }` |
+| Phone         | `+8520001`       | `{ "phone_number": "+8520001" }`      |
+
+OAuth identities also contributes attributes of the user profile, but it is more complicated than the above three identity types. The following sections will discuss the related behavior and configs.
+
+### The built-in oauth identity standard attributes
+
+For each supporteed oauth provider types, authgear has implemented a built-in standard attribute mappings. You could find the mappings of each provider in the [SSO Providers](#todo) document.
+
+### Customizing the oauth identity attributes
+
+As the built-in mappings may not be able to handle all use cases, we support configuring custom mappings on oauth identity attributes. Let's start with the following example config:
+
+```yaml
+identity:
+  oauth:
+    providers:
+      - alias: adfs
+        client_id: exampleclientid
+        type: adfs
+        attribute_mappings:
+          - from_claim:
+              pointer: "/primary_phone"
+            to_attribute:
+              pointer: "/phone_number"
+```
+
+The above config means:
+
+For any oauth identity of `adfs`, we will read a value from the `"primary_phone"` claim of the provider user profile, and write that value into the `"phone_number"` attribute of that identity. Note that, it is not writing directly to the user's attribute, but the attributes that belongs to this identity. The user can later select this identity in the portal to populate these attributes into the authgear user profile.
+
+And the meaning of each configs are:
+
+- `attribute_mappings`: It is an array, which specifies a mapping. From one claim of the provider user profile, to one attribute of the authgear user identity attribute.
+  - `attribute_mappings.from_claim`: An object, which only has one field `pointer`. The `pointer` is the JSON pointer pointing to the claim value of the oauth provider user profile.
+  - `attribute_mappings.to_attribute`: An object, which only has one field `pointer`. The `pointer` is the JSON pointer pointing to the attribute of the authgear identity attribute.
+    - We only support standard attributes at the moment, but custom attributes may also be supported in the future.
 
 ## Login and Link Flow
 
-During a signup, when a conflict is occurred, and `on_conflict` is set to `login_and_link`, the user will enter a login and link flow. Please see the following example to understand the actual flow:
+During a signup, when a linkage is occurred, and `action` is set to `login_and_link`, the user will enter a login and link flow. Please see the following example to understand the actual flow:
 
 Assume we have the following authflow config:
 
 ```yaml
 signup_flows:
   - name: default
+    account_linking:
+      oauth:
+        - alias: google
+          incoming_claim:
+            pointer: "/email"
+          existing_attribute:
+            pointer: "/email"
+          action: login_and_link
+          login_flow: default
     steps:
       - name: identify
         type: identify
@@ -352,10 +244,6 @@ signup_flows:
                 one_of:
                   - authentication: primary_password
           - identification: oauth
-            on_conflict:
-              action: login_and_link
-              login_flow: default
-              target_step: step_1
             steps:
               - name: oauth_setup_primary_email
                 type: create_authenticator
@@ -371,7 +259,7 @@ signup_flows:
 login_flows:
   - name: default
     steps:
-      - name: step_1
+      - name: identify
         type: identify
         one_of:
           - identification: oauth
@@ -383,80 +271,54 @@ login_flows:
                   - authentication: primary_password
 ```
 
-and we have the following provider config:
-
-```yaml
-identity:
-  oauth:
-    providers:
-      - alias: google
-        client_id: exampleclientid
-        type: google
-        link_by:
-          identity: "email"
-          idp_claim: "/email"
-```
-
 Assume now there is an existing authgear user with the following identities and authenticators:
 
 - User A
   - Email Identity: a@example.com
   - Primary Password Authenticator
 
-And now, the user tries to sign up with a new google account, which has an email `a@example.com` in the google user info. And authgear matched that oauth identity to the existing login ID `a@example.com`.
+And now, the user tries to sign up with a new google account, which has an email `a@example.com` in the google user profile. And authgear matched that oauth identity to the existing login ID `a@example.com`.
 
-1. The user should first select a conflicted identity, in this example, there is only one conflicted identity `Email: a@example.com`. So this identity should be selected by the user.
-2. After `Email: a@example.com` being selected, the user will switch to a login flow. Which was specified by `on_conflict.login_flow` And `on_conflict.target_step`:
+1. The user should first select a matched identity, in this example, there is only one matched identity `Email: a@example.com`. So this identity will be selected by the user.
+2. After `Email: a@example.com` being selected, the user will switch to the `default` login flow. Which was specified by `login_flow` in the config.
+3. The login flow will be executed inside the signup flow, step by step.
+4. The selected identity `Email: a@example.com` will be automatically used to pass the first identification step:
 
-```yaml
-on_conflict:
-  action: login_and_link
-  login_flow: default
-  target_step: step_1
-```
-
-3. The login flow `default` will be executed, and starting from the specified step `step_1`.
-4. The selected identity `Email: a@example.com` will be automatically used to pass the first identify step.
-
-```yaml
-- identification: email
-  steps:
-    - name: authenticate_primary_email
-      type: authenticate
-      one_of:
-        - authentication: primary_password
-```
+   ```yaml
+   - identification: email
+     steps:
+       - name: authenticate_primary_email
+         type: authenticate
+         one_of:
+           - authentication: primary_password
+   ```
 
 5. Then, the login flow will continue. The user has to enter primary password to pass the authentication.
-6. After user entered password, the login flow was completed. Now, the original signup flow will be continued.
+6. After user entered password, the login flow was completed. Now, the original signup flow will be continued:
 
-```yaml
-- identification: email
-  steps:
-    - name: email_setup_primary_email
-      type: create_authenticator
-      one_of:
-        - authentication: primary_password
-- identification: oauth # <-- Resume here
-  on_conflict:
-    action: login_and_link
-    login_flow: default
-    target_step: step_1
-  steps:
-    - name: oauth_setup_primary_email
-      type: create_authenticator
-      one_of:
-        - authentication: primary_password
-          steps:
-            - type: create_authenticator
-              one_of:
-                - authentication: secondary_totp
-                  steps:
-                    - type: view_recovery_code
-```
+   ```yaml
+   - identification: email
+     steps:
+       - name: email_setup_primary_email
+         type: create_authenticator
+         one_of:
+           - authentication: primary_password
+   - identification: oauth # <-- Resume here
+     steps:
+       - name: oauth_setup_primary_email
+         type: create_authenticator
+         one_of:
+           - authentication: primary_password
+             steps:
+               - type: create_authenticator
+                 one_of:
+                   - authentication: secondary_totp
+                     steps:
+                       - type: view_recovery_code
+   ```
 
-7. As the next step of the original flow is create primary password authenticator, the user will need to create primary password authenticator if he doesn't have one. As the original user already has a primary password authenticator, the step will be skipped.
-8. And the next step will be create `secondary_totp`. As the user don't have a secondary totp, the user should create a totp in this step.
+7. As the next step of the original flow is to create primary password authenticator, the user will need to create primary password authenticator if he doesn't have one. As the original user already has a primary password authenticator, the step will be skipped. The priciple is, the resumed signup flow will try to skip all identification or authentication steps that the user already has one related identity or authenticator.
+8. And the next step will be creating `secondary_totp`. As the user does not have a secondary totp, the user will create a totp in this step.
 9. Finally, all created identities and authenticators will be added to the existing user, together with the new oauth identity.
 
 Resulting user:
@@ -491,10 +353,6 @@ signup_flows:
                 one_of:
                   - authentication: primary_password
           - identification: oauth
-            on_conflict:
-              action: login_and_link
-              login_flow: default
-              target_step: step_1
             steps:
               - type: create_authenticator
                 one_of:
@@ -503,9 +361,19 @@ signup_flows:
 
 If we add the oauth identity to the user without completing the whole signup flow, the step that create `secondary_totp` would be skipped. Which may break the assumption that all users created by signup flow with oauth identity will have `secondary_totp` setup. Therefore we should continue the signup flow. However, we should skip unncessary steps to prevent duplicated authenticators of the same type being added.
 
-### Why `on_conflict` is only available on `identification: oauth` but not other login ids such as `identification: email`?
+### Why only `oauth` identities supports `account_linking`?
 
-We think that the common use case is to link an oauth account to an existing login id, but not the reverse. So it is not supportted at the moment. However, theoretically it is possible to support `on_conflict` of other `identification` methods too. This could be added in the future.
+We think that the common use case is to link an oauth account to an existing login id, but not the reverse. So triggering account linking by other types of identities are at the moment. However, theoretically it is possible to support account linking of other `identification` methods too. This could be added in the future.
+
+The proposed config of account linking by login ids could be:
+
+```yaml
+account_linking:
+  login_id:
+    - key: phone
+      existing_pointer: "/phone_number"
+      action: "error"
+```
 
 ## References
 
