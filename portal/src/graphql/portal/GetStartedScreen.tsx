@@ -45,6 +45,7 @@ import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import ActionButton from "../../ActionButton";
 import LinkButton from "../../LinkButton";
 import { useGenerateTesterTokenMutation } from "./mutations/generateTesterTokenMutation";
+import { useCapture } from "../../gtm_v2";
 
 type Progress = keyof TutorialStatusData["progress"];
 
@@ -76,6 +77,7 @@ function useCardSpecs(options: MakeCardSpecsOptions): CardSpec[] {
   } = options;
 
   const { generateTesterToken } = useGenerateTesterTokenMutation(appID);
+  const capture = useCapture();
   const onTryAuth = useCallback(async () => {
     const token = await generateTesterToken(window.location.href);
     const destination = new URL(publicOrigin);
@@ -94,10 +96,12 @@ function useCardSpecs(options: MakeCardSpecsOptions): CardSpec[] {
         e.preventDefault();
         e.stopPropagation();
 
-        onTryAuth();
+        capture("getStarted.clicked-signup");
+
+        onTryAuth().catch((e) => console.error(e));
       },
     }),
-    [userTotalCount, onTryAuth]
+    [userTotalCount, onTryAuth, capture]
   );
 
   const customize_ui: CardSpec = useMemo(
@@ -105,10 +109,13 @@ function useCardSpecs(options: MakeCardSpecsOptions): CardSpec[] {
       key: "customize_ui",
       iconSrc: iconCustomize,
       internalHref: "~/configuration/ui-settings",
+      onClick: (_e) => {
+        capture("getStarted.clicked-customize");
+      },
       canSkip: false,
       isDone: tutorialStatusData.progress["customize_ui"] === true,
     }),
-    [tutorialStatusData.progress]
+    [tutorialStatusData.progress, capture]
   );
 
   // Special handling for apps with applications.
@@ -122,12 +129,15 @@ function useCardSpecs(options: MakeCardSpecsOptions): CardSpec[] {
       isDone:
         numberOfClients > 0 ||
         tutorialStatusData.progress["create_application"] === true,
+      onClick: (_e) => {
+        capture("getStarted.clicked-create_app");
+      },
     };
     spec.internalHref = spec.isDone
       ? "~/configuration/apps"
       : "~/configuration/apps/add";
     return spec;
-  }, [numberOfClients, tutorialStatusData.progress]);
+  }, [numberOfClients, tutorialStatusData.progress, capture]);
 
   const sso: CardSpec = useMemo(
     () => ({
@@ -136,8 +146,11 @@ function useCardSpecs(options: MakeCardSpecsOptions): CardSpec[] {
       internalHref: "~/configuration/authentication/external-oauth",
       canSkip: true,
       isDone: tutorialStatusData.progress["sso"] === true,
+      onClick: (_e) => {
+        capture("getStarted.clicked-social_login");
+      },
     }),
-    [tutorialStatusData.progress]
+    [tutorialStatusData.progress, capture]
   );
 
   const invite: CardSpec = useMemo(
@@ -147,8 +160,11 @@ function useCardSpecs(options: MakeCardSpecsOptions): CardSpec[] {
       internalHref: "~/portal-admins/invite",
       canSkip: false,
       isDone: tutorialStatusData.progress["invite"] === true,
+      onClick: (_e) => {
+        capture("getStarted.clicked-add_members");
+      },
     }),
-    [tutorialStatusData.progress]
+    [tutorialStatusData.progress, capture]
   );
 
   return useMemo(
@@ -363,10 +379,24 @@ function Cards(props: CardsProps) {
 }
 
 function HelpText() {
+  const capture = useCapture();
+  const onClickForum = useCallback(() => {
+    capture("getStarted.clicked-forum");
+  }, [capture]);
+  const onClickContactUs = useCallback(() => {
+    capture("getStarted.clicked-contact_us");
+  }, [capture]);
+
   return (
     <Text block={true}>
       <FontIcon className={styles.helpTextIcon} iconName="Lifesaver" />
-      <FormattedMessage id="GetStartedScreen.help-text" />
+      <FormattedMessage
+        id="GetStartedScreen.help-text"
+        values={{
+          onClickForum,
+          onClickContactUs,
+        }}
+      />
     </Text>
   );
 }
@@ -406,6 +436,7 @@ interface GetStartedScreenContentProps {
 function GetStartedScreenContent(props: GetStartedScreenContentProps) {
   const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
+  const capture = useCapture();
 
   const {
     loading: propLoading,
@@ -456,6 +487,8 @@ function GetStartedScreenContent(props: GetStartedScreenContentProps) {
       e.preventDefault();
       e.stopPropagation();
 
+      capture("getStarted.clicked-done");
+
       skipAppTutorialMutationFunction({
         variables: {
           appID,
@@ -467,7 +500,7 @@ function GetStartedScreenContent(props: GetStartedScreenContentProps) {
         () => {}
       );
     },
-    [appID, skipAppTutorialMutationFunction, navigate]
+    [appID, skipAppTutorialMutationFunction, navigate, capture]
   );
 
   const cardSpecs = useCardSpecs({
