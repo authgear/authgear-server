@@ -43,9 +43,11 @@ authentication_flow:
       account_linking:
         oauth:
           - alias: adfs
-            incoming_claim:
+            oauth_claim:
               pointer: "/preferred_username"
-            existing_attribute:
+            # Rename to user_profile_attribute, but if it is email/phone_number/preferred_username, magic occurs which it will find identities
+            # User profile means (std + custom attr)
+            user_profile_attribute:
               pointer: "/preferred_username"
             action: login_and_link
             login_flow: default
@@ -89,13 +91,13 @@ Currently, only `oauth` is supported in account linking. However, account linkin
 
 #### Defining Linkings
 
-We define linkings between the new oauth identity and any existing identities using the `incoming_claim` and `existing_attribute` fields.
+We define linkings between the new oauth identity and any existing identities using the `oauth_claim` and `user_profile_attribute` fields.
 
-- `incoming_claim`: An object containing a json pointer, specified in `incoming_claim.pointer`, pointing to a claim of the incoming oauth user profile. Note that, for oidc compatible providers, this pointer is used to access value from the oidc claims, which is from the user info endpoint. For non-oidc compatible providers, please read the [SSO Providers](#todo) document for the corresponing logics authgear implemented to obtain a user profile from the provider.
+- `oauth_claim`: An object containing a json pointer, specified in `oauth_claim.pointer`, pointing to a claim of the incoming oauth user profile. Note that, for oidc compatible providers, this pointer is used to access value from the oidc claims, which is from the user info endpoint. For non-oidc compatible providers, please read the [SSO Providers](#todo) document for the corresponing logics authgear implemented to obtain a user profile from the provider.
 
-- `existing_attribute`: An object containing a json pointer, specified in `existing_attribute.pointer`, pointing to an attribute of an existing authgear identity. For the meaning of attribute of authgear identity, please read the [Identity Attribute](#identity-attribute) section.
+- `user_profile_attribute`: An object containing a json pointer, specified in `user_profile_attribute.pointer`, pointing to a value of the user profile of an existing authgear user, or the attribute of an existing authgear identity. For the meaning of attribute of authgear identity, please read the [Identity Attribute](#identity-attribute) section.
 
-Whenever the value pointed by `incoming_claim.pointer` of the new oauth identity matches the value pointed by `existing_attribute.pointer` of any existing authgear identity, account linking will be triggered by this linking.
+Whenever the value pointed by `oauth_claim.pointer` of the new oauth identity matches the value pointed by `user_profile_attribute.pointer` of any existing authgear identity or authgear user profile, account linking will be triggered.
 
 For what should happen on linking, please read the following [Linking Actions](#linking-actions) section.
 
@@ -128,9 +130,9 @@ authentication_flow:
   default_account_linking:
     oauth:
       - alias: google
-        incoming_claim:
+        oauth_claim:
           pointer: "/email"
-        existing_attribute:
+        user_profile_attribute:
           pointer: "/email"
         action: login_and_link
         login_flow: default
@@ -155,9 +157,9 @@ The account linking config will be read according to the below precedence:
 The current defaults are identical to the following config:
 
 ```yaml
-incoming_claim:
+oauth_claim:
   pointer: "/email"
-existing_attribute:
+user_profile_attribute:
   pointer: "/email"
 action: error
 ```
@@ -197,7 +199,7 @@ identity:
       - alias: adfs
         client_id: exampleclientid
         type: adfs
-        attribute_mappings:
+        user_profile_mapping:
           - from_claim:
               pointer: "/primary_phone"
             to_attribute:
@@ -210,9 +212,9 @@ For any oauth identity of `adfs`, we will read a value from the `"primary_phone"
 
 And the meaning of each configs are:
 
-- `attribute_mappings`: It is an array, which specifies a mapping. From one claim of the provider user profile, to one attribute of the authgear user identity attribute.
-  - `attribute_mappings.from_claim`: An object, which only has one field `pointer`. The `pointer` is the JSON pointer pointing to the claim value of the oauth provider user profile.
-  - `attribute_mappings.to_attribute`: An object, which only has one field `pointer`. The `pointer` is the JSON pointer pointing to the attribute of the authgear identity attribute.
+- `user_profile_mapping`: It is an array, which specifies a mapping. From one claim of the provider user profile, to one attribute of the authgear user identity attribute.
+  - `user_profile_mapping.from_claim`: An object, which only has one field `pointer`. The `pointer` is the JSON pointer pointing to the claim value of the oauth provider user profile.
+  - `user_profile_mapping.to_attribute`: An object, which only has one field `pointer`. The `pointer` is the JSON pointer pointing to the attribute of the authgear identity attribute.
     - We only support standard attributes at the moment, but custom attributes may also be supported in the future.
 
 ## Login and Link Flow
@@ -227,9 +229,9 @@ signup_flows:
     account_linking:
       oauth:
         - alias: google
-          incoming_claim:
+          oauth_claim:
             pointer: "/email"
-          existing_attribute:
+          user_profile_attribute:
             pointer: "/email"
           action: login_and_link
           login_flow: default
