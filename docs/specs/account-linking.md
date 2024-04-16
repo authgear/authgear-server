@@ -2,8 +2,8 @@
 
 - [Introduction](#introduction)
 - [Configuration](#configuration)
-  - [Defining how the linkage occurs and the corresponding action](#defining-how-the-linkage-occurs-and-the-corresponding-action)
-    - [Defining Linkages](#defining-linkages)
+  - [Defining how the linking occurs and the corresponding action](#defining-how-the-linking-occurs-and-the-corresponding-action)
+    - [Defining Linkings](#defining-linkings)
     - [Linking Actions](#linking-actions)
   - [Defining a default for all flows](#defining-a-default-for-all-flows)
     - [Default Behaviors](#default-behaviors)
@@ -27,12 +27,12 @@ This spec documents a feature that allows users to link a oauth account to an ex
 
 ## Configuration
 
-### Defining how the linkage occurs and the corresponding action
+### Defining how the linking occurs and the corresponding action
 
 To use account linking, you must define two things:
 
-1. How the linkage occurs. That is, by what condition, authgear should try to link your oauth account to an existing account.
-2. What should be done when the linkage occurs.
+1. How the linking occurs. That is, by what condition, authgear should try to link your oauth account to an existing account.
+2. What should be done when the linking occurs.
 
 Let's explain with the following example:
 
@@ -65,7 +65,7 @@ authentication_flow:
 The `account_linking` section inside `signup_flows` defined the account linking behavior of the `default` signup flow. It have the following meanings:
 
 - When user is trying to sign up with an `oauth` identity, which belongs to the oauth provider with alias `adfs`, account linking may occurs. The related provider is specified by the `alias` field, which should match one of the providers specified in the `identity.oauth.providers` config.
-- Linking should occur if the new oauth identity is having a `"email"` claim, which the value is equal to the `"email"` attribute of any existing user's identity. For details, please read the [Defining Linkages](#defining-linkages) section.
+- Linking should occur if the new oauth identity is having a `"email"` claim, which the value is equal to the `"email"` attribute of any existing user's identity. For details, please read the [Defining Linkings](#defining-linkings) section.
 - When the linking occurs, it should trigger a login using the `"default"` login flow. After the login, the new oauth identity will be linked to the account logged in. For details, please read the [Linking Actions](#linking-actions) section.
 
 The configs under `account_linking.oauth` only controls account linking behavior when the new identity is an `oauth` identity. As a result, only the `identification: oauth` step may trigger account linking.
@@ -87,15 +87,15 @@ steps:
 
 Currently, only `oauth` is supported in account linking. However, account linking of `login_id` may also be supported in the future.
 
-#### Defining Linkages
+#### Defining Linkings
 
-We define linkages between the new oauth identity and any existing identities using the `incoming_claim` and `existing_attribute` fields.
+We define linkings between the new oauth identity and any existing identities using the `incoming_claim` and `existing_attribute` fields.
 
 - `incoming_claim`: An object containing a json pointer, specified in `incoming_claim.pointer`, pointing to a claim of the incoming oauth user profile. Note that, for oidc compatible providers, this pointer is used to access value from the oidc claims, which is from the user info endpoint. For non-oidc compatible providers, please read the [SSO Providers](#todo) document for the corresponing logics authgear implemented to obtain a user profile from the provider.
 
 - `existing_attribute`: An object containing a json pointer, specified in `existing_attribute.pointer`, pointing to an attribute of an existing authgear identity. For the meaning of attribute of authgear identity, please read the [Identity Attribute](#identity-attribute) section.
 
-Whenever the value pointed by `incoming_claim.pointer` of the new oauth identity matches the value pointed by `existing_attribute.pointer` of any existing authgear identity, account linking will be triggered by this linkage.
+Whenever the value pointed by `incoming_claim.pointer` of the new oauth identity matches the value pointed by `existing_attribute.pointer` of any existing authgear identity, account linking will be triggered by this linking.
 
 For what should happen on linking, please read the following [Linking Actions](#linking-actions) section.
 
@@ -103,7 +103,7 @@ For what should happen on linking, please read the following [Linking Actions](#
 
 We define the action to link the new oauth identity with the existing identity's owner user account using the `action` field.
 
-- `action`: Defines the desire action if this linkage was triggered.
+- `action`: Defines the desire action if this linking was triggered.
   The possible values are:
   - `error`: Reject the signup with an error.
   - `login`: Switch to login flow of the existing account.
@@ -136,7 +136,7 @@ authentication_flow:
         login_flow: default
 ```
 
-It supports all configs as mentioned in the above [Defining how the linkage occurs and the corresponding action](#defining-how-the-linkage-occurs-and-the-corresponding-action).
+It supports all configs as mentioned in the above [Defining how the linking occurs and the corresponding action](#defining-how-the-linking-occurs-and-the-corresponding-action).
 
 If `authentication_flow.default_account_linking` is specified, it will be applied to all signup flows. If any signup flows does not have the `account_linking` config specified, it will be treated as having same configs inside `authentication_flow.default_account_linking`.
 
@@ -164,7 +164,7 @@ action: error
 
 These defaults will be applied to all oauth providers if account linking is not configured for that provider.
 
-Please refer to [Defining Linkages](#defining-linkages) and [Linking Actions](#linking-actions) sections for the meanings of the configs.
+Please refer to [Defining Linkings](#defining-linkings) and [Linking Actions](#linking-actions) sections for the meanings of the configs.
 
 #### The default linking of different provider types
 
@@ -217,7 +217,7 @@ And the meaning of each configs are:
 
 ## Login and Link Flow
 
-During a signup, when a linkage is occurred, and `action` is set to `login_and_link`, the user will enter a login and link flow. Please see the following example to understand the actual flow:
+During a signup, when a linking is occurred, and `action` is set to `login_and_link`, the user will enter a login and link flow. Please see the following example to understand the actual flow:
 
 Assume we have the following authflow config:
 
