@@ -13,10 +13,11 @@
   - [The built-in oauth identity standard attributes](#the-built-in-oauth-identity-standard-attributes)
   - [Customizing the oauth identity attributes](#customizing-the-oauth-identity-attributes)
 - [Login and Link Flow](#login-and-link-flow)
+- [Account Linking by Login IDs](#account-linking-by-login-ids)
+  - [Defaults of Account Linking of Login IDs](#defaults-of-account-linking-of-Login-ids)
 - [Q&A](#qa)
   - [Why we need to login the user before linking the account?](#why-we-need-to-login-the-user-before-linking-the-account)
   - [Why we need to continue the original signup flow instead of simply adding the oauth identity to the user?](#why-we-need-to-continue-the-original-signup-flow-instead-of-simply-adding-the-oauth-identity-to-the-user)
-  - [Why only `oauth` identities supports `account_linking`?](#why-only-oauth-identities-supports-account_linking)
 - [References](#references)
 
 ## Introduction
@@ -45,8 +46,6 @@ authentication_flow:
           - alias: adfs
             oauth_claim:
               pointer: "/preferred_username"
-            # Rename to user_profile_attribute, but if it is email/phone_number/preferred_username, magic occurs which it will find identities
-            # User profile means (std + custom attr)
             user_profile_attribute:
               pointer: "/preferred_username"
             action: login_and_link
@@ -363,19 +362,39 @@ signup_flows:
 
 If we add the oauth identity to the user without completing the whole signup flow, the step that create `secondary_totp` would be skipped. Which may break the assumption that all users created by signup flow with oauth identity will have `secondary_totp` setup. Therefore we should continue the signup flow. However, we should skip unncessary steps to prevent duplicated authenticators of the same type being added.
 
-### Why only `oauth` identities supports `account_linking`?
+## Account Linking by Login IDs
 
-We think that the common use case is to link an oauth account to an existing login id, but not the reverse. So triggering account linking by other types of identities are at the moment. However, theoretically it is possible to support account linking of other `identification` methods too. This could be added in the future.
-
-The proposed config of account linking by login ids could be:
+The config of account linking by login ids is defined by an object inside `account_linking.login_id`:
 
 ```yaml
 account_linking:
   login_id:
     - key: phone
-      existing_pointer: "/phone_number"
+      user_profile_attribute:
+        pointer: "/phone_number"
+      action: "login_and_link"
+    - key: username
+      user_profile_attribute:
+        pointer: "/preferred_username"
       action: "error"
 ```
+
+The above configs defined the account linking behavior of two login id types:
+
+- For `phone`, link with any existing user or identity by looking at the `"phone_number"` value in the user profile or identity attribute. When linking occurs, use `login_and_link` as the action. Read the [Linking Actions](#linking-actions) section for the exact meaning of `login_and_link`.
+- For `username`, link with any existing user or identity by looking at the `"preferred_username"` value in the user profile or identity attribute. When linking occurs, returns an error and stop the signup flow.
+
+### Defaults of Account Linking of Login IDs
+
+The default values of each login id types are different. Please see the below table.
+
+| Login ID Type | Defaults                                                                                              |
+| ------------- | ----------------------------------------------------------------------------------------------------- |
+| `email`       | <pre><code>user_profile_attribute:<br/>&nbsp;&nbsp;pointer: "/email"<br/>action: error</code></pre>             |
+| `phone`       | <pre><code>user_profile_attribute:<br/>&nbsp;&nbsp;pointer: "/phone_number"<br/>action: error</code></pre>       |
+| `username`    | <pre><code>user_profile_attribute:<br/>&nbsp;&nbsp;pointer: "/preferred_username"<br/>action: error</code></pre> |
+
+Therefore when not specified, all attempts to link a new login id to existing users or idenitities will result in error.
 
 ## References
 
