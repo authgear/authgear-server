@@ -51,10 +51,11 @@ type Progress = keyof TutorialStatusData["progress"];
 interface CardSpec {
   key: Progress;
   iconSrc: string;
-  internalHref: string | undefined;
-  action?: () => void;
   canSkip: boolean;
   isDone: boolean;
+
+  internalHref?: string;
+  onClick?: (e: React.MouseEvent<HTMLElement>) => void;
 }
 
 interface MakeCardSpecsOptions {
@@ -87,10 +88,14 @@ function useCardSpecs(options: MakeCardSpecsOptions): CardSpec[] {
     () => ({
       key: "authui",
       iconSrc: iconKey,
-      internalHref: undefined,
       canSkip: false,
-      action: onTryAuth,
       isDone: userTotalCount > 0,
+      onClick: (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        onTryAuth();
+      },
     }),
     [userTotalCount, onTryAuth]
   );
@@ -140,7 +145,6 @@ function useCardSpecs(options: MakeCardSpecsOptions): CardSpec[] {
       key: "invite",
       iconSrc: iconTeam,
       internalHref: "~/portal-admins/invite",
-      externalHref: undefined,
       canSkip: false,
       isDone: tutorialStatusData.progress["invite"] === true,
     }),
@@ -199,8 +203,9 @@ interface CardProps {
   iconSrc: string;
   skipDisabled: boolean;
   skipProgress?: (progress: Progress) => Promise<void>;
-  action?: () => void;
+
   internalHref?: string;
+  onClick?: (e: React.MouseEvent<HTMLElement>) => void;
 }
 
 function Card(props: CardProps) {
@@ -210,7 +215,7 @@ function Card(props: CardProps) {
     iconSrc,
     skipProgress,
     skipDisabled,
-    action,
+    onClick,
     internalHref,
   } = props;
   const {
@@ -291,6 +296,7 @@ function Card(props: CardProps) {
         <Link
           id={id}
           to={internalHref.replace("~/", `/project/${appID}/`)}
+          onClick={onClick}
           className={styles.cardActionButton}
           {...eventDataAttributes}
         >
@@ -299,12 +305,11 @@ function Card(props: CardProps) {
           />
           {" >"}
         </Link>
-      ) : null}
-      {action != null ? (
+      ) : (
         <LinkButton
           id={id}
           className={styles.cardActionButton}
-          onClick={action}
+          onClick={onClick}
           target="_blank"
           {...eventDataAttributes}
         >
@@ -313,7 +318,7 @@ function Card(props: CardProps) {
           />
           {" >"}
         </LinkButton>
-      ) : null}
+      )}
       {skipProgress != null && !isDone ? (
         <LinkButton
           className={styles.cardSkipButton}
@@ -348,7 +353,7 @@ function Cards(props: CardsProps) {
             skipProgress={card.canSkip ? skipProgress : undefined}
             skipDisabled={loading}
             iconSrc={card.iconSrc}
-            action={card.action}
+            onClick={card.onClick}
             internalHref={card.internalHref}
           />
         );
