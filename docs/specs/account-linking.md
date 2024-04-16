@@ -185,7 +185,7 @@ OAuth identities also contributes attributes of the user profile, but it is more
 
 ### The built-in oauth identity standard attributes
 
-For each supporteed oauth provider types, authgear has implemented a built-in standard attribute mappings. You could find the mappings of each provider in the [SSO Providers](#./sso-providers.md) document.
+For each supported oauth provider types, authgear has implemented a built-in standard attribute mappings. You could find the mappings of each provider in the [SSO Providers](#./sso-providers.md) document.
 
 ### Customizing the oauth identity attributes
 
