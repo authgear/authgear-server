@@ -104,13 +104,13 @@ oauth:
     x_authentication_flow_allowlist:
       # Only allow OAuth login for public_app
       groups:
-      - oauth_only
+      - name: oauth_only
   - client_id: internal
     x_authentication_flow_allowlist:
       # Allow both OAuth login and email_password_2fa for internal
       groups:
-      - oauth_only
-      - email_password_2fa
+      - name: oauth_only
+      - name: email_password_2fa
       # Allow additional individual flows
       flows:
       - type: reauth
