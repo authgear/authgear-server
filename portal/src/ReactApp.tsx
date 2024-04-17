@@ -33,6 +33,7 @@ import GTMProvider from "./GTMProvider";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 import { extractRawID } from "./util/graphql";
 import { useIdentify } from "./gtm_v2";
+import AppContextProvider from "./AppContextProvider";
 
 const AppsScreen = lazy(async () => import("./graphql/portal/AppsScreen"));
 const CreateProjectScreen = lazy(
@@ -116,7 +117,9 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
               path="*"
               element={
                 <Authenticated>
-                  <AppRoot />
+                  <AppContextProvider>
+                    <AppRoot />
+                  </AppContextProvider>
                 </Authenticated>
               }
             />
@@ -128,7 +131,9 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
                 element={
                   <Authenticated>
                     <Suspense fallback={<ShowLoading />}>
-                      <ProjectWizardScreen />
+                      <AppContextProvider>
+                        <ProjectWizardScreen />
+                      </AppContextProvider>
                     </Suspense>
                   </Authenticated>
                 }
