@@ -10,7 +10,10 @@ type TargetStep interface {
 }
 
 func FindTargetStep(w *Flow, name string) (out *Flow, err error) {
-	err = TraverseFlow(Traverser{
+	// Use TraverseFlowIntentFirst here to ensure the intent was found before the nodes belongs created by that intent
+	// Because if there are two steps with a same name, the later node should be returned by this function
+	// And nodes inside the intent should be considered "later" than the intent itself
+	err = TraverseFlowIntentFirst(Traverser{
 		Intent: func(i Intent, w *Flow) error {
 			if i, ok := i.(TargetStep); ok && name == i.GetName() {
 				out = w

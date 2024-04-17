@@ -9,15 +9,41 @@ type Traverser struct {
 	NodeSimple func(nodeSimple NodeSimple, w *Flow) error
 }
 
+// TraverseFlow traverse the flow, and intent of the flow is treated as the last node of the flow
 func TraverseFlow(t Traverser, w *Flow) error {
-	for _, node := range w.Nodes {
-		node := node
-		err := TraverseNode(t, w, &node)
+	return traverseFlow(t, w, false)
+}
+
+func TraverseNode(t Traverser, w *Flow, n *Node) error {
+	return traverseNode(t, w, n, false)
+}
+
+// TraverseFlowIntentFirst is same as TraverseFlow,
+// except that it ensures all nodes and intents must be traversed in the order they are inserted to the flow
+// i.e. The intent will invoke the Traverser before the nodes belongs that intent
+func TraverseFlowIntentFirst(t Traverser, w *Flow) error {
+	return traverseFlow(t, w, true)
+}
+
+func TraverseNodeIntentFirst(t Traverser, w *Flow, n *Node) error {
+	return traverseNode(t, w, n, true)
+}
+
+func traverseFlow(t Traverser, w *Flow, intentFirst bool) error {
+	if t.Intent != nil && intentFirst {
+		err := t.Intent(w.Intent, w)
 		if err != nil {
 			return err
 		}
 	}
-	if t.Intent != nil {
+	for _, node := range w.Nodes {
+		node := node
+		err := traverseNode(t, w, &node, intentFirst)
+		if err != nil {
+			return err
+		}
+	}
+	if t.Intent != nil && !intentFirst {
 		err := t.Intent(w.Intent, w)
 		if err != nil {
 			return err
@@ -26,7 +52,7 @@ func TraverseFlow(t Traverser, w *Flow) error {
 	return nil
 }
 
-func TraverseNode(t Traverser, w *Flow, n *Node) error {
+func traverseNode(t Traverser, w *Flow, n *Node, intentFirst bool) error {
 	switch n.Type {
 	case NodeTypeSimple:
 		if t.NodeSimple != nil {
@@ -37,7 +63,7 @@ func TraverseNode(t Traverser, w *Flow, n *Node) error {
 		}
 		return nil
 	case NodeTypeSubFlow:
-		err := TraverseFlow(t, n.SubFlow)
+		err := traverseFlow(t, n.SubFlow, intentFirst)
 		if err != nil {
 			return err
 		}

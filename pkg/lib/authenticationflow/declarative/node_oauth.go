@@ -2,13 +2,16 @@ package declarative
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func init() {
@@ -80,8 +83,39 @@ func (n *NodeOAuth) OutputData(ctx context.Context, deps *authflow.Dependencies,
 func (n *NodeOAuth) reactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, spec *identity.Spec) (*authflow.Node, error) {
 	// signup
 	if n.NewUserID != "" {
-		info, dup, err := newIdentityInfo(deps, n.NewUserID, spec)
+		info, conflictedInfo, err := newIdentityInfo(deps, n.NewUserID, spec)
 		if apierrors.IsAPIError(err) && apierrors.AsAPIError(err).HasCause("DuplicatedIdentity") {
+			conflictedUserID := conflictedInfo.UserID
+			flowUserID, err := getUserID(flows)
+			if err != nil {
+				return nil, err
+			}
+			if flowUserID != conflictedUserID {
+				authflow.TraverseFlow(authflow.Traverser{
+					NodeSimple: func(nodeSimple authflow.NodeSimple, w *authflow.Flow) error {
+						milestone, ok := nodeSimple.(MilestoneSwitchToUser)
+						if ok {
+							milestone.MilestoneSwitchToUser(conflictedUserID)
+						}
+						return nil
+					},
+					Intent: func(intent authflow.Intent, w *authflow.Flow) error {
+						milestone, ok := intent.(MilestoneSwitchToUser)
+						if ok {
+							milestone.MilestoneSwitchToUser(conflictedUserID)
+						}
+						return nil
+					},
+				}, flows.Root)
+				// Use synthetic input to:
+				// 1. pass this node in the rewritten flow
+				// 2. auto select the conflicted identity in the login flow
+				return nil, &authflow.ErrorRewriteFlow{
+					Intent:         flows.Root.Intent,
+					Nodes:          flows.Root.Nodes,
+					SyntheticInput: n.createSyntheticInputOAuthConflict(spec, conflictedInfo),
+				}
+			}
 			// TODO(tung): Check the config to decide what to do
 			flowReference := authflow.FlowReference{
 				Type: authflow.FlowTypeLogin,
@@ -89,7 +123,6 @@ func (n *NodeOAuth) reactTo(ctx context.Context, deps *authflow.Dependencies, fl
 				Name: "default",
 			}
 			loginIntent := IntentLoginFlow{
-				TargetUserID:  dup.UserID,
 				FlowReference: flowReference,
 			}
 			return authflow.NewSubFlow(&loginIntent), nil
@@ -117,4 +150,31 @@ func (n *NodeOAuth) reactTo(ctx context.Context, deps *authflow.Dependencies, fl
 	}
 
 	return authflow.NewNodeSimple(newNode), nil
+}
+
+func (n *NodeOAuth) createSyntheticInputOAuthConflict(oauthSpec *identity.Spec, conflictedInfo *identity.Info) *SyntheticInputOAuthConflict {
+	input := &SyntheticInputOAuthConflict{
+		OAuthIdentitySpec: oauthSpec,
+	}
+
+	switch conflictedInfo.Type {
+	case model.IdentityTypeLoginID:
+		input.LoginID = conflictedInfo.LoginID.LoginID
+		switch conflictedInfo.LoginID.LoginIDType {
+		case model.LoginIDKeyTypeEmail:
+			input.Identification = config.AuthenticationFlowIdentificationEmail
+		case model.LoginIDKeyTypePhone:
+			input.Identification = config.AuthenticationFlowIdentificationPhone
+		case model.LoginIDKeyTypeUsername:
+			input.Identification = config.AuthenticationFlowIdentificationUsername
+		}
+	case model.IdentityTypeOAuth:
+		input.Identification = config.AuthenticationFlowIdentificationOAuth
+	case model.IdentityTypePasskey:
+		input.Identification = config.AuthenticationFlowIdentificationPasskey
+	default:
+		// This is a panic because the node should not provide option that we don't know how to handle to the user
+		panic(fmt.Errorf("unable to create synthetic input from identity type %v", conflictedInfo.Type))
+	}
+	return input
 }
