@@ -17,7 +17,7 @@ import (
 
 var cmdAnalyticReport = &cobra.Command{
 	Use:   "report [report-type]",
-	Short: "Analytic report",
+	Short: "Generate analytics report",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		binder := portalcmd.GetBinder()

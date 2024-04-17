@@ -8,7 +8,7 @@ import (
 
 var cmdAnalytic = &cobra.Command{
 	Use:   "analytic",
-	Short: "Analytic report",
+	Short: "Various commands facilitating product analytics",
 }
 
 func init() {
