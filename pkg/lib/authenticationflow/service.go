@@ -295,6 +295,13 @@ func (s *Service) FeedInput(stateToken string, rawMessage json.RawMessage) (outp
 		return
 	}
 
+	// Handle rewrite flow.
+	var errRewriteFlow *ErrorRewriteFlow
+	if errors.As(err, &errRewriteFlow) {
+		output, err = s.rewriteFlow(session, errRewriteFlow)
+		return
+	}
+
 	isEOF := errors.Is(err, ErrEOF)
 	if err != nil && !isEOF {
 		return
@@ -436,6 +443,16 @@ func (s *Service) switchFlow(session *Session, errSwitchFlow *ErrorSwitchFlow) (
 	output.Cookies = cookies
 
 	return
+}
+
+func (s *Service) rewriteFlow(session *Session, errRewriteFlow *ErrorRewriteFlow) (output *ServiceOutput, err error) {
+	newFlow := NewFlow(session.FlowID, errRewriteFlow.Intent)
+	newFlow.Nodes = errRewriteFlow.Nodes
+	err = s.Store.CreateFlow(newFlow)
+	if err != nil {
+		return
+	}
+	return s.FeedSyntheticInput(newFlow.StateToken, errRewriteFlow.SyntheticInput)
 }
 
 func (s *Service) feedInput(ctx context.Context, session *Session, stateToken string, rawMessage json.RawMessage) (flow *Flow, flowAction *FlowAction, err error) {

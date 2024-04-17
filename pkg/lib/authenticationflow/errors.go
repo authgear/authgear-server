@@ -49,3 +49,15 @@ type ErrorSwitchFlow struct {
 func (e *ErrorSwitchFlow) Error() string {
 	return fmt.Sprintf("switch flow: %v %v", e.FlowReference.Type, e.FlowReference.Name)
 }
+
+// ErrorRewriteFlow is a special error for rewriting the flow.
+type ErrorRewriteFlow struct {
+	Intent Intent
+	Nodes  []Node
+	// SyntheticInput advance the rewritten flow at the current state.
+	SyntheticInput Input
+}
+
+func (e *ErrorRewriteFlow) Error() string {
+	return fmt.Sprintf("rewrite flow: %v", e.Intent.Kind())
+}

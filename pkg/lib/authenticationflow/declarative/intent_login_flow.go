@@ -18,7 +18,6 @@ func init() {
 }
 
 type IntentLoginFlow struct {
-	TargetUserID  string                 `json:"target_user_id,omitempty"` // If specified, this flow must login to TargetUserID
 	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
 	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
 }
