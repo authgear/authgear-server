@@ -115,13 +115,32 @@ var _ = Schema.Add("AuthenticationFlowAllowlist", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"signup_flows": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
-		"promote_flows": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
-		"login_flows": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
-		"signup_login_flows": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
-		"reauth_flows": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
-		"account_recovery_flows": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+		"groups": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+		"flows": { "type": "array", "items": { "$ref": "#/$defs/AuthenticationFlowAllowlistFlow" } }
 	}
+}
+`)
+
+var _ = Schema.Add("AuthenticationFlowAllowlistFlow", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"type": {
+			"type": "string",
+			"enum": [
+				"signup",
+				"promote",
+				"login",
+				"signup_login",
+				"reauth",
+				"account_recovery"
+			],
+			"minLength": 1
+		},
+		"name": { "type": "string", "minLength": 1 }
+	},
+	"required": ["type", "name"]
 }
 `)
 
@@ -212,17 +231,44 @@ type OAuthClientConfig struct {
 	CustomUIURI                            string                       `json:"x_custom_ui_uri,omitempty"`
 	App2appEnabled                         bool                         `json:"x_app2app_enabled,omitempty"`
 	App2appInsecureDeviceKeyBindingEnabled bool                         `json:"x_app2app_insecure_device_key_binding_enabled,omitempty"`
-	AuthenticationFlowGroupAllowlist       *[]string                    `json:"x_authentication_flow_group_allowlist,omitempty"`
 	AuthenticationFlowAllowlist            *AuthenticationFlowAllowlist `json:"x_authentication_flow_allowlist,omitempty"`
 }
 
 type AuthenticationFlowAllowlist struct {
-	SignupFlows          []string `json:"signup_flows"`
-	PromoteFlows         []string `json:"promote_flows"`
-	LoginFlows           []string `json:"login_flows"`
-	SignupLoginFlows     []string `json:"signup_login_flows"`
-	ReauthFlows          []string `json:"reauth_flows"`
-	AccountRecoveryFlows []string `json:"account_recovery_flows"`
+	Groups *[]string                         `json:"groups,omitempty"`
+	Flows  *AuthenticationFlowAllowlistFlows `json:"flows,omitempty"`
+}
+
+type AuthenticationFlowAllowlistFlows []AuthenticationFlowAllowlistFlow
+
+func (flows AuthenticationFlowAllowlistFlows) FilterByType(t AuthenticationFlowAllowlistFlowType) []string {
+	var filtered []string
+	for _, flow := range flows {
+		if flow.Type == t {
+			filtered = append(filtered, flow.Name)
+		}
+	}
+	return filtered
+}
+
+type AuthenticationFlowAllowlistFlow struct {
+	Type AuthenticationFlowAllowlistFlowType `json:"type"`
+	Name string                              `json:"name"`
+}
+
+type AuthenticationFlowAllowlistFlowType string
+
+const (
+	AuthenticationFlowAllowlistFlowTypeSignup          AuthenticationFlowAllowlistFlowType = "signup"
+	AuthenticationFlowAllowlistFlowTypePromote         AuthenticationFlowAllowlistFlowType = "promote"
+	AuthenticationFlowAllowlistFlowTypeLogin           AuthenticationFlowAllowlistFlowType = "login"
+	AuthenticationFlowAllowlistFlowTypeSignupLogin     AuthenticationFlowAllowlistFlowType = "signup_login"
+	AuthenticationFlowAllowlistFlowTypeReauth          AuthenticationFlowAllowlistFlowType = "reauth"
+	AuthenticationFlowAllowlistFlowTypeAccountRecovery AuthenticationFlowAllowlistFlowType = "account_recovery"
+)
+
+func (flow AuthenticationFlowAllowlistFlow) Compare(other AuthenticationFlowAllowlistFlow) bool {
+	return flow.Type == other.Type && flow.Name == other.Name
 }
 
 func (c *OAuthClientConfig) DefaultRedirectURI() string {

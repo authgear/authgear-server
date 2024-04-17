@@ -45,7 +45,7 @@ type UIConfig struct {
 	// ForgotPassword is the config for the default auth ui
 	ForgotPassword *UIForgotPasswordConfig `json:"forgot_password,omitempty"`
 	// AuthenticationFlow configures ui behaviour of authentication flow under default auth ui
-	AuthenticationFlow *UIAuthenticationFlowConfig `json:"authentication_flow,omitempty"`
+	AuthenticationFlow UIAuthenticationFlowConfig `json:"authentication_flow,omitempty"`
 }
 
 var _ = Schema.Add("PhoneInputConfig", `
@@ -150,21 +150,16 @@ var _ = Schema.Add("UIAuthenticationFlowGroup", `
 	"additionalProperties": false,
 	"required": [
 		"name",
-		"signup_flow",
-		"promote_flow",
-		"login_flow",
-		"signup_login_flow",
-		"reauth_flow",
-		"account_recovery_flow"
+		"login_flows"
 	],
 	"properties": {
 		"name": { "type": "string", "minLength": 1 },
-		"signup_flow": { "type": "string", "minLength": 1 },
-		"promote_flow": { "type": "string", "minLength": 1 },
-		"login_flow": { "type": "string", "minLength": 1 },
-		"signup_login_flow": { "type": "string", "minLength": 1 },
-		"reauth_flow": { "type": "string", "minLength": 1 },
-		"account_recovery_flow": { "type": "string", "minLength": 1 }
+		"signup_flows": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+		"promote_flows": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+		"login_flows": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+		"signup_login_flows": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+		"reauth_flows": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+		"account_recovery_flows": { "type": "array", "items": { "type": "string", "minLength": 1 } }
 	}
 }
 `)
@@ -174,11 +169,11 @@ type UIAuthenticationFlowConfig struct {
 }
 
 type UIAuthenticationFlowGroup struct {
-	Name                string `json:"name"`
-	SignupFlow          string `json:"signup_flow"`
-	PromoteFlow         string `json:"promote_flow"`
-	LoginFlow           string `json:"login_flow"`
-	SignupLoginFlow     string `json:"signup_login_flow"`
-	ReauthFlow          string `json:"reauth_flow"`
-	AccountRecoveryFlow string `json:"account_recovery_flow"`
+	Name                 string   `json:"name"`
+	SignupFlows          []string `json:"signup_flows,omitempty"`
+	PromoteFlows         []string `json:"promote_flows,omitempty"`
+	LoginFlows           []string `json:"login_flows,omitempty"`
+	SignupLoginFlows     []string `json:"signup_login_flows,omitempty"`
+	ReauthFlows          []string `json:"reauth_flows,omitempty"`
+	AccountRecoveryFlows []string `json:"account_recovery_flows,omitempty"`
 }

@@ -8,6 +8,8 @@
      ]
    }
 +  "ui": {
++    "authentication_flow": {
++    },
 +    "dark_theme_disabled": true
 +  }
  }

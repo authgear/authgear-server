@@ -1060,3 +1060,112 @@ config:
       expiry:
         force_change:
           enabled: true
+---
+name: authentication-flow-group-not-defined
+error: |-
+  invalid configuration:
+  /oauth/clients/0/authentication_flow_allowlist/groups/0: invalid authentication flow group
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+    - client_id: client_1
+      name: Client 1
+      redirect_uris:
+      - http://example
+      x_authentication_flow_allowlist:
+        groups:
+        - missing
+---
+name: authentication-flow-group-allowlist-default
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+    - client_id: client_1
+      name: Client 1
+      redirect_uris:
+      - http://example
+      x_authentication_flow_allowlist:
+        groups:
+        - default
+---
+name: authentication-flow-group-valid-custom
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  ui:
+    authentication_flow:
+      groups:
+      - name: custom_1
+        login_flows:
+        - custom_login_1
+  oauth:
+    clients:
+    - client_id: client_1
+      name: Client 1
+      redirect_uris:
+      - http://example
+      x_authentication_flow_allowlist:
+        groups:
+        - default
+        - custom_1
+---
+name: authentication-flow-invalid-allowlist-flow
+error: |-
+  invalid configuration:
+  /oauth/clients/0/authentication_flow_allowlist/flows: invalid authentication flow
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication_flow:
+    login_flows:
+    - name: custom_login_1
+      steps:
+      - type: identify
+        one_of:
+        - identification: oauth
+  oauth:
+    clients:
+    - client_id: client_1
+      name: Client 1
+      redirect_uris:
+      - http://example
+      x_authentication_flow_allowlist:
+        flows:
+        - type: login
+          name: missing
+---
+name: authentication-flow-valid-allowlist
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication_flow:
+    login_flows:
+    - name: custom_login_1
+      steps:
+      - type: identify
+        one_of:
+        - identification: oauth
+  oauth:
+    clients:
+    - client_id: client_1
+      name: Client 1
+      redirect_uris:
+      - http://example
+      x_authentication_flow_allowlist:
+        flows:
+        - type: login
+          name: custom_login_1
+        - type: login
+          name: default

@@ -331,61 +331,76 @@ func (c *AppConfig) validateLockout(ctx *validation.Context) {
 }
 
 func (c *AppConfig) validateAuthenticationFlow(ctx *validation.Context) {
-	groupNames := map[string]struct{}{}
-
 	// Ensure no duplicated group
-	for _, group := range c.UI.AuthenticationFlow.Groups {
-		if _, ok := groupNames[group.Name]; ok {
-			ctx.Child("ui", "authentication_flow", "groups").EmitErrorMessage("duplicated group")
+	groupNames := map[string]struct{}{}
+	if c.UI.AuthenticationFlow.Groups != nil {
+		for _, group := range c.UI.AuthenticationFlow.Groups {
+			if _, ok := groupNames[group.Name]; ok {
+				ctx.Child("ui", "authentication_flow", "groups").EmitErrorMessage("duplicated group")
+			}
+			groupNames[group.Name] = struct{}{}
 		}
-
-		groupNames[group.Name] = struct{}{}
 	}
 
-	// Ensure client's group allowlist is valid
 	for i, client := range c.OAuth.Clients {
-		if client.AuthenticationFlowGroupAllowlist == nil {
-			continue
-		}
+		// Ensure client's group allowlist is valid
+		if client.AuthenticationFlowAllowlist.Groups != nil {
+			for j, group := range *client.AuthenticationFlowAllowlist.Groups {
+				if group == "default" {
+					continue
+				}
 
-		for j, group := range *client.AuthenticationFlowGroupAllowlist {
-			if _, ok := groupNames[group]; !ok {
-				ctx.Child("oauth", "clients", strconv.Itoa(i), "authentication_flow_group_allowlist", strconv.Itoa(j)).
-					EmitErrorMessage("invalid authentication flow group")
+				if _, ok := groupNames[group]; !ok {
+					ctx.Child("oauth", "clients", strconv.Itoa(i), "authentication_flow_allowlist", "groups", strconv.Itoa(j)).
+						EmitErrorMessage("invalid authentication flow group")
+				}
 			}
 		}
-	}
 
-	// Ensure client's flow allowlist is valid
-	for i, client := range c.OAuth.Clients {
-		if client.AuthenticationFlowAllowlist == nil {
-			continue
+		// Ensure client's flow allowlist is valid
+		if client.AuthenticationFlowAllowlist.Flows != nil {
+			validateFlowAllowlist(ctx, *client.AuthenticationFlowAllowlist.Flows, c.AuthenticationFlow)
 		}
-
-		allowlist := client.AuthenticationFlowAllowlist
-
-		validateFlowAllowlist(ctx, allowlist.SignupFlows, c.AuthenticationFlow.SignupFlows, "signup_flows", i)
-		validateFlowAllowlist(ctx, allowlist.PromoteFlows, c.AuthenticationFlow.PromoteFlows, "promote_flows", i)
-		validateFlowAllowlist(ctx, allowlist.LoginFlows, c.AuthenticationFlow.LoginFlows, "login_flows", i)
-		validateFlowAllowlist(ctx, allowlist.SignupLoginFlows, c.AuthenticationFlow.SignupLoginFlows, "signup_login_flows", i)
-		validateFlowAllowlist(ctx, allowlist.ReauthFlows, c.AuthenticationFlow.ReauthFlows, "reauth_flows", i)
-		validateFlowAllowlist(ctx, allowlist.AccountRecoveryFlows, c.AuthenticationFlow.AccountRecoveryFlows, "account_recovery_flows", i)
 	}
 }
 
-func validateFlowAllowlist[TA AuthenticationFlowObjectFlowRoot](ctx *validation.Context, allowlist []string, definedFlows []TA, flowType string, clientIndex int) {
-	allowedFlowNames := make(map[string]struct{})
-	allowedFlowNames["default"] = struct{}{}
-	for _, f := range definedFlows {
-		allowedFlowNames[f.GetName()] = struct{}{}
-	}
+func validateFlowAllowlist(ctx *validation.Context, allowlist []AuthenticationFlowAllowlistFlow, flowConfig *AuthenticationFlowConfig) {
+	definedlist := []AuthenticationFlowAllowlistFlow{}
+	definedlist = append(definedlist, flowsToAllowlist(flowConfig.SignupFlows, AuthenticationFlowAllowlistFlowTypeSignup)...)
+	definedlist = append(definedlist, flowsToAllowlist(flowConfig.LoginFlows, AuthenticationFlowAllowlistFlowTypeLogin)...)
+	definedlist = append(definedlist, flowsToAllowlist(flowConfig.PromoteFlows, AuthenticationFlowAllowlistFlowTypePromote)...)
+	definedlist = append(definedlist, flowsToAllowlist(flowConfig.SignupLoginFlows, AuthenticationFlowAllowlistFlowTypeSignupLogin)...)
+	definedlist = append(definedlist, flowsToAllowlist(flowConfig.ReauthFlows, AuthenticationFlowAllowlistFlowTypeReauth)...)
+	definedlist = append(definedlist, flowsToAllowlist(flowConfig.AccountRecoveryFlows, AuthenticationFlowAllowlistFlowTypeAccountRecovery)...)
 
-	for j, flow := range allowlist {
-		if _, ok := allowedFlowNames[flow]; !ok {
-			ctx.Child("oauth", "clients", strconv.Itoa(clientIndex), "authentication_flow_allowlist", flowType, strconv.Itoa(j)).
-				EmitErrorMessage("allowed authentication flow is not defined")
+	for i, flow := range allowlist {
+		flowIsDefined := false
+
+		if flow.Name == "default" {
+			flowIsDefined = true
+		}
+
+		for _, definedFlow := range definedlist {
+			if flow.Compare(definedFlow) {
+				flowIsDefined = true
+				break
+			}
+		}
+		if !flowIsDefined {
+			ctx.Child("oauth", "clients", strconv.Itoa(i), "authentication_flow_allowlist", "flows").EmitErrorMessage("invalid authentication flow")
 		}
 	}
+}
+
+func flowsToAllowlist[TA AuthenticationFlowObjectFlowRoot](definedFlows []TA, flowType AuthenticationFlowAllowlistFlowType) []AuthenticationFlowAllowlistFlow {
+	allowlist := []AuthenticationFlowAllowlistFlow{}
+	for _, flow := range definedFlows {
+		allowlist = append(allowlist, AuthenticationFlowAllowlistFlow{
+			Type: flowType,
+			Name: flow.GetName(),
+		})
+	}
+	return allowlist
 }
 
 func Parse(inputYAML []byte) (*AppConfig, error) {
