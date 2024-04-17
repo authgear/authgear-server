@@ -19,6 +19,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
@@ -206,12 +208,19 @@ func TestAuthflowControllerCreateScreen(t *testing.T) {
 		mockSessionStore := NewMockAuthflowControllerSessionStore(ctrl)
 		mockClock := clock.NewMockClockAt("2006-01-02T03:04:05Z")
 		mockNavigator := NewNoopAuthflowNavigator()
+		mockOAuthSessions := NewMockAuthflowControllerOAuthSessionService(ctrl)
+		mockOAuthClientResolver := NewMockAuthflowControllerOAuthClientResolver(ctrl)
 
 		c := &AuthflowController{
-			Clock:     mockClock,
-			Authflows: mockAuthflows,
-			Sessions:  mockSessionStore,
-			Navigator: mockNavigator,
+			Clock:               mockClock,
+			Authflows:           mockAuthflows,
+			Sessions:            mockSessionStore,
+			Navigator:           mockNavigator,
+			OAuthSessions:       mockOAuthSessions,
+			OAuthClientResolver: mockOAuthClientResolver,
+			UIConfig: &config.UIConfig{
+				AuthenticationFlow: config.UIAuthenticationFlowConfig{},
+			},
 		}
 
 		Convey("create screen", func() {
@@ -234,6 +243,12 @@ func TestAuthflowControllerCreateScreen(t *testing.T) {
 				},
 			}, nil)
 			mockSessionStore.EXPECT().Update(gomock.Any()).Times(1).Return(nil)
+			mockOAuthSessions.EXPECT().Get(gomock.Any()).Times(1).Return(&oauthsession.Entry{
+				T: oauthsession.T{
+					AuthorizationRequest: protocol.AuthorizationRequest{},
+				},
+			}, nil)
+			mockOAuthClientResolver.EXPECT().ResolveClient(gomock.Any()).Times(1).Return(&config.OAuthClientConfig{})
 
 			screen, err := c.createScreen(r, s, authflow.FlowReference{
 				Type: authflow.FlowTypeLogin,

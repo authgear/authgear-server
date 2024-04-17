@@ -24,6 +24,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
@@ -403,6 +404,12 @@ func (c *AuthflowController) GetScreen(s *webapp.Session, xStep string) (*webapp
 }
 
 func (c *AuthflowController) createAuthflow(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference) (*authflow.ServiceOutput, error) {
+	flowName, err := c.deriveFlowName(s.OAuthSessionID, flowReference.Type)
+	if err != nil {
+		return nil, err
+	}
+	flowReference.Name = flowName
+
 	flow, err := authflow.InstantiateFlow(flowReference, jsonpointer.T{})
 	if err != nil {
 		return nil, err
@@ -822,6 +829,55 @@ func (c *AuthflowController) makeSessionOptionsFromOAuth(oauthSessionID string) 
 	}
 
 	return sessionOptions, nil
+}
+
+func (c *AuthflowController) deriveFlowName(oauthSessionID string, flowType authflow.FlowType) (string, error) {
+	entry, err := c.OAuthSessions.Get(oauthSessionID)
+	if err != nil {
+		return "", err
+	}
+	req := entry.T.AuthorizationRequest
+
+	// Default UI enforces flow group in authorization request if specified.
+	specifiedFlowGroup := req.AuthenticationFlowGroup()
+	if specifiedFlowGroup != "" {
+		if c.UIConfig.AuthenticationFlow.Groups == nil {
+			return "", authflow.ErrFlowNotFound
+		}
+
+		groupFlowName := ""
+		if specifiedFlowGroup == "default" {
+			groupFlowName = "default"
+		}
+		for _, group := range c.UIConfig.AuthenticationFlow.Groups {
+			if group.Name == req.AuthenticationFlowGroup() {
+				switch flowType {
+				case authflow.FlowTypeLogin:
+					groupFlowName = slice.FirstString(group.LoginFlows)
+				case authflow.FlowTypeSignup:
+					groupFlowName = slice.FirstString(group.SignupFlows)
+				case authflow.FlowTypePromote:
+					groupFlowName = slice.FirstString(group.PromoteFlows)
+				case authflow.FlowTypeSignupLogin:
+					groupFlowName = slice.FirstString(group.SignupLoginFlows)
+				case authflow.FlowTypeReauth:
+					groupFlowName = slice.FirstString(group.ReauthFlows)
+				case authflow.FlowTypeAccountRecovery:
+					groupFlowName = slice.FirstString(group.AccountRecoveryFlows)
+				}
+			}
+		}
+		if groupFlowName == "" {
+			return "", authflow.ErrFlowNotFound
+		}
+		return groupFlowName, nil
+	}
+
+	// Derive flow name from client configuration.
+	client := c.OAuthClientResolver.ResolveClient(req.ClientID())
+	allowlist := authflow.NewFlowAllowlist(client.AuthenticationFlowAllowlist, c.UIConfig.AuthenticationFlow.Groups)
+
+	return allowlist.GetMostAppropriateFlowName(flowType), nil
 }
 
 func (c *AuthflowController) RedirectURI(r *http.Request) string {

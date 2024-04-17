@@ -65,7 +65,6 @@ func (h *AuthflowSignupHandler) GetData(w http.ResponseWriter, r *http.Request, 
 }
 
 func (h *AuthflowSignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	flowName := "default"
 	opts := webapp.SessionOptions{
 		RedirectURI: h.Controller.RedirectURI(r),
 	}
@@ -104,7 +103,6 @@ func (h *AuthflowSignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 		result, err := h.Controller.ReplaceScreen(r, s, authflow.FlowReference{
 			Type: authflow.FlowTypeSignupLogin,
-			Name: flowName,
 		}, input)
 		if err != nil {
 			return err
@@ -138,6 +136,5 @@ func (h *AuthflowSignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 	h.Controller.HandleStartOfFlow(w, r, opts, authflow.FlowReference{
 		Type: authflow.FlowTypeSignup,
-		Name: flowName,
 	}, &handlers, nil)
 }

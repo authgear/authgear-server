@@ -88,7 +88,6 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	flowName := "default"
 	opts := webapp.SessionOptions{
 		RedirectURI: h.Controller.RedirectURI(r),
 	}
@@ -104,7 +103,6 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 
 		result, err := h.Controller.ReplaceScreen(r, s, authflow.FlowReference{
 			Type: authflow.FlowTypeSignupLogin,
-			Name: flowName,
 		}, input)
 		if err != nil {
 			return err
@@ -201,6 +199,5 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 
 	h.Controller.HandleStartOfFlow(w, r, opts, authflow.FlowReference{
 		Type: authflow.FlowTypeLogin,
-		Name: flowName,
 	}, &handlers, nil)
 }
