@@ -215,3 +215,10 @@ func NewPeriodicalArgumentParser() *periodical.ArgumentParser {
 var (
 	_wireSystemClockValue = clock.NewSystemClock()
 )
+
+func NewPosthogIntegration(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, auditDatabaseCredentials *config.AuditDatabaseCredentials, redisPool *redis.Pool, credentials *config.AnalyticRedisCredentials, posthogCredentials *analytic.PosthogCredentials) *analytic.PosthogIntegration {
+	posthogIntegration := &analytic.PosthogIntegration{
+		PosthogCredentials: posthogCredentials,
+	}
+	return posthogIntegration
+}

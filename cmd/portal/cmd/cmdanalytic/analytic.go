@@ -41,5 +41,15 @@ func init() {
 	binder.BindString(cmdAnalyticSetupGoogleSheetsToken.Flags(), portalcmd.ArgAnalyticGoogleOAuthClientCredentialsJSONFilePath)
 	binder.BindString(cmdAnalyticSetupGoogleSheetsToken.Flags(), portalcmd.ArgAnalyticGoogleOAuthTokenFilePath)
 
+	cmdAnalytic.AddCommand(cmdAnalyticPosthog)
+	cmdAnalyticPosthog.AddCommand(cmdAnalyticPosthogGroup)
+	binder.BindString(cmdAnalyticPosthogGroup.Flags(), portalcmd.ArgDatabaseURL)
+	binder.BindString(cmdAnalyticPosthogGroup.Flags(), portalcmd.ArgDatabaseSchema)
+	binder.BindString(cmdAnalyticPosthogGroup.Flags(), portalcmd.ArgAuditDatabaseURL)
+	binder.BindString(cmdAnalyticPosthogGroup.Flags(), portalcmd.ArgAuditDatabaseSchema)
+	binder.BindString(cmdAnalyticPosthogGroup.Flags(), portalcmd.ArgAnalyticRedisURL)
+	binder.BindString(cmdAnalyticPosthogGroup.Flags(), portalcmd.ArgPosthogEndpoint)
+	binder.BindString(cmdAnalyticPosthogGroup.Flags(), portalcmd.ArgPosthogAPIKey)
+
 	portalcmd.Root.AddCommand(cmdAnalytic)
 }
