@@ -26,8 +26,13 @@ func (*IntentAccountRecoveryFlowStepResetPassword) Kind() string {
 
 func (i *IntentAccountRecoveryFlowStepResetPassword) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	if len(flows.Nearest.Nodes) == 0 {
+		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		if err != nil {
+			return nil, err
+		}
 		return &InputSchemaTakeNewPassword{
-			JSONPointer: i.JSONPointer,
+			FlowRootObject: flowRootObject,
+			JSONPointer:    i.JSONPointer,
 		}, nil
 	}
 	return nil, authflow.ErrEOF

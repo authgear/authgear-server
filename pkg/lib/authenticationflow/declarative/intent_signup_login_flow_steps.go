@@ -15,7 +15,8 @@ func init() {
 }
 
 type IntentSignupLoginFlowSteps struct {
-	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
+	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
+	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
 }
 
 var _ authflow.Intent = &IntentSignupLoginFlowSteps{}
@@ -30,7 +31,7 @@ func (*IntentSignupLoginFlowSteps) Milestone()            {}
 func (*IntentSignupLoginFlowSteps) MilestoneNestedSteps() {}
 
 func (i *IntentSignupLoginFlowSteps) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	current, err := i.currentFlowObject(deps)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +45,7 @@ func (i *IntentSignupLoginFlowSteps) CanReactTo(ctx context.Context, deps *authf
 }
 
 func (i *IntentSignupLoginFlowSteps) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, _ authflow.Input) (*authflow.Node, error) {
-	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	current, err := i.currentFlowObject(deps)
 	if err != nil {
 		return nil, err
 	}
@@ -56,8 +57,9 @@ func (i *IntentSignupLoginFlowSteps) ReactTo(ctx context.Context, deps *authflow
 	switch step.Type {
 	case config.AuthenticationFlowSignupLoginFlowStepTypeIdentify:
 		stepIdentify, err := NewIntentSignupLoginFlowStepIdentify(ctx, deps, &IntentSignupLoginFlowStepIdentify{
-			StepName:    step.Name,
-			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			FlowReference: i.FlowReference,
+			StepName:      step.Name,
+			JSONPointer:   authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 		})
 		if err != nil {
 			return nil, err
@@ -75,4 +77,16 @@ func (*IntentSignupLoginFlowSteps) steps(o config.AuthenticationFlowObject) []co
 	}
 
 	return steps
+}
+
+func (i *IntentSignupLoginFlowSteps) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
+	rootObject, err := flowRootObject(deps, i.FlowReference)
+	if err != nil {
+		return nil, err
+	}
+	current, err := authflow.FlowObject(rootObject, i.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
+	return current, nil
 }

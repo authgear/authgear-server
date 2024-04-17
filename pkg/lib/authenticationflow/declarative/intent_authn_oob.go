@@ -48,9 +48,14 @@ func (i *IntentAuthenticationOOB) CanReactTo(ctx context.Context, deps *authflow
 		if len(channels) == 1 {
 			return nil, nil
 		}
+		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		if err != nil {
+			return nil, err
+		}
 		return &InputSchemaTakeOOBOTPChannel{
-			JSONPointer: i.JSONPointer,
-			Channels:    channels,
+			JSONPointer:    i.JSONPointer,
+			FlowRootObject: flowRootObject,
+			Channels:       channels,
 		}, nil
 	}
 

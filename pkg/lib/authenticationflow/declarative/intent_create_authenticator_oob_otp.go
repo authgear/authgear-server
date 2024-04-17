@@ -35,7 +35,11 @@ func (n *IntentCreateAuthenticatorOOBOTP) MilestoneAuthenticationMethod() config
 }
 
 func (n *IntentCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	objectForOneOf, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), n.JSONPointer)
+	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	if err != nil {
+		return nil, err
+	}
+	objectForOneOf, err := authflow.FlowObject(flowRootObject, n.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +73,8 @@ func (n *IntentCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *
 		}
 
 		return &InputSchemaTakeOOBOTPTarget{
-			JSONPointer: n.JSONPointer,
+			FlowRootObject: flowRootObject,
+			JSONPointer:    n.JSONPointer,
 		}, nil
 	case shouldVerifyInThisFlow && !claimVerifiedInThisFlow:
 		// Verify the claim
@@ -83,7 +88,11 @@ func (n *IntentCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *
 }
 
 func (n *IntentCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
-	objectForOneOf, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), n.JSONPointer)
+	rootObject, err := findFlowRootObjectInFlow(deps, flows)
+	if err != nil {
+		return nil, err
+	}
+	objectForOneOf, err := authflow.FlowObject(rootObject, n.JSONPointer)
 	if err != nil {
 		return nil, err
 	}

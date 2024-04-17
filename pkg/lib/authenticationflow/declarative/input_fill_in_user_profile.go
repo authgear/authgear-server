@@ -16,6 +16,7 @@ import (
 
 type InputSchemaFillInUserProfile struct {
 	JSONPointer      jsonpointer.T
+	FlowRootObject   config.AuthenticationFlowObject
 	Attributes       []*config.AuthenticationFlowSignupFlowUserProfile
 	CustomAttributes []*config.CustomAttributesAttributeConfig
 }
@@ -52,6 +53,10 @@ func (s *InputSchemaFillInUserProfile) buildItemsSchema(pointer string, schema v
 
 func (s *InputSchemaFillInUserProfile) GetJSONPointer() jsonpointer.T {
 	return s.JSONPointer
+}
+
+func (i *InputSchemaFillInUserProfile) GetFlowRootObject() config.AuthenticationFlowObject {
+	return i.FlowRootObject
 }
 
 func (s *InputSchemaFillInUserProfile) SchemaBuilder() validation.SchemaBuilder {

@@ -11,14 +11,19 @@ import (
 )
 
 type InputSchemaStepAccountRecoveryIdentify struct {
-	JSONPointer jsonpointer.T
-	Options     []AccountRecoveryIdentificationOption
+	JSONPointer    jsonpointer.T
+	FlowRootObject config.AuthenticationFlowObject
+	Options        []AccountRecoveryIdentificationOption
 }
 
 var _ authflow.InputSchema = &InputSchemaStepAccountRecoveryIdentify{}
 
 func (i *InputSchemaStepAccountRecoveryIdentify) GetJSONPointer() jsonpointer.T {
 	return i.JSONPointer
+}
+
+func (i *InputSchemaStepAccountRecoveryIdentify) GetFlowRootObject() config.AuthenticationFlowObject {
+	return i.FlowRootObject
 }
 
 func (i *InputSchemaStepAccountRecoveryIdentify) SchemaBuilder() validation.SchemaBuilder {
