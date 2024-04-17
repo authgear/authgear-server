@@ -82,7 +82,10 @@ export function useReset(): () => void {
 
 export function useCapture(): (
   event: AuthgearGTMEventTypeV2,
-  data?: AuthgearGTMEventDataV2
+  data?: AuthgearGTMEventDataV2,
+  // app_context_override is specifically for enteredProject.
+  // When enteredProject is tracked, app_context is still old and contains no project_id.
+  app_context_override?: { project_id: string }
 ) => void {
   let appContext: AppContextValue | undefined;
   try {
@@ -92,7 +95,11 @@ export function useCapture(): (
 
   const dispatch = useDispatch();
   const callback = useCallback(
-    (event: AuthgearGTMEventTypeV2, data?: AuthgearGTMEventDataV2) => {
+    (
+      event: AuthgearGTMEventTypeV2,
+      data?: AuthgearGTMEventDataV2,
+      app_context_override?: { project_id: string }
+    ) => {
       dispatch({
         // event is a builtin variable.
         // https://support.google.com/tagmanager/answer/7679219?hl=en
@@ -100,6 +107,7 @@ export function useCapture(): (
         // app_context is a user-defined variable.
         app_context: {
           project_id: appContext?.appID,
+          ...app_context_override,
         },
         // event_data is a user-defined variable.
         event_data: {

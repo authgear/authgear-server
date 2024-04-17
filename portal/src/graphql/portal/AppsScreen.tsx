@@ -25,9 +25,15 @@ const AppCard: React.VFC<AppCardData> = function AppCard(props: AppCardData) {
   const { appName, appID, url } = props;
   const capture = useCapture();
   const onClick = useCallback(() => {
-    capture("enteredProject", {
-      projectID: appID,
-    });
+    capture(
+      "enteredProject",
+      {
+        projectID: appID,
+      },
+      {
+        project_id: appID,
+      }
+    );
   }, [appID, capture]);
 
   return (
