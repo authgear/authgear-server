@@ -1,15 +1,10 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { DefaultEffects, Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import Link from "./Link";
 import DefaultButton from "./DefaultButton";
 import styles from "./WizardContentLayout.module.css";
-import {
-  AuthgearGTMEventType,
-  EventDataAttributes,
-  useMakeAuthgearGTMEventDataAttributes,
-} from "./gtm_v1";
 import { useCapture } from "./gtm_v2";
 
 export interface WizardTitleProps {
@@ -39,22 +34,13 @@ export interface WizardContentLayoutProps {
   backButtonDisabled?: boolean;
   children?: React.ReactNode;
   appID?: string;
-  trackSkipButtonClick?: boolean;
-  trackSkipButtonEventData?: EventDataAttributes;
 }
 
 export default function WizardContentLayout(
   props: WizardContentLayoutProps
 ): React.ReactElement {
   const navigate = useNavigate();
-  const {
-    children,
-    primaryButton,
-    backButtonDisabled,
-    appID,
-    trackSkipButtonClick,
-    trackSkipButtonEventData,
-  } = props;
+  const { children, primaryButton, backButtonDisabled, appID } = props;
   const capture = useCapture();
   const onClickBackButton = useCallback(
     (e) => {
@@ -69,14 +55,6 @@ export default function WizardContentLayout(
   const onClickSkip = useCallback(() => {
     capture("projectWizard.clicked-skip");
   }, [capture]);
-
-  const makeGTMEventDataAttributes = useMakeAuthgearGTMEventDataAttributes();
-  const gtmEventDataAttributes = useMemo(() => {
-    return makeGTMEventDataAttributes({
-      event: AuthgearGTMEventType.ClickedSkipInProjectWizard,
-      eventDataAttributes: trackSkipButtonEventData,
-    });
-  }, [makeGTMEventDataAttributes, trackSkipButtonEventData]);
 
   return (
     <div className={styles.root}>
@@ -100,7 +78,6 @@ export default function WizardContentLayout(
           className={styles.skip}
           to={`/project/${appID}`}
           onClick={onClickSkip}
-          {...(trackSkipButtonClick ? gtmEventDataAttributes : {})}
         >
           <FormattedMessage id="WizardContentLayout.skip.label" />
         </Link>

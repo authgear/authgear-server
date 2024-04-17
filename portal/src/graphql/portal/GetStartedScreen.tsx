@@ -37,10 +37,6 @@ import iconSSO from "../../images/getting-started-icon-sso.png";
 import iconTeam from "../../images/getting-started-icon-team.png";
 import iconTick from "../../images/getting-started-icon-tick.png";
 import styles from "./GetStartedScreen.module.css";
-import {
-  AuthgearGTMEventType,
-  useMakeAuthgearGTMEventDataAttributes,
-} from "../../gtm_v1";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import ActionButton from "../../ActionButton";
 import LinkButton from "../../LinkButton";
@@ -277,16 +273,6 @@ function Card(props: CardProps) {
     [skipProgress, cardKey]
   );
 
-  const makeGTMEventDataAttributes = useMakeAuthgearGTMEventDataAttributes();
-  const eventDataAttributes = useMemo(() => {
-    return makeGTMEventDataAttributes({
-      event: AuthgearGTMEventType.ClickedGetStarted,
-      eventDataAttributes: {
-        "get-started-type": cardKey,
-      },
-    });
-  }, [makeGTMEventDataAttributes, cardKey]);
-
   return (
     <div
       className={styles.card}
@@ -314,7 +300,6 @@ function Card(props: CardProps) {
           to={internalHref.replace("~/", `/project/${appID}/`)}
           onClick={onClick}
           className={styles.cardActionButton}
-          {...eventDataAttributes}
         >
           <FormattedMessage
             id={"GetStartedScreen.card.action-label." + cardKey}
@@ -327,7 +312,6 @@ function Card(props: CardProps) {
           className={styles.cardActionButton}
           onClick={onClick}
           target="_blank"
-          {...eventDataAttributes}
         >
           <FormattedMessage
             id={"GetStartedScreen.card.action-label." + cardKey}

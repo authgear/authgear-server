@@ -1,11 +1,4 @@
-import React, {
-  useContext,
-  useEffect,
-  useState,
-  Suspense,
-  lazy,
-  useMemo,
-} from "react";
+import React, { useContext, useEffect, useState, Suspense, lazy } from "react";
 import { init as sentryInit } from "@sentry/react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import {
@@ -37,13 +30,6 @@ import { LoadingContextProvider } from "./hook/loading";
 import { ErrorContextProvider } from "./hook/error";
 import ShowLoading from "./ShowLoading";
 import GTMProvider from "./GTMProvider";
-import {
-  AuthgearGTMEvent,
-  AuthgearGTMEventType,
-  useMakeAuthgearGTMEventDataAttributes,
-  useGTMDispatch,
-  useAuthgearGTMEventBase,
-} from "./gtm_v1";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 import { extractRawID } from "./util/graphql";
 import { useIdentify } from "./gtm_v2";
@@ -208,17 +194,7 @@ const PortalRoot = function PortalRoot() {
 };
 
 const DocLink: React.VFC<ILinkProps> = (props: ILinkProps) => {
-  const makeGTMEventDataAttributes = useMakeAuthgearGTMEventDataAttributes();
-  const gtmEventDataAttributes = useMemo(() => {
-    return makeGTMEventDataAttributes({
-      event: AuthgearGTMEventType.ClickedDocLink,
-      eventDataAttributes: {
-        "doc-link": props.href ?? "",
-      },
-    });
-  }, [makeGTMEventDataAttributes, props.href]);
-
-  return <ExternalLink {...gtmEventDataAttributes} {...props} />;
+  return <ExternalLink {...props} />;
 };
 
 const defaultComponents = {
@@ -236,25 +212,14 @@ const LoadCurrentUser: React.VFC<LoadCurrentUserProps> =
     const { loading, viewer } = useViewerQuery();
 
     const identify = useIdentify();
-    const gtmEvent = useAuthgearGTMEventBase();
-    const sendDataToGTM = useGTMDispatch();
     useEffect(() => {
       if (viewer) {
         const userID = extractRawID(viewer.id);
         const email = viewer.email ?? undefined;
 
-        const event: AuthgearGTMEvent = {
-          ...gtmEvent,
-          event: AuthgearGTMEventType.Identified,
-          event_data: {
-            user_id: userID,
-            email,
-          },
-        };
-        sendDataToGTM(event);
         identify(userID, email);
       }
-    }, [viewer, gtmEvent, sendDataToGTM, identify]);
+    }, [viewer, identify]);
 
     if (loading) {
       return (

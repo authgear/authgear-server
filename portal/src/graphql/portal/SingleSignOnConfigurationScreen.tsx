@@ -39,12 +39,6 @@ import {
 } from "../../types";
 import styles from "./SingleSignOnConfigurationScreen.module.css";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
-import {
-  AuthgearGTMEvent,
-  AuthgearGTMEventType,
-  useAuthgearGTMEventBase,
-  useGTMDispatch,
-} from "../../gtm_v1";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 import { AppSecretKey } from "./globalTypes.generated";
@@ -427,41 +421,7 @@ const SingleSignOnConfigurationScreen1: React.VFC<{
 
   const featureConfig = useAppFeatureConfigQuery(appID);
 
-  const sendDataToGTM = useGTMDispatch();
-  const gtmEventBase = useAuthgearGTMEventBase();
-  const save = useCallback(
-    async (ignoreConflict: boolean = false) => {
-      // compare if there is any newly added providers
-      // then send the gtm event
-      const initialProvidersKey = config.state.initialProvidersKey;
-      const currentProvidersKey = config.state.providers
-        .map((p) =>
-          createOAuthSSOProviderItemKey(p.config.type, p.config.app_type)
-        )
-        .filter((key) => config.state.isEnabled[key]);
-      const addedProviders = currentProvidersKey.filter(
-        (t) => !initialProvidersKey.includes(t)
-      );
-
-      await config.save(ignoreConflict);
-      if (addedProviders.length > 0) {
-        const event: AuthgearGTMEvent = {
-          ...gtmEventBase,
-          event: AuthgearGTMEventType.AddedSSOProviders,
-          event_data: {
-            providers: addedProviders,
-          },
-        };
-        sendDataToGTM(event);
-      }
-    },
-    [config, gtmEventBase, sendDataToGTM]
-  );
-
-  const form: AppSecretConfigFormModel<FormState> = {
-    ...config,
-    save,
-  };
+  const form: AppSecretConfigFormModel<FormState> = config;
 
   const oauthClientsMaximum = useMemo(
     () =>
