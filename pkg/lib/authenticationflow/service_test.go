@@ -363,8 +363,10 @@ func TestServiceContext(t *testing.T) {
 		deps := &Dependencies{}
 		logger := ServiceLogger{log.Null}
 		database := &db.MockHandle{}
+		uiConfig := &config.UIConfig{AuthenticationFlow: &config.UIAuthenticationFlowConfig{}}
 		store := NewMockStore(ctrl)
 		uiInfoResolver := NewMockServiceUIInfoResolver(ctrl)
+		oauthClientResolver := NewMockOAuthClientResolver(ctrl)
 
 		service := &Service{
 			ContextDoNotUseDirectly: ctx,
@@ -372,7 +374,9 @@ func TestServiceContext(t *testing.T) {
 			Logger:                  logger,
 			Store:                   store,
 			Database:                database,
+			UIConfig:                uiConfig,
 			UIInfoResolver:          uiInfoResolver,
+			OAuthClientResolver:     oauthClientResolver,
 		}
 
 		Convey("Populate context", func() {
@@ -384,6 +388,8 @@ func TestServiceContext(t *testing.T) {
 			store.EXPECT().CreateFlow(gomock.Any()).AnyTimes().Return(nil)
 			store.EXPECT().DeleteSession(gomock.Any()).Return(nil)
 			store.EXPECT().DeleteFlow(gomock.Any()).Return(nil)
+
+			oauthClientResolver.EXPECT().ResolveClient("client-id").Return(&config.OAuthClientConfig{})
 
 			output, err := service.CreateNewFlow(intent, &SessionOptions{
 				ClientID: "client-id",

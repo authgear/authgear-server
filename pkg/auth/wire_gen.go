@@ -12121,7 +12121,9 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -13127,7 +13129,9 @@ func newWebAppAuthflowSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -14133,7 +14137,9 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -57578,7 +57584,9 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -68856,7 +68864,9 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -69717,7 +69727,9 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	authenticationFlowV1InputHandler := &api.AuthenticationFlowV1InputHandler{
 		LoggerFactory: factory,
@@ -70571,7 +70583,9 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	authenticationFlowV1GetHandler := &api.AuthenticationFlowV1GetHandler{
 		LoggerFactory: factory,
@@ -71467,7 +71481,9 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -72408,7 +72424,9 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -73361,7 +73379,9 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -74301,7 +74321,9 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -75245,7 +75267,9 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -76168,7 +76192,9 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -77091,7 +77117,9 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -78008,7 +78036,9 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -78925,7 +78955,9 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -79844,7 +79876,9 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -80763,7 +80797,9 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -81680,7 +81716,9 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -82597,7 +82635,9 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -83514,7 +83554,9 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -84431,7 +84473,9 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -85348,7 +85392,9 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -86265,7 +86311,9 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -87182,7 +87230,9 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -88099,7 +88149,9 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -89018,7 +89070,9 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -89937,7 +89991,9 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -90855,7 +90911,9 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -91777,7 +91835,9 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -92700,7 +92760,9 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -93617,7 +93679,9 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -94534,7 +94598,9 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -95451,7 +95517,9 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -96368,7 +96436,9 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -97285,7 +97355,9 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -98202,7 +98274,9 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -99119,7 +99193,9 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -100036,7 +100112,9 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -100953,7 +101031,9 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -101870,7 +101950,9 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -102787,7 +102869,9 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -103704,7 +103788,9 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -104621,7 +104707,9 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -105538,7 +105626,9 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -106457,7 +106547,9 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -107376,7 +107468,9 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -108293,7 +108387,9 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -110087,7 +110183,9 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -110973,7 +111071,9 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -111859,7 +111959,9 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -112776,7 +112878,9 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -113693,7 +113797,9 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -114610,7 +114716,9 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -115824,7 +115932,9 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -116741,7 +116851,9 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -117757,7 +117869,9 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
 		Database:                appdbHandle,
+		UIConfig:                uiConfig,
 		UIInfoResolver:          uiInfoResolver,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
