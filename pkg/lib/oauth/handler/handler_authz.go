@@ -97,6 +97,7 @@ type AuthorizationHandler struct {
 	Context    context.Context
 	AppID      config.AppID
 	Config     *config.OAuthConfig
+	UIConfig   *config.UIConfig
 	HTTPConfig *config.HTTPConfig
 	HTTPProto  httputil.HTTPProto
 	HTTPOrigin httputil.HTTPOrigin
@@ -381,6 +382,11 @@ func (h *AuthorizationHandler) doHandle(
 		return nil, err
 	}
 
+	err = h.validateUIImplementation(client, r)
+	if err != nil {
+		return nil, err
+	}
+
 	// create oauth session and redirect to the web app
 	oauthSessionEntry := oauthsession.NewEntry(oauthsession.T{
 		AuthorizationRequest: r,
@@ -610,6 +616,51 @@ func (h *AuthorizationHandler) validateRequest(
 
 	if r.SSOEnabled() && client != nil && client.MaxConcurrentSession == 1 {
 		return protocol.NewError("invalid_request", "'sso_enabled' must be false if config 'x_max_concurrent_session' is 1")
+	}
+
+	return nil
+}
+
+func (h *AuthorizationHandler) validateUIImplementation(
+	client *config.OAuthClientConfig,
+	r protocol.AuthorizationRequest,
+) error {
+	switch h.UIConfig.Implementation {
+	case config.UIImplementationAuthflowV2:
+		fallthrough
+	case config.UIImplementationAuthflow:
+		// Enforce flow group in the request if the client has a flow group allowlist
+		if r.AuthenticationFlowGroup() != "" {
+			if h.UIConfig.AuthenticationFlow.Groups == nil {
+				return protocol.NewError("invalid_request", "authentication flow group is not defined")
+			}
+			groupIsDefined := false
+			for _, definedGroup := range h.UIConfig.AuthenticationFlow.Groups {
+				if definedGroup.Name == r.AuthenticationFlowGroup() {
+					groupIsDefined = true
+					break
+				}
+			}
+			if !groupIsDefined {
+				return protocol.NewError("invalid_request", "authentication flow group is not defined")
+			}
+
+			var groupIsAllowed bool
+			// Client may choose any flow groups if no group allowlist is defined.
+			if client.AuthenticationFlowAllowlist.Groups == nil {
+				return nil
+			}
+
+			for _, allowedGroupName := range *client.AuthenticationFlowAllowlist.Groups {
+				if allowedGroupName == r.AuthenticationFlowGroup() {
+					groupIsAllowed = true
+					break
+				}
+			}
+			if !groupIsAllowed {
+				return protocol.NewError("invalid_request", "authentication flow group is not allowed")
+			}
+		}
 	}
 
 	return nil

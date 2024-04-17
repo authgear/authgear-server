@@ -65,6 +65,9 @@ func (r AuthorizationRequest) CodeChallengeMethod() string { return r["code_chal
 func (r AuthorizationRequest) Platform() string          { return r["x_platform"] }
 func (r AuthorizationRequest) WeChatRedirectURI() string { return r["x_wechat_redirect_uri"] }
 func (r AuthorizationRequest) Page() string              { return r["x_page"] }
+func (r AuthorizationRequest) AuthenticationFlowGroup() string {
+	return r["x_authentication_flow_group"]
+}
 func (r AuthorizationRequest) SuppressIDPSessionCookie() bool {
 	// Read x_sso_enabled first if it is provided in the request
 	// x_suppress_idp_session_cookie is for backward compatibility only
