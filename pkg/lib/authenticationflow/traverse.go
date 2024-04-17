@@ -72,3 +72,39 @@ func traverseNode(t Traverser, w *Flow, n *Node, intentFirst bool) error {
 		panic(errors.New("unreachable"))
 	}
 }
+
+func TraverseFlowReverse(t Traverser, w *Flow) error {
+	for i := len(w.Nodes) - 1; i >= 0; i-- {
+		node := &w.Nodes[i]
+		traverseNodeReverse(t, w, node)
+	}
+
+	if t.Intent != nil {
+		err := t.Intent(w.Intent, w)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func traverseNodeReverse(t Traverser, w *Flow, n *Node) error {
+	switch n.Type {
+	case NodeTypeSimple:
+		if t.NodeSimple != nil {
+			err := t.NodeSimple(n.Simple, w)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	case NodeTypeSubFlow:
+		err := TraverseFlowReverse(t, n.SubFlow)
+		if err != nil {
+			return err
+		}
+		return nil
+	default:
+		panic(errors.New("unreachable"))
+	}
+}

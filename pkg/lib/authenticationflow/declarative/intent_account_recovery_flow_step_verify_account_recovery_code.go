@@ -61,8 +61,13 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) CanReactTo(ctx 
 	case 0:
 		return nil, nil
 	case 1:
+		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		if err != nil {
+			return nil, err
+		}
 		return &InputSchemaStepAccountRecoveryVerifyCode{
-			JSONPointer: i.JSONPointer,
+			FlowRootObject: flowRootObject,
+			JSONPointer:    i.JSONPointer,
 		}, nil
 	}
 

@@ -56,8 +56,14 @@ func (n *NodePromptCreatePasskey) Kind() string {
 }
 
 func (n *NodePromptCreatePasskey) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	if err != nil {
+		return nil, err
+	}
+
 	return &InputSchemaPromptCreatePasskey{
-		JSONPointer: n.JSONPointer,
+		JSONPointer:    n.JSONPointer,
+		FlowRootObject: flowRootObject,
 	}, nil
 }
 

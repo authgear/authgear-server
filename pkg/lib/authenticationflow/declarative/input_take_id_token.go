@@ -6,6 +6,7 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -23,13 +24,18 @@ func init() {
 }
 
 type InputSchemaTakeIDToken struct {
-	JSONPointer jsonpointer.T
+	JSONPointer    jsonpointer.T
+	FlowRootObject config.AuthenticationFlowObject
 }
 
 var _ authflow.InputSchema = &InputSchemaTakeIDToken{}
 
 func (i *InputSchemaTakeIDToken) GetJSONPointer() jsonpointer.T {
 	return i.JSONPointer
+}
+
+func (i *InputSchemaTakeIDToken) GetFlowRootObject() config.AuthenticationFlowObject {
+	return i.FlowRootObject
 }
 
 func (*InputSchemaTakeIDToken) SchemaBuilder() validation.SchemaBuilder {

@@ -6,17 +6,23 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 type InputSchemaStepAccountRecoveryVerifyCode struct {
-	JSONPointer jsonpointer.T
+	JSONPointer    jsonpointer.T
+	FlowRootObject config.AuthenticationFlowObject
 }
 
 var _ authflow.InputSchema = &InputSchemaStepAccountRecoveryVerifyCode{}
 
 func (i *InputSchemaStepAccountRecoveryVerifyCode) GetJSONPointer() jsonpointer.T {
 	return i.JSONPointer
+}
+
+func (i *InputSchemaStepAccountRecoveryVerifyCode) GetFlowRootObject() config.AuthenticationFlowObject {
+	return i.FlowRootObject
 }
 
 func (i *InputSchemaStepAccountRecoveryVerifyCode) SchemaBuilder() validation.SchemaBuilder {

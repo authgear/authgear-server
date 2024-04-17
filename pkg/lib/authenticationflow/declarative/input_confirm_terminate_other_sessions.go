@@ -6,6 +6,7 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -26,7 +27,8 @@ func init() {
 }
 
 type InputConfirmTerminateOtherSessions struct {
-	JSONPointer jsonpointer.T
+	JSONPointer    jsonpointer.T
+	FlowRootObject config.AuthenticationFlowObject
 }
 
 var _ authflow.InputSchema = &InputConfirmTerminateOtherSessions{}
@@ -35,6 +37,10 @@ var _ inputConfirmTerminateOtherSessions = &InputConfirmTerminateOtherSessions{}
 
 func (i *InputConfirmTerminateOtherSessions) GetJSONPointer() jsonpointer.T {
 	return i.JSONPointer
+}
+
+func (i *InputConfirmTerminateOtherSessions) GetFlowRootObject() config.AuthenticationFlowObject {
+	return i.FlowRootObject
 }
 
 func (*InputConfirmTerminateOtherSessions) SchemaBuilder() validation.SchemaBuilder {

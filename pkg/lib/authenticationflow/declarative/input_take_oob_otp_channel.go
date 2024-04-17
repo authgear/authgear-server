@@ -7,19 +7,25 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 type InputSchemaTakeOOBOTPChannel struct {
-	JSONPointer jsonpointer.T
-	Channels    []model.AuthenticatorOOBChannel
+	JSONPointer    jsonpointer.T
+	FlowRootObject config.AuthenticationFlowObject
+	Channels       []model.AuthenticatorOOBChannel
 }
 
 var _ authflow.InputSchema = &InputSchemaTakeOOBOTPChannel{}
 
 func (s *InputSchemaTakeOOBOTPChannel) GetJSONPointer() jsonpointer.T {
 	return s.JSONPointer
+}
+
+func (i *InputSchemaTakeOOBOTPChannel) GetFlowRootObject() config.AuthenticationFlowObject {
+	return i.FlowRootObject
 }
 
 func (s *InputSchemaTakeOOBOTPChannel) SchemaBuilder() validation.SchemaBuilder {

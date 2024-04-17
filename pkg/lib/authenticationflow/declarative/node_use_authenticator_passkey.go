@@ -39,8 +39,14 @@ func (n *NodeUseAuthenticatorPasskey) MilestoneAuthenticationMethod() config.Aut
 }
 
 func (n *NodeUseAuthenticatorPasskey) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	if err != nil {
+		return nil, err
+	}
+
 	return &InputSchemaTakePasskeyAssertionResponse{
-		JSONPointer: n.JSONPointer,
+		FlowRootObject: flowRootObject,
+		JSONPointer:    n.JSONPointer,
 	}, nil
 }
 

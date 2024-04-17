@@ -12,14 +12,19 @@ import (
 )
 
 type InputSchemaUseAuthenticatorOOBOTP struct {
-	JSONPointer jsonpointer.T
-	Options     []AuthenticateOption
+	JSONPointer    jsonpointer.T
+	FlowRootObject config.AuthenticationFlowObject
+	Options        []AuthenticateOption
 }
 
 var _ authflow.InputSchema = &InputSchemaUseAuthenticatorOOBOTP{}
 
 func (i *InputSchemaUseAuthenticatorOOBOTP) GetJSONPointer() jsonpointer.T {
 	return i.JSONPointer
+}
+
+func (i *InputSchemaUseAuthenticatorOOBOTP) GetFlowRootObject() config.AuthenticationFlowObject {
+	return i.FlowRootObject
 }
 
 func (i *InputSchemaUseAuthenticatorOOBOTP) SchemaBuilder() validation.SchemaBuilder {

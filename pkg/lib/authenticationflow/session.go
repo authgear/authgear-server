@@ -141,11 +141,5 @@ func (s *Session) MakeContext(ctx context.Context, deps *Dependencies, publicFlo
 	flowReference := publicFlow.FlowFlowReference()
 	ctx = context.WithValue(ctx, contextKeyFlowReference, flowReference)
 
-	flowRootObject, err := publicFlow.FlowRootObject(deps)
-	if err != nil {
-		return nil, err
-	}
-	ctx = context.WithValue(ctx, contextKeyFlowRootObject, flowRootObject)
-
 	return ctx, nil
 }

@@ -15,16 +15,17 @@ func init() {
 }
 
 type IntentReauthFlowStepIdentify struct {
-	JSONPointer jsonpointer.T          `json:"json_pointer,omitempty"`
-	StepName    string                 `json:"step_name,omitempty"`
-	Options     []IdentificationOption `json:"options"`
+	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
+	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
+	StepName      string                 `json:"step_name,omitempty"`
+	Options       []IdentificationOption `json:"options"`
 }
 
 var _ authflow.Intent = &IntentReauthFlowStepIdentify{}
 var _ authflow.DataOutputer = &IntentReauthFlowStepIdentify{}
 
 func NewIntentReauthFlowStepIdentify(ctx context.Context, deps *authflow.Dependencies, i *IntentReauthFlowStepIdentify) (*IntentReauthFlowStepIdentify, error) {
-	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	current, err := i.currentFlowObject(deps)
 	if err != nil {
 		return nil, err
 	}
@@ -57,9 +58,14 @@ func (i *IntentReauthFlowStepIdentify) CanReactTo(ctx context.Context, deps *aut
 		return nil, nil
 	case len(flows.Nearest.Nodes) == 0:
 		// Let the input to select which identification method to use.
+		flowRootObject, err := flowRootObject(deps, i.FlowReference)
+		if err != nil {
+			return nil, err
+		}
 		return &InputSchemaStepIdentify{
-			JSONPointer: i.JSONPointer,
-			Options:     i.Options,
+			FlowRootObject: flowRootObject,
+			JSONPointer:    i.JSONPointer,
+			Options:        i.Options,
 		}, nil
 	case userIdentified && !nestedStepsHandled:
 		// Handle nested steps.
@@ -70,7 +76,7 @@ func (i *IntentReauthFlowStepIdentify) CanReactTo(ctx context.Context, deps *aut
 }
 
 func (i *IntentReauthFlowStepIdentify) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
-	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	current, err := i.currentFlowObject(deps)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +121,8 @@ func (i *IntentReauthFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 	case userIdentified && !nestedStepsHandled:
 		identification := i.identificationMethod(flows.Nearest)
 		return authflow.NewSubFlow(&IntentReauthFlowSteps{
-			JSONPointer: i.jsonPointer(step, identification),
+			FlowReference: i.FlowReference,
+			JSONPointer:   i.jsonPointer(step, identification),
 		}), nil
 	default:
 		return nil, authflow.ErrIncompatibleInput
@@ -177,4 +184,16 @@ func (i *IntentReauthFlowStepIdentify) jsonPointer(step *config.AuthenticationFl
 	}
 
 	panic(fmt.Errorf("selected identification method is not allowed"))
+}
+
+func (i *IntentReauthFlowStepIdentify) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
+	rootObject, err := flowRootObject(deps, i.FlowReference)
+	if err != nil {
+		return nil, err
+	}
+	current, err := authflow.FlowObject(rootObject, i.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
+	return current, nil
 }

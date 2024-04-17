@@ -15,7 +15,8 @@ func init() {
 }
 
 type IntentReauthFlowSteps struct {
-	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
+	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
+	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
 }
 
 var _ authflow.Intent = &IntentReauthFlowSteps{}
@@ -30,7 +31,7 @@ func (*IntentReauthFlowSteps) Milestone()            {}
 func (*IntentReauthFlowSteps) MilestoneNestedSteps() {}
 
 func (i *IntentReauthFlowSteps) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	current, err := i.currentFlowObject(deps)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +45,7 @@ func (i *IntentReauthFlowSteps) CanReactTo(ctx context.Context, deps *authflow.D
 }
 
 func (i *IntentReauthFlowSteps) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, _ authflow.Input) (*authflow.Node, error) {
-	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	current, err := i.currentFlowObject(deps)
 	if err != nil {
 		return nil, err
 	}
@@ -56,8 +57,9 @@ func (i *IntentReauthFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depe
 	switch step.Type {
 	case config.AuthenticationFlowReauthFlowStepTypeIdentify:
 		stepIdentify, err := NewIntentReauthFlowStepIdentify(ctx, deps, &IntentReauthFlowStepIdentify{
-			StepName:    step.Name,
-			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			FlowReference: i.FlowReference,
+			StepName:      step.Name,
+			JSONPointer:   authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 		})
 		if err != nil {
 			return nil, err
@@ -65,9 +67,10 @@ func (i *IntentReauthFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depe
 		return authflow.NewSubFlow(stepIdentify), nil
 	case config.AuthenticationFlowReauthFlowStepTypeAuthenticate:
 		stepAuthenticate, err := NewIntentReauthFlowStepAuthenticate(ctx, deps, flows, &IntentReauthFlowStepAuthenticate{
-			StepName:    step.Name,
-			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
-			UserID:      i.userID(flows),
+			FlowReference: i.FlowReference,
+			StepName:      step.Name,
+			JSONPointer:   authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:        i.userID(flows),
 		})
 		if err != nil {
 			return nil, err
@@ -93,4 +96,16 @@ func (*IntentReauthFlowSteps) userID(flows authflow.Flows) string {
 		panic(err)
 	}
 	return userID
+}
+
+func (i *IntentReauthFlowSteps) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
+	rootObject, err := flowRootObject(deps, i.FlowReference)
+	if err != nil {
+		return nil, err
+	}
+	current, err := authflow.FlowObject(rootObject, i.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
+	return current, nil
 }

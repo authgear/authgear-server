@@ -12,14 +12,19 @@ import (
 )
 
 type InputSchemaStepIdentify struct {
-	JSONPointer jsonpointer.T
-	Options     []IdentificationOption
+	JSONPointer    jsonpointer.T
+	FlowRootObject config.AuthenticationFlowObject
+	Options        []IdentificationOption
 }
 
 var _ authflow.InputSchema = &InputSchemaStepIdentify{}
 
 func (i *InputSchemaStepIdentify) GetJSONPointer() jsonpointer.T {
 	return i.JSONPointer
+}
+
+func (i *InputSchemaStepIdentify) GetFlowRootObject() config.AuthenticationFlowObject {
+	return i.FlowRootObject
 }
 
 func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {

@@ -280,6 +280,10 @@ func (*InputIntentAuthenticate) GetJSONPointer() jsonpointer.T {
 	return nil
 }
 
+func (i *InputIntentAuthenticate) GetFlowRootObject() config.AuthenticationFlowObject {
+	return nil
+}
+
 func (*InputIntentAuthenticate) SchemaBuilder() validation.SchemaBuilder {
 	b := validation.SchemaBuilder{}.
 		Type(validation.TypeObject).
@@ -314,6 +318,10 @@ var _ InputLoginID = &InputIntentSignup{}
 var _ InputCreatePasswordFlow = &InputIntentSignup{}
 
 func (*InputIntentSignup) GetJSONPointer() jsonpointer.T {
+	return nil
+}
+
+func (i *InputIntentSignup) GetFlowRootObject() config.AuthenticationFlowObject {
 	return nil
 }
 
@@ -365,6 +373,10 @@ func (*InputIntentAddLoginID) GetJSONPointer() jsonpointer.T {
 	return nil
 }
 
+func (i *InputIntentAddLoginID) GetFlowRootObject() config.AuthenticationFlowObject {
+	return nil
+}
+
 func (*InputIntentAddLoginID) SchemaBuilder() validation.SchemaBuilder {
 	b := validation.SchemaBuilder{}.
 		Type(validation.TypeObject).
@@ -399,6 +411,10 @@ var _ InputOTP = &InputNodeVerifyLoginID{}
 var _ InputResendOTP = &InputNodeVerifyLoginID{}
 
 func (*InputNodeVerifyLoginID) GetJSONPointer() jsonpointer.T {
+	return nil
+}
+
+func (i *InputNodeVerifyLoginID) GetFlowRootObject() config.AuthenticationFlowObject {
 	return nil
 }
 
@@ -447,6 +463,10 @@ var _ Input = &InputIntentCreatePassword{}
 var _ InputNewPassword = &InputIntentCreatePassword{}
 
 func (*InputIntentCreatePassword) GetJSONPointer() jsonpointer.T {
+	return nil
+}
+
+func (i *InputIntentCreatePassword) GetFlowRootObject() config.AuthenticationFlowObject {
 	return nil
 }
 
