@@ -54,7 +54,7 @@ func TestFlowAllowlist(t *testing.T) {
 
 		Convey("When initialized with flows", func() {
 			allowlist := &config.AuthenticationFlowAllowlist{
-				Flows: &config.AuthenticationFlowAllowlistFlows{
+				Flows: []config.AuthenticationFlowAllowlistFlow{
 					{Type: config.AuthenticationFlowAllowlistFlowTypeLogin, Name: "flow1"},
 					{Type: config.AuthenticationFlowAllowlistFlowTypeSignup, Name: "flow2"},
 				},
@@ -109,7 +109,7 @@ func TestFlowAllowlist(t *testing.T) {
 
 		Convey("When initialized with default group and allowlist", func() {
 			allowlist := &config.AuthenticationFlowAllowlist{
-				Flows: &config.AuthenticationFlowAllowlistFlows{
+				Flows: &[]config.AuthenticationFlowAllowlistFlow{
 					{Type: config.AuthenticationFlowAllowlistFlowTypeLogin, Name: "flow1"},
 				},
 			}

@@ -78,30 +78,20 @@ func fromGroupAllowlist(groups []string, definedGroups []config.UIAuthentication
 	for _, groupName := range groups {
 		for _, group := range definedGroups {
 			if groupName == group.Name {
-				a = append(a, fromGroupFlows(group.SignupFlows, FlowTypeSignup)...)
-				a = append(a, fromGroupFlows(group.LoginFlows, FlowTypeLogin)...)
-				a = append(a, fromGroupFlows(group.PromoteFlows, FlowTypePromote)...)
-				a = append(a, fromGroupFlows(group.SignupLoginFlows, FlowTypeSignupLogin)...)
-				a = append(a, fromGroupFlows(group.ReauthFlows, FlowTypeReauth)...)
-				a = append(a, fromGroupFlows(group.AccountRecoveryFlows, FlowTypeAccountRecovery)...)
+				for _, flow := range group.Flows {
+					a = append(a, FlowAllowlistFlow{
+						Type: FlowType(flow.Type),
+						Name: flow.Name,
+					})
+				}
+				break
 			}
 		}
 	}
 	return a
 }
 
-func fromGroupFlows(flowNames []string, flowType FlowType) []FlowAllowlistFlow {
-	allowlistFlows := []FlowAllowlistFlow{}
-	for _, flowName := range flowNames {
-		allowlistFlows = append(allowlistFlows, FlowAllowlistFlow{
-			Type: flowType,
-			Name: flowName,
-		})
-	}
-	return allowlistFlows
-}
-
-func fromFlowAllowlist(flows *config.AuthenticationFlowAllowlistFlows) []FlowAllowlistFlow {
+func fromFlowAllowlist(flows *[]config.AuthenticationFlowAllowlistFlow) []FlowAllowlistFlow {
 	allowlistFlows := []FlowAllowlistFlow{}
 	if flows == nil {
 		return allowlistFlows

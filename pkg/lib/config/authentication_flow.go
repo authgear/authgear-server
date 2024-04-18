@@ -634,6 +634,17 @@ type AuthenticationFlowObjectFlowRoot interface {
 	GetSteps() []AuthenticationFlowObject
 }
 
+type AuthenticationFlowType string
+
+const (
+	AuthenticationFlowTypeSignup          AuthenticationFlowType = "signup"
+	AuthenticationFlowTypePromote         AuthenticationFlowType = "promote"
+	AuthenticationFlowTypeLogin           AuthenticationFlowType = "login"
+	AuthenticationFlowTypeSignupLogin     AuthenticationFlowType = "signup_login"
+	AuthenticationFlowTypeReauth          AuthenticationFlowType = "reauth"
+	AuthenticationFlowTypeAccountRecovery AuthenticationFlowType = "account_recovery"
+)
+
 type AuthenticationFlowObjectFlowStep interface {
 	AuthenticationFlowObject
 	GetName() string

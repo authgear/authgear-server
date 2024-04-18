@@ -234,37 +234,14 @@ type OAuthClientConfig struct {
 }
 
 type AuthenticationFlowAllowlist struct {
-	Groups *[]string                         `json:"groups,omitempty"`
-	Flows  *AuthenticationFlowAllowlistFlows `json:"flows,omitempty"`
-}
-
-type AuthenticationFlowAllowlistFlows []AuthenticationFlowAllowlistFlow
-
-func (flows AuthenticationFlowAllowlistFlows) FilterByType(t AuthenticationFlowAllowlistFlowType) []string {
-	var filtered []string
-	for _, flow := range flows {
-		if flow.Type == t {
-			filtered = append(filtered, flow.Name)
-		}
-	}
-	return filtered
+	Groups *[]string                          `json:"groups,omitempty"`
+	Flows  *[]AuthenticationFlowAllowlistFlow `json:"flows,omitempty"`
 }
 
 type AuthenticationFlowAllowlistFlow struct {
-	Type AuthenticationFlowAllowlistFlowType `json:"type"`
-	Name string                              `json:"name"`
+	Type AuthenticationFlowType `json:"type"`
+	Name string                 `json:"name"`
 }
-
-type AuthenticationFlowAllowlistFlowType string
-
-const (
-	AuthenticationFlowAllowlistFlowTypeSignup          AuthenticationFlowAllowlistFlowType = "signup"
-	AuthenticationFlowAllowlistFlowTypePromote         AuthenticationFlowAllowlistFlowType = "promote"
-	AuthenticationFlowAllowlistFlowTypeLogin           AuthenticationFlowAllowlistFlowType = "login"
-	AuthenticationFlowAllowlistFlowTypeSignupLogin     AuthenticationFlowAllowlistFlowType = "signup_login"
-	AuthenticationFlowAllowlistFlowTypeReauth          AuthenticationFlowAllowlistFlowType = "reauth"
-	AuthenticationFlowAllowlistFlowTypeAccountRecovery AuthenticationFlowAllowlistFlowType = "account_recovery"
-)
 
 func (c *OAuthClientConfig) DefaultRedirectURI() string {
 	if len(c.RedirectURIs) > 0 {

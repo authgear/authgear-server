@@ -150,16 +150,36 @@ var _ = Schema.Add("UIAuthenticationFlowGroup", `
 	"additionalProperties": false,
 	"required": [
 		"name",
-		"login_flows"
+		"flows"
 	],
 	"properties": {
 		"name": { "type": "string", "minLength": 1 },
-		"signup_flows": { "type": "array", "items": { "type": "string", "minLength": 1 } },
-		"promote_flows": { "type": "array", "items": { "type": "string", "minLength": 1 } },
-		"login_flows": { "type": "array", "items": { "type": "string", "minLength": 1 } },
-		"signup_login_flows": { "type": "array", "items": { "type": "string", "minLength": 1 } },
-		"reauth_flows": { "type": "array", "items": { "type": "string", "minLength": 1 } },
-		"account_recovery_flows": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+		"flows" : { "type": "array", "items": { "$ref": "#/$defs/UIAuthenticationFlowGroupFlow" } }
+	}
+}
+`)
+
+var _ = Schema.Add("UIAuthenticationFlowGroupFlow", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"required": [
+		"type",
+		"name"
+	],
+	"properties": {
+		"type": {
+			"type": "string",
+			"enum": [
+				"signup",
+				"promote",
+				"login",
+				"signup_login",
+				"reauth",
+				"account_recovery"
+			]
+		},
+		"name": { "type": "string", "minLength": 1 }
 	}
 }
 `)
@@ -168,12 +188,12 @@ type UIAuthenticationFlowConfig struct {
 	Groups []UIAuthenticationFlowGroup `json:"groups,omitempty"`
 }
 
+type UIAuthenticationFlowGroupFlow struct {
+	Type AuthenticationFlowType `json:"type"`
+	Name string                 `json:"name"`
+}
+
 type UIAuthenticationFlowGroup struct {
-	Name                 string   `json:"name"`
-	SignupFlows          []string `json:"signup_flows,omitempty"`
-	PromoteFlows         []string `json:"promote_flows,omitempty"`
-	LoginFlows           []string `json:"login_flows,omitempty"`
-	SignupLoginFlows     []string `json:"signup_login_flows,omitempty"`
-	ReauthFlows          []string `json:"reauth_flows,omitempty"`
-	AccountRecoveryFlows []string `json:"account_recovery_flows,omitempty"`
+	Name  string                          `json:"name"`
+	Flows []UIAuthenticationFlowGroupFlow `json:"flows,omitempty"`
 }

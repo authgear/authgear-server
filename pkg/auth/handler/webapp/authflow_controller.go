@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -24,7 +25,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
-	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
@@ -850,21 +850,14 @@ func (c *AuthflowController) deriveFlowName(oauthSessionID string, flowType auth
 			groupFlowName = "default"
 		}
 		for _, group := range c.UIConfig.AuthenticationFlow.Groups {
-			if group.Name == req.AuthenticationFlowGroup() {
-				switch flowType {
-				case authflow.FlowTypeLogin:
-					groupFlowName = slice.FirstString(group.LoginFlows)
-				case authflow.FlowTypeSignup:
-					groupFlowName = slice.FirstString(group.SignupFlows)
-				case authflow.FlowTypePromote:
-					groupFlowName = slice.FirstString(group.PromoteFlows)
-				case authflow.FlowTypeSignupLogin:
-					groupFlowName = slice.FirstString(group.SignupLoginFlows)
-				case authflow.FlowTypeReauth:
-					groupFlowName = slice.FirstString(group.ReauthFlows)
-				case authflow.FlowTypeAccountRecovery:
-					groupFlowName = slice.FirstString(group.AccountRecoveryFlows)
+			if group.Name == specifiedFlowGroup {
+				for _, flow := range group.Flows {
+					if authenticationflow.FlowType(flow.Type) == flowType {
+						groupFlowName = flow.Name
+						break
+					}
 				}
+				break
 			}
 		}
 		if groupFlowName == "" {
