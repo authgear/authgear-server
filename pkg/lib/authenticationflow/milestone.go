@@ -21,16 +21,14 @@ func findMilestone[T Milestone](w *Flow, stopOnFirst bool) (T, bool) {
 
 	err := TraverseFlow(Traverser{
 		NodeSimple: func(nodeSimple NodeSimple, _ *Flow) error {
-			if m, ok := nodeSimple.(T); ok && (!stopOnFirst || found) {
-
+			if m, ok := nodeSimple.(T); ok && (!found || !stopOnFirst) {
 				t = m
 				found = true
-
 			}
 			return nil
 		},
 		Intent: func(intent Intent, w *Flow) error {
-			if m, ok := intent.(T); ok && (!stopOnFirst || found) {
+			if m, ok := intent.(T); ok && (!found || !stopOnFirst) {
 				t = m
 				found = true
 			}
