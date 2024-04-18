@@ -218,7 +218,7 @@ type MilestoneDidReauthenticate interface {
 	MilestoneDidReauthenticate()
 }
 
-type MilestoneSwitchToUser interface {
+type MilestoneSwitchToExistingUser interface {
 	authflow.Milestone
-	MilestoneSwitchToUser(newUserID string)
+	MilestoneSwitchToExistingUser(newUserID string)
 }

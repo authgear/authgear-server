@@ -41,6 +41,14 @@ func NewIntentSignupFlowStepViewRecoveryCode(deps *authflow.Dependencies, i *Int
 
 var _ authflow.Intent = &IntentSignupFlowStepViewRecoveryCode{}
 var _ authflow.DataOutputer = &IntentSignupFlowStepViewRecoveryCode{}
+var _ authflow.Milestone = &IntentSignupFlowStepViewRecoveryCode{}
+var _ MilestoneSwitchToExistingUser = &IntentSignupFlowStepViewRecoveryCode{}
+
+func (*IntentSignupFlowStepViewRecoveryCode) Milestone() {}
+func (i *IntentSignupFlowStepViewRecoveryCode) MilestoneSwitchToExistingUser(newUserID string) {
+	// TODO(tung): Skip this step for existing user
+	i.UserID = newUserID
+}
 
 func (*IntentSignupFlowStepViewRecoveryCode) Kind() string {
 	return "IntentSignupFlowStepViewRecoveryCode"

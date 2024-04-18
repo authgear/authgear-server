@@ -26,12 +26,18 @@ var _ authflow.NodeSimple = &NodeCreateIdentityLoginID{}
 var _ authflow.Milestone = &NodeCreateIdentityLoginID{}
 var _ MilestoneIdentificationMethod = &NodeCreateIdentityLoginID{}
 var _ authflow.InputReactor = &NodeCreateIdentityLoginID{}
+var _ MilestoneSwitchToExistingUser = &NodeCreateIdentityLoginID{}
+
+func (*NodeCreateIdentityLoginID) Milestone() {}
+func (i *NodeCreateIdentityLoginID) MilestoneSwitchToExistingUser(newUserID string) {
+	// TODO(tung): Skip creation if already have one
+	i.UserID = newUserID
+}
 
 func (*NodeCreateIdentityLoginID) Kind() string {
 	return "NodeCreateIdentityLoginID"
 }
 
-func (*NodeCreateIdentityLoginID) Milestone() {}
 func (n *NodeCreateIdentityLoginID) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
 	return n.Identification
 }

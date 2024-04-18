@@ -23,9 +23,17 @@ type IntentSignupFlowStepFillInUserProfile struct {
 }
 
 var _ authflow.Intent = &IntentSignupFlowStepFillInUserProfile{}
+var _ authflow.Milestone = &IntentSignupFlowStepFillInUserProfile{}
+var _ MilestoneSwitchToExistingUser = &IntentSignupFlowStepFillInUserProfile{}
 
 func (*IntentSignupFlowStepFillInUserProfile) Kind() string {
 	return "IntentSignupFlowStepFillInUserProfile"
+}
+
+func (*IntentSignupFlowStepFillInUserProfile) Milestone() {}
+func (i *IntentSignupFlowStepFillInUserProfile) MilestoneSwitchToExistingUser(newUserID string) {
+	// TODO(tung): Skip this step when the user is an existing user
+	i.UserID = newUserID
 }
 
 func (i *IntentSignupFlowStepFillInUserProfile) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {

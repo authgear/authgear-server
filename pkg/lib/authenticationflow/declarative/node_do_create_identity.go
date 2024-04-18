@@ -19,6 +19,11 @@ var _ authflow.NodeSimple = &NodeDoCreateIdentity{}
 var _ authflow.Milestone = &NodeDoCreateIdentity{}
 var _ MilestoneDoCreateIdentity = &NodeDoCreateIdentity{}
 var _ authflow.EffectGetter = &NodeDoCreateIdentity{}
+var _ MilestoneSwitchToExistingUser = &NodeDoCreateIdentity{}
+
+func (i *NodeDoCreateIdentity) MilestoneSwitchToExistingUser(newUserID string) {
+	i.Identity = i.Identity.UpdateUserID(newUserID)
+}
 
 func (n *NodeDoCreateIdentity) Kind() string {
 	return "NodeDoCreateIdentity"

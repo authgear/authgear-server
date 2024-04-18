@@ -23,6 +23,7 @@ type IntentSignupFlowSteps struct {
 var _ authflow.Intent = &IntentSignupFlowSteps{}
 var _ authflow.Milestone = &IntentSignupFlowSteps{}
 var _ MilestoneNestedSteps = &IntentSignupFlowSteps{}
+var _ MilestoneSwitchToExistingUser = &IntentSignupFlowSteps{}
 
 func (*IntentSignupFlowSteps) Kind() string {
 	return "IntentSignupFlowSteps"
@@ -30,6 +31,9 @@ func (*IntentSignupFlowSteps) Kind() string {
 
 func (*IntentSignupFlowSteps) Milestone()            {}
 func (*IntentSignupFlowSteps) MilestoneNestedSteps() {}
+func (i *IntentSignupFlowSteps) MilestoneSwitchToExistingUser(newUserID string) {
+	i.UserID = newUserID
+}
 
 func (i *IntentSignupFlowSteps) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	current, err := i.currentFlowObject(deps)

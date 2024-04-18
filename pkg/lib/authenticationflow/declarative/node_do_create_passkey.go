@@ -23,6 +23,7 @@ var _ authflow.EffectGetter = &NodeDoCreatePasskey{}
 var _ authflow.Milestone = &NodeDoCreatePasskey{}
 var _ MilestoneDoCreateIdentity = &NodeDoCreatePasskey{}
 var _ MilestoneDoCreateAuthenticator = &NodeDoCreatePasskey{}
+var _ MilestoneSwitchToExistingUser = &NodeDoCreatePasskey{}
 
 func (n *NodeDoCreatePasskey) Kind() string {
 	return "NodeDoCreatePasskey"
@@ -34,6 +35,11 @@ func (n *NodeDoCreatePasskey) MilestoneDoCreateIdentity() *identity.Info {
 }
 func (n *NodeDoCreatePasskey) MilestoneDoCreateAuthenticator() *authenticator.Info {
 	return n.Authenticator
+}
+func (i *NodeDoCreatePasskey) MilestoneSwitchToExistingUser(newUserID string) {
+	// TODO(tung): Skip creation if user already has one
+	i.Identity = i.Identity.UpdateUserID(newUserID)
+	i.Authenticator = i.Authenticator.UpdateUserID(newUserID)
 }
 
 func (n *NodeDoCreatePasskey) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (effs []authflow.Effect, err error) {
