@@ -86,7 +86,7 @@ func (n *NodePromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authflow
 		}
 
 		// login
-		flowReference := authflow.GetFlowReference(ctx)
+		flowReference := authflow.FindCurrentFlowReference(flows.Root)
 		return nil, &authflow.ErrorSwitchFlow{
 			FlowReference: authflow.FlowReference{
 				Type: authflow.FlowTypeLogin,
