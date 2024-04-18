@@ -27,9 +27,9 @@ func (n *NodeDoMarkClaimVerified) Kind() string {
 
 func (*NodeDoMarkClaimVerified) Milestone()                      {}
 func (n *NodeDoMarkClaimVerified) MilestoneDoMarkClaimVerified() {}
-func (n *NodeDoMarkClaimVerified) MilestoneSwitchToExistingUser(newUserID string) {
-	// TODO(tung): Update the claim to new user id
-	// but skip if it is already verified
+func (n *NodeDoMarkClaimVerified) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
+	n.Claim.UserID = newUserID
+	return nil
 }
 
 func (n *NodeDoMarkClaimVerified) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (effs []authflow.Effect, err error) {

@@ -36,9 +36,9 @@ func (*NodeCreateAuthenticatorPassword) Milestone() {}
 func (n *NodeCreateAuthenticatorPassword) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
 	return n.Authentication
 }
-func (i *NodeCreateAuthenticatorPassword) MilestoneSwitchToExistingUser(newUserID string) {
-	// TODO(tung): Skip creation if already have one
+func (i *NodeCreateAuthenticatorPassword) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
 	i.UserID = newUserID
+	return nil
 }
 
 func (n *NodeCreateAuthenticatorPassword) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {

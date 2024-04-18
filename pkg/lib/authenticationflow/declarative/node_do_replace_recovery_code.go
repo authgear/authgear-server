@@ -25,9 +25,11 @@ func (*NodeDoReplaceRecoveryCode) Kind() string {
 }
 
 func (*NodeDoReplaceRecoveryCode) Milestone() {}
-func (i *NodeDoReplaceRecoveryCode) MilestoneSwitchToExistingUser(newUserID string) {
-	// TODO(tung): Skip this step for existing user
+func (i *NodeDoReplaceRecoveryCode) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
+	// This node exist only if recovery code has already been shown to user,
+	// Therefore, we should still replace the code if this node was created
 	i.UserID = newUserID
+	return nil
 }
 
 func (n *NodeDoReplaceRecoveryCode) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (effs []authflow.Effect, err error) {

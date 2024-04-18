@@ -26,6 +26,7 @@ func (n *NodeDidSelectAuthenticator) Milestone() {}
 func (n *NodeDidSelectAuthenticator) MilestoneDidSelectAuthenticator() *authenticator.Info {
 	return n.Authenticator
 }
-func (i *NodeDidSelectAuthenticator) MilestoneSwitchToExistingUser(newUserID string) {
+func (i *NodeDidSelectAuthenticator) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
 	i.Authenticator = i.Authenticator.UpdateUserID(newUserID)
+	return nil
 }

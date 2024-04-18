@@ -15,9 +15,10 @@ func init() {
 }
 
 type IntentSignupFlowSteps struct {
-	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
-	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
-	UserID        string                 `json:"user_id,omitempty"`
+	FlowReference          authflow.FlowReference `json:"flow_reference,omitempty"`
+	JSONPointer            jsonpointer.T          `json:"json_pointer,omitempty"`
+	UserID                 string                 `json:"user_id,omitempty"`
+	IsUpdatingExistingUser bool                   `json:"is_updating_existing_user,omitempty"`
 }
 
 var _ authflow.Intent = &IntentSignupFlowSteps{}
@@ -31,8 +32,10 @@ func (*IntentSignupFlowSteps) Kind() string {
 
 func (*IntentSignupFlowSteps) Milestone()            {}
 func (*IntentSignupFlowSteps) MilestoneNestedSteps() {}
-func (i *IntentSignupFlowSteps) MilestoneSwitchToExistingUser(newUserID string) {
+func (i *IntentSignupFlowSteps) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
 	i.UserID = newUserID
+	i.IsUpdatingExistingUser = true
+	return nil
 }
 
 func (i *IntentSignupFlowSteps) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
@@ -62,10 +65,11 @@ func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depe
 	switch step.Type {
 	case config.AuthenticationFlowSignupFlowStepTypeIdentify:
 		stepIdentify, err := NewIntentSignupFlowStepIdentify(ctx, deps, &IntentSignupFlowStepIdentify{
-			FlowReference: i.FlowReference,
-			StepName:      step.Name,
-			JSONPointer:   authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
-			UserID:        i.UserID,
+			FlowReference:          i.FlowReference,
+			StepName:               step.Name,
+			JSONPointer:            authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:                 i.UserID,
+			IsUpdatingExistingUser: i.IsUpdatingExistingUser,
 		})
 		if err != nil {
 			return nil, err
@@ -79,22 +83,25 @@ func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depe
 		}), nil
 	case config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator:
 		return authflow.NewSubFlow(&IntentSignupFlowStepCreateAuthenticator{
-			FlowReference: i.FlowReference,
-			StepName:      step.Name,
-			JSONPointer:   authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
-			UserID:        i.UserID,
+			FlowReference:          i.FlowReference,
+			StepName:               step.Name,
+			JSONPointer:            authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:                 i.UserID,
+			IsUpdatingExistingUser: i.IsUpdatingExistingUser,
 		}), nil
 	case config.AuthenticationFlowSignupFlowStepTypeViewRecoveryCode:
 		return authflow.NewSubFlow(NewIntentSignupFlowStepViewRecoveryCode(deps, &IntentSignupFlowStepViewRecoveryCode{
-			StepName:    step.Name,
-			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
-			UserID:      i.UserID,
+			StepName:               step.Name,
+			JSONPointer:            authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:                 i.UserID,
+			IsUpdatingExistingUser: i.IsUpdatingExistingUser,
 		})), nil
 	case config.AuthenticationFlowSignupFlowStepTypeFillInUserProfile:
 		return authflow.NewSubFlow(&IntentSignupFlowStepFillInUserProfile{
-			StepName:    step.Name,
-			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
-			UserID:      i.UserID,
+			StepName:               step.Name,
+			JSONPointer:            authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:                 i.UserID,
+			IsUpdatingExistingUser: i.IsUpdatingExistingUser,
 		}), nil
 	case config.AuthenticationFlowSignupFlowStepTypePromptCreatePasskey:
 		return authflow.NewSubFlow(&IntentSignupFlowStepPromptCreatePasskey{

@@ -13,6 +13,7 @@ func init() {
 }
 
 type NodeDoCreatePasskey struct {
+	SkipCreate          bool                `json:"skip_create,omitempty"`
 	Identity            *identity.Info      `json:"identity,omitempty"`
 	Authenticator       *authenticator.Info `json:"authenticator,omitempty"`
 	AttestationResponse []byte              `json:"attestation_response,omitempty"`
@@ -36,13 +37,25 @@ func (n *NodeDoCreatePasskey) MilestoneDoCreateIdentity() *identity.Info {
 func (n *NodeDoCreatePasskey) MilestoneDoCreateAuthenticator() *authenticator.Info {
 	return n.Authenticator
 }
-func (i *NodeDoCreatePasskey) MilestoneSwitchToExistingUser(newUserID string) {
-	// TODO(tung): Skip creation if user already has one
+func (n *NodeDoCreatePasskey) MilestoneDoCreateAuthenticatorSkipCreate() {
+	n.SkipCreate = true
+}
+func (n *NodeDoCreatePasskey) MilestoneDoCreateIdentitySkipCreate() {
+	n.SkipCreate = true
+}
+
+func (i *NodeDoCreatePasskey) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
+	// One user could have multiple passkey, so just create it for the existing user
 	i.Identity = i.Identity.UpdateUserID(newUserID)
 	i.Authenticator = i.Authenticator.UpdateUserID(newUserID)
+	return nil
 }
 
 func (n *NodeDoCreatePasskey) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (effs []authflow.Effect, err error) {
+	if n.SkipCreate {
+		return nil, nil
+	}
+
 	return []authflow.Effect{
 		authflow.RunEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
 			err := deps.Identities.Create(n.Identity)

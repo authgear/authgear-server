@@ -38,8 +38,9 @@ func (*IntentSignupFlowStepVerify) Kind() string {
 }
 
 func (i *IntentSignupFlowStepVerify) Milestone() {}
-func (i *IntentSignupFlowStepVerify) MilestoneSwitchToExistingUser(newUserID string) {
+func (i *IntentSignupFlowStepVerify) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
 	i.UserID = newUserID
+	return nil
 }
 
 func (*IntentSignupFlowStepVerify) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {

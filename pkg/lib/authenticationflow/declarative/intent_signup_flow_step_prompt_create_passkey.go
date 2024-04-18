@@ -30,8 +30,9 @@ func (*IntentSignupFlowStepPromptCreatePasskey) Kind() string {
 }
 
 func (i *IntentSignupFlowStepPromptCreatePasskey) Milestone() {}
-func (i *IntentSignupFlowStepPromptCreatePasskey) MilestoneSwitchToExistingUser(newUserID string) {
+func (i *IntentSignupFlowStepPromptCreatePasskey) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
 	i.UserID = newUserID
+	return nil
 }
 
 func (i *IntentSignupFlowStepPromptCreatePasskey) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {

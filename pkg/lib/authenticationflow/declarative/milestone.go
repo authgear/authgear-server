@@ -135,11 +135,13 @@ type MilestoneDoCreateUser interface {
 type MilestoneDoCreateIdentity interface {
 	authflow.Milestone
 	MilestoneDoCreateIdentity() *identity.Info
+	MilestoneDoCreateIdentitySkipCreate()
 }
 
 type MilestoneDoCreateAuthenticator interface {
 	authflow.Milestone
 	MilestoneDoCreateAuthenticator() *authenticator.Info
+	MilestoneDoCreateAuthenticatorSkipCreate()
 }
 
 type MilestoneDoUseUser interface {
@@ -186,6 +188,7 @@ type MilestoneDoUseAuthenticatorPassword interface {
 type MilestoneDoPopulateStandardAttributes interface {
 	authflow.Milestone
 	MilestoneDoPopulateStandardAttributes()
+	MilestoneDoPopulateStandardAttributesSkip()
 }
 
 type MilestoneDoMarkClaimVerified interface {
@@ -220,5 +223,5 @@ type MilestoneDidReauthenticate interface {
 
 type MilestoneSwitchToExistingUser interface {
 	authflow.Milestone
-	MilestoneSwitchToExistingUser(newUserID string)
+	MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error
 }
