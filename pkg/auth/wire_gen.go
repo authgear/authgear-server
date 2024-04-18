@@ -136,7 +136,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	oAuthConfig := appConfig.OAuth
-	uiConfig := appConfig.UI
 	httpConfig := appConfig.HTTP
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -639,7 +638,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Context:                    contextContext,
 		AppID:                      appID,
 		Config:                     oAuthConfig,
-		UIConfig:                   uiConfig,
 		HTTPConfig:                 httpConfig,
 		HTTPProto:                  httpProto,
 		HTTPOrigin:                 httpOrigin,
@@ -685,7 +683,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	oAuthConfig := appConfig.OAuth
-	uiConfig := appConfig.UI
 	httpConfig := appConfig.HTTP
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -1188,7 +1185,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Context:                    contextContext,
 		AppID:                      appID,
 		Config:                     oAuthConfig,
-		UIConfig:                   uiConfig,
 		HTTPConfig:                 httpConfig,
 		HTTPProto:                  httpProto,
 		HTTPOrigin:                 httpOrigin,
@@ -1207,6 +1203,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		SettingsActionGrantService: settingsActionGrantService,
 		ClientResolver:             oauthclientResolver,
 	}
+	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager

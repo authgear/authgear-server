@@ -61,10 +61,3 @@ func ToStringSlice(slice [][]byte) []string {
 	}
 	return strSlice
 }
-
-func FirstString(slice []string) string {
-	if len(slice) == 0 {
-		return ""
-	}
-	return slice[0]
-}
