@@ -452,12 +452,8 @@ func TestAuthorizationHandler(t *testing.T) {
 					Implementation: config.UIImplementationAuthflowV2,
 					AuthenticationFlow: config.UIAuthenticationFlowConfig{
 						Groups: []config.UIAuthenticationFlowGroup{
-							{
-								Name: "group-1",
-							},
-							{
-								Name: "group-2",
-							},
+							{Name: "group-1"},
+							{Name: "group-2"},
 						},
 					},
 				}
@@ -466,7 +462,10 @@ func TestAuthorizationHandler(t *testing.T) {
 					ClientID:     "client-id-1",
 					RedirectURIs: []string{"https://example.com/"},
 					AuthenticationFlowAllowlist: &config.AuthenticationFlowAllowlist{
-						Groups: &[]string{"group-1", "group-2"},
+						Groups: &[]config.AuthenticationFlowAllowlistGroup{
+							{Name: "group-1"},
+							{Name: "group-2"},
+						},
 					},
 				}
 				resp := handle(protocol.AuthorizationRequest{
@@ -487,7 +486,9 @@ func TestAuthorizationHandler(t *testing.T) {
 					ClientID:     "client-id-2",
 					RedirectURIs: []string{"https://example.com/"},
 					AuthenticationFlowAllowlist: &config.AuthenticationFlowAllowlist{
-						Groups: &[]string{"group-1"},
+						Groups: &[]config.AuthenticationFlowAllowlistGroup{
+							{Name: "group-1"},
+						},
 					},
 				}
 				resp := handle(protocol.AuthorizationRequest{
@@ -521,7 +522,9 @@ func TestAuthorizationHandler(t *testing.T) {
 					ClientID:     "client-id-2",
 					RedirectURIs: []string{"https://example.com/"},
 					AuthenticationFlowAllowlist: &config.AuthenticationFlowAllowlist{
-						Groups: &[]string{"group-1"},
+						Groups: &[]config.AuthenticationFlowAllowlistGroup{
+							{Name: "group-1"},
+						},
 					},
 				}
 				resp := handle(protocol.AuthorizationRequest{
@@ -555,7 +558,9 @@ func TestAuthorizationHandler(t *testing.T) {
 					ClientID:     "client-id-3",
 					RedirectURIs: []string{"https://example.com/"},
 					AuthenticationFlowAllowlist: &config.AuthenticationFlowAllowlist{
-						Groups: &[]string{"group-3"},
+						Groups: &[]config.AuthenticationFlowAllowlistGroup{
+							{Name: "group-3"},
+						},
 					},
 				}
 				resp := handle(protocol.AuthorizationRequest{

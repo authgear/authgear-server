@@ -11,26 +11,33 @@ func TestFlowAllowlist(t *testing.T) {
 	Convey("Given a FlowAllowlist", t, func() {
 		Convey("When initialized with groups", func() {
 			allowlist := &config.AuthenticationFlowAllowlist{
-				Groups: &[]string{"group1", "group2"},
+				Groups: &[]config.AuthenticationFlowAllowlistGroup{
+					{Name: "group1"},
+					{Name: "group2"},
+				},
 			}
 			allGroups := []config.UIAuthenticationFlowGroup{
 				{
-					Name:                 "group1",
-					SignupFlows:          []string{"signup1"},
-					PromoteFlows:         []string{"promote1"},
-					LoginFlows:           []string{"login1"},
-					SignupLoginFlows:     []string{"signuplogin1"},
-					ReauthFlows:          []string{"reauth1"},
-					AccountRecoveryFlows: []string{"recovery1"},
+					Name: "group1",
+					Flows: []config.UIAuthenticationFlowGroupFlow{
+						{Type: config.AuthenticationFlowTypeSignup, Name: "signup1"},
+						{Type: config.AuthenticationFlowTypePromote, Name: "promote1"},
+						{Type: config.AuthenticationFlowTypeLogin, Name: "login1"},
+						{Type: config.AuthenticationFlowTypeSignupLogin, Name: "signuplogin1"},
+						{Type: config.AuthenticationFlowTypeReauth, Name: "reauth1"},
+						{Type: config.AuthenticationFlowTypeAccountRecovery, Name: "recovery1"},
+					},
 				},
 				{
-					Name:                 "group2",
-					SignupFlows:          []string{"signup2"},
-					PromoteFlows:         []string{"promote2"},
-					LoginFlows:           []string{"login2"},
-					SignupLoginFlows:     []string{"signuplogin2"},
-					ReauthFlows:          []string{"reauth2"},
-					AccountRecoveryFlows: []string{"recovery2"},
+					Name: "group2",
+					Flows: []config.UIAuthenticationFlowGroupFlow{
+						{Type: config.AuthenticationFlowTypeSignup, Name: "signup2"},
+						{Type: config.AuthenticationFlowTypePromote, Name: "promote2"},
+						{Type: config.AuthenticationFlowTypeLogin, Name: "login2"},
+						{Type: config.AuthenticationFlowTypeSignupLogin, Name: "signuplogin2"},
+						{Type: config.AuthenticationFlowTypeReauth, Name: "reauth2"},
+						{Type: config.AuthenticationFlowTypeAccountRecovery, Name: "recovery2"},
+					},
 				},
 			}
 
@@ -54,9 +61,9 @@ func TestFlowAllowlist(t *testing.T) {
 
 		Convey("When initialized with flows", func() {
 			allowlist := &config.AuthenticationFlowAllowlist{
-				Flows: []config.AuthenticationFlowAllowlistFlow{
-					{Type: config.AuthenticationFlowAllowlistFlowTypeLogin, Name: "flow1"},
-					{Type: config.AuthenticationFlowAllowlistFlowTypeSignup, Name: "flow2"},
+				Flows: &[]config.AuthenticationFlowAllowlistFlow{
+					{Type: config.AuthenticationFlowTypeLogin, Name: "flow1"},
+					{Type: config.AuthenticationFlowTypeSignup, Name: "flow2"},
 				},
 			}
 			allGroups := []config.UIAuthenticationFlowGroup{}
@@ -85,13 +92,15 @@ func TestFlowAllowlist(t *testing.T) {
 			allowlist := &config.AuthenticationFlowAllowlist{}
 			allGroups := []config.UIAuthenticationFlowGroup{
 				{
-					Name:                 "default",
-					SignupFlows:          []string{"signup1"},
-					PromoteFlows:         []string{"promote1"},
-					LoginFlows:           []string{"login1"},
-					SignupLoginFlows:     []string{"signuplogin1"},
-					ReauthFlows:          []string{"reauth1"},
-					AccountRecoveryFlows: []string{"recovery1"},
+					Name: "default",
+					Flows: []config.UIAuthenticationFlowGroupFlow{
+						{Type: config.AuthenticationFlowTypeSignup, Name: "signup1"},
+						{Type: config.AuthenticationFlowTypePromote, Name: "promote1"},
+						{Type: config.AuthenticationFlowTypeLogin, Name: "login1"},
+						{Type: config.AuthenticationFlowTypeSignupLogin, Name: "signuplogin1"},
+						{Type: config.AuthenticationFlowTypeReauth, Name: "reauth1"},
+						{Type: config.AuthenticationFlowTypeAccountRecovery, Name: "recovery1"},
+					},
 				},
 			}
 
@@ -110,18 +119,20 @@ func TestFlowAllowlist(t *testing.T) {
 		Convey("When initialized with default group and allowlist", func() {
 			allowlist := &config.AuthenticationFlowAllowlist{
 				Flows: &[]config.AuthenticationFlowAllowlistFlow{
-					{Type: config.AuthenticationFlowAllowlistFlowTypeLogin, Name: "flow1"},
+					{Type: config.AuthenticationFlowTypeLogin, Name: "flow1"},
 				},
 			}
 			allGroups := []config.UIAuthenticationFlowGroup{
 				{
-					Name:                 "default",
-					SignupFlows:          []string{"signup1"},
-					PromoteFlows:         []string{"promote1"},
-					LoginFlows:           []string{"login1"},
-					SignupLoginFlows:     []string{"signuplogin1"},
-					ReauthFlows:          []string{"reauth1"},
-					AccountRecoveryFlows: []string{"recovery1"},
+					Name: "default",
+					Flows: []config.UIAuthenticationFlowGroupFlow{
+						{Type: config.AuthenticationFlowTypeSignup, Name: "signup1"},
+						{Type: config.AuthenticationFlowTypePromote, Name: "promote1"},
+						{Type: config.AuthenticationFlowTypeLogin, Name: "login1"},
+						{Type: config.AuthenticationFlowTypeSignupLogin, Name: "signuplogin1"},
+						{Type: config.AuthenticationFlowTypeReauth, Name: "reauth1"},
+						{Type: config.AuthenticationFlowTypeAccountRecovery, Name: "recovery1"},
+					},
 				},
 			}
 

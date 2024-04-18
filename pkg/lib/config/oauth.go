@@ -110,39 +110,6 @@ func (t OAuthClientApplicationType) PIIAllowedInIDToken() bool {
 	}
 }
 
-var _ = Schema.Add("AuthenticationFlowAllowlist", `
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"groups": { "type": "array", "items": { "type": "string", "minLength": 1 } },
-		"flows": { "type": "array", "items": { "$ref": "#/$defs/AuthenticationFlowAllowlistFlow" } }
-	}
-}
-`)
-
-var _ = Schema.Add("AuthenticationFlowAllowlistFlow", `
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"type": {
-			"type": "string",
-			"enum": [
-				"signup",
-				"promote",
-				"login",
-				"signup_login",
-				"reauth",
-				"account_recovery"
-			]
-		},
-		"name": { "type": "string", "minLength": 1 }
-	},
-	"required": ["type", "name"]
-}
-`)
-
 var _ = Schema.Add("OAuthClientConfig", `
 {
 	"type": "object",
@@ -233,9 +200,57 @@ type OAuthClientConfig struct {
 	AuthenticationFlowAllowlist            *AuthenticationFlowAllowlist `json:"x_authentication_flow_allowlist,omitempty"`
 }
 
+var _ = Schema.Add("AuthenticationFlowAllowlist", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"groups": { "type": "array", "items": { "$ref": "#/$defs/AuthenticationFlowAllowlistGroup" } },
+		"flows": { "type": "array", "items": { "$ref": "#/$defs/AuthenticationFlowAllowlistFlow" } }
+	}
+}
+`)
+
+var _ = Schema.Add("AuthenticationFlowAllowlistGroup", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"name": { "type": "string", "minLength": 1 }
+	},
+	"required": ["name"]
+}
+`)
+
+var _ = Schema.Add("AuthenticationFlowAllowlistFlow", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"type": {
+			"type": "string",
+			"enum": [
+				"signup",
+				"promote",
+				"login",
+				"signup_login",
+				"reauth",
+				"account_recovery"
+			]
+		},
+		"name": { "type": "string", "minLength": 1 }
+	},
+	"required": ["type", "name"]
+}
+`)
+
 type AuthenticationFlowAllowlist struct {
-	Groups *[]string                          `json:"groups,omitempty"`
-	Flows  *[]AuthenticationFlowAllowlistFlow `json:"flows,omitempty"`
+	Groups *[]AuthenticationFlowAllowlistGroup `json:"groups,omitempty"`
+	Flows  *[]AuthenticationFlowAllowlistFlow  `json:"flows,omitempty"`
+}
+
+type AuthenticationFlowAllowlistGroup struct {
+	Name string `json:"name"`
 }
 
 type AuthenticationFlowAllowlistFlow struct {

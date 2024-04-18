@@ -1077,7 +1077,7 @@ config:
       - http://example
       x_authentication_flow_allowlist:
         groups:
-        - missing
+        - name: missing
 ---
 name: authentication-flow-group-allowlist-default
 error: null
@@ -1093,7 +1093,7 @@ config:
       - http://example
       x_authentication_flow_allowlist:
         groups:
-        - default
+        - name: default
 ---
 name: authentication-flow-group-valid-custom
 error: null
@@ -1101,12 +1101,18 @@ config:
   id: test
   http:
     public_origin: http://test
+  authentication_flow:
+    login_flows:
+      - name: custom_login_1
+        steps:
+        - type: terminate_other_sessions
   ui:
     authentication_flow:
       groups:
       - name: custom_1
-        login_flows:
-        - custom_login_1
+        flows:
+        - type: login
+          name: custom_login_1
   oauth:
     clients:
     - client_id: client_1
@@ -1115,13 +1121,44 @@ config:
       - http://example
       x_authentication_flow_allowlist:
         groups:
-        - default
-        - custom_1
+        - name: default
+        - name: custom_1
+---
+name: authentication-flow-group-missing-login-flow
+error: |-
+  invalid configuration:
+  /ui/authentication_flow/groups/0: authentication flow group must contain one login flow
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication_flow:
+    signup_flows:
+      - name: custom_signup_1
+        steps:
+        - type: view_recovery_code
+  ui:
+    authentication_flow:
+      groups:
+      - name: custom_1
+        flows:
+        - type: signup
+          name: custom_signup_1
+  oauth:
+    clients:
+    - client_id: client_1
+      name: Client 1
+      redirect_uris:
+      - http://example
+      x_authentication_flow_allowlist:
+        groups:
+        - name: default
+        - name: custom_1
 ---
 name: authentication-flow-invalid-allowlist-flow
 error: |-
   invalid configuration:
-  /oauth/clients/0/authentication_flow_allowlist/flows: invalid authentication flow
+  /oauth/clients/0/authentication_flow_allowlist/flows/0: invalid authentication flow
 config:
   id: test
   http:

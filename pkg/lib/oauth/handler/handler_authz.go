@@ -629,20 +629,20 @@ func (h *AuthorizationHandler) validateUIImplementation(
 	case config.UIImplementationAuthflowV2:
 		fallthrough
 	case config.UIImplementationAuthflow:
-		// Enforce flow group in the request if the client has a flow group allowlist
+		// Validate flow group in the request if the client has a flow group allowlist
 		specifiedFlowGroup := r.AuthenticationFlowGroup()
 		if specifiedFlowGroup != "" {
-			if h.UIConfig.AuthenticationFlow.Groups == nil {
-				return protocol.NewError("invalid_request", "authentication flow group is not defined")
-			}
 			groupIsDefined := false
+			// Default group is builtin
 			if specifiedFlowGroup == "default" {
 				groupIsDefined = true
 			}
-			for _, definedGroup := range h.UIConfig.AuthenticationFlow.Groups {
-				if definedGroup.Name == specifiedFlowGroup {
-					groupIsDefined = true
-					break
+			if h.UIConfig.AuthenticationFlow.Groups != nil {
+				for _, definedGroup := range h.UIConfig.AuthenticationFlow.Groups {
+					if definedGroup.Name == specifiedFlowGroup {
+						groupIsDefined = true
+						break
+					}
 				}
 			}
 			if !groupIsDefined {
@@ -652,11 +652,11 @@ func (h *AuthorizationHandler) validateUIImplementation(
 			var groupIsAllowed bool
 			// Client may choose any flow groups if no group allowlist is defined.
 			if client.AuthenticationFlowAllowlist.Groups == nil {
-				return nil
+				groupIsAllowed = true
 			}
 
-			for _, allowedGroupName := range *client.AuthenticationFlowAllowlist.Groups {
-				if allowedGroupName == specifiedFlowGroup {
+			for _, allowedGroup := range *client.AuthenticationFlowAllowlist.Groups {
+				if allowedGroup.Name == specifiedFlowGroup {
 					groupIsAllowed = true
 					break
 				}

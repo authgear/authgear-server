@@ -32,7 +32,7 @@ func NewFlowAllowlist(allowlist *config.AuthenticationFlowAllowlist, definedGrou
 	}
 
 	// Merge default group allowlist
-	defaultGroupAllowlist := []string{"default"}
+	defaultGroupAllowlist := []config.AuthenticationFlowAllowlistGroup{{Name: "default"}}
 	a = append(a, fromGroupAllowlist(defaultGroupAllowlist, definedGroups)...)
 
 	// Deduplicate
@@ -73,12 +73,12 @@ func (a FlowAllowlist) CanCreateFlow(flowReference FlowReference) bool {
 	return slices.Contains(flowNames, flowReference.Name)
 }
 
-func fromGroupAllowlist(groups []string, definedGroups []config.UIAuthenticationFlowGroup) FlowAllowlist {
+func fromGroupAllowlist(groups []config.AuthenticationFlowAllowlistGroup, definedGroups []config.UIAuthenticationFlowGroup) FlowAllowlist {
 	a := FlowAllowlist{}
-	for _, groupName := range groups {
-		for _, group := range definedGroups {
-			if groupName == group.Name {
-				for _, flow := range group.Flows {
+	for _, group := range groups {
+		for _, definedGroup := range definedGroups {
+			if group.Name == definedGroup.Name {
+				for _, flow := range definedGroup.Flows {
 					a = append(a, FlowAllowlistFlow{
 						Type: FlowType(flow.Type),
 						Name: flow.Name,

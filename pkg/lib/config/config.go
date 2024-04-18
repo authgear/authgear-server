@@ -392,8 +392,13 @@ func validateDefinedGroups(ctx *validation.Context, config *UIAuthenticationFlow
 		}
 		definedGroups[group.Name] = struct{}{}
 
-		// Ensure defined groups contain defined flows
+		hasLoginFlow := false
 		for j, flow := range group.Flows {
+			if flow.Type == AuthenticationFlowTypeLogin {
+				hasLoginFlow = true
+			}
+
+			// Ensure defined groups contain defined flows
 			flowIsDefined := false
 			for _, definedFlow := range definedFlows {
 				if flow.Type == definedFlow.Type && flow.Name == definedFlow.Name {
@@ -405,18 +410,24 @@ func validateDefinedGroups(ctx *validation.Context, config *UIAuthenticationFlow
 				ctx.Child("ui", "authentication_flow", "groups", strconv.Itoa(i), "flows", strconv.Itoa(j)).EmitErrorMessage("invalid authentication flow")
 			}
 		}
+		// Require at least one login flow
+		if !hasLoginFlow {
+			ctx.Child("ui", "authentication_flow", "groups", strconv.Itoa(i)).EmitErrorMessage("authentication flow group must contain one login flow")
+		}
 	}
 }
 
-func validateGroupAllowlist(ctx *validation.Context, allowlist []string, definedlist []string, idx int) {
+func validateGroupAllowlist(ctx *validation.Context, allowlist []AuthenticationFlowAllowlistGroup, definedlist []string, idx int) {
 	for i, group := range allowlist {
 		groupIsDefined := false
-		if group == "default" {
+
+		// default group is builtin
+		if group.Name == "default" {
 			groupIsDefined = true
 		}
 
 		for _, definedGroup := range definedlist {
-			if group == definedGroup {
+			if group.Name == definedGroup {
 				groupIsDefined = true
 				break
 			}
@@ -432,6 +443,7 @@ func validateFlowAllowlist(ctx *validation.Context, allowlist []AuthenticationFl
 	for i, flow := range allowlist {
 		flowIsDefined := false
 
+		// default flow is builtin
 		if flow.Name == "default" {
 			flowIsDefined = true
 		}
