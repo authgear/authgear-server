@@ -47,7 +47,6 @@ type NodeCreateAuthenticatorTOTP struct {
 var _ authflow.NodeSimple = &NodeCreateAuthenticatorTOTP{}
 var _ authflow.Milestone = &NodeCreateAuthenticatorTOTP{}
 var _ MilestoneAuthenticationMethod = &NodeCreateAuthenticatorTOTP{}
-var _ MilestoneSwitchToExistingUser = &NodeCreateAuthenticatorTOTP{}
 var _ authflow.InputReactor = &NodeCreateAuthenticatorTOTP{}
 var _ authflow.DataOutputer = &NodeCreateAuthenticatorTOTP{}
 
@@ -89,10 +88,6 @@ func (*NodeCreateAuthenticatorTOTP) Kind() string {
 func (*NodeCreateAuthenticatorTOTP) Milestone() {}
 func (n *NodeCreateAuthenticatorTOTP) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
 	return n.Authentication
-}
-func (i *NodeCreateAuthenticatorTOTP) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
-	i.UserID = newUserID
-	return nil
 }
 
 func (n *NodeCreateAuthenticatorTOTP) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {

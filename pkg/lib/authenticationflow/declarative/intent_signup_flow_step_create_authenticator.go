@@ -62,7 +62,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) MilestoneSwitchToExistingUser(
 	i.UserID = newUserID
 	i.IsUpdatingExistingUser = true
 
-	milestone, ok := authflow.FindMilestone[MilestoneDoCreateAuthenticator](flow)
+	milestone, ok := authflow.FindFirstMilestone[MilestoneDoCreateAuthenticator](flow)
 	if ok {
 		authn := milestone.MilestoneDoCreateAuthenticator()
 		existing, err := i.findAuthenticatorOfSameType(deps, authn.Type)

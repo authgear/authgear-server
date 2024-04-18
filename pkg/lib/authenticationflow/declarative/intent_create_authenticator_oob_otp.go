@@ -38,10 +38,12 @@ func (i *IntentCreateAuthenticatorOOBOTP) MilestoneSwitchToExistingUser(deps *au
 	i.UserID = newUserID
 	i.IsUpdatingExistingUser = true
 
-	milestone, ok := authflow.FindMilestone[MilestoneDoCreateAuthenticator](flow)
+	// Skip creation was handled by the parent IntentSignupFlowStepCreateAuthenticator
+	// So don't need to do it here
+
+	milestoneVerifyClaim, ok := authflow.FindFirstMilestone[MilestoneVerifyClaim](flow)
 	if ok {
-		// TODO(tung): Check existing authenticators
-		milestone.MilestoneDoCreateAuthenticatorSkipCreate()
+		milestoneVerifyClaim.MilestoneVerifyClaimUpdateUserID(deps, flow, newUserID)
 	}
 
 	return nil

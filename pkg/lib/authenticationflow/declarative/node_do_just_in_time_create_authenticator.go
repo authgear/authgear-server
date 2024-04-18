@@ -36,6 +36,9 @@ func (n *NodeDoJustInTimeCreateAuthenticator) MilestoneDoCreateAuthenticator() *
 func (n *NodeDoJustInTimeCreateAuthenticator) MilestoneDoCreateAuthenticatorSkipCreate() {
 	n.SkipCreate = true
 }
+func (n *NodeDoJustInTimeCreateAuthenticator) MilestoneDoCreateAuthenticatorUpdate(newInfo *authenticator.Info) {
+	n.Authenticator = newInfo
+}
 
 func (n *NodeDoJustInTimeCreateAuthenticator) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (effs []authflow.Effect, err error) {
 	if n.SkipCreate {

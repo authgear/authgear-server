@@ -24,7 +24,7 @@ var _ authflow.EffectGetter = &NodeDoCreatePasskey{}
 var _ authflow.Milestone = &NodeDoCreatePasskey{}
 var _ MilestoneDoCreateIdentity = &NodeDoCreatePasskey{}
 var _ MilestoneDoCreateAuthenticator = &NodeDoCreatePasskey{}
-var _ MilestoneSwitchToExistingUser = &NodeDoCreatePasskey{}
+var _ MilestoneDoCreatePasskey = &NodeDoCreatePasskey{}
 
 func (n *NodeDoCreatePasskey) Kind() string {
 	return "NodeDoCreatePasskey"
@@ -40,15 +40,18 @@ func (n *NodeDoCreatePasskey) MilestoneDoCreateAuthenticator() *authenticator.In
 func (n *NodeDoCreatePasskey) MilestoneDoCreateAuthenticatorSkipCreate() {
 	n.SkipCreate = true
 }
+func (n *NodeDoCreatePasskey) MilestoneDoCreateAuthenticatorUpdate(newInfo *authenticator.Info) {
+	panic("NodeDoCreatePasskey does not support update authenticator")
+}
 func (n *NodeDoCreatePasskey) MilestoneDoCreateIdentitySkipCreate() {
 	n.SkipCreate = true
 }
-
-func (i *NodeDoCreatePasskey) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
-	// One user could have multiple passkey, so just create it for the existing user
-	i.Identity = i.Identity.UpdateUserID(newUserID)
-	i.Authenticator = i.Authenticator.UpdateUserID(newUserID)
-	return nil
+func (n *NodeDoCreatePasskey) MilestoneDoCreateIdentityUpdate(newInfo *identity.Info) {
+	panic("NodeDoCreatePasskey does not support update identity")
+}
+func (n *NodeDoCreatePasskey) MilestoneDoCreatePasskeyUpdateUserID(userID string) {
+	n.Identity = n.Identity.UpdateUserID(userID)
+	n.Authenticator = n.Authenticator.UpdateUserID(userID)
 }
 
 func (n *NodeDoCreatePasskey) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (effs []authflow.Effect, err error) {

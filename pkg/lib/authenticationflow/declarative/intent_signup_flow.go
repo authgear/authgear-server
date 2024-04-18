@@ -23,6 +23,8 @@ type IntentSignupFlow struct {
 
 var _ authflow.PublicFlow = &IntentSignupFlow{}
 var _ authflow.EffectGetter = &IntentSignupFlow{}
+var _ authflow.Milestone = &IntentSignupFlow{}
+var _ MilestoneSwitchToExistingUser = &IntentSignupFlow{}
 
 func (*IntentSignupFlow) Kind() string {
 	return "IntentSignupFlow"
@@ -42,6 +44,15 @@ func (i *IntentSignupFlow) FlowFlowReference() authflow.FlowReference {
 
 func (i *IntentSignupFlow) FlowRootObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
 	return flowRootObject(deps, i.FlowReference)
+}
+
+func (*IntentSignupFlow) Milestone() {}
+func (i *IntentSignupFlow) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
+	milestone, ok := authflow.FindFirstMilestone[MilestoneDoCreateUser](flow)
+	if ok {
+		milestone.MilestoneDoCreateUserUseExisting(newUserID)
+	}
+	return nil
 }
 
 func (i *IntentSignupFlow) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {

@@ -20,7 +20,6 @@ var _ authflow.Milestone = &NodeDoCreateUser{}
 var _ MilestoneDoUseUser = &NodeDoCreateUser{}
 var _ MilestoneDoCreateUser = &NodeDoCreateUser{}
 var _ authflow.EffectGetter = &NodeDoCreateUser{}
-var _ MilestoneSwitchToExistingUser = &NodeDoCreateUser{}
 
 func (n *NodeDoCreateUser) Kind() string {
 	return "NodeDoCreateUser"
@@ -34,12 +33,11 @@ func (n *NodeDoCreateUser) MilestoneDoCreateUser() string {
 	}
 	return n.UserID
 }
-func (n *NodeDoCreateUser) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
-	n.UserID = newUserID
-	// MilestoneSwitchToExistingUser is used in cases that the flow wants to update an existing user
+func (n *NodeDoCreateUser) MilestoneDoCreateUserUseExisting(userID string) {
+	n.UserID = userID
+	// MilestoneDoCreateUserUseExisting is used in cases that the flow wants to update an existing user
 	// instead of creating new user, so set SkipCreation to true
 	n.SkipCreation = true
-	return nil
 }
 
 func (n *NodeDoCreateUser) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (effs []authflow.Effect, err error) {

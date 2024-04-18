@@ -7,20 +7,30 @@ type Milestone interface {
 	Milestone()
 }
 
+func FindFirstMilestone[T Milestone](w *Flow) (T, bool) {
+	return findMilestone[T](w, true)
+}
+
 func FindMilestone[T Milestone](w *Flow) (T, bool) {
+	return findMilestone[T](w, false)
+}
+
+func findMilestone[T Milestone](w *Flow, stopOnFirst bool) (T, bool) {
 	var t T
 	found := false
 
 	err := TraverseFlow(Traverser{
 		NodeSimple: func(nodeSimple NodeSimple, _ *Flow) error {
-			if m, ok := nodeSimple.(T); ok {
+			if m, ok := nodeSimple.(T); ok && (!stopOnFirst || found) {
+
 				t = m
 				found = true
+
 			}
 			return nil
 		},
 		Intent: func(intent Intent, w *Flow) error {
-			if m, ok := intent.(T); ok {
+			if m, ok := intent.(T); ok && (!stopOnFirst || found) {
 				t = m
 				found = true
 			}

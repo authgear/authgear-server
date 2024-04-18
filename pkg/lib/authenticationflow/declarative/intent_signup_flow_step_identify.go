@@ -35,7 +35,7 @@ func (i *IntentSignupFlowStepIdentify) MilestoneSwitchToExistingUser(deps *authf
 	i.IsUpdatingExistingUser = true
 	i.UserID = newUserID
 
-	milestoneDoCreateIdentity, ok := authflow.FindMilestone[MilestoneDoCreateIdentity](flow)
+	milestoneDoCreateIdentity, ok := authflow.FindFirstMilestone[MilestoneDoCreateIdentity](flow)
 	if ok {
 		iden := milestoneDoCreateIdentity.MilestoneDoCreateIdentity()
 		idenSpec := iden.ToSpec()
@@ -45,9 +45,11 @@ func (i *IntentSignupFlowStepIdentify) MilestoneSwitchToExistingUser(deps *authf
 		}
 		if idenWithSameType != nil {
 			milestoneDoCreateIdentity.MilestoneDoCreateIdentitySkipCreate()
+		} else {
+			milestoneDoCreateIdentity.MilestoneDoCreateIdentityUpdate(iden.UpdateUserID(newUserID))
 		}
 	}
-	milestoneDoPopulateStandardAttributes, ok := authflow.FindMilestone[MilestoneDoPopulateStandardAttributes](flow)
+	milestoneDoPopulateStandardAttributes, ok := authflow.FindFirstMilestone[MilestoneDoPopulateStandardAttributes](flow)
 	if ok {
 		// Always skip population
 		milestoneDoPopulateStandardAttributes.MilestoneDoPopulateStandardAttributesSkip()

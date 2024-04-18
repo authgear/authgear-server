@@ -32,6 +32,20 @@ func (*IntentSignupFlowStepPromptCreatePasskey) Kind() string {
 func (i *IntentSignupFlowStepPromptCreatePasskey) Milestone() {}
 func (i *IntentSignupFlowStepPromptCreatePasskey) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
 	i.UserID = newUserID
+
+	milestoneDoCreateIdentity, ok := authflow.FindFirstMilestone[MilestoneDoCreateIdentity](flow)
+	if ok {
+		iden := milestoneDoCreateIdentity.MilestoneDoCreateIdentity()
+		milestoneDoCreateIdentity.MilestoneDoCreateIdentityUpdate(iden.UpdateUserID(newUserID))
+	}
+
+	milestoneDoCreateAuthenticator, ok := authflow.FindFirstMilestone[MilestoneDoCreateAuthenticator](flow)
+	if ok {
+		authn := milestoneDoCreateAuthenticator.MilestoneDoCreateAuthenticator()
+		milestoneDoCreateAuthenticator.MilestoneDoCreateAuthenticatorUpdate(authn.UpdateUserID(newUserID))
+
+	}
+
 	return nil
 }
 
