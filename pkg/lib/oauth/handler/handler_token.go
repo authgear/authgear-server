@@ -372,7 +372,11 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 	// verify pkce
 	needVerifyPKCE := client.IsPublic() || codeGrant.AuthorizationRequest.CodeChallenge() != "" || r.CodeVerifier() != ""
 	if needVerifyPKCE {
-		if codeGrant.AuthorizationRequest.CodeChallenge() == "" || r.CodeVerifier() == "" || !pkce.NewS256Verifier(r.CodeVerifier()).Verify(codeGrant.AuthorizationRequest.CodeChallenge()) {
+		v, err := pkce.NewS256Verifier(r.CodeVerifier())
+		if err != nil {
+			return nil, errInvalidAuthzCode
+		}
+		if !v.Verify(codeGrant.AuthorizationRequest.CodeChallenge()) {
 			return nil, errInvalidAuthzCode
 		}
 	}
@@ -1312,7 +1316,11 @@ func (h *TokenHandler) IssueTokensForSettingsActionCode(
 	// verify pkce
 	needVerifyPKCE := client.IsPublic() || settingsActionGrant.AuthorizationRequest.CodeChallenge() != "" || r.CodeVerifier() != ""
 	if needVerifyPKCE {
-		if settingsActionGrant.AuthorizationRequest.CodeChallenge() == "" || r.CodeVerifier() == "" || !pkce.NewS256Verifier(r.CodeVerifier()).Verify(settingsActionGrant.AuthorizationRequest.CodeChallenge()) {
+		v, err := pkce.NewS256Verifier(r.CodeVerifier())
+		if err != nil {
+			return nil, errInvalidAuthzCode
+		}
+		if !v.Verify(settingsActionGrant.AuthorizationRequest.CodeChallenge()) {
 			return nil, errInvalidAuthzCode
 		}
 	}
