@@ -404,9 +404,14 @@ func (c *AuthflowController) GetScreen(s *webapp.Session, xStep string) (*webapp
 }
 
 func (c *AuthflowController) createAuthflow(r *http.Request, s *webapp.Session, flowType authflow.FlowType) (*authflow.ServiceOutput, error) {
-	flowName, err := c.deriveFlowName(s.OAuthSessionID, flowType)
-	if err != nil {
-		return nil, err
+	flowName := "default"
+
+	if s.OAuthSessionID != "" {
+		var err error
+		flowName, err = c.deriveFlowNameFromOAuthSession(s.OAuthSessionID, flowType)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	flowReference := authflow.FlowReference{
@@ -835,26 +840,44 @@ func (c *AuthflowController) makeSessionOptionsFromOAuth(oauthSessionID string) 
 	return sessionOptions, nil
 }
 
-func (c *AuthflowController) deriveFlowName(oauthSessionID string, flowType authflow.FlowType) (string, error) {
+func (c *AuthflowController) deriveFlowNameFromOAuthSession(oauthSessionID string, flowType authflow.FlowType) (string, error) {
 	entry, err := c.OAuthSessions.Get(oauthSessionID)
 	if err != nil {
 		return "", err
 	}
-	req := entry.T.AuthorizationRequest
 
-	// Default UI enforces flow group in authorization request if specified.
+	req := entry.T.AuthorizationRequest
 	specifiedFlowGroup := req.AuthenticationFlowGroup()
-	if specifiedFlowGroup != "" {
-		if c.UIConfig.AuthenticationFlow.Groups == nil {
+	client := c.OAuthClientResolver.ResolveClient(req.ClientID())
+
+	return DeriveFlowName(
+		flowType,
+		specifiedFlowGroup,
+		client.AuthenticationFlowAllowlist,
+		c.UIConfig.AuthenticationFlow.Groups,
+	)
+}
+
+func DeriveFlowName(flowType authflow.FlowType, flowGroup string, clientAllowlist *config.AuthenticationFlowAllowlist, definedGroups []*config.UIAuthenticationFlowGroup) (string, error) {
+	// Derive flow name from flow group.
+	if flowGroup != "" {
+		groupIsAllowed := false
+		if clientAllowlist == nil {
+			groupIsAllowed = true
+		}
+		for _, group := range clientAllowlist.Groups {
+			if group.Name == flowGroup {
+				groupIsAllowed = true
+				break
+			}
+		}
+		if !groupIsAllowed {
 			return "", authflow.ErrFlowNotFound
 		}
 
 		groupFlowName := ""
-		if specifiedFlowGroup == "default" {
-			groupFlowName = "default"
-		}
-		for _, group := range c.UIConfig.AuthenticationFlow.Groups {
-			if group.Name == specifiedFlowGroup {
+		for _, group := range definedGroups {
+			if group.Name == flowGroup {
 				for _, flow := range group.Flows {
 					if authenticationflow.FlowType(flow.Type) == flowType {
 						groupFlowName = flow.Name
@@ -871,9 +894,7 @@ func (c *AuthflowController) deriveFlowName(oauthSessionID string, flowType auth
 	}
 
 	// Derive flow name from client configuration.
-	client := c.OAuthClientResolver.ResolveClient(req.ClientID())
-	allowlist := authflow.NewFlowAllowlist(client.AuthenticationFlowAllowlist, c.UIConfig.AuthenticationFlow.Groups)
-
+	allowlist := authflow.NewFlowAllowlist(clientAllowlist, definedGroups)
 	return allowlist.GetMostAppropriateFlowName(flowType), nil
 }
 

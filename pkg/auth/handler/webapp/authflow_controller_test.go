@@ -19,8 +19,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
-	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
@@ -243,12 +241,6 @@ func TestAuthflowControllerCreateScreen(t *testing.T) {
 				},
 			}, nil)
 			mockSessionStore.EXPECT().Update(gomock.Any()).Times(1).Return(nil)
-			mockOAuthSessions.EXPECT().Get(gomock.Any()).Times(1).Return(&oauthsession.Entry{
-				T: oauthsession.T{
-					AuthorizationRequest: protocol.AuthorizationRequest{},
-				},
-			}, nil)
-			mockOAuthClientResolver.EXPECT().ResolveClient(gomock.Any()).Times(1).Return(&config.OAuthClientConfig{})
 
 			screen, err := c.createScreen(r, s, authflow.FlowTypeLogin, nil)
 			So(err, ShouldBeNil)
@@ -417,6 +409,95 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 			result, err := c.AdvanceWithInput(r, s, screen, input, nil)
 			So(err, ShouldBeNil)
 			So(strings.HasPrefix(result.RedirectURI, "/authflow/enter_oob_otp?x_step="), ShouldBeTrue)
+		})
+	})
+}
+
+func TestDeriveFlowName(t *testing.T) {
+	Convey("DeriveFlowName", t, func() {
+		Convey("When the flow group is not empty and is allowed", func() {
+			clientAllowlist := &config.AuthenticationFlowAllowlist{
+				Groups: []*config.AuthenticationFlowAllowlistGroup{
+					{
+						Name: "group-1",
+					},
+				},
+			}
+			definedGroups := []*config.UIAuthenticationFlowGroup{
+				{
+					Name: "group-1",
+					Flows: []*config.UIAuthenticationFlowGroupFlow{
+						{
+							Type: config.AuthenticationFlowTypeLogin,
+							Name: "flow-1",
+						},
+					},
+				},
+			}
+
+			Convey("It should return the correct flow name", func() {
+				flowName, err := DeriveFlowName(authflow.FlowTypeLogin, "group-1", clientAllowlist, definedGroups)
+				So(err, ShouldBeNil)
+				So(flowName, ShouldEqual, "flow-1")
+			})
+
+			Convey("It should return error for undefined flow", func() {
+				_, err := DeriveFlowName(authflow.FlowTypeSignup, "group-1", clientAllowlist, definedGroups)
+				So(err, ShouldBeError)
+			})
+		})
+
+		Convey("When the flow group is not empty but is not allowed", func() {
+			clientAllowlist := &config.AuthenticationFlowAllowlist{
+				Groups: []*config.AuthenticationFlowAllowlistGroup{
+					{
+						Name: "group-2",
+					},
+				},
+			}
+			definedGroups := []*config.UIAuthenticationFlowGroup{
+				{
+					Name: "group-1",
+					Flows: []*config.UIAuthenticationFlowGroupFlow{
+						{
+							Type: config.AuthenticationFlowTypeSignup,
+							Name: "flow-1",
+						},
+					},
+				},
+			}
+
+			Convey("It should return an error", func() {
+				_, err := DeriveFlowName(authflow.FlowTypeSignup, "group-1", clientAllowlist, definedGroups)
+				So(err, ShouldEqual, authflow.ErrFlowNotFound)
+			})
+		})
+
+		Convey("When the flow group is empty", func() {
+			clientAllowlist := &config.AuthenticationFlowAllowlist{
+				Groups: []*config.AuthenticationFlowAllowlistGroup{
+					{
+						Name: "group-1",
+					},
+				},
+			}
+			definedGroups := []*config.UIAuthenticationFlowGroup{
+				{
+					Name: "group-1",
+					Flows: []*config.UIAuthenticationFlowGroupFlow{
+						{
+							Type: config.AuthenticationFlowTypeLogin,
+							Name: "flow-1",
+						},
+					},
+				},
+			}
+
+			Convey("It should return the most appropriate flow name and no error", func() {
+				flowName, err := DeriveFlowName(authflow.FlowTypeLogin, "", clientAllowlist, definedGroups)
+				So(err, ShouldBeNil)
+				So(flowName, ShouldNotBeEmpty)
+			})
 		})
 	})
 }
