@@ -135,8 +135,7 @@ var _ = Schema.Add("AuthenticationFlowAllowlistFlow", `
 				"signup_login",
 				"reauth",
 				"account_recovery"
-			],
-			"minLength": 1
+			]
 		},
 		"name": { "type": "string", "minLength": 1 }
 	},
@@ -266,10 +265,6 @@ const (
 	AuthenticationFlowAllowlistFlowTypeReauth          AuthenticationFlowAllowlistFlowType = "reauth"
 	AuthenticationFlowAllowlistFlowTypeAccountRecovery AuthenticationFlowAllowlistFlowType = "account_recovery"
 )
-
-func (flow AuthenticationFlowAllowlistFlow) Compare(other AuthenticationFlowAllowlistFlow) bool {
-	return flow.Type == other.Type && flow.Name == other.Name
-}
 
 func (c *OAuthClientConfig) DefaultRedirectURI() string {
 	if len(c.RedirectURIs) > 0 {

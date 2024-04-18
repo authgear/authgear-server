@@ -381,7 +381,7 @@ func validateFlowAllowlist(ctx *validation.Context, allowlist []AuthenticationFl
 		}
 
 		for _, definedFlow := range definedlist {
-			if flow.Compare(definedFlow) {
+			if flow == definedFlow {
 				flowIsDefined = true
 				break
 			}
