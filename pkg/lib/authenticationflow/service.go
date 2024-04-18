@@ -277,17 +277,21 @@ func (s *Service) FeedInput(stateToken string, rawMessage json.RawMessage) (outp
 		return err
 	})
 
-	// Handle switch flow.
 	var errSwitchFlow *ErrorSwitchFlow
-	if errors.As(err, &errSwitchFlow) {
-		output, err = s.switchFlow(session, errSwitchFlow)
-		return
+	var errRewriteFlow *ErrorRewriteFlow
+	isSpecialError := false
+	for errors.As(err, &errSwitchFlow) || errors.As(err, &errRewriteFlow) {
+		isSpecialError = true
+		if errors.As(err, &errSwitchFlow) {
+			output, err = s.switchFlow(session, errSwitchFlow)
+		}
+
+		if errors.As(err, &errRewriteFlow) {
+			output, err = s.rewriteFlow(session, errRewriteFlow)
+		}
 	}
 
-	// Handle rewrite flow.
-	var errRewriteFlow *ErrorRewriteFlow
-	if errors.As(err, &errRewriteFlow) {
-		output, err = s.rewriteFlow(session, errRewriteFlow)
+	if isSpecialError {
 		return
 	}
 
