@@ -28,14 +28,24 @@ type IntentVerifyClaim struct {
 var _ authflow.Intent = &IntentVerifyClaim{}
 var _ authflow.DataOutputer = &IntentVerifyClaim{}
 var _ authflow.Milestone = &IntentVerifyClaim{}
-var _ MilestoneDoMarkClaimVerified = &IntentVerifyClaim{}
+var _ MilestoneVerifyClaim = &IntentVerifyClaim{}
 
 func (*IntentVerifyClaim) Kind() string {
 	return "IntentVerifyClaim"
 }
 
-func (*IntentVerifyClaim) Milestone()                    {}
-func (*IntentVerifyClaim) MilestoneDoMarkClaimVerified() {}
+func (*IntentVerifyClaim) Milestone()            {}
+func (*IntentVerifyClaim) MilestoneVerifyClaim() {}
+func (i *IntentVerifyClaim) MilestoneVerifyClaimUpdateUserID(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
+	i.UserID = newUserID
+
+	milestone, ok := authflow.FindFirstMilestone[MilestoneDoMarkClaimVerified](flow)
+	if ok {
+		milestone.MilestoneDoMarkClaimVerifiedUpdateUserID(newUserID)
+	}
+
+	return nil
+}
 
 func (i *IntentVerifyClaim) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	if len(flows.Nearest.Nodes) == 0 {

@@ -130,18 +130,26 @@ type MilestoneDoCreateSession interface {
 type MilestoneDoCreateUser interface {
 	authflow.Milestone
 	MilestoneDoCreateUser() string
+	MilestoneDoCreateUserUseExisting(userID string)
 }
 
 type MilestoneDoCreateIdentity interface {
 	authflow.Milestone
 	MilestoneDoCreateIdentity() *identity.Info
 	MilestoneDoCreateIdentitySkipCreate()
+	MilestoneDoCreateIdentityUpdate(newInfo *identity.Info)
 }
 
 type MilestoneDoCreateAuthenticator interface {
 	authflow.Milestone
 	MilestoneDoCreateAuthenticator() *authenticator.Info
 	MilestoneDoCreateAuthenticatorSkipCreate()
+	MilestoneDoCreateAuthenticatorUpdate(newInfo *authenticator.Info)
+}
+
+type MilestoneDoCreatePasskey interface {
+	authflow.Milestone
+	MilestoneDoCreatePasskeyUpdateUserID(userID string)
 }
 
 type MilestoneDoUseUser interface {
@@ -191,9 +199,16 @@ type MilestoneDoPopulateStandardAttributes interface {
 	MilestoneDoPopulateStandardAttributesSkip()
 }
 
+type MilestoneVerifyClaim interface {
+	authflow.Milestone
+	MilestoneVerifyClaim()
+	MilestoneVerifyClaimUpdateUserID(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error
+}
+
 type MilestoneDoMarkClaimVerified interface {
 	authflow.Milestone
 	MilestoneDoMarkClaimVerified()
+	MilestoneDoMarkClaimVerifiedUpdateUserID(newUserID string)
 }
 
 type MilestoneDeviceTokenInspected interface {
@@ -224,4 +239,14 @@ type MilestoneDidReauthenticate interface {
 type MilestoneSwitchToExistingUser interface {
 	authflow.Milestone
 	MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error
+}
+
+type MilestoneDoReplaceRecoveryCode interface {
+	authflow.Milestone
+	MilestoneDoReplaceRecoveryCodeUpdateUserID(newUserID string)
+}
+
+type MilestoneDoUpdateUserProfile interface {
+	authflow.Milestone
+	MilestoneDoUpdateUserProfileSkip()
 }

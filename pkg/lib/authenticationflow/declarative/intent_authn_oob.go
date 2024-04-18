@@ -37,6 +37,9 @@ func (*IntentAuthenticationOOB) Kind() string {
 
 func (*IntentAuthenticationOOB) Milestone()                    {}
 func (*IntentAuthenticationOOB) MilestoneDoMarkClaimVerified() {}
+func (i *IntentAuthenticationOOB) MilestoneDoMarkClaimVerifiedUpdateUserID(newUserID string) {
+	i.UserID = newUserID
+}
 
 func (i *IntentAuthenticationOOB) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	if len(flows.Nearest.Nodes) == 0 {

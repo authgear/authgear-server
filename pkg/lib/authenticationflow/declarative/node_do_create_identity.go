@@ -32,6 +32,9 @@ func (n *NodeDoCreateIdentity) MilestoneDoCreateIdentity() *identity.Info {
 func (n *NodeDoCreateIdentity) MilestoneDoCreateIdentitySkipCreate() {
 	n.SkipCreate = true
 }
+func (n *NodeDoCreateIdentity) MilestoneDoCreateIdentityUpdate(newInfo *identity.Info) {
+	n.Identity = newInfo
+}
 
 func (n *NodeDoCreateIdentity) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (effs []authflow.Effect, err error) {
 	if n.SkipCreate {

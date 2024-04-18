@@ -18,18 +18,15 @@ type NodeDoReplaceRecoveryCode struct {
 var _ authflow.NodeSimple = &NodeDoReplaceRecoveryCode{}
 var _ authflow.EffectGetter = &NodeDoReplaceRecoveryCode{}
 var _ authflow.Milestone = &NodeDoReplaceRecoveryCode{}
-var _ MilestoneSwitchToExistingUser = &NodeDoReplaceRecoveryCode{}
+var _ MilestoneDoReplaceRecoveryCode = &NodeDoReplaceRecoveryCode{}
 
 func (*NodeDoReplaceRecoveryCode) Kind() string {
 	return "NodeDoReplaceRecoveryCode"
 }
 
 func (*NodeDoReplaceRecoveryCode) Milestone() {}
-func (i *NodeDoReplaceRecoveryCode) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
-	// This node exist only if recovery code has already been shown to user,
-	// Therefore, we should still replace the code if this node was created
-	i.UserID = newUserID
-	return nil
+func (n *NodeDoReplaceRecoveryCode) MilestoneDoReplaceRecoveryCodeUpdateUserID(newUserID string) {
+	n.UserID = newUserID
 }
 
 func (n *NodeDoReplaceRecoveryCode) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (effs []authflow.Effect, err error) {

@@ -26,13 +26,8 @@ var _ authflow.NodeSimple = &NodeCreateIdentityLoginID{}
 var _ authflow.Milestone = &NodeCreateIdentityLoginID{}
 var _ MilestoneIdentificationMethod = &NodeCreateIdentityLoginID{}
 var _ authflow.InputReactor = &NodeCreateIdentityLoginID{}
-var _ MilestoneSwitchToExistingUser = &NodeCreateIdentityLoginID{}
 
 func (*NodeCreateIdentityLoginID) Milestone() {}
-func (i *NodeCreateIdentityLoginID) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
-	i.UserID = newUserID
-	return nil
-}
 
 func (*NodeCreateIdentityLoginID) Kind() string {
 	return "NodeCreateIdentityLoginID"
