@@ -117,7 +117,5 @@ func (h *AuthflowPromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		return nil
 	})
 
-	h.Controller.HandleStartOfFlow(w, r, opts, authflow.FlowReference{
-		Type: authflow.FlowTypePromote,
-	}, &handlers, nil)
+	h.Controller.HandleStartOfFlow(w, r, opts, authflow.FlowTypePromote, &handlers, nil)
 }

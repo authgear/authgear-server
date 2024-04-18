@@ -37,7 +37,5 @@ func (h *AuthflowReauthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return nil
 	})
 
-	h.Controller.HandleStartOfFlow(w, r, opts, authflow.FlowReference{
-		Type: authflow.FlowTypeReauth,
-	}, &handlers, nil)
+	h.Controller.HandleStartOfFlow(w, r, opts, authflow.FlowTypeReauth, &handlers, nil)
 }

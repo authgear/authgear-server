@@ -280,9 +280,7 @@ func (h *AuthflowV2ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		}
 	}
 
-	h.Controller.HandleStartOfFlow(w, r, webapp.SessionOptions{}, authflow.FlowReference{
-		Type: authflow.FlowTypeAccountRecovery,
-	}, &handlers, input)
+	h.Controller.HandleStartOfFlow(w, r, webapp.SessionOptions{}, authflow.FlowTypeAccountRecovery, &handlers, input)
 }
 
 func (h *AuthflowV2ForgotPasswordHandler) fallbackToSMS(

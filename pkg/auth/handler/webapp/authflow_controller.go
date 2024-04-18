@@ -133,7 +133,7 @@ func (c *AuthflowController) HandleStartOfFlow(
 	w http.ResponseWriter,
 	r *http.Request,
 	opts webapp.SessionOptions,
-	flowReference authflow.FlowReference,
+	flowType authflow.FlowType,
 	handlers *AuthflowControllerHandlers,
 	input interface{}) {
 	if err := r.ParseForm(); err != nil {
@@ -156,7 +156,7 @@ func (c *AuthflowController) HandleStartOfFlow(
 	screen, err := c.GetScreen(s, GetXStepFromQuery(r))
 	if err != nil {
 		if errors.Is(err, authflow.ErrFlowNotFound) {
-			screen, err := c.createScreen(r, s, flowReference, input)
+			screen, err := c.createScreen(r, s, flowType, input)
 			if errors.Is(err, declarative.ErrNoPublicSignup) {
 				c.renderError(w, r, err)
 				return
@@ -403,12 +403,16 @@ func (c *AuthflowController) GetScreen(s *webapp.Session, xStep string) (*webapp
 	return screenWithResponse, nil
 }
 
-func (c *AuthflowController) createAuthflow(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference) (*authflow.ServiceOutput, error) {
-	flowName, err := c.deriveFlowName(s.OAuthSessionID, flowReference.Type)
+func (c *AuthflowController) createAuthflow(r *http.Request, s *webapp.Session, flowType authflow.FlowType) (*authflow.ServiceOutput, error) {
+	flowName, err := c.deriveFlowName(s.OAuthSessionID, flowType)
 	if err != nil {
 		return nil, err
 	}
-	flowReference.Name = flowName
+
+	flowReference := authflow.FlowReference{
+		Name: flowName,
+		Type: flowType,
+	}
 
 	flow, err := authflow.InstantiateFlow(flowReference, jsonpointer.T{})
 	if err != nil {
@@ -439,11 +443,11 @@ func (c *AuthflowController) createAuthflow(r *http.Request, s *webapp.Session, 
 }
 
 // ReplaceScreen is for switching flow.
-func (c *AuthflowController) ReplaceScreen(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference, input map[string]interface{}) (result *webapp.Result, err error) {
+func (c *AuthflowController) ReplaceScreen(r *http.Request, s *webapp.Session, flowType authflow.FlowType, input map[string]interface{}) (result *webapp.Result, err error) {
 	var screen *webapp.AuthflowScreenWithFlowResponse
 	result = &webapp.Result{}
 
-	output, err := c.createAuthflow(r, s, flowReference)
+	output, err := c.createAuthflow(r, s, flowType)
 	if err != nil {
 		return
 	}
@@ -523,9 +527,9 @@ func (c *AuthflowController) createScreenWithOutput(
 func (c *AuthflowController) createScreen(
 	r *http.Request,
 	s *webapp.Session,
-	flowReference authflow.FlowReference,
+	flowType authflow.FlowType,
 	input interface{}) (screen *webapp.AuthflowScreenWithFlowResponse, err error) {
-	output1, err := c.createAuthflow(r, s, flowReference)
+	output1, err := c.createAuthflow(r, s, flowType)
 	if err != nil {
 		return
 	}

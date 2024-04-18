@@ -250,10 +250,7 @@ func TestAuthflowControllerCreateScreen(t *testing.T) {
 			}, nil)
 			mockOAuthClientResolver.EXPECT().ResolveClient(gomock.Any()).Times(1).Return(&config.OAuthClientConfig{})
 
-			screen, err := c.createScreen(r, s, authflow.FlowReference{
-				Type: authflow.FlowTypeLogin,
-				Name: "default",
-			}, nil)
+			screen, err := c.createScreen(r, s, authflow.FlowTypeLogin, nil)
 			So(err, ShouldBeNil)
 			So(screen, ShouldNotBeNil)
 			So(string(screen.BranchStateTokenFlowResponse.Type), ShouldEqual, "login")
