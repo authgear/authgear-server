@@ -179,7 +179,7 @@ var _ = Schema.Add("UIAuthenticationFlowGroupFlow", `
 				"account_recovery"
 			]
 		},
-		"name": { "type": "string", "minLength": 1 }
+		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" }
 	}
 }
 `)
