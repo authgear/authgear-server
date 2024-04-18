@@ -43,7 +43,7 @@ func (i *IntentCreateAuthenticatorOOBOTP) MilestoneSwitchToExistingUser(deps *au
 
 	milestoneVerifyClaim, ok := authflow.FindFirstMilestone[MilestoneVerifyClaim](flow)
 	if ok {
-		milestoneVerifyClaim.MilestoneVerifyClaimUpdateUserID(deps, flow, newUserID)
+		return milestoneVerifyClaim.MilestoneVerifyClaimUpdateUserID(deps, flow, newUserID)
 	}
 
 	return nil
