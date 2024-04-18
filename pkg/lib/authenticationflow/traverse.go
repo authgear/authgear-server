@@ -119,18 +119,23 @@ func TraverseIntentFromEndToRoot(t IntentTraverser, w *Flow) error {
 
 	lastNode := findLastNodeInFlow(w)
 	if lastNode, ok := lastNode.(Intent); ok && lastNode != nil {
-		t(lastNode)
+		err := t(lastNode)
+		if err != nil {
+			return err
+		}
 	}
 
-	var recursivelyTraverseParent func(n NodeOrIntent)
-	recursivelyTraverseParent = func(n NodeOrIntent) {
+	var recursivelyTraverseParent func(n NodeOrIntent) error
+	recursivelyTraverseParent = func(n NodeOrIntent) error {
 		parent := parentMap[n]
 		if parent != nil {
-			t(parent)
-			recursivelyTraverseParent(parent)
+			err := t(parent)
+			if err != nil {
+				return err
+			}
+			return recursivelyTraverseParent(parent)
 		}
-		return
+		return nil
 	}
-	recursivelyTraverseParent(lastNode)
-	return nil
+	return recursivelyTraverseParent(lastNode)
 }

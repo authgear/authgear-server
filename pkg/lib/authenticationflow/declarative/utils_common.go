@@ -183,7 +183,7 @@ func flowRootObjectForAccountRecoveryFlow(deps *authflow.Dependencies, flowRefer
 
 func findFlowRootObjectInFlow(deps *authflow.Dependencies, flows authflow.Flows) (config.AuthenticationFlowObject, error) {
 	var nearestPublicFlow authflow.PublicFlow
-	authflow.TraverseIntentFromEndToRoot(func(intent authflow.Intent) error {
+	_ = authflow.TraverseIntentFromEndToRoot(func(intent authflow.Intent) error {
 		if nearestPublicFlow != nil {
 			return nil
 		}
