@@ -18,11 +18,12 @@ func init() {
 }
 
 type IntentSignupFlowStepIdentify struct {
-	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
-	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
-	StepName      string                 `json:"step_name,omitempty"`
-	UserID        string                 `json:"user_id,omitempty"`
-	Options       []IdentificationOption `json:"options,omitempty"`
+	FlowReference          authflow.FlowReference `json:"flow_reference,omitempty"`
+	JSONPointer            jsonpointer.T          `json:"json_pointer,omitempty"`
+	StepName               string                 `json:"step_name,omitempty"`
+	UserID                 string                 `json:"user_id,omitempty"`
+	Options                []IdentificationOption `json:"options,omitempty"`
+	IsUpdatingExistingUser bool                   `json:"is_updating_existing_user,omitempty"`
 }
 
 var _ authflow.TargetStep = &IntentSignupFlowStepIdentify{}
@@ -30,8 +31,28 @@ var _ authflow.Milestone = &IntentSignupFlowStepIdentify{}
 var _ MilestoneSwitchToExistingUser = &IntentSignupFlowStepIdentify{}
 
 func (*IntentSignupFlowStepIdentify) Milestone() {}
-func (i *IntentSignupFlowStepIdentify) MilestoneSwitchToExistingUser(newUserID string) {
+func (i *IntentSignupFlowStepIdentify) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
+	i.IsUpdatingExistingUser = true
 	i.UserID = newUserID
+
+	milestoneDoCreateIdentity, ok := authflow.FindMilestone[MilestoneDoCreateIdentity](flow)
+	if ok {
+		iden := milestoneDoCreateIdentity.MilestoneDoCreateIdentity()
+		idenSpec := iden.ToSpec()
+		idenWithSameType, err := i.findIdentityOfSameType(deps, &idenSpec)
+		if err != nil {
+			return err
+		}
+		if idenWithSameType != nil {
+			milestoneDoCreateIdentity.MilestoneDoCreateIdentitySkipCreate()
+		}
+	}
+	milestoneDoPopulateStandardAttributes, ok := authflow.FindMilestone[MilestoneDoPopulateStandardAttributes](flow)
+	if ok {
+		// Always skip population
+		milestoneDoPopulateStandardAttributes.MilestoneDoPopulateStandardAttributesSkip()
+	}
+	return nil
 }
 
 func (i *IntentSignupFlowStepIdentify) GetName() string {
@@ -111,6 +132,7 @@ func (*IntentSignupFlowStepIdentify) Kind() string {
 
 func (i *IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	// Let the input to select which identification method to use.
+	// TODO(tung): Auto select the identitication method when possible if IsUpdatingExistingUser
 	if len(flows.Nearest.Nodes) == 0 {
 		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
 		if err != nil {
@@ -188,14 +210,16 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 	case identityCreated && !standardAttributesPopulated && !nestedStepHandled:
 		iden := i.identityInfo(flows.Nearest)
 		return authflow.NewNodeSimple(&NodeDoPopulateStandardAttributesInSignup{
-			Identity: iden,
+			Identity:   iden,
+			SkipUpdate: i.IsUpdatingExistingUser,
 		}), nil
 	case identityCreated && standardAttributesPopulated && !nestedStepHandled:
 		identification := i.identificationMethod(flows.Nearest)
 		return authflow.NewSubFlow(&IntentSignupFlowSteps{
-			FlowReference: i.FlowReference,
-			JSONPointer:   i.jsonPointer(step, identification),
-			UserID:        i.UserID,
+			FlowReference:          i.FlowReference,
+			JSONPointer:            i.jsonPointer(step, identification),
+			UserID:                 i.UserID,
+			IsUpdatingExistingUser: i.IsUpdatingExistingUser,
 		}), nil
 	default:
 		return nil, authflow.ErrIncompatibleInput
@@ -276,4 +300,31 @@ func (i *IntentSignupFlowStepIdentify) currentFlowObject(deps *authflow.Dependen
 		return nil, err
 	}
 	return current, nil
+}
+
+func (i *IntentSignupFlowStepIdentify) findIdentityOfSameType(deps *authflow.Dependencies, spec *identity.Spec) (*identity.Info, error) {
+
+	userIdens, err := deps.Identities.ListByUser(i.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	var idenWithSameType *identity.Info
+
+	for _, uiden := range userIdens {
+		uiden := uiden
+		if uiden.Type == spec.Type {
+			if spec.Type == model.IdentityTypeLoginID {
+				// Only login id needs to check the key
+				if spec.LoginID.Key == uiden.LoginID.LoginIDKey {
+					idenWithSameType = uiden
+				}
+			} else {
+				// For others, just check they are same type
+				idenWithSameType = uiden
+			}
+		}
+	}
+
+	return idenWithSameType, nil
 }

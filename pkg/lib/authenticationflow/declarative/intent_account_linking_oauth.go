@@ -44,22 +44,31 @@ func (i *IntentAccountLinkingOAuth) ReactTo(ctx context.Context, deps *authflow.
 		return nil, err
 	}
 	if flowUserID != conflictedUserID {
-		authflow.TraverseFlow(authflow.Traverser{
+		err = authflow.TraverseFlow(authflow.Traverser{
 			NodeSimple: func(nodeSimple authflow.NodeSimple, w *authflow.Flow) error {
 				milestone, ok := nodeSimple.(MilestoneSwitchToExistingUser)
 				if ok {
-					milestone.MilestoneSwitchToExistingUser(conflictedUserID)
+					err = milestone.MilestoneSwitchToExistingUser(deps, w, conflictedUserID)
+					if err != nil {
+						return err
+					}
 				}
 				return nil
 			},
 			Intent: func(intent authflow.Intent, w *authflow.Flow) error {
 				milestone, ok := intent.(MilestoneSwitchToExistingUser)
 				if ok {
-					milestone.MilestoneSwitchToExistingUser(conflictedUserID)
+					err = milestone.MilestoneSwitchToExistingUser(deps, w, conflictedUserID)
+					if err != nil {
+						return err
+					}
 				}
 				return nil
 			},
 		}, flows.Root)
+		if err != nil {
+			return nil, err
+		}
 		// Use synthetic input to auto select the conflicted identity in the login flow
 		return nil, &authflow.ErrorRewriteFlow{
 			Intent:         flows.Root.Intent,

@@ -34,11 +34,12 @@ func (n *NodeDoCreateUser) MilestoneDoCreateUser() string {
 	}
 	return n.UserID
 }
-func (n *NodeDoCreateUser) MilestoneSwitchToExistingUser(newUserID string) {
+func (n *NodeDoCreateUser) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
 	n.UserID = newUserID
 	// MilestoneSwitchToExistingUser is used in cases that the flow wants to update an existing user
 	// instead of creating new user, so set SkipCreation to true
 	n.SkipCreation = true
+	return nil
 }
 
 func (n *NodeDoCreateUser) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (effs []authflow.Effect, err error) {

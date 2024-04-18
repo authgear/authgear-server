@@ -29,9 +29,9 @@ var _ authflow.InputReactor = &NodeCreateIdentityLoginID{}
 var _ MilestoneSwitchToExistingUser = &NodeCreateIdentityLoginID{}
 
 func (*NodeCreateIdentityLoginID) Milestone() {}
-func (i *NodeCreateIdentityLoginID) MilestoneSwitchToExistingUser(newUserID string) {
-	// TODO(tung): Skip creation if already have one
+func (i *NodeCreateIdentityLoginID) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
 	i.UserID = newUserID
+	return nil
 }
 
 func (*NodeCreateIdentityLoginID) Kind() string {

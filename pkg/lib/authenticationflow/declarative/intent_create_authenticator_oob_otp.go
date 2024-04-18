@@ -16,9 +16,10 @@ func init() {
 }
 
 type IntentCreateAuthenticatorOOBOTP struct {
-	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
-	UserID         string                                  `json:"user_id,omitempty"`
-	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
+	JSONPointer            jsonpointer.T                           `json:"json_pointer,omitempty"`
+	UserID                 string                                  `json:"user_id,omitempty"`
+	IsUpdatingExistingUser bool                                    `json:"is_updating_existing_user,omitempty"`
+	Authentication         config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
 }
 
 var _ authflow.Intent = &IntentCreateAuthenticatorOOBOTP{}
@@ -32,6 +33,18 @@ func (*IntentCreateAuthenticatorOOBOTP) Kind() string {
 func (*IntentCreateAuthenticatorOOBOTP) Milestone() {}
 func (n *IntentCreateAuthenticatorOOBOTP) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
 	return n.Authentication
+}
+func (i *IntentCreateAuthenticatorOOBOTP) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
+	i.UserID = newUserID
+	i.IsUpdatingExistingUser = true
+
+	milestone, ok := authflow.FindMilestone[MilestoneDoCreateAuthenticator](flow)
+	if ok {
+		// TODO(tung): Check existing authenticators
+		milestone.MilestoneDoCreateAuthenticatorSkipCreate()
+	}
+
+	return nil
 }
 
 func (n *IntentCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {

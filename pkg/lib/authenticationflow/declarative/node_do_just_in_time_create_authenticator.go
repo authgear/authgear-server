@@ -12,6 +12,7 @@ func init() {
 }
 
 type NodeDoJustInTimeCreateAuthenticator struct {
+	SkipCreate    bool                `json:"skip_create,omitempty"`
 	Authenticator *authenticator.Info `json:"authenticator,omitempty"`
 }
 
@@ -32,8 +33,15 @@ func (n *NodeDoJustInTimeCreateAuthenticator) MilestoneDidSelectAuthenticator() 
 func (n *NodeDoJustInTimeCreateAuthenticator) MilestoneDoCreateAuthenticator() *authenticator.Info {
 	return n.Authenticator
 }
+func (n *NodeDoJustInTimeCreateAuthenticator) MilestoneDoCreateAuthenticatorSkipCreate() {
+	n.SkipCreate = true
+}
 
 func (n *NodeDoJustInTimeCreateAuthenticator) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (effs []authflow.Effect, err error) {
+	if n.SkipCreate {
+		return nil, nil
+	}
+
 	return []authflow.Effect{
 		authflow.RunEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
 			return deps.Authenticators.Create(n.Authenticator, false)

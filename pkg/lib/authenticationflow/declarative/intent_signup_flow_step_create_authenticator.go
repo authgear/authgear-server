@@ -8,6 +8,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -34,10 +35,11 @@ var _ authflow.Data = &IntentSignupFlowStepCreateAuthenticatorData{}
 func (m IntentSignupFlowStepCreateAuthenticatorData) Data() {}
 
 type IntentSignupFlowStepCreateAuthenticator struct {
-	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
-	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
-	StepName      string                 `json:"step_name,omitempty"`
-	UserID        string                 `json:"user_id,omitempty"`
+	FlowReference          authflow.FlowReference `json:"flow_reference,omitempty"`
+	JSONPointer            jsonpointer.T          `json:"json_pointer,omitempty"`
+	StepName               string                 `json:"step_name,omitempty"`
+	UserID                 string                 `json:"user_id,omitempty"`
+	IsUpdatingExistingUser bool                   `json:"is_updating_existing_user,omitempty"`
 }
 
 var _ authflow.TargetStep = &IntentSignupFlowStepCreateAuthenticator{}
@@ -56,8 +58,23 @@ var _ authflow.Milestone = &IntentSignupFlowStepCreateAuthenticator{}
 var _ MilestoneSwitchToExistingUser = &IntentSignupFlowStepCreateAuthenticator{}
 
 func (*IntentSignupFlowStepCreateAuthenticator) Milestone() {}
-func (i *IntentSignupFlowStepCreateAuthenticator) MilestoneSwitchToExistingUser(newUserID string) {
+func (i *IntentSignupFlowStepCreateAuthenticator) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
 	i.UserID = newUserID
+	i.IsUpdatingExistingUser = true
+
+	milestone, ok := authflow.FindMilestone[MilestoneDoCreateAuthenticator](flow)
+	if ok {
+		authn := milestone.MilestoneDoCreateAuthenticator()
+		existing, err := i.findAuthenticatorOfSameType(deps, authn.Type)
+		if err != nil {
+			return err
+		}
+		if existing != nil {
+			milestone.MilestoneDoCreateAuthenticatorSkipCreate()
+		}
+	}
+
+	return nil
 }
 
 func (*IntentSignupFlowStepCreateAuthenticator) Kind() string {
@@ -66,6 +83,7 @@ func (*IntentSignupFlowStepCreateAuthenticator) Kind() string {
 
 func (i *IntentSignupFlowStepCreateAuthenticator) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	// Let the input to select which authentication method to use.
+	// TODO(tung): Auto select the authentication method when possible if IsUpdatingExistingUser
 	if len(flows.Nearest.Nodes) == 0 {
 		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
 		if err != nil {
@@ -158,9 +176,10 @@ func (i *IntentSignupFlowStepCreateAuthenticator) ReactTo(ctx context.Context, d
 	case authenticatorCreated && !nestedStepsHandled:
 		authentication := i.authenticationMethod(flows)
 		return authflow.NewSubFlow(&IntentSignupFlowSteps{
-			FlowReference: i.FlowReference,
-			JSONPointer:   i.jsonPointer(step, authentication),
-			UserID:        i.UserID,
+			FlowReference:          i.FlowReference,
+			JSONPointer:            i.jsonPointer(step, authentication),
+			UserID:                 i.UserID,
+			IsUpdatingExistingUser: i.IsUpdatingExistingUser,
 		}), nil
 	default:
 		return nil, authflow.ErrIncompatibleInput
@@ -242,4 +261,24 @@ func (i *IntentSignupFlowStepCreateAuthenticator) currentFlowObject(deps *authfl
 		return nil, err
 	}
 	return current, nil
+}
+
+func (i *IntentSignupFlowStepCreateAuthenticator) findAuthenticatorOfSameType(deps *authflow.Dependencies, typ model.AuthenticatorType) (*authenticator.Info, error) {
+
+	userAuthns, err := deps.Authenticators.List(i.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	var existing *authenticator.Info
+
+	for _, uAuthn := range userAuthns {
+		uAuthn := uAuthn
+		if uAuthn.Type == typ {
+			existing = uAuthn
+
+		}
+	}
+
+	return existing, nil
 }
