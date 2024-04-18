@@ -45,7 +45,7 @@ type UIConfig struct {
 	// ForgotPassword is the config for the default auth ui
 	ForgotPassword *UIForgotPasswordConfig `json:"forgot_password,omitempty"`
 	// AuthenticationFlow configures ui behaviour of authentication flow under default auth ui
-	AuthenticationFlow UIAuthenticationFlowConfig `json:"authentication_flow,omitempty"`
+	AuthenticationFlow *UIAuthenticationFlowConfig `json:"authentication_flow,omitempty"`
 }
 
 var _ = Schema.Add("PhoneInputConfig", `
@@ -185,7 +185,7 @@ var _ = Schema.Add("UIAuthenticationFlowGroupFlow", `
 `)
 
 type UIAuthenticationFlowConfig struct {
-	Groups []UIAuthenticationFlowGroup `json:"groups,omitempty"`
+	Groups []*UIAuthenticationFlowGroup `json:"groups,omitempty"`
 }
 
 type UIAuthenticationFlowGroupFlow struct {
@@ -194,6 +194,6 @@ type UIAuthenticationFlowGroupFlow struct {
 }
 
 type UIAuthenticationFlowGroup struct {
-	Name  string                          `json:"name"`
-	Flows []UIAuthenticationFlowGroupFlow `json:"flows,omitempty"`
+	Name  string                           `json:"name"`
+	Flows []*UIAuthenticationFlowGroupFlow `json:"flows,omitempty"`
 }

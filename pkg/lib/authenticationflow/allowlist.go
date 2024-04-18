@@ -15,24 +15,20 @@ type FlowAllowlistFlow struct {
 	Name string   `json:"name"`
 }
 
-func NewFlowAllowlist(allowlist *config.AuthenticationFlowAllowlist, definedGroups []config.UIAuthenticationFlowGroup) FlowAllowlist {
+func NewFlowAllowlist(allowlist *config.AuthenticationFlowAllowlist, definedGroups []*config.UIAuthenticationFlowGroup) FlowAllowlist {
 	a := FlowAllowlist{}
 	if allowlist == nil {
 		return a
 	}
 
 	// Merge group allowlist
-	if allowlist.Groups != nil {
-		a = append(a, fromGroupAllowlist(*allowlist.Groups, definedGroups)...)
-	}
+	a = append(a, fromGroupAllowlist(allowlist.Groups, definedGroups)...)
 
 	// Merge flow allowlist
-	if allowlist.Flows != nil {
-		a = append(a, fromFlowAllowlist(allowlist.Flows)...)
-	}
+	a = append(a, fromFlowAllowlist(allowlist.Flows)...)
 
 	// Merge default group allowlist
-	defaultGroupAllowlist := []config.AuthenticationFlowAllowlistGroup{{Name: "default"}}
+	defaultGroupAllowlist := []*config.AuthenticationFlowAllowlistGroup{{Name: "default"}}
 	a = append(a, fromGroupAllowlist(defaultGroupAllowlist, definedGroups)...)
 
 	// Deduplicate
@@ -73,8 +69,11 @@ func (a FlowAllowlist) CanCreateFlow(flowReference FlowReference) bool {
 	return slices.Contains(flowNames, flowReference.Name)
 }
 
-func fromGroupAllowlist(groups []config.AuthenticationFlowAllowlistGroup, definedGroups []config.UIAuthenticationFlowGroup) FlowAllowlist {
+func fromGroupAllowlist(groups []*config.AuthenticationFlowAllowlistGroup, definedGroups []*config.UIAuthenticationFlowGroup) FlowAllowlist {
 	a := FlowAllowlist{}
+	if groups == nil {
+		return a
+	}
 	for _, group := range groups {
 		for _, definedGroup := range definedGroups {
 			if group.Name == definedGroup.Name {
@@ -91,13 +90,13 @@ func fromGroupAllowlist(groups []config.AuthenticationFlowAllowlistGroup, define
 	return a
 }
 
-func fromFlowAllowlist(flows *[]config.AuthenticationFlowAllowlistFlow) []FlowAllowlistFlow {
+func fromFlowAllowlist(flows []*config.AuthenticationFlowAllowlistFlow) []FlowAllowlistFlow {
 	allowlistFlows := []FlowAllowlistFlow{}
 	if flows == nil {
 		return allowlistFlows
 	}
 
-	for _, flow := range *flows {
+	for _, flow := range flows {
 		allowlistFlows = append(allowlistFlows, FlowAllowlistFlow{
 			Type: FlowType(flow.Type),
 			Name: flow.Name,

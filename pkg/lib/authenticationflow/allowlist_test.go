@@ -11,15 +11,15 @@ func TestFlowAllowlist(t *testing.T) {
 	Convey("Given a FlowAllowlist", t, func() {
 		Convey("When initialized with groups", func() {
 			allowlist := &config.AuthenticationFlowAllowlist{
-				Groups: &[]config.AuthenticationFlowAllowlistGroup{
+				Groups: []*config.AuthenticationFlowAllowlistGroup{
 					{Name: "group1"},
 					{Name: "group2"},
 				},
 			}
-			allGroups := []config.UIAuthenticationFlowGroup{
+			allGroups := []*config.UIAuthenticationFlowGroup{
 				{
 					Name: "group1",
-					Flows: []config.UIAuthenticationFlowGroupFlow{
+					Flows: []*config.UIAuthenticationFlowGroupFlow{
 						{Type: config.AuthenticationFlowTypeSignup, Name: "signup1"},
 						{Type: config.AuthenticationFlowTypePromote, Name: "promote1"},
 						{Type: config.AuthenticationFlowTypeLogin, Name: "login1"},
@@ -30,7 +30,7 @@ func TestFlowAllowlist(t *testing.T) {
 				},
 				{
 					Name: "group2",
-					Flows: []config.UIAuthenticationFlowGroupFlow{
+					Flows: []*config.UIAuthenticationFlowGroupFlow{
 						{Type: config.AuthenticationFlowTypeSignup, Name: "signup2"},
 						{Type: config.AuthenticationFlowTypePromote, Name: "promote2"},
 						{Type: config.AuthenticationFlowTypeLogin, Name: "login2"},
@@ -61,12 +61,12 @@ func TestFlowAllowlist(t *testing.T) {
 
 		Convey("When initialized with flows", func() {
 			allowlist := &config.AuthenticationFlowAllowlist{
-				Flows: &[]config.AuthenticationFlowAllowlistFlow{
+				Flows: []*config.AuthenticationFlowAllowlistFlow{
 					{Type: config.AuthenticationFlowTypeLogin, Name: "flow1"},
 					{Type: config.AuthenticationFlowTypeSignup, Name: "flow2"},
 				},
 			}
-			allGroups := []config.UIAuthenticationFlowGroup{}
+			allGroups := []*config.UIAuthenticationFlowGroup{}
 
 			result := NewFlowAllowlist(allowlist, allGroups)
 
@@ -78,7 +78,7 @@ func TestFlowAllowlist(t *testing.T) {
 
 		Convey("When initialized with empty allowlist", func() {
 			allowlist := &config.AuthenticationFlowAllowlist{}
-			allGroups := []config.UIAuthenticationFlowGroup{}
+			allGroups := []*config.UIAuthenticationFlowGroup{}
 
 			result := NewFlowAllowlist(allowlist, allGroups)
 
@@ -90,10 +90,10 @@ func TestFlowAllowlist(t *testing.T) {
 
 		Convey("When initialized with default group", func() {
 			allowlist := &config.AuthenticationFlowAllowlist{}
-			allGroups := []config.UIAuthenticationFlowGroup{
+			allGroups := []*config.UIAuthenticationFlowGroup{
 				{
 					Name: "default",
-					Flows: []config.UIAuthenticationFlowGroupFlow{
+					Flows: []*config.UIAuthenticationFlowGroupFlow{
 						{Type: config.AuthenticationFlowTypeSignup, Name: "signup1"},
 						{Type: config.AuthenticationFlowTypePromote, Name: "promote1"},
 						{Type: config.AuthenticationFlowTypeLogin, Name: "login1"},
@@ -118,14 +118,14 @@ func TestFlowAllowlist(t *testing.T) {
 
 		Convey("When initialized with default group and allowlist", func() {
 			allowlist := &config.AuthenticationFlowAllowlist{
-				Flows: &[]config.AuthenticationFlowAllowlistFlow{
+				Flows: []*config.AuthenticationFlowAllowlistFlow{
 					{Type: config.AuthenticationFlowTypeLogin, Name: "flow1"},
 				},
 			}
-			allGroups := []config.UIAuthenticationFlowGroup{
+			allGroups := []*config.UIAuthenticationFlowGroup{
 				{
 					Name: "default",
-					Flows: []config.UIAuthenticationFlowGroupFlow{
+					Flows: []*config.UIAuthenticationFlowGroupFlow{
 						{Type: config.AuthenticationFlowTypeSignup, Name: "signup1"},
 						{Type: config.AuthenticationFlowTypePromote, Name: "promote1"},
 						{Type: config.AuthenticationFlowTypeLogin, Name: "login1"},

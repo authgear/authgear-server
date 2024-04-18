@@ -245,8 +245,8 @@ var _ = Schema.Add("AuthenticationFlowAllowlistFlow", `
 `)
 
 type AuthenticationFlowAllowlist struct {
-	Groups *[]AuthenticationFlowAllowlistGroup `json:"groups,omitempty"`
-	Flows  *[]AuthenticationFlowAllowlistFlow  `json:"flows,omitempty"`
+	Groups []*AuthenticationFlowAllowlistGroup `json:"groups,omitempty"`
+	Flows  []*AuthenticationFlowAllowlistFlow  `json:"flows,omitempty"`
 }
 
 type AuthenticationFlowAllowlistGroup struct {

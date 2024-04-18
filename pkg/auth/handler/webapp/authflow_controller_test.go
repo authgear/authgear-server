@@ -219,7 +219,7 @@ func TestAuthflowControllerCreateScreen(t *testing.T) {
 			OAuthSessions:       mockOAuthSessions,
 			OAuthClientResolver: mockOAuthClientResolver,
 			UIConfig: &config.UIConfig{
-				AuthenticationFlow: config.UIAuthenticationFlowConfig{},
+				AuthenticationFlow: &config.UIAuthenticationFlowConfig{},
 			},
 		}
 

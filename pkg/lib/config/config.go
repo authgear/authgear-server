@@ -331,27 +331,27 @@ func (c *AppConfig) validateLockout(ctx *validation.Context) {
 }
 
 func (c *AppConfig) validateAuthenticationFlow(ctx *validation.Context) {
+	if c.UI.AuthenticationFlow == nil {
+		return
+	}
+
 	definedFlows := constructDefinedFlows(c.AuthenticationFlow)
 	definedGroups := constructDefinedGroups(c.UI.AuthenticationFlow)
 
 	// Ensure defined groups are valid and unique
-	validateDefinedGroups(ctx, &c.UI.AuthenticationFlow, definedFlows)
+	validateDefinedGroups(ctx, c.UI.AuthenticationFlow, definedFlows)
 
 	for i, client := range c.OAuth.Clients {
 		// Ensure client's group allowlist is valid
-		if client.AuthenticationFlowAllowlist.Groups != nil {
-			validateGroupAllowlist(ctx, *client.AuthenticationFlowAllowlist.Groups, definedGroups, i)
-		}
+		validateGroupAllowlist(ctx, client.AuthenticationFlowAllowlist.Groups, definedGroups, i)
 
 		// Ensure client's flow allowlist is valid
-		if client.AuthenticationFlowAllowlist.Flows != nil {
-			validateFlowAllowlist(ctx, *client.AuthenticationFlowAllowlist.Flows, definedFlows, i)
-		}
+		validateFlowAllowlist(ctx, client.AuthenticationFlowAllowlist.Flows, definedFlows, i)
 	}
 }
 
-func constructDefinedFlows(flowConfig *AuthenticationFlowConfig) []AuthenticationFlowAllowlistFlow {
-	definedlist := []AuthenticationFlowAllowlistFlow{}
+func constructDefinedFlows(flowConfig *AuthenticationFlowConfig) []*AuthenticationFlowAllowlistFlow {
+	definedlist := []*AuthenticationFlowAllowlistFlow{}
 	definedlist = append(definedlist, flowsToAllowlist(flowConfig.SignupFlows, AuthenticationFlowTypeSignup)...)
 	definedlist = append(definedlist, flowsToAllowlist(flowConfig.LoginFlows, AuthenticationFlowTypeLogin)...)
 	definedlist = append(definedlist, flowsToAllowlist(flowConfig.PromoteFlows, AuthenticationFlowTypePromote)...)
@@ -361,7 +361,7 @@ func constructDefinedFlows(flowConfig *AuthenticationFlowConfig) []Authenticatio
 	return definedlist
 }
 
-func constructDefinedGroups(groupConfig UIAuthenticationFlowConfig) []string {
+func constructDefinedGroups(groupConfig *UIAuthenticationFlowConfig) []string {
 	definedlist := []string{}
 	if groupConfig.Groups != nil {
 		for _, group := range groupConfig.Groups {
@@ -371,10 +371,10 @@ func constructDefinedGroups(groupConfig UIAuthenticationFlowConfig) []string {
 	return definedlist
 }
 
-func flowsToAllowlist[TA AuthenticationFlowObjectFlowRoot](definedFlows []TA, flowType AuthenticationFlowType) []AuthenticationFlowAllowlistFlow {
-	allowlist := []AuthenticationFlowAllowlistFlow{}
+func flowsToAllowlist[TA AuthenticationFlowObjectFlowRoot](definedFlows []TA, flowType AuthenticationFlowType) []*AuthenticationFlowAllowlistFlow {
+	allowlist := []*AuthenticationFlowAllowlistFlow{}
 	for _, flow := range definedFlows {
-		allowlist = append(allowlist, AuthenticationFlowAllowlistFlow{
+		allowlist = append(allowlist, &AuthenticationFlowAllowlistFlow{
 			Type: flowType,
 			Name: flow.GetName(),
 		})
@@ -382,7 +382,7 @@ func flowsToAllowlist[TA AuthenticationFlowObjectFlowRoot](definedFlows []TA, fl
 	return allowlist
 }
 
-func validateDefinedGroups(ctx *validation.Context, config *UIAuthenticationFlowConfig, definedFlows []AuthenticationFlowAllowlistFlow) {
+func validateDefinedGroups(ctx *validation.Context, config *UIAuthenticationFlowConfig, definedFlows []*AuthenticationFlowAllowlistFlow) {
 	definedGroups := map[string]struct{}{}
 	for i, group := range config.Groups {
 		// Ensure defined groups are unique
@@ -398,8 +398,11 @@ func validateDefinedGroups(ctx *validation.Context, config *UIAuthenticationFlow
 				hasLoginFlow = true
 			}
 
-			// Ensure defined groups contain defined flows
+			// Ensure allowed flows are defined
 			flowIsDefined := false
+			if flow.Name == "default" {
+				flowIsDefined = true
+			}
 			for _, definedFlow := range definedFlows {
 				if flow.Type == definedFlow.Type && flow.Name == definedFlow.Name {
 					flowIsDefined = true
@@ -417,11 +420,9 @@ func validateDefinedGroups(ctx *validation.Context, config *UIAuthenticationFlow
 	}
 }
 
-func validateGroupAllowlist(ctx *validation.Context, allowlist []AuthenticationFlowAllowlistGroup, definedlist []string, idx int) {
+func validateGroupAllowlist(ctx *validation.Context, allowlist []*AuthenticationFlowAllowlistGroup, definedlist []string, idx int) {
 	for i, group := range allowlist {
 		groupIsDefined := false
-
-		// default group is builtin
 		if group.Name == "default" {
 			groupIsDefined = true
 		}
@@ -439,17 +440,15 @@ func validateGroupAllowlist(ctx *validation.Context, allowlist []AuthenticationF
 	}
 }
 
-func validateFlowAllowlist(ctx *validation.Context, allowlist []AuthenticationFlowAllowlistFlow, definedlist []AuthenticationFlowAllowlistFlow, idx int) {
+func validateFlowAllowlist(ctx *validation.Context, allowlist []*AuthenticationFlowAllowlistFlow, definedlist []*AuthenticationFlowAllowlistFlow, idx int) {
 	for i, flow := range allowlist {
 		flowIsDefined := false
-
-		// default flow is builtin
 		if flow.Name == "default" {
 			flowIsDefined = true
 		}
 
 		for _, definedFlow := range definedlist {
-			if flow == definedFlow {
+			if flow.Type == definedFlow.Type && flow.Name == definedFlow.Name {
 				flowIsDefined = true
 				break
 			}
