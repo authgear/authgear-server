@@ -30,9 +30,16 @@ type IntentSignupFlowStepVerify struct {
 }
 
 var _ authflow.Intent = &IntentSignupFlowStepVerify{}
+var _ authflow.Milestone = &IntentSignupFlowStepVerify{}
+var _ MilestoneSwitchToExistingUser = &IntentSignupFlowStepVerify{}
 
 func (*IntentSignupFlowStepVerify) Kind() string {
 	return "IntentSignupFlowStepVerify"
+}
+
+func (i *IntentSignupFlowStepVerify) Milestone() {}
+func (i *IntentSignupFlowStepVerify) MilestoneSwitchToExistingUser(newUserID string) {
+	i.UserID = newUserID
 }
 
 func (*IntentSignupFlowStepVerify) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {

@@ -26,6 +26,7 @@ var _ authflow.NodeSimple = &NodeCreateAuthenticatorPassword{}
 var _ authflow.InputReactor = &NodeCreateAuthenticatorPassword{}
 var _ authflow.Milestone = &NodeCreateAuthenticatorPassword{}
 var _ MilestoneAuthenticationMethod = &NodeCreateAuthenticatorPassword{}
+var _ MilestoneSwitchToExistingUser = &NodeCreateAuthenticatorPassword{}
 
 func (*NodeCreateAuthenticatorPassword) Kind() string {
 	return "NodeCreateAuthenticatorPassword"
@@ -34,6 +35,10 @@ func (*NodeCreateAuthenticatorPassword) Kind() string {
 func (*NodeCreateAuthenticatorPassword) Milestone() {}
 func (n *NodeCreateAuthenticatorPassword) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
 	return n.Authentication
+}
+func (i *NodeCreateAuthenticatorPassword) MilestoneSwitchToExistingUser(newUserID string) {
+	// TODO(tung): Skip creation if already have one
+	i.UserID = newUserID
 }
 
 func (n *NodeCreateAuthenticatorPassword) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {

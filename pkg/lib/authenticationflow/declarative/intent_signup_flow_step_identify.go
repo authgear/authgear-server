@@ -26,6 +26,13 @@ type IntentSignupFlowStepIdentify struct {
 }
 
 var _ authflow.TargetStep = &IntentSignupFlowStepIdentify{}
+var _ authflow.Milestone = &IntentSignupFlowStepIdentify{}
+var _ MilestoneSwitchToExistingUser = &IntentSignupFlowStepIdentify{}
+
+func (*IntentSignupFlowStepIdentify) Milestone() {}
+func (i *IntentSignupFlowStepIdentify) MilestoneSwitchToExistingUser(newUserID string) {
+	i.UserID = newUserID
+}
 
 func (i *IntentSignupFlowStepIdentify) GetName() string {
 	return i.StepName
@@ -180,7 +187,7 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 	switch {
 	case identityCreated && !standardAttributesPopulated && !nestedStepHandled:
 		iden := i.identityInfo(flows.Nearest)
-		return authflow.NewNodeSimple(&NodeDoPopulateStandardAttributes{
+		return authflow.NewNodeSimple(&NodeDoPopulateStandardAttributesInSignup{
 			Identity: iden,
 		}), nil
 	case identityCreated && standardAttributesPopulated && !nestedStepHandled:

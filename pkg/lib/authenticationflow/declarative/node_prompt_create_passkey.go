@@ -68,6 +68,8 @@ func (n *NodePromptCreatePasskey) CanReactTo(ctx context.Context, deps *authflow
 }
 
 func (n *NodePromptCreatePasskey) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+	// TODO(tung): If user already skipped creation once in the flow, it should be skipped without user input
+
 	var inputNodePromptCreatePasskey inputNodePromptCreatePasskey
 	if !authflow.AsInput(input, &inputNodePromptCreatePasskey) {
 		return nil, authflow.ErrIncompatibleInput

@@ -101,6 +101,10 @@ func (i *IntentSignupFlow) GetEffects(ctx context.Context, deps *authflow.Depend
 		}),
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
 			userID := i.userID(flows.Nearest)
+			if userID == "" {
+				// The creation is skipped for some reason, such as entered account linking flow
+				return nil
+			}
 			isAdminAPI := false
 
 			u, err := deps.Users.GetRaw(userID)

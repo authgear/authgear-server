@@ -313,3 +313,24 @@ func (i *Info) ModifyDisabled(c *config.IdentityConfig) bool {
 		panic(fmt.Sprintf("identity: unexpected identity type: %s", i.Type))
 	}
 }
+
+func (i *Info) UpdateUserID(newUserID string) *Info {
+	i.UserID = newUserID
+	switch i.Type {
+	case model.IdentityTypeLoginID:
+		i.LoginID.UserID = newUserID
+	case model.IdentityTypeOAuth:
+		i.OAuth.UserID = newUserID
+	case model.IdentityTypeBiometric:
+		i.Biometric.UserID = newUserID
+	case model.IdentityTypePasskey:
+		i.Passkey.UserID = newUserID
+	case model.IdentityTypeSIWE:
+		fallthrough
+	case model.IdentityTypeAnonymous:
+		fallthrough
+	default:
+		panic(fmt.Errorf("identity: identity type %v does not support updating user ID", i.Type))
+	}
+	return i
+}

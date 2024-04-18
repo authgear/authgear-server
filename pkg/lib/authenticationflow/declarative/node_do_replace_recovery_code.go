@@ -17,9 +17,17 @@ type NodeDoReplaceRecoveryCode struct {
 
 var _ authflow.NodeSimple = &NodeDoReplaceRecoveryCode{}
 var _ authflow.EffectGetter = &NodeDoReplaceRecoveryCode{}
+var _ authflow.Milestone = &NodeDoReplaceRecoveryCode{}
+var _ MilestoneSwitchToExistingUser = &NodeDoReplaceRecoveryCode{}
 
 func (*NodeDoReplaceRecoveryCode) Kind() string {
 	return "NodeDoReplaceRecoveryCode"
+}
+
+func (*NodeDoReplaceRecoveryCode) Milestone() {}
+func (i *NodeDoReplaceRecoveryCode) MilestoneSwitchToExistingUser(newUserID string) {
+	// TODO(tung): Skip this step for existing user
+	i.UserID = newUserID
 }
 
 func (n *NodeDoReplaceRecoveryCode) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (effs []authflow.Effect, err error) {

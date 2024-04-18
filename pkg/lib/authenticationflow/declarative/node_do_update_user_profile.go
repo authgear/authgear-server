@@ -20,9 +20,17 @@ type NodeDoUpdateUserProfile struct {
 
 var _ authflow.NodeSimple = &NodeDoUpdateUserProfile{}
 var _ authflow.EffectGetter = &NodeDoUpdateUserProfile{}
+var _ authflow.Milestone = &NodeDoUpdateUserProfile{}
+var _ MilestoneSwitchToExistingUser = &NodeDoUpdateUserProfile{}
 
 func (*NodeDoUpdateUserProfile) Kind() string {
 	return "NodeDoUpdateUserProfile"
+}
+
+func (*NodeDoUpdateUserProfile) Milestone() {}
+func (i *NodeDoUpdateUserProfile) MilestoneSwitchToExistingUser(newUserID string) {
+	// TODO(tung): Skip this step
+	i.UserID = newUserID
 }
 
 func (n *NodeDoUpdateUserProfile) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (effs []authflow.Effect, err error) {

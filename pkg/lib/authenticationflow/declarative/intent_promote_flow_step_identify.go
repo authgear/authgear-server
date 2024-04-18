@@ -187,7 +187,7 @@ func (i *IntentPromoteFlowStepIdentify) ReactTo(ctx context.Context, deps *authf
 	switch {
 	case identityCreated && !standardAttributesPopulated && !nestedStepHandled:
 		iden := i.identityInfo(flows.Nearest)
-		return authflow.NewNodeSimple(&NodeDoPopulateStandardAttributes{
+		return authflow.NewNodeSimple(&NodeDoPopulateStandardAttributesInSignup{
 			Identity: iden,
 		}), nil
 	case identityCreated && standardAttributesPopulated && !nestedStepHandled:

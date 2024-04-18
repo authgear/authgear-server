@@ -22,9 +22,16 @@ type IntentSignupFlowStepPromptCreatePasskey struct {
 }
 
 var _ authflow.Intent = &IntentSignupFlowStepPromptCreatePasskey{}
+var _ authflow.Milestone = &IntentSignupFlowStepPromptCreatePasskey{}
+var _ MilestoneSwitchToExistingUser = &IntentSignupFlowStepPromptCreatePasskey{}
 
 func (*IntentSignupFlowStepPromptCreatePasskey) Kind() string {
 	return "IntentSignupFlowStepPromptCreatePasskey"
+}
+
+func (i *IntentSignupFlowStepPromptCreatePasskey) Milestone() {}
+func (i *IntentSignupFlowStepPromptCreatePasskey) MilestoneSwitchToExistingUser(newUserID string) {
+	i.UserID = newUserID
 }
 
 func (i *IntentSignupFlowStepPromptCreatePasskey) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {

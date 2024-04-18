@@ -52,6 +52,13 @@ func (i *IntentSignupFlowStepCreateAuthenticator) GetJSONPointer() jsonpointer.T
 
 var _ authflow.Intent = &IntentSignupFlowStepCreateAuthenticator{}
 var _ authflow.DataOutputer = &IntentSignupFlowStepCreateAuthenticator{}
+var _ authflow.Milestone = &IntentSignupFlowStepCreateAuthenticator{}
+var _ MilestoneSwitchToExistingUser = &IntentSignupFlowStepCreateAuthenticator{}
+
+func (*IntentSignupFlowStepCreateAuthenticator) Milestone() {}
+func (i *IntentSignupFlowStepCreateAuthenticator) MilestoneSwitchToExistingUser(newUserID string) {
+	i.UserID = newUserID
+}
 
 func (*IntentSignupFlowStepCreateAuthenticator) Kind() string {
 	return "IntentSignupFlowStepCreateAuthenticator"
