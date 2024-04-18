@@ -106,18 +106,16 @@ func InstantiateFlow(f FlowReference, startFrom jsonpointer.T) (PublicFlow, erro
 
 func FindCurrentFlowReference(flow *Flow) *FlowReference {
 	var ref *FlowReference = nil
-	TraverseFlowReverse(Traverser{
-		Intent: func(intent Intent, w *Flow) error {
-			// We only want the first one
-			if ref != nil {
-				return nil
-			}
-			if f, ok := intent.(PublicFlow); ok {
-				thisref := f.FlowFlowReference()
-				ref = &thisref
-			}
+	TraverseIntentFromEndToRoot(func(intent Intent) error {
+		// We only want the first one
+		if ref != nil {
 			return nil
-		},
+		}
+		if f, ok := intent.(PublicFlow); ok {
+			thisref := f.FlowFlowReference()
+			ref = &thisref
+		}
+		return nil
 	}, flow)
 	return ref
 }

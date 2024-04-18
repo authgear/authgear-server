@@ -73,38 +73,64 @@ func traverseNode(t Traverser, w *Flow, n *Node, intentFirst bool) error {
 	}
 }
 
-func TraverseFlowReverse(t Traverser, w *Flow) error {
-	for i := len(w.Nodes) - 1; i >= 0; i-- {
-		node := &w.Nodes[i]
-		traverseNodeReverse(t, w, node)
-	}
-
-	if t.Intent != nil {
-		err := t.Intent(w.Intent, w)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+type NodeOrIntent interface {
+	Kinder
 }
 
-func traverseNodeReverse(t Traverser, w *Flow, n *Node) error {
-	switch n.Type {
-	case NodeTypeSimple:
-		if t.NodeSimple != nil {
-			err := t.NodeSimple(n.Simple, w)
-			if err != nil {
-				return err
+type IntentTraverser = func(intent Intent) error
+
+func TraverseIntentFromEndToRoot(t IntentTraverser, w *Flow) error {
+	// First, construct a node to parent mapping
+	parentMap := map[NodeOrIntent]Intent{}
+	var traverse func(w *Flow)
+	traverse = func(w *Flow) {
+		for _, node := range w.Nodes {
+			node := node
+			switch node.Type {
+			case NodeTypeSimple:
+				parentMap[node.Simple] = w.Intent
+			case NodeTypeSubFlow:
+				parentMap[node.SubFlow.Intent] = w.Intent
+				traverse(node.SubFlow)
+			default:
+				panic(errors.New("unreachable"))
 			}
 		}
-		return nil
-	case NodeTypeSubFlow:
-		err := TraverseFlowReverse(t, n.SubFlow)
-		if err != nil {
-			return err
+	}
+	traverse(w)
+
+	var findLastNodeInFlow func(w *Flow) NodeOrIntent
+	findLastNodeInFlow = func(w *Flow) NodeOrIntent {
+		// 1. Special case, no nodes.
+		if len(w.Nodes) == 0 {
+			return w.Intent
 		}
-		return nil
-	default:
+
+		// 2. At least one node
+		var lastNode *Node = &w.Nodes[len(w.Nodes)-1]
+		switch lastNode.Type {
+		case NodeTypeSimple:
+			return lastNode.Simple
+		case NodeTypeSubFlow:
+			return findLastNodeInFlow(lastNode.SubFlow)
+		}
 		panic(errors.New("unreachable"))
 	}
+
+	lastNode := findLastNodeInFlow(w)
+	if lastNode, ok := lastNode.(Intent); ok && lastNode != nil {
+		t(lastNode)
+	}
+
+	var recursivelyTraverseParent func(n NodeOrIntent)
+	recursivelyTraverseParent = func(n NodeOrIntent) {
+		parent := parentMap[n]
+		if parent != nil {
+			t(parent)
+			recursivelyTraverseParent(parent)
+		}
+		return
+	}
+	recursivelyTraverseParent(lastNode)
+	return nil
 }

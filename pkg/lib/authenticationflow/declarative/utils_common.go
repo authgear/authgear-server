@@ -183,16 +183,14 @@ func flowRootObjectForAccountRecoveryFlow(deps *authflow.Dependencies, flowRefer
 
 func findFlowRootObjectInFlow(deps *authflow.Dependencies, flows authflow.Flows) (config.AuthenticationFlowObject, error) {
 	var nearestPublicFlow authflow.PublicFlow
-	authflow.TraverseFlowReverse(authflow.Traverser{
-		Intent: func(intent authflow.Intent, w *authflow.Flow) error {
-			if nearestPublicFlow != nil {
-				return nil
-			}
-			if publicFlow, ok := intent.(authflow.PublicFlow); ok {
-				nearestPublicFlow = publicFlow
-			}
+	authflow.TraverseIntentFromEndToRoot(func(intent authflow.Intent) error {
+		if nearestPublicFlow != nil {
 			return nil
-		},
+		}
+		if publicFlow, ok := intent.(authflow.PublicFlow); ok {
+			nearestPublicFlow = publicFlow
+		}
+		return nil
 	}, flows.Root)
 	if nearestPublicFlow == nil {
 		panic("failed to find flow root object: no public flow available")
