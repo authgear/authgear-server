@@ -24,6 +24,7 @@ type IntentSignupFlowStepIdentify struct {
 	UserID                 string                 `json:"user_id,omitempty"`
 	Options                []IdentificationOption `json:"options,omitempty"`
 	IsUpdatingExistingUser bool                   `json:"is_updating_existing_user,omitempty"`
+	IsCreateSkipped        bool                   `json:"is_create_skipped,omitempty"`
 }
 
 var _ authflow.TargetStep = &IntentSignupFlowStepIdentify{}
@@ -45,6 +46,7 @@ func (i *IntentSignupFlowStepIdentify) MilestoneSwitchToExistingUser(deps *authf
 		}
 		if idenWithSameType != nil {
 			milestoneDoCreateIdentity.MilestoneDoCreateIdentitySkipCreate()
+			i.IsCreateSkipped = true
 		} else {
 			milestoneDoCreateIdentity.MilestoneDoCreateIdentityUpdate(iden.UpdateUserID(newUserID))
 		}
@@ -67,7 +69,11 @@ func (i *IntentSignupFlowStepIdentify) GetJSONPointer() jsonpointer.T {
 
 var _ IntentSignupFlowStepVerifyTarget = &IntentSignupFlowStepIdentify{}
 
-func (*IntentSignupFlowStepIdentify) GetVerifiableClaims(_ context.Context, _ *authflow.Dependencies, flows authflow.Flows) (map[model.ClaimName]string, error) {
+func (i *IntentSignupFlowStepIdentify) GetVerifiableClaims(_ context.Context, _ *authflow.Dependencies, flows authflow.Flows) (map[model.ClaimName]string, error) {
+	if i.IsCreateSkipped {
+		return nil, nil
+	}
+
 	m, ok := authflow.FindMilestone[MilestoneDoCreateIdentity](flows.Nearest)
 	if !ok {
 		return nil, fmt.Errorf("MilestoneDoCreateIdentity cannot be found in IntentSignupFlowStepIdentify")
@@ -89,6 +95,10 @@ var _ IntentSignupFlowStepCreateAuthenticatorTarget = &IntentSignupFlowStepIdent
 
 func (n *IntentSignupFlowStepIdentify) GetOOBOTPClaims(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (map[model.ClaimName]string, error) {
 	return n.GetVerifiableClaims(ctx, deps, flows)
+}
+
+func (n *IntentSignupFlowStepIdentify) IsSkipped() bool {
+	return n.IsCreateSkipped
 }
 
 var _ authflow.Intent = &IntentSignupFlowStepIdentify{}

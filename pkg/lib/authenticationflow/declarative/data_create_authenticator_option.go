@@ -45,6 +45,9 @@ func makeCreateAuthenticatorTarget(
 		if err != nil {
 			return nil, err
 		}
+		if claimValue == "" {
+			return nil, nil
+		}
 		claimName := getOOBAuthenticatorType(oneOf.Authentication).ToClaimName()
 		verified, err := getCreateAuthenticatorOOBOTPTargetVerified(deps, userID, claimName, claimValue)
 		if err != nil {
@@ -95,6 +98,10 @@ func NewCreateAuthenticationOptions(
 			if err != nil {
 				return nil, err
 			}
+			if target == nil {
+				// Skip this option, because the target step was skipped
+				continue
+			}
 			purpose := otp.PurposeOOBOTP
 			channels := getChannels(model.ClaimEmail, deps.Config.Authenticator.OOB)
 			otpForm := getOTPForm(purpose, model.ClaimEmail, deps.Config.Authenticator.OOB.Email)
@@ -110,6 +117,10 @@ func NewCreateAuthenticationOptions(
 			target, err := makeCreateAuthenticatorTarget(ctx, deps, flows, b, userID)
 			if err != nil {
 				return nil, err
+			}
+			if target == nil {
+				// Skip this option, because the target step was skipped
+				continue
 			}
 			purpose := otp.PurposeOOBOTP
 			channels := getChannels(model.ClaimPhoneNumber, deps.Config.Authenticator.OOB)

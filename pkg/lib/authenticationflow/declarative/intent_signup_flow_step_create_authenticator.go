@@ -14,6 +14,7 @@ import (
 
 type IntentSignupFlowStepCreateAuthenticatorTarget interface {
 	GetOOBOTPClaims(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (map[model.ClaimName]string, error)
+	IsSkipped() bool
 }
 
 func init() {
@@ -82,6 +83,15 @@ func (*IntentSignupFlowStepCreateAuthenticator) Kind() string {
 }
 
 func (i *IntentSignupFlowStepCreateAuthenticator) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	options, err := i.getOptions(ctx, deps, flows)
+	if err != nil {
+		return nil, err
+	}
+	if len(options) == 0 {
+		// Nothing can be selected, skip this step.
+		return nil, authflow.ErrEOF
+	}
+
 	// Let the input to select which authentication method to use.
 	// TODO(tung): Auto select the authentication method when possible if IsUpdatingExistingUser
 	if len(flows.Nearest.Nodes) == 0 {
@@ -114,6 +124,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) CanReactTo(ctx context.Context
 }
 
 func (i *IntentSignupFlowStepCreateAuthenticator) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+
 	current, err := i.currentFlowObject(deps)
 	if err != nil {
 		return nil, err
@@ -187,12 +198,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) ReactTo(ctx context.Context, d
 }
 
 func (i *IntentSignupFlowStepCreateAuthenticator) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	current, err := i.currentFlowObject(deps)
-	if err != nil {
-		return nil, err
-	}
-	step := i.step(current)
-	options, err := NewCreateAuthenticationOptions(ctx, deps, flows, step, i.UserID)
+	options, err := i.getOptions(ctx, deps, flows)
 	if err != nil {
 		return nil, err
 	}
@@ -281,4 +287,17 @@ func (i *IntentSignupFlowStepCreateAuthenticator) findAuthenticatorOfSameType(de
 	}
 
 	return existing, nil
+}
+
+func (i *IntentSignupFlowStepCreateAuthenticator) getOptions(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]CreateAuthenticatorOption, error) {
+	current, err := i.currentFlowObject(deps)
+	if err != nil {
+		return nil, err
+	}
+	step := i.step(current)
+	options, err := NewCreateAuthenticationOptions(ctx, deps, flows, step, i.UserID)
+	if err != nil {
+		return nil, err
+	}
+	return options, nil
 }

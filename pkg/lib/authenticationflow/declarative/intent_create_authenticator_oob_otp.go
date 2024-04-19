@@ -140,6 +140,9 @@ func (n *IntentCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *aut
 			if err != nil {
 				return nil, err
 			}
+			if oobOTPTarget == "" {
+				panic(fmt.Errorf("unexpected: oob otp target is empty"))
+			}
 			return n.newDidSelectAuthenticatorNode(deps, oobOTPTarget)
 		}
 
