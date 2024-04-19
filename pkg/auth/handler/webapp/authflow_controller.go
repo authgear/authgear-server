@@ -12,7 +12,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -859,43 +858,8 @@ func (c *AuthflowController) deriveFlowNameFromOAuthSession(oauthSessionID strin
 }
 
 func DeriveFlowName(flowType authflow.FlowType, flowGroup string, clientAllowlist *config.AuthenticationFlowAllowlist, definedGroups []*config.UIAuthenticationFlowGroup) (string, error) {
-	// Derive flow name from flow group.
-	if flowGroup != "" {
-		groupIsAllowed := false
-		if clientAllowlist == nil {
-			groupIsAllowed = true
-		}
-		for _, group := range clientAllowlist.Groups {
-			if group.Name == flowGroup {
-				groupIsAllowed = true
-				break
-			}
-		}
-		if !groupIsAllowed {
-			return "", authflow.ErrFlowNotFound
-		}
-
-		groupFlowName := ""
-		for _, group := range definedGroups {
-			if group.Name == flowGroup {
-				for _, flow := range group.Flows {
-					if authenticationflow.FlowType(flow.Type) == flowType {
-						groupFlowName = flow.Name
-						break
-					}
-				}
-				break
-			}
-		}
-		if groupFlowName == "" {
-			return "", authflow.ErrFlowNotFound
-		}
-		return groupFlowName, nil
-	}
-
-	// Derive flow name from client configuration.
 	allowlist := authflow.NewFlowAllowlist(clientAllowlist, definedGroups)
-	return allowlist.GetMostAppropriateFlowName(flowType), nil
+	return allowlist.DeriveFlowNameForDefaultUI(flowType, flowGroup)
 }
 
 func (c *AuthflowController) RedirectURI(r *http.Request) string {

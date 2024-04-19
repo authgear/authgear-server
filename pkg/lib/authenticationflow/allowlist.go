@@ -1,106 +1,128 @@
 package authenticationflow
 
 import (
-	"slices"
+	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 // FlowAllowlist contains union of flow group and flow allowlist.
-type FlowAllowlist []FlowAllowlistFlow
-
-type FlowAllowlistFlow struct {
-	Type FlowType `json:"type"`
-	Name string   `json:"name"`
+type FlowAllowlist struct {
+	DefinedGroups []*config.UIAuthenticationFlowGroup
+	AllowedGroups []*config.AuthenticationFlowAllowlistGroup
+	AllowedFlows  []*config.AuthenticationFlowAllowlistFlow
 }
 
 func NewFlowAllowlist(allowlist *config.AuthenticationFlowAllowlist, definedGroups []*config.UIAuthenticationFlowGroup) FlowAllowlist {
-	a := FlowAllowlist{}
-	if allowlist == nil {
-		return a
+	a := FlowAllowlist{
+		DefinedGroups: definedGroups,
 	}
 
-	// Merge group allowlist
-	a = append(a, fromGroupAllowlist(allowlist.Groups, definedGroups)...)
+	if allowlist != nil {
+		a.AllowedGroups = allowlist.Groups
+	}
 
-	// Merge flow allowlist
-	a = append(a, fromFlowAllowlist(allowlist.Flows)...)
-
-	// Merge default group allowlist
-	defaultGroupAllowlist := []*config.AuthenticationFlowAllowlistGroup{{Name: "default"}}
-	a = append(a, fromGroupAllowlist(defaultGroupAllowlist, definedGroups)...)
-
-	// Deduplicate
-	a = slice.Deduplicate(a)
+	if allowlist != nil {
+		a.AllowedFlows = allowlist.Flows
+	}
 
 	return a
 }
 
-func (a FlowAllowlist) GetMostAppropriateFlowName(flowType FlowType) string {
-	var flowName string
-	for _, flow := range a {
-		if flow.Type == flowType {
-			flowName = flow.Name
-			break
-		}
-	}
-
-	if flowName == "" {
-		flowName = "default"
-	}
-
-	return flowName
-}
-
-func (a FlowAllowlist) CanCreateFlow(flowReference FlowReference) bool {
-	var flowNames []string
-	for _, flow := range a {
-		if flow.Type == flowReference.Type {
-			flowNames = append(flowNames, flow.Name)
-		}
-	}
-
-	// Allow all flows if the allowlist is not defined.
-	if flowNames == nil {
-		return true
-	}
-
-	return slices.Contains(flowNames, flowReference.Name)
-}
-
-func fromGroupAllowlist(groups []*config.AuthenticationFlowAllowlistGroup, definedGroups []*config.UIAuthenticationFlowGroup) FlowAllowlist {
-	a := FlowAllowlist{}
-	if groups == nil {
-		return a
-	}
-	for _, group := range groups {
-		for _, definedGroup := range definedGroups {
-			if group.Name == definedGroup.Name {
-				for _, flow := range definedGroup.Flows {
-					a = append(a, FlowAllowlistFlow{
-						Type: FlowType(flow.Type),
-						Name: flow.Name,
-					})
+func (a FlowAllowlist) DeriveFlowNameForDefaultUI(flowType FlowType, flowGroup string) (string, error) {
+	findFlowInDefinedGroups := func() (string, error) {
+		for _, definedGroup := range a.DefinedGroups {
+			if definedGroup.Name == flowGroup {
+				for _, flowRef := range definedGroup.Flows {
+					if FlowType(flowRef.Type) == flowType {
+						return flowRef.Name, nil
+					}
 				}
+
+				// If we reach here, the group is defined but it does not
+				// contain the desired flow type.
+				return "", ErrFlowNotFound
+			}
+		}
+
+		// If we reach here, the group is undefined.
+		// As a special case, if the undefined group is default, we return default.
+		if flowGroup == "default" {
+			return "default", nil
+		}
+
+		return "", ErrFlowNotFound
+	}
+
+	// The first step is to resolve flowGroup
+	switch {
+	case flowGroup == "" && len(a.AllowedGroups) == 0:
+		flowGroup = "default"
+		return findFlowInDefinedGroups()
+	case flowGroup == "" && len(a.AllowedGroups) != 0:
+		flowGroup = a.AllowedGroups[0].Name
+		return findFlowInDefinedGroups()
+	case flowGroup != "" && len(a.AllowedGroups) == 0:
+		return findFlowInDefinedGroups()
+	case flowGroup != "" && len(a.AllowedGroups) != 0:
+		isAllowed := false
+		for _, allowedGroup := range a.AllowedGroups {
+			if allowedGroup.Name == flowGroup {
+				isAllowed = true
 				break
 			}
 		}
+		if !isAllowed {
+			return "", ErrFlowNotFound
+		}
+		return findFlowInDefinedGroups()
+	default:
+		panic(fmt.Errorf("unreachable"))
 	}
-	return a
 }
 
-func fromFlowAllowlist(flows []*config.AuthenticationFlowAllowlistFlow) []FlowAllowlistFlow {
-	allowlistFlows := []FlowAllowlistFlow{}
-	if flows == nil {
-		return allowlistFlows
+func (a FlowAllowlist) CanCreateFlow(flowReference FlowReference) bool {
+	// If the allowlist is unspecified, then allow all flows.
+	if len(a.AllowedGroups) == 0 && len(a.AllowedFlows) == 0 {
+		return true
 	}
 
-	for _, flow := range flows {
-		allowlistFlows = append(allowlistFlows, FlowAllowlistFlow{
-			Type: FlowType(flow.Type),
-			Name: flow.Name,
-		})
+	var effectiveAllowlist []*config.AuthenticationFlowAllowlistFlow
+
+	effectiveAllowlist = append(effectiveAllowlist, a.AllowedFlows...)
+
+	// For each allowed group,
+	for _, allowedGroup := range a.AllowedGroups {
+		isDefined := false
+		for _, definedGroup := range a.DefinedGroups {
+			// Look up the defined group.
+			if allowedGroup.Name == definedGroup.Name {
+				isDefined = true
+				for _, flow := range definedGroup.Flows {
+					effectiveAllowlist = append(effectiveAllowlist, &config.AuthenticationFlowAllowlistFlow{
+						Type: flow.Type,
+						Name: flow.Name,
+					})
+				}
+			}
+		}
+
+		// As a special case, if the allowed group is default but it is not defined,
+		// then the default group is assumed to be allow default flows.
+		// So if the flow name is default, then it is allowed.
+		if !isDefined && allowedGroup.Name == "default" {
+			if flowReference.Name == "default" {
+				return true
+			}
+		}
 	}
-	return allowlistFlows
+
+	// Otherwise we consider the effective allowlist.
+	for _, entry := range effectiveAllowlist {
+		if FlowType(entry.Type) == flowReference.Type && entry.Name == flowReference.Name {
+			return true
+		}
+	}
+
+	return false
 }
