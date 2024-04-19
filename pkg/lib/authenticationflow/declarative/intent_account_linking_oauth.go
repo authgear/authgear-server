@@ -86,6 +86,7 @@ func (i *IntentAccountLinkingOAuth) ReactTo(ctx context.Context, deps *authflow.
 			Name: "default",
 		}
 		loginIntent := IntentLoginFlow{
+			TargetUserID:  conflictedUserID,
 			FlowReference: flowReference,
 		}
 		return authflow.NewSubFlow(&loginIntent), nil
