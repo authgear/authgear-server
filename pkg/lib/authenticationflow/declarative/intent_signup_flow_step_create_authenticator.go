@@ -106,7 +106,6 @@ func (i *IntentSignupFlowStepCreateAuthenticator) CanReactTo(ctx context.Context
 	}
 
 	// Let the input to select which authentication method to use.
-	// TODO(tung): Auto select the authentication method when possible if IsUpdatingExistingUser
 	if len(flows.Nearest.Nodes) == 0 {
 		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
 		if err != nil {
