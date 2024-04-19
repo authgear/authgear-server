@@ -153,7 +153,7 @@ var _ = Schema.Add("UIAuthenticationFlowGroup", `
 		"flows"
 	],
 	"properties": {
-		"name": { "type": "string", "minLength": 1 },
+		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
 		"flows" : { "type": "array", "items": { "$ref": "#/$defs/UIAuthenticationFlowGroupFlow" } }
 	}
 }
