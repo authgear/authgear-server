@@ -257,6 +257,7 @@ ui:
     email:
       - channel: email
         otp_form: link
+  authentication_flow: {}
 localization:
   fallback_language: en
   supported_languages: ["en"]

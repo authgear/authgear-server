@@ -119,6 +119,9 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 
 	// Validation 8: validate lockout configs
 	c.validateLockout(ctx)
+
+	// Validation 9: validate authentication flow
+	c.validateAuthenticationFlow(ctx)
 }
 
 func (c *AppConfig) validateTokenLifetime(ctx *validation.Context) {
@@ -324,6 +327,135 @@ func (c *AppConfig) validateLockout(ctx *validation.Context) {
 			"maximum": maxDuration.Seconds(),
 			"actual":  minDuration.Seconds(),
 		})
+	}
+}
+
+func (c *AppConfig) validateAuthenticationFlow(ctx *validation.Context) {
+	if c.UI.AuthenticationFlow == nil {
+		return
+	}
+
+	definedFlows := constructDefinedFlows(c.AuthenticationFlow)
+	definedGroups := constructDefinedGroups(c.UI.AuthenticationFlow)
+
+	// Ensure defined groups are valid and unique
+	validateDefinedGroups(ctx, c.UI.AuthenticationFlow, definedFlows)
+
+	for i, client := range c.OAuth.Clients {
+		// Ensure client's group allowlist is valid
+		validateGroupAllowlist(ctx, client.AuthenticationFlowAllowlist.Groups, definedGroups, i)
+
+		// Ensure client's flow allowlist is valid
+		validateFlowAllowlist(ctx, client.AuthenticationFlowAllowlist.Flows, definedFlows, i)
+	}
+}
+
+func constructDefinedFlows(flowConfig *AuthenticationFlowConfig) []*AuthenticationFlowAllowlistFlow {
+	definedlist := []*AuthenticationFlowAllowlistFlow{}
+	definedlist = append(definedlist, flowsToAllowlist(flowConfig.SignupFlows, AuthenticationFlowTypeSignup)...)
+	definedlist = append(definedlist, flowsToAllowlist(flowConfig.LoginFlows, AuthenticationFlowTypeLogin)...)
+	definedlist = append(definedlist, flowsToAllowlist(flowConfig.PromoteFlows, AuthenticationFlowTypePromote)...)
+	definedlist = append(definedlist, flowsToAllowlist(flowConfig.SignupLoginFlows, AuthenticationFlowTypeSignupLogin)...)
+	definedlist = append(definedlist, flowsToAllowlist(flowConfig.ReauthFlows, AuthenticationFlowTypeReauth)...)
+	definedlist = append(definedlist, flowsToAllowlist(flowConfig.AccountRecoveryFlows, AuthenticationFlowTypeAccountRecovery)...)
+	return definedlist
+}
+
+func constructDefinedGroups(groupConfig *UIAuthenticationFlowConfig) []string {
+	definedlist := []string{}
+	if groupConfig.Groups != nil {
+		for _, group := range groupConfig.Groups {
+			definedlist = append(definedlist, group.Name)
+		}
+	}
+	return definedlist
+}
+
+func flowsToAllowlist[TA AuthenticationFlowObjectFlowRoot](definedFlows []TA, flowType AuthenticationFlowType) []*AuthenticationFlowAllowlistFlow {
+	allowlist := []*AuthenticationFlowAllowlistFlow{}
+	for _, flow := range definedFlows {
+		allowlist = append(allowlist, &AuthenticationFlowAllowlistFlow{
+			Type: flowType,
+			Name: flow.GetName(),
+		})
+	}
+	return allowlist
+}
+
+func validateDefinedGroups(ctx *validation.Context, config *UIAuthenticationFlowConfig, definedFlows []*AuthenticationFlowAllowlistFlow) {
+	definedGroups := map[string]struct{}{}
+	for i, group := range config.Groups {
+		// Ensure defined groups are unique
+		if _, ok := definedGroups[group.Name]; ok {
+			ctx.Child("ui", "authentication_flow", "groups", strconv.Itoa(i)).EmitErrorMessage("duplicated authentication flow group")
+			continue
+		}
+		definedGroups[group.Name] = struct{}{}
+
+		hasLoginFlow := false
+		for j, flow := range group.Flows {
+			if flow.Type == AuthenticationFlowTypeLogin {
+				hasLoginFlow = true
+			}
+
+			// Ensure allowed flows are defined
+			flowIsDefined := false
+			if flow.Name == "default" {
+				flowIsDefined = true
+			}
+			for _, definedFlow := range definedFlows {
+				if flow.Type == definedFlow.Type && flow.Name == definedFlow.Name {
+					flowIsDefined = true
+					break
+				}
+			}
+			if !flowIsDefined {
+				ctx.Child("ui", "authentication_flow", "groups", strconv.Itoa(i), "flows", strconv.Itoa(j)).EmitErrorMessage("invalid authentication flow")
+			}
+		}
+		// Require at least one login flow
+		if !hasLoginFlow {
+			ctx.Child("ui", "authentication_flow", "groups", strconv.Itoa(i)).EmitErrorMessage("authentication flow group must contain one login flow")
+		}
+	}
+}
+
+func validateGroupAllowlist(ctx *validation.Context, allowlist []*AuthenticationFlowAllowlistGroup, definedlist []string, idx int) {
+	for i, group := range allowlist {
+		groupIsDefined := false
+		if group.Name == "default" {
+			groupIsDefined = true
+		}
+
+		for _, definedGroup := range definedlist {
+			if group.Name == definedGroup {
+				groupIsDefined = true
+				break
+			}
+		}
+
+		if !groupIsDefined {
+			ctx.Child("oauth", "clients", strconv.Itoa(idx), "authentication_flow_allowlist", "groups", strconv.Itoa(i)).EmitErrorMessage("invalid authentication flow group")
+		}
+	}
+}
+
+func validateFlowAllowlist(ctx *validation.Context, allowlist []*AuthenticationFlowAllowlistFlow, definedlist []*AuthenticationFlowAllowlistFlow, idx int) {
+	for i, flow := range allowlist {
+		flowIsDefined := false
+		if flow.Name == "default" {
+			flowIsDefined = true
+		}
+
+		for _, definedFlow := range definedlist {
+			if flow.Type == definedFlow.Type && flow.Name == definedFlow.Name {
+				flowIsDefined = true
+				break
+			}
+		}
+		if !flowIsDefined {
+			ctx.Child("oauth", "clients", strconv.Itoa(idx), "authentication_flow_allowlist", "flows", strconv.Itoa(i)).EmitErrorMessage("invalid authentication flow")
+		}
 	}
 }
 

@@ -67,32 +67,33 @@ ui:
   authentication_flow:
     groups:
     - name: oauth_only
-      login_flows:
-      - oauth_only
-      signup_flows:
-      - oauth_only
-      - email_password_2fa
-      signup_login_flows:
-      - oauth_only
-      reauth_flows:
-      - password
-      promote_flow:
-      - password
-      account_recovery_flows:
-      - email
-    - name: email_password_2fa
-      login_flows:
-      - email_password_2fa
-      signup_flow:
-      - email_password_2fa
-      signup_login_flow:
-      - email_password_2fa
-      reauth_flow:
-      - sms_code
-      promote_flow:
-      - sms_code
-      account_recovery_flow:
-      - sms
+      flows:
+      - type: login
+        name: oauth_only
+      - type: signup
+        name: oauth_only
+      - type: signup
+        name: email_password_2fa
+      - type: signup_login
+        name: oauth_only
+      - type: reauth
+        name: password
+      - type: promote
+        name: password
+      - type: account_recovery
+        name: email
+      - type: login
+        name: email_password_2fa
+      - type: signup
+        name: email_password_2fa
+      - type: signup_login
+        name: email_password_2fa
+      - type: reauth
+        name: sms_code
+      - type: promote
+        name: sms_code
+      - type: account_recovery
+        name: sms
 ```
 
 You can specify allowed flow groups and individual flows for each client app:

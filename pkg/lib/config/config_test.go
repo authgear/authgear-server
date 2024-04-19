@@ -3,7 +3,6 @@ package config_test
 import (
 	"errors"
 	"io"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -60,7 +59,7 @@ identity:
 			cfg, err := config.Parse([]byte(fixture))
 			So(err, ShouldBeNil)
 
-			data, err := ioutil.ReadFile("testdata/default_config.yaml")
+			data, err := os.ReadFile("testdata/default_config.yaml")
 			if err != nil {
 				panic(err)
 			}

@@ -206,12 +206,19 @@ func TestAuthflowControllerCreateScreen(t *testing.T) {
 		mockSessionStore := NewMockAuthflowControllerSessionStore(ctrl)
 		mockClock := clock.NewMockClockAt("2006-01-02T03:04:05Z")
 		mockNavigator := NewNoopAuthflowNavigator()
+		mockOAuthSessions := NewMockAuthflowControllerOAuthSessionService(ctrl)
+		mockOAuthClientResolver := NewMockAuthflowControllerOAuthClientResolver(ctrl)
 
 		c := &AuthflowController{
-			Clock:     mockClock,
-			Authflows: mockAuthflows,
-			Sessions:  mockSessionStore,
-			Navigator: mockNavigator,
+			Clock:               mockClock,
+			Authflows:           mockAuthflows,
+			Sessions:            mockSessionStore,
+			Navigator:           mockNavigator,
+			OAuthSessions:       mockOAuthSessions,
+			OAuthClientResolver: mockOAuthClientResolver,
+			UIConfig: &config.UIConfig{
+				AuthenticationFlow: &config.UIAuthenticationFlowConfig{},
+			},
 		}
 
 		Convey("create screen", func() {
@@ -235,10 +242,7 @@ func TestAuthflowControllerCreateScreen(t *testing.T) {
 			}, nil)
 			mockSessionStore.EXPECT().Update(gomock.Any()).Times(1).Return(nil)
 
-			screen, err := c.createScreen(r, s, authflow.FlowReference{
-				Type: authflow.FlowTypeLogin,
-				Name: "default",
-			}, nil)
+			screen, err := c.createScreen(r, s, authflow.FlowTypeLogin, nil)
 			So(err, ShouldBeNil)
 			So(screen, ShouldNotBeNil)
 			So(string(screen.BranchStateTokenFlowResponse.Type), ShouldEqual, "login")

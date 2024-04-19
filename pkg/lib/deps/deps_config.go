@@ -31,6 +31,7 @@ var ConfigDeps = wire.NewSet(
 		"AccountMigration",
 		"Captcha",
 		"TestMode",
+		"AuthenticationFlow",
 	),
 	wire.FieldsOf(new(*config.AuthenticationConfig),
 		"Lockout",

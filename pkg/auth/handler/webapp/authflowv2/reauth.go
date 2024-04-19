@@ -22,7 +22,6 @@ type AuthflowV2ReauthHandler struct {
 }
 
 func (h *AuthflowV2ReauthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	flowName := "default"
 	opts := webapp.SessionOptions{
 		RedirectURI: h.Controller.RedirectURI(r),
 	}
@@ -39,8 +38,5 @@ func (h *AuthflowV2ReauthHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		return nil
 	})
 
-	h.Controller.HandleStartOfFlow(w, r, opts, authflow.FlowReference{
-		Type: authflow.FlowTypeReauth,
-		Name: flowName,
-	}, &handlers, nil)
+	h.Controller.HandleStartOfFlow(w, r, opts, authflow.FlowTypeReauth, &handlers, nil)
 }

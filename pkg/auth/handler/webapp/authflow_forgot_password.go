@@ -152,7 +152,6 @@ func (h *AuthflowForgotPasswordHandler) GetData(
 }
 
 func (h *AuthflowForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	flowName := "default"
 	var handlers AuthflowControllerHandlers
 
 	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
@@ -224,10 +223,7 @@ func (h *AuthflowForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http
 		}
 	}
 
-	h.Controller.HandleStartOfFlow(w, r, webapp.SessionOptions{}, authflow.FlowReference{
-		Type: authflow.FlowTypeAccountRecovery,
-		Name: flowName,
-	}, &handlers, input)
+	h.Controller.HandleStartOfFlow(w, r, webapp.SessionOptions{}, authflow.FlowTypeAccountRecovery, &handlers, input)
 }
 
 func (h *AuthflowForgotPasswordHandler) fallbackToSMS(

@@ -61,7 +61,6 @@ func (h *AuthflowV2PromoteHandler) GetData(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *AuthflowV2PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	flowName := "default"
 	opts := webapp.SessionOptions{
 		RedirectURI: h.Controller.RedirectURI(r),
 	}
@@ -119,8 +118,5 @@ func (h *AuthflowV2PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		return nil
 	})
 
-	h.Controller.HandleStartOfFlow(w, r, opts, authflow.FlowReference{
-		Type: authflow.FlowTypePromote,
-		Name: flowName,
-	}, &handlers, nil)
+	h.Controller.HandleStartOfFlow(w, r, opts, authflow.FlowTypePromote, &handlers, nil)
 }

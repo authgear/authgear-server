@@ -20,7 +20,8 @@ var _ = Schema.Add("UIConfig", `
 			"type": "string",
 			"enum": ["interaction", "authflow", "authflowv2"]
 		},
-		"forgot_password": { "$ref": "#/$defs/UIForgotPasswordConfig" }
+		"forgot_password": { "$ref": "#/$defs/UIForgotPasswordConfig" },
+		"authentication_flow": { "$ref": "#/$defs/UIAuthenticationFlowConfig" }
 	}
 }
 `)
@@ -43,6 +44,8 @@ type UIConfig struct {
 	Implementation UIImplementation `json:"implementation,omitempty"`
 	// ForgotPassword is the config for the default auth ui
 	ForgotPassword *UIForgotPasswordConfig `json:"forgot_password,omitempty"`
+	// AuthenticationFlow configures ui behaviour of authentication flow under default auth ui
+	AuthenticationFlow *UIAuthenticationFlowConfig `json:"authentication_flow,omitempty"`
 }
 
 var _ = Schema.Add("PhoneInputConfig", `
@@ -129,4 +132,68 @@ func (c *UIForgotPasswordConfig) SetDefaults() {
 			},
 		}
 	}
+}
+
+var _ = Schema.Add("UIAuthenticationFlowConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"groups": { "type": "array", "items": { "$ref": "#/$defs/UIAuthenticationFlowGroup" } }
+	}
+}
+`)
+
+var _ = Schema.Add("UIAuthenticationFlowGroup", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"required": [
+		"name",
+		"flows"
+	],
+	"properties": {
+		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
+		"flows" : { "type": "array", "items": { "$ref": "#/$defs/UIAuthenticationFlowGroupFlow" } }
+	}
+}
+`)
+
+var _ = Schema.Add("UIAuthenticationFlowGroupFlow", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"required": [
+		"type",
+		"name"
+	],
+	"properties": {
+		"type": {
+			"type": "string",
+			"enum": [
+				"signup",
+				"promote",
+				"login",
+				"signup_login",
+				"reauth",
+				"account_recovery"
+			]
+		},
+		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" }
+	}
+}
+`)
+
+type UIAuthenticationFlowConfig struct {
+	Groups []*UIAuthenticationFlowGroup `json:"groups,omitempty"`
+}
+
+type UIAuthenticationFlowGroupFlow struct {
+	Type AuthenticationFlowType `json:"type"`
+	Name string                 `json:"name"`
+}
+
+type UIAuthenticationFlowGroup struct {
+	Name  string                           `json:"name"`
+	Flows []*UIAuthenticationFlowGroupFlow `json:"flows,omitempty"`
 }

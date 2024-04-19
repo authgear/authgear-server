@@ -138,7 +138,8 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"tos_uri": { "type": "string", "format": "uri" },
 		"x_custom_ui_uri": { "type": "string", "format": "uri" },
 		"x_app2app_enabled": { "type": "boolean" },
-		"x_app2app_insecure_device_key_binding_enabled": { "type": "boolean" }
+		"x_app2app_insecure_device_key_binding_enabled": { "type": "boolean" },
+		"x_authentication_flow_allowlist": { "$ref": "#/$defs/AuthenticationFlowAllowlist" }
 	},
 	"required": ["name", "client_id", "redirect_uris"],
 	"allOf": [
@@ -176,26 +177,85 @@ var _ = Schema.Add("OAuthClientConfig", `
 `)
 
 type OAuthClientConfig struct {
-	ClientID                               string                     `json:"client_id,omitempty"`
-	ClientURI                              string                     `json:"client_uri,omitempty"`
-	ClientName                             string                     `json:"client_name,omitempty"`
-	Name                                   string                     `json:"name,omitempty"`
-	ApplicationType                        OAuthClientApplicationType `json:"x_application_type,omitempty"`
-	MaxConcurrentSession                   int                        `json:"x_max_concurrent_session,omitempty"`
-	RedirectURIs                           []string                   `json:"redirect_uris,omitempty"`
-	GrantTypes                             []string                   `json:"grant_types,omitempty"`
-	ResponseTypes                          []string                   `json:"response_types,omitempty"`
-	PostLogoutRedirectURIs                 []string                   `json:"post_logout_redirect_uris,omitempty"`
-	AccessTokenLifetime                    DurationSeconds            `json:"access_token_lifetime_seconds,omitempty"`
-	RefreshTokenLifetime                   DurationSeconds            `json:"refresh_token_lifetime_seconds,omitempty"`
-	RefreshTokenIdleTimeoutEnabled         *bool                      `json:"refresh_token_idle_timeout_enabled,omitempty"`
-	RefreshTokenIdleTimeout                DurationSeconds            `json:"refresh_token_idle_timeout_seconds,omitempty"`
-	IssueJWTAccessToken                    bool                       `json:"issue_jwt_access_token,omitempty"`
-	PolicyURI                              string                     `json:"policy_uri,omitempty"`
-	TOSURI                                 string                     `json:"tos_uri,omitempty"`
-	CustomUIURI                            string                     `json:"x_custom_ui_uri,omitempty"`
-	App2appEnabled                         bool                       `json:"x_app2app_enabled,omitempty"`
-	App2appInsecureDeviceKeyBindingEnabled bool                       `json:"x_app2app_insecure_device_key_binding_enabled,omitempty"`
+	ClientID                               string                       `json:"client_id,omitempty"`
+	ClientURI                              string                       `json:"client_uri,omitempty"`
+	ClientName                             string                       `json:"client_name,omitempty"`
+	Name                                   string                       `json:"name,omitempty"`
+	ApplicationType                        OAuthClientApplicationType   `json:"x_application_type,omitempty"`
+	MaxConcurrentSession                   int                          `json:"x_max_concurrent_session,omitempty"`
+	RedirectURIs                           []string                     `json:"redirect_uris,omitempty"`
+	GrantTypes                             []string                     `json:"grant_types,omitempty"`
+	ResponseTypes                          []string                     `json:"response_types,omitempty"`
+	PostLogoutRedirectURIs                 []string                     `json:"post_logout_redirect_uris,omitempty"`
+	AccessTokenLifetime                    DurationSeconds              `json:"access_token_lifetime_seconds,omitempty"`
+	RefreshTokenLifetime                   DurationSeconds              `json:"refresh_token_lifetime_seconds,omitempty"`
+	RefreshTokenIdleTimeoutEnabled         *bool                        `json:"refresh_token_idle_timeout_enabled,omitempty"`
+	RefreshTokenIdleTimeout                DurationSeconds              `json:"refresh_token_idle_timeout_seconds,omitempty"`
+	IssueJWTAccessToken                    bool                         `json:"issue_jwt_access_token,omitempty"`
+	PolicyURI                              string                       `json:"policy_uri,omitempty"`
+	TOSURI                                 string                       `json:"tos_uri,omitempty"`
+	CustomUIURI                            string                       `json:"x_custom_ui_uri,omitempty"`
+	App2appEnabled                         bool                         `json:"x_app2app_enabled,omitempty"`
+	App2appInsecureDeviceKeyBindingEnabled bool                         `json:"x_app2app_insecure_device_key_binding_enabled,omitempty"`
+	AuthenticationFlowAllowlist            *AuthenticationFlowAllowlist `json:"x_authentication_flow_allowlist,omitempty"`
+}
+
+var _ = Schema.Add("AuthenticationFlowAllowlist", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"groups": { "type": "array", "items": { "$ref": "#/$defs/AuthenticationFlowAllowlistGroup" } },
+		"flows": { "type": "array", "items": { "$ref": "#/$defs/AuthenticationFlowAllowlistFlow" } }
+	}
+}
+`)
+
+var _ = Schema.Add("AuthenticationFlowAllowlistGroup", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"name": { "type": "string", "minLength": 1 }
+	},
+	"required": ["name"]
+}
+`)
+
+var _ = Schema.Add("AuthenticationFlowAllowlistFlow", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"type": {
+			"type": "string",
+			"enum": [
+				"signup",
+				"promote",
+				"login",
+				"signup_login",
+				"reauth",
+				"account_recovery"
+			]
+		},
+		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" }
+	},
+	"required": ["type", "name"]
+}
+`)
+
+type AuthenticationFlowAllowlist struct {
+	Groups []*AuthenticationFlowAllowlistGroup `json:"groups,omitempty"`
+	Flows  []*AuthenticationFlowAllowlistFlow  `json:"flows,omitempty"`
+}
+
+type AuthenticationFlowAllowlistGroup struct {
+	Name string `json:"name"`
+}
+
+type AuthenticationFlowAllowlistFlow struct {
+	Type AuthenticationFlowType `json:"type"`
+	Name string                 `json:"name"`
 }
 
 func (c *OAuthClientConfig) DefaultRedirectURI() string {
