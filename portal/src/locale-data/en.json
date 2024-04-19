@@ -450,7 +450,8 @@
 
   "UserDetails.session.header": "Sessions and apps",
   "UserDetails.session.devices": "Devices",
-  "UserDetails.session.clientID": "Client ID",
+  "UserDetails.session.clientID": "Application",
+  "UserDetails.session.clientID.tooltip.message": "Client ID: {clientID}",
   "UserDetails.session.last-activity": "Last Activity",
   "UserDetails.session.ip-address": "IP Address",
   "UserDetails.session.action": "Action",

@@ -420,7 +420,10 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
           itemKey={SESSION_PIVOT_KEY}
           headerText={renderToString("UserDetails.session.header")}
         >
-          <UserDetailsSession sessions={sessions} />
+          <UserDetailsSession
+            sessions={sessions}
+            oauthClients={oauthClientConfig}
+          />
           <UserDetailsAuthorization
             authorizations={authorizations}
             oauthClientConfig={oauthClientConfig}
