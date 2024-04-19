@@ -84,16 +84,8 @@ func (*IntentSignupFlowStepCreateAuthenticator) Kind() string {
 }
 
 func (i *IntentSignupFlowStepCreateAuthenticator) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	internalOptions, err := i.getOptions(ctx, deps, flows)
-	if err != nil {
-		return nil, err
-	}
-	if len(internalOptions) == 0 {
-		// Nothing can be selected, skip this step.
-		return nil, authflow.ErrEOF
-	}
 
-	if i.IsUpdatingExistingUser {
+	if len(flows.Nearest.Nodes) == 0 && i.IsUpdatingExistingUser {
 		option, _, _, err := i.findSkippableOption(ctx, deps, flows)
 		if err != nil {
 			return nil, err
@@ -102,6 +94,15 @@ func (i *IntentSignupFlowStepCreateAuthenticator) CanReactTo(ctx context.Context
 			// Proceed without user input to use the existing authenticator automatically
 			return nil, nil
 		}
+	}
+
+	internalOptions, err := i.getOptions(ctx, deps, flows)
+	if err != nil {
+		return nil, err
+	}
+	if len(flows.Nearest.Nodes) == 0 && len(internalOptions) == 0 {
+		// Nothing can be selected, skip this step.
+		return nil, authflow.ErrEOF
 	}
 
 	// Let the input to select which authentication method to use.
@@ -136,14 +137,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) CanReactTo(ctx context.Context
 }
 
 func (i *IntentSignupFlowStepCreateAuthenticator) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
-
-	current, err := i.currentFlowObject(deps)
-	if err != nil {
-		return nil, err
-	}
-	step := i.step(current)
-
-	if i.IsUpdatingExistingUser {
+	if len(flows.Nearest.Nodes) == 0 && i.IsUpdatingExistingUser {
 		option, idx, authn, err := i.findSkippableOption(ctx, deps, flows)
 		if err != nil {
 			return nil, err
@@ -152,6 +146,12 @@ func (i *IntentSignupFlowStepCreateAuthenticator) ReactTo(ctx context.Context, d
 			return i.reactToExistingAuthenticator(ctx, deps, flows, *option, authn, idx)
 		}
 	}
+
+	current, err := i.currentFlowObject(deps)
+	if err != nil {
+		return nil, err
+	}
+	step := i.step(current)
 
 	if len(flows.Nearest.Nodes) == 0 {
 		var inputTakeAuthenticationMethod inputTakeAuthenticationMethod
