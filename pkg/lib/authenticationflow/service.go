@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
@@ -60,16 +61,27 @@ type ServiceUIInfoResolver interface {
 	SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string
 }
 
+type OAuthClientResolver interface {
+	ResolveClient(clientID string) *config.OAuthClientConfig
+}
+
 type Service struct {
 	ContextDoNotUseDirectly context.Context
 	Deps                    *Dependencies
 	Logger                  ServiceLogger
 	Store                   Store
 	Database                ServiceDatabase
+	UIConfig                *config.UIConfig
 	UIInfoResolver          ServiceUIInfoResolver
+	OAuthClientResolver     OAuthClientResolver
 }
 
 func (s *Service) CreateNewFlow(publicFlow PublicFlow, sessionOptions *SessionOptions) (output *ServiceOutput, err error) {
+	err = s.validateNewFlow(publicFlow, sessionOptions)
+	if err != nil {
+		return
+	}
+
 	session := NewSession(sessionOptions)
 	err = s.Store.CreateSession(session)
 	if err != nil {
@@ -77,6 +89,22 @@ func (s *Service) CreateNewFlow(publicFlow PublicFlow, sessionOptions *SessionOp
 	}
 
 	return s.createNewFlowWithSession(publicFlow, session)
+}
+
+func (s *Service) validateNewFlow(publicFlow PublicFlow, sessionOptions *SessionOptions) (err error) {
+	// Enforce flow allowlist if clientID is provided.
+	if sessionOptions.ClientID != "" {
+		flowReference := publicFlow.FlowFlowReference()
+		client := s.OAuthClientResolver.ResolveClient(sessionOptions.ClientID)
+		if client != nil {
+			allowlist := NewFlowAllowlist(client.AuthenticationFlowAllowlist, s.UIConfig.AuthenticationFlow.Groups)
+			if !allowlist.CanCreateFlow(flowReference) {
+				return ErrFlowNotAllowed
+			}
+		}
+	}
+
+	return err
 }
 
 func (s *Service) createNewFlowWithSession(publicFlow PublicFlow, session *Session) (output *ServiceOutput, err error) {

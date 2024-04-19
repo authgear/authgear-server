@@ -507,6 +507,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(webapp.WebappOAuthClientResolver), new(*oauthclient.Resolver)),
 		wire.Bind(new(interaction.OAuthClientResolver), new(*oauthclient.Resolver)),
 		wire.Bind(new(oauth.OAuthClientResolver), new(*oauthclient.Resolver)),
+		wire.Bind(new(authenticationflow.OAuthClientResolver), new(*oauthclient.Resolver)),
 	),
 
 	userimport.DependencySet,
