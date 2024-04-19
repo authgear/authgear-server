@@ -16,6 +16,20 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
+var _ = TestCaseSchema.Add("TestCase", `
+{
+	"type": "object",
+	"properties": {
+		"name": { "type": "string" },
+		"focus": { "type": "boolean" },
+		"authgear.yaml": { "$ref": "#/$defs/AuthgearYAMLSource" },
+		"steps": { "type": "array", "items": { "$ref": "#/$defs/Step" } },
+		"before": { "type": "array", "items": { "$ref": "#/$defs/BeforeHook" } }
+	},
+	"required": ["name", "steps"]
+}
+`)
+
 type TestCase struct {
 	Name string `yaml:"name"`
 	Path string `yaml:"path"`
@@ -32,8 +46,6 @@ func (tc *TestCase) FullName() string {
 }
 
 func (tc *TestCase) Run(t *testing.T) {
-	t.Logf("running test case: %s\n", tc.Name)
-
 	ctx := context.Background()
 
 	appID := generateAppID()
@@ -183,7 +195,7 @@ func (tc *TestCase) executeStep(
 
 	case StepActionInput:
 		fallthrough
-	default:
+	case "":
 		if len(prevSteps) == 0 {
 			t.Errorf("no previous step result in '%s'", step.Name)
 			return
@@ -213,6 +225,9 @@ func (tc *TestCase) executeStep(
 			Result: flowResponse,
 			Error:  flowErr,
 		}
+	default:
+		t.Errorf("unknown action in '%s': %s", step.Name, step.Action)
+		return nil, state, false
 	}
 
 	return result, nextState, true
@@ -284,27 +299,32 @@ func makeTemplateFuncMap(cmd *End2EndCmd) texttemplate.FuncMap {
 }
 
 func validateOutput(t *testing.T, step Step, flowResponse *authflowclient.FlowResponse, flowErr error) (ok bool) {
+	flowResponseJson, _ := json.MarshalIndent(flowResponse, "", "  ")
+	flowErrJson, _ := json.MarshalIndent(flowErr, "", "  ")
+
 	errorViolations, resultViolations, err := MatchOutput(*step.Output, flowResponse, flowErr)
 	if err != nil {
 		t.Errorf("failed to match output in '%s': %v\n", step.Name, err)
-		t.Errorf("  result: %v\n", flowResponse)
-		t.Errorf("  error: %v\n", flowErr)
+		t.Errorf("  result: %s\n", flowResponseJson)
+		t.Errorf("  error: %s\n", flowErrJson)
 		return false
 	}
 
 	if len(errorViolations) > 0 {
-		t.Errorf("error output mismatch in '%s': %v\n", step.Name, flowErr)
+		t.Errorf("error output mismatch in '%s':\n", step.Name)
 		for _, violation := range errorViolations {
-			t.Errorf("  %s: %s. Expected %s, got %s", violation.Path, violation.Message, violation.Expected, violation.Actual)
+			t.Errorf("  | %s: %s. Expected %s, got %s", violation.Path, violation.Message, violation.Expected, violation.Actual)
 		}
+		t.Errorf("  error: %s\n", flowErrJson)
 		return false
 	}
 
 	if len(resultViolations) > 0 {
-		t.Errorf("result output mismatch in '%s': %v\n", step.Name, flowResponse)
+		t.Errorf("result output mismatch in '%s':\n", step.Name)
 		for _, violation := range resultViolations {
-			t.Errorf("  %s: %s. Expected %s, got %s", violation.Path, violation.Message, violation.Expected, violation.Actual)
+			t.Errorf("  | %s: %s. Expected %s, got %s", violation.Path, violation.Message, violation.Expected, violation.Actual)
 		}
+		t.Errorf("  result: %s\n", flowResponseJson)
 		return false
 	}
 

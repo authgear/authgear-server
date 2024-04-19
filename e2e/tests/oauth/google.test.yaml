@@ -28,7 +28,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "identification": "oauth",
         "alias": "google",
@@ -54,7 +55,8 @@ steps:
           "code": "[[string]]"
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "code": "{{ .prev.result.code }}"
       }

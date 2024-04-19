@@ -1,0 +1,213 @@
+{
+  "$defs": {
+    "AuthgearYAMLSource": {
+      "additionalProperties": false,
+      "properties": {
+        "extend": {
+          "description": "Path to the base authgear.yaml",
+          "type": "file-path"
+        },
+        "override": {
+          "description": "Inline snippet to override the base authgear.yaml",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "BeforeHook": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "user_import"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "user_import"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "custom_sql"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "custom_sql"
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "custom_sql": {
+          "$ref": "#/$defs/BeforeHookCustomSQL"
+        },
+        "type": {
+          "enum": [
+            "user_import",
+            "custom_sql"
+          ],
+          "type": "string"
+        },
+        "user_import": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "type": "object"
+    },
+    "BeforeHookCustomSQL": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "description": "Path to the custom SQL script",
+          "format": "file-path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "type": "object"
+    },
+    "Output": {
+      "additionalProperties": false,
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "result": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Step": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "create"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "input"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "input"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "input"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "oauth_redirect"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "to",
+              "redirect_uri"
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "action": {
+          "enum": [
+            "create",
+            "input",
+            "oauth_redirect"
+          ],
+          "type": "string"
+        },
+        "input": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "output": {
+          "$ref": "#/$defs/Output"
+        },
+        "redirect_uri": {
+          "type": "string"
+        },
+        "to": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "StepResult": {
+      "additionalProperties": false,
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "result": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "TestCase": {
+      "properties": {
+        "authgear.yaml": {
+          "$ref": "#/$defs/AuthgearYAMLSource"
+        },
+        "before": {
+          "items": {
+            "$ref": "#/$defs/BeforeHook"
+          },
+          "type": "array"
+        },
+        "focus": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "steps": {
+          "items": {
+            "$ref": "#/$defs/Step"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "steps"
+      ],
+      "type": "object"
+    }
+  },
+  "$ref": "#/$defs/TestCase"
+}

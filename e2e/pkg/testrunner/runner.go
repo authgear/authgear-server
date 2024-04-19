@@ -1,13 +1,14 @@
 package testrunner
 
 import (
-	"io"
+	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
-	"gopkg.in/yaml.v2"
+	"sigs.k8s.io/yaml"
 )
 
 type TestRunner struct {
@@ -25,9 +26,14 @@ func NewTestRunner(t *testing.T, path string) *TestRunner {
 func (tr *TestRunner) Run() {
 	var t = tr.T
 
+	err := tr.dumpSchema()
+	if err != nil {
+		t.Fatalf("failed to dump schema: %v", err)
+	}
+
 	testCases, err := tr.loadFromPath(tr.Path)
 	if err != nil {
-		t.Fatalf("failed to load test cases: %v", err)
+		t.Fatalf(err.Error())
 	}
 
 	hasFocus := false
@@ -48,7 +54,7 @@ func (tr *TestRunner) Run() {
 			t.Parallel()
 
 			if hasFocus && !tc.Focus {
-				t.Skip("skipping non-focus test case")
+				t.SkipNow()
 				return
 			}
 
@@ -57,32 +63,53 @@ func (tr *TestRunner) Run() {
 	}
 }
 
+func (tr *TestRunner) dumpSchema() error {
+	schema, err := DumpSchema()
+	if err != nil {
+		return err
+	}
+	err = os.WriteFile("../../schema.json", []byte(schema), 0644)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (tr *TestRunner) loadFromPath(path string) ([]TestCase, error) {
+	var t = tr.T
 	var testCases []TestCase
 	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 
-		if filepath.Ext(path) != ".yaml" {
+		if strings.HasSuffix(path, "test.yaml") == false {
 			return nil
 		}
 
 		data, err := os.ReadFile(path)
 		if err != nil {
-			return err
+			t.Errorf("failed to read file %s: %v", path, err)
 		}
 
-		decoder := yaml.NewDecoder(strings.NewReader(string(data)))
-		for {
+		documents := bytes.SplitN(data, []byte("\n---"), -1)
+
+		for i, testcaseRaw := range documents {
 			var testCase TestCase
-			err := decoder.Decode(&testCase)
-			if err == io.EOF {
-				break
-			}
+
+			jsonData, err := yaml.YAMLToJSON(testcaseRaw)
 			if err != nil {
-				return err
+				t.Errorf("failed to convert yaml to json at %s#%d%v", path, i+1, err)
+				continue
 			}
+
+			var invalidSchemaMessage = fmt.Sprintf("invalid schema at %s#%d", path, i+1)
+			err = TestCaseSchema.Validator().ValidateWithMessage(bytes.NewReader(jsonData), invalidSchemaMessage)
+			if err != nil {
+				t.Errorf(err.Error())
+				continue
+			}
+
 			testCase.Path = path
 			testCases = append(testCases, testCase)
 		}
