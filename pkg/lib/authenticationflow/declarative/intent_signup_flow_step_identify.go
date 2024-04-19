@@ -143,7 +143,7 @@ func (*IntentSignupFlowStepIdentify) Kind() string {
 }
 
 func (i *IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	if i.IsUpdatingExistingUser {
+	if len(flows.Nearest.Nodes) == 0 && i.IsUpdatingExistingUser {
 		option, _, _, err := i.findSkippableOption(ctx, deps, flows)
 		if err != nil {
 			return nil, err
@@ -184,13 +184,7 @@ func (i *IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *aut
 }
 
 func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
-	current, err := i.currentFlowObject(deps)
-	if err != nil {
-		return nil, err
-	}
-	step := i.step(current)
-
-	if i.IsUpdatingExistingUser {
+	if len(flows.Nearest.Nodes) == 0 && i.IsUpdatingExistingUser {
 		option, idx, identity, err := i.findSkippableOption(ctx, deps, flows)
 		if err != nil {
 			return nil, err
@@ -199,6 +193,12 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 			return i.reactToExistingIdentity(ctx, deps, flows, *option, identity, idx)
 		}
 	}
+
+	current, err := i.currentFlowObject(deps)
+	if err != nil {
+		return nil, err
+	}
+	step := i.step(current)
 
 	if len(flows.Nearest.Nodes) == 0 {
 		var inputTakeIdentificationMethod inputTakeIdentificationMethod
