@@ -1,5 +1,7 @@
 package authenticationflow
 
+import "errors"
+
 // Milestone is a marker.
 // The designed use case is to find out whether a particular milestone exists
 // in the flow, or any of its subflows.
@@ -13,6 +15,31 @@ func FindFirstMilestone[T Milestone](w *Flow) (T, bool) {
 
 func FindMilestone[T Milestone](w *Flow) (T, bool) {
 	return findMilestone[T](w, false)
+}
+
+// This function only find milestones in the provided flow,
+// and will not nest into subflows
+func FindMilestoneInCurrentFlow[T Milestone](w *Flow) (T, bool) {
+	var t T
+	found := false
+	for _, node := range w.Nodes {
+		n := node
+		switch n.Type {
+		case NodeTypeSimple:
+			if m, ok := n.Simple.(T); ok {
+				t = m
+				found = true
+			}
+		case NodeTypeSubFlow:
+			if m, ok := n.SubFlow.Intent.(T); ok {
+				t = m
+				found = true
+			}
+		default:
+			panic(errors.New("unreachable"))
+		}
+	}
+	return t, found
 }
 
 func findMilestone[T Milestone](w *Flow, stopOnFirst bool) (T, bool) {
