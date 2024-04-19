@@ -26,6 +26,11 @@ type CreateAuthenticatorOption struct {
 	Target *CreateAuthenticatorTarget `json:"target,omitempty"`
 }
 
+type CreateAuthenticatorOptionInternal struct {
+	CreateAuthenticatorOption
+	UnmaskedTarget string
+}
+
 type CreateAuthenticatorTarget struct {
 	MaskedDisplayName    string `json:"masked_display_name"`
 	VerificationRequired bool   `json:"verification_required"`
@@ -37,21 +42,23 @@ func makeCreateAuthenticatorTarget(
 	flows authflow.Flows,
 	oneOf *config.AuthenticationFlowSignupFlowOneOf,
 	userID string,
-) (*CreateAuthenticatorTarget, error) {
+) (*CreateAuthenticatorTarget, string, error) {
 	var target *CreateAuthenticatorTarget = nil
+	var claimValue string
+	var err error
 	targetStep := oneOf.TargetStep
 	if targetStep != "" {
-		claimValue, err := getCreateAuthenticatorOOBOTPTargetFromTargetStep(ctx, deps, flows, targetStep)
+		claimValue, err = getCreateAuthenticatorOOBOTPTargetFromTargetStep(ctx, deps, flows, targetStep)
 		if err != nil {
-			return nil, err
+			return nil, "", err
 		}
 		if claimValue == "" {
-			return nil, nil
+			return nil, "", nil
 		}
 		claimName := getOOBAuthenticatorType(oneOf.Authentication).ToClaimName()
 		verified, err := getCreateAuthenticatorOOBOTPTargetVerified(deps, userID, claimName, claimValue)
 		if err != nil {
-			return nil, err
+			return nil, "", err
 		}
 		masked := ""
 		switch claimName {
@@ -65,7 +72,7 @@ func makeCreateAuthenticatorTarget(
 			VerificationRequired: !verified && oneOf.IsVerificationRequired(),
 		}
 	}
-	return target, nil
+	return target, claimValue, nil
 }
 
 func NewCreateAuthenticationOptions(
@@ -73,8 +80,8 @@ func NewCreateAuthenticationOptions(
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
 	step *config.AuthenticationFlowSignupFlowStep,
-	userID string) ([]CreateAuthenticatorOption, error) {
-	options := []CreateAuthenticatorOption{}
+	userID string) ([]CreateAuthenticatorOptionInternal, error) {
+	options := []CreateAuthenticatorOptionInternal{}
 	passwordPolicy := NewPasswordPolicy(
 		deps.FeatureConfig.Authenticator,
 		deps.Config.Authenticator.Password.Policy,
@@ -84,9 +91,11 @@ func NewCreateAuthenticationOptions(
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryPassword:
-			options = append(options, CreateAuthenticatorOption{
-				Authentication: b.Authentication,
-				PasswordPolicy: passwordPolicy,
+			options = append(options, CreateAuthenticatorOptionInternal{
+				CreateAuthenticatorOption: CreateAuthenticatorOption{
+					Authentication: b.Authentication,
+					PasswordPolicy: passwordPolicy,
+				},
 			})
 		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
 			// Cannot create passkey in this step.
@@ -94,7 +103,7 @@ func NewCreateAuthenticationOptions(
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
-			target, err := makeCreateAuthenticatorTarget(ctx, deps, flows, b, userID)
+			target, unmaskedTarget, err := makeCreateAuthenticatorTarget(ctx, deps, flows, b, userID)
 			if err != nil {
 				return nil, err
 			}
@@ -105,16 +114,19 @@ func NewCreateAuthenticationOptions(
 			purpose := otp.PurposeOOBOTP
 			channels := getChannels(model.ClaimEmail, deps.Config.Authenticator.OOB)
 			otpForm := getOTPForm(purpose, model.ClaimEmail, deps.Config.Authenticator.OOB.Email)
-			options = append(options, CreateAuthenticatorOption{
-				Authentication: b.Authentication,
-				OTPForm:        otpForm,
-				Channels:       channels,
-				Target:         target,
+			options = append(options, CreateAuthenticatorOptionInternal{
+				UnmaskedTarget: unmaskedTarget,
+				CreateAuthenticatorOption: CreateAuthenticatorOption{
+					Authentication: b.Authentication,
+					OTPForm:        otpForm,
+					Channels:       channels,
+					Target:         target,
+				},
 			})
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-			target, err := makeCreateAuthenticatorTarget(ctx, deps, flows, b, userID)
+			target, unmaskedTarget, err := makeCreateAuthenticatorTarget(ctx, deps, flows, b, userID)
 			if err != nil {
 				return nil, err
 			}
@@ -125,15 +137,20 @@ func NewCreateAuthenticationOptions(
 			purpose := otp.PurposeOOBOTP
 			channels := getChannels(model.ClaimPhoneNumber, deps.Config.Authenticator.OOB)
 			otpForm := getOTPForm(purpose, model.ClaimPhoneNumber, deps.Config.Authenticator.OOB.Email)
-			options = append(options, CreateAuthenticatorOption{
-				Authentication: b.Authentication,
-				OTPForm:        otpForm,
-				Channels:       channels,
-				Target:         target,
+			options = append(options, CreateAuthenticatorOptionInternal{
+				CreateAuthenticatorOption: CreateAuthenticatorOption{
+					Authentication: b.Authentication,
+					OTPForm:        otpForm,
+					Channels:       channels,
+					Target:         target,
+				},
+				UnmaskedTarget: unmaskedTarget,
 			})
 		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
-			options = append(options, CreateAuthenticatorOption{
-				Authentication: b.Authentication,
+			options = append(options, CreateAuthenticatorOptionInternal{
+				CreateAuthenticatorOption: CreateAuthenticatorOption{
+					Authentication: b.Authentication,
+				},
 			})
 		case config.AuthenticationFlowAuthenticationRecoveryCode:
 			// Recovery code is not created in this step.
