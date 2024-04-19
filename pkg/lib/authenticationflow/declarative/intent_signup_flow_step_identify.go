@@ -143,8 +143,18 @@ func (*IntentSignupFlowStepIdentify) Kind() string {
 }
 
 func (i *IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	if i.IsUpdatingExistingUser {
+		option, _, _, err := i.findSkippableOption(ctx, deps, flows)
+		if err != nil {
+			return nil, err
+		}
+		if option != nil {
+			// Proceed without user input to use the existing identity automatically
+			return nil, nil
+		}
+	}
+
 	// Let the input to select which identification method to use.
-	// TODO(tung): Auto select the identitication method when possible if IsUpdatingExistingUser
 	if len(flows.Nearest.Nodes) == 0 {
 		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
 		if err != nil {
@@ -179,6 +189,16 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 		return nil, err
 	}
 	step := i.step(current)
+
+	if i.IsUpdatingExistingUser {
+		option, idx, identity, err := i.findSkippableOption(ctx, deps, flows)
+		if err != nil {
+			return nil, err
+		}
+		if option != nil {
+			return i.reactToExistingIdentity(ctx, deps, flows, *option, identity, idx)
+		}
+	}
 
 	if len(flows.Nearest.Nodes) == 0 {
 		var inputTakeIdentificationMethod inputTakeIdentificationMethod
@@ -339,4 +359,95 @@ func (i *IntentSignupFlowStepIdentify) findIdentityOfSameType(deps *authflow.Dep
 	}
 
 	return idenWithSameType, nil
+}
+
+func (i *IntentSignupFlowStepIdentify) reactToExistingIdentity(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, option IdentificationOption, identity *identity.Info, idx int) (*authflow.Node, error) {
+	if len(flows.Nearest.Nodes) == 0 {
+		return authflow.NewNodeSimple(&NodeSkipCreationByExistingIdentity{
+			Identity:       identity,
+			JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
+			Identification: option.Identification,
+		}), nil
+	}
+
+	_, identityCreated := authflow.FindMilestone[MilestoneDoCreateIdentity](flows.Nearest)
+	_, nestedStepHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
+
+	current, err := i.currentFlowObject(deps)
+	if err != nil {
+		return nil, err
+	}
+	step := i.step(current)
+
+	switch {
+	case identityCreated && !nestedStepHandled:
+		identification := i.identificationMethod(flows.Nearest)
+		return authflow.NewSubFlow(&IntentSignupFlowSteps{
+			FlowReference:          i.FlowReference,
+			JSONPointer:            i.jsonPointer(step, identification),
+			UserID:                 i.UserID,
+			IsUpdatingExistingUser: i.IsUpdatingExistingUser,
+		}), nil
+	default:
+		return nil, authflow.ErrIncompatibleInput
+	}
+}
+
+func (i *IntentSignupFlowStepIdentify) findSkippableOption(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (option *IdentificationOption, idx int, info *identity.Info, err error) {
+	userIdens, err := deps.Identities.ListByUser(i.UserID)
+	if err != nil {
+		return nil, -1, nil, err
+	}
+	// For each option, see if any existing identities can be reused
+	for idx, option := range i.Options {
+		option := option
+		existingIden := i.findIdentityByOption(userIdens, option)
+		if existingIden != nil {
+			return &option, idx, existingIden, nil
+		}
+	}
+	return nil, -1, nil, nil
+}
+
+func (i *IntentSignupFlowStepIdentify) findIdentityByOption(in []*identity.Info, option IdentificationOption) *identity.Info {
+	findLoginID := func(typ model.LoginIDKeyType) *identity.Info {
+		for _, iden := range in {
+			iden := iden
+			if iden.Type != model.IdentityTypeLoginID {
+				continue
+			}
+			if iden.LoginID.LoginIDType == typ {
+				return iden
+			}
+		}
+		return nil
+	}
+
+	findOAuth := func(alias string) *identity.Info {
+		for _, iden := range in {
+			iden := iden
+			if iden.Type != model.IdentityTypeOAuth {
+				continue
+			}
+			if iden.OAuth.ProviderAlias == alias {
+				return iden
+			}
+		}
+		return nil
+	}
+
+	switch option.Identification {
+	case config.AuthenticationFlowIdentificationEmail:
+		return findLoginID(model.LoginIDKeyTypeEmail)
+	case config.AuthenticationFlowIdentificationPhone:
+		return findLoginID(model.LoginIDKeyTypePhone)
+	case config.AuthenticationFlowIdentificationUsername:
+		return findLoginID(model.LoginIDKeyTypeUsername)
+	case config.AuthenticationFlowIdentificationOAuth:
+		return findOAuth(option.Alias)
+	case config.AuthenticationFlowIdentificationPasskey:
+		// Cannot create passkey in this step.
+		return nil
+	}
+	return nil
 }
