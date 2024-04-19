@@ -382,88 +382,24 @@ func (i *IntentSignupFlowStepCreateAuthenticator) findSkippableOption(
 }
 
 func (i *IntentSignupFlowStepCreateAuthenticator) findAuthenticatorByOption(in []*authenticator.Info, option CreateAuthenticatorOptionInternal) *authenticator.Info {
-	findPassword := func(kind model.AuthenticatorKind) *authenticator.Info {
-		for _, authn := range in {
-			authn := authn
-			if authn.Type != model.AuthenticatorTypePassword {
-				continue
-			}
-			if authn.Kind == kind {
-				return authn
-			}
-		}
-		return nil
-	}
-
-	findPrimaryPasskey := func(kind model.AuthenticatorKind) *authenticator.Info {
-		for _, authn := range in {
-			authn := authn
-			if authn.Type != model.AuthenticatorTypePasskey {
-				continue
-			}
-			if authn.Kind == kind {
-				return authn
-			}
-		}
-		return nil
-	}
-
-	findEmailOOB := func(kind model.AuthenticatorKind, target string) *authenticator.Info {
-		for _, authn := range in {
-			authn := authn
-			if authn.Type != model.AuthenticatorTypeOOBEmail {
-				continue
-			}
-			if authn.Kind == kind && authn.OOBOTP.Email == target {
-				return authn
-			}
-		}
-		return nil
-	}
-
-	findSMSOOB := func(kind model.AuthenticatorKind, target string) *authenticator.Info {
-		for _, authn := range in {
-			authn := authn
-			if authn.Type != model.AuthenticatorTypeOOBSMS {
-				continue
-			}
-			if authn.Kind == kind && authn.OOBOTP.Phone == target {
-				return authn
-			}
-		}
-		return nil
-	}
-
-	findTOTP := func(kind model.AuthenticatorKind) *authenticator.Info {
-		for _, authn := range in {
-			authn := authn
-			if authn.Type != model.AuthenticatorTypeTOTP {
-				continue
-			}
-			if authn.Kind == kind {
-				return authn
-			}
-		}
-		return nil
-	}
 
 	switch option.Authentication {
 	case config.AuthenticationFlowAuthenticationPrimaryPassword:
-		return findPassword(authenticator.KindPrimary)
+		return findPassword(in, authenticator.KindPrimary)
 	case config.AuthenticationFlowAuthenticationSecondaryPassword:
-		return findPassword(authenticator.KindSecondary)
+		return findPassword(in, authenticator.KindSecondary)
 	case config.AuthenticationFlowAuthenticationPrimaryPasskey:
-		return findPrimaryPasskey(authenticator.KindPrimary)
+		return findPrimaryPasskey(in, authenticator.KindPrimary)
 	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
-		return findEmailOOB(authenticator.KindPrimary, option.UnmaskedTarget)
+		return findEmailOOB(in, authenticator.KindPrimary, option.UnmaskedTarget)
 	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
-		return findEmailOOB(authenticator.KindSecondary, option.UnmaskedTarget)
+		return findEmailOOB(in, authenticator.KindSecondary, option.UnmaskedTarget)
 	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
-		return findSMSOOB(authenticator.KindPrimary, option.UnmaskedTarget)
+		return findSMSOOB(in, authenticator.KindPrimary, option.UnmaskedTarget)
 	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-		return findSMSOOB(authenticator.KindSecondary, option.UnmaskedTarget)
+		return findSMSOOB(in, authenticator.KindSecondary, option.UnmaskedTarget)
 	case config.AuthenticationFlowAuthenticationSecondaryTOTP:
-		return findTOTP(authenticator.KindSecondary)
+		return findTOTP(in, authenticator.KindSecondary)
 	}
 	return nil
 }
