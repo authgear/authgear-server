@@ -415,7 +415,7 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 
 func TestDeriveFlowName(t *testing.T) {
 	Convey("DeriveFlowName", t, func() {
-		Convey("When the flow group is not empty and is allowed", func() {
+		Convey("flow group is specified; allowlist is specified; allowed", func() {
 			clientAllowlist := &config.AuthenticationFlowAllowlist{
 				Groups: []*config.AuthenticationFlowAllowlistGroup{
 					{
@@ -447,7 +447,7 @@ func TestDeriveFlowName(t *testing.T) {
 			})
 		})
 
-		Convey("When the flow group is not empty but is not allowed", func() {
+		Convey("flow group is specified; allowlist is specified; disallowed", func() {
 			clientAllowlist := &config.AuthenticationFlowAllowlist{
 				Groups: []*config.AuthenticationFlowAllowlistGroup{
 					{
@@ -473,7 +473,7 @@ func TestDeriveFlowName(t *testing.T) {
 			})
 		})
 
-		Convey("When the flow group is empty", func() {
+		Convey("flow group is unspecified; allowlist is specified", func() {
 			clientAllowlist := &config.AuthenticationFlowAllowlist{
 				Groups: []*config.AuthenticationFlowAllowlistGroup{
 					{
@@ -496,8 +496,72 @@ func TestDeriveFlowName(t *testing.T) {
 			Convey("It should return the most appropriate flow name and no error", func() {
 				flowName, err := DeriveFlowName(authflow.FlowTypeLogin, "", clientAllowlist, definedGroups)
 				So(err, ShouldBeNil)
-				So(flowName, ShouldNotBeEmpty)
+				So(flowName, ShouldEqual, "flow-1")
 			})
 		})
+
+		Convey("flow group is specified as 'default'; allowlist is unspecified", func() {
+			clientAllowlist := &config.AuthenticationFlowAllowlist{}
+			definedGroups := []*config.UIAuthenticationFlowGroup{
+				{
+					Name: "group-1",
+					Flows: []*config.UIAuthenticationFlowGroupFlow{
+						{
+							Type: config.AuthenticationFlowTypeLogin,
+							Name: "flow-1",
+						},
+					},
+				},
+			}
+
+			Convey("it should return the flow in the default group", func() {
+				flowName, err := DeriveFlowName(authflow.FlowTypeLogin, "default", clientAllowlist, definedGroups)
+				So(err, ShouldBeNil)
+				So(flowName, ShouldEqual, "default")
+			})
+		})
+
+		Convey("flow group is specified; allowlist is unspecified", func() {
+			clientAllowlist := &config.AuthenticationFlowAllowlist{}
+			definedGroups := []*config.UIAuthenticationFlowGroup{
+				{
+					Name: "group-1",
+					Flows: []*config.UIAuthenticationFlowGroupFlow{
+						{
+							Type: config.AuthenticationFlowTypeLogin,
+							Name: "flow-1",
+						},
+					},
+				},
+			}
+
+			Convey("it should return the flow in the specified group", func() {
+				flowName, err := DeriveFlowName(authflow.FlowTypeLogin, "group-1", clientAllowlist, definedGroups)
+				So(err, ShouldBeNil)
+				So(flowName, ShouldEqual, "flow-1")
+			})
+		})
+
+		Convey("flow group is unspecified; allowlist is unspecified", func() {
+			clientAllowlist := &config.AuthenticationFlowAllowlist{}
+			definedGroups := []*config.UIAuthenticationFlowGroup{
+				{
+					Name: "group-1",
+					Flows: []*config.UIAuthenticationFlowGroupFlow{
+						{
+							Type: config.AuthenticationFlowTypeLogin,
+							Name: "flow-1",
+						},
+					},
+				},
+			}
+
+			Convey("It should return the most appropriate flow name and no error", func() {
+				flowName, err := DeriveFlowName(authflow.FlowTypeLogin, "", clientAllowlist, definedGroups)
+				So(err, ShouldBeNil)
+				So(flowName, ShouldEqual, "default")
+			})
+		})
+
 	})
 }
