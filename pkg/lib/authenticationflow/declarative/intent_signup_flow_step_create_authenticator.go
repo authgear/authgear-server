@@ -73,6 +73,8 @@ func (i *IntentSignupFlowStepCreateAuthenticator) MilestoneSwitchToExistingUser(
 		}
 		if existing != nil {
 			milestone.MilestoneDoCreateAuthenticatorSkipCreate()
+		} else {
+			milestone.MilestoneDoCreateAuthenticatorUpdate(authn.UpdateUserID(newUserID))
 		}
 	}
 
