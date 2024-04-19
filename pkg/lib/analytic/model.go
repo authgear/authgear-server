@@ -5,6 +5,12 @@ type AppCollaborator struct {
 	UserID string
 }
 
+type AppConfigSource struct {
+	AppID    string
+	Data     map[string][]byte
+	PlanName string
+}
+
 type ReportData struct {
 	Header []interface{}
 	Values [][]interface{}

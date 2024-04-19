@@ -1,15 +1,11 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { DefaultEffects, Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import Link from "./Link";
 import DefaultButton from "./DefaultButton";
 import styles from "./WizardContentLayout.module.css";
-import {
-  AuthgearGTMEventType,
-  EventDataAttributes,
-  useMakeAuthgearGTMEventDataAttributes,
-} from "./GTMProvider";
+import { useCapture } from "./gtm_v2";
 
 export interface WizardTitleProps {
   children?: React.ReactNode;
@@ -38,38 +34,27 @@ export interface WizardContentLayoutProps {
   backButtonDisabled?: boolean;
   children?: React.ReactNode;
   appID?: string;
-  trackSkipButtonClick?: boolean;
-  trackSkipButtonEventData?: EventDataAttributes;
 }
 
 export default function WizardContentLayout(
   props: WizardContentLayoutProps
 ): React.ReactElement {
   const navigate = useNavigate();
-  const {
-    children,
-    primaryButton,
-    backButtonDisabled,
-    appID,
-    trackSkipButtonClick,
-    trackSkipButtonEventData,
-  } = props;
+  const { children, primaryButton, backButtonDisabled, appID } = props;
+  const capture = useCapture();
   const onClickBackButton = useCallback(
     (e) => {
       e.preventDefault();
       e.stopPropagation();
+      capture("projectWizard.clicked-back");
       navigate(-1);
     },
-    [navigate]
+    [navigate, capture]
   );
 
-  const makeGTMEventDataAttributes = useMakeAuthgearGTMEventDataAttributes();
-  const gtmEventDataAttributes = useMemo(() => {
-    return makeGTMEventDataAttributes({
-      event: AuthgearGTMEventType.ClickedSkipInProjectWizard,
-      eventDataAttributes: trackSkipButtonEventData,
-    });
-  }, [makeGTMEventDataAttributes, trackSkipButtonEventData]);
+  const onClickSkip = useCallback(() => {
+    capture("projectWizard.clicked-skip");
+  }, [capture]);
 
   return (
     <div className={styles.root}>
@@ -92,7 +77,7 @@ export default function WizardContentLayout(
         <Link
           className={styles.skip}
           to={`/project/${appID}`}
-          {...(trackSkipButtonClick ? gtmEventDataAttributes : {})}
+          onClick={onClickSkip}
         >
           <FormattedMessage id="WizardContentLayout.skip.label" />
         </Link>

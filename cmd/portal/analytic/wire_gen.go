@@ -215,3 +215,42 @@ func NewPeriodicalArgumentParser() *periodical.ArgumentParser {
 var (
 	_wireSystemClockValue = clock.NewSystemClock()
 )
+
+func NewPosthogIntegration(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, auditDatabaseCredentials *config.AuditDatabaseCredentials, redisPool *redis.Pool, credentials *config.AnalyticRedisCredentials, posthogCredentials *analytic.PosthogCredentials) *analytic.PosthogIntegration {
+	clockClock := _wireSystemClockValue
+	globalDatabaseCredentialsEnvironmentConfig := NewGlobalDatabaseCredentials(databaseCredentials)
+	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
+	factory := NewLoggerFactory()
+	handle := globaldb.NewHandle(ctx, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	sqlExecutor := globaldb.NewSQLExecutor(ctx, handle)
+	globalDBStore := &analytic.GlobalDBStore{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	appdbHandle := appdb.NewHandle(ctx, pool, databaseEnvironmentConfig, databaseCredentials, factory)
+	appdbSQLBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	appdbSQLExecutor := appdb.NewSQLExecutor(ctx, appdbHandle)
+	appDBStore := &analytic.AppDBStore{
+		SQLBuilder:  appdbSQLBuilder,
+		SQLExecutor: appdbSQLExecutor,
+	}
+	posthogLogger := analytic.NewPosthogLogger(factory)
+	redisEnvironmentConfig := config.NewDefaultRedisEnvironmentConfig()
+	analyticredisHandle := analyticredis.NewHandle(redisPool, redisEnvironmentConfig, credentials, factory)
+	readStoreRedis := &meter.ReadStoreRedis{
+		Context: ctx,
+		Redis:   analyticredisHandle,
+	}
+	posthogIntegration := &analytic.PosthogIntegration{
+		PosthogCredentials: posthogCredentials,
+		Clock:              clockClock,
+		GlobalHandle:       handle,
+		GlobalDBStore:      globalDBStore,
+		AppDBHandle:        appdbHandle,
+		AppDBStore:         appDBStore,
+		Logger:             posthogLogger,
+		ReadCounterStore:   readStoreRedis,
+	}
+	return posthogIntegration
+}

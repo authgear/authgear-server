@@ -50,10 +50,6 @@ import flutterIconURL from "../../images/framework_flutter.svg";
 import xamarinIconURL from "../../images/framework_xamarin.svg";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import { useSystemConfig } from "../../context/SystemConfigContext";
-import {
-  AuthgearGTMEventType,
-  useMakeAuthgearGTMEventDataAttributes,
-} from "../../GTMProvider";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
@@ -200,16 +196,6 @@ const QuickStartFrameworkItem: React.VFC<QuickStartFrameworkItemProps> =
       return !isHovering;
     }, [showOpenTutorialLabelWhenHover, isHovering]);
 
-    const makeGTMEventDataAttributes = useMakeAuthgearGTMEventDataAttributes();
-    const gtmEventDataAttributes = useMemo(() => {
-      return makeGTMEventDataAttributes({
-        event: AuthgearGTMEventType.ClickedDocLink,
-        eventDataAttributes: {
-          "doc-link": docLink,
-        },
-      });
-    }, [makeGTMEventDataAttributes, docLink]);
-
     return (
       <ExternalLink
         onMouseOver={onMouseOver}
@@ -219,7 +205,6 @@ const QuickStartFrameworkItem: React.VFC<QuickStartFrameworkItemProps> =
         })}
         href={docLink}
         target="_blank"
-        {...gtmEventDataAttributes}
       >
         <span
           className={styles.quickStartItemContainer}

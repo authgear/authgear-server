@@ -12,6 +12,7 @@ import { useAppListQuery } from "./query/appListQuery";
 import { useViewerQuery } from "./query/viewerQuery";
 import { AppListItem, Viewer } from "./globalTypes.generated";
 import styles from "./AppsScreen.module.css";
+import { useCapture } from "../../gtm_v2";
 import { toTypedID } from "../../util/graphql";
 
 interface AppCardData {
@@ -22,12 +23,25 @@ interface AppCardData {
 
 const AppCard: React.VFC<AppCardData> = function AppCard(props: AppCardData) {
   const { appName, appID, url } = props;
+  const capture = useCapture();
+  const onClick = useCallback(() => {
+    capture(
+      "enteredProject",
+      {
+        projectID: appID,
+      },
+      {
+        project_id: appID,
+      }
+    );
+  }, [appID, capture]);
 
   return (
     <Link
       to={url}
       style={{ boxShadow: DefaultEffects.elevation4 }}
       className={styles.card}
+      onClick={onClick}
     >
       <Text className={styles.cardAppID}>{appID}</Text>
       <Text className={styles.cardAppName}>{appName}</Text>

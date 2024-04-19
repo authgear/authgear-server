@@ -37,12 +37,7 @@ import { TooltipIcon, useTooltipTargetElement } from "../../Tooltip";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import styles from "./ProjectWizardScreen.module.css";
-import {
-  AuthgearGTMEvent,
-  AuthgearGTMEventType,
-  useAuthgearGTMEventBase,
-  useGTMDispatch,
-} from "../../GTMProvider";
+import { useCapture } from "../../gtm_v2";
 import HorizontalDivider from "../../HorizontalDivider";
 
 const TOOLTIP_HOST_STYLES = {
@@ -186,25 +181,17 @@ function Step1(props: StepProps) {
   const navigate = useNavigate();
   const { renderToString } = useContext(Context);
 
-  const sendDataToGTM = useGTMDispatch();
-  const gtmEventBase = useAuthgearGTMEventBase();
+  const capture = useCapture();
   const onClickNext = useCallback(
     (e) => {
       e.preventDefault();
       e.stopPropagation();
-      const event: AuthgearGTMEvent = {
-        ...gtmEventBase,
-        event: AuthgearGTMEventType.ClickedNextInProjectWizard,
-        event_data: {
-          app_id: rawAppID,
-          current_step: "1",
-          primary_authenticator: step1Answer,
-        },
-      };
-      sendDataToGTM(event);
+
+      capture("projectWizard.set-primary_auth");
+
       navigate("./../2");
     },
-    [navigate, gtmEventBase, sendDataToGTM, rawAppID, step1Answer]
+    [navigate, capture]
   );
 
   const oobOTPEmailTooltip = useTooltipTargetElement();
@@ -293,20 +280,20 @@ function Step1(props: StepProps) {
   ]);
 
   const onChange = useCallback(
-    (_e, option) => {
+    (_e, option: IChoiceGroupOption | undefined) => {
       if (option != null) {
+        capture("projectWizard.clicked-option", {
+          label: option.text,
+        });
+
         setState((prev) => ({
           ...prev,
-          step1Answer: option.key,
+          step1Answer: option.key as any,
         }));
       }
     },
-    [setState]
+    [setState, capture]
   );
-
-  const trackSkipButtonEventData = useMemo(() => {
-    return { "app-id": rawAppID, "current-step": "1" };
-  }, [rawAppID]);
 
   return (
     <WizardContentLayout
@@ -318,8 +305,6 @@ function Step1(props: StepProps) {
           text={<FormattedMessage id="next" />}
         />
       }
-      trackSkipButtonClick={true}
-      trackSkipButtonEventData={trackSkipButtonEventData}
     >
       <WizardTitle>
         <FormattedMessage
@@ -362,42 +347,34 @@ function Step2(props: StepProps) {
     ];
   }, [renderToString]);
 
-  const sendDataToGTM = useGTMDispatch();
-  const gtmEventBase = useAuthgearGTMEventBase();
+  const capture = useCapture();
   const onClickNext = useCallback(
     (e) => {
       e.preventDefault();
       e.stopPropagation();
-      const event: AuthgearGTMEvent = {
-        ...gtmEventBase,
-        event: AuthgearGTMEventType.ClickedNextInProjectWizard,
-        event_data: {
-          app_id: rawAppID,
-          current_step: "2",
-          passkey_enabled: step2Answer,
-        },
-      };
-      sendDataToGTM(event);
+
+      capture("projectWizard.set-passkey");
+
       navigate("./../3");
     },
-    [navigate, gtmEventBase, sendDataToGTM, rawAppID, step2Answer]
+    [navigate, capture]
   );
 
   const onChange = useCallback(
-    (_e, option) => {
+    (_e, option: IChoiceGroupOption | undefined) => {
       if (option != null) {
+        capture("projectWizard.clicked-option", {
+          label: option.text,
+        });
+
         setState((prev) => ({
           ...prev,
           step2Answer: option.key === "true" ? true : false,
         }));
       }
     },
-    [setState]
+    [setState, capture]
   );
-
-  const trackSkipButtonEventData = useMemo(() => {
-    return { "app-id": rawAppID, "current-step": "2" };
-  }, [rawAppID]);
 
   return (
     <WizardContentLayout
@@ -408,8 +385,6 @@ function Step2(props: StepProps) {
           text={<FormattedMessage id="next" />}
         />
       }
-      trackSkipButtonClick={true}
-      trackSkipButtonEventData={trackSkipButtonEventData}
     >
       <WizardTitle>
         <FormattedMessage
@@ -512,33 +487,27 @@ function Step3(props: StepProps) {
     return options;
   }, [step1Answer, renderToString]);
 
-  const sendDataToGTM = useGTMDispatch();
-  const gtmEventBase = useAuthgearGTMEventBase();
+  const capture = useCapture();
   const onClickNext = useCallback(
     (e) => {
       e.preventDefault();
       e.stopPropagation();
-      const event: AuthgearGTMEvent = {
-        ...gtmEventBase,
-        event: AuthgearGTMEventType.ClickedNextInProjectWizard,
-        event_data: {
-          app_id: rawAppID,
-          current_step: "3",
-          use_recommended_settings: step3Answer.useRecommenededSettings,
-          secondary_authenticator_type: step3Answer.secondaryAuthenticatorType,
-          secondary_authentication_mode:
-            step3Answer.secondaryAuthenticationMode,
-        },
-      };
-      sendDataToGTM(event);
+
+      capture("projectWizard.set-2fa");
+      capture("projectWizard.completed");
+
       saveAndThenNavigate();
     },
-    [saveAndThenNavigate, gtmEventBase, sendDataToGTM, rawAppID, step3Answer]
+    [saveAndThenNavigate, capture]
   );
 
   const onChangeQ1 = useCallback(
-    (_e, option) => {
+    (_e, option: IChoiceGroupOption | undefined) => {
       if (option != null) {
+        capture("projectWizard.clicked-option", {
+          label: option.text,
+        });
+
         setState((prev) => ({
           ...prev,
           step3Answer: {
@@ -548,42 +517,46 @@ function Step3(props: StepProps) {
         }));
       }
     },
-    [setState]
+    [setState, capture]
   );
 
   const onChangeQ2 = useCallback(
-    (_e, option) => {
+    (_e, option: IChoiceGroupOption | undefined) => {
       if (option != null) {
+        capture("projectWizard.clicked-option", {
+          label: option.text,
+        });
+
         setState((prev) => ({
           ...prev,
           step3Answer: {
             ...prev.step3Answer,
-            secondaryAuthenticationMode: option.key,
+            secondaryAuthenticationMode: option.key as any,
           },
         }));
       }
     },
-    [setState]
+    [setState, capture]
   );
 
   const onChangeQ3 = useCallback(
-    (_e, option) => {
+    (_e, option: IChoiceGroupOption | undefined) => {
       if (option != null) {
+        capture("projectWizard.clicked-option", {
+          label: option.text,
+        });
+
         setState((prev) => ({
           ...prev,
           step3Answer: {
             ...prev.step3Answer,
-            secondaryAuthenticatorType: option.key,
+            secondaryAuthenticatorType: option.key as any,
           },
         }));
       }
     },
-    [setState]
+    [setState, capture]
   );
-
-  const trackSkipButtonEventData = useMemo(() => {
-    return { "app-id": rawAppID, "current-step": "3" };
-  }, [rawAppID]);
 
   return (
     <WizardContentLayout
@@ -594,8 +567,6 @@ function Step3(props: StepProps) {
           text={<FormattedMessage id="next" />}
         />
       }
-      trackSkipButtonClick={true}
-      trackSkipButtonEventData={trackSkipButtonEventData}
     >
       <WizardTitle>
         <FormattedMessage

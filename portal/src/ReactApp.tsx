@@ -1,11 +1,4 @@
-import React, {
-  useContext,
-  useEffect,
-  useState,
-  Suspense,
-  lazy,
-  useMemo,
-} from "react";
+import React, { useContext, useEffect, useState, Suspense, lazy } from "react";
 import { init as sentryInit } from "@sentry/react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import {
@@ -36,15 +29,11 @@ import InternalRedirect from "./InternalRedirect";
 import { LoadingContextProvider } from "./hook/loading";
 import { ErrorContextProvider } from "./hook/error";
 import ShowLoading from "./ShowLoading";
-import GTMProvider, {
-  AuthgearGTMEvent,
-  AuthgearGTMEventType,
-  useMakeAuthgearGTMEventDataAttributes,
-  useGTMDispatch,
-  useAuthgearGTMEventBase,
-} from "./GTMProvider";
+import GTMProvider from "./GTMProvider";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 import { extractRawID } from "./util/graphql";
+import { useIdentify } from "./gtm_v2";
+import AppContextProvider from "./AppContextProvider";
 
 const AppsScreen = lazy(async () => import("./graphql/portal/AppsScreen"));
 const CreateProjectScreen = lazy(
@@ -128,7 +117,9 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
               path="*"
               element={
                 <Authenticated>
-                  <AppRoot />
+                  <AppContextProvider>
+                    <AppRoot />
+                  </AppContextProvider>
                 </Authenticated>
               }
             />
@@ -140,7 +131,9 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
                 element={
                   <Authenticated>
                     <Suspense fallback={<ShowLoading />}>
-                      <ProjectWizardScreen />
+                      <AppContextProvider>
+                        <ProjectWizardScreen />
+                      </AppContextProvider>
                     </Suspense>
                   </Authenticated>
                 }
@@ -206,17 +199,7 @@ const PortalRoot = function PortalRoot() {
 };
 
 const DocLink: React.VFC<ILinkProps> = (props: ILinkProps) => {
-  const makeGTMEventDataAttributes = useMakeAuthgearGTMEventDataAttributes();
-  const gtmEventDataAttributes = useMemo(() => {
-    return makeGTMEventDataAttributes({
-      event: AuthgearGTMEventType.ClickedDocLink,
-      eventDataAttributes: {
-        "doc-link": props.href ?? "",
-      },
-    });
-  }, [makeGTMEventDataAttributes, props.href]);
-
-  return <ExternalLink {...gtmEventDataAttributes} {...props} />;
+  return <ExternalLink {...props} />;
 };
 
 const defaultComponents = {
@@ -233,21 +216,15 @@ const LoadCurrentUser: React.VFC<LoadCurrentUserProps> =
   function LoadCurrentUser({ children }: LoadCurrentUserProps) {
     const { loading, viewer } = useViewerQuery();
 
-    const gtmEvent = useAuthgearGTMEventBase();
-    const sendDataToGTM = useGTMDispatch();
+    const identify = useIdentify();
     useEffect(() => {
       if (viewer) {
-        const event: AuthgearGTMEvent = {
-          ...gtmEvent,
-          event: AuthgearGTMEventType.Identified,
-          event_data: {
-            user_id: extractRawID(viewer.id),
-            email: viewer.email ?? undefined,
-          },
-        };
-        sendDataToGTM(event);
+        const userID = extractRawID(viewer.id);
+        const email = viewer.email ?? undefined;
+
+        identify(userID, email);
       }
-    }, [viewer, gtmEvent, sendDataToGTM]);
+    }, [viewer, identify]);
 
     if (loading) {
       return (

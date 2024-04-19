@@ -1,6 +1,7 @@
 package analytic
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
@@ -74,4 +75,61 @@ func (s *GlobalDBStore) GetAppIDs() (appIDs []string, err error) {
 		appIDs = append(appIDs, appID)
 	}
 	return
+}
+
+func (s *GlobalDBStore) GetCollaboratorCount(appID string) (int, error) {
+	q := s.SQLBuilder.
+		Select(
+			"count(*)",
+		).
+		From(s.SQLBuilder.TableName("_portal_app_collaborator")).
+		Where("app_id = ?", appID)
+
+	row, err := s.SQLExecutor.QueryRowWith(q)
+	if err != nil {
+		return 0, err
+	}
+
+	var count int
+	err = row.Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
+func (s *GlobalDBStore) GetAppConfigSource(appID string) (*AppConfigSource, error) {
+	q := s.SQLBuilder.
+		Select(
+			"app_id",
+			"data",
+			"plan_name",
+		).
+		From(s.SQLBuilder.TableName("_portal_config_source")).
+		Where("app_id = ?", appID)
+
+	row, err := s.SQLExecutor.QueryRowWith(q)
+	if err != nil {
+		return nil, err
+	}
+
+	out := &AppConfigSource{}
+	var dataBytes []byte
+
+	err = row.Scan(
+		&out.AppID,
+		&dataBytes,
+		&out.PlanName,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(dataBytes, &out.Data)
+	if err != nil {
+		return nil, err
+	}
+
+	return out, nil
 }

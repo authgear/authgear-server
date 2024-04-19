@@ -77,3 +77,17 @@ func NewPeriodicalArgumentParser() *periodical.ArgumentParser {
 		periodical.DependencySet,
 	))
 }
+
+func NewPosthogIntegration(
+	ctx context.Context,
+	pool *db.Pool,
+	databaseCredentials *config.DatabaseCredentials,
+	auditDatabaseCredentials *config.AuditDatabaseCredentials,
+	redisPool *redis.Pool,
+	credentials *config.AnalyticRedisCredentials,
+	posthogCredentials *analytic.PosthogCredentials,
+) *analytic.PosthogIntegration {
+	panic(wire.Build(
+		DependencySet,
+	))
+}

@@ -14,13 +14,6 @@ import { useAppListQuery } from "./query/appListQuery";
 import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 import { useSimpleForm } from "../../hook/useSimpleForm";
 import { randomProjectName } from "../../util/projectname";
-import { extractRawID } from "../../util/graphql";
-import {
-  AuthgearGTMEvent,
-  AuthgearGTMEventType,
-  useAuthgearGTMEventBase,
-  useGTMDispatch,
-} from "../../GTMProvider";
 import PrimaryButton from "../../PrimaryButton";
 import FormPhoneTextField from "../../FormPhoneTextField";
 import { useViewerQuery } from "./query/viewerQuery";
@@ -130,24 +123,13 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
     [save]
   );
 
-  const sendDataToGTM = useGTMDispatch();
-  const gtmEventBase = useAuthgearGTMEventBase();
   useEffect(() => {
     if (form.submissionResult) {
       const appID = form.submissionResult;
-      const rawAppID = extractRawID(appID);
       // assign app id to the event after creating the app
-      const event: AuthgearGTMEvent = {
-        ...gtmEventBase,
-        event: AuthgearGTMEventType.CreatedProject,
-        event_data: {
-          app_id: rawAppID,
-        },
-      };
-      sendDataToGTM(event);
       navigate(`/project/${encodeURIComponent(appID)}/wizard`);
     }
-  }, [form, navigate, sendDataToGTM, gtmEventBase]);
+  }, [form, navigate]);
 
   return (
     <FormProvider loading={isUpdating} error={updateError}>

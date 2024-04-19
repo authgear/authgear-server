@@ -21,6 +21,7 @@ import styles from "./ScreenHeader.module.css";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import { useBoolean } from "@fluentui/react-hooks";
 import ExternalLink from "./ExternalLink";
+import { useCapture, useReset } from "./gtm_v2";
 
 interface LogoProps {
   isNavbarHeader?: boolean;
@@ -175,11 +176,13 @@ interface ScreenNavProps {
 const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
   const { showHamburger = true } = props;
   const { renderToString } = useContext(Context);
+  const capture = useCapture();
   const { themes, authgearEndpoint } = useSystemConfig();
   const { appID } = useParams() as { appID: string };
   const { viewer } = useViewerQuery();
   const [isNavbarOpen, { setTrue: openNavbar, setFalse: dismissNavbar }] =
     useBoolean(false);
+  const reset = useReset();
 
   const redirectURI = window.location.origin + "/";
 
@@ -188,10 +191,21 @@ const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
       .logout({
         redirectURI,
       })
+      .then(() => {
+        reset();
+      })
       .catch((err) => {
         console.error(err);
       });
-  }, [redirectURI]);
+  }, [redirectURI, reset]);
+
+  const onClickContactUs = useCallback(() => {
+    capture("header.clicked-contact_us");
+  }, [capture]);
+
+  const onClickDocs = useCallback(() => {
+    capture("header.clicked-docs");
+  }, [capture]);
 
   const scheduleDemoLink = useMemo(() => {
     const url = new URL("https://www.authgear.com/schedule-demo");
@@ -257,12 +271,20 @@ const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
         {appID ? <DesktopViewHeaderAppSection appID={appID} /> : null}
       </div>
       <div className={styles.links}>
-        <ExternalLink href={scheduleDemoLink} className={styles.link}>
+        <ExternalLink
+          href={scheduleDemoLink}
+          className={styles.link}
+          onClick={onClickContactUs}
+        >
           <Text variant="small">
             {renderToString("ScreenHeader.links.schedule-demo")}
           </Text>
         </ExternalLink>
-        <ExternalLink href="https://docs.authgear.com/" className={styles.link}>
+        <ExternalLink
+          href="https://docs.authgear.com/"
+          className={styles.link}
+          onClick={onClickDocs}
+        >
           <Text variant="small">
             {renderToString("ScreenHeader.links.documentation")}
           </Text>

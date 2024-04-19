@@ -43,6 +43,18 @@ var ArgStripeSecretKey = &cobraviper.StringArgument{
 	Usage:        "Stripe secret key",
 }
 
+var ArgPosthogEndpoint = &cobraviper.StringArgument{
+	ArgumentName: "posthog-endpoint",
+	EnvName:      "POSTHOG_ENDPOINT",
+	Usage:        "Posthog endpoint",
+}
+
+var ArgPosthogAPIKey = &cobraviper.StringArgument{
+	ArgumentName: "posthog-api-key",
+	EnvName:      "POSTHOG_API_KEY",
+	Usage:        "Posthog API Key",
+}
+
 var ArgAnalyticRedisURL = &cobraviper.StringArgument{
 	ArgumentName: "analytic-redis-url",
 	EnvName:      "ANALYTIC_REDIS_URL",
