@@ -23,7 +23,7 @@ type IntentAccountLinkingOAuth struct {
 var _ authflow.Intent = &IntentAccountLinkingOAuth{}
 
 func (*IntentAccountLinkingOAuth) Kind() string {
-	return "AccountLinkingOAuth"
+	return "IntentAccountLinkingOAuth"
 }
 
 func (*IntentAccountLinkingOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
