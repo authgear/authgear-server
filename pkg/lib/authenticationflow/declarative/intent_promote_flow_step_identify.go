@@ -61,6 +61,10 @@ func (n *IntentPromoteFlowStepIdentify) GetOOBOTPClaims(ctx context.Context, dep
 	return n.GetVerifiableClaims(ctx, deps, flows)
 }
 
+func (n *IntentPromoteFlowStepIdentify) IsSkipped() bool {
+	return false
+}
+
 var _ authflow.Intent = &IntentPromoteFlowStepIdentify{}
 var _ authflow.DataOutputer = &IntentPromoteFlowStepIdentify{}
 
