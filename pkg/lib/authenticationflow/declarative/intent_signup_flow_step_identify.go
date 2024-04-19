@@ -74,7 +74,7 @@ func (i *IntentSignupFlowStepIdentify) GetVerifiableClaims(_ context.Context, _ 
 		return nil, nil
 	}
 
-	m, ok := authflow.FindMilestone[MilestoneDoCreateIdentity](flows.Nearest)
+	m, ok := authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateIdentity](flows.Nearest)
 	if !ok {
 		return nil, fmt.Errorf("MilestoneDoCreateIdentity cannot be found in IntentSignupFlowStepIdentify")
 	}
