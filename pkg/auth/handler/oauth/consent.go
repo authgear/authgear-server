@@ -4,12 +4,14 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -45,12 +47,17 @@ type ProtocolIdentityService interface {
 	ListByUser(userID string) ([]*identity.Info, error)
 }
 
+type ConsentUserService interface {
+	Get(userID string, role accesscontrol.Role) (*model.User, error)
+}
+
 type ConsentViewModel struct {
 	ClientName               string
 	ClientPolicyURI          string
 	ClientTOSURI             string
 	IsRequestingFullUserInfo bool
 	IdentityDisplayName      string
+	UserProfile              webapp.UserProfile
 }
 
 type ConsentHandler struct {
@@ -60,6 +67,7 @@ type ConsentHandler struct {
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
 	Identities    ProtocolIdentityService
+	Users         ConsentUserService
 }
 
 func (h *ConsentHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
@@ -134,7 +142,13 @@ func (h *ConsentHandler) renderConsentPage(rw http.ResponseWriter, r *http.Reque
 	if err != nil {
 		return err
 	}
+	user, err := h.Users.Get(consentRequired.UserID, accesscontrol.RoleGreatest)
+	if err != nil {
+		return err
+	}
+
 	displayID := webapp.IdentitiesDisplayName(identities)
+	userProfile := webapp.GetUserProfile(user)
 
 	viewModel := ConsentViewModel{}
 	viewModel.IsRequestingFullUserInfo = slice.ContainsString(consentRequired.Scopes, oauth.FullUserInfoScope)
@@ -142,6 +156,7 @@ func (h *ConsentHandler) renderConsentPage(rw http.ResponseWriter, r *http.Reque
 	viewModel.ClientPolicyURI = consentRequired.Client.PolicyURI
 	viewModel.ClientTOSURI = consentRequired.Client.TOSURI
 	viewModel.IdentityDisplayName = displayID
+	viewModel.UserProfile = userProfile
 	viewmodels.Embed(data, viewModel)
 
 	h.Renderer.RenderHTML(rw, r, webapp.TemplateWebConsentHTML, data)

@@ -46,6 +46,7 @@ type SelectAccountUIInfoResolver interface {
 
 type SelectAccountViewModel struct {
 	IdentityDisplayName string
+	UserProfile         handlerwebapp.UserProfile
 }
 
 type AuthflowV2SelectAccountHandler struct {
@@ -74,10 +75,17 @@ func (h *AuthflowV2SelectAccountHandler) GetData(r *http.Request, rw http.Respon
 		return nil, err
 	}
 
+	user, err := h.Users.Get(userID, accesscontrol.RoleGreatest)
+	if err != nil {
+		return nil, err
+	}
+
+	userProfile := handlerwebapp.GetUserProfile(user)
 	displayID := handlerwebapp.IdentitiesDisplayName(identities)
 
 	selectAccountViewModel := SelectAccountViewModel{
 		IdentityDisplayName: displayID,
+		UserProfile:         userProfile,
 	}
 	viewmodels.Embed(data, selectAccountViewModel)
 

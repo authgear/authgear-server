@@ -14,7 +14,7 @@
       {{ end }}
     </h1>
     <p class="screen-description">
-      {{ template "v2-select-account-description" (dict "IdentityDisplayName" $.IdentityDisplayName) }}
+      {{ template "v2-select-account-description" (merge (dict) $.UserProfile (dict "IdentityDisplayName" $.IdentityDisplayName)) }}
     </p>
     {{ template "authflowv2/__alert_message.html"
       (dict
