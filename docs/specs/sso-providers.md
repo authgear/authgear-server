@@ -88,8 +88,8 @@ Then, we will construct a user profile from the response by the following proces
 1. Map the following fields from the response into the user profile.
 
 - From `email` to `email`
-- From `first_name` to `first_name`
-- From `last_name` to `last_name`
+- From `first_name` to `given_name`
+- From `last_name` to `family_name`
 - From `name` to `name`
 - From `short_name` to `nickname`
 - From `picture.data.url` to `picture`
