@@ -78,6 +78,7 @@ func (g *OfflineGrant) ToAPIModel() *model.Session {
 
 		DisplayName:     displayName,
 		ApplicationName: deviceinfo.ApplicationName(g.DeviceInfo),
+		UserAgent:       ua.Raw,
 	}
 
 	ipInfo, ok := geoip.DefaultDatabase.IPString(g.AccessInfo.LastAccess.RemoteIP)

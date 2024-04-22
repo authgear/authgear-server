@@ -83,6 +83,7 @@ const RevokeConfirmationDialog: React.VFC<RevokeConfirmationDialogProps> =
 
 interface SessionItemViewModel {
   displayName: string;
+  userAgent: string | null;
   clientID: string;
   ipAddress: string;
   lastActivity: string;
@@ -138,23 +139,27 @@ const UserDetailsSession: React.VFC<Props> = function UserDetailsSession(
         maxWidth: 200,
         // eslint-disable-next-line react/no-unstable-nested-components
         onRender: (item: SessionItemViewModel) => {
-          if (item.displayName === "") {
-            return (
-              <Text
-                variant="small"
-                styles={(_, theme) => ({
-                  root: {
-                    color: theme.palette.neutralSecondary,
-                    fontStyle: "italic",
-                  },
-                })}
-              >
-                {renderToString("UserDetails.session.devices.unknown")}
-              </Text>
-            );
+          if (item.displayName !== "") {
+            return item.displayName;
           }
 
-          return item.displayName;
+          if (item.userAgent !== null && item.userAgent !== "") {
+            return item.userAgent;
+          }
+
+          return (
+            <Text
+              variant="small"
+              styles={(_, theme) => ({
+                root: {
+                  color: theme.palette.neutralSecondary,
+                  fontStyle: "italic",
+                },
+              })}
+            >
+              {renderToString("UserDetails.session.devices.unknown")}
+            </Text>
+          );
         },
       },
       {
@@ -205,6 +210,7 @@ const UserDetailsSession: React.VFC<Props> = function UserDetailsSession(
       sessions.map(
         (session): SessionItemViewModel => ({
           displayName: session.displayName,
+          userAgent: session.userAgent ?? null,
           clientID: session.clientID ?? "-",
           ipAddress: session.lastAccessedByIP,
           lastActivity: formatDatetime(locale, session.lastAccessedAt) ?? "",

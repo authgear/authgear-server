@@ -971,6 +971,7 @@ export interface Session {
   lastAccessedAt: string;
   lastAccessedByIP: string;
   displayName: string;
+  userAgent?: string | null;
   clientID?: string | null;
 }
 

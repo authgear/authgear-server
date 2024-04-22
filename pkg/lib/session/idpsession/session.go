@@ -56,6 +56,7 @@ func (s *IDPSession) ToAPIModel() *model.Session {
 		LastAccessedByIP: s.AccessInfo.LastAccess.RemoteIP,
 
 		DisplayName: ua.Format(),
+		UserAgent:   ua.Raw,
 	}
 
 	ipInfo, ok := geoip.DefaultDatabase.IPString(s.AccessInfo.LastAccess.RemoteIP)
