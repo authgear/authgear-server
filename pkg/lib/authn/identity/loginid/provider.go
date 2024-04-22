@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 type Provider struct {
@@ -31,6 +32,16 @@ func (p *Provider) List(userID string) ([]*identity.LoginID, error) {
 
 func (p *Provider) ListByClaim(name string, value string) ([]*identity.LoginID, error) {
 	is, err := p.Store.ListByClaim(name, value)
+	if err != nil {
+		return nil, err
+	}
+
+	sortIdentities(is)
+	return is, nil
+}
+
+func (p *Provider) ListByClaimJSONPointer(pointer jsonpointer.T, value string) ([]*identity.LoginID, error) {
+	is, err := p.Store.ListByClaimJSONPointer(pointer, value)
 	if err != nil {
 		return nil, err
 	}

@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package service
@@ -19,6 +20,7 @@ type LoginIDIdentityProvider interface {
 	GetByValue(loginIDValue string) ([]*identity.LoginID, error)
 	GetByUniqueKey(uniqueKey string) (*identity.LoginID, error)
 	ListByClaim(name string, value string) ([]*identity.LoginID, error)
+	ListByClaimJSONPointer(pointer jsonpointer.T, value string) ([]*identity.LoginID, error)
 	New(userID string, loginID identity.LoginIDSpec, options loginid.CheckerOptions) (*identity.LoginID, error)
 	WithValue(iden *identity.LoginID, value string, options loginid.CheckerOptions) (*identity.LoginID, error)
 	Create(i *identity.LoginID) error
@@ -33,6 +35,7 @@ type OAuthIdentityProvider interface {
 	GetByProviderSubject(provider config.ProviderID, subjectID string) (*identity.OAuth, error)
 	GetByUserProvider(userID string, provider config.ProviderID) (*identity.OAuth, error)
 	ListByClaim(name string, value string) ([]*identity.OAuth, error)
+	ListByClaimJSONPointer(pointer jsonpointer.T, value string) ([]*identity.OAuth, error)
 	New(
 		userID string,
 		provider config.ProviderID,
@@ -482,6 +485,30 @@ func (s *Service) Count(userID string) (uint64, error) {
 
 func (s *Service) ListRefsByUsers(userIDs []string, identityType *model.IdentityType) ([]*model.IdentityRef, error) {
 	return s.Store.ListRefsByUsers(userIDs, identityType)
+}
+
+func (s *Service) ListByClaimJSONPointer(pointer jsonpointer.T, value string) ([]*identity.Info, error) {
+	var infos []*identity.Info
+
+	// login id
+	lis, err := s.LoginID.ListByClaimJSONPointer(pointer, value)
+	if err != nil {
+		return nil, err
+	}
+	for _, i := range lis {
+		infos = append(infos, i.ToInfo())
+	}
+
+	// oauth
+	ois, err := s.OAuth.ListByClaimJSONPointer(pointer, value)
+	if err != nil {
+		return nil, err
+	}
+	for _, i := range ois {
+		infos = append(infos, i.ToInfo())
+	}
+
+	return infos, nil
 }
 
 func (s *Service) ListByClaim(name string, value string) ([]*identity.Info, error) {

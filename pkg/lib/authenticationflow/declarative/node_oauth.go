@@ -5,8 +5,6 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
@@ -86,24 +84,9 @@ func (n *NodeOAuth) OutputData(ctx context.Context, deps *authflow.Dependencies,
 func (n *NodeOAuth) reactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, spec *identity.Spec) (*authflow.Node, error) {
 	// signup
 	if n.NewUserID != "" {
-		info, conflictedInfo, err := newIdentityInfo(deps, n.NewUserID, spec)
-		if apierrors.IsAPIError(err) && apierrors.AsAPIError(err).HasCause("DuplicatedIdentity") {
-			if conflictedInfo.Type == model.IdentityTypeOAuth && conflictedInfo.OAuth.ProviderID.Equal(&spec.OAuth.ProviderID) && conflictedInfo.OAuth.ProviderSubjectID == spec.OAuth.SubjectID {
-				// Is same oauth id, return the error
-				return nil, err
-			}
-			return authflow.NewSubFlow(&IntentAccountLinkingOAuth{
-				LinkToUserID:        conflictedInfo.UserID,
-				ConflictingIdentity: conflictedInfo,
-				OAuthIdentitySpec:   spec,
-			}), nil
-		}
-		if err != nil {
-			return nil, err
-		}
-
-		return authflow.NewNodeSimple(&NodeDoCreateIdentity{
-			Identity: info,
+		return authflow.NewNodeSimple(&IntentCheckConflictAndCreateIdenity{
+			UserID:  n.NewUserID,
+			Request: NewCreateOAuthIdentityRequest(n.Alias, spec),
 		}), nil
 	}
 	// Else login
