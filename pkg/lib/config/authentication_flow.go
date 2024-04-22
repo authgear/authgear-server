@@ -41,7 +41,8 @@ var _ = Schema.Add("AuthenticationFlowConfig", `
 			"minItems": 1,
 			"items": { "$ref": "#/$defs/AuthenticationFlowAccountRecoveryFlow" }
 		},
-		"rate_limits": { "$ref": "#/$defs/AuthenticationFlowRateLimitsConfig" }
+		"rate_limits": { "$ref": "#/$defs/AuthenticationFlowRateLimitsConfig" },
+		"default_account_linking": { "$ref": "#/$defs/AuthenticationFlowAccountLinking" }
 	}
 }
 `)
@@ -869,7 +870,8 @@ type AuthenticationFlowConfig struct {
 	ReauthFlows          []*AuthenticationFlowReauthFlow          `json:"reauth_flows,omitempty"`
 	AccountRecoveryFlows []*AuthenticationFlowAccountRecoveryFlow `json:"account_recovery_flows,omitempty"`
 
-	RateLimits *AuthenticationFlowRateLimitsConfig `json:"rate_limits,omitempty"`
+	RateLimits            *AuthenticationFlowRateLimitsConfig `json:"rate_limits,omitempty"`
+	DefaultAccountLinking *AuthenticationFlowAccountLinking   `json:"default_account_linking,omitempty"`
 }
 
 type AuthenticationFlowSignupFlow struct {
