@@ -278,7 +278,7 @@ func TestDeriveFlowNameForDefaultUI(t *testing.T) {
 
 			Convey("It should return an error", func() {
 				_, err := NewFlowAllowlist(clientAllowlist, definedGroups).DeriveFlowNameForDefaultUI(FlowTypeSignup, "group-1")
-				So(err, ShouldEqual, ErrFlowNotFound)
+				So(err, ShouldEqual, ErrFlowNotAllowed)
 			})
 		})
 

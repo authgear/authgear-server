@@ -41,7 +41,7 @@ func (a FlowAllowlist) DeriveFlowNameForDefaultUI(flowType FlowType, flowGroup s
 
 				// If we reach here, the group is defined but it does not
 				// contain the desired flow type.
-				return "", ErrFlowNotFound
+				return "", ErrFlowNotAllowed
 			}
 		}
 
@@ -51,7 +51,7 @@ func (a FlowAllowlist) DeriveFlowNameForDefaultUI(flowType FlowType, flowGroup s
 			return "default", nil
 		}
 
-		return "", ErrFlowNotFound
+		return "", ErrFlowNotAllowed
 	}
 
 	// The first step is to resolve flowGroup
@@ -73,7 +73,7 @@ func (a FlowAllowlist) DeriveFlowNameForDefaultUI(flowType FlowType, flowGroup s
 			}
 		}
 		if !isAllowed {
-			return "", ErrFlowNotFound
+			return "", ErrFlowNotAllowed
 		}
 		return findFlowInDefinedGroups()
 	default:
