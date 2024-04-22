@@ -119,8 +119,6 @@ func (n *IntentAccountLinkingOAuth) createSyntheticInputOAuthConflict(oauthIden 
 		}
 	case model.IdentityTypeOAuth:
 		input.Identification = config.AuthenticationFlowIdentificationOAuth
-	case model.IdentityTypePasskey:
-		input.Identification = config.AuthenticationFlowIdentificationPasskey
 	default:
 		// This is a panic because the node should not provide option that we don't know how to handle to the user
 		panic(fmt.Errorf("unable to create synthetic input from identity type %v", conflictedInfo.Type))
