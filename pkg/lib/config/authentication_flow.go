@@ -646,29 +646,29 @@ var _ = Schema.Add("AccountLinkingOAuth", `
 		"alias": { "type": "string" },
 		"oauth_claim": { "$ref": "#/$defs/AccountLinkingJSONPointer" },
 		"user_profile": { "$ref": "#/$defs/AccountLinkingJSONPointer" },
-		"action": { "$ref": "#/$defs/AccountLinkingOAuthAction" },
-		"allOf": [
-			{
-				"if": {
-					"required": ["action"],
-					"properties": {
-						"action": {
-							"type": "string",
-							"enum": ["login_and_link"]
-						}
+		"action": { "$ref": "#/$defs/AccountLinkingOAuthAction" }
+	},
+	"allOf": [
+		{
+			"if": {
+				"required": ["action"],
+				"properties": {
+					"action": {
+						"type": "string",
+						"enum": ["login_and_link"]
 					}
-				},
-				"then": {
-					"required": ["login_flow"],
-					"properties": {
-						"login_flow": {
-							"type": "string"
-						}
+				}
+			},
+			"then": {
+				"required": ["login_flow"],
+				"properties": {
+					"login_flow": {
+						"type": "string"
 					}
 				}
 			}
-		]
-	}
+		}
+	]
 }
 `)
 
