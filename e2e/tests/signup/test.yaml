@@ -14,7 +14,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "identification": "email",
         "login_id": "signup@authgear.com"
@@ -27,7 +28,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "code": "111111"
       }
@@ -39,7 +41,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "authentication": "primary_password",
         "new_password":   "password"

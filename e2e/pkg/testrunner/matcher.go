@@ -57,11 +57,11 @@ func matchMap(path string, data, schema map[string]interface{}) (violations []Ma
 
 		dataValue, ok := data[key]
 		if !ok {
-			violations = append(violations, missingFieldViolation(path+"."+key, schemaValue))
+			violations = append(violations, missingFieldViolation(path+"/"+key, schemaValue))
 			continue
 		}
 
-		violations = append(violations, matchValue(path+"."+key, dataValue, schemaValue)...)
+		violations = append(violations, matchValue(path+"/"+key, dataValue, schemaValue)...)
 	}
 
 	// Check for extra fields
@@ -72,7 +72,7 @@ func matchMap(path string, data, schema map[string]interface{}) (violations []Ma
 	}
 	for dataKey := range data {
 		if _, ok := schema[dataKey]; !ok {
-			violations = append(violations, matchValue(path+"."+dataKey, data[dataKey], restSchemaValue)...)
+			violations = append(violations, matchValue(path+"/"+dataKey, data[dataKey], restSchemaValue)...)
 		}
 	}
 
@@ -102,7 +102,7 @@ func matchArray(path string, data []interface{}, schemaValue interface{}) (viola
 
 	itemType := schemaArray[1]
 	for i, item := range data {
-		violations = append(violations, matchValue(fmt.Sprintf("%s[%d]", path, i), item, itemType)...)
+		violations = append(violations, matchValue(fmt.Sprintf("%s/%d", path, i), item, itemType)...)
 	}
 
 	return violations

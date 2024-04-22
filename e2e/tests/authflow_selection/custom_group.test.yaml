@@ -1,0 +1,78 @@
+name: Flow allowlist
+authgear.yaml:
+  override: |
+    authentication:
+        identities:
+          - login_id
+        primary_authenticators:
+          - password
+
+    identity:
+      oauth:
+        providers:
+          - alias: google
+            client_id: "google"
+            type: google
+
+    authentication_flow:
+        login_flows:
+        - name: oauth_only
+          steps:
+          - type: identify
+            one_of:
+            - identification: oauth
+
+    ui:
+      authentication_flow:
+        groups:
+        - name: oauth_only
+          flows:
+            - type: login
+              name: oauth_only
+
+    oauth:
+      clients:
+      - client_id: custom_app
+        name: Custom App
+        redirect_uris:
+        - http://localhost/after-authentication
+        x_authentication_flow_allowlist:
+          groups:
+          - name: oauth_only
+steps:
+  # Not allowed to create non-whitelisted flow
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "url_query": "client_id=custom_app",
+        "name": "default"
+      }
+    output:
+      error: |
+        {
+          "reason": "AuthenticationFlowNotAllowed"
+        }
+
+  # Can create whitelisted flow
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "url_query": "client_id=custom_app",
+        "name": "oauth_only"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "login",
+          "name": "oauth_only",
+          "action": {
+              "type": "identify",
+              "data": {
+                  "type": "identification_data",
+                  "options": "[[array]]"
+              }
+          }
+        }

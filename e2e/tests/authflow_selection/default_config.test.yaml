@@ -1,0 +1,74 @@
+name: Default allowlist - default flow
+authgear.yaml:
+  override: |
+    authentication:
+        identities:
+          - login_id
+        primary_authenticators:
+          - password
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "login",
+          "name": "default",
+          "action": {
+              "type": "identify",
+              "data": {
+                  "type": "identification_data",
+                  "options": "[[array]]"
+              }
+          }
+        }
+---
+name: Default allowlist - custom flow
+authgear.yaml:
+  override: |
+    authentication:
+        identities:
+          - login_id
+        primary_authenticators:
+          - password
+
+    identity:
+      oauth:
+        providers:
+          - alias: google
+            client_id: "google"
+            type: google
+
+    authentication_flow:
+        login_flows:
+        - name: oauth_only
+          steps:
+          - type: identify
+            one_of:
+            - identification: oauth
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "oauth_only"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "login",
+          "name": "oauth_only",
+          "action": {
+              "type": "identify",
+              "data": {
+                  "type": "identification_data",
+                  "options": "[[array]]"
+              }
+          }
+        }

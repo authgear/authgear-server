@@ -29,7 +29,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "identification": "oauth",
         "alias": "adfs",
@@ -55,7 +56,8 @@ steps:
           "code": "[[string]]"
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "code": "{{ .prev.result.code }}"
       }

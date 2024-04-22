@@ -1,10 +1,8 @@
-.PHONY: build
-build:
-	go build -o $(BIN_NAME) ./cmd/$(TARGET)
-
 .PHONY: run
 run:
 	./run.sh
+
+# Following targets are partial steps of the run target for debugging
 
 .PHONY: setup
 setup:
@@ -17,3 +15,7 @@ tests:
 .PHONY: teardown
 teardown:
 	./run.sh teardown
+
+.PHONY: dumpschema
+dumpschema:
+	go run ./cmd/dumpschema

@@ -30,7 +30,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "identification": "username",
         "login_id": "e2e_issue_3585"
@@ -43,7 +44,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "authentication": "primary_password",
         "password": "auyeung1234"
@@ -56,14 +58,16 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "authentication": "secondary_oob_otp_sms",
         "channel": "sms",
         "index": 0
       }
 
-  - input: |
+  - action: input
+    input: |
       {
         "code": "111111"
       }

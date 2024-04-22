@@ -36,7 +36,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "identification": "phone",
         "login_id": "+85223382338"
@@ -49,14 +50,16 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "authentication": "primary_oob_otp_sms",
         "index": 1,
         "channel": "sms"
       }
 
-  - input: |
+  - action: input
+    input: |
       {
         "code": "987654"
       }
@@ -66,7 +69,8 @@ steps:
           "reason": "InvalidCredentials"
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "code": "987654"
       }

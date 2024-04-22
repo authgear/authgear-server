@@ -31,7 +31,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "identification": "username",
         "login_id": "e2e_login"
@@ -44,7 +45,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "authentication": "primary_password",
         "password": "password"
@@ -73,7 +75,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "identification": "username",
         "login_id": "e2e_login_missing"

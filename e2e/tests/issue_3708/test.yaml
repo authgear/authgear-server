@@ -26,7 +26,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "identification": "email",
         "login_id": "e2e_issue_3708@authgear.com"
@@ -39,7 +40,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "index": 0
       }
@@ -51,7 +53,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "resend": true
       }

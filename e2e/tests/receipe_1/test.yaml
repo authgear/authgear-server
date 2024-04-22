@@ -31,7 +31,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "identification": "username",
         "login_id": "e2e_recipe_1_first_time"
@@ -44,7 +45,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "authentication": "primary_password",
         "password": "auyeung1234"
@@ -57,13 +59,15 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "authentication": "primary_oob_otp_sms",
         "index": 0
       }
 
-  - input: |
+  - action: input
+    input: |
       {
         "code": "000000"
       }
@@ -75,7 +79,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "new_password": "Auyeung1234auyeung1234!"
       }
@@ -106,7 +111,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "identification": "username",
         "login_id": "e2e_recipe_1_employee_id"
@@ -119,7 +125,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "authentication": "primary_password",
         "password": "Wakanda4ever@Wakanda4ever"
@@ -132,13 +139,15 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "authentication": "primary_oob_otp_sms",
         "index": 0
       }
 
-  - input: |
+  - action: input
+    input: |
       {
         "code": "111111"
       }
@@ -148,7 +157,8 @@ steps:
           "reason": "InvalidCredentials"
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "code": "000000"
       }
@@ -182,7 +192,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "identification": "oauth",
         "alias": "adfs",
@@ -208,7 +219,8 @@ steps:
           "code": "[[string]]"
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "code": "{{ .prev.result.code }}"
       }
@@ -239,7 +251,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "identification": "email",
         "login_id": "e2e_recipe_1_recovery_email@authgear.com"
@@ -252,7 +265,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "index": 0
       }
@@ -264,7 +278,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "account_recovery_code": "{{ linkOTPCode "email" "e2e_recipe_1_recovery_email@authgear.com" }}"
       }
@@ -276,7 +291,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "new_password": "Abcd1234Abcd1234!"
       }
@@ -307,7 +323,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "identification": "phone",
         "login_id": "+85223382341"
@@ -320,7 +337,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "index": 0
       }
@@ -332,7 +350,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "account_recovery_code": "000000"
       }
@@ -344,7 +363,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "new_password": "Abcd1234Abcd1234!"
       }
@@ -378,7 +398,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "identification": "username",
         "login_id": "e2e_recipe_1_employee_id"
@@ -391,7 +412,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "authentication": "primary_password",
         "password": "Wakanda4ever@Wakanda4ever"
@@ -404,13 +426,15 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "authentication": "primary_oob_otp_sms",
         "index": 0
       }
 
-  - input: |
+  - action: input
+    input: |
       {
         "code": "111111"
       }
@@ -420,7 +444,8 @@ steps:
           "reason": "InvalidCredentials"
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "code": "000000"
       }
@@ -432,7 +457,8 @@ steps:
           }
         }
 
-  - input: |
+  - action: input
+    input: |
       {
         "new_password": "Auyeung1234auyeung1234!"
       }

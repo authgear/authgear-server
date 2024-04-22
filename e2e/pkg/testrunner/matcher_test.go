@@ -41,7 +41,7 @@ func TestMatchJSON(t *testing.T) {
 			schema:  `{"id": "[[number]]", "title": "[[string]]"}`,
 			expected: []MatchViolation{
 				{
-					Path:     ".id",
+					Path:     "/id",
 					Message:  "type mismatch",
 					Expected: "[[number]]",
 					Actual:   "[[string]]",
@@ -54,7 +54,7 @@ func TestMatchJSON(t *testing.T) {
 			schema:  `{"id": "[[number]]", "title": "[[string]]"}`,
 			expected: []MatchViolation{
 				{
-					Path:     ".title",
+					Path:     "/title",
 					Message:  "missing field",
 					Expected: "[[string]]",
 					Actual:   "<missing>",
@@ -79,7 +79,7 @@ func TestMatchJSON(t *testing.T) {
 			schema:  `{"tags": ["[[arrayof]]", "[[string]]"]}`,
 			expected: []MatchViolation{
 				{
-					Path:     ".tags[1]",
+					Path:     "/tags/1",
 					Message:  "type mismatch",
 					Expected: "[[string]]",
 					Actual:   "[[number]]",
@@ -92,7 +92,7 @@ func TestMatchJSON(t *testing.T) {
 			schema:  `{"id": "[[number]]", "title": "[[string]]", "[[...rest]]": "[[number]]"}`,
 			expected: []MatchViolation{
 				{
-					Path:     ".extra",
+					Path:     "/extra",
 					Message:  "type mismatch",
 					Expected: "[[number]]",
 					Actual:   "[[string]]",
@@ -125,7 +125,7 @@ func TestMatchJSON(t *testing.T) {
 			}`,
 			expected: []MatchViolation{
 				{
-					Path:     ".articles[1].title",
+					Path:     "/articles/1/title",
 					Message:  "type mismatch",
 					Expected: "[[string]]",
 					Actual:   "[[number]]",

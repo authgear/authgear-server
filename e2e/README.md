@@ -118,3 +118,16 @@ steps:
         }
 ```
 
+### JSON schema
+
+The test cases are validated against a JSON schema located at [schema.json](./schema.json).
+
+For example, in VSCode, you can use the [YAML extension](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) to enable schema validation.
+
+```json
+{
+  "yaml.schemas": {
+    "./e2e/schema.json": "e2e/**/*test.yaml"
+  }
+}
+```

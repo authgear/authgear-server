@@ -63,7 +63,7 @@ function teardown {
 
 function tests {
     echo "[ ] Run tests..."
-    go test ./... -timeout 3m -parallel 5
+    go test ./... -v -timeout 3m -parallel 5 | grep -v '=== RUN\|=== PAUSE\|=== CONT\|=== RUN\|no test files'
 }
 
 function main {
