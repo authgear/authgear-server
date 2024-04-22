@@ -646,7 +646,28 @@ var _ = Schema.Add("AccountLinkingOAuth", `
 		"alias": { "type": "string" },
 		"oauth_claim": { "$ref": "#/$defs/AccountLinkingJSONPointer" },
 		"user_profile": { "$ref": "#/$defs/AccountLinkingJSONPointer" },
-		"action": { "$ref": "#/$defs/AccountLinkingOAuthAction" }
+		"action": { "$ref": "#/$defs/AccountLinkingOAuthAction" },
+		"allOf": [
+			{
+				"if": {
+					"required": ["action"],
+					"properties": {
+						"action": {
+							"type": "string",
+							"enum": ["login_and_link"]
+						}
+					}
+				},
+				"then": {
+					"required": ["login_flow"],
+					"properties": {
+						"login_flow": {
+							"type": "string"
+						}
+					}
+				}
+			}
+		]
 	}
 }
 `)
@@ -852,8 +873,9 @@ type AuthenticationFlowConfig struct {
 }
 
 type AuthenticationFlowSignupFlow struct {
-	Name  string                              `json:"name,omitempty"`
-	Steps []*AuthenticationFlowSignupFlowStep `json:"steps,omitempty"`
+	Name           string                              `json:"name,omitempty"`
+	AccountLinking *AuthenticationFlowAccountLinking   `json:"account_linking,omitempty"`
+	Steps          []*AuthenticationFlowSignupFlowStep `json:"steps,omitempty"`
 }
 
 var _ AuthenticationFlowObjectFlowRoot = &AuthenticationFlowSignupFlow{}
@@ -1381,6 +1403,31 @@ const (
 	AuthenticationFlowAccountRecoveryIdentificationOnFailureError  = AuthenticationFlowAccountRecoveryIdentificationOnFailure("error")
 	AuthenticationFlowAccountRecoveryIdentificationOnFailureIgnore = AuthenticationFlowAccountRecoveryIdentificationOnFailure("ignore")
 )
+
+type AuthenticationFlowAccountLinking struct {
+	OAuth []*AccountLinkingOAuth `json:"oauth,omitempty"`
+}
+
+type AccountLinkingOAuth struct {
+	Alias       string                    `json:"alias,omitempty"`
+	OAuthClaim  AccountLinkingJSONPointer `json:"oauth_claim,omitempty"`
+	UserProfile AccountLinkingJSONPointer `json:"user_profile,omitempty"`
+	Action      AccountLinkingOAuthAction `json:"action,omitempty"`
+
+	// login_flow is only relevant if action is "login_and_link"
+	LoginFlow string `json:"login_flow,omitempty"`
+}
+
+type AccountLinkingOAuthAction string
+
+const (
+	AccountLinkingOAuthActionError        AccountLinkingOAuthAction = "error"
+	AccountLinkingOAuthActionLoginAndLink AccountLinkingOAuthAction = "login_andLink"
+)
+
+type AccountLinkingJSONPointer struct {
+	Pointer string `json:"pointer,omitempty"`
+}
 
 func init() {
 	accountRecoveryChannelsOneOf := ""
