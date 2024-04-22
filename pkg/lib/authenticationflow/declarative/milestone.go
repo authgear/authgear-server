@@ -250,3 +250,8 @@ type MilestoneDoUpdateUserProfile interface {
 	authflow.Milestone
 	MilestoneDoUpdateUserProfileSkip()
 }
+
+type MilestoneAccountLinkingConfigGetter interface {
+	authflow.Milestone
+	MilestoneAccountLinkingConfigGetter(deps *authflow.Dependencies) (*config.AuthenticationFlowAccountLinking, error)
+}
