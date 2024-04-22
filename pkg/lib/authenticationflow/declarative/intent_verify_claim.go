@@ -28,14 +28,24 @@ type IntentVerifyClaim struct {
 var _ authflow.Intent = &IntentVerifyClaim{}
 var _ authflow.DataOutputer = &IntentVerifyClaim{}
 var _ authflow.Milestone = &IntentVerifyClaim{}
-var _ MilestoneDoMarkClaimVerified = &IntentVerifyClaim{}
+var _ MilestoneVerifyClaim = &IntentVerifyClaim{}
 
 func (*IntentVerifyClaim) Kind() string {
 	return "IntentVerifyClaim"
 }
 
-func (*IntentVerifyClaim) Milestone()                    {}
-func (*IntentVerifyClaim) MilestoneDoMarkClaimVerified() {}
+func (*IntentVerifyClaim) Milestone()            {}
+func (*IntentVerifyClaim) MilestoneVerifyClaim() {}
+func (i *IntentVerifyClaim) MilestoneVerifyClaimUpdateUserID(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
+	i.UserID = newUserID
+
+	milestone, ok := authflow.FindFirstMilestone[MilestoneDoMarkClaimVerified](flow)
+	if ok {
+		milestone.MilestoneDoMarkClaimVerifiedUpdateUserID(newUserID)
+	}
+
+	return nil
+}
 
 func (i *IntentVerifyClaim) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	if len(flows.Nearest.Nodes) == 0 {
@@ -47,9 +57,14 @@ func (i *IntentVerifyClaim) CanReactTo(ctx context.Context, deps *authflow.Depen
 		if len(channels) == 1 {
 			return nil, nil
 		}
+		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		if err != nil {
+			return nil, err
+		}
 		return &InputSchemaTakeOOBOTPChannel{
-			JSONPointer: i.JSONPointer,
-			Channels:    channels,
+			FlowRootObject: flowRootObject,
+			JSONPointer:    i.JSONPointer,
+			Channels:       channels,
 		}, nil
 	}
 

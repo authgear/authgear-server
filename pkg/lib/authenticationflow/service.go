@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
@@ -108,7 +107,7 @@ func (s *Service) validateNewFlow(publicFlow PublicFlow, sessionOptions *Session
 }
 
 func (s *Service) createNewFlowWithSession(publicFlow PublicFlow, session *Session) (output *ServiceOutput, err error) {
-	ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps, publicFlow)
+	ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps)
 	if err != nil {
 		return
 	}
@@ -151,12 +150,12 @@ func (s *Service) createNewFlowWithSession(publicFlow PublicFlow, session *Sessi
 		err = ErrEOF
 	}
 
-	flowReference := GetFlowReference(ctx)
+	flowReference := FindCurrentFlowReference(flow)
 	output = &ServiceOutput{
 		Session:       session,
 		SessionOutput: sessionOutput,
 		Flow:          flow,
-		FlowReference: &flowReference,
+		FlowReference: flowReference,
 		FlowAction:    flowAction,
 		Cookies:       cookies,
 	}
@@ -212,12 +211,7 @@ func (s *Service) Get(stateToken string) (output *ServiceOutput, err error) {
 		return
 	}
 
-	publicFlow, ok := w.Intent.(PublicFlow)
-	if !ok {
-		panic(fmt.Errorf("the root intent must be a PublicFlow: %T", w.Intent))
-	}
-
-	ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps, publicFlow)
+	ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps)
 	if err != nil {
 		return
 	}
@@ -243,12 +237,12 @@ func (s *Service) get(ctx context.Context, session *Session, w *Flow) (output *S
 
 	sessionOutput := session.ToOutput()
 
-	flowReference := GetFlowReference(ctx)
+	flowReference := FindCurrentFlowReference(w)
 	output = &ServiceOutput{
 		Session:       session,
 		SessionOutput: sessionOutput,
 		Flow:          w,
-		FlowReference: &flowReference,
+		FlowReference: flowReference,
 		FlowAction:    flowAction,
 	}
 	return
@@ -272,12 +266,7 @@ func (s *Service) FeedInput(stateToken string, rawMessage json.RawMessage) (outp
 		return
 	}
 
-	publicFlow, ok := flow.Intent.(PublicFlow)
-	if !ok {
-		panic(fmt.Errorf("the root intent must be a PublicFlow: %T", flow.Intent))
-	}
-
-	ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps, publicFlow)
+	ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps)
 	if err != nil {
 		return
 	}
@@ -288,10 +277,21 @@ func (s *Service) FeedInput(stateToken string, rawMessage json.RawMessage) (outp
 		return err
 	})
 
-	// Handle switch flow.
 	var errSwitchFlow *ErrorSwitchFlow
-	if errors.As(err, &errSwitchFlow) {
-		output, err = s.switchFlow(session, errSwitchFlow)
+	var errRewriteFlow *ErrorRewriteFlow
+	isSpecialError := false
+	for errors.As(err, &errSwitchFlow) || errors.As(err, &errRewriteFlow) {
+		isSpecialError = true
+		if errors.As(err, &errSwitchFlow) {
+			output, err = s.switchFlow(session, errSwitchFlow)
+		}
+
+		if errors.As(err, &errRewriteFlow) {
+			output, err = s.rewriteFlow(session, errRewriteFlow)
+		}
+	}
+
+	if isSpecialError {
 		return
 	}
 
@@ -327,12 +327,12 @@ func (s *Service) FeedInput(stateToken string, rawMessage json.RawMessage) (outp
 		err = ErrEOF
 	}
 
-	flowReference := GetFlowReference(ctx)
+	flowReference := FindCurrentFlowReference(flow)
 	output = &ServiceOutput{
 		Session:       session,
 		SessionOutput: sessionOutput,
 		Flow:          flow,
-		FlowReference: &flowReference,
+		FlowReference: flowReference,
 		FlowAction:    flowAction,
 		Cookies:       cookies,
 	}
@@ -350,12 +350,7 @@ func (s *Service) FeedSyntheticInput(stateToken string, syntheticInput Input) (o
 		return
 	}
 
-	publicFlow, ok := flow.Intent.(PublicFlow)
-	if !ok {
-		panic(fmt.Errorf("the root intent must be a PublicFlow: %T", flow.Intent))
-	}
-
-	ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps, publicFlow)
+	ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps)
 	if err != nil {
 		return
 	}
@@ -398,12 +393,12 @@ func (s *Service) FeedSyntheticInput(stateToken string, syntheticInput Input) (o
 		err = ErrEOF
 	}
 
-	flowReference := GetFlowReference(ctx)
+	flowReference := FindCurrentFlowReference(flow)
 	output = &ServiceOutput{
 		Session:       session,
 		SessionOutput: sessionOutput,
 		Flow:          flow,
-		FlowReference: &flowReference,
+		FlowReference: flowReference,
 		FlowAction:    flowAction,
 		Cookies:       cookies,
 	}
@@ -436,6 +431,16 @@ func (s *Service) switchFlow(session *Session, errSwitchFlow *ErrorSwitchFlow) (
 	output.Cookies = cookies
 
 	return
+}
+
+func (s *Service) rewriteFlow(session *Session, errRewriteFlow *ErrorRewriteFlow) (output *ServiceOutput, err error) {
+	newFlow := NewFlow(session.FlowID, errRewriteFlow.Intent)
+	newFlow.Nodes = errRewriteFlow.Nodes
+	err = s.Store.CreateFlow(newFlow)
+	if err != nil {
+		return
+	}
+	return s.FeedSyntheticInput(newFlow.StateToken, errRewriteFlow.SyntheticInput)
 }
 
 func (s *Service) feedInput(ctx context.Context, session *Session, stateToken string, rawMessage json.RawMessage) (flow *Flow, flowAction *FlowAction, err error) {
@@ -560,7 +565,8 @@ func (s *Service) getFlowAction(ctx context.Context, session *Session, flow *Flo
 
 	if findInputReactorResult.InputSchema != nil {
 		p := findInputReactorResult.InputSchema.GetJSONPointer()
-		flowRootObject := GetFlowRootObject(ctx)
+		flowRootObject := findInputReactorResult.InputSchema.GetFlowRootObject()
+
 		if flowRootObject != nil {
 			flowAction = GetFlowAction(flowRootObject, p)
 		}

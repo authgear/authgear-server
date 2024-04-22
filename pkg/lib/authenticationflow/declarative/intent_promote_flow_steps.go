@@ -15,8 +15,9 @@ func init() {
 }
 
 type IntentPromoteFlowSteps struct {
-	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
-	UserID      string        `json:"user_id,omitempty"`
+	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
+	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
+	UserID        string                 `json:"user_id,omitempty"`
 }
 
 var _ authflow.Intent = &IntentPromoteFlowSteps{}
@@ -31,7 +32,7 @@ func (*IntentPromoteFlowSteps) Milestone()            {}
 func (*IntentPromoteFlowSteps) MilestoneNestedSteps() {}
 
 func (i *IntentPromoteFlowSteps) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	current, err := i.currentFlowObject(deps)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +46,7 @@ func (i *IntentPromoteFlowSteps) CanReactTo(ctx context.Context, deps *authflow.
 }
 
 func (i *IntentPromoteFlowSteps) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, _ authflow.Input) (*authflow.Node, error) {
-	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	current, err := i.currentFlowObject(deps)
 	if err != nil {
 		return nil, err
 	}
@@ -59,9 +60,10 @@ func (i *IntentPromoteFlowSteps) ReactTo(ctx context.Context, deps *authflow.Dep
 	switch step.Type {
 	case config.AuthenticationFlowSignupFlowStepTypeIdentify:
 		stepIdentify, err := NewIntentPromoteFlowStepIdentify(ctx, deps, &IntentPromoteFlowStepIdentify{
-			StepName:    step.Name,
-			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
-			UserID:      i.UserID,
+			FlowReference: i.FlowReference,
+			StepName:      step.Name,
+			JSONPointer:   authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:        i.UserID,
 		})
 		if err != nil {
 			return nil, err
@@ -75,9 +77,10 @@ func (i *IntentPromoteFlowSteps) ReactTo(ctx context.Context, deps *authflow.Dep
 		}), nil
 	case config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator:
 		return authflow.NewSubFlow(&IntentSignupFlowStepCreateAuthenticator{
-			StepName:    step.Name,
-			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
-			UserID:      i.UserID,
+			FlowReference: i.FlowReference,
+			StepName:      step.Name,
+			JSONPointer:   authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:        i.UserID,
 		}), nil
 	case config.AuthenticationFlowSignupFlowStepTypeViewRecoveryCode:
 		return authflow.NewSubFlow(NewIntentSignupFlowStepViewRecoveryCode(deps, &IntentSignupFlowStepViewRecoveryCode{
@@ -109,4 +112,16 @@ func (i *IntentPromoteFlowSteps) steps(o config.AuthenticationFlowObject) []conf
 	}
 
 	return steps
+}
+
+func (i *IntentPromoteFlowSteps) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
+	rootObject, err := flowRootObject(deps, i.FlowReference)
+	if err != nil {
+		return nil, err
+	}
+	current, err := authflow.FlowObject(rootObject, i.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
+	return current, nil
 }

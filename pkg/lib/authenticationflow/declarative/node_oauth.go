@@ -5,6 +5,8 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
@@ -31,8 +33,13 @@ func (*NodeOAuth) Kind() string {
 }
 
 func (n *NodeOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	if err != nil {
+		return nil, err
+	}
 	return &InputSchemaTakeOAuthAuthorizationResponse{
-		JSONPointer: n.JSONPointer,
+		FlowRootObject: flowRootObject,
+		JSONPointer:    n.JSONPointer,
 	}, nil
 }
 
@@ -79,7 +86,18 @@ func (n *NodeOAuth) OutputData(ctx context.Context, deps *authflow.Dependencies,
 func (n *NodeOAuth) reactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, spec *identity.Spec) (*authflow.Node, error) {
 	// signup
 	if n.NewUserID != "" {
-		info, err := newIdentityInfo(deps, n.NewUserID, spec)
+		info, conflictedInfo, err := newIdentityInfo(deps, n.NewUserID, spec)
+		if apierrors.IsAPIError(err) && apierrors.AsAPIError(err).HasCause("DuplicatedIdentity") {
+			if conflictedInfo.Type == model.IdentityTypeOAuth && conflictedInfo.OAuth.ProviderID.Equal(&spec.OAuth.ProviderID) && conflictedInfo.OAuth.ProviderSubjectID == spec.OAuth.SubjectID {
+				// Is same oauth id, return the error
+				return nil, err
+			}
+			return authflow.NewSubFlow(&IntentAccountLinkingOAuth{
+				LinkToUserID:        conflictedInfo.UserID,
+				ConflictingIdentity: conflictedInfo,
+				OAuthIdentitySpec:   spec,
+			}), nil
+		}
 		if err != nil {
 			return nil, err
 		}

@@ -9,28 +9,37 @@ import (
 )
 
 func init() {
-	authflow.RegisterNode(&NodeDoPopulateStandardAttributes{})
+	authflow.RegisterNode(&NodeDoPopulateStandardAttributesInSignup{})
 }
 
-type NodeDoPopulateStandardAttributes struct {
-	Identity *identity.Info `json:"identity,omitempty"`
+// This node is only for use in signup or promote
+type NodeDoPopulateStandardAttributesInSignup struct {
+	Identity   *identity.Info `json:"identity,omitempty"`
+	SkipUpdate bool           `json:"skip_update,omitempty"`
 }
 
-var _ authflow.NodeSimple = &NodeDoPopulateStandardAttributes{}
-var _ authflow.Milestone = &NodeDoPopulateStandardAttributes{}
-var _ MilestoneDoPopulateStandardAttributes = &NodeDoPopulateStandardAttributes{}
-var _ authflow.EffectGetter = &NodeDoPopulateStandardAttributes{}
+var _ authflow.NodeSimple = &NodeDoPopulateStandardAttributesInSignup{}
+var _ authflow.Milestone = &NodeDoPopulateStandardAttributesInSignup{}
+var _ MilestoneDoPopulateStandardAttributes = &NodeDoPopulateStandardAttributesInSignup{}
+var _ authflow.EffectGetter = &NodeDoPopulateStandardAttributesInSignup{}
 
-func (n *NodeDoPopulateStandardAttributes) Kind() string {
+func (n *NodeDoPopulateStandardAttributesInSignup) Kind() string {
 	return "NodeDoPopulateStandardAttributes"
 }
 
-func (*NodeDoPopulateStandardAttributes) Milestone()                             {}
-func (*NodeDoPopulateStandardAttributes) MilestoneDoPopulateStandardAttributes() {}
+func (*NodeDoPopulateStandardAttributesInSignup) Milestone() {}
 
-func (n *NodeDoPopulateStandardAttributes) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (effs []authflow.Effect, err error) {
+func (*NodeDoPopulateStandardAttributesInSignup) MilestoneDoPopulateStandardAttributes() {}
+func (n *NodeDoPopulateStandardAttributesInSignup) MilestoneDoPopulateStandardAttributesSkip() {
+	n.SkipUpdate = true
+}
+
+func (n *NodeDoPopulateStandardAttributesInSignup) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (effs []authflow.Effect, err error) {
 	return []authflow.Effect{
 		authflow.RunEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
+			if n.SkipUpdate {
+				return nil
+			}
 			if deps.Config.UserProfile.StandardAttributes.Population.Strategy == config.StandardAttributesPopulationStrategyOnSignup {
 				err := deps.StdAttrsService.PopulateStandardAttributes(
 					n.Identity.UserID,

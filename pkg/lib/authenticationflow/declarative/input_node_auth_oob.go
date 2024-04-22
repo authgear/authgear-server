@@ -7,18 +7,24 @@ import (
 
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 type InputSchemaNodeAuthenticationOOB struct {
-	JSONPointer jsonpointer.T
-	OTPForm     otp.Form
+	JSONPointer    jsonpointer.T
+	FlowRootObject config.AuthenticationFlowObject
+	OTPForm        otp.Form
 }
 
 var _ authflow.InputSchema = &InputSchemaNodeAuthenticationOOB{}
 
 func (i *InputSchemaNodeAuthenticationOOB) GetJSONPointer() jsonpointer.T {
 	return i.JSONPointer
+}
+
+func (i *InputSchemaNodeAuthenticationOOB) GetFlowRootObject() config.AuthenticationFlowObject {
+	return i.FlowRootObject
 }
 
 func (i *InputSchemaNodeAuthenticationOOB) SchemaBuilder() validation.SchemaBuilder {

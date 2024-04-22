@@ -40,8 +40,13 @@ func (n *NodePromoteIdentityLoginID) MilestoneIdentificationMethod() config.Auth
 }
 
 func (n *NodePromoteIdentityLoginID) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	if err != nil {
+		return nil, err
+	}
 	return &InputSchemaTakeLoginID{
-		JSONPointer: n.JSONPointer,
+		FlowRootObject: flowRootObject,
+		JSONPointer:    n.JSONPointer,
 	}, nil
 }
 
@@ -66,7 +71,7 @@ func (n *NodePromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authflow
 			// promote
 			if apierrors.IsKind(err, api.UserNotFound) {
 				spec := n.makeLoginIDSpec(loginID)
-				info, err := newIdentityInfo(deps, n.UserID, spec)
+				info, _, err := newIdentityInfo(deps, n.UserID, spec)
 				if err != nil {
 					return nil, err
 				}
@@ -81,7 +86,7 @@ func (n *NodePromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authflow
 		}
 
 		// login
-		flowReference := authflow.GetFlowReference(ctx)
+		flowReference := authflow.FindCurrentFlowReference(flows.Root)
 		return nil, &authflow.ErrorSwitchFlow{
 			FlowReference: authflow.FlowReference{
 				Type: authflow.FlowTypeLogin,

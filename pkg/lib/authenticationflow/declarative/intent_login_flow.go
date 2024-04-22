@@ -2,6 +2,7 @@ package declarative
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
@@ -18,6 +19,7 @@ func init() {
 }
 
 type IntentLoginFlow struct {
+	TargetUserID  string                 `json:"target_user_id,omitempty"`
 	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
 	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
 }
@@ -59,7 +61,8 @@ func (i *IntentLoginFlow) ReactTo(ctx context.Context, deps *authflow.Dependenci
 	switch {
 	case len(flows.Nearest.Nodes) == 0:
 		return authflow.NewSubFlow(&IntentLoginFlowSteps{
-			JSONPointer: i.JSONPointer,
+			FlowReference: i.FlowReference,
+			JSONPointer:   i.JSONPointer,
 		}), nil
 	case len(flows.Nearest.Nodes) == 1:
 		n, err := NewNodeDoCreateSession(ctx, deps, flows, &NodeDoCreateSession{
@@ -126,10 +129,14 @@ func (i *IntentLoginFlow) GetEffects(ctx context.Context, deps *authflow.Depende
 	}, nil
 }
 
-func (*IntentLoginFlow) userID(flows authflow.Flows) string {
+func (i *IntentLoginFlow) userID(flows authflow.Flows) string {
 	userID, err := getUserID(flows)
 	if err != nil {
 		panic(err)
+	}
+
+	if i.TargetUserID != "" && i.TargetUserID != userID {
+		panic(fmt.Errorf("unexpected user id %v while target is %v", userID, i.TargetUserID))
 	}
 
 	return userID
