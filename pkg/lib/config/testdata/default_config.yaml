@@ -638,6 +638,7 @@ test_mode:
   email:
     enabled: false
 authentication_flow:
+  default_account_linking: {}
   rate_limits:
     per_ip:
       enabled: true
