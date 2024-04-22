@@ -46,7 +46,7 @@ authentication_flow:
           - alias: adfs
             oauth_claim:
               pointer: "/preferred_username"
-            user_profile_attribute:
+            user_profile:
               pointer: "/preferred_username"
             action: login_and_link
             login_flow: default
@@ -90,13 +90,13 @@ Currently, only `oauth` is supported in account linking. However, account linkin
 
 #### Defining Linkings
 
-We define linkings between the new oauth identity and any existing identities using the `oauth_claim` and `user_profile_attribute` fields.
+We define linkings between the new oauth identity and any existing identities using the `oauth_claim` and `user_profile` fields.
 
 - `oauth_claim`: An object containing a json pointer, specified in `oauth_claim.pointer`, pointing to a claim of the incoming oauth user profile. Note that, for oidc compatible providers, this pointer is used to access value from the oidc claims, which is from the user info endpoint. For non-oidc compatible providers, please read the [SSO Providers](/docs/specs/sso-providers.md) document for the corresponing logics authgear implemented to obtain a user profile from the provider.
 
-- `user_profile_attribute`: An object containing a json pointer, specified in `user_profile_attribute.pointer`, pointing to a value of the user profile of an existing authgear user, or the attribute of an existing authgear identity. For the meaning of attribute of authgear identity, please read the [Identity Attribute](#identity-attribute) section.
+- `user_profile`: An object containing a json pointer, specified in `user_profile.pointer`, pointing to a value of the user profile of an existing authgear user, or the attribute of an existing authgear identity. For the meaning of attribute of authgear identity, please read the [Identity Attribute](#identity-attribute) section.
 
-Whenever the value pointed by `oauth_claim.pointer` of the new oauth identity matches the value pointed by `user_profile_attribute.pointer` of any existing authgear identity or authgear user profile, account linking will be triggered.
+Whenever the value pointed by `oauth_claim.pointer` of the new oauth identity matches the value pointed by `user_profile.pointer` of any existing authgear identity or authgear user profile, account linking will be triggered.
 
 For what should happen on linking, please read the following [Linking Actions](#linking-actions) section.
 
@@ -131,7 +131,7 @@ authentication_flow:
       - alias: google
         oauth_claim:
           pointer: "/email"
-        user_profile_attribute:
+        user_profile:
           pointer: "/email"
         action: login_and_link
         login_flow: default
@@ -158,7 +158,7 @@ The current defaults are identical to the following config:
 ```yaml
 oauth_claim:
   pointer: "/email"
-user_profile_attribute:
+user_profile:
   pointer: "/email"
 action: error
 ```
@@ -199,9 +199,9 @@ identity:
         client_id: exampleclientid
         type: adfs
         user_profile_mapping:
-          - from_claim:
+          - oauth_claim:
               pointer: "/primary_phone"
-            to_attribute:
+            user_profile:
               pointer: "/phone_number"
 ```
 
@@ -212,8 +212,8 @@ For any oauth identity of `adfs`, we will read a value from the `"primary_phone"
 And the meaning of each configs are:
 
 - `user_profile_mapping`: It is an array, which specifies a mapping. From one claim of the provider user profile, to one attribute of the authgear user identity attribute.
-  - `user_profile_mapping.from_claim`: An object, which only has one field `pointer`. The `pointer` is the JSON pointer pointing to the claim value of the oauth provider user profile.
-  - `user_profile_mapping.to_attribute`: An object, which only has one field `pointer`. The `pointer` is the JSON pointer pointing to the attribute of the authgear identity attribute.
+  - `user_profile_mapping.oauth_claim`: An object, which only has one field `pointer`. The `pointer` is the JSON pointer pointing to the claim value of the oauth provider user profile.
+  - `user_profile_mapping.user_profile`: An object, which only has one field `pointer`. The `pointer` is the JSON pointer pointing to the attribute of the authgear identity attribute.
     - We only support standard attributes at the moment, but custom attributes may also be supported in the future.
 
 ## Login and Link Flow
@@ -230,7 +230,7 @@ signup_flows:
         - alias: google
           oauth_claim:
             pointer: "/email"
-          user_profile_attribute:
+          user_profile:
             pointer: "/email"
           action: login_and_link
           login_flow: default
@@ -370,11 +370,11 @@ The config of account linking by login ids is defined by an object inside `accou
 account_linking:
   login_id:
     - key: phone
-      user_profile_attribute:
+      user_profile:
         pointer: "/phone_number"
       action: "login_and_link"
     - key: username
-      user_profile_attribute:
+      user_profile:
         pointer: "/preferred_username"
       action: "error"
 ```
@@ -390,9 +390,9 @@ The default values of each login id types are different. Please see the below ta
 
 | Login ID Type | Defaults                                                                                              |
 | ------------- | ----------------------------------------------------------------------------------------------------- |
-| `email`       | <pre><code>user_profile_attribute:<br/>&nbsp;&nbsp;pointer: "/email"<br/>action: error</code></pre>             |
-| `phone`       | <pre><code>user_profile_attribute:<br/>&nbsp;&nbsp;pointer: "/phone_number"<br/>action: error</code></pre>       |
-| `username`    | <pre><code>user_profile_attribute:<br/>&nbsp;&nbsp;pointer: "/preferred_username"<br/>action: error</code></pre> |
+| `email`       | <pre><code>user_profile:<br/>&nbsp;&nbsp;pointer: "/email"<br/>action: error</code></pre>             |
+| `phone`       | <pre><code>user_profile:<br/>&nbsp;&nbsp;pointer: "/phone_number"<br/>action: error</code></pre>       |
+| `username`    | <pre><code>user_profile:<br/>&nbsp;&nbsp;pointer: "/preferred_username"<br/>action: error</code></pre> |
 
 Therefore when not specified, all attempts to link a new login id to existing users or idenitities will result in error.
 
