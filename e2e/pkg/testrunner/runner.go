@@ -26,11 +26,6 @@ func NewTestRunner(t *testing.T, path string) *TestRunner {
 func (tr *TestRunner) Run() {
 	var t = tr.T
 
-	err := tr.dumpSchema()
-	if err != nil {
-		t.Fatalf("failed to dump schema: %v", err)
-	}
-
 	testCases, err := tr.loadFromPath(tr.Path)
 	if err != nil {
 		t.Fatalf(err.Error())
@@ -61,18 +56,6 @@ func (tr *TestRunner) Run() {
 			tc.Run(t)
 		})
 	}
-}
-
-func (tr *TestRunner) dumpSchema() error {
-	schema, err := DumpSchema()
-	if err != nil {
-		return err
-	}
-	err = os.WriteFile("../../schema.json", []byte(schema), 0644)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func (tr *TestRunner) loadFromPath(path string) ([]TestCase, error) {

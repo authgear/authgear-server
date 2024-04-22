@@ -11,7 +11,7 @@ var _ = TestCaseSchema.Add("AuthgearYAMLSource", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"extend": { "type": "file-path", "description": "Path to the base authgear.yaml" },
+		"extend": { "type": "string", "description": "Path to the base authgear.yaml" },
 		"override": { "type": "string", "description": "Inline snippet to override the base authgear.yaml" }
 	}
 }
@@ -34,7 +34,7 @@ var _ = TestCaseSchema.Add("BeforeHookCustomSQL", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"path": { "type": "string", "format": "file-path", "description": "Path to the custom SQL script" }
+		"path": { "type": "string", "description": "Path to the custom SQL script" }
 	},
 	"required": ["path"]
 }

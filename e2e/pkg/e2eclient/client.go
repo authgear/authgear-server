@@ -16,10 +16,29 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-var httpClient = &http.Client{}
-var oauthClient = &http.Client{}
+type Client struct {
+	Context       context.Context
+	HTTPClient    *http.Client
+	OAuthClient   *http.Client
+	LocalEndpoint *url.URL
+	HTTPHost      httputil.HTTPHost
+}
 
-func init() {
+func NewClient(ctx context.Context, mainListenAddr string, httpHost httputil.HTTPHost) *Client {
+	// Always use http because we are going to call ourselves locally.
+	localEndpointString := fmt.Sprintf("http://%v", mainListenAddr)
+	localEndpointURL, err := url.Parse(localEndpointString)
+	if err != nil {
+		panic(err)
+	}
+
+	// Only the port is important, the host is always the loopback address.
+	localEndpointURL.Host = fmt.Sprintf("127.0.0.1:%v", localEndpointURL.Port())
+
+	// Prepare HTTP clients.
+	var httpClient = &http.Client{}
+	var oauthClient = &http.Client{}
+
 	// Use go test -timeout instead of setting timeout here.
 	httpClient.Timeout = 0
 	oauthClient.Timeout = 0
@@ -53,26 +72,6 @@ func init() {
 	oauthClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		return http.ErrUseLastResponse
 	}
-}
-
-type Client struct {
-	Context       context.Context
-	HTTPClient    *http.Client
-	OAuthClient   *http.Client
-	LocalEndpoint *url.URL
-	HTTPHost      httputil.HTTPHost
-}
-
-func NewClient(ctx context.Context, mainListenAddr string, httpHost httputil.HTTPHost) *Client {
-	// Always use http because we are going to call ourselves locally.
-	localEndpointString := fmt.Sprintf("http://%v", mainListenAddr)
-	localEndpointURL, err := url.Parse(localEndpointString)
-	if err != nil {
-		panic(err)
-	}
-
-	// Only the port is important, the host is always the loopback address.
-	localEndpointURL.Host = fmt.Sprintf("127.0.0.1:%v", localEndpointURL.Port())
 
 	return &Client{
 		Context:       ctx,

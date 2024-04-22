@@ -5,7 +5,7 @@
       "properties": {
         "extend": {
           "description": "Path to the base authgear.yaml",
-          "type": "file-path"
+          "type": "string"
         },
         "override": {
           "description": "Inline snippet to override the base authgear.yaml",
@@ -71,7 +71,6 @@
       "properties": {
         "path": {
           "description": "Path to the custom SQL script",
-          "format": "file-path",
           "type": "string"
         }
       },

@@ -15,3 +15,7 @@ tests:
 .PHONY: teardown
 teardown:
 	./run.sh teardown
+
+.PHONY: dumpschema
+dumpschema:
+	go run ./cmd/dumpschema
