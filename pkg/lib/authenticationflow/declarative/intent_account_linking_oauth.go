@@ -15,9 +15,8 @@ func init() {
 }
 
 type IntentAccountLinkingOAuth struct {
-	LinkToUserID        string         `json:"link_to_user_id,omitempty"`
-	OAuthIdentitySpec   *identity.Spec `json:"oauth_identity_spec,omitempty"`
-	ConflictingIdentity *identity.Info `json:"conflicting_identity,omitempty"` // TODO(tung): Change this to a list
+	OAuthIdentitySpec     *identity.Spec   `json:"oauth_identity_spec,omitempty"`
+	ConflictingIdentities []*identity.Info `json:"conflicting_identities,omitempty"`
 }
 
 var _ authflow.Intent = &IntentAccountLinkingOAuth{}
@@ -39,7 +38,9 @@ func (*IntentAccountLinkingOAuth) CanReactTo(ctx context.Context, deps *authflow
 
 func (i *IntentAccountLinkingOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	flowUserID, err := getUserID(flows)
-	conflictedUserID := i.ConflictingIdentity.UserID
+	// TODO(tung): This should be chosen by input
+	conflictedIdentity := i.ConflictingIdentities[0]
+	conflictedUserID := conflictedIdentity.UserID
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +74,7 @@ func (i *IntentAccountLinkingOAuth) ReactTo(ctx context.Context, deps *authflow.
 		return nil, &authflow.ErrorRewriteFlow{
 			Intent:         flows.Root.Intent,
 			Nodes:          flows.Root.Nodes,
-			SyntheticInput: i.createSyntheticInputOAuthConflict(i.OAuthIdentitySpec, i.ConflictingIdentity),
+			SyntheticInput: i.createSyntheticInputOAuthConflict(i.OAuthIdentitySpec, conflictedIdentity),
 		}
 	}
 
@@ -91,7 +92,9 @@ func (i *IntentAccountLinkingOAuth) ReactTo(ctx context.Context, deps *authflow.
 		}
 		return authflow.NewSubFlow(&loginIntent), nil
 	case 1:
-		info, _, err := newIdentityInfo(deps, i.LinkToUserID, i.OAuthIdentitySpec)
+		// TODO(tung): This should be chosen input
+		conflictedIdentity := i.ConflictingIdentities[0]
+		info, err := newIdentityInfo(deps, conflictedIdentity.UserID, i.OAuthIdentitySpec)
 		if err != nil {
 			return nil, err
 		}
