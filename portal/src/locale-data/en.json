@@ -453,6 +453,7 @@
   "UserDetails.session.clientID": "Client ID",
   "UserDetails.session.last-activity": "Last Activity",
   "UserDetails.session.ip-address": "IP Address",
+  "UserDetails.session.devices.unknown": "Unknown",
   "UserDetails.session.action": "Action",
   "UserDetails.session.action.revoke": "Terminate",
   "UserDetails.session.revoke-all": "Terminate all sessions",

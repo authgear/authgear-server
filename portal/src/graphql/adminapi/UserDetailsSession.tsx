@@ -136,6 +136,26 @@ const UserDetailsSession: React.VFC<Props> = function UserDetailsSession(
         className: styles.cell,
         minWidth: 200,
         maxWidth: 200,
+        // eslint-disable-next-line react/no-unstable-nested-components
+        onRender: (item: SessionItemViewModel) => {
+          if (item.displayName === "") {
+            return (
+              <Text
+                variant="small"
+                styles={(_, theme) => ({
+                  root: {
+                    color: theme.palette.neutralSecondary,
+                    fontStyle: "italic",
+                  },
+                })}
+              >
+                {renderToString("UserDetails.session.devices.unknown")}
+              </Text>
+            );
+          }
+
+          return item.displayName;
+        },
       },
       {
         key: "clientID",
