@@ -1390,6 +1390,18 @@ type AuthenticationFlowAccountLinking struct {
 	OAuth []*AccountLinkingOAuth `json:"oauth,omitempty"`
 }
 
+func (a *AuthenticationFlowAccountLinking) Merge(other *AuthenticationFlowAccountLinking) *AuthenticationFlowAccountLinking {
+	newConfig := AuthenticationFlowAccountLinking{}
+
+	newConfig.OAuth = append(newConfig.OAuth, a.OAuth...)
+
+	if other != nil {
+		newConfig.OAuth = append(newConfig.OAuth, other.OAuth...)
+	}
+
+	return &newConfig
+}
+
 type AccountLinkingOAuth struct {
 	Alias       string                    `json:"alias,omitempty"`
 	OAuthClaim  AccountLinkingJSONPointer `json:"oauth_claim,omitempty"`
