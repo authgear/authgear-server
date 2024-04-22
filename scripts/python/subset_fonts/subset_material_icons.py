@@ -25,7 +25,7 @@ if __name__ == '__main__':
   # Find icon names in authflowv2 templates and css files
   html_directory_path = '../../resources/authgear/templates/en/web/authflowv2/**/*.html'
   css_directory_path = '../../authui/src/authflowv2/**/*.css'
-  icon_name_list_path = 'material-icons.txt'
+  icon_name_list_path = './subset_fonts/material-icons.txt'
 
   filtered_icon_names = \
     filter_icon_names_from_path(icon_names, html_directory_path) | \
