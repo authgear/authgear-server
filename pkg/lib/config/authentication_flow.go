@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 var _ = Schema.Add("AuthenticationFlowConfig", `
@@ -1421,7 +1422,7 @@ const (
 )
 
 type AccountLinkingJSONPointer struct {
-	Pointer string `json:"pointer,omitempty"`
+	Pointer jsonpointer.T `json:"pointer,omitempty"`
 }
 
 func init() {

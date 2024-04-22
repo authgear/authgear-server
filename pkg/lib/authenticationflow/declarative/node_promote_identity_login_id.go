@@ -71,11 +71,12 @@ func (n *NodePromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authflow
 			// promote
 			if apierrors.IsKind(err, api.UserNotFound) {
 				spec := n.makeLoginIDSpec(loginID)
-				info, _, err := newIdentityInfo(deps, n.UserID, spec)
+				info, err := newIdentityInfo(deps, n.UserID, spec)
 				if err != nil {
 					return nil, err
 				}
 
+				// TODO(tung): Check for account linking
 				return authflow.NewNodeSimple(&NodeDoCreateIdentity{
 					Identity: info,
 				}), nil
