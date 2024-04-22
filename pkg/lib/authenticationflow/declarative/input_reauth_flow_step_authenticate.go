@@ -13,14 +13,19 @@ import (
 )
 
 type InputSchemaReauthFlowStepAuthenticate struct {
-	JSONPointer jsonpointer.T
-	Options     []AuthenticateOption
+	JSONPointer    jsonpointer.T
+	FlowRootObject config.AuthenticationFlowObject
+	Options        []AuthenticateOption
 }
 
 var _ authflow.InputSchema = &InputSchemaReauthFlowStepAuthenticate{}
 
 func (i *InputSchemaReauthFlowStepAuthenticate) GetJSONPointer() jsonpointer.T {
 	return i.JSONPointer
+}
+
+func (i *InputSchemaReauthFlowStepAuthenticate) GetFlowRootObject() config.AuthenticationFlowObject {
+	return i.FlowRootObject
 }
 
 func (i *InputSchemaReauthFlowStepAuthenticate) SchemaBuilder() validation.SchemaBuilder {

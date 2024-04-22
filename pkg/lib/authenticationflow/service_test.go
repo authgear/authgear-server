@@ -316,6 +316,10 @@ func (*inputServiceContext) GetJSONPointer() jsonpointer.T {
 	return nil
 }
 
+func (i *inputServiceContext) GetFlowRootObject() config.AuthenticationFlowObject {
+	return nil
+}
+
 func (*inputServiceContext) SchemaBuilder() validation.SchemaBuilder {
 	return validation.SchemaBuilder{}
 }

@@ -111,7 +111,7 @@ func (s *Session) ToOutput() *SessionOutput {
 	}
 }
 
-func (s *Session) MakeContext(ctx context.Context, deps *Dependencies, publicFlow PublicFlow) (context.Context, error) {
+func (s *Session) MakeContext(ctx context.Context, deps *Dependencies) (context.Context, error) {
 	ctx = context.WithValue(ctx, contextKeyOAuthSessionID, s.OAuthSessionID)
 
 	ctx = uiparam.WithUIParam(ctx, &uiparam.T{
@@ -137,15 +137,6 @@ func (s *Session) MakeContext(ctx context.Context, deps *Dependencies, publicFlo
 	ctx = context.WithValue(ctx, contextKeyLoginHint, s.LoginHint)
 
 	ctx = context.WithValue(ctx, contextKeyFlowID, s.FlowID)
-
-	flowReference := publicFlow.FlowFlowReference()
-	ctx = context.WithValue(ctx, contextKeyFlowReference, flowReference)
-
-	flowRootObject, err := publicFlow.FlowRootObject(deps)
-	if err != nil {
-		return nil, err
-	}
-	ctx = context.WithValue(ctx, contextKeyFlowRootObject, flowRootObject)
 
 	return ctx, nil
 }

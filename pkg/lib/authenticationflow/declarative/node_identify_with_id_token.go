@@ -38,8 +38,13 @@ func (n *NodeIdentifyWithIDToken) CanReactTo(ctx context.Context, deps *authflow
 		// Special case: if id_token is available, use it automatically.
 		return nil, nil
 	default:
+		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		if err != nil {
+			return nil, err
+		}
 		return &InputSchemaTakeIDToken{
-			JSONPointer: n.JSONPointer,
+			FlowRootObject: flowRootObject,
+			JSONPointer:    n.JSONPointer,
 		}, nil
 	}
 }

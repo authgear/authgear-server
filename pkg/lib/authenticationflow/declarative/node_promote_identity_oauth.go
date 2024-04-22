@@ -33,8 +33,13 @@ func (*NodePromoteIdentityOAuth) Kind() string {
 }
 
 func (n *NodePromoteIdentityOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	if err != nil {
+		return nil, err
+	}
 	return &InputSchemaTakeOAuthAuthorizationResponse{
-		JSONPointer: n.JSONPointer,
+		FlowRootObject: flowRootObject,
+		JSONPointer:    n.JSONPointer,
 	}, nil
 }
 
@@ -61,7 +66,7 @@ func (n *NodePromoteIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.D
 		if err != nil {
 			if apierrors.IsKind(err, api.UserNotFound) {
 				// promote
-				info, err := newIdentityInfo(deps, n.UserID, spec)
+				info, _, err := newIdentityInfo(deps, n.UserID, spec)
 				if err != nil {
 					return nil, err
 				}
@@ -75,7 +80,7 @@ func (n *NodePromoteIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.D
 		}
 
 		// login
-		flowReference := authflow.GetFlowReference(ctx)
+		flowReference := authflow.FindCurrentFlowReference(flows.Root)
 		return nil, &authflow.ErrorSwitchFlow{
 			FlowReference: authflow.FlowReference{
 				Type: authflow.FlowTypeLogin,

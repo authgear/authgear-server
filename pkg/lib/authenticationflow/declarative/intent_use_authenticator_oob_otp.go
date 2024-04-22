@@ -43,11 +43,17 @@ func (n *IntentUseAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *aut
 	_, claimVerified := authflow.FindMilestone[MilestoneDoMarkClaimVerified](flows.Nearest)
 	_, authenticated := authflow.FindMilestone[MilestoneDidAuthenticate](flows.Nearest)
 
+	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	if err != nil {
+		return nil, err
+	}
+
 	switch {
 	case !authenticatorSelected:
 		return &InputSchemaUseAuthenticatorOOBOTP{
-			JSONPointer: n.JSONPointer,
-			Options:     n.Options,
+			FlowRootObject: flowRootObject,
+			JSONPointer:    n.JSONPointer,
+			Options:        n.Options,
 		}, nil
 	case !claimVerified:
 		// Verify the claim

@@ -16,9 +16,10 @@ func init() {
 }
 
 type IntentCreateAuthenticatorOOBOTP struct {
-	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
-	UserID         string                                  `json:"user_id,omitempty"`
-	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
+	JSONPointer            jsonpointer.T                           `json:"json_pointer,omitempty"`
+	UserID                 string                                  `json:"user_id,omitempty"`
+	IsUpdatingExistingUser bool                                    `json:"is_updating_existing_user,omitempty"`
+	Authentication         config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
 }
 
 var _ authflow.Intent = &IntentCreateAuthenticatorOOBOTP{}
@@ -33,9 +34,27 @@ func (*IntentCreateAuthenticatorOOBOTP) Milestone() {}
 func (n *IntentCreateAuthenticatorOOBOTP) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
 	return n.Authentication
 }
+func (i *IntentCreateAuthenticatorOOBOTP) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
+	i.UserID = newUserID
+	i.IsUpdatingExistingUser = true
+
+	// Skip creation was handled by the parent IntentSignupFlowStepCreateAuthenticator
+	// So don't need to do it here
+
+	milestoneVerifyClaim, ok := authflow.FindFirstMilestone[MilestoneVerifyClaim](flow)
+	if ok {
+		return milestoneVerifyClaim.MilestoneVerifyClaimUpdateUserID(deps, flow, newUserID)
+	}
+
+	return nil
+}
 
 func (n *IntentCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	objectForOneOf, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), n.JSONPointer)
+	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	if err != nil {
+		return nil, err
+	}
+	objectForOneOf, err := authflow.FlowObject(flowRootObject, n.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +88,8 @@ func (n *IntentCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *
 		}
 
 		return &InputSchemaTakeOOBOTPTarget{
-			JSONPointer: n.JSONPointer,
+			FlowRootObject: flowRootObject,
+			JSONPointer:    n.JSONPointer,
 		}, nil
 	case shouldVerifyInThisFlow && !claimVerifiedInThisFlow:
 		// Verify the claim
@@ -83,7 +103,11 @@ func (n *IntentCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *
 }
 
 func (n *IntentCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
-	objectForOneOf, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), n.JSONPointer)
+	rootObject, err := findFlowRootObjectInFlow(deps, flows)
+	if err != nil {
+		return nil, err
+	}
+	objectForOneOf, err := authflow.FlowObject(rootObject, n.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -115,6 +139,9 @@ func (n *IntentCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *aut
 			oobOTPTarget, err := getCreateAuthenticatorOOBOTPTargetFromTargetStep(ctx, deps, flows, targetStepName)
 			if err != nil {
 				return nil, err
+			}
+			if oobOTPTarget == "" {
+				panic(fmt.Errorf("unexpected: oob otp target is empty"))
 			}
 			return n.newDidSelectAuthenticatorNode(deps, oobOTPTarget)
 		}
