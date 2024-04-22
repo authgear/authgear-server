@@ -72,6 +72,7 @@ var _ = Schema.Add("AuthenticationFlowSignupFlow", `
 	"required": ["name", "steps"],
 	"properties": {
 		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
+		"account_linking": { "$ref": "#/$defs/AuthenticationFlowAccountLinking" },
 		"steps": {
 			"type": "array",
 			"minItems": 1,
@@ -621,6 +622,55 @@ var _ = Schema.Add("AuthenticationFlowAccountRecoveryIdentification", `
 		"email",
 		"phone"
 	]
+}
+`)
+
+var _ = Schema.Add("AuthenticationFlowAccountLinking", `
+{
+	"type": "object",
+	"required": [],
+	"properties": {
+		"oauth": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/AccountLinkingOAuth" }
+		}
+	}
+}
+`)
+
+var _ = Schema.Add("AccountLinkingOAuth", `
+{
+	"type": "object",
+	"required": ["alias", "oauth_claim", "user_profile", "action"],
+	"properties": {
+		"alias": { "type": "string" },
+		"oauth_claim": { "$ref": "#/$defs/AccountLinkingJSONPointer" },
+		"user_profile": { "$ref": "#/$defs/AccountLinkingJSONPointer" },
+		"action": { "$ref": "#/$defs/AccountLinkingOAuthAction" }
+	}
+}
+`)
+
+var _ = Schema.Add("AccountLinkingOAuthAction", `
+{
+	"type": "string",
+	"enum": [
+		"error",
+		"login_and_link"
+	]
+}
+`)
+
+var _ = Schema.Add("AccountLinkingJSONPointer", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"pointer": {
+			"type": "string",
+			"format": "json-pointer"
+		}
+	}
 }
 `)
 
