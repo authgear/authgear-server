@@ -27,11 +27,11 @@ func (n *NodeDoCreateUser) Kind() string {
 
 func (*NodeDoCreateUser) Milestone()                   {}
 func (n *NodeDoCreateUser) MilestoneDoUseUser() string { return n.UserID }
-func (n *NodeDoCreateUser) MilestoneDoCreateUser() string {
+func (n *NodeDoCreateUser) MilestoneDoCreateUser() (string, bool) {
 	if n.SkipCreation {
-		return ""
+		return "", false
 	}
-	return n.UserID
+	return n.UserID, true
 }
 func (n *NodeDoCreateUser) MilestoneDoCreateUserUseExisting(userID string) {
 	n.UserID = userID
