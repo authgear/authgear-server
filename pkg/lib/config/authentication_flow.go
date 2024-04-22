@@ -647,29 +647,9 @@ var _ = Schema.Add("AccountLinkingOAuth", `
 		"alias": { "type": "string" },
 		"oauth_claim": { "$ref": "#/$defs/AccountLinkingJSONPointer" },
 		"user_profile": { "$ref": "#/$defs/AccountLinkingJSONPointer" },
-		"action": { "$ref": "#/$defs/AccountLinkingOAuthAction" }
-	},
-	"allOf": [
-		{
-			"if": {
-				"required": ["action"],
-				"properties": {
-					"action": {
-						"type": "string",
-						"enum": ["login_and_link"]
-					}
-				}
-			},
-			"then": {
-				"required": ["login_flow"],
-				"properties": {
-					"login_flow": {
-						"type": "string"
-					}
-				}
-			}
-		}
-	]
+		"action": { "$ref": "#/$defs/AccountLinkingOAuthAction" },
+		"login_flow": { "type": "string" }
+	}
 }
 `)
 
@@ -1417,6 +1397,7 @@ type AccountLinkingOAuth struct {
 	Action      AccountLinkingOAuthAction `json:"action,omitempty"`
 
 	// login_flow is only relevant if action is "login_and_link"
+	// If empty, the current flow name should be used
 	LoginFlow string `json:"login_flow,omitempty"`
 }
 
