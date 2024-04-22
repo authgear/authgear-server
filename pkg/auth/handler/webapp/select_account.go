@@ -45,6 +45,7 @@ type SelectAccountUIInfoResolver interface {
 
 type SelectAccountViewModel struct {
 	IdentityDisplayName string
+	UserProfile         UserProfile
 }
 
 type SelectAccountHandler struct {
@@ -73,10 +74,17 @@ func (h *SelectAccountHandler) GetData(r *http.Request, rw http.ResponseWriter, 
 		return nil, err
 	}
 
+	user, err := h.Users.Get(userID, accesscontrol.RoleGreatest)
+	if err != nil {
+		return nil, err
+	}
+
 	displayID := IdentitiesDisplayName(identities)
+	userProfile := GetUserProfile(user)
 
 	selectAccountViewModel := SelectAccountViewModel{
 		IdentityDisplayName: displayID,
+		UserProfile:         userProfile,
 	}
 	viewmodels.Embed(data, selectAccountViewModel)
 

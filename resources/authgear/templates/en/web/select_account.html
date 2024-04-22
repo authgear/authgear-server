@@ -16,9 +16,11 @@
     {{ template "select-account-you-are-using-description" }}
 </p>
 
-<div class="primary-txt text-center flex flex-row justify-center justify-center">
+<div class="primary-txt text-center flex flex-row justify-center">
     <i class="ti ti-user text-4xl leading-10"></i>
-    <span class="ml-2 truncate text-base leading-10">{{ $.IdentityDisplayName }}</span>
+    <span class="ml-2 truncate text-base leading-10">
+      {{ template "select-account-display-name" $.UserProfile }}
+    </span>
 </div>
 
 <div class="twc-container-vertical mt-5">

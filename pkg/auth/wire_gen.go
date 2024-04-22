@@ -1246,6 +1246,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Identities:    serviceService,
+		Users:         userQueries,
 	}
 	return consentHandler
 }
