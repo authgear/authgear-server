@@ -1,0 +1,163 @@
+{
+  "PrimaryLoginLink": {
+    "Title": "{{ template \"app.name\" }}にサインインするためのリンク",
+    "Body": "以下のボタンをクリックして{{ template \"app.name\" }}にサインインしてください。",
+    "Button": "{{ template \"app.name\" }}にサインイン",
+    "Disclaimer": "ログインをリクエストしていない場合は、このメールを無視してください。"
+  },
+  "PrimaryOOBEmail": {
+    "Title": "{{ template \"app.name\" }}にログイン",
+    "Body": "ログインプロセスを完了するには、以下の一回限りのパスワードを使用してください。",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "誰にも教えないでください。ログインをリクエストしていない場合は、このメールを無視してください。"
+  },
+  "SecondaryLoginLink": {
+    "Title": "{{ template \"app.name\" }}にサインインするためのリンク",
+    "Instruction": "以下のボタンをクリックして{{ template \"app.name\" }}にサインインしてください。",
+    "ButtonText": "{{ template \"app.name\" }}にサインイン",
+    "Disclaimer": "ログインをリクエストしていない場合は、このメールを無視してください。"
+  },
+  "SecondaryOOBEmail": {
+    "Title": "{{ template \"app.name\" }}にログイン",
+    "Body": "ログインプロセスを完了するには、以下の一回限りのパスワードを使用してください。",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "誰にも教えないでください。ログインしていない場合は、このメールを無視してください。"
+  },
+  "ForgotPassword": {
+    "Title": "パスワードの再設定",
+    "Body": "{{ template \"app.name\" }}のパスワードの再設定をリクエストしました。以下のボタンをクリックしてパスワードを再設定してください。",
+    "Button": "パスワードの再設定",
+    "Disclaimer": "パスワードの再設定をリクエストしていない場合は、このメールを無視してください。"
+  },
+  "ForgotPasswordOOBEmail": {
+    "Title": "パスワードの再設定",
+    "Body": "{{ template \"app.name\" }}のパスワードを再設定するには、以下の一回限りのパスワードを使用してください。",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "誰にも教えないでください。パスワードの再設定をリクエストしていない場合は、このメールを無視してください。"
+  },
+  "SetupPrimaryLoginLink": {
+    "Title": "{{ template \"app.name\" }}でメールアドレスを確認する",
+    "Body": "以下のリンクにアクセスして、サインアッププロセスを完了してください。",
+    "Button": "メールアドレスを確認する",
+    "Disclaimer": "この設定をリクエストしていない場合は、このメールを無視してください。"
+  },
+  "SetupPrimaryOOBEmail": {
+    "Title": "{{ template \"app.name\" }}にサインアップする",
+    "Body": "サインアッププロセスを完了するには、以下の一回限りのパスワードを使用してください。",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "誰にも教えないでください。サインアップしていない場合は、このメールを無視してください。"
+  },
+  "SetupSecondaryLoginLink": {
+    "Title": "{{ template \"app.name\" }}で2段階認証を設定する",
+    "Body": "以下のボタンをクリックして2段階認証を設定してください。",
+    "Button": "メールアドレスを確認する",
+    "Disclaimer": "この設定をリクエストしていない場合は、このメールを無視してください。"
+  },
+  "SetupSecondaryOOBEmail": {
+    "Title": "{{ template \"app.name\" }}で2段階認証を設定する",
+    "Body": "以下のテキストボックスには、2段階認証を設定するために生成された一回限りのパスワードが含まれています。",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "誰にも教えないでください。この設定をリクエストしていない場合は、このメールを無視してください。"
+  },
+  "VerificationEmail": {
+    "Title": "メールアドレスの確認",
+    "Body": "{{ template \"app.name\" }}で{{ .Email }}を確認するためのメールです。以下のコードを確認ページで使用してください。",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "誰にも教えないでください。サインインやサインアップをしていない場合は、このメールを無視してください。"
+  },
+  "PrimaryLoginLinkTXT": {
+    "Title": "{{ template \"app.name\" }}にログイン",
+    "Body": "以下のリンクをクリックして{{ template \"app.name\" }}にサインインしてください。",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "ログインをリクエストしていない場合は、このメールを無視してください。"
+  },
+  "PrimaryOOBEmailTXT": {
+    "Title": "{{ template \"app.name\" }}にログイン",
+    "Body": "ログインプロセスを完了するには、以下の一回限りのパスワードを使用してください。",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "誰にも教えないでください。ログインをリクエストしていない場合は、このメールを無視してください。"
+  },
+  "PrimaryOOBSMSTXT": {
+    "Title": "{{ template \"app.name\" }}にログインするには、この一回限りのパスワード{{ .Code }}を使用してください。",
+    "Disclaimer": "誰にも教えないでください。"
+  },
+  "SecondaryLoginLinkTXT": {
+    "Title": "{{ template \"app.name\" }}にログイン",
+    "Body": "以下のリンクをクリックして{{ template \"app.name\" }}にサインインしてください。",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "ログインをリクエストしていない場合は、このメールを無視してください。"
+  },
+  "SecondaryOOBEmailTXT": {
+    "Title": "{{ template \"app.name\" }}にログイン",
+    "Body": "ログインプロセスを完了するには、以下の一回限りのパスワードを使用してください。",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "誰にも教えないでください。ログインしていない場合は、このメールを無視してください。"
+  },
+  "SecondaryOOBSMSTXT": {
+    "Title": "{{ .Code }}は{{ template \"app.name\" }}の一回限りのパスワードです。",
+    "Disclaimer": "誰にも教えないでください。"
+  },
+  "ForgotPasswordEmailTXT": {
+    "Title": "パスワードの再設定",
+    "Body": "{{ template \"app.name\" }}のパスワードの再設定をリクエストしました。以下のリンクからパスワードを再設定してください。",
+    "Link": "{{ .Link }}",
+    "Disclaimer": "パスワードの再設定をリクエストしていない場合は、このメールを無視してください。"
+  },
+  "ForgotPasswordSMSTXT": {
+    "Title": "{{ template \"app.name\" }}のパスワードを再設定するには、以下のリンクにアクセスしてください",
+    "Disclaimer": "再設定していない場合は無視してください。",
+    "Link": "{{ .Link }}"
+  },
+  "ForgotPasswordOOBEmailTXT": {
+    "Title": "パスワードの再設定",
+    "Body": "{{ template \"app.name\" }}のパスワードを再設定するには、以下の一回限りのパスワードを使用してください。",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "誰にも教えないでください。パスワードの再設定をリクエストしていない場合は、このメールを無視してください。"
+  },
+  "ForgotPasswordOOBSMSTXT": {
+    "Body": "{{ template \"app.name\" }}のパスワードを以下の一回限りのパスワード{{ .Code }}で再設定してください。",
+    "Disclaimer": "誰にも教えないでください。"
+  },
+  "SetupPrimaryLoginLinkTXT": {
+    "Title": "{{ template \"app.name\" }}でメールアドレスを確認する",
+    "Body": "以下のリンクにアクセスして、{{ template \"app.name\" }}のサインアッププロセスを完了してください。",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "この設定をリクエストしていない場合は、このメールを無視してください。"
+  },
+  "SetupPrimaryOOBEmailTXT": {
+    "Title": "{{ template \"app.name\" }}にサインアップする",
+    "Body": "{{ template \"app.name\" }}のサインアッププロセスを完了するには、以下の一回限りのパスワードを使用してください。",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "誰にも教えないでください。サインアップしていない場合は、このメールを無視してください。"
+  },
+  "SetupPrimaryOOBSMSTXT": {
+    "Title": "{{ template \"app.name\" }}に以下の一回限りのパスワード{{ .Code }}で登録してください。",
+    "Disclaimer": "誰にも教えないでください。"
+  },
+  "SetupSecondaryLoginLinkTXT": {
+    "Title": "{{ template \"app.name\" }}で2段階認証を設定する",
+    "Body": "{{ template \"app.name\" }}で2段階認証を設定するには、以下のリンクをクリックしてください。",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "この設定を行っていない場合は、このメールを無視してください。"
+  },
+  "SetupSecondaryOOBEmailTXT": {
+    "Title": "{{ template \"app.name\" }}で2段階認証を設定する",
+    "Body": "以下のテキストボックスには、{{ template \"app.name\" }}で2段階認証を設定するために生成された一回限りのパスワードが含まれています。",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "誰にも教えないでください。この設定をリクエストしていない場合は、このメールを無視してください。"
+  },
+  "SetupSecondaryOOBSMSTXT": {
+    "Title": "{{ template \"app.name\" }}で2段階認証を設定するには、この一回限りのパスワード{{ .Code }}を使用してください。",
+    "Disclaimer": "誰にも教えないでください。"
+  },
+  "VerificationEmailTXT": {
+    "Title": "メールアドレスの確認",
+    "Body": "{{ template \"app.name\" }}で{{ .Email }}を確認するためのメールです。以下のコードを確認ページで使用してください。",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "誰にも教えないでください。サインインやサインアップをしていない場合は、このメールを無視してください。"
+  },
+  "VerificationSMSTXT": {
+    "Code": "{{ .Code }}は{{ template \"app.name\" }}の確認コードです。",
+    "Disclaimer": "誰にも教えないでください。"
+  }
+}
