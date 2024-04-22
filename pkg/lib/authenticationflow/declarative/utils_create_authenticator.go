@@ -25,6 +25,10 @@ func getCreateAuthenticatorOOBOTPTargetFromTargetStep(
 		})
 	}
 
+	if target.IsSkipped() {
+		return "", nil
+	}
+
 	claims, err := target.GetOOBOTPClaims(ctx, deps, flows.Replace(targetStepFlow))
 	if err != nil {
 		return "", err

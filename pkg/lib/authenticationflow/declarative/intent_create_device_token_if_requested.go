@@ -30,8 +30,13 @@ func (*IntentCreateDeviceTokenIfRequested) MilestoneDoCreateDeviceTokenIfRequest
 
 func (i *IntentCreateDeviceTokenIfRequested) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	if len(flows.Nearest.Nodes) == 0 {
+		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		if err != nil {
+			return nil, err
+		}
 		return &InputSchemaCreateDeviceToken{
-			JSONPointer: i.JSONPointer,
+			JSONPointer:    i.JSONPointer,
+			FlowRootObject: flowRootObject,
 		}, nil
 	}
 	return nil, authflow.ErrEOF

@@ -30,9 +30,23 @@ type IntentSignupFlowStepVerify struct {
 }
 
 var _ authflow.Intent = &IntentSignupFlowStepVerify{}
+var _ authflow.Milestone = &IntentSignupFlowStepVerify{}
+var _ MilestoneSwitchToExistingUser = &IntentSignupFlowStepVerify{}
 
 func (*IntentSignupFlowStepVerify) Kind() string {
 	return "IntentSignupFlowStepVerify"
+}
+
+func (i *IntentSignupFlowStepVerify) Milestone() {}
+func (i *IntentSignupFlowStepVerify) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
+	i.UserID = newUserID
+
+	milestoneVerifyClaim, ok := authflow.FindFirstMilestone[MilestoneVerifyClaim](flow)
+	if ok {
+		return milestoneVerifyClaim.MilestoneVerifyClaimUpdateUserID(deps, flow, newUserID)
+	}
+
+	return nil
 }
 
 func (*IntentSignupFlowStepVerify) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
@@ -44,7 +58,11 @@ func (*IntentSignupFlowStepVerify) CanReactTo(ctx context.Context, deps *authflo
 }
 
 func (i *IntentSignupFlowStepVerify) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, _ authflow.Input) (*authflow.Node, error) {
-	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	rootObject, err := findFlowRootObjectInFlow(deps, flows)
+	if err != nil {
+		return nil, err
+	}
+	current, err := authflow.FlowObject(rootObject, i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}

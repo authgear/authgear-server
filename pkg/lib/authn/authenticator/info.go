@@ -227,3 +227,22 @@ func (i *Info) ToModel() model.Authenticator {
 		Kind:      model.AuthenticatorKind(i.Kind),
 	}
 }
+
+func (i *Info) UpdateUserID(newUserID string) *Info {
+	i.UserID = newUserID
+	switch i.Type {
+	case model.AuthenticatorTypePassword:
+		i.Password.UserID = newUserID
+	case model.AuthenticatorTypePasskey:
+		i.Passkey.UserID = newUserID
+	case model.AuthenticatorTypeTOTP:
+		i.TOTP.UserID = newUserID
+	case model.AuthenticatorTypeOOBEmail:
+		fallthrough
+	case model.AuthenticatorTypeOOBSMS:
+		i.OOBOTP.UserID = newUserID
+	default:
+		panic(fmt.Errorf("identity: identity type %v does not support updating user ID", i.Type))
+	}
+	return i
+}
