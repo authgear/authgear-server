@@ -8,6 +8,10 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/util/phone"
+	"github.com/authgear/authgear-server/pkg/util/slice"
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 func init() {
@@ -15,6 +19,7 @@ func init() {
 }
 
 type IntentAccountLinkingOAuth struct {
+	JSONPointer           jsonpointer.T    `json:"json_pointer,omitempty"`
 	SkipLogin             bool             `json:"skip_login,omitempty"`
 	LoginFlowName         string           `json:"login_flow_name,omitempty"`
 	OAuthIdentitySpec     *identity.Spec   `json:"oauth_identity_spec,omitempty"`
@@ -22,16 +27,33 @@ type IntentAccountLinkingOAuth struct {
 }
 
 var _ authflow.Intent = &IntentAccountLinkingOAuth{}
+var _ authflow.DataOutputer = &IntentAccountLinkingOAuth{}
 
 func (*IntentAccountLinkingOAuth) Kind() string {
 	return "IntentAccountLinkingOAuth"
 }
 
-func (*IntentAccountLinkingOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+func (i *IntentAccountLinkingOAuth) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
+	return NewAccountLinkingIdentifyData(i.getOptions()), nil
+}
+
+func (i *IntentAccountLinkingOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	switch len(flows.Nearest.Nodes) {
-	case 0: // Enter the login flow
+	case 0: // Ask for identity to link
+		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		if err != nil {
+			return nil, err
+		}
+		return &InputSchemaAccountLinkingIdentification{
+			FlowRootObject: flowRootObject,
+			JSONPointer:    i.JSONPointer,
+			Options: slice.Map(i.getOptions(), func(o AccountLinkingIdentificationOptionInternal) AccountLinkingIdentificationOption {
+				return o.AccountLinkingIdentificationOption
+			}),
+		}, nil
+	case 1: // Enter the login flow
 		return nil, nil
-	case 1: // Add NodeDoCreateIdentity
+	case 2: // Add NodeDoCreateIdentity
 		return nil, nil
 	}
 
@@ -39,9 +61,27 @@ func (*IntentAccountLinkingOAuth) CanReactTo(ctx context.Context, deps *authflow
 }
 
 func (i *IntentAccountLinkingOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+	if len(flows.Root.Nodes) == 0 {
+		var inputTakeAccountLinkingIdentificationIndex inputTakeAccountLinkingIdentificationIndex
+		if authflow.AsInput(input, &inputTakeAccountLinkingIdentificationIndex) {
+			idx := inputTakeAccountLinkingIdentificationIndex.GetAccountLinkingIdentificationIndex()
+			selectedOption := i.getOptions()[idx]
+
+			return authflow.NewNodeSimple(&NodeUseAccountLinkingIdentification{
+				Option:   selectedOption.AccountLinkingIdentificationOption,
+				Identity: selectedOption.Identity,
+			}), nil
+		}
+		return nil, authflow.ErrIncompatibleInput
+	}
+
+	milestone, ok := authflow.FindMilestoneInCurrentFlow[MilestoneUseAccountLinkingIdentification](flows.Nearest)
+	if !ok {
+		panic(fmt.Errorf("expected milestone MilestoneUseAccountLinkingIdentification not found"))
+	}
+
 	flowUserID, err := getUserID(flows)
-	// TODO(tung): This should be chosen by input
-	conflictedIdentity := i.ConflictingIdentities[0]
+	conflictedIdentity := milestone.MilestoneUseAccountLinkingIdentification()
 	conflictedUserID := conflictedIdentity.UserID
 	if err != nil {
 		return nil, err
@@ -81,7 +121,7 @@ func (i *IntentAccountLinkingOAuth) ReactTo(ctx context.Context, deps *authflow.
 	}
 
 	switch len(flows.Nearest.Nodes) {
-	case 0:
+	case 1:
 		if i.SkipLogin {
 			return authflow.NewNodeSimple(&NodeSentinel{}), nil
 		}
@@ -97,9 +137,7 @@ func (i *IntentAccountLinkingOAuth) ReactTo(ctx context.Context, deps *authflow.
 			FlowReference: flowReference,
 		}
 		return authflow.NewSubFlow(&loginIntent), nil
-	case 1:
-		// TODO(tung): This should be chosen input
-		conflictedIdentity := i.ConflictingIdentities[0]
+	case 2:
 		info, err := newIdentityInfo(deps, conflictedIdentity.UserID, i.OAuthIdentitySpec)
 		if err != nil {
 			return nil, err
@@ -112,7 +150,7 @@ func (i *IntentAccountLinkingOAuth) ReactTo(ctx context.Context, deps *authflow.
 	return nil, authflow.ErrIncompatibleInput
 }
 
-func (n *IntentAccountLinkingOAuth) createSyntheticInputOAuthConflict(oauthIden *identity.Spec, conflictedInfo *identity.Info) *SyntheticInputOAuthConflict {
+func (i *IntentAccountLinkingOAuth) createSyntheticInputOAuthConflict(oauthIden *identity.Spec, conflictedInfo *identity.Info) *SyntheticInputOAuthConflict {
 	input := &SyntheticInputOAuthConflict{}
 
 	switch conflictedInfo.Type {
@@ -127,10 +165,52 @@ func (n *IntentAccountLinkingOAuth) createSyntheticInputOAuthConflict(oauthIden 
 			input.Identification = config.AuthenticationFlowIdentificationUsername
 		}
 	case model.IdentityTypeOAuth:
+		// FIXME(tung): It seems we don't know the alias of an existing oauth identity
 		input.Identification = config.AuthenticationFlowIdentificationOAuth
 	default:
 		// This is a panic because the node should not provide option that we don't know how to handle to the user
 		panic(fmt.Errorf("unable to create synthetic input from identity type %v", conflictedInfo.Type))
 	}
 	return input
+}
+
+func (i *IntentAccountLinkingOAuth) getOptions() []AccountLinkingIdentificationOptionInternal {
+	return slice.FlatMap(i.ConflictingIdentities, func(identity *identity.Info) []AccountLinkingIdentificationOptionInternal {
+		var identifcation config.AuthenticationFlowIdentification
+		var maskedDisplayName string
+		var providerType config.OAuthSSOProviderType
+		var providerAlias string
+
+		switch identity.Type {
+		case model.IdentityTypeLoginID:
+			switch identity.LoginID.LoginIDType {
+			case model.LoginIDKeyTypeEmail:
+				identifcation = config.AuthenticationFlowIdentificationEmail
+				maskedDisplayName = mail.MaskAddress(identity.LoginID.LoginID)
+			case model.LoginIDKeyTypePhone:
+				identifcation = config.AuthenticationFlowIdentificationPhone
+				maskedDisplayName = phone.Mask(identity.LoginID.LoginID)
+			case model.LoginIDKeyTypeUsername:
+				identifcation = config.AuthenticationFlowIdentificationUsername
+				maskedDisplayName = identity.LoginID.LoginID
+			}
+		case model.IdentityTypeOAuth:
+			identifcation = config.AuthenticationFlowIdentificationOAuth
+			providerType = config.OAuthSSOProviderType(identity.OAuth.ProviderID.Type)
+			providerAlias = identity.OAuth.ProviderAlias
+		default:
+			// Other types are not supported in account linking, exclude them in options
+			return []AccountLinkingIdentificationOptionInternal{}
+		}
+
+		return []AccountLinkingIdentificationOptionInternal{{
+			AccountLinkingIdentificationOption: AccountLinkingIdentificationOption{
+				Identifcation:     identifcation,
+				MaskedDisplayName: maskedDisplayName,
+				ProviderType:      providerType,
+				Alias:             providerAlias,
+			},
+			Identity: identity,
+		}}
+	})
 }

@@ -26,6 +26,10 @@ type inputTakeAccountRecoveryDestinationOptionIndex interface {
 	GetAccountRecoveryDestinationOptionIndex() int
 }
 
+type inputTakeAccountLinkingIdentificationIndex interface {
+	GetAccountLinkingIdentificationIndex() int
+}
+
 type inputTakeAuthenticationMethod interface {
 	GetAuthenticationMethod() config.AuthenticationFlowAuthentication
 }
