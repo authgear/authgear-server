@@ -16,9 +16,9 @@ generate-material-icons: venv
 generate-twemoji-icons: venv
 	python ./subset_fonts/subset_twemoji_icons.py
 
-# `make generate-translations` expects the environment variable ANTHROPIC_API_KEY being set.
+# `make generate-translations` expects the environment variable ANTHROPIC_API_KEY and CLDR_LOCALNAMES_PATH to be set.
 # You can set it at the CLI with
-#   ANTHROPIC_API_KEY=foobar make generate-translations
+# ANTHROPIC_API_KEY=your_key CLDR_LOCALNAMES_PATH=your_path make generate-translations
 # Or create a .env file next to the Makefile. The .env file will be loaded dotenv in the script.
 .PHONY: generate-translations
 generate-translations: venv

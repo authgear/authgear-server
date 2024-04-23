@@ -2,6 +2,7 @@ import collections
 import concurrent.futures
 import os
 import re
+from sys import argv
 import anthropic
 import json
 import json_repair
@@ -14,9 +15,9 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 load_dotenv()
 
 LOCALE_DICT = {
-  # "zh-HK": {"name": "Chinese (Hong Kong)"},
-  # "zh-TW": {"name": "Chinese (Taiwan)"},
-  "zh-CN": {"name": "Chinese (China)", "base_language": "zh-HK"},
+  "zh-HK": {"name": "Chinese (Hong Kong)", "cldr": "zh-Hant-HK"},
+  "zh-TW": {"name": "Chinese (Taiwan)", "cldr": "zh-Hant-TW"},
+  "zh-CN": {"name": "Chinese (China)", "base_language": "zh-HK", "cldr": "zh-Hans"},
   "ko": {"name": "Korean"},
   "ja": {"name": "Japanese"},
   "vi": {"name": "Vietnamese"},
@@ -27,12 +28,13 @@ LOCALE_DICT = {
 
   # "en-GB": {"name": "English (United Kingdom)", "base_language": "en"},
   # "en-US": {"name": "English (United States)", "base_language": "en"},
+  "en": {"name": "English"},
   "fr": {"name": "French"},
-  "es-ES": {"name": "Spanish (Spain)"},
+  "es-ES": {"name": "Spanish (Spain)", "cldr": "es"},
   "es-419": {"name": "Spanish (Latin America)"},
   "it": {"name": "Italian"},
   "pt-PT": {"name": "Portuguese (Portugal)"},
-  "pt-BR": {"name": "Portuguese (Brazil)"},
+  "pt-BR": {"name": "Portuguese (Brazil)", "cldr": "pt"},
   "de": {"name": "German"},
   "pl": {"name": "Polish"},
   "nl": {"name": "Dutch"},
@@ -109,7 +111,7 @@ def ensure_path_exists(path):
     with open(path, 'w'):
         pass
 
-def update_translation(locale: str, default_translation_file: str, locale_translation_file: str, chunk_size):
+def update_translation(locale: str, default_translation_file: str, locale_translation_file: str, chunk_size, cldr_localnames_path):
   logging.info(f'{locale} | Updating {locale_translation_file} with latest keys.')
 
   with open(default_translation_file, 'r') as file:
@@ -128,6 +130,19 @@ def update_translation(locale: str, default_translation_file: str, locale_transl
 
   logging.info(f'{locale} | Found {len(missing_keys)} missing keys in {locale_translation_file}.')
 
+  def apply_cldr_territories(locale, translation):
+    cldr = LOCALE_DICT[locale].get('cldr', locale)
+    with open(f"{cldr_localnames_path}/main/{cldr}/territories.json", 'r') as file:
+        data = json.load(file)
+
+    alpha2_to_localized_name = data['main'][cldr]['localeDisplayNames']['territories']
+
+    for maybe_alpha2, value in alpha2_to_localized_name.items():
+        if re.match(r'^[A-Z]{2}$', maybe_alpha2):
+            translation[f'territory-{maybe_alpha2}'] = value
+
+    return translation
+
   def fix_translation_json(translation):
     for k, v in translation.items():
       if isinstance(v, str):
@@ -137,6 +152,7 @@ def update_translation(locale: str, default_translation_file: str, locale_transl
     return translation
 
   def save_translation_file(default_translation, updated_translation, file):
+    translation = apply_cldr_territories(locale, updated_translation)
     translation = fix_translation_json(updated_translation)
     translation = collections.OrderedDict((k, translation[k]) for k in default_translation.keys() if k in translation)
     with open(file, 'w') as file:
@@ -159,7 +175,7 @@ def update_translation(locale: str, default_translation_file: str, locale_transl
   logging.info(f'{locale} | Updated {locale_translation_file} with latest keys.')
 
 
-def make_update_locale_fn(chunk_size):
+def make_update_locale_fn(cldr_localnames_path, chunk_size):
   def update_locale(locale):
     try:
       locale_info = LOCALE_DICT[locale]
@@ -172,7 +188,8 @@ def make_update_locale_fn(chunk_size):
         locale=locale,
         default_translation_file=f'../../resources/authgear/templates/{default_locale}/translation.json',
         locale_translation_file=f'../../resources/authgear/templates/{locale}/translation.json',
-        chunk_size=chunk_size
+        chunk_size=chunk_size,
+        cldr_localnames_path=cldr_localnames_path
       )
 
       # Email / SMS template translation
@@ -180,7 +197,8 @@ def make_update_locale_fn(chunk_size):
         locale=locale,
         default_translation_file=f'../../resources/authgear/templates/{default_locale}/messages/translation.json',
         locale_translation_file=f'../../resources/authgear/templates/{locale}/messages/translation.json',
-        chunk_size=chunk_size
+        chunk_size=chunk_size,
+        cldr_localnames_path=cldr_localnames_path
       )
 
       logging.info(f'{locale} | Finished translation for {locale} ({locale_info["name"]})')
@@ -194,5 +212,7 @@ if __name__ == '__main__':
   chunk_size = 10
   locales = [locale for locale in LOCALE_DICT.keys()]
 
+  cldr_localnames_path = os.environ.get('CLDR_LOCALNAMES_PATH', 'cldr-localnames-modern')
+
   with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-    executor.map(make_update_locale_fn(chunk_size), locales)
+    executor.map(make_update_locale_fn(cldr_localnames_path, chunk_size), locales)
