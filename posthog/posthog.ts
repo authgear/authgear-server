@@ -92,7 +92,8 @@ async function capture(
   }
 }
 
-export default async function (e: HookEvent): Promise<void> {
+// e is of type any because the type definition does not cover project events.
+export default async function (e: any): Promise<void> {
   switch (e.type) {
     case "user.created": {
       const user_id = e.context.user_id;
