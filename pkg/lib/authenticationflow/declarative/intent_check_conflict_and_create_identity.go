@@ -71,7 +71,7 @@ func (i *IntentCheckConflictAndCreateIdenity) ReactTo(ctx context.Context, deps 
 			default:
 				panic(fmt.Errorf("unknown action %v", cfg.GetAction()))
 			}
-			return authflow.NewSubFlow(&IntentAccountLinkingOAuth{
+			return authflow.NewSubFlow(&IntentAccountLinking{
 				JSONPointer:           i.JSONPointer,
 				ConflictingIdentities: conflicts,
 				OAuthIdentitySpec:     spec,
