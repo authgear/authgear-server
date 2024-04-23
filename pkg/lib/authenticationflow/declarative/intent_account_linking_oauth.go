@@ -47,9 +47,7 @@ func (i *IntentAccountLinkingOAuth) CanReactTo(ctx context.Context, deps *authfl
 		return &InputSchemaAccountLinkingIdentification{
 			FlowRootObject: flowRootObject,
 			JSONPointer:    i.JSONPointer,
-			Options: slice.Map(i.getOptions(), func(o AccountLinkingIdentificationOptionInternal) AccountLinkingIdentificationOption {
-				return o.AccountLinkingIdentificationOption
-			}),
+			Options:        i.getOptions(),
 		}, nil
 	case 1: // Enter the login flow
 		return nil, nil
@@ -62,14 +60,18 @@ func (i *IntentAccountLinkingOAuth) CanReactTo(ctx context.Context, deps *authfl
 
 func (i *IntentAccountLinkingOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	if len(flows.Root.Nodes) == 0 {
-		var inputTakeAccountLinkingIdentificationIndex inputTakeAccountLinkingIdentificationIndex
-		if authflow.AsInput(input, &inputTakeAccountLinkingIdentificationIndex) {
-			idx := inputTakeAccountLinkingIdentificationIndex.GetAccountLinkingIdentificationIndex()
+		var inputTakeAccountLinkingIdentification inputTakeAccountLinkingIdentification
+		if authflow.AsInput(input, &inputTakeAccountLinkingIdentification) {
+			idx := inputTakeAccountLinkingIdentification.GetAccountLinkingIdentificationIndex()
+			redirectURI := inputTakeAccountLinkingIdentification.GetAccountLinkingOAuthRedirectURI()
+			responseMode := inputTakeAccountLinkingIdentification.GetAccountLinkingOAuthResponseMode()
 			selectedOption := i.getOptions()[idx]
 
 			return authflow.NewNodeSimple(&NodeUseAccountLinkingIdentification{
-				Option:   selectedOption.AccountLinkingIdentificationOption,
-				Identity: selectedOption.Identity,
+				Option:       selectedOption.AccountLinkingIdentificationOption,
+				Identity:     selectedOption.Identity,
+				RedirectURI:  redirectURI,
+				ResponseMode: responseMode,
 			}), nil
 		}
 		return nil, authflow.ErrIncompatibleInput
@@ -116,7 +118,7 @@ func (i *IntentAccountLinkingOAuth) ReactTo(ctx context.Context, deps *authflow.
 		return nil, &authflow.ErrorRewriteFlow{
 			Intent:         flows.Root.Intent,
 			Nodes:          flows.Root.Nodes,
-			SyntheticInput: i.createSyntheticInputOAuthConflict(i.OAuthIdentitySpec, conflictedIdentity),
+			SyntheticInput: i.createSyntheticInputOAuthConflict(milestone, i.OAuthIdentitySpec, conflictedIdentity),
 		}
 	}
 
@@ -150,7 +152,10 @@ func (i *IntentAccountLinkingOAuth) ReactTo(ctx context.Context, deps *authflow.
 	return nil, authflow.ErrIncompatibleInput
 }
 
-func (i *IntentAccountLinkingOAuth) createSyntheticInputOAuthConflict(oauthIden *identity.Spec, conflictedInfo *identity.Info) *SyntheticInputOAuthConflict {
+func (i *IntentAccountLinkingOAuth) createSyntheticInputOAuthConflict(
+	milestone MilestoneUseAccountLinkingIdentification,
+	oauthIden *identity.Spec,
+	conflictedInfo *identity.Info) *SyntheticInputOAuthConflict {
 	input := &SyntheticInputOAuthConflict{}
 
 	switch conflictedInfo.Type {
@@ -165,8 +170,10 @@ func (i *IntentAccountLinkingOAuth) createSyntheticInputOAuthConflict(oauthIden 
 			input.Identification = config.AuthenticationFlowIdentificationUsername
 		}
 	case model.IdentityTypeOAuth:
-		// FIXME(tung): It seems we don't know the alias of an existing oauth identity
 		input.Identification = config.AuthenticationFlowIdentificationOAuth
+		input.Alias = conflictedInfo.OAuth.ProviderAlias
+		input.RedirectURI = milestone.MilestoneUseAccountLinkingIdentificationRedirectURI()
+		input.ResponseMode = milestone.MilestoneUseAccountLinkingIdentificationResponseMode()
 	default:
 		// This is a panic because the node should not provide option that we don't know how to handle to the user
 		panic(fmt.Errorf("unable to create synthetic input from identity type %v", conflictedInfo.Type))

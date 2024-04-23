@@ -26,8 +26,10 @@ type inputTakeAccountRecoveryDestinationOptionIndex interface {
 	GetAccountRecoveryDestinationOptionIndex() int
 }
 
-type inputTakeAccountLinkingIdentificationIndex interface {
+type inputTakeAccountLinkingIdentification interface {
 	GetAccountLinkingIdentificationIndex() int
+	GetAccountLinkingOAuthRedirectURI() string
+	GetAccountLinkingOAuthResponseMode() sso.ResponseMode
 }
 
 type inputTakeAuthenticationMethod interface {
