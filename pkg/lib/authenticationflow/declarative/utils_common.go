@@ -583,14 +583,13 @@ func getOTPForm(purpose otp.Purpose, claimName model.ClaimName, cfg *config.Auth
 }
 
 func newIdentityInfo(deps *authflow.Dependencies, newUserID string, spec *identity.Spec) (newIden *identity.Info, err error) {
-	// TODO(tung): Relax the checking in this function to only check for identical idenity
 	// FIXME(authflow): allow bypassing email blocklist for Admin API.
 	info, err := deps.Identities.New(newUserID, spec, identity.NewIdentityOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	duplicate, err := deps.Identities.CheckDuplicated(info)
+	duplicate, err := deps.Identities.CheckDuplicatedByUniqueKey(info)
 	if err != nil && !errors.Is(err, identity.ErrIdentityAlreadyExists) {
 		return nil, err
 	}
