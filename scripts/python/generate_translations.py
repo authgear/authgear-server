@@ -14,29 +14,29 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 load_dotenv()
 
 LOCALE_DICT = {
-  "zh-HK": "Chinese (Hong Kong)",
-  "zh-TW": "Chinese (Taiwan)",
-  "zh-CN": "Chinese (China)",
-  "ko": "Korean",
-  "ja": "Japanese",
-  "vi": "Vietnamese",
-  "th": "Thai",
-  "ms": "Malay",
-  "fil": "Filipino (Tagalog)",
-  "id": "Indonesian",
+  # "zh-HK": {"name": "Chinese (Hong Kong)"},
+  # "zh-TW": {"name": "Chinese (Taiwan)"},
+  "zh-CN": {"name": "Chinese (China)", "base_language": "zh-HK"},
+  "ko": {"name": "Korean"},
+  "ja": {"name": "Japanese"},
+  "vi": {"name": "Vietnamese"},
+  "th": {"name": "Thai"},
+  "ms": {"name": "Malay"},
+  "fil": {"name": "Filipino (Tagalog)"},
+  "id": {"name": "Indonesian"},
 
-  # "en-GB": "English (UK)",
-  # "en-US": "English (US)",
-  "fr": "French",
-  "es-ES": "Spanish (Spain)",
-  "es": "Spanish (Latin America)",
-  "it": "Italian",
-  "pt-PT": "Portuguese (Portugal)",
-  "pt-BR": "Portuguese (Brazil)",
-  "de": "German",
-  "pl": "Polish",
-  "nl": "Dutch",
-  "el": "Greek"
+  # "en-GB": {"name": "English (United Kingdom)", "base_language": "en"},
+  # "en-US": {"name": "English (United States)", "base_language": "en"},
+  "fr": {"name": "French"},
+  "es-ES": {"name": "Spanish (Spain)"},
+  "es-419": {"name": "Spanish (Latin America)"},
+  "it": {"name": "Italian"},
+  "pt-PT": {"name": "Portuguese (Portugal)"},
+  "pt-BR": {"name": "Portuguese (Brazil)"},
+  "de": {"name": "German"},
+  "pl": {"name": "Polish"},
+  "nl": {"name": "Dutch"},
+  "el": {"name": "Greek"}
 }
 
 def find_missing_keys(default_translation, current_translation):
@@ -162,12 +162,15 @@ def update_translation(locale: str, default_translation_file: str, locale_transl
 def make_update_locale_fn(chunk_size):
   def update_locale(locale):
     try:
-      logging.info(f'{locale} | Starting translation for {locale} ({LOCALE_DICT[locale]})')
+      locale_info = LOCALE_DICT[locale]
+      logging.info(f'{locale} | Starting translation for {locale} ({locale_info["name"]})')
+
+      default_locale = locale_info.get('base_language', 'en')
 
       # HTML template translation
       update_translation(
         locale=locale,
-        default_translation_file=f'../../resources/authgear/templates/en/translation.json',
+        default_translation_file=f'../../resources/authgear/templates/{default_locale}/translation.json',
         locale_translation_file=f'../../resources/authgear/templates/{locale}/translation.json',
         chunk_size=chunk_size
       )
@@ -175,12 +178,12 @@ def make_update_locale_fn(chunk_size):
       # Email / SMS template translation
       update_translation(
         locale=locale,
-        default_translation_file=f'../../resources/authgear/templates/en/messages/translation.json',
+        default_translation_file=f'../../resources/authgear/templates/{default_locale}/messages/translation.json',
         locale_translation_file=f'../../resources/authgear/templates/{locale}/messages/translation.json',
         chunk_size=chunk_size
       )
 
-      logging.info(f'{locale} | Finished translation for {locale} ({LOCALE_DICT[locale]})')
+      logging.info(f'{locale} | Finished translation for {locale} ({locale_info["name"]})')
     except Exception as e:
       logging.error(f'{locale} | Failed to update translations for {locale}: {e}')
 

@@ -24,10 +24,14 @@ func Do(cldrLocalenamesModernDir string) error {
 	delete(available, "zh-CN")
 	delete(available, "zh-HK")
 	delete(available, "zh-TW")
+	delete(available, "pt-BR")
+	delete(available, "es-ES")
 	out := map[string]interface{}{
 		"language-zh-CN": "简体中文",
 		"language-zh-HK": "繁體中文(香港)",
 		"language-zh-TW": "繁體中文(台灣)",
+		"language-pt-BR": "Português (Brasil)",
+		"language-es-ES": "Español (España)",
 	}
 
 	mainDir := filepath.Join(cldrLocalenamesModernDir, "main")
@@ -38,7 +42,9 @@ func Do(cldrLocalenamesModernDir string) error {
 	for _, info := range infos {
 		lang := info.Name()
 		jsonFile, err := os.Open(filepath.Join(mainDir, lang, "languages.json"))
-		if err != nil {
+		if os.IsNotExist(err) {
+			continue
+		} else if err != nil {
 			return err
 		}
 		jsonBytes, err := ioutil.ReadAll(jsonFile)
