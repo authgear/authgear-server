@@ -46,7 +46,7 @@ func (i *InputSchemaAccountLinkingIdentification) SchemaBuilder() validation.Sch
 				Enum(sso.ResponseModeFormPost, sso.ResponseModeQuery))
 		}
 		b.Required(required...)
-
+		oneOf = append(oneOf, b)
 	}
 
 	b := validation.SchemaBuilder{}.
