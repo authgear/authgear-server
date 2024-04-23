@@ -59,7 +59,7 @@ func (i *IntentAccountLinking) CanReactTo(ctx context.Context, deps *authflow.De
 }
 
 func (i *IntentAccountLinking) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
-	if len(flows.Root.Nodes) == 0 {
+	if len(flows.Nearest.Nodes) == 0 {
 		var inputTakeAccountLinkingIdentification inputTakeAccountLinkingIdentification
 		if authflow.AsInput(input, &inputTakeAccountLinkingIdentification) {
 			idx := inputTakeAccountLinkingIdentification.GetAccountLinkingIdentificationIndex()
