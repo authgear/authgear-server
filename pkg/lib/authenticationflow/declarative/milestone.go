@@ -129,7 +129,7 @@ type MilestoneDoCreateSession interface {
 
 type MilestoneDoCreateUser interface {
 	authflow.Milestone
-	MilestoneDoCreateUser() string
+	MilestoneDoCreateUser() (string, bool)
 	MilestoneDoCreateUserUseExisting(userID string)
 }
 
