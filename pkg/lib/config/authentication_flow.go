@@ -671,7 +671,12 @@ var _ = Schema.Add("AuthenticationFlowAccountLinkingJSONPointer", `
 	"properties": {
 		"pointer": {
 			"type": "string",
-			"format": "json-pointer"
+			"format": "json-pointer",
+			"enum": [
+				"/email",
+				"/phone_number",
+				"/preferred_username"
+			]
 		}
 	}
 }
