@@ -38,6 +38,40 @@ function findNewClients(oldClients: Client[], newClients: Client[]): Client[] {
   return output;
 }
 
+async function identify(
+  user_id: string,
+  email: string | undefined,
+): Promise<void> {
+  // https://posthog.com/docs/api/post-only-endpoints
+  const url = new URL("/capture", POSTHOG_ENDPOINT);
+
+  const $set: any = {};
+  if (email != null) {
+    $set.email = email;
+  }
+
+  let body: any = {
+    api_key: POSTHOG_API_KEY,
+    // https://posthog.com/docs/api/post-only-endpoints#identify
+    event: "$identify",
+    distinct_id: user_id,
+    properties: {
+      $set,
+    },
+  };
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  const text = await resp.text();
+  if (resp.status !== 200) {
+    throw new Error(text);
+  }
+}
+
 async function groupIdentify(project_id: string): Promise<void> {
   // https://posthog.com/docs/api/post-only-endpoints
   const url = new URL("/capture", POSTHOG_ENDPOINT);
@@ -97,6 +131,10 @@ export default async function (e: any): Promise<void> {
   switch (e.type) {
     case "user.created": {
       const user_id = e.context.user_id;
+      const email = e.payload.user?.standard_attributes?.email;
+      // We must call identify here so that even tracking is blocked in the browser,
+      // we can still identify the user.
+      await identify(user_id, email);
       await capture(user_id, "signedUp");
       break;
     }
