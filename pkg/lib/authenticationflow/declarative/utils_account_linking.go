@@ -42,13 +42,13 @@ func resolveAccountLinkingConfigOAuth(
 	ctx context.Context,
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
-	request *CreateIdentityRequestOAuth) (*config.AccountLinkingOAuth, error) {
+	request *CreateIdentityRequestOAuth) (*config.AuthenticationFlowAccountLinkOAuthItem, error) {
 	cfg, err := resolveAccountLinkingConfig(ctx, deps, flows)
 	if err != nil {
 		return nil, err
 	}
 
-	var match *config.AccountLinkingOAuth
+	var match *config.AuthenticationFlowAccountLinkOAuthItem
 
 	for _, oauthConfig := range cfg.OAuth {
 		oauthConfig := oauthConfig
@@ -60,10 +60,10 @@ func resolveAccountLinkingConfigOAuth(
 
 	if match == nil {
 		// By default, always error on email conflict
-		match = &config.AccountLinkingOAuth{
-			OAuthClaim:  config.AccountLinkingJSONPointer{Pointer: jsonpointer.MustParse("/email")},
-			UserProfile: config.AccountLinkingJSONPointer{Pointer: jsonpointer.MustParse("/email")},
-			Action:      config.AccountLinkingActionError,
+		match = &config.AuthenticationFlowAccountLinkOAuthItem{
+			OAuthClaim:  &config.AuthenticationFlowAccountLinkingJSONPointer{Pointer: jsonpointer.MustParse("/email")},
+			UserProfile: &config.AuthenticationFlowAccountLinkingJSONPointer{Pointer: jsonpointer.MustParse("/email")},
+			Action:      config.AuthenticationFlowAccountLinkingActionError,
 		}
 	}
 
