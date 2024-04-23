@@ -648,13 +648,13 @@ var _ = Schema.Add("AccountLinkingOAuth", `
 		"alias": { "type": "string" },
 		"oauth_claim": { "$ref": "#/$defs/AccountLinkingJSONPointer" },
 		"user_profile": { "$ref": "#/$defs/AccountLinkingJSONPointer" },
-		"action": { "$ref": "#/$defs/AccountLinkingOAuthAction" },
+		"action": { "$ref": "#/$defs/AccountLinkingAction" },
 		"login_flow": { "type": "string" }
 	}
 }
 `)
 
-var _ = Schema.Add("AccountLinkingOAuthAction", `
+var _ = Schema.Add("AccountLinkingAction", `
 {
 	"type": "string",
 	"enum": [
@@ -1403,22 +1403,36 @@ func (a *AuthenticationFlowAccountLinking) Merge(other *AuthenticationFlowAccoun
 	return &newConfig
 }
 
+type AccountLinkingConfigObject interface {
+	GetAction() AccountLinkingAction
+	GetLoginFlow() string
+}
+
 type AccountLinkingOAuth struct {
 	Alias       string                    `json:"alias,omitempty"`
 	OAuthClaim  AccountLinkingJSONPointer `json:"oauth_claim,omitempty"`
 	UserProfile AccountLinkingJSONPointer `json:"user_profile,omitempty"`
-	Action      AccountLinkingOAuthAction `json:"action,omitempty"`
+	Action      AccountLinkingAction      `json:"action,omitempty"`
 
 	// login_flow is only relevant if action is "login_and_link"
 	// If empty, the current flow name should be used
 	LoginFlow string `json:"login_flow,omitempty"`
 }
 
-type AccountLinkingOAuthAction string
+var _ AccountLinkingConfigObject = &AccountLinkingOAuth{}
+
+func (c *AccountLinkingOAuth) GetAction() AccountLinkingAction {
+	return c.Action
+}
+func (c *AccountLinkingOAuth) GetLoginFlow() string {
+	return c.LoginFlow
+}
+
+type AccountLinkingAction string
 
 const (
-	AccountLinkingOAuthActionError        AccountLinkingOAuthAction = "error"
-	AccountLinkingOAuthActionLoginAndLink AccountLinkingOAuthAction = "login_andLink"
+	AccountLinkingActionError        AccountLinkingAction = "error"
+	AccountLinkingActionLoginAndLink AccountLinkingAction = "login_and_link"
 )
 
 type AccountLinkingJSONPointer struct {

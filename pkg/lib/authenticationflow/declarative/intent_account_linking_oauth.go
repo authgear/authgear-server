@@ -15,6 +15,8 @@ func init() {
 }
 
 type IntentAccountLinkingOAuth struct {
+	SkipLogin             bool             `json:"skip_login,omitempty"`
+	LoginFlowName         string           `json:"login_flow_name,omitempty"`
 	OAuthIdentitySpec     *identity.Spec   `json:"oauth_identity_spec,omitempty"`
 	ConflictingIdentities []*identity.Info `json:"conflicting_identities,omitempty"`
 }
@@ -80,11 +82,15 @@ func (i *IntentAccountLinkingOAuth) ReactTo(ctx context.Context, deps *authflow.
 
 	switch len(flows.Nearest.Nodes) {
 	case 0:
-		// TODO(tung): Check the config to decide what to do
+		if i.SkipLogin {
+			return authflow.NewNodeSimple(&NodeSentinel{}), nil
+		}
+		if i.LoginFlowName == "" {
+			panic(fmt.Errorf("login_flow_name must be specified"))
+		}
 		flowReference := authflow.FlowReference{
 			Type: authflow.FlowTypeLogin,
-			// FIXME(tung): This should be read from config
-			Name: "default",
+			Name: i.LoginFlowName,
 		}
 		loginIntent := IntentLoginFlow{
 			TargetUserID:  conflictedUserID,

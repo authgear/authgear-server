@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func init() {
@@ -35,7 +37,7 @@ func (*IntentCheckConflictAndCreateIdenity) CanReactTo(ctx context.Context, deps
 func (i *IntentCheckConflictAndCreateIdenity) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	switch len(flows.Nearest.Nodes) {
 	case 0: // next node is NodeDoCreateIdentity, or account linking intent
-		conflicts, err := i.checkConflictByAccountLinkings(ctx, deps, flows)
+		cfg, conflicts, err := i.checkConflictByAccountLinkings(ctx, deps, flows)
 		if err != nil {
 			return nil, err
 		}
@@ -49,9 +51,29 @@ func (i *IntentCheckConflictAndCreateIdenity) ReactTo(ctx context.Context, deps 
 				Identity: info,
 			}), nil
 		} else {
+			// Currently skipLogin is always false
+			// We may support always_link_without_login later
+			var skipLogin bool = false
+			var loginFlow string = ""
+			switch cfg.GetAction() {
+			case config.AccountLinkingActionError:
+				spec := spec
+				otherSpec := conflicts[0].ToSpec()
+				return nil, identityFillDetails(api.ErrDuplicatedIdentity, spec, &otherSpec)
+			case config.AccountLinkingActionLoginAndLink:
+				loginFlow = cfg.GetLoginFlow()
+				if loginFlow == "" {
+					// Use the current flow name if it is not specified
+					loginFlow = authflow.FindCurrentFlowReference(flows.Root).Name
+				}
+			default:
+				panic(fmt.Errorf("unknown action %v", cfg.GetAction()))
+			}
 			return authflow.NewSubFlow(&IntentAccountLinkingOAuth{
 				ConflictingIdentities: conflicts,
 				OAuthIdentitySpec:     spec,
+				SkipLogin:             skipLogin,
+				LoginFlowName:         loginFlow,
 			}), nil
 		}
 	}
@@ -61,13 +83,13 @@ func (i *IntentCheckConflictAndCreateIdenity) ReactTo(ctx context.Context, deps 
 func (i *IntentCheckConflictAndCreateIdenity) checkConflictByAccountLinkings(
 	ctx context.Context,
 	deps *authflow.Dependencies,
-	flows authflow.Flows) (conflicts []*identity.Info, err error) {
+	flows authflow.Flows) (config config.AccountLinkingConfigObject, conflicts []*identity.Info, err error) {
 	switch i.Request.Type {
 	case model.IdentityTypeOAuth:
 		return linkByOAuthIncomingOAuthSpec(ctx, deps, flows, i.Request.OAuth)
 	default:
 		// Linking of other types are not supported at the moment
-		return []*identity.Info{}, nil
+		return nil, []*identity.Info{}, nil
 	}
 }
 

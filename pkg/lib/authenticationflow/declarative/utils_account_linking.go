@@ -38,7 +38,16 @@ func resolveAccountLinkingConfig(ctx context.Context, deps *authflow.Dependencie
 	return config.Merge(deps.Config.AuthenticationFlow.DefaultAccountLinking), nil
 }
 
-func resolveAccountLinkingConfigOAuth(cfg *config.AuthenticationFlowAccountLinking, request *CreateIdentityRequestOAuth) *config.AccountLinkingOAuth {
+func resolveAccountLinkingConfigOAuth(
+	ctx context.Context,
+	deps *authflow.Dependencies,
+	flows authflow.Flows,
+	request *CreateIdentityRequestOAuth) (*config.AccountLinkingOAuth, error) {
+	cfg, err := resolveAccountLinkingConfig(ctx, deps, flows)
+	if err != nil {
+		return nil, err
+	}
+
 	var match *config.AccountLinkingOAuth
 
 	for _, oauthConfig := range cfg.OAuth {
@@ -54,23 +63,25 @@ func resolveAccountLinkingConfigOAuth(cfg *config.AuthenticationFlowAccountLinki
 		match = &config.AccountLinkingOAuth{
 			OAuthClaim:  config.AccountLinkingJSONPointer{Pointer: jsonpointer.MustParse("/email")},
 			UserProfile: config.AccountLinkingJSONPointer{Pointer: jsonpointer.MustParse("/email")},
-			Action:      config.AccountLinkingOAuthActionError,
+			Action:      config.AccountLinkingActionError,
 		}
 	}
 
-	return match
+	return match, nil
 }
 
 func linkByOAuthIncomingOAuthSpec(
 	ctx context.Context,
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
-	request *CreateIdentityRequestOAuth) (conflicts []*identity.Info, err error) {
+	request *CreateIdentityRequestOAuth) (cfg config.AccountLinkingConfigObject, conflicts []*identity.Info, err error) {
 
-	accountLinkingConfig, err := resolveAccountLinkingConfig(ctx, deps, flows)
-	config := resolveAccountLinkingConfigOAuth(accountLinkingConfig, request)
+	oauthConfig, err := resolveAccountLinkingConfigOAuth(ctx, deps, flows, request)
+	if err != nil {
+		return nil, nil, err
+	}
 
-	value, traverseErr := config.OAuthClaim.Pointer.Traverse(request.Spec.OAuth.StandardClaims)
+	value, traverseErr := oauthConfig.OAuthClaim.Pointer.Traverse(request.Spec.OAuth.StandardClaims)
 	if traverseErr != nil {
 		// If we failed to obtain value using the json pointer, just treat it as empty
 		value = ""
@@ -84,12 +95,12 @@ func linkByOAuthIncomingOAuthSpec(
 
 	// If value is empty or doesn't exist, no conflicts should occur
 	if valueStr == "" {
-		return []*identity.Info{}, nil
+		return oauthConfig, []*identity.Info{}, nil
 	}
 
-	conflicts, err = deps.Identities.ListByClaimJSONPointer(config.UserProfile.Pointer, valueStr)
+	conflicts, err = deps.Identities.ListByClaimJSONPointer(oauthConfig.UserProfile.Pointer, valueStr)
 	if err != nil {
-		return nil, err
+		return oauthConfig, nil, err
 	}
 
 	// check for identitical identities
@@ -107,9 +118,9 @@ func linkByOAuthIncomingOAuthSpec(
 			// The identity is identical, throw error directly
 			spec := request.Spec
 			otherSpec := conflict.ToSpec()
-			return nil, identityFillDetails(api.ErrDuplicatedIdentity, spec, &otherSpec)
+			return oauthConfig, nil, identityFillDetails(api.ErrDuplicatedIdentity, spec, &otherSpec)
 		}
 	}
 
-	return conflicts, nil
+	return oauthConfig, conflicts, nil
 }
