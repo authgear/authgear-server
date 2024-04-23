@@ -766,6 +766,11 @@ func (s *Service) CheckDuplicated(info *identity.Info) (dupeIdentity *identity.I
 	}
 
 	// 2. Check duplicate by considering type-specific unique key.
+	return s.CheckDuplicatedByUniqueKey(info)
+}
+
+func (s *Service) CheckDuplicatedByUniqueKey(info *identity.Info) (dupeIdentity *identity.Info, err error) {
+	// Check duplicate by considering type-specific unique key.
 	switch info.Type {
 	case model.IdentityTypeLoginID:
 		var i *identity.LoginID

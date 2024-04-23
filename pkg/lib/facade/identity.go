@@ -52,3 +52,7 @@ func (i IdentityFacade) Delete(is *identity.Info) error {
 func (i IdentityFacade) CheckDuplicated(info *identity.Info) (*identity.Info, error) {
 	return i.Coordinator.IdentityCheckDuplicated(info)
 }
+
+func (i IdentityFacade) CheckDuplicatedByUniqueKey(info *identity.Info) (*identity.Info, error) {
+	return i.Coordinator.IdentityCheckDuplicatedByUniqueKey(info)
+}
