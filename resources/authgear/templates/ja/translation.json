@@ -883,7 +883,7 @@
   "v2-oauth-branding-wechat": "WeChat でログイン",
   "v2-error-invalid-email": "メールアドレスに「@」を含めてください。",
   "v2-error-web-ui-invalid-session-return": "<p>このページは無効か期限切れです。</p><p>戻って再試行してください。</p>",
-  "v2-error-no-public-signup": "<p>サインアップは無効になっています。</p><p>システム管理者に連絡してください。</p>",
+  "v2-error-no-public-signup": "<p>新規登録は無効になっています。</p><p>システム管理者に連絡してください。</p>",
   "v2-error-server": "サーバーで内部エラーが発生しました。",
   "v2-error-screen-title": "予期せぬ問題",
   "v2-error-no-available-authenticator": "お客様のアカウントには利用可能な認証方法がありません。システム管理者に連絡してください。",
