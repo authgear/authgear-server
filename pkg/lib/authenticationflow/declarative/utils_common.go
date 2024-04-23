@@ -510,7 +510,7 @@ func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Depen
 	return options, nil
 }
 
-func identityFillDetails(err error, spec *identity.Spec, otherSpec *identity.Spec) error {
+func identityFillDetailsMany(err error, spec *identity.Spec, existingSpecs []*identity.Spec) error {
 	details := errorutil.Details{}
 
 	if spec != nil {
@@ -523,17 +523,44 @@ func identityFillDetails(err error, spec *identity.Spec, otherSpec *identity.Spe
 		}
 	}
 
-	if otherSpec != nil {
-		details["IdentityTypeExisting"] = apierrors.APIErrorDetail.Value(otherSpec.Type)
-		switch otherSpec.Type {
+	if len(existingSpecs) > 0 {
+		// Fill IdentityTypeExisting, LoginIDTypeExisting, OAuthProviderTypeExisting for backward compatibility
+		// Use first spec to fill the fields
+		firstExistingSpec := existingSpecs[0]
+		details["IdentityTypeExisting"] = apierrors.APIErrorDetail.Value(firstExistingSpec.Type)
+		switch firstExistingSpec.Type {
 		case model.IdentityTypeLoginID:
-			details["LoginIDTypeExisting"] = apierrors.APIErrorDetail.Value(otherSpec.LoginID.Type)
+			details["LoginIDTypeExisting"] = apierrors.APIErrorDetail.Value(firstExistingSpec.LoginID.Type)
 		case model.IdentityTypeOAuth:
-			details["OAuthProviderTypeExisting"] = apierrors.APIErrorDetail.Value(otherSpec.OAuth.ProviderID.Type)
+			details["OAuthProviderTypeExisting"] = apierrors.APIErrorDetail.Value(firstExistingSpec.OAuth.ProviderID.Type)
 		}
+
+		specDetails := []map[string]interface{}{}
+		for _, existingSpec := range existingSpecs {
+			existingSpec := existingSpec
+			thisDetail := map[string]interface{}{}
+			thisDetail["IdentityType"] = existingSpec.Type
+			switch existingSpec.Type {
+			case model.IdentityTypeLoginID:
+				thisDetail["LoginIDType"] = existingSpec.LoginID.Type
+			case model.IdentityTypeOAuth:
+				thisDetail["OAuthProviderType"] = existingSpec.OAuth.ProviderID.Type
+			}
+			specDetails = append(specDetails, thisDetail)
+		}
+		details["ExistingIdentities"] = apierrors.APIErrorDetail.Value(specDetails)
 	}
 
 	return errorutil.WithDetails(err, details)
+}
+
+func identityFillDetails(err error, spec *identity.Spec, existingSpec *identity.Spec) error {
+	existings := []*identity.Spec{}
+	if existingSpec != nil {
+		existings = append(existings, existingSpec)
+	}
+
+	return identityFillDetailsMany(err, spec, existings)
 }
 
 func getChannels(claimName model.ClaimName, oobConfig *config.AuthenticatorOOBConfig) []model.AuthenticatorOOBChannel {
