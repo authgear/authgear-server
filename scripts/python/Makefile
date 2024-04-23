@@ -16,8 +16,11 @@ generate-material-icons: venv
 generate-twemoji-icons: venv
 	python ./subset_fonts/subset_twemoji_icons.py
 
-# .env file is needed for ANTHROPIC_API_KEY
-.PHONT: generate-translations
+# `make generate-translations` expects the environment variable ANTHROPIC_API_KEY being set.
+# You can set it at the CLI with
+#   ANTHROPIC_API_KEY=foobar make generate-translations
+# Or create a .env file next to the Makefile. The .env file will be loaded dotenv in the script.
+.PHONY: generate-translations
 generate-translations: venv
 	python ./generate_translations.py
 	@echo "Run 'make html-email' in project root to generate email templates."

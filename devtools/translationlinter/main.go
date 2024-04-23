@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	. "github.com/authgear/authgear-server/pkg/util/template"
 )
 
 const DevelopmentLanguage = "en"
@@ -36,6 +38,40 @@ func (e errKeys) Error() string {
 			fmt.Fprintf(&buf, "  %v:\n", lang)
 			for _, key := range keys {
 				fmt.Fprintf(&buf, "    %v\n", key)
+			}
+		}
+	}
+
+	return buf.String()
+}
+
+type errKeyRender struct {
+	Path string
+	Key  string
+	Err  error
+}
+
+func (e errKeyRender) Error() string {
+	return fmt.Sprintf("failed to render translation key %v: %v", e.Key, e.Err)
+}
+
+type errKeyRenders []errKeyRender
+
+func (e errKeyRenders) Error() string {
+	var buf strings.Builder
+
+	errsByPath := make(map[string][]errKeyRender)
+	for _, err := range e {
+		errsByPath[err.Path] = append(errsByPath[err.Path], err)
+	}
+
+	for path, errs := range errsByPath {
+		fmt.Fprintf(&buf, "The following keys failed to render for %v:\n", path)
+		for _, err := range errs {
+			if err.Key != "" {
+				fmt.Fprintf(&buf, "  %v: %v\n", err.Key, err.Err)
+			} else {
+				fmt.Fprintf(&buf, "  %v\n", err.Err)
 			}
 		}
 	}
@@ -127,6 +163,28 @@ func doMain() (err error) {
 			MissingKeysByLang: missingKeysByLang,
 			ExtraKeysByLang:   extraKeysByLang,
 		}
+	}
+
+	renderErrs := errKeyRenders{}
+
+	engine := Engine{Resolver: &EngineTemplateResolverImpl{}}
+	for _, match := range matches {
+		langTag := filepath.Base(filepath.Dir(match))
+		translationMap, err := engine.Translation([]string{langTag})
+		if err != nil {
+			renderErrs = append(renderErrs, errKeyRender{Path: match, Err: err})
+			continue
+		}
+		for key := range expectedKeys {
+			_, err := translationMap.RenderText(key, nil)
+			if err != nil {
+				renderErrs = append(renderErrs, errKeyRender{Path: match, Key: key, Err: err})
+			}
+		}
+	}
+
+	if len(renderErrs) > 0 {
+		err = renderErrs
 	}
 
 	return

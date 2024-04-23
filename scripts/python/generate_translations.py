@@ -1,13 +1,7 @@
-
-# Usage:
-# 1. Create a .env file in the same directory as this script with the following content:
-#   `ANTHROPIC_API_KEY=your_api_key`
-# 2. Run the script:
-#   make generate-translations
-
 import collections
 import concurrent.futures
 import os
+import re
 import anthropic
 import json
 import json_repair
@@ -69,6 +63,7 @@ def auto_translate(messages: dict[str, str | dict[str, str]], locale, chunk_size
     - translate the values in the JSON from English into {locale}.
     - Don't translate the phrase "Passkey", keep it as is.
     - Return only the JSON and nothing else
+    - Escape astrophes (') with double astrophes ('')
     """
 
     client = anthropic.Anthropic()
@@ -91,16 +86,13 @@ def auto_translate(messages: dict[str, str | dict[str, str]], locale, chunk_size
     )
     result = message.content[0].text
 
-    logging.debug(f'{locale} | Translation result: {result}')
+    logging.info(f'{locale} | Translation result: {result}')
 
     json_match = regex.search(r'{(?:[^{}]|(?R))*}', result)
     if not json_match:
       raise ValueError('Failed to extract JSON from translation result.')
 
     json_str = json_match.group()
-    # LLM may wrongly escape backslashes in the JSON string
-    json_str = regex.sub(r'\\{2}', r'\\', json_str)
-
     translated_chunk = json_repair.loads(json_str)
     translated_messages.update(translated_chunk) # type: ignore
 
@@ -128,31 +120,39 @@ def update_translation(locale: str, default_translation_file: str, locale_transl
 
   with open(locale_translation_file, 'r') as file:
     try:
-      current_translation = default_translation
-      current_translation.update(json.load(file, object_pairs_hook=collections.OrderedDict))
+      locale_translation = json.load(file, object_pairs_hook=collections.OrderedDict)
     except json.JSONDecodeError:
-      pass
+      locale_translation = collections.OrderedDict()
 
-  missing_keys = find_missing_keys(default_translation, current_translation)
+  missing_keys = find_missing_keys(default_translation, locale_translation)
 
-  if len(missing_keys) == 0:
-    logging.info(f'{locale} | No missing keys found in {locale_translation_file}.')
-    return
+  logging.info(f'{locale} | Found {len(missing_keys)} missing keys in {locale_translation_file}.')
 
-  def update_translation_file(file):
+  def fix_translation_json(translation):
+    for k, v in translation.items():
+      if isinstance(v, str):
+        # Fix escaped backslashes
+        translation[k] = re.sub(r'\\{2}', r'\\', translation[k])
+
+    return translation
+
+  def save_translation_file(default_translation, updated_translation, file):
+    translation = fix_translation_json(updated_translation)
+    translation = collections.OrderedDict((k, translation[k]) for k in default_translation.keys() if k in translation)
     with open(file, 'w') as file:
-      json.dump(current_translation, file, indent=2, ensure_ascii=False)
+      json.dump(translation, file, indent=2, ensure_ascii=False)
       file.write('\n')
 
   for translated_messages in auto_translate(messages=missing_keys, locale=locale, chunk_size=chunk_size):
-    current_translation.update(translated_messages)
-    current_translation = collections.OrderedDict((key, current_translation[key]) for key in default_translation.keys() if key in current_translation)
-    update_translation_file(current_translation)
+    locale_translation.update(translated_messages)
+    save_translation_file(default_translation, locale_translation, locale_translation_file)
 
   # Insert default translation for reserved keys (e.g. language-*)
-  update_translation_file(locale_translation_file)
+  upodated_translation = default_translation.copy()
+  upodated_translation.update(locale_translation)
+  save_translation_file(default_translation, upodated_translation, locale_translation_file)
 
-  missing_keys = find_missing_keys(default_translation, current_translation)
+  missing_keys = find_missing_keys(default_translation, locale_translation)
   if len(missing_keys) > 0:
     logging.error(f'{locale} | Failed to translate the following keys: {missing_keys.keys()}.')
 
