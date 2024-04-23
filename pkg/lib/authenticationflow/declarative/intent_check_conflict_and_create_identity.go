@@ -59,14 +59,14 @@ func (i *IntentCheckConflictAndCreateIdenity) ReactTo(ctx context.Context, deps 
 			var skipLogin bool = false
 			var loginFlow string = ""
 			switch cfg.GetAction() {
-			case config.AccountLinkingActionError:
+			case config.AuthenticationFlowAccountLinkingActionError:
 				spec := spec
 				conflictSpecs := slice.Map(conflicts, func(i *identity.Info) *identity.Spec {
 					s := i.ToSpec()
 					return &s
 				})
 				return nil, identityFillDetailsMany(api.ErrDuplicatedIdentity, spec, conflictSpecs)
-			case config.AccountLinkingActionLoginAndLink:
+			case config.AuthenticationFlowAccountLinkingActionLoginAndLink:
 				loginFlow = cfg.GetLoginFlow()
 				if loginFlow == "" {
 					// Use the current flow name if it is not specified
