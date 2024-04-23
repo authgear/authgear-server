@@ -46,7 +46,9 @@ LOCALE_DICT = {
 }
 
 def find_missing_keys(default_translation, current_translation):
-  missing_keys = [key for key in default_translation.keys() if key not in current_translation]
+  def key_is_reserved(key):
+    return key.startswith("language-")
+  missing_keys = [key for key in default_translation.keys() if key not in current_translation and not key_is_reserved(key)]
   return collections.OrderedDict((key, default_translation[key]) for key in missing_keys)
 
 def chunk_messages(messages: dict[str, str | dict[str, str]], chunk_size: int) -> list[dict[str, str | dict[str, str]]]:
@@ -126,9 +128,10 @@ def update_translation(locale: str, default_translation_file: str, locale_transl
 
   with open(locale_translation_file, 'r') as file:
     try:
-      current_translation = json.load(file, object_pairs_hook=collections.OrderedDict)
+      current_translation = default_translation
+      current_translation.update(json.load(file, object_pairs_hook=collections.OrderedDict))
     except json.JSONDecodeError:
-      current_translation = collections.OrderedDict()
+      pass
 
   missing_keys = find_missing_keys(default_translation, current_translation)
 
@@ -136,13 +139,18 @@ def update_translation(locale: str, default_translation_file: str, locale_transl
     logging.info(f'{locale} | No missing keys found in {locale_translation_file}.')
     return
 
+  def update_translation_file(file):
+    with open(file, 'w') as file:
+      json.dump(current_translation, file, indent=2, ensure_ascii=False)
+      file.write('\n')
+
   for translated_messages in auto_translate(messages=missing_keys, locale=locale, chunk_size=chunk_size):
     current_translation.update(translated_messages)
     current_translation = collections.OrderedDict((key, current_translation[key]) for key in default_translation.keys() if key in current_translation)
+    update_translation_file(current_translation)
 
-    with open(locale_translation_file, 'w') as file:
-      json.dump(current_translation, file, indent=2, ensure_ascii=False)
-      file.write('\n')
+  # Insert default translation for reserved keys (e.g. language-*)
+  update_translation_file(locale_translation_file)
 
   missing_keys = find_missing_keys(default_translation, current_translation)
   if len(missing_keys) > 0:
