@@ -54,7 +54,7 @@ func (n *NodeCreateIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.
 		loginID := inputTakeLoginID.GetLoginID()
 		spec := n.makeLoginIDSpec(loginID)
 
-		return authflow.NewNodeSimple(&IntentCheckConflictAndCreateIdenity{
+		return authflow.NewSubFlow(&IntentCheckConflictAndCreateIdenity{
 			JSONPointer: n.JSONPointer,
 			UserID:      n.UserID,
 			Request:     NewCreateLoginIDIdentityRequest(spec),

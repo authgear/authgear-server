@@ -84,7 +84,7 @@ func (n *NodeOAuth) OutputData(ctx context.Context, deps *authflow.Dependencies,
 func (n *NodeOAuth) reactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, spec *identity.Spec) (*authflow.Node, error) {
 	// signup
 	if n.NewUserID != "" {
-		return authflow.NewNodeSimple(&IntentCheckConflictAndCreateIdenity{
+		return authflow.NewSubFlow(&IntentCheckConflictAndCreateIdenity{
 			JSONPointer: n.JSONPointer,
 			UserID:      n.NewUserID,
 			Request:     NewCreateOAuthIdentityRequest(n.Alias, spec),
