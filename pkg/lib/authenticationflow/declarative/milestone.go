@@ -255,3 +255,9 @@ type MilestoneAccountLinkingConfigGetter interface {
 	authflow.Milestone
 	MilestoneAccountLinkingConfigGetter(deps *authflow.Dependencies) (*config.AuthenticationFlowAccountLinking, error)
 }
+
+type MilestoneUseAccountLinkingIdentification interface {
+	authflow.Milestone
+	MilestoneUseAccountLinkingIdentification() *identity.Info
+	MilestoneUseAccountLinkingIdentificationSelectedOption() AccountLinkingIdentificationOption
+}

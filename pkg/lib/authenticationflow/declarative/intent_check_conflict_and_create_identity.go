@@ -9,6 +9,7 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 func init() {
@@ -16,8 +17,9 @@ func init() {
 }
 
 type IntentCheckConflictAndCreateIdenity struct {
-	UserID  string                 `json:"user_id,omitempty"`
-	Request *CreateIdentityRequest `json:"request,omitempty"`
+	JSONPointer jsonpointer.T          `json:"json_pointer,omitempty"`
+	UserID      string                 `json:"user_id,omitempty"`
+	Request     *CreateIdentityRequest `json:"request,omitempty"`
 }
 
 var _ authflow.Intent = &IntentCheckConflictAndCreateIdenity{}
@@ -70,6 +72,7 @@ func (i *IntentCheckConflictAndCreateIdenity) ReactTo(ctx context.Context, deps 
 				panic(fmt.Errorf("unknown action %v", cfg.GetAction()))
 			}
 			return authflow.NewSubFlow(&IntentAccountLinkingOAuth{
+				JSONPointer:           i.JSONPointer,
 				ConflictingIdentities: conflicts,
 				OAuthIdentitySpec:     spec,
 				SkipLogin:             skipLogin,
