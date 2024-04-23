@@ -630,31 +630,30 @@ var _ = Schema.Add("AuthenticationFlowAccountRecoveryIdentification", `
 var _ = Schema.Add("AuthenticationFlowAccountLinking", `
 {
 	"type": "object",
-	"required": [],
 	"properties": {
 		"oauth": {
 			"type": "array",
-			"items": { "$ref": "#/$defs/AccountLinkingOAuth" }
+			"items": { "$ref": "#/$defs/AuthenticationFlowAccountLinkOAuthItem" }
 		}
 	}
 }
 `)
 
-var _ = Schema.Add("AccountLinkingOAuth", `
+var _ = Schema.Add("AuthenticationFlowAccountLinkOAuthItem", `
 {
 	"type": "object",
 	"required": ["alias", "oauth_claim", "user_profile", "action"],
 	"properties": {
 		"alias": { "type": "string" },
-		"oauth_claim": { "$ref": "#/$defs/AccountLinkingJSONPointer" },
-		"user_profile": { "$ref": "#/$defs/AccountLinkingJSONPointer" },
-		"action": { "$ref": "#/$defs/AccountLinkingAction" },
+		"oauth_claim": { "$ref": "#/$defs/AuthenticationFlowAccountLinkingJSONPointer" },
+		"user_profile": { "$ref": "#/$defs/AuthenticationFlowAccountLinkingJSONPointer" },
+		"action": { "$ref": "#/$defs/AuthenticationFlowAccountLinkingAction" },
 		"login_flow": { "type": "string" }
 	}
 }
 `)
 
-var _ = Schema.Add("AccountLinkingAction", `
+var _ = Schema.Add("AuthenticationFlowAccountLinkingAction", `
 {
 	"type": "string",
 	"enum": [
@@ -664,9 +663,10 @@ var _ = Schema.Add("AccountLinkingAction", `
 }
 `)
 
-var _ = Schema.Add("AccountLinkingJSONPointer", `
+var _ = Schema.Add("AuthenticationFlowAccountLinkingJSONPointer", `
 {
 	"type": "object",
+	"required": ["pointer"],
 	"additionalProperties": false,
 	"properties": {
 		"pointer": {
@@ -1388,7 +1388,7 @@ const (
 )
 
 type AuthenticationFlowAccountLinking struct {
-	OAuth []*AccountLinkingOAuth `json:"oauth,omitempty"`
+	OAuth []*AuthenticationFlowAccountLinkOAuthItem `json:"oauth,omitempty"`
 }
 
 func (a *AuthenticationFlowAccountLinking) Merge(other *AuthenticationFlowAccountLinking) *AuthenticationFlowAccountLinking {
@@ -1404,38 +1404,38 @@ func (a *AuthenticationFlowAccountLinking) Merge(other *AuthenticationFlowAccoun
 }
 
 type AccountLinkingConfigObject interface {
-	GetAction() AccountLinkingAction
+	GetAction() AuthenticationFlowAccountLinkingAction
 	GetLoginFlow() string
 }
 
-type AccountLinkingOAuth struct {
-	Alias       string                    `json:"alias,omitempty"`
-	OAuthClaim  AccountLinkingJSONPointer `json:"oauth_claim,omitempty"`
-	UserProfile AccountLinkingJSONPointer `json:"user_profile,omitempty"`
-	Action      AccountLinkingAction      `json:"action,omitempty"`
+type AuthenticationFlowAccountLinkOAuthItem struct {
+	Alias       string                                       `json:"alias,omitempty"`
+	OAuthClaim  *AuthenticationFlowAccountLinkingJSONPointer `json:"oauth_claim,omitempty"`
+	UserProfile *AuthenticationFlowAccountLinkingJSONPointer `json:"user_profile,omitempty"`
+	Action      AuthenticationFlowAccountLinkingAction       `json:"action,omitempty"`
 
 	// login_flow is only relevant if action is "login_and_link"
 	// If empty, the current flow name should be used
 	LoginFlow string `json:"login_flow,omitempty"`
 }
 
-var _ AccountLinkingConfigObject = &AccountLinkingOAuth{}
+var _ AccountLinkingConfigObject = &AuthenticationFlowAccountLinkOAuthItem{}
 
-func (c *AccountLinkingOAuth) GetAction() AccountLinkingAction {
+func (c *AuthenticationFlowAccountLinkOAuthItem) GetAction() AuthenticationFlowAccountLinkingAction {
 	return c.Action
 }
-func (c *AccountLinkingOAuth) GetLoginFlow() string {
+func (c *AuthenticationFlowAccountLinkOAuthItem) GetLoginFlow() string {
 	return c.LoginFlow
 }
 
-type AccountLinkingAction string
+type AuthenticationFlowAccountLinkingAction string
 
 const (
-	AccountLinkingActionError        AccountLinkingAction = "error"
-	AccountLinkingActionLoginAndLink AccountLinkingAction = "login_and_link"
+	AuthenticationFlowAccountLinkingActionError        AuthenticationFlowAccountLinkingAction = "error"
+	AuthenticationFlowAccountLinkingActionLoginAndLink AuthenticationFlowAccountLinkingAction = "login_and_link"
 )
 
-type AccountLinkingJSONPointer struct {
+type AuthenticationFlowAccountLinkingJSONPointer struct {
 	Pointer jsonpointer.T `json:"pointer,omitempty"`
 }
 
