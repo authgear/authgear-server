@@ -41,6 +41,7 @@ type IdentityService interface {
 	Update(info *identity.Info) error
 	Delete(is *identity.Info) error
 	CheckDuplicated(info *identity.Info) (*identity.Info, error)
+	CheckDuplicatedByUniqueKey(info *identity.Info) (*identity.Info, error)
 }
 
 type AuthenticatorService interface {
@@ -301,6 +302,10 @@ func (c *Coordinator) IdentityDelete(is *identity.Info) error {
 
 func (c *Coordinator) IdentityCheckDuplicated(info *identity.Info) (*identity.Info, error) {
 	return c.Identities.CheckDuplicated(info)
+}
+
+func (c *Coordinator) IdentityCheckDuplicatedByUniqueKey(info *identity.Info) (*identity.Info, error) {
+	return c.Identities.CheckDuplicatedByUniqueKey(info)
 }
 
 func (c *Coordinator) AuthenticatorGet(id string) (*authenticator.Info, error) {
