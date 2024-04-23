@@ -27,4 +27,5 @@ type Session struct {
 
 	DisplayName     string `json:"displayName"`
 	ApplicationName string `json:"applicationName,omitempty"`
+	UserAgent       string `json:"userAgent,omitempty"`
 }

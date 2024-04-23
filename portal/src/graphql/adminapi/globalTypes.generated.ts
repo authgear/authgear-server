@@ -1179,6 +1179,7 @@ export type Session = Entity & Node & {
   type: SessionType;
   /** The update time of entity */
   updatedAt: Scalars['DateTime']['output'];
+  userAgent?: Maybe<Scalars['String']['output']>;
 };
 
 /** A connection to a list of items. */

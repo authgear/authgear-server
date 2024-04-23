@@ -93,6 +93,7 @@ fragment UserQueryNode on User {
         lastAccessedAt
         lastAccessedByIP
         displayName
+        userAgent
       }
     }
   }

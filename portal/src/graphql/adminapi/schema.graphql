@@ -1319,6 +1319,9 @@ type Session implements Entity & Node {
 
   """The update time of entity"""
   updatedAt: DateTime!
+
+  """"""
+  userAgent: String
 }
 
 """A connection to a list of items."""

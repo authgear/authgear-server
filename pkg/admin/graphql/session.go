@@ -56,6 +56,9 @@ var nodeSession = node(
 			"displayName": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.String),
 			},
+			"userAgent": &graphql.Field{
+				Type: graphql.String,
+			},
 		},
 	}),
 	&model.Session{},
