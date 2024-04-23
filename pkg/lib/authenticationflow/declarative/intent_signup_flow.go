@@ -154,7 +154,11 @@ func (i *IntentSignupFlow) userID(w *authflow.Flow) string {
 		panic(fmt.Errorf("expected userID"))
 	}
 
-	id := m.MilestoneDoCreateUser()
+	id, created := m.MilestoneDoCreateUser()
+
+	if !created {
+		return ""
+	}
 
 	return id
 }
