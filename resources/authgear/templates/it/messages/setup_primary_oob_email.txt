@@ -1,0 +1,7 @@
+Regístrate en {{ template "app.name" }}
+
+Utiliza la siguiente contraseña de un solo uso para completar el proceso de registro en {{ template "app.name" }}.
+
+{{ .Code }}
+
+No la compartas con nadie. Si no te registraste, por favor ignora este correo electrónico.

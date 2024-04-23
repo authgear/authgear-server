@@ -1,0 +1,3 @@
+Registrieren Sie sich mit diesem Einmal-Passwort {{ .Code }} bei {{ template "app.name" }}.
+
+Geben Sie es niemandem weiter.

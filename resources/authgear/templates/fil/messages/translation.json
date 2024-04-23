@@ -1,0 +1,163 @@
+{
+  "PrimaryLoginLink": {
+    "Title": "Gamitin ang link na ito para mag-sign in sa {{ template \"app.name\" }}",
+    "Body": "Mangyaring i-click ang button sa ibaba para mag-sign in sa {{ template \"app.name\" }}.",
+    "Button": "Mag-sign in sa {{ template \"app.name\" }}",
+    "Disclaimer": "Kung hindi mo pinagana ang pag-log in, pakiignore na lang ang email na ito."
+  },
+  "PrimaryOOBEmail": {
+    "Title": "Mag-log in sa {{ template \"app.name\" }}",
+    "Body": "Mangyaring gamitin ang sumusunod na one-time password para makumpleto ang proseso ng pag-log in.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Huwag ibahagi ito sa sinuman. Kung hindi mo pinagana ang pag-log in, pakiignore na lang ang email na ito."
+  },
+  "SecondaryLoginLink": {
+    "Title": "Gamitin ang link na ito para mag-sign in sa {{ template \"app.name\" }}",
+    "Instruction": "Mangyaring i-click ang button sa ibaba para mag-sign in sa {{ template \"app.name\" }}.",
+    "ButtonText": "Mag-sign in sa {{ template \"app.name\" }}",
+    "Disclaimer": "Kung hindi mo pinagana ang pag-log in, pakiignore na lang ang email na ito."
+  },
+  "SecondaryOOBEmail": {
+    "Title": "Mag-log in sa {{ template \"app.name\" }}",
+    "Body": "Mangyaring gamitin ang sumusunod na one-time password para makumpleto ang proseso ng pag-log in.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Huwag ibahagi ito sa sinuman. Kung hindi ka nag-log in, pakiignore na lang ang email na ito."
+  },
+  "ForgotPassword": {
+    "Title": "I-reset ang Password",
+    "Body": "Humiling ka na i-reset ang iyong password sa {{ template \"app.name\" }}. Para gawin ito, i-click ang button sa ibaba.",
+    "Button": "I-reset ang Password",
+    "Disclaimer": "Kung hindi ka humiling ng reset, pakiignore na lang ang email na ito."
+  },
+  "ForgotPasswordOOBEmail": {
+    "Title": "I-reset ang Password",
+    "Body": "Mangyaring gamitin ang sumusunod na one-time password para i-reset ang iyong password sa {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Huwag ibahagi ito sa sinuman. Kung hindi ka humiling ng reset, pakiignore na lang ang email na ito."
+  },
+  "SetupPrimaryLoginLink": {
+    "Title": "I-verify ang iyong email sa {{ template \"app.name\" }}",
+    "Body": "Mangyaring bisitahin ang link sa ibaba para makumpleto ang iyong proseso ng pag-sign up.",
+    "Button": "I-verify ang Email",
+    "Disclaimer": "Kung hindi mo pinagana ang setup na ito, pakiignore na lang ang email na ito."
+  },
+  "SetupPrimaryOOBEmail": {
+    "Title": "Mag-sign up sa {{ template \"app.name\" }}",
+    "Body": "Mangyaring gamitin ang sumusunod na one-time password para makumpleto ang proseso ng pag-sign up.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Huwag ibahagi ito sa sinuman. Kung hindi ka nag-sign up, pakiignore na lang ang email na ito."
+  },
+  "SetupSecondaryLoginLink": {
+    "Title": "I-verify ang iyong email at i-setup ang 2-step verification sa {{ template \"app.name\" }}",
+    "Body": "Mangyaring i-click ang button sa ibaba para i-setup ang 2-step verification.",
+    "Button": "I-verify ang Email",
+    "Disclaimer": "Kung hindi mo pinagana ang setup na ito, pakiignore na lang ang email na ito."
+  },
+  "SetupSecondaryOOBEmail": {
+    "Title": "I-setup ang Two-Step Verification sa {{ template \"app.name\" }}",
+    "Body": "Ang textbox sa ibaba ay naglalaman ng one-time password na nabuo para i-setup ang two-step verification.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Huwag ibahagi ito sa sinuman. Kung hindi mo pinagana ang setup na ito, pakiignore na lang ang email na ito."
+  },
+  "VerificationEmail": {
+    "Title": "Pag-verify ng Email",
+    "Body": "Ipinadala ang email na ito para i-verify ang {{ .Email }} sa {{ template \"app.name\" }}. Gamitin ang code na ito sa pahina ng pag-verify.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Huwag ibahagi ito sa sinuman. Kung hindi ka nag-sign in o nag-sign up, pakiignore na lang ang email na ito."
+  },
+  "PrimaryLoginLinkTXT": {
+    "Title": "Mag-log in sa {{ template \"app.name\" }}",
+    "Body": "Mangyaring sundin ang link sa ibaba para mag-sign in sa {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Kung hindi mo pinagana ang pag-log in, pakiignore na lang ang email na ito."
+  },
+  "PrimaryOOBEmailTXT": {
+    "Title": "Mag-log in sa {{ template \"app.name\" }}",
+    "Body": "Mangyaring gamitin ang sumusunod na one-time password para makumpleto ang proseso ng pag-log in.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Huwag ibahagi ito sa sinuman. Kung hindi mo pinagana ang pag-log in, pakiignore na lang ang email na ito."
+  },
+  "PrimaryOOBSMSTXT": {
+    "Title": "Mag-log in sa {{ template \"app.name\" }} gamit ang one-time password na ito {{ .Code }}.",
+    "Disclaimer": "Huwag ibahagi ito sa sinuman."
+  },
+  "SecondaryLoginLinkTXT": {
+    "Title": "Mag-log in sa {{ template \"app.name\" }}",
+    "Body": "Mangyaring sundin ang link sa ibaba para mag-sign in sa {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Kung hindi mo pinagana ang pag-log in, pakiignore na lang ang email na ito."
+  },
+  "SecondaryOOBEmailTXT": {
+    "Title": "Mag-log in sa {{ template \"app.name\" }}",
+    "Body": "Mangyaring gamitin ang sumusunod na one-time password para makumpleto ang proseso ng pag-log in.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Huwag ibahagi ito sa sinuman. Kung hindi ka nag-log in, pakiignore na lang ang email na ito."
+  },
+  "SecondaryOOBSMSTXT": {
+    "Title": "Ang {{ .Code }} ay ang iyong one-time password sa {{ template \"app.name\" }}.",
+    "Disclaimer": "Huwag ibahagi ito sa sinuman."
+  },
+  "ForgotPasswordEmailTXT": {
+    "Title": "I-reset ang Password",
+    "Body": "Humiling ka na i-reset ang iyong password sa {{ template \"app.name\" }}. Mangyaring bisitahin ang link sa ibaba para i-reset ang iyong password.",
+    "Link": "{{ .Link }}",
+    "Disclaimer": "Kung hindi ka humiling ng reset, pakiignore na lang ang email na ito."
+  },
+  "ForgotPasswordSMSTXT": {
+    "Title": "Bisitahin ang link na ito para i-reset ang iyong password sa {{ template \"app.name\" }}",
+    "Disclaimer": "Ignoring ito kung hindi ka nag-reset.",
+    "Link": "{{ .Link }}"
+  },
+  "ForgotPasswordOOBEmailTXT": {
+    "Title": "I-reset ang Password",
+    "Body": "Mangyaring gamitin ang sumusunod na one-time password para i-reset ang iyong password sa {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Huwag ibahagi ito sa sinuman. Kung hindi ka humiling ng reset, pakiignore na lang ang email na ito."
+  },
+  "ForgotPasswordOOBSMSTXT": {
+    "Body": "I-reset ang iyong password sa {{ template \"app.name\" }} gamit ang one-time password na ito {{ .Code }}.",
+    "Disclaimer": "Huwag ibahagi ito sa sinuman."
+  },
+  "SetupPrimaryLoginLinkTXT": {
+    "Title": "I-verify ang iyong email sa {{ template \"app.name\" }}",
+    "Body": "Mangyaring bisitahin ang link sa ibaba para makumpleto ang iyong proseso ng pag-sign up sa {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Kung hindi mo pinagana ang setup na ito, pakiignore na lang ang email na ito."
+  },
+  "SetupPrimaryOOBEmailTXT": {
+    "Title": "Mag-sign up sa {{ template \"app.name\" }}",
+    "Body": "Mangyaring gamitin ang sumusunod na one-time password para makumpleto ang proseso ng pag-sign up sa {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Huwag ibahagi ito sa sinuman. Kung hindi ka nag-sign up, pakiignore na lang ang email na ito."
+  },
+  "SetupPrimaryOOBSMSTXT": {
+    "Title": "Mag-sign up sa {{ template \"app.name\" }} gamit ang one-time password na ito {{ .Code }}.",
+    "Disclaimer": "Huwag ibahagi ito sa sinuman."
+  },
+  "SetupSecondaryLoginLinkTXT": {
+    "Title": "I-verify ang iyong email at i-setup ang 2-step verification sa {{ template \"app.name\" }}",
+    "Body": "Mangyaring i-click ang link sa ibaba para i-setup ang 2-step verification sa {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Kung hindi mo pinagana ang setup na ito, pakiignore na lang ang email na ito."
+  },
+  "SetupSecondaryOOBEmailTXT": {
+    "Title": "I-setup ang Two-Step Verification sa {{ template \"app.name\" }}",
+    "Body": "Ang textbox sa ibaba ay naglalaman ng one-time password na nabuo para i-setup ang two-step verification sa {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Huwag ibahagi ito sa sinuman. Kung hindi mo pinagana ang setup na ito, pakiignore na lang ang email na ito."
+  },
+  "SetupSecondaryOOBSMSTXT": {
+    "Title": "I-setup ang two-step verification sa {{ template \"app.name\" }} gamit ang one-time password na ito {{ .Code }}.",
+    "Disclaimer": "Huwag ibahagi ito sa sinuman."
+  },
+  "VerificationEmailTXT": {
+    "Title": "Pag-verify ng Email",
+    "Body": "Ipinadala ang email na ito para i-verify ang {{ .Email }} sa {{ template \"app.name\" }}. Gamitin ang code na ito sa pahina ng pag-verify.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Huwag ibahagi ito sa sinuman. Kung hindi ka nag-sign in o nag-sign up, pakiignore na lang ang email na ito."
+  },
+  "VerificationSMSTXT": {
+    "Code": "Ang {{ .Code }} ay ang iyong {{ template \"app.name\" }} verification code.",
+    "Disclaimer": "Huwag ibahagi ito sa sinuman."
+  }
+}

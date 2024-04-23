@@ -1,0 +1,7 @@
+Zaloguj się na {{ template "app.name" }}
+
+Użyj poniższego jednorazowego hasła, aby ukończyć proces logowania.
+
+{{ .Code }}
+
+Nie udostępniaj go nikomu. Jeśli nie wywołałeś logowania, zignoruj ten e-mail.

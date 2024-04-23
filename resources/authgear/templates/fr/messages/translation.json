@@ -1,0 +1,163 @@
+{
+  "PrimaryLoginLink": {
+    "Title": "Utilisez ce lien pour vous connecter à {{ template \"app.name\" }}",
+    "Body": "Veuillez cliquer sur le bouton ci-dessous pour vous connecter à {{ template \"app.name\" }}.",
+    "Button": "Se connecter à {{ template \"app.name\" }}",
+    "Disclaimer": "Si vous n'avez pas déclenché une connexion, veuillez ignorer cet e-mail."
+  },
+  "PrimaryOOBEmail": {
+    "Title": "Connectez-vous à {{ template \"app.name\" }}",
+    "Body": "Veuillez utiliser le mot de passe unique suivant pour terminer le processus de connexion.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Ne le partagez avec personne. Si vous n'avez pas déclenché une connexion, veuillez ignorer cet e-mail."
+  },
+  "SecondaryLoginLink": {
+    "Title": "Utilisez ce lien pour vous connecter à {{ template \"app.name\" }}",
+    "Instruction": "Veuillez cliquer sur le bouton ci-dessous pour vous connecter à {{ template \"app.name\" }}.",
+    "ButtonText": "Se connecter à {{ template \"app.name\" }}",
+    "Disclaimer": "Si vous n'avez pas déclenché une connexion, veuillez ignorer cet e-mail."
+  },
+  "SecondaryOOBEmail": {
+    "Title": "Connectez-vous à {{ template \"app.name\" }}",
+    "Body": "Veuillez utiliser le mot de passe unique suivant pour terminer le processus de connexion.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Ne le partagez avec personne. Si vous ne vous êtes pas connecté, veuillez ignorer cet e-mail."
+  },
+  "ForgotPassword": {
+    "Title": "Réinitialiser le mot de passe",
+    "Body": "Vous avez demandé à réinitialiser votre mot de passe sur {{ template \"app.name\" }}. Pour ce faire, cliquez sur le bouton ci-dessous.",
+    "Button": "Réinitialiser le mot de passe",
+    "Disclaimer": "Si vous n'avez pas demandé de réinitialisation, veuillez ignorer cet e-mail."
+  },
+  "ForgotPasswordOOBEmail": {
+    "Title": "Réinitialiser le mot de passe",
+    "Body": "Veuillez utiliser le mot de passe unique suivant pour réinitialiser votre mot de passe sur {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Ne le partagez avec personne. Si vous n'avez pas demandé de réinitialisation, veuillez ignorer cet e-mail."
+  },
+  "SetupPrimaryLoginLink": {
+    "Title": "Vérifiez votre e-mail sur {{ template \"app.name\" }}",
+    "Body": "Veuillez visiter le lien ci-dessous pour terminer votre processus d'inscription.",
+    "Button": "Vérifier l'e-mail",
+    "Disclaimer": "Si vous n'avez pas déclenché cette configuration, veuillez ignorer cet e-mail."
+  },
+  "SetupPrimaryOOBEmail": {
+    "Title": "Inscrivez-vous sur {{ template \"app.name\" }}",
+    "Body": "Veuillez utiliser le mot de passe unique suivant pour terminer le processus d'inscription.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Ne le partagez avec personne. Si vous ne vous êtes pas inscrit, veuillez ignorer cet e-mail."
+  },
+  "SetupSecondaryLoginLink": {
+    "Title": "Vérifiez votre e-mail et configurez la vérification en deux étapes sur {{ template \"app.name\" }}",
+    "Body": "Veuillez cliquer sur le bouton ci-dessous pour configurer la vérification en deux étapes.",
+    "Button": "Vérifier l'e-mail",
+    "Disclaimer": "Si vous n'avez pas déclenché cette configuration, veuillez ignorer cet e-mail."
+  },
+  "SetupSecondaryOOBEmail": {
+    "Title": "Configurer la vérification en deux étapes sur {{ template \"app.name\" }}",
+    "Body": "La zone de texte ci-dessous contient un mot de passe unique généré pour configurer la vérification en deux étapes.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Ne le partagez avec personne. Si vous n'avez pas déclenché cette configuration, veuillez ignorer cet e-mail."
+  },
+  "VerificationEmail": {
+    "Title": "Vérification de l'e-mail",
+    "Body": "Cet e-mail est envoyé pour vérifier {{ .Email }} sur {{ template \"app.name\" }}. Utilisez ce code sur la page de vérification.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Ne le partagez avec personne. Si vous ne vous êtes pas connecté ou inscrit, veuillez ignorer cet e-mail."
+  },
+  "PrimaryLoginLinkTXT": {
+    "Title": "Connectez-vous à {{ template \"app.name\" }}",
+    "Body": "Veuillez suivre le lien ci-dessous pour vous connecter à {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Si vous n'avez pas déclenché une connexion, veuillez ignorer cet e-mail."
+  },
+  "PrimaryOOBEmailTXT": {
+    "Title": "Connectez-vous à {{ template \"app.name\" }}",
+    "Body": "Veuillez utiliser le mot de passe unique suivant pour terminer le processus de connexion.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Ne le partagez avec personne. Si vous n'avez pas déclenché une connexion, veuillez ignorer cet e-mail."
+  },
+  "PrimaryOOBSMSTXT": {
+    "Title": "Connectez-vous à {{ template \"app.name\" }} avec ce mot de passe unique {{ .Code }}.",
+    "Disclaimer": "Ne le partagez avec personne."
+  },
+  "SecondaryLoginLinkTXT": {
+    "Title": "Connectez-vous à {{ template \"app.name\" }}",
+    "Body": "Veuillez suivre le lien ci-dessous pour vous connecter à {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Si vous n'avez pas déclenché une connexion, veuillez ignorer cet e-mail."
+  },
+  "SecondaryOOBEmailTXT": {
+    "Title": "Connectez-vous à {{ template \"app.name\" }}",
+    "Body": "Veuillez utiliser le mot de passe unique suivant pour terminer le processus de connexion.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Ne le partagez avec personne. Si vous ne vous êtes pas connecté, veuillez ignorer cet e-mail."
+  },
+  "SecondaryOOBSMSTXT": {
+    "Title": "{{ .Code }} est votre mot de passe unique {{ template \"app.name\" }}.",
+    "Disclaimer": "Ne le partagez avec personne."
+  },
+  "ForgotPasswordEmailTXT": {
+    "Title": "Réinitialiser le mot de passe",
+    "Body": "Vous avez demandé à réinitialiser votre mot de passe sur {{ template \"app.name\" }}. Veuillez visiter le lien ci-dessous pour réinitialiser votre mot de passe.",
+    "Link": "{{ .Link }}",
+    "Disclaimer": "Si vous n'avez pas demandé de réinitialisation, veuillez ignorer cet e-mail."
+  },
+  "ForgotPasswordSMSTXT": {
+    "Title": "Visitez ce lien pour réinitialiser votre mot de passe sur {{ template \"app.name\" }}",
+    "Disclaimer": "Ignorez ceci si vous ne réinitialisez pas.",
+    "Link": "{{ .Link }}"
+  },
+  "ForgotPasswordOOBEmailTXT": {
+    "Title": "Réinitialiser le mot de passe",
+    "Body": "Veuillez utiliser le mot de passe unique suivant pour réinitialiser votre mot de passe sur {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Ne le partagez avec personne. Si vous n'avez pas demandé de réinitialisation, veuillez ignorer cet e-mail."
+  },
+  "ForgotPasswordOOBSMSTXT": {
+    "Body": "Réinitialisez votre mot de passe dans {{ template \"app.name\" }} avec ce mot de passe unique {{ .Code }}.",
+    "Disclaimer": "Ne le partagez avec personne."
+  },
+  "SetupPrimaryLoginLinkTXT": {
+    "Title": "Vérifiez votre e-mail sur {{ template \"app.name\" }}",
+    "Body": "Veuillez visiter le lien ci-dessous pour terminer votre processus d'inscription sur {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Si vous n'avez pas déclenché cette configuration, veuillez ignorer cet e-mail."
+  },
+  "SetupPrimaryOOBEmailTXT": {
+    "Title": "Inscrivez-vous sur {{ template \"app.name\" }}",
+    "Body": "Veuillez utiliser le mot de passe unique suivant pour terminer le processus d'inscription sur {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Ne le partagez avec personne. Si vous ne vous êtes pas inscrit, veuillez ignorer cet e-mail."
+  },
+  "SetupPrimaryOOBSMSTXT": {
+    "Title": "Inscrivez-vous sur {{ template \"app.name\" }} avec ce mot de passe unique {{ .Code }}.",
+    "Disclaimer": "Ne le partagez avec personne."
+  },
+  "SetupSecondaryLoginLinkTXT": {
+    "Title": "Vérifiez votre e-mail et configurez la vérification en deux étapes sur {{ template \"app.name\" }}",
+    "Body": "Veuillez cliquer sur le lien ci-dessous pour configurer la vérification en deux étapes sur {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Si vous n'avez pas déclenché cette configuration, veuillez ignorer cet e-mail."
+  },
+  "SetupSecondaryOOBEmailTXT": {
+    "Title": "Configurer la vérification en deux étapes sur {{ template \"app.name\" }}",
+    "Body": "La zone de texte ci-dessous contient un mot de passe unique généré pour configurer la vérification en deux étapes sur {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Ne le partagez avec personne. Si vous n'avez pas déclenché cette configuration, veuillez ignorer cet e-mail."
+  },
+  "SetupSecondaryOOBSMSTXT": {
+    "Title": "Configurez la vérification en deux étapes sur {{ template \"app.name\" }} avec ce mot de passe unique {{ .Code }}.",
+    "Disclaimer": "Ne le partagez avec personne."
+  },
+  "VerificationEmailTXT": {
+    "Title": "Vérification de l'e-mail",
+    "Body": "Cet e-mail est envoyé pour vérifier {{ .Email }} sur {{ template \"app.name\" }}. Utilisez ce code sur la page de vérification.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Ne le partagez avec personne. Si vous ne vous êtes pas connecté ou inscrit, veuillez ignorer cet e-mail."
+  },
+  "VerificationSMSTXT": {
+    "Code": "{{ .Code }} est votre code de vérification {{ template \"app.name\" }}.",
+    "Disclaimer": "Ne le partagez avec personne."
+  }
+}

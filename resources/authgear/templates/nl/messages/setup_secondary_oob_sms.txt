@@ -1,0 +1,3 @@
+Stel twee-staps verificatie in op {{ template "app.name" }} met dit eenmalige wachtwoord {{ .Code }}.
+
+Deel het niet met iemand.

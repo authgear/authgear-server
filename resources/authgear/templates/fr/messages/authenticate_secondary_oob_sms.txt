@@ -1,0 +1,3 @@
+{{ .Code }} est votre mot de passe unique {{ template "app.name" }}.
+
+Ne le partagez avec personne.

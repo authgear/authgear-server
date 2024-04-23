@@ -1,0 +1,163 @@
+{
+  "PrimaryLoginLink": {
+    "Title": "Sử dụng liên kết này để đăng nhập vào {{ template \"app.name\" }}",
+    "Body": "Vui lòng nhấp vào nút bên dưới để đăng nhập vào {{ template \"app.name\" }}.",
+    "Button": "Đăng nhập vào {{ template \"app.name\" }}",
+    "Disclaimer": "Nếu bạn không khởi động đăng nhập, vui lòng bỏ qua email này."
+  },
+  "PrimaryOOBEmail": {
+    "Title": "Đăng nhập vào {{ template \"app.name\" }}",
+    "Body": "Vui lòng sử dụng mật khẩu một lần sau đây để hoàn tất quá trình đăng nhập.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Không chia sẻ với bất kỳ ai. Nếu bạn không khởi động đăng nhập, vui lòng bỏ qua email này."
+  },
+  "SecondaryLoginLink": {
+    "Title": "Sử dụng liên kết này để đăng nhập vào {{ template \"app.name\" }}",
+    "Instruction": "Vui lòng nhấp vào nút bên dưới để đăng nhập vào {{ template \"app.name\" }}.",
+    "ButtonText": "Đăng nhập vào {{ template \"app.name\" }}",
+    "Disclaimer": "Nếu bạn không khởi động đăng nhập, vui lòng bỏ qua email này."
+  },
+  "SecondaryOOBEmail": {
+    "Title": "Đăng nhập vào {{ template \"app.name\" }}",
+    "Body": "Vui lòng sử dụng mật khẩu một lần sau đây để hoàn tất quá trình đăng nhập.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Không chia sẻ với bất kỳ ai. Nếu bạn không đăng nhập, vui lòng bỏ qua email này."
+  },
+  "ForgotPassword": {
+    "Title": "Đặt lại mật khẩu",
+    "Body": "Bạn đã yêu cầu đặt lại mật khẩu của mình trên {{ template \"app.name\" }}. Để làm như vậy, hãy nhấp vào nút bên dưới.",
+    "Button": "Đặt lại mật khẩu",
+    "Disclaimer": "Nếu bạn không yêu cầu đặt lại, vui lòng bỏ qua email này."
+  },
+  "ForgotPasswordOOBEmail": {
+    "Title": "Đặt lại mật khẩu",
+    "Body": "Vui lòng sử dụng mật khẩu một lần sau đây để đặt lại mật khẩu của bạn trên {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Không chia sẻ với bất kỳ ai. Nếu bạn không yêu cầu đặt lại, vui lòng bỏ qua email này."
+  },
+  "SetupPrimaryLoginLink": {
+    "Title": "Xác minh email của bạn trên {{ template \"app.name\" }}",
+    "Body": "Vui lòng truy cập vào liên kết bên dưới để hoàn tất quá trình đăng ký của bạn.",
+    "Button": "Xác minh email",
+    "Disclaimer": "Nếu bạn không khởi động cài đặt này, vui lòng bỏ qua email này."
+  },
+  "SetupPrimaryOOBEmail": {
+    "Title": "Đăng ký trên {{ template \"app.name\" }}",
+    "Body": "Vui lòng sử dụng mật khẩu một lần sau đây để hoàn tất quá trình đăng ký.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Không chia sẻ với bất kỳ ai. Nếu bạn không đăng ký, vui lòng bỏ qua email này."
+  },
+  "SetupSecondaryLoginLink": {
+    "Title": "Xác minh email của bạn và thiết lập xác minh 2 bước trên {{ template \"app.name\" }}",
+    "Body": "Vui lòng nhấp vào nút bên dưới để thiết lập xác minh 2 bước.",
+    "Button": "Xác minh email",
+    "Disclaimer": "Nếu bạn không khởi động cài đặt này, vui lòng bỏ qua email này."
+  },
+  "SetupSecondaryOOBEmail": {
+    "Title": "Thiết lập Xác minh Hai Bước trên {{ template \"app.name\" }}",
+    "Body": "Ô văn bản bên dưới chứa mật khẩu một lần được tạo để thiết lập xác minh hai bước.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Không chia sẻ với bất kỳ ai. Nếu bạn không khởi động cài đặt này, vui lòng bỏ qua email này."
+  },
+  "VerificationEmail": {
+    "Title": "Xác minh email",
+    "Body": "Email này được gửi để xác minh {{ .Email }} trên {{ template \"app.name\" }}. Sử dụng mã này trên trang xác minh.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Không chia sẻ với bất kỳ ai. Nếu bạn không đăng nhập hoặc đăng ký, vui lòng bỏ qua email này."
+  },
+  "PrimaryLoginLinkTXT": {
+    "Title": "Đăng nhập vào {{ template \"app.name\" }}",
+    "Body": "Vui lòng truy cập vào liên kết bên dưới để đăng nhập vào {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Nếu bạn không khởi động đăng nhập, vui lòng bỏ qua email này."
+  },
+  "PrimaryOOBEmailTXT": {
+    "Title": "Đăng nhập vào {{ template \"app.name\" }}",
+    "Body": "Vui lòng sử dụng mật khẩu một lần sau đây để hoàn tất quá trình đăng nhập.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Không chia sẻ với bất kỳ ai. Nếu bạn không khởi động đăng nhập, vui lòng bỏ qua email này."
+  },
+  "PrimaryOOBSMSTXT": {
+    "Title": "Đăng nhập vào {{ template \"app.name\" }} với mật khẩu một lần này {{ .Code }}.",
+    "Disclaimer": "Không chia sẻ với bất kỳ ai."
+  },
+  "SecondaryLoginLinkTXT": {
+    "Title": "Đăng nhập vào {{ template \"app.name\" }}",
+    "Body": "Vui lòng truy cập vào liên kết bên dưới để đăng nhập vào {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Nếu bạn không khởi động đăng nhập, vui lòng bỏ qua email này."
+  },
+  "SecondaryOOBEmailTXT": {
+    "Title": "Đăng nhập vào {{ template \"app.name\" }}",
+    "Body": "Vui lòng sử dụng mật khẩu một lần sau đây để hoàn tất quá trình đăng nhập.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Không chia sẻ với bất kỳ ai. Nếu bạn không đăng nhập, vui lòng bỏ qua email này."
+  },
+  "SecondaryOOBSMSTXT": {
+    "Title": "{{ .Code }} là mật khẩu một lần của bạn trên {{ template \"app.name\" }}.",
+    "Disclaimer": "Không chia sẻ với bất kỳ ai."
+  },
+  "ForgotPasswordEmailTXT": {
+    "Title": "Đặt lại mật khẩu",
+    "Body": "Bạn đã yêu cầu đặt lại mật khẩu của mình trên {{ template \"app.name\" }}. Vui lòng truy cập vào liên kết bên dưới để đặt lại mật khẩu của bạn.",
+    "Link": "{{ .Link }}",
+    "Disclaimer": "Nếu bạn không yêu cầu đặt lại, vui lòng bỏ qua email này."
+  },
+  "ForgotPasswordSMSTXT": {
+    "Title": "Truy cập vào liên kết này để đặt lại mật khẩu của bạn trên {{ template \"app.name\" }}",
+    "Disclaimer": "Bỏ qua nếu bạn không đặt lại.",
+    "Link": "{{ .Link }}"
+  },
+  "ForgotPasswordOOBEmailTXT": {
+    "Title": "Đặt lại mật khẩu",
+    "Body": "Vui lòng sử dụng mật khẩu một lần sau đây để đặt lại mật khẩu của bạn trên {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Không chia sẻ với bất kỳ ai. Nếu bạn không yêu cầu đặt lại, vui lòng bỏ qua email này."
+  },
+  "ForgotPasswordOOBSMSTXT": {
+    "Body": "Đặt lại mật khẩu của bạn trong {{ template \"app.name\" }} với mật khẩu một lần này {{ .Code }}.",
+    "Disclaimer": "Không chia sẻ với bất kỳ ai."
+  },
+  "SetupPrimaryLoginLinkTXT": {
+    "Title": "Xác minh email của bạn trên {{ template \"app.name\" }}",
+    "Body": "Vui lòng truy cập vào liên kết bên dưới để hoàn tất quá trình đăng ký của bạn trên {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Nếu bạn không khởi động cài đặt này, vui lòng bỏ qua email này."
+  },
+  "SetupPrimaryOOBEmailTXT": {
+    "Title": "Đăng ký trên {{ template \"app.name\" }}",
+    "Body": "Vui lòng sử dụng mật khẩu một lần sau đây để hoàn tất quá trình đăng ký trên {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Không chia sẻ với bất kỳ ai. Nếu bạn không đăng ký, vui lòng bỏ qua email này."
+  },
+  "SetupPrimaryOOBSMSTXT": {
+    "Title": "Đăng ký trên {{ template \"app.name\" }} với mật khẩu một lần này {{ .Code }}.",
+    "Disclaimer": "Không chia sẻ với bất kỳ ai."
+  },
+  "SetupSecondaryLoginLinkTXT": {
+    "Title": "Xác minh email của bạn và thiết lập xác minh 2 bước trên {{ template \"app.name\" }}",
+    "Body": "Vui lòng nhấp vào liên kết bên dưới để thiết lập xác minh 2 bước trên {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Nếu bạn không khởi động cài đặt này, vui lòng bỏ qua email này."
+  },
+  "SetupSecondaryOOBEmailTXT": {
+    "Title": "Thiết lập Xác minh Hai Bước trên {{ template \"app.name\" }}",
+    "Body": "Ô văn bản bên dưới chứa mật khẩu một lần được tạo để thiết lập xác minh hai bước trên {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Không chia sẻ với bất kỳ ai. Nếu bạn không khởi động cài đặt này, vui lòng bỏ qua email này."
+  },
+  "SetupSecondaryOOBSMSTXT": {
+    "Title": "Thiết lập xác minh hai bước trên {{ template \"app.name\" }} với mật khẩu một lần này {{ .Code }}.",
+    "Disclaimer": "Không chia sẻ với bất kỳ ai."
+  },
+  "VerificationEmailTXT": {
+    "Title": "Xác minh email",
+    "Body": "Email này được gửi để xác minh {{ .Email }} trên {{ template \"app.name\" }}. Sử dụng mã này trên trang xác minh.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Không chia sẻ với bất kỳ ai. Nếu bạn không đăng nhập hoặc đăng ký, vui lòng bỏ qua email này."
+  },
+  "VerificationSMSTXT": {
+    "Code": "{{ .Code }} là mã xác minh của bạn trên {{ template \"app.name\" }}.",
+    "Disclaimer": "Không chia sẻ với bất kỳ ai."
+  }
+}

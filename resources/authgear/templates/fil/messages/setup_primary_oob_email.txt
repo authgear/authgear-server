@@ -1,0 +1,7 @@
+Mag-sign up sa {{ template "app.name" }}
+
+Mangyaring gamitin ang sumusunod na one-time password para makumpleto ang proseso ng pag-sign up sa {{ template "app.name" }}.
+
+{{ .Code }}
+
+Huwag ibahagi ito sa sinuman. Kung hindi ka nag-sign up, pakiignore na lang ang email na ito.

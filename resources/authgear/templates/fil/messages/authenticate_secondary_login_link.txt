@@ -1,0 +1,7 @@
+Mag-log in sa {{ template "app.name" }}
+
+Mangyaring sundin ang link sa ibaba para mag-sign in sa {{ template "app.name" }}.
+
+{{ .URL }}
+
+Kung hindi mo pinagana ang pag-log in, pakiignore na lang ang email na ito.

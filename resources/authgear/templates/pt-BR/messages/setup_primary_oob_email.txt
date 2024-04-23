@@ -1,0 +1,7 @@
+Cadastre-se no {{ template "app.name" }}
+
+Por favor, use a seguinte senha única para concluir o processo de cadastro no {{ template "app.name" }}.
+
+{{ .Code }}
+
+Não compartilhe com ninguém. Se você não se cadastrou, por favor ignore este e-mail.

@@ -1,0 +1,3 @@
+{{ .Code }} ialah kod pengesahan anda untuk {{ template "app.name" }}.
+
+Jangan kongsi dengan sesiapa.

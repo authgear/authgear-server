@@ -1,0 +1,7 @@
+Configurar la verificación en dos pasos en {{ template "app.name" }}
+
+El cuadro de texto de abajo contiene una contraseña de un solo uso generada para configurar la verificación en dos pasos en {{ template "app.name" }}.
+
+{{ .Code }}
+
+No la compartas con nadie. Si no desencadenaste esta configuración, ignora este correo electrónico.

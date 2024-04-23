@@ -1,0 +1,7 @@
+Verifica tu correo electrónico en {{ template "app.name" }}
+
+Visita el enlace de abajo para completar tu proceso de registro en {{ template "app.name" }}.
+
+{{ .URL }}
+
+Si no desencadenaste esta configuración, ignora este correo electrónico.

@@ -1,0 +1,7 @@
+Verifikasi Email
+
+Email ini dikirim untuk memverifikasi {{ .Email }} di {{ template "app.name" }}. Gunakan kode ini di halaman verifikasi.
+
+{{ .Code }}
+
+Jangan bagikan dengan siapa pun. Jika Anda tidak masuk atau mendaftar, abaikan email ini.

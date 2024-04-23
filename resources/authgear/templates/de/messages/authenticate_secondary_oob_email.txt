@@ -1,0 +1,7 @@
+Melden Sie sich bei {{ template "app.name" }} an
+
+Bitte verwenden Sie das folgende Einmal-Passwort, um den Anmeldeprozess abzuschließen.
+
+{{ .Code }}
+
+Geben Sie es niemandem weiter. Wenn Sie sich nicht angemeldet haben, ignorieren Sie bitte diese E-Mail.

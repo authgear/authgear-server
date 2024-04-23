@@ -1,0 +1,7 @@
+Configure a Verificação em Duas Etapas no {{ template "app.name" }}
+
+A caixa de texto abaixo contém uma senha única gerada para configurar a verificação em duas etapas no {{ template "app.name" }}.
+
+{{ .Code }}
+
+Não compartilhe com ninguém. Se você não iniciou esta configuração, por favor ignore este e-mail.

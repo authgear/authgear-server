@@ -1,0 +1,7 @@
+Verifieer uw e-mail en stel 2-staps verificatie in op {{ template "app.name" }}
+
+Klik op de onderstaande link om 2-staps verificatie in te stellen op {{ template "app.name" }}.
+
+{{ .URL }}
+
+Als u deze setup niet heeft geïnitieerd, negeer dan deze e-mail.

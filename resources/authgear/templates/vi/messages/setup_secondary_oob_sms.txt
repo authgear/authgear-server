@@ -1,0 +1,3 @@
+Thiết lập xác minh hai bước trên {{ template "app.name" }} với mật khẩu một lần này {{ .Code }}.
+
+Không chia sẻ với bất kỳ ai.

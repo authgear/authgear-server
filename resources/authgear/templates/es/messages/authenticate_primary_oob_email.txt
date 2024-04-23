@@ -1,0 +1,7 @@
+Inicia sesión en {{ template "app.name" }}
+
+Usa la siguiente contraseña de un solo uso para completar el proceso de inicio de sesión.
+
+{{ .Code }}
+
+No la compartas con nadie. Si no iniciaste un inicio de sesión, ignora este correo electrónico.

@@ -1,0 +1,7 @@
+Log in op {{ template "app.name" }}
+
+Volg de onderstaande link om in te loggen op {{ template "app.name" }}.
+
+{{ .URL }}
+
+Als u deze login niet heeft geïnitieerd, negeer dan deze e-mail.

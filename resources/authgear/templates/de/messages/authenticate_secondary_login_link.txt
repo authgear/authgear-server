@@ -1,0 +1,7 @@
+Melden Sie sich bei {{ template "app.name" }} an
+
+Bitte folgen Sie dem Link unten, um sich bei {{ template "app.name" }} anzumelden.
+
+{{ .URL }}
+
+Wenn Sie sich nicht angemeldet haben, ignorieren Sie bitte diese E-Mail.

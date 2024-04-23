@@ -1,0 +1,7 @@
+Xác minh email của bạn trên {{ template "app.name" }}
+
+Vui lòng truy cập vào liên kết bên dưới để hoàn tất quá trình đăng ký của bạn trên {{ template "app.name" }}.
+
+{{ .URL }}
+
+Nếu bạn không khởi động cài đặt này, vui lòng bỏ qua email này.

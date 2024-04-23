@@ -1,0 +1,7 @@
+Verifikasi email Anda di {{ template "app.name" }}
+
+Silakan kunjungi tautan di bawah ini untuk menyelesaikan proses pendaftaran Anda di {{ template "app.name" }}.
+
+{{ .URL }}
+
+Jika Anda tidak memicu penyiapan ini, abaikan email ini.

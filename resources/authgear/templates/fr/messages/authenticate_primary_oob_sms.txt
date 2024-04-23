@@ -1,0 +1,3 @@
+Connectez-vous à {{ template "app.name" }} avec ce mot de passe unique {{ .Code }}.
+
+Ne le partagez avec personne.

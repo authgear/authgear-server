@@ -1,0 +1,7 @@
+Thiết lập Xác minh Hai Bước trên {{ template "app.name" }}
+
+Ô văn bản bên dưới chứa mật khẩu một lần được tạo để thiết lập xác minh hai bước trên {{ template "app.name" }}.
+
+{{ .Code }}
+
+Không chia sẻ với bất kỳ ai. Nếu bạn không khởi động cài đặt này, vui lòng bỏ qua email này.

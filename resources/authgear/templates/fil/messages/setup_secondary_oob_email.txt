@@ -1,0 +1,7 @@
+I-setup ang Two-Step Verification sa {{ template "app.name" }}
+
+Ang textbox sa ibaba ay naglalaman ng one-time password na nabuo para i-setup ang two-step verification sa {{ template "app.name" }}.
+
+{{ .Code }}
+
+Huwag ibahagi ito sa sinuman. Kung hindi mo pinagana ang setup na ito, pakiignore na lang ang email na ito.

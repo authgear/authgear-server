@@ -1,0 +1,3 @@
+Mag-sign up sa {{ template "app.name" }} gamit ang one-time password na ito {{ .Code }}.
+
+Huwag ibahagi ito sa sinuman.

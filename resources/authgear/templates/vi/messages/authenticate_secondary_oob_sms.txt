@@ -1,0 +1,3 @@
+{{ .Code }} là mật khẩu một lần của bạn trên {{ template "app.name" }}.
+
+Không chia sẻ với bất kỳ ai.

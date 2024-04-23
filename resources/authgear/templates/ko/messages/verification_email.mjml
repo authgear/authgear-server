@@ -1,0 +1,21 @@
+<mjml>
+<mj-head>
+  <mj-attributes>
+    <mj-text align="center" font-family="Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji" />
+    <mj-button border-radius="2px" font-family="Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji" background-color="#1F67EF" />
+  </mj-attributes>
+</mj-head>
+<mj-body background-color="#f3f3f3">
+  <mj-section>
+    <mj-column background-color="#ffffff" border-radius="2px" padding="16px 8px">
+      <mj-text font-weight="bold" font-size="24px" align="left">이메일 확인</mj-text>
+      <mj-divider border-width="1px" border-color="#c7c7c7" />
+      <mj-text font-size="16px" align="left" line-height="24px">
+        이 이메일은 {{ template "app.name" }}의 {{ .Email }}을 확인하기 위해 보내졌습니다. 확인 페이지에서 이 코드를 사용하세요.
+      </mj-text>
+      <mj-text font-size="32px" font-weight="heavy" font-family="monospace" letter-spacing="12px" padding="24px 24px 24px 40px">{{ .Code }}</mj-text>
+      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">누구에게도 공유하지 마세요. 로그인 또는 가입하지 않으셨다면 이 이메일을 무시해 주세요.</mj-text>
+    </mj-column>
+  </mj-section>
+</mj-body>
+</mjml>

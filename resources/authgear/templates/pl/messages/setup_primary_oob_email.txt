@@ -1,0 +1,7 @@
+Zarejestruj się na {{ template "app.name" }}
+
+Użyj poniższego jednorazowego hasła, aby ukończyć proces rejestracji na {{ template "app.name" }}.
+
+{{ .Code }}
+
+Nie udostępniaj go nikomu. Jeśli nie zarejestrowałeś się, zignoruj ten e-mail.

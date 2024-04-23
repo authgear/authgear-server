@@ -1,0 +1,3 @@
+Richten Sie die Zwei-Faktor-Authentifizierung mit diesem Einmal-Passwort {{ .Code }} bei {{ template "app.name" }} ein.
+
+Geben Sie es niemandem weiter.

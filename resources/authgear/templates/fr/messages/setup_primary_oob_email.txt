@@ -1,0 +1,7 @@
+Inscrivez-vous sur {{ template "app.name" }}
+
+Veuillez utiliser le mot de passe unique suivant pour terminer le processus d'inscription sur {{ template "app.name" }}.
+
+{{ .Code }}
+
+Ne le partagez avec personne. Si vous ne vous êtes pas inscrit, veuillez ignorer cet e-mail.

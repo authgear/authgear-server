@@ -1,0 +1,163 @@
+{
+  "PrimaryLoginLink": {
+    "Title": "Verwenden Sie diesen Link, um sich bei {{ template \"app.name\" }} anzumelden",
+    "Body": "Bitte klicken Sie auf die Schaltfläche unten, um sich bei {{ template \"app.name\" }} anzumelden.",
+    "Button": "Bei {{ template \"app.name\" }} anmelden",
+    "Disclaimer": "Wenn Sie sich nicht angemeldet haben, ignorieren Sie bitte diese E-Mail."
+  },
+  "PrimaryOOBEmail": {
+    "Title": "Melden Sie sich bei {{ template \"app.name\" }} an",
+    "Body": "Bitte verwenden Sie das folgende Einmal-Passwort, um den Anmeldeprozess abzuschließen.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Geben Sie es niemandem weiter. Wenn Sie sich nicht angemeldet haben, ignorieren Sie bitte diese E-Mail."
+  },
+  "SecondaryLoginLink": {
+    "Title": "Verwenden Sie diesen Link, um sich bei {{ template \"app.name\" }} anzumelden",
+    "Instruction": "Bitte klicken Sie auf die Schaltfläche unten, um sich bei {{ template \"app.name\" }} anzumelden.",
+    "ButtonText": "Bei {{ template \"app.name\" }} anmelden",
+    "Disclaimer": "Wenn Sie sich nicht angemeldet haben, ignorieren Sie bitte diese E-Mail."
+  },
+  "SecondaryOOBEmail": {
+    "Title": "Melden Sie sich bei {{ template \"app.name\" }} an",
+    "Body": "Bitte verwenden Sie das folgende Einmal-Passwort, um den Anmeldeprozess abzuschließen.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Geben Sie es niemandem weiter. Wenn Sie sich nicht angemeldet haben, ignorieren Sie bitte diese E-Mail."
+  },
+  "ForgotPassword": {
+    "Title": "Passwort zurücksetzen",
+    "Body": "Sie haben darum gebeten, Ihr Passwort für {{ template \"app.name\" }} zurückzusetzen. Klicken Sie dazu auf die Schaltfläche unten.",
+    "Button": "Passwort zurücksetzen",
+    "Disclaimer": "Wenn Sie keine Rücksetzung angefordert haben, ignorieren Sie bitte diese E-Mail."
+  },
+  "ForgotPasswordOOBEmail": {
+    "Title": "Passwort zurücksetzen",
+    "Body": "Bitte verwenden Sie das folgende Einmal-Passwort, um Ihr Passwort für {{ template \"app.name\" }} zurückzusetzen.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Geben Sie es niemandem weiter. Wenn Sie keine Rücksetzung angefordert haben, ignorieren Sie bitte diese E-Mail."
+  },
+  "SetupPrimaryLoginLink": {
+    "Title": "Verifizieren Sie Ihre E-Mail-Adresse bei {{ template \"app.name\" }}",
+    "Body": "Bitte besuchen Sie den Link unten, um den Anmeldeprozess abzuschließen.",
+    "Button": "E-Mail verifizieren",
+    "Disclaimer": "Wenn Sie diese Einrichtung nicht ausgelöst haben, ignorieren Sie bitte diese E-Mail."
+  },
+  "SetupPrimaryOOBEmail": {
+    "Title": "Registrieren Sie sich bei {{ template \"app.name\" }}",
+    "Body": "Bitte verwenden Sie das folgende Einmal-Passwort, um den Registrierungsprozess abzuschließen.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Geben Sie es niemandem weiter. Wenn Sie sich nicht registriert haben, ignorieren Sie bitte diese E-Mail."
+  },
+  "SetupSecondaryLoginLink": {
+    "Title": "Verifizieren Sie Ihre E-Mail-Adresse und richten Sie die 2-Faktor-Authentifizierung bei {{ template \"app.name\" }} ein",
+    "Body": "Bitte klicken Sie auf die Schaltfläche unten, um die 2-Faktor-Authentifizierung einzurichten.",
+    "Button": "E-Mail verifizieren",
+    "Disclaimer": "Wenn Sie diese Einrichtung nicht ausgelöst haben, ignorieren Sie bitte diese E-Mail."
+  },
+  "SetupSecondaryOOBEmail": {
+    "Title": "Richten Sie die Zwei-Faktor-Authentifizierung bei {{ template \"app.name\" }} ein",
+    "Body": "Das Textfeld unten enthält ein Einmal-Passwort, das zur Einrichtung der Zwei-Faktor-Authentifizierung generiert wurde.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Geben Sie es niemandem weiter. Wenn Sie diese Einrichtung nicht ausgelöst haben, ignorieren Sie bitte diese E-Mail."
+  },
+  "VerificationEmail": {
+    "Title": "E-Mail-Verifizierung",
+    "Body": "Diese E-Mail wird gesendet, um {{ .Email }} bei {{ template \"app.name\" }} zu verifizieren. Verwenden Sie diesen Code auf der Verifizierungsseite.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Geben Sie es niemandem weiter. Wenn Sie sich nicht angemeldet oder registriert haben, ignorieren Sie bitte diese E-Mail."
+  },
+  "PrimaryLoginLinkTXT": {
+    "Title": "Melden Sie sich bei {{ template \"app.name\" }} an",
+    "Body": "Bitte folgen Sie dem Link unten, um sich bei {{ template \"app.name\" }} anzumelden.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Wenn Sie sich nicht angemeldet haben, ignorieren Sie bitte diese E-Mail."
+  },
+  "PrimaryOOBEmailTXT": {
+    "Title": "Melden Sie sich bei {{ template \"app.name\" }} an",
+    "Body": "Bitte verwenden Sie das folgende Einmal-Passwort, um den Anmeldeprozess abzuschließen.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Geben Sie es niemandem weiter. Wenn Sie sich nicht angemeldet haben, ignorieren Sie bitte diese E-Mail."
+  },
+  "PrimaryOOBSMSTXT": {
+    "Title": "Melden Sie sich mit diesem Einmal-Passwort {{ .Code }} bei {{ template \"app.name\" }} an.",
+    "Disclaimer": "Geben Sie es niemandem weiter."
+  },
+  "SecondaryLoginLinkTXT": {
+    "Title": "Melden Sie sich bei {{ template \"app.name\" }} an",
+    "Body": "Bitte folgen Sie dem Link unten, um sich bei {{ template \"app.name\" }} anzumelden.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Wenn Sie sich nicht angemeldet haben, ignorieren Sie bitte diese E-Mail."
+  },
+  "SecondaryOOBEmailTXT": {
+    "Title": "Melden Sie sich bei {{ template \"app.name\" }} an",
+    "Body": "Bitte verwenden Sie das folgende Einmal-Passwort, um den Anmeldeprozess abzuschließen.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Geben Sie es niemandem weiter. Wenn Sie sich nicht angemeldet haben, ignorieren Sie bitte diese E-Mail."
+  },
+  "SecondaryOOBSMSTXT": {
+    "Title": "{{ .Code }} ist Ihr {{ template \"app.name\" }} Einmal-Passwort.",
+    "Disclaimer": "Geben Sie es niemandem weiter."
+  },
+  "ForgotPasswordEmailTXT": {
+    "Title": "Passwort zurücksetzen",
+    "Body": "Sie haben darum gebeten, Ihr Passwort für {{ template \"app.name\" }} zurückzusetzen. Bitte besuchen Sie den Link unten, um Ihr Passwort zurückzusetzen.",
+    "Link": "{{ .Link }}",
+    "Disclaimer": "Wenn Sie keine Rücksetzung angefordert haben, ignorieren Sie bitte diese E-Mail."
+  },
+  "ForgotPasswordSMSTXT": {
+    "Title": "Besuchen Sie diesen Link, um Ihr Passwort für {{ template \"app.name\" }} zurückzusetzen",
+    "Disclaimer": "Ignorieren Sie dies, wenn Sie kein Passwort zurücksetzen.",
+    "Link": "{{ .Link }}"
+  },
+  "ForgotPasswordOOBEmailTXT": {
+    "Title": "Passwort zurücksetzen",
+    "Body": "Bitte verwenden Sie das folgende Einmal-Passwort, um Ihr Passwort für {{ template \"app.name\" }} zurückzusetzen.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Geben Sie es niemandem weiter. Wenn Sie keine Rücksetzung angefordert haben, ignorieren Sie bitte diese E-Mail."
+  },
+  "ForgotPasswordOOBSMSTXT": {
+    "Body": "Setzen Sie Ihr Passwort in {{ template \"app.name\" }} mit diesem Einmal-Passwort {{ .Code }} zurück.",
+    "Disclaimer": "Geben Sie es niemandem weiter."
+  },
+  "SetupPrimaryLoginLinkTXT": {
+    "Title": "Verifizieren Sie Ihre E-Mail-Adresse bei {{ template \"app.name\" }}",
+    "Body": "Bitte besuchen Sie den Link unten, um den Registrierungsprozess bei {{ template \"app.name\" }} abzuschließen.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Wenn Sie diese Einrichtung nicht ausgelöst haben, ignorieren Sie bitte diese E-Mail."
+  },
+  "SetupPrimaryOOBEmailTXT": {
+    "Title": "Registrieren Sie sich bei {{ template \"app.name\" }}",
+    "Body": "Bitte verwenden Sie das folgende Einmal-Passwort, um den Registrierungsprozess bei {{ template \"app.name\" }} abzuschließen.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Geben Sie es niemandem weiter. Wenn Sie sich nicht registriert haben, ignorieren Sie bitte diese E-Mail."
+  },
+  "SetupPrimaryOOBSMSTXT": {
+    "Title": "Registrieren Sie sich mit diesem Einmal-Passwort {{ .Code }} bei {{ template \"app.name\" }}.",
+    "Disclaimer": "Geben Sie es niemandem weiter."
+  },
+  "SetupSecondaryLoginLinkTXT": {
+    "Title": "Verifizieren Sie Ihre E-Mail-Adresse und richten Sie die 2-Faktor-Authentifizierung bei {{ template \"app.name\" }} ein",
+    "Body": "Bitte klicken Sie auf den Link unten, um die 2-Faktor-Authentifizierung bei {{ template \"app.name\" }} einzurichten.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Wenn Sie diese Einrichtung nicht ausgelöst haben, ignorieren Sie bitte diese E-Mail."
+  },
+  "SetupSecondaryOOBEmailTXT": {
+    "Title": "Richten Sie die Zwei-Faktor-Authentifizierung bei {{ template \"app.name\" }} ein",
+    "Body": "Das Textfeld unten enthält ein Einmal-Passwort, das zur Einrichtung der Zwei-Faktor-Authentifizierung bei {{ template \"app.name\" }} generiert wurde.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Geben Sie es niemandem weiter. Wenn Sie diese Einrichtung nicht ausgelöst haben, ignorieren Sie bitte diese E-Mail."
+  },
+  "SetupSecondaryOOBSMSTXT": {
+    "Title": "Richten Sie die Zwei-Faktor-Authentifizierung mit diesem Einmal-Passwort {{ .Code }} bei {{ template \"app.name\" }} ein.",
+    "Disclaimer": "Geben Sie es niemandem weiter."
+  },
+  "VerificationEmailTXT": {
+    "Title": "E-Mail-Verifizierung",
+    "Body": "Diese E-Mail wird gesendet, um {{ .Email }} bei {{ template \"app.name\" }} zu verifizieren. Verwenden Sie diesen Code auf der Verifizierungsseite.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Geben Sie es niemandem weiter. Wenn Sie sich nicht angemeldet oder registriert haben, ignorieren Sie bitte diese E-Mail."
+  },
+  "VerificationSMSTXT": {
+    "Code": "{{ .Code }} ist Ihr {{ template \"app.name\" }} Verifizierungscode.",
+    "Disclaimer": "Geben Sie es niemandem weiter."
+  }
+}

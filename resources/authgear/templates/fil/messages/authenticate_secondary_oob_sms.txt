@@ -1,0 +1,3 @@
+Ang {{ .Code }} ay ang iyong one-time password sa {{ template "app.name" }}.
+
+Huwag ibahagi ito sa sinuman.

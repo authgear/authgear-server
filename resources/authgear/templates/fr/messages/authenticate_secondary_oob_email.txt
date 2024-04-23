@@ -1,0 +1,7 @@
+Connectez-vous à {{ template "app.name" }}
+
+Veuillez utiliser le mot de passe unique suivant pour terminer le processus de connexion.
+
+{{ .Code }}
+
+Ne le partagez avec personne. Si vous ne vous êtes pas connecté, veuillez ignorer cet e-mail.

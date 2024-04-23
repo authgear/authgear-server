@@ -1,0 +1,7 @@
+Zaloguj się na {{ template "app.name" }}
+
+Postępuj zgodnie z poniższym linkiem, aby zalogować się na {{ template "app.name" }}.
+
+{{ .URL }}
+
+Jeśli nie wywołałeś logowania, zignoruj ten e-mail.

@@ -1,0 +1,3 @@
+Faça login no {{ template "app.name" }} com esta senha única {{ .Code }}.
+
+Não compartilhe com ninguém.

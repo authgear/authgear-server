@@ -1,0 +1,163 @@
+{
+  "PrimaryLoginLink": {
+    "Title": "Usa este enlace para iniciar sesión en {{ template \"app.name\" }}",
+    "Body": "Haz clic en el botón de abajo para iniciar sesión en {{ template \"app.name\" }}.",
+    "Button": "Iniciar sesión en {{ template \"app.name\" }}",
+    "Disclaimer": "Si no has iniciado sesión, por favor ignora este correo electrónico."
+  },
+  "PrimaryOOBEmail": {
+    "Title": "Inicia sesión en {{ template \"app.name\" }}",
+    "Body": "Usa la siguiente contraseña de un solo uso para completar el proceso de inicio de sesión.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "No la compartas con nadie. Si no has iniciado sesión, por favor ignora este correo electrónico."
+  },
+  "SecondaryLoginLink": {
+    "Title": "Usa este enlace para iniciar sesión en {{ template \"app.name\" }}",
+    "Instruction": "Haz clic en el botón de abajo para iniciar sesión en {{ template \"app.name\" }}.",
+    "ButtonText": "Iniciar sesión en {{ template \"app.name\" }}",
+    "Disclaimer": "Si no has iniciado sesión, por favor ignora este correo electrónico."
+  },
+  "SecondaryOOBEmail": {
+    "Title": "Inicia sesión en {{ template \"app.name\" }}",
+    "Body": "Usa la siguiente contraseña de un solo uso para completar el proceso de inicio de sesión.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "No la compartas con nadie. Si no has iniciado sesión, por favor ignora este correo electrónico."
+  },
+  "ForgotPassword": {
+    "Title": "Restablecer contraseña",
+    "Body": "Has solicitado restablecer tu contraseña en {{ template \"app.name\" }}. Para hacerlo, haz clic en el botón de abajo.",
+    "Button": "Restablecer contraseña",
+    "Disclaimer": "Si no has solicitado un restablecimiento, por favor ignora este correo electrónico."
+  },
+  "ForgotPasswordOOBEmail": {
+    "Title": "Restablecer contraseña",
+    "Body": "Usa la siguiente contraseña de un solo uso para restablecer tu contraseña en {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "No la compartas con nadie. Si no has solicitado un restablecimiento, por favor ignora este correo electrónico."
+  },
+  "SetupPrimaryLoginLink": {
+    "Title": "Verifica tu correo electrónico en {{ template \"app.name\" }}",
+    "Body": "Visita el enlace de abajo para completar el proceso de registro.",
+    "Button": "Verificar correo electrónico",
+    "Disclaimer": "Si no has iniciado este proceso, por favor ignora este correo electrónico."
+  },
+  "SetupPrimaryOOBEmail": {
+    "Title": "Regístrate en {{ template \"app.name\" }}",
+    "Body": "Usa la siguiente contraseña de un solo uso para completar el proceso de registro.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "No la compartas con nadie. Si no te has registrado, por favor ignora este correo electrónico."
+  },
+  "SetupSecondaryLoginLink": {
+    "Title": "Verifica tu correo electrónico y configura la verificación en dos pasos en {{ template \"app.name\" }}",
+    "Body": "Haz clic en el botón de abajo para configurar la verificación en dos pasos.",
+    "Button": "Verificar correo electrónico",
+    "Disclaimer": "Si no has iniciado este proceso, por favor ignora este correo electrónico."
+  },
+  "SetupSecondaryOOBEmail": {
+    "Title": "Configurar la verificación en dos pasos en {{ template \"app.name\" }}",
+    "Body": "El cuadro de texto de abajo contiene una contraseña de un solo uso generada para configurar la verificación en dos pasos.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "No la compartas con nadie. Si no has iniciado este proceso, por favor ignora este correo electrónico."
+  },
+  "VerificationEmail": {
+    "Title": "Verificación de correo electrónico",
+    "Body": "Este correo electrónico se envía para verificar {{ .Email }} en {{ template \"app.name\" }}. Usa este código en la página de verificación.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "No lo compartas con nadie. Si no has iniciado sesión o registrado, por favor ignora este correo electrónico."
+  },
+  "PrimaryLoginLinkTXT": {
+    "Title": "Inicia sesión en {{ template \"app.name\" }}",
+    "Body": "Sigue el enlace de abajo para iniciar sesión en {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Si no has iniciado sesión, por favor ignora este correo electrónico."
+  },
+  "PrimaryOOBEmailTXT": {
+    "Title": "Inicia sesión en {{ template \"app.name\" }}",
+    "Body": "Usa la siguiente contraseña de un solo uso para completar el proceso de inicio de sesión.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "No la compartas con nadie. Si no has iniciado sesión, por favor ignora este correo electrónico."
+  },
+  "PrimaryOOBSMSTXT": {
+    "Title": "Inicia sesión en {{ template \"app.name\" }} con esta contraseña de un solo uso {{ .Code }}.",
+    "Disclaimer": "No la compartas con nadie."
+  },
+  "SecondaryLoginLinkTXT": {
+    "Title": "Inicia sesión en {{ template \"app.name\" }}",
+    "Body": "Sigue el enlace de abajo para iniciar sesión en {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Si no has iniciado sesión, por favor ignora este correo electrónico."
+  },
+  "SecondaryOOBEmailTXT": {
+    "Title": "Inicia sesión en {{ template \"app.name\" }}",
+    "Body": "Usa la siguiente contraseña de un solo uso para completar el proceso de inicio de sesión.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "No la compartas con nadie. Si no has iniciado sesión, por favor ignora este correo electrónico."
+  },
+  "SecondaryOOBSMSTXT": {
+    "Title": "{{ .Code }} es tu contraseña de un solo uso de {{ template \"app.name\" }}.",
+    "Disclaimer": "No la compartas con nadie."
+  },
+  "ForgotPasswordEmailTXT": {
+    "Title": "Restablecer contraseña",
+    "Body": "Has solicitado restablecer tu contraseña en {{ template \"app.name\" }}. Visita el enlace de abajo para restablecer tu contraseña.",
+    "Link": "{{ .Link }}",
+    "Disclaimer": "Si no has solicitado un restablecimiento, por favor ignora este correo electrónico."
+  },
+  "ForgotPasswordSMSTXT": {
+    "Title": "Visita este enlace para restablecer tu contraseña en {{ template \"app.name\" }}",
+    "Disclaimer": "Ignora esto si no estás restableciendo.",
+    "Link": "{{ .Link }}"
+  },
+  "ForgotPasswordOOBEmailTXT": {
+    "Title": "Restablecer contraseña",
+    "Body": "Usa la siguiente contraseña de un solo uso para restablecer tu contraseña en {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "No la compartas con nadie. Si no has solicitado un restablecimiento, por favor ignora este correo electrónico."
+  },
+  "ForgotPasswordOOBSMSTXT": {
+    "Body": "Restablece tu contraseña en {{ template \"app.name\" }} con esta contraseña de un solo uso {{ .Code }}.",
+    "Disclaimer": "No la compartas con nadie."
+  },
+  "SetupPrimaryLoginLinkTXT": {
+    "Title": "Verifica tu correo electrónico en {{ template \"app.name\" }}",
+    "Body": "Visita el enlace de abajo para completar el proceso de registro en {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Si no has iniciado este proceso, por favor ignora este correo electrónico."
+  },
+  "SetupPrimaryOOBEmailTXT": {
+    "Title": "Regístrate en {{ template \"app.name\" }}",
+    "Body": "Usa la siguiente contraseña de un solo uso para completar el proceso de registro en {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "No la compartas con nadie. Si no te has registrado, por favor ignora este correo electrónico."
+  },
+  "SetupPrimaryOOBSMSTXT": {
+    "Title": "Regístrate en {{ template \"app.name\" }} con esta contraseña de un solo uso {{ .Code }}.",
+    "Disclaimer": "No la compartas con nadie."
+  },
+  "SetupSecondaryLoginLinkTXT": {
+    "Title": "Verifica tu correo electrónico y configura la verificación en dos pasos en {{ template \"app.name\" }}",
+    "Body": "Haz clic en el enlace de abajo para configurar la verificación en dos pasos en {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Si no has iniciado este proceso, por favor ignora este correo electrónico."
+  },
+  "SetupSecondaryOOBEmailTXT": {
+    "Title": "Configurar la verificación en dos pasos en {{ template \"app.name\" }}",
+    "Body": "El cuadro de texto de abajo contiene una contraseña de un solo uso generada para configurar la verificación en dos pasos en {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "No la compartas con nadie. Si no has iniciado este proceso, por favor ignora este correo electrónico."
+  },
+  "SetupSecondaryOOBSMSTXT": {
+    "Title": "Configura la verificación en dos pasos en {{ template \"app.name\" }} con esta contraseña de un solo uso {{ .Code }}.",
+    "Disclaimer": "No la compartas con nadie."
+  },
+  "VerificationEmailTXT": {
+    "Title": "Verificación de correo electrónico",
+    "Body": "Este correo electrónico se envía para verificar {{ .Email }} en {{ template \"app.name\" }}. Usa este código en la página de verificación.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "No lo compartas con nadie. Si no has iniciado sesión o registrado, por favor ignora este correo electrónico."
+  },
+  "VerificationSMSTXT": {
+    "Code": "{{ .Code }} es tu código de verificación de {{ template \"app.name\" }}.",
+    "Disclaimer": "No lo compartas con nadie."
+  }
+}
