@@ -9,6 +9,7 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
@@ -60,8 +61,11 @@ func (i *IntentCheckConflictAndCreateIdenity) ReactTo(ctx context.Context, deps 
 			switch cfg.GetAction() {
 			case config.AccountLinkingActionError:
 				spec := spec
-				otherSpec := conflicts[0].ToSpec()
-				return nil, identityFillDetails(api.ErrDuplicatedIdentity, spec, &otherSpec)
+				conflictSpecs := slice.Map(conflicts, func(i *identity.Info) *identity.Spec {
+					s := i.ToSpec()
+					return &s
+				})
+				return nil, identityFillDetailsMany(api.ErrDuplicatedIdentity, spec, conflictSpecs)
 			case config.AccountLinkingActionLoginAndLink:
 				loginFlow = cfg.GetLoginFlow()
 				if loginFlow == "" {
