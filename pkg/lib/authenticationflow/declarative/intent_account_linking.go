@@ -204,6 +204,7 @@ func (i *IntentAccountLinking) getOptions() []AccountLinkingIdentificationOption
 		case model.IdentityTypeOAuth:
 			identifcation = config.AuthenticationFlowIdentificationOAuth
 			providerType = config.OAuthSSOProviderType(identity.OAuth.ProviderID.Type)
+			maskedDisplayName = identity.OAuth.GetDisplayName()
 			providerAlias = identity.OAuth.ProviderAlias
 		default:
 			// Other types are not supported in account linking, exclude them in options

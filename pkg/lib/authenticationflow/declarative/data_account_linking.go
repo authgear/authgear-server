@@ -8,10 +8,8 @@ import (
 )
 
 type AccountLinkingIdentificationOption struct {
-	Identifcation config.AuthenticationFlowIdentification `json:"identification"`
-
-	// MaskedDisplayName is specific to login id
-	MaskedDisplayName string `json:"masked_display_name"`
+	Identifcation     config.AuthenticationFlowIdentification `json:"identification"`
+	MaskedDisplayName string                                  `json:"masked_display_name,omitempty"`
 
 	// ProviderType is specific to OAuth.
 	ProviderType config.OAuthSSOProviderType `json:"provider_type,omitempty"`
