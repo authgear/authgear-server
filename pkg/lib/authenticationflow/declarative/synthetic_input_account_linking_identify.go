@@ -6,7 +6,7 @@ import (
 )
 
 // This input is for advancing the login flow with the conflicted existing identity
-type SyntheticInputOAuthConflict struct {
+type SyntheticInputAccountLinkingIdentify struct {
 	Identification config.AuthenticationFlowIdentification
 
 	// For identification=email/phone/username
@@ -19,32 +19,32 @@ type SyntheticInputOAuthConflict struct {
 }
 
 // GetLoginID implements inputTakeLoginID.
-func (i *SyntheticInputOAuthConflict) GetLoginID() string {
+func (i *SyntheticInputAccountLinkingIdentify) GetLoginID() string {
 	return i.LoginID
 }
 
 // GetIdentificationMethod implements inputTakeIdentificationMethod.
-func (i *SyntheticInputOAuthConflict) GetIdentificationMethod() config.AuthenticationFlowIdentification {
+func (i *SyntheticInputAccountLinkingIdentify) GetIdentificationMethod() config.AuthenticationFlowIdentification {
 	return i.Identification
 }
 
 // GetOAuthAlias implements inputTakeOAuthAuthorizationRequest.
-func (i *SyntheticInputOAuthConflict) GetOAuthAlias() string {
+func (i *SyntheticInputAccountLinkingIdentify) GetOAuthAlias() string {
 	return i.Alias
 }
 
 // GetOAuthRedirectURI implements inputTakeOAuthAuthorizationRequest.
-func (i *SyntheticInputOAuthConflict) GetOAuthRedirectURI() string {
+func (i *SyntheticInputAccountLinkingIdentify) GetOAuthRedirectURI() string {
 	return i.RedirectURI
 }
 
 // GetOAuthResponseMode implements inputTakeOAuthAuthorizationRequest.
-func (i *SyntheticInputOAuthConflict) GetOAuthResponseMode() sso.ResponseMode {
+func (i *SyntheticInputAccountLinkingIdentify) GetOAuthResponseMode() sso.ResponseMode {
 	return i.ResponseMode
 }
 
-func (*SyntheticInputOAuthConflict) Input() {}
+func (*SyntheticInputAccountLinkingIdentify) Input() {}
 
-var _ inputTakeIdentificationMethod = &SyntheticInputOAuthConflict{}
-var _ inputTakeLoginID = &SyntheticInputOAuthConflict{}
-var _ inputTakeOAuthAuthorizationRequest = &SyntheticInputOAuthConflict{}
+var _ inputTakeIdentificationMethod = &SyntheticInputAccountLinkingIdentify{}
+var _ inputTakeLoginID = &SyntheticInputAccountLinkingIdentify{}
+var _ inputTakeOAuthAuthorizationRequest = &SyntheticInputAccountLinkingIdentify{}

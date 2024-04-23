@@ -15,10 +15,10 @@ import (
 )
 
 func init() {
-	authflow.RegisterIntent(&IntentAccountLinkingOAuth{})
+	authflow.RegisterIntent(&IntentAccountLinking{})
 }
 
-type IntentAccountLinkingOAuth struct {
+type IntentAccountLinking struct {
 	JSONPointer           jsonpointer.T    `json:"json_pointer,omitempty"`
 	SkipLogin             bool             `json:"skip_login,omitempty"`
 	LoginFlowName         string           `json:"login_flow_name,omitempty"`
@@ -26,18 +26,18 @@ type IntentAccountLinkingOAuth struct {
 	ConflictingIdentities []*identity.Info `json:"conflicting_identities,omitempty"`
 }
 
-var _ authflow.Intent = &IntentAccountLinkingOAuth{}
-var _ authflow.DataOutputer = &IntentAccountLinkingOAuth{}
+var _ authflow.Intent = &IntentAccountLinking{}
+var _ authflow.DataOutputer = &IntentAccountLinking{}
 
-func (*IntentAccountLinkingOAuth) Kind() string {
-	return "IntentAccountLinkingOAuth"
+func (*IntentAccountLinking) Kind() string {
+	return "IntentAccountLinking"
 }
 
-func (i *IntentAccountLinkingOAuth) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
+func (i *IntentAccountLinking) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
 	return NewAccountLinkingIdentifyData(i.getOptions()), nil
 }
 
-func (i *IntentAccountLinkingOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+func (i *IntentAccountLinking) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	switch len(flows.Nearest.Nodes) {
 	case 0: // Ask for identity to link
 		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
@@ -58,7 +58,7 @@ func (i *IntentAccountLinkingOAuth) CanReactTo(ctx context.Context, deps *authfl
 	return nil, authflow.ErrEOF
 }
 
-func (i *IntentAccountLinkingOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (i *IntentAccountLinking) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	if len(flows.Root.Nodes) == 0 {
 		var inputTakeAccountLinkingIdentification inputTakeAccountLinkingIdentification
 		if authflow.AsInput(input, &inputTakeAccountLinkingIdentification) {
@@ -152,11 +152,11 @@ func (i *IntentAccountLinkingOAuth) ReactTo(ctx context.Context, deps *authflow.
 	return nil, authflow.ErrIncompatibleInput
 }
 
-func (i *IntentAccountLinkingOAuth) createSyntheticInputOAuthConflict(
+func (i *IntentAccountLinking) createSyntheticInputOAuthConflict(
 	milestone MilestoneUseAccountLinkingIdentification,
 	oauthIden *identity.Spec,
-	conflictedInfo *identity.Info) *SyntheticInputOAuthConflict {
-	input := &SyntheticInputOAuthConflict{}
+	conflictedInfo *identity.Info) *SyntheticInputAccountLinkingIdentify {
+	input := &SyntheticInputAccountLinkingIdentify{}
 
 	switch conflictedInfo.Type {
 	case model.IdentityTypeLoginID:
@@ -181,7 +181,7 @@ func (i *IntentAccountLinkingOAuth) createSyntheticInputOAuthConflict(
 	return input
 }
 
-func (i *IntentAccountLinkingOAuth) getOptions() []AccountLinkingIdentificationOptionInternal {
+func (i *IntentAccountLinking) getOptions() []AccountLinkingIdentificationOptionInternal {
 	return slice.FlatMap(i.ConflictingIdentities, func(identity *identity.Info) []AccountLinkingIdentificationOptionInternal {
 		var identifcation config.AuthenticationFlowIdentification
 		var maskedDisplayName string
