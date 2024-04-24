@@ -1004,7 +1004,8 @@ func (c *AuthflowController) makeErrorResult(w http.ResponseWriter, r *http.Requ
 		fallthrough
 	case apierrors.IsKind(err, webapp.WebUIInvalidSession):
 		fallthrough
-	case r.Method == http.MethodGet:
+	case r.Method == http.MethodGet && u.Path == r.URL.Path:
+		// Infinite loop might occur if it is a GET request with the same route
 		c.Navigator.NavigateNonRecoverableError(r, &u, err)
 		return nonRecoverable()
 	default:

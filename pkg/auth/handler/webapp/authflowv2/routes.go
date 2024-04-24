@@ -287,11 +287,13 @@ func (n *AuthflowV2Navigator) navigateStepIdentify(s *webapp.AuthflowScreenWithF
 		default:
 			authorizationURL, _ := url.Parse(data.OAuthAuthorizationURL)
 			q := authorizationURL.Query()
+			// Back to the current screen if error
+			errorRedirectURI := url.URL{Path: r.URL.Path, RawQuery: r.URL.Query().Encode()}
 
 			state := webapp.AuthflowOAuthState{
 				WebSessionID:     webSessionID,
 				XStep:            s.Screen.StateToken.XStep,
-				ErrorRedirectURI: expectedPath,
+				ErrorRedirectURI: errorRedirectURI.String(),
 			}
 
 			q.Set("state", state.Encode())
