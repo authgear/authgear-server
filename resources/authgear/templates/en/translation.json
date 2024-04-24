@@ -1039,5 +1039,11 @@
   "v2-wechat-auth-page-app-description": "Click the below button to continue WeChat Login",
   "v2-wechat-auth-page-with-qr-code-description": "Please scan the QR code in your WeChat app to sign in.",
   "v2-wechat-auth-page-open-app": "Open WeChat app to login",
-  "v2-wechat-auth-page-proceed": "Proceed WeChat login"
+  "v2-wechat-auth-page-proceed": "Proceed WeChat login",
+  "v2-account-linking-title": "Existing account found",
+  "v2-account-linking-subtitle--login-and-link": "Seems like you have signed up before. Log in to an existing account to link it.",
+  "v2-account-linking-subtitle--login": "Seems like you have signed up before. Log in to an existing account below.",
+  "v2-account-linking-by-email": "Login to {IdentityDisplayName}",
+  "v2-account-linking-by-phone": "Login to {IdentityDisplayName}",
+  "v2-account-linking-by-username": "Login to {IdentityDisplayName}"
 }
