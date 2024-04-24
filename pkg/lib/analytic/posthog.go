@@ -231,9 +231,10 @@ func (p *PosthogIntegration) makeEventsFromGroups(groups []*PosthogGroup) ([]jso
 			"event":       "$groupidentify",
 			"distinct_id": "groups_setup_id",
 			"properties": map[string]interface{}{
-				"$group_type": "project",
-				"$group_key":  g.ProjectID,
-				"$group_set":  group_set,
+				"$geoip_disable": true,
+				"$group_type":    "project",
+				"$group_key":     g.ProjectID,
+				"$group_set":     group_set,
 			},
 		}
 
@@ -261,7 +262,8 @@ func (p *PosthogIntegration) makeEventsFromUsers(users []*User) ([]json.RawMessa
 			"event":       "$identify",
 			"distinct_id": u.ID,
 			"properties": map[string]interface{}{
-				"$set": set,
+				"$set":           set,
+				"$geoip_disable": true,
 			},
 		}
 
