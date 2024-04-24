@@ -1111,6 +1111,14 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 	))
 }
 
+func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		AuthflowV2UIHandlerDependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2AccountLinkingHandler)),
+	))
+}
+
 func newWebAppAuthflowV2NoAuthenticatorHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
