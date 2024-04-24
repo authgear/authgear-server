@@ -24,16 +24,18 @@ type AccountLinkingIdentificationOptionInternal struct {
 
 type AccountLinkingIdentifyData struct {
 	TypedData
-	Options []AccountLinkingIdentificationOption `json:"options"`
+	AccountLinkingAction config.AuthenticationFlowAccountLinkingAction `json:"account_linking_action"`
+	Options              []AccountLinkingIdentificationOption          `json:"options"`
 }
 
 var _ authflow.Data = AccountLinkingIdentifyData{}
 
 func (AccountLinkingIdentifyData) Data() {}
 
-func NewAccountLinkingIdentifyData(options []AccountLinkingIdentificationOptionInternal) AccountLinkingIdentifyData {
+func NewAccountLinkingIdentifyData(options []AccountLinkingIdentificationOptionInternal, action config.AuthenticationFlowAccountLinkingAction) AccountLinkingIdentifyData {
 	return AccountLinkingIdentifyData{
-		TypedData: TypedData{Type: DataTypeAccountLinkingIdentificationData},
+		TypedData:            TypedData{Type: DataTypeAccountLinkingIdentificationData},
+		AccountLinkingAction: action,
 		Options: slice.Map(options, func(o AccountLinkingIdentificationOptionInternal) AccountLinkingIdentificationOption {
 			return o.AccountLinkingIdentificationOption
 		}),

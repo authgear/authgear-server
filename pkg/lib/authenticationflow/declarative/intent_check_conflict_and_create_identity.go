@@ -4,12 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
@@ -54,33 +52,12 @@ func (i *IntentCheckConflictAndCreateIdenity) ReactTo(ctx context.Context, deps 
 				Identity: info,
 			}), nil
 		} else {
-			// Currently skipLogin is always false
-			// We may support always_link_without_login later
-			var skipLogin bool = false
-			var loginFlow string = ""
-			switch cfg.GetAction() {
-			case config.AuthenticationFlowAccountLinkingActionError:
-				spec := spec
-				conflictSpecs := slice.Map(conflicts, func(i *identity.Info) *identity.Spec {
-					s := i.ToSpec()
-					return &s
-				})
-				return nil, identityFillDetailsMany(api.ErrDuplicatedIdentity, spec, conflictSpecs)
-			case config.AuthenticationFlowAccountLinkingActionLoginAndLink:
-				loginFlow = cfg.GetLoginFlow()
-				if loginFlow == "" {
-					// Use the current flow name if it is not specified
-					loginFlow = authflow.FindCurrentFlowReference(flows.Root).Name
-				}
-			default:
-				panic(fmt.Errorf("unknown action %v", cfg.GetAction()))
-			}
 			return authflow.NewSubFlow(&IntentAccountLinking{
 				JSONPointer:           i.JSONPointer,
 				ConflictingIdentities: conflicts,
-				OAuthIdentitySpec:     spec,
-				SkipLogin:             skipLogin,
-				LoginFlowName:         loginFlow,
+				IncomingIdentitySpec:  spec,
+				Action:                cfg.GetAction(),
+				LoginFlowName:         cfg.GetLoginFlow(),
 			}), nil
 		}
 	}
