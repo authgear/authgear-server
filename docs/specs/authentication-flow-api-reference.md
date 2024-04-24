@@ -399,6 +399,7 @@ During identification steps in signup flow, an account linking could be triggere
       "identification": "oauth",
       "data": {
         "type": "account_linking_identification_data",
+        "account_linking_action": "login_and_link",
         "options": [
           {
             "identification": "email",
@@ -419,6 +420,8 @@ During identification steps in signup flow, an account linking could be triggere
 
 This means account linking was triggered by the previously identified identity. You can find the followings in `action.data`:
 
+- `account_linking_action`: This field specify what is going to happen in this account linking. The only possible value in current version is `login_and_link`.
+  - `login_and_link`: You need to login to one of the account in `options`. After that, the identity you have just created in previous steps will be linked to the logged in account.
 - `options`: Contains options that you can use to continue the account linking flow. The items contains the following fields:
   - `identification`: See [type: signup; action.type: identification](#type-signup-actiontype-identification). They are having the same meaning.
   - `masked_display_name`: The display name of the identity to use. Different from signup flow, during account linking, you must use an existing identity to start account linking. The display name here is the display name of the referred identity of this option. If it is an `email`, a masked email will be displayed. If it is a `phone`, a masked phone number will be displayed. If it is a `username`, the username will be displayed without masking. If it is a `oauth` identity, the display name will be a name which you should be able to recongize the account in that provider.
