@@ -264,3 +264,8 @@ type MilestoneUseAccountLinkingIdentification interface {
 	MilestoneUseAccountLinkingIdentificationRedirectURI() string
 	MilestoneUseAccountLinkingIdentificationResponseMode() sso.ResponseMode
 }
+
+type MilestonePromptCreatePasskey interface {
+	authflow.Milestone
+	MilestonePromptCreatePasskey()
+}
