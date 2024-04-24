@@ -37,14 +37,15 @@ func ConfigureAuthflowV2AccountLinkingRoute(route httproute.Route) httproute.Rou
 }
 
 type AuthflowV2AccountLinkingOption struct {
-	Identifcation     config.AuthenticationFlowIdentification
+	Identification    config.AuthenticationFlowIdentification
 	MaskedDisplayName string
 	ProviderType      config.OAuthSSOProviderType
 	Index             int
 }
 
 type AuthflowV2AccountLinkingViewModel struct {
-	// TODO(tung): Add the current logging in identity display name
+	// TODO(tung): Add action in authflow
+	Action  string
 	Options []AuthflowV2AccountLinkingOption
 }
 
@@ -66,7 +67,7 @@ func NewAuthflowV2AccountLinkingViewModel(s *webapp.Session, screen *webapp.Auth
 		option := option
 
 		options = append(options, AuthflowV2AccountLinkingOption{
-			Identifcation:     option.Identifcation,
+			Identification:    option.Identifcation,
 			MaskedDisplayName: option.MaskedDisplayName,
 			ProviderType:      option.ProviderType,
 			Index:             idx,
