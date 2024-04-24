@@ -14,7 +14,7 @@ type AccountLinkingIdentificationOption struct {
 	// ProviderType is specific to OAuth.
 	ProviderType config.OAuthSSOProviderType `json:"provider_type,omitempty"`
 	// Alias is specific to OAuth.
-	Alias string `json:"string,omitempty"`
+	Alias string `json:"alias,omitempty"`
 }
 
 type AccountLinkingIdentificationOptionInternal struct {
