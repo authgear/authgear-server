@@ -318,6 +318,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2NoAuthenticatorRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2NoAuthenticatorHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowv2FinishFlowRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2FinishFlowHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2WechatRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2WechatHandler))
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2AccountLinkingRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2AccountLinkingHandler))
 
 	router.Add(webapphandler.ConfigureAuthflowEnterPasswordRoute(webappPageRoute), p.Handler(newWebAppAuthflowEnterPasswordHandler))
 	router.Add(webapphandler.ConfigureAuthflowEnterOOBOTPRoute(webappPageRoute), p.Handler(newWebAppAuthflowEnterOOBOTPHandler))
