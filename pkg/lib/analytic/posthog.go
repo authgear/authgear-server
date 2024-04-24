@@ -94,6 +94,39 @@ func (p *PosthogIntegration) SetGroupProperties() error {
 	return nil
 }
 
+func (p *PosthogIntegration) SetUserProperties(portalAppID string) error {
+	endpoint, err := url.Parse(p.PosthogCredentials.Endpoint)
+	if err != nil {
+		return err
+	}
+
+	var users []*User
+	err = p.AppDBHandle.WithTx(func() error {
+		var err error
+		users, err = p.AppDBStore.GetAllUsers(portalAppID)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	events, err := p.makeEventsFromUsers(users)
+	if err != nil {
+		return err
+	}
+
+	err = p.Batch(endpoint, events)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (p *PosthogIntegration) getAppIDs() (appIDs []string, err error) {
 	err = p.GlobalHandle.WithTx(func() error {
 		appIDs, err = p.GlobalDBStore.GetAppIDs()
@@ -201,6 +234,34 @@ func (p *PosthogIntegration) makeEventsFromGroups(groups []*PosthogGroup) ([]jso
 				"$group_type": "project",
 				"$group_key":  g.ProjectID,
 				"$group_set":  group_set,
+			},
+		}
+
+		eventBytes, err := json.Marshal(event)
+		if err != nil {
+			return nil, err
+		}
+
+		events = append(events, json.RawMessage(eventBytes))
+	}
+
+	return events, nil
+}
+
+func (p *PosthogIntegration) makeEventsFromUsers(users []*User) ([]json.RawMessage, error) {
+	var events []json.RawMessage
+
+	for _, u := range users {
+		set := map[string]interface{}{}
+		if u.Email != "" {
+			set["email"] = u.Email
+		}
+
+		event := map[string]interface{}{
+			"event":       "$identify",
+			"distinct_id": u.ID,
+			"properties": map[string]interface{}{
+				"$set": set,
 			},
 		}
 

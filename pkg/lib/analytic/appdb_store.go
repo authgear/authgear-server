@@ -1,6 +1,7 @@
 package analytic
 
 import (
+	"database/sql"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -10,6 +11,45 @@ import (
 type AppDBStore struct {
 	SQLBuilder  *appdb.SQLBuilder
 	SQLExecutor *appdb.SQLExecutor
+}
+
+type User struct {
+	ID    string
+	Email string
+}
+
+func (s *AppDBStore) GetAllUsers(appID string) ([]*User, error) {
+	builder := s.SQLBuilder.WithAppID(appID).
+		Select(
+			"id",
+			"standard_attributes ->> 'email'",
+		).
+		From(s.SQLBuilder.TableName("_auth_user"))
+
+	rows, err := s.SQLExecutor.QueryWith(builder)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []*User
+	for rows.Next() {
+		var id string
+		var email sql.NullString
+		err = rows.Scan(
+			&id,
+			&email,
+		)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, &User{
+			ID:    id,
+			Email: email.String,
+		})
+	}
+
+	return result, nil
 }
 
 func (s *AppDBStore) GetNewUserIDs(appID string, rangeFrom *time.Time, rangeTo *time.Time) ([]string, error) {
