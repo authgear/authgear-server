@@ -897,6 +897,7 @@
   "v2-error-password-policy-disallowed-keywords": "Password contains disallowed keywords",
   "v2-error-password-policy-reuse": "No reuse of {size, plural, one{# previous password} other{# previous passwords}} / previous password within {day, plural, one{# day} other{# days}}",
   "v2-error-phone-number-format": "Incorrect phone number format.",
+  "v2-error-unexpected-user": "Seems like you logged in with a different account. Please try again.",
   "v2-create-password-page-title": "Create Password",
   "v2-password-policy-strength": "Password strength:",
   "v2-password-policy-minimum-length": "At least {length, plural, one{# character} other{# characters}}",
