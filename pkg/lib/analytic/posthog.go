@@ -81,7 +81,12 @@ func (p *PosthogIntegration) SetGroupProperties() error {
 			Info("prepared group")
 	}
 
-	err = p.uploadToPosthog(endpoint, groups)
+	events, err := p.makeEventsFromGroups(groups)
+	if err != nil {
+		return err
+	}
+
+	err = p.Batch(endpoint, events)
 	if err != nil {
 		return err
 	}
@@ -175,9 +180,8 @@ func (p *PosthogIntegration) preparePosthogGroup(appID string, now time.Time) (*
 	return g, nil
 }
 
-func (p *PosthogIntegration) uploadToPosthog(endpoint *url.URL, groups []*PosthogGroup) error {
-	u := *endpoint
-	u.Path = "/capture"
+func (p *PosthogIntegration) makeEventsFromGroups(groups []*PosthogGroup) ([]json.RawMessage, error) {
+	var events []json.RawMessage
 
 	for _, g := range groups {
 		group_set := map[string]interface{}{
@@ -190,8 +194,7 @@ func (p *PosthogIntegration) uploadToPosthog(endpoint *url.URL, groups []*Postho
 			group_set["project_plan"] = g.ProjectPlan
 		}
 
-		body := map[string]interface{}{
-			"api_key":     p.PosthogCredentials.APIKey,
+		event := map[string]interface{}{
 			"event":       "$groupidentify",
 			"distinct_id": "groups_setup_id",
 			"properties": map[string]interface{}{
@@ -199,6 +202,53 @@ func (p *PosthogIntegration) uploadToPosthog(endpoint *url.URL, groups []*Postho
 				"$group_key":  g.ProjectID,
 				"$group_set":  group_set,
 			},
+		}
+
+		eventBytes, err := json.Marshal(event)
+		if err != nil {
+			return nil, err
+		}
+
+		events = append(events, json.RawMessage(eventBytes))
+	}
+
+	return events, nil
+}
+
+type PosthogBatchRequest struct {
+	APIKey string            `json:"api_key"`
+	Batch  []json.RawMessage `json:"batch,omitempty"`
+}
+
+func (p *PosthogIntegration) Batch(endpoint *url.URL, events []json.RawMessage) error {
+	u := *endpoint
+	u.Path = "/batch"
+
+	// The hard limit is 20MB.
+	// Here we make an assumption that the size of 1000 events will not exceed the limit.
+
+	var chunks [][]json.RawMessage
+	chunkSize := 1000
+	for i, chunkNum := 0, 0; i < len(events); i, chunkNum = i+chunkSize, chunkNum+1 {
+		start := i
+		end := i + chunkSize
+		if end > len(events) {
+			end = len(events)
+		}
+
+		chunk := events[start:end]
+		chunks = append(chunks, chunk)
+	}
+
+	for _, chunk := range chunks {
+		if len(chunk) <= 0 {
+			p.Logger.WithField("batch_size", len(chunk)).Info("skipped an empty batch")
+			continue
+		}
+
+		body := PosthogBatchRequest{
+			APIKey: p.PosthogCredentials.APIKey,
+			Batch:  chunk,
 		}
 
 		bodyBytes, err := json.Marshal(body)
@@ -228,9 +278,7 @@ func (p *PosthogIntegration) uploadToPosthog(endpoint *url.URL, groups []*Postho
 			return fmt.Errorf("failed to upload to posthog: %v", string(respBody))
 		}
 
-		p.Logger.
-			WithField("project_id", g.ProjectID).
-			Info("uploaded to posthog")
+		p.Logger.WithField("batch_size", len(chunk)).Info("uploaded a batch to posthog")
 	}
 
 	return nil
