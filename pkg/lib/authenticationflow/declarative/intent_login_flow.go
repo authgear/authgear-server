@@ -2,7 +2,6 @@ package declarative
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
@@ -65,8 +64,12 @@ func (i *IntentLoginFlow) ReactTo(ctx context.Context, deps *authflow.Dependenci
 			JSONPointer:   i.JSONPointer,
 		}), nil
 	case len(flows.Nearest.Nodes) == 1:
+		userID, err := i.userID(flows)
+		if err != nil {
+			return nil, err
+		}
 		n, err := NewNodeDoCreateSession(ctx, deps, flows, &NodeDoCreateSession{
-			UserID:       i.userID(flows),
+			UserID:       userID,
 			CreateReason: session.CreateReasonLogin,
 			SkipCreate:   authflow.GetSuppressIDPSessionCookie(ctx),
 		})
@@ -82,7 +85,10 @@ func (i *IntentLoginFlow) ReactTo(ctx context.Context, deps *authflow.Dependenci
 func (i *IntentLoginFlow) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]authflow.Effect, error) {
 	return []authflow.Effect{
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
-			userID := i.userID(flows)
+			userID, err := i.userID(flows)
+			if err != nil {
+				return err
+			}
 			usedMethods, err := collectAuthenticationLockoutMethod(ctx, deps, flows)
 			if err != nil {
 				return err
@@ -98,7 +104,10 @@ func (i *IntentLoginFlow) GetEffects(ctx context.Context, deps *authflow.Depende
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
 			// FIXME(authflow): determine isAdminAPI
 			isAdminAPI := false
-			userID := i.userID(flows)
+			userID, err := i.userID(flows)
+			if err != nil {
+				return err
+			}
 			var idpSession *idpsession.IDPSession
 			if m, ok := authflow.FindMilestone[MilestoneDoCreateSession](flows.Nearest); ok {
 				idpSession, _ = m.MilestoneDoCreateSession()
@@ -112,7 +121,7 @@ func (i *IntentLoginFlow) GetEffects(ctx context.Context, deps *authflow.Depende
 				return nil
 			}
 
-			err := deps.Events.DispatchEventOnCommit(&nonblocking.UserAuthenticatedEventPayload{
+			err = deps.Events.DispatchEventOnCommit(&nonblocking.UserAuthenticatedEventPayload{
 				UserRef: model.UserRef{
 					Meta: model.Meta{
 						ID: userID,
@@ -129,15 +138,15 @@ func (i *IntentLoginFlow) GetEffects(ctx context.Context, deps *authflow.Depende
 	}, nil
 }
 
-func (i *IntentLoginFlow) userID(flows authflow.Flows) string {
+func (i *IntentLoginFlow) userID(flows authflow.Flows) (string, error) {
 	userID, err := getUserID(flows)
 	if err != nil {
 		panic(err)
 	}
 
 	if i.TargetUserID != "" && i.TargetUserID != userID {
-		panic(fmt.Errorf("unexpected user id %v while target is %v", userID, i.TargetUserID))
+		return "", ErrDifferentUserID
 	}
 
-	return userID
+	return userID, nil
 }

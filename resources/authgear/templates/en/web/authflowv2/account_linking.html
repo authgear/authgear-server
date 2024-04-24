@@ -13,6 +13,13 @@
           {{ template "v2-account-linking-subtitle--login" }}
         {{ end }}
       </h2>
+      {{ template "authflowv2/__alert_message.html"
+        (dict
+          "Type" "error"
+          "Classname" "mt-4"
+          "Message" (include "authflowv2/__error.html" .)
+        )
+      }}
     </div>
 
     <div
