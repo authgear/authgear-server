@@ -70,6 +70,9 @@ func (n *NodePromoteIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.D
 		if err != nil {
 			if apierrors.IsKind(err, api.UserNotFound) {
 				_, conflicts, err := n.checkConflictByAccountLinkings(ctx, deps, flows, spec)
+				if err != nil {
+					return nil, err
+				}
 				if len(conflicts) > 0 {
 					// In promote flow, always error if any conflicts occurs
 					conflictSpecs := slice.Map(conflicts, func(i *identity.Info) *identity.Spec {
