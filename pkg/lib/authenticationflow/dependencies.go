@@ -42,7 +42,6 @@ type IdentityService interface {
 	ListByUser(userID string) ([]*identity.Info, error)
 	New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
 	UpdateWithSpec(is *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
-	CheckDuplicated(info *identity.Info) (*identity.Info, error)
 	CheckDuplicatedByUniqueKey(info *identity.Info) (*identity.Info, error)
 	Create(is *identity.Info) error
 	Update(oldIs *identity.Info, newIs *identity.Info) error
