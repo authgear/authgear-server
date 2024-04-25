@@ -8,7 +8,6 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 func resolveAccountLinkingConfig(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (*config.AuthenticationFlowAccountLinking, error) {
@@ -60,11 +59,7 @@ func resolveAccountLinkingConfigOAuth(
 
 	if match == nil {
 		// By default, always error on email conflict
-		match = &config.AuthenticationFlowAccountLinkOAuthItem{
-			OAuthClaim:  &config.AuthenticationFlowAccountLinkingJSONPointer{Pointer: jsonpointer.MustParse("/email")},
-			UserProfile: &config.AuthenticationFlowAccountLinkingJSONPointer{Pointer: jsonpointer.MustParse("/email")},
-			Action:      config.AuthenticationFlowAccountLinkingActionError,
-		}
+		match = config.DefaultAuthenticationFlowAccountLinkOAuthItem
 	}
 
 	return match, nil
