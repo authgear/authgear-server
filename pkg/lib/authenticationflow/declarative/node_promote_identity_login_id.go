@@ -74,6 +74,9 @@ func (n *NodePromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authflow
 				spec := n.makeLoginIDSpec(loginID)
 
 				_, conflicts, err := n.checkConflictByAccountLinkings(ctx, deps, flows, spec)
+				if err != nil {
+					return nil, err
+				}
 				if len(conflicts) > 0 {
 					// In promote flow, always error if any conflicts occurs
 					conflictSpecs := slice.Map(conflicts, func(i *identity.Info) *identity.Spec {
