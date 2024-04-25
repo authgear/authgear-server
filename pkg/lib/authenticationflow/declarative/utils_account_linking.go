@@ -121,19 +121,19 @@ func linkByOAuthIncomingOAuthSpec(
 }
 
 type CreateIdentityRequest struct {
-	Type model.IdentityType
+	Type model.IdentityType `json:"type,omitempty"`
 
-	LoginID *CreateIdentityRequestLoginID
-	OAuth   *CreateIdentityRequestOAuth
+	LoginID *CreateIdentityRequestLoginID `json:"login_id,omitempty"`
+	OAuth   *CreateIdentityRequestOAuth   `json:"oauth,omitempty"`
 }
 
 type CreateIdentityRequestOAuth struct {
-	Alias string
-	Spec  *identity.Spec
+	Alias string         `json:"alias,omitempty"`
+	Spec  *identity.Spec `json:"spec,omitempty"`
 }
 
 type CreateIdentityRequestLoginID struct {
-	Spec *identity.Spec
+	Spec *identity.Spec `json:"spec,omitempty"`
 }
 
 func NewCreateOAuthIdentityRequest(alias string, spec *identity.Spec) *CreateIdentityRequest {
