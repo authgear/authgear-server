@@ -132,13 +132,6 @@ def apply_cldr_territories(locale, translation, cldr_localnames_path):
             if short in alpha2_to_localized_name:
                 value = alpha2_to_localized_name[short]
 
-          # Prefer the alt-variant name if alpha2 is TR AND the locale is en
-          # It is because for some reason I do not know, TR does not appear to be in English.
-          if alpha2 == "TR" and locale == "en":
-            variant = f"{alpha2}-alt-variant"
-            if variant in alpha2_to_localized_name:
-                value = alpha2_to_localized_name[variant]
-
           translation[f'territory-{alpha2}'] = value
 
   return translation
