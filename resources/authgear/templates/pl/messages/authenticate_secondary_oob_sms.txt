@@ -1,0 +1,3 @@
+{{ .Code }} to twoje jednorazowe hasło na {{ template "app.name" }}.
+
+Nie udostępniaj go nikomu.

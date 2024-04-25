@@ -1,0 +1,163 @@
+{
+  "PrimaryLoginLink": {
+    "Title": "{{ template \"app.name\" }}에 로그인하려면 이 링크를 사용하세요",
+    "Body": "{{ template \"app.name\" }}에 로그인하려면 아래 버튼을 클릭하세요.",
+    "Button": "{{ template \"app.name\" }}에 로그인",
+    "Disclaimer": "로그인을 요청하지 않으셨다면 이 이메일을 무시해 주세요."
+  },
+  "PrimaryOOBEmail": {
+    "Title": "{{ template \"app.name\" }}에 로그인",
+    "Body": "로그인 프로세스를 완료하려면 다음 일회용 비밀번호를 사용하세요.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "누구에게도 공유하지 마세요. 로그인을 요청하지 않으셨다면 이 이메일을 무시해 주세요."
+  },
+  "SecondaryLoginLink": {
+    "Title": "{{ template \"app.name\" }}에 로그인하려면 이 링크를 사용하세요",
+    "Instruction": "{{ template \"app.name\" }}에 로그인하려면 아래 버튼을 클릭하세요.",
+    "ButtonText": "{{ template \"app.name\" }}에 로그인",
+    "Disclaimer": "로그인을 요청하지 않으셨다면 이 이메일을 무시해 주세요."
+  },
+  "SecondaryOOBEmail": {
+    "Title": "{{ template \"app.name\" }}에 로그인",
+    "Body": "로그인 프로세스를 완료하려면 다음 일회용 비밀번호를 사용하세요.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "누구에게도 공유하지 마세요. 로그인하지 않으셨다면 이 이메일을 무시해 주세요."
+  },
+  "ForgotPassword": {
+    "Title": "비밀번호 재설정",
+    "Body": "{{ template \"app.name\" }}의 비밀번호를 재설정하려고 요청하셨습니다. 이를 위해 아래 버튼을 클릭하세요.",
+    "Button": "비밀번호 재설정",
+    "Disclaimer": "재설정을 요청하지 않으셨다면 이 이메일을 무시해 주세요."
+  },
+  "ForgotPasswordOOBEmail": {
+    "Title": "비밀번호 재설정",
+    "Body": "{{ template \"app.name\" }}의 비밀번호를 재설정하려면 다음 일회용 비밀번호를 사용하세요.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "누구에게도 공유하지 마세요. 재설정을 요청하지 않으셨다면 이 이메일을 무시해 주세요."
+  },
+  "SetupPrimaryLoginLink": {
+    "Title": "{{ template \"app.name\" }}에서 이메일을 확인하세요",
+    "Body": "가입 프로세스를 완료하려면 아래 링크를 방문하세요.",
+    "Button": "이메일 확인",
+    "Disclaimer": "이 설정을 요청하지 않으셨다면 이 이메일을 무시해 주세요."
+  },
+  "SetupPrimaryOOBEmail": {
+    "Title": "{{ template \"app.name\" }}에 가입",
+    "Body": "가입 프로세스를 완료하려면 다음 일회용 비밀번호를 사용하세요.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "누구에게도 공유하지 마세요. 가입하지 않으셨다면 이 이메일을 무시해 주세요."
+  },
+  "SetupSecondaryLoginLink": {
+    "Title": "{{ template \"app.name\" }}에서 이메일을 확인하고 2단계 인증을 설정하세요",
+    "Body": "2단계 인증을 설정하려면 아래 버튼을 클릭하세요.",
+    "Button": "이메일 확인",
+    "Disclaimer": "이 설정을 요청하지 않으셨다면 이 이메일을 무시해 주세요."
+  },
+  "SetupSecondaryOOBEmail": {
+    "Title": "{{ template \"app.name\" }}에서 2단계 인증 설정",
+    "Body": "아래 텍스트 상자에는 2단계 인증 설정을 위한 일회용 비밀번호가 포함되어 있습니다.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "누구에게도 공유하지 마세요. 이 설정을 요청하지 않으셨다면 이 이메일을 무시해 주세요."
+  },
+  "VerificationEmail": {
+    "Title": "이메일 확인",
+    "Body": "이 이메일은 {{ template \"app.name\" }}의 {{ .Email }}을 확인하기 위해 보내졌습니다. 확인 페이지에서 이 코드를 사용하세요.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "누구에게도 공유하지 마세요. 로그인 또는 가입하지 않으셨다면 이 이메일을 무시해 주세요."
+  },
+  "PrimaryLoginLinkTXT": {
+    "Title": "{{ template \"app.name\" }}에 로그인",
+    "Body": "아래 링크를 따라 {{ template \"app.name\" }}에 로그인하세요.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "로그인을 요청하지 않으셨다면 이 이메일을 무시해 주세요."
+  },
+  "PrimaryOOBEmailTXT": {
+    "Title": "{{ template \"app.name\" }}에 로그인",
+    "Body": "로그인 프로세스를 완료하려면 다음 일회용 비밀번호를 사용하세요.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "누구에게도 공유하지 마세요. 로그인을 요청하지 않으셨다면 이 이메일을 무시해 주세요."
+  },
+  "PrimaryOOBSMSTXT": {
+    "Title": "{{ template \"app.name\" }}에 로그인하려면 이 일회용 비밀번호 {{ .Code }}를 사용하세요.",
+    "Disclaimer": "누구에게도 공유하지 마세요."
+  },
+  "SecondaryLoginLinkTXT": {
+    "Title": "{{ template \"app.name\" }}에 로그인",
+    "Body": "아래 링크를 따라 {{ template \"app.name\" }}에 로그인하세요.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "로그인을 요청하지 않으셨다면 이 이메일을 무시해 주세요."
+  },
+  "SecondaryOOBEmailTXT": {
+    "Title": "{{ template \"app.name\" }}에 로그인",
+    "Body": "로그인 프로세스를 완료하려면 다음 일회용 비밀번호를 사용하세요.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "누구에게도 공유하지 마세요. 로그인하지 않으셨다면 이 이메일을 무시해 주세요."
+  },
+  "SecondaryOOBSMSTXT": {
+    "Title": "{{ .Code }}는 {{ template \"app.name\" }}의 일회용 비밀번호입니다.",
+    "Disclaimer": "누구에게도 공유하지 마세요."
+  },
+  "ForgotPasswordEmailTXT": {
+    "Title": "비밀번호 재설정",
+    "Body": "{{ template \"app.name\" }}의 비밀번호를 재설정하려고 요청하셨습니다. 비밀번호를 재설정하려면 아래 링크를 방문하세요.",
+    "Link": "{{ .Link }}",
+    "Disclaimer": "재설정을 요청하지 않으셨다면 이 이메일을 무시해 주세요."
+  },
+  "ForgotPasswordSMSTXT": {
+    "Title": "{{ template \"app.name\" }}의 비밀번호를 재설정하려면 이 링크를 방문하세요",
+    "Disclaimer": "재설정하지 않으셨다면 무시하세요.",
+    "Link": "{{ .Link }}"
+  },
+  "ForgotPasswordOOBEmailTXT": {
+    "Title": "비밀번호 재설정",
+    "Body": "{{ template \"app.name\" }}의 비밀번호를 재설정하려면 다음 일회용 비밀번호를 사용하세요.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "누구에게도 공유하지 마세요. 재설정을 요청하지 않으셨다면 이 이메일을 무시해 주세요."
+  },
+  "ForgotPasswordOOBSMSTXT": {
+    "Body": "{{ template \"app.name\" }}의 비밀번호를 이 일회용 비밀번호 {{ .Code }}로 재설정하세요.",
+    "Disclaimer": "누구에게도 공유하지 마세요."
+  },
+  "SetupPrimaryLoginLinkTXT": {
+    "Title": "{{ template \"app.name\" }}에서 이메일을 확인하세요",
+    "Body": "{{ template \"app.name\" }}의 가입 프로세스를 완료하려면 아래 링크를 방문하세요.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "이 설정을 요청하지 않으셨다면 이 이메일을 무시해 주세요."
+  },
+  "SetupPrimaryOOBEmailTXT": {
+    "Title": "{{ template \"app.name\" }}에 가입",
+    "Body": "{{ template \"app.name\" }}의 가입 프로세스를 완료하려면 다음 일회용 비밀번호를 사용하세요.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "누구에게도 공유하지 마세요. 가입하지 않으셨다면 이 이메일을 무시해 주세요."
+  },
+  "SetupPrimaryOOBSMSTXT": {
+    "Title": "{{ template \"app.name\" }}에 가입하려면 이 일회용 비밀번호 {{ .Code }}를 사용하세요.",
+    "Disclaimer": "누구에게도 공유하지 마세요."
+  },
+  "SetupSecondaryLoginLinkTXT": {
+    "Title": "{{ template \"app.name\" }}에서 이메일을 확인하고 2단계 인증을 설정하세요",
+    "Body": "{{ template \"app.name\" }}에서 2단계 인증을 설정하려면 아래 링크를 클릭하세요.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "이 설정을 요청하지 않으셨다면 이 이메일을 무시해 주세요."
+  },
+  "SetupSecondaryOOBEmailTXT": {
+    "Title": "{{ template \"app.name\" }}에서 2단계 인증 설정",
+    "Body": "아래 텍스트 상자에는 2단계 인증 설정을 위한 일회용 비밀번호가 포함되어 있습니다.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "누구에게도 공유하지 마세요. 이 설정을 요청하지 않으셨다면 이 이메일을 무시해 주세요."
+  },
+  "SetupSecondaryOOBSMSTXT": {
+    "Title": "{{ template \"app.name\" }}에서 2단계 인증을 이 일회용 비밀번호 {{ .Code }}로 설정하세요.",
+    "Disclaimer": "누구에게도 공유하지 마세요."
+  },
+  "VerificationEmailTXT": {
+    "Title": "이메일 확인",
+    "Body": "이 이메일은 {{ template \"app.name\" }}의 {{ .Email }}을 확인하기 위해 보내졌습니다. 확인 페이지에서 이 코드를 사용하세요.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "누구에게도 공유하지 마세요. 로그인 또는 가입하지 않으셨다면 이 이메일을 무시해 주세요."
+  },
+  "VerificationSMSTXT": {
+    "Code": "{{ .Code }}는 {{ template \"app.name\" }}의 확인 코드입니다.",
+    "Disclaimer": "누구에게도 공유하지 마세요."
+  }
+}

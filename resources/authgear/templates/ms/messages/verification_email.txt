@@ -1,0 +1,7 @@
+Pengesahan E-mel
+
+E-mel ini dihantar untuk mengesahkan {{ .Email }} di {{ template "app.name" }}. Gunakan kod ini di halaman pengesahan.
+
+{{ .Code }}
+
+Jangan kongsi dengan sesiapa. Jika anda tidak log masuk atau mendaftar, sila abaikan e-mel ini.

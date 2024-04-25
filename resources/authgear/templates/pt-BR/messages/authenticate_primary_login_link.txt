@@ -1,0 +1,7 @@
+Faça login no {{ template "app.name" }}
+
+Por favor, siga o link abaixo para entrar no {{ template "app.name" }}.
+
+{{ .URL }}
+
+Se você não iniciou um login, por favor ignore este e-mail.

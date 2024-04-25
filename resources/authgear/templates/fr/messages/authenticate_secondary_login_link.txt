@@ -1,0 +1,7 @@
+Connectez-vous à {{ template "app.name" }}
+
+Veuillez suivre le lien ci-dessous pour vous connecter à {{ template "app.name" }}.
+
+{{ .URL }}
+
+Si vous n'avez pas déclenché une connexion, veuillez ignorer cet e-mail.

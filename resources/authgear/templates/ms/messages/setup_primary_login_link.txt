@@ -1,0 +1,7 @@
+Sahkan e-mel anda di {{ template "app.name" }}
+
+Sila lawati pautan di bawah untuk melengkapkan proses pendaftaran anda di {{ template "app.name" }}.
+
+{{ .URL }}
+
+Jika anda tidak memulakan persediaan ini, sila abaikan e-mel ini.

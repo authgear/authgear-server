@@ -1,0 +1,7 @@
+Đăng nhập vào {{ template "app.name" }}
+
+Vui lòng sử dụng mật khẩu một lần sau đây để hoàn tất quá trình đăng nhập.
+
+{{ .Code }}
+
+Không chia sẻ với bất kỳ ai. Nếu bạn không khởi động đăng nhập, vui lòng bỏ qua email này.

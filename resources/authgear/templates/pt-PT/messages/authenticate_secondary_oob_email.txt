@@ -1,0 +1,7 @@
+Iniciar sessão em {{ template "app.name" }}
+
+Por favor, utilize a seguinte palavra-passe única para concluir o processo de início de sessão.
+
+{{ .Code }}
+
+Não a partilhe com ninguém. Se não iniciou uma sessão, ignore este email.

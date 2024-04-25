@@ -1,0 +1,163 @@
+{
+  "PrimaryLoginLink": {
+    "Title": "Gebruik deze link om in te loggen op {{ template \"app.name\" }}",
+    "Body": "Klik op de onderstaande knop om in te loggen op {{ template \"app.name\" }}.",
+    "Button": "Log in op {{ template \"app.name\" }}",
+    "Disclaimer": "Als u deze login niet heeft geïnitieerd, negeer dan deze e-mail."
+  },
+  "PrimaryOOBEmail": {
+    "Title": "Log in op {{ template \"app.name\" }}",
+    "Body": "Gebruik het volgende eenmalige wachtwoord om het inlogproces te voltooien.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Deel het niet met iemand. Als u deze login niet heeft geïnitieerd, negeer dan deze e-mail."
+  },
+  "SecondaryLoginLink": {
+    "Title": "Gebruik deze link om in te loggen op {{ template \"app.name\" }}",
+    "Instruction": "Klik op de onderstaande knop om in te loggen op {{ template \"app.name\" }}.",
+    "ButtonText": "Log in op {{ template \"app.name\" }}",
+    "Disclaimer": "Als u deze login niet heeft geïnitieerd, negeer dan deze e-mail."
+  },
+  "SecondaryOOBEmail": {
+    "Title": "Log in op {{ template \"app.name\" }}",
+    "Body": "Gebruik het volgende eenmalige wachtwoord om het inlogproces te voltooien.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Deel het niet met iemand. Als u niet heeft ingelogd, negeer dan deze e-mail."
+  },
+  "ForgotPassword": {
+    "Title": "Wachtwoord resetten",
+    "Body": "U heeft verzocht om uw wachtwoord op {{ template \"app.name\" }} te resetten. Klik op de onderstaande knop om dit te doen.",
+    "Button": "Wachtwoord resetten",
+    "Disclaimer": "Als u geen reset heeft aangevraagd, negeer dan deze e-mail."
+  },
+  "ForgotPasswordOOBEmail": {
+    "Title": "Wachtwoord resetten",
+    "Body": "Gebruik het volgende eenmalige wachtwoord om uw wachtwoord op {{ template \"app.name\" }} te resetten.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Deel het niet met iemand. Als u geen reset heeft aangevraagd, negeer dan deze e-mail."
+  },
+  "SetupPrimaryLoginLink": {
+    "Title": "Verifieer uw e-mail op {{ template \"app.name\" }}",
+    "Body": "Bezoek de onderstaande link om uw aanmeldproces te voltooien.",
+    "Button": "Verifieer E-mail",
+    "Disclaimer": "Als u deze setup niet heeft geïnitieerd, negeer dan deze e-mail."
+  },
+  "SetupPrimaryOOBEmail": {
+    "Title": "Meld u aan op {{ template \"app.name\" }}",
+    "Body": "Gebruik het volgende eenmalige wachtwoord om het aanmeldproces te voltooien.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Deel het niet met iemand. Als u zich niet heeft aangemeld, negeer dan deze e-mail."
+  },
+  "SetupSecondaryLoginLink": {
+    "Title": "Verifieer uw e-mail en stel 2-staps verificatie in op {{ template \"app.name\" }}",
+    "Body": "Klik op de onderstaande knop om 2-staps verificatie in te stellen.",
+    "Button": "Verifieer E-mail",
+    "Disclaimer": "Als u deze setup niet heeft geïnitieerd, negeer dan deze e-mail."
+  },
+  "SetupSecondaryOOBEmail": {
+    "Title": "Stel Twee-Staps Verificatie in op {{ template \"app.name\" }}",
+    "Body": "Het tekstvak hieronder bevat een eenmalig wachtwoord dat is gegenereerd om twee-staps verificatie in te stellen.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Deel het niet met iemand. Als u deze setup niet heeft geïnitieerd, negeer dan deze e-mail."
+  },
+  "VerificationEmail": {
+    "Title": "E-mail Verificatie",
+    "Body": "Deze e-mail is verzonden om {{ .Email }} te verifiëren op {{ template \"app.name\" }}. Gebruik deze code op de verificatiepagina.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Deel het niet met iemand. Als u niet heeft ingelogd of aangemeld, negeer dan deze e-mail."
+  },
+  "PrimaryLoginLinkTXT": {
+    "Title": "Log in op {{ template \"app.name\" }}",
+    "Body": "Volg de onderstaande link om in te loggen op {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Als u deze login niet heeft geïnitieerd, negeer dan deze e-mail."
+  },
+  "PrimaryOOBEmailTXT": {
+    "Title": "Log in op {{ template \"app.name\" }}",
+    "Body": "Gebruik het volgende eenmalige wachtwoord om het inlogproces te voltooien.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Deel het niet met iemand. Als u deze login niet heeft geïnitieerd, negeer dan deze e-mail."
+  },
+  "PrimaryOOBSMSTXT": {
+    "Title": "Log in op {{ template \"app.name\" }} met dit eenmalige wachtwoord {{ .Code }}.",
+    "Disclaimer": "Deel het niet met iemand."
+  },
+  "SecondaryLoginLinkTXT": {
+    "Title": "Log in op {{ template \"app.name\" }}",
+    "Body": "Volg de onderstaande link om in te loggen op {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Als u deze login niet heeft geïnitieerd, negeer dan deze e-mail."
+  },
+  "SecondaryOOBEmailTXT": {
+    "Title": "Log in op {{ template \"app.name\" }}",
+    "Body": "Gebruik het volgende eenmalige wachtwoord om het inlogproces te voltooien.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Deel het niet met iemand. Als u niet heeft ingelogd, negeer dan deze e-mail."
+  },
+  "SecondaryOOBSMSTXT": {
+    "Title": "{{ .Code }} is uw {{ template \"app.name\" }} eenmalige wachtwoord.",
+    "Disclaimer": "Deel het niet met iemand."
+  },
+  "ForgotPasswordEmailTXT": {
+    "Title": "Wachtwoord resetten",
+    "Body": "U heeft verzocht om uw wachtwoord op {{ template \"app.name\" }} te resetten. Bezoek de onderstaande link om uw wachtwoord te resetten.",
+    "Link": "{{ .Link }}",
+    "Disclaimer": "Als u geen reset heeft aangevraagd, negeer dan deze e-mail."
+  },
+  "ForgotPasswordSMSTXT": {
+    "Title": "Bezoek deze link om uw wachtwoord op {{ template \"app.name\" }} te resetten",
+    "Disclaimer": "Negeer dit als u niet aan het resetten bent.",
+    "Link": "{{ .Link }}"
+  },
+  "ForgotPasswordOOBEmailTXT": {
+    "Title": "Wachtwoord resetten",
+    "Body": "Gebruik het volgende eenmalige wachtwoord om uw wachtwoord op {{ template \"app.name\" }} te resetten.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Deel het niet met iemand. Als u geen reset heeft aangevraagd, negeer dan deze e-mail."
+  },
+  "ForgotPasswordOOBSMSTXT": {
+    "Body": "Reset uw wachtwoord in {{ template \"app.name\" }} met dit eenmalige wachtwoord {{ .Code }}.",
+    "Disclaimer": "Deel het niet met iemand."
+  },
+  "SetupPrimaryLoginLinkTXT": {
+    "Title": "Verifieer uw e-mail op {{ template \"app.name\" }}",
+    "Body": "Bezoek de onderstaande link om uw aanmeldproces op {{ template \"app.name\" }} te voltooien.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Als u deze setup niet heeft geïnitieerd, negeer dan deze e-mail."
+  },
+  "SetupPrimaryOOBEmailTXT": {
+    "Title": "Meld u aan op {{ template \"app.name\" }}",
+    "Body": "Gebruik het volgende eenmalige wachtwoord om het aanmeldproces op {{ template \"app.name\" }} te voltooien.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Deel het niet met iemand. Als u zich niet heeft aangemeld, negeer dan deze e-mail."
+  },
+  "SetupPrimaryOOBSMSTXT": {
+    "Title": "Meld u aan op {{ template \"app.name\" }} met dit eenmalige wachtwoord {{ .Code }}.",
+    "Disclaimer": "Deel het niet met iemand."
+  },
+  "SetupSecondaryLoginLinkTXT": {
+    "Title": "Verifieer uw e-mail en stel 2-staps verificatie in op {{ template \"app.name\" }}",
+    "Body": "Klik op de onderstaande link om 2-staps verificatie in te stellen op {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Als u deze setup niet heeft geïnitieerd, negeer dan deze e-mail."
+  },
+  "SetupSecondaryOOBEmailTXT": {
+    "Title": "Stel Twee-Staps Verificatie in op {{ template \"app.name\" }}",
+    "Body": "Het tekstvak hieronder bevat een eenmalig wachtwoord dat is gegenereerd om twee-staps verificatie in te stellen op {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Deel het niet met iemand. Als u deze setup niet heeft geïnitieerd, negeer dan deze e-mail."
+  },
+  "SetupSecondaryOOBSMSTXT": {
+    "Title": "Stel twee-staps verificatie in op {{ template \"app.name\" }} met dit eenmalige wachtwoord {{ .Code }}.",
+    "Disclaimer": "Deel het niet met iemand."
+  },
+  "VerificationEmailTXT": {
+    "Title": "E-mail Verificatie",
+    "Body": "Deze e-mail is verzonden om {{ .Email }} te verifiëren op {{ template \"app.name\" }}. Gebruik deze code op de verificatiepagina.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Deel het niet met iemand. Als u niet heeft ingelogd of aangemeld, negeer dan deze e-mail."
+  },
+  "VerificationSMSTXT": {
+    "Code": "{{ .Code }} is uw {{ template \"app.name\" }} verificatiecode.",
+    "Disclaimer": "Deel het niet met iemand."
+  }
+}

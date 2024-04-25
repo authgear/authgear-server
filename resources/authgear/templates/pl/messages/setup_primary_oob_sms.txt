@@ -1,0 +1,3 @@
+Zarejestruj się na {{ template "app.name" }} za pomocą tego jednorazowego hasła {{ .Code }}.
+
+Nie udostępniaj go nikomu.

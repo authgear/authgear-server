@@ -1,0 +1,3 @@
+{{ .Code }} is uw {{ template "app.name" }} eenmalige wachtwoord.
+
+Deel het niet met iemand.

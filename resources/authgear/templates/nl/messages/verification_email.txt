@@ -1,0 +1,7 @@
+E-mail Verificatie
+
+Deze e-mail is verzonden om {{ .Email }} te verifiëren op {{ template "app.name" }}. Gebruik deze code op de verificatiepagina.
+
+{{ .Code }}
+
+Deel het niet met iemand. Als u niet heeft ingelogd of aangemeld, negeer dan deze e-mail.

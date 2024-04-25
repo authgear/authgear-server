@@ -1,0 +1,7 @@
+Zweryfikuj swój e-mail i skonfiguruj weryfikację dwuetapową na {{ template "app.name" }}
+
+Kliknij poniższy link, aby skonfigurować weryfikację dwuetapową na {{ template "app.name" }}.
+
+{{ .URL }}
+
+Jeśli nie wywołałeś tej konfiguracji, zignoruj ten e-mail.

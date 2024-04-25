@@ -1,0 +1,7 @@
+Log in op {{ template "app.name" }}
+
+Gebruik het volgende eenmalige wachtwoord om het inlogproces te voltooien.
+
+{{ .Code }}
+
+Deel het niet met iemand. Als u niet heeft ingelogd, negeer dan deze e-mail.

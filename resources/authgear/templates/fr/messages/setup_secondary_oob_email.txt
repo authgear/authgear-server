@@ -1,0 +1,7 @@
+Configurer la vérification en deux étapes sur {{ template "app.name" }}
+
+La zone de texte ci-dessous contient un mot de passe unique généré pour configurer la vérification en deux étapes sur {{ template "app.name" }}.
+
+{{ .Code }}
+
+Ne le partagez avec personne. Si vous n'avez pas déclenché cette configuration, veuillez ignorer cet e-mail.

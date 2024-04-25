@@ -1,0 +1,3 @@
+{{ .Code }} é a sua palavra-passe única de {{ template "app.name" }}.
+
+Não a partilhe com ninguém.

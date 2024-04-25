@@ -1,0 +1,163 @@
+{
+  "PrimaryLoginLink": {
+    "Title": "Gunakan pautan ini untuk log masuk ke {{ template \"app.name\" }}",
+    "Body": "Sila klik butang di bawah untuk log masuk ke {{ template \"app.name\" }}.",
+    "Button": "Log masuk ke {{ template \"app.name\" }}",
+    "Disclaimer": "Jika anda tidak memulakan log masuk, sila abaikan e-mel ini."
+  },
+  "PrimaryOOBEmail": {
+    "Title": "Log masuk ke {{ template \"app.name\" }}",
+    "Body": "Sila gunakan kata laluan sekali sahaja berikut untuk melengkapkan proses log masuk.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Jangan kongsi dengan sesiapa. Jika anda tidak memulakan log masuk, sila abaikan e-mel ini."
+  },
+  "SecondaryLoginLink": {
+    "Title": "Gunakan pautan ini untuk log masuk ke {{ template \"app.name\" }}",
+    "Instruction": "Sila klik butang di bawah untuk log masuk ke {{ template \"app.name\" }}.",
+    "ButtonText": "Log masuk ke {{ template \"app.name\" }}",
+    "Disclaimer": "Jika anda tidak memulakan log masuk, sila abaikan e-mel ini."
+  },
+  "SecondaryOOBEmail": {
+    "Title": "Log masuk ke {{ template \"app.name\" }}",
+    "Body": "Sila gunakan kata laluan sekali sahaja berikut untuk melengkapkan proses log masuk.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Jangan kongsi dengan sesiapa. Jika anda tidak log masuk, sila abaikan e-mel ini."
+  },
+  "ForgotPassword": {
+    "Title": "Tetapkan Semula Kata Laluan",
+    "Body": "Anda telah meminta untuk menetapkan semula kata laluan anda di {{ template \"app.name\" }}. Untuk berbuat demikian, klik butang di bawah.",
+    "Button": "Tetapkan Semula Kata Laluan",
+    "Disclaimer": "Jika anda tidak meminta tetapan semula, sila abaikan e-mel ini."
+  },
+  "ForgotPasswordOOBEmail": {
+    "Title": "Tetapkan Semula Kata Laluan",
+    "Body": "Sila gunakan kata laluan sekali sahaja berikut untuk menetapkan semula kata laluan anda di {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Jangan kongsi dengan sesiapa. Jika anda tidak meminta tetapan semula, sila abaikan e-mel ini."
+  },
+  "SetupPrimaryLoginLink": {
+    "Title": "Sahkan e-mel anda di {{ template \"app.name\" }}",
+    "Body": "Sila lawati pautan di bawah untuk melengkapkan proses pendaftaran anda.",
+    "Button": "Sahkan E-mel",
+    "Disclaimer": "Jika anda tidak memulakan persediaan ini, sila abaikan e-mel ini."
+  },
+  "SetupPrimaryOOBEmail": {
+    "Title": "Daftar di {{ template \"app.name\" }}",
+    "Body": "Sila gunakan kata laluan sekali sahaja berikut untuk melengkapkan proses pendaftaran.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Jangan kongsi dengan sesiapa. Jika anda tidak mendaftar, sila abaikan e-mel ini."
+  },
+  "SetupSecondaryLoginLink": {
+    "Title": "Sahkan e-mel anda dan sediakan pengesahan dua langkah di {{ template \"app.name\" }}",
+    "Body": "Sila klik butang di bawah untuk menyediakan pengesahan dua langkah.",
+    "Button": "Sahkan E-mel",
+    "Disclaimer": "Jika anda tidak memulakan persediaan ini, sila abaikan e-mel ini."
+  },
+  "SetupSecondaryOOBEmail": {
+    "Title": "Sediakan Pengesahan Dua Langkah di {{ template \"app.name\" }}",
+    "Body": "Kotak teks di bawah mengandungi kata laluan sekali sahaja yang dijana untuk menyediakan pengesahan dua langkah.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Jangan kongsi dengan sesiapa. Jika anda tidak memulakan persediaan ini, sila abaikan e-mel ini."
+  },
+  "VerificationEmail": {
+    "Title": "Pengesahan E-mel",
+    "Body": "E-mel ini dihantar untuk mengesahkan {{ .Email }} di {{ template \"app.name\" }}. Gunakan kod ini di halaman pengesahan.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Jangan kongsi dengan sesiapa. Jika anda tidak log masuk atau mendaftar, sila abaikan e-mel ini."
+  },
+  "PrimaryLoginLinkTXT": {
+    "Title": "Log masuk ke {{ template \"app.name\" }}",
+    "Body": "Sila ikuti pautan di bawah untuk log masuk ke {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Jika anda tidak memulakan log masuk, sila abaikan e-mel ini."
+  },
+  "PrimaryOOBEmailTXT": {
+    "Title": "Log masuk ke {{ template \"app.name\" }}",
+    "Body": "Sila gunakan kata laluan sekali sahaja berikut untuk melengkapkan proses log masuk.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Jangan kongsi dengan sesiapa. Jika anda tidak memulakan log masuk, sila abaikan e-mel ini."
+  },
+  "PrimaryOOBSMSTXT": {
+    "Title": "Log masuk ke {{ template \"app.name\" }} dengan kata laluan sekali sahaja ini {{ .Code }}.",
+    "Disclaimer": "Jangan kongsi dengan sesiapa."
+  },
+  "SecondaryLoginLinkTXT": {
+    "Title": "Log masuk ke {{ template \"app.name\" }}",
+    "Body": "Sila ikuti pautan di bawah untuk log masuk ke {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Jika anda tidak memulakan log masuk, sila abaikan e-mel ini."
+  },
+  "SecondaryOOBEmailTXT": {
+    "Title": "Log masuk ke {{ template \"app.name\" }}",
+    "Body": "Sila gunakan kata laluan sekali sahaja berikut untuk melengkapkan proses log masuk.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Jangan kongsi dengan sesiapa. Jika anda tidak log masuk, sila abaikan e-mel ini."
+  },
+  "SecondaryOOBSMSTXT": {
+    "Title": "{{ .Code }} ialah kata laluan sekali sahaja anda untuk {{ template \"app.name\" }}.",
+    "Disclaimer": "Jangan kongsi dengan sesiapa."
+  },
+  "ForgotPasswordEmailTXT": {
+    "Title": "Tetapkan Semula Kata Laluan",
+    "Body": "Anda telah meminta untuk menetapkan semula kata laluan anda di {{ template \"app.name\" }}. Sila lawati pautan di bawah untuk menetapkan semula kata laluan anda.",
+    "Link": "{{ .Link }}",
+    "Disclaimer": "Jika anda tidak meminta tetapan semula, sila abaikan e-mel ini."
+  },
+  "ForgotPasswordSMSTXT": {
+    "Title": "Lawati pautan ini untuk menetapkan semula kata laluan anda di {{ template \"app.name\" }}",
+    "Disclaimer": "Abaikan ini jika anda tidak menetapkan semula.",
+    "Link": "{{ .Link }}"
+  },
+  "ForgotPasswordOOBEmailTXT": {
+    "Title": "Tetapkan Semula Kata Laluan",
+    "Body": "Sila gunakan kata laluan sekali sahaja berikut untuk menetapkan semula kata laluan anda di {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Jangan kongsi dengan sesiapa. Jika anda tidak meminta tetapan semula, sila abaikan e-mel ini."
+  },
+  "ForgotPasswordOOBSMSTXT": {
+    "Body": "Tetapkan semula kata laluan anda di {{ template \"app.name\" }} dengan kata laluan sekali sahaja ini {{ .Code }}.",
+    "Disclaimer": "Jangan kongsi dengan sesiapa."
+  },
+  "SetupPrimaryLoginLinkTXT": {
+    "Title": "Sahkan e-mel anda di {{ template \"app.name\" }}",
+    "Body": "Sila lawati pautan di bawah untuk melengkapkan proses pendaftaran anda di {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Jika anda tidak memulakan persediaan ini, sila abaikan e-mel ini."
+  },
+  "SetupPrimaryOOBEmailTXT": {
+    "Title": "Daftar di {{ template \"app.name\" }}",
+    "Body": "Sila gunakan kata laluan sekali sahaja berikut untuk melengkapkan proses pendaftaran di {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Jangan kongsi dengan sesiapa. Jika anda tidak mendaftar, sila abaikan e-mel ini."
+  },
+  "SetupPrimaryOOBSMSTXT": {
+    "Title": "Daftar di {{ template \"app.name\" }} dengan kata laluan sekali sahaja ini {{ .Code }}.",
+    "Disclaimer": "Jangan kongsi dengan sesiapa."
+  },
+  "SetupSecondaryLoginLinkTXT": {
+    "Title": "Sahkan e-mel anda dan sediakan pengesahan dua langkah di {{ template \"app.name\" }}",
+    "Body": "Sila klik pautan di bawah untuk menyediakan pengesahan dua langkah di {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Jika anda tidak memulakan persediaan ini, sila abaikan e-mel ini."
+  },
+  "SetupSecondaryOOBEmailTXT": {
+    "Title": "Sediakan Pengesahan Dua Langkah di {{ template \"app.name\" }}",
+    "Body": "Kotak teks di bawah mengandungi kata laluan sekali sahaja yang dijana untuk menyediakan pengesahan dua langkah di {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Jangan kongsi dengan sesiapa. Jika anda tidak memulakan persediaan ini, sila abaikan e-mel ini."
+  },
+  "SetupSecondaryOOBSMSTXT": {
+    "Title": "Sediakan pengesahan dua langkah di {{ template \"app.name\" }} dengan kata laluan sekali sahaja ini {{ .Code }}.",
+    "Disclaimer": "Jangan kongsi dengan sesiapa."
+  },
+  "VerificationEmailTXT": {
+    "Title": "Pengesahan E-mel",
+    "Body": "E-mel ini dihantar untuk mengesahkan {{ .Email }} di {{ template \"app.name\" }}. Gunakan kod ini di halaman pengesahan.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Jangan kongsi dengan sesiapa. Jika anda tidak log masuk atau mendaftar, sila abaikan e-mel ini."
+  },
+  "VerificationSMSTXT": {
+    "Code": "{{ .Code }} ialah kod pengesahan anda untuk {{ template \"app.name\" }}.",
+    "Disclaimer": "Jangan kongsi dengan sesiapa."
+  }
+}

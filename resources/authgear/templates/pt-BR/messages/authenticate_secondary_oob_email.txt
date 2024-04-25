@@ -1,0 +1,7 @@
+Faça login no {{ template "app.name" }}
+
+Por favor, use a seguinte senha única para concluir o processo de login.
+
+{{ .Code }}
+
+Não compartilhe com ninguém. Se você não fez login, por favor ignore este e-mail.

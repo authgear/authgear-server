@@ -38,7 +38,7 @@ func (e *Engine) Translation(preferredLanguages []string) (*TranslationMap, erro
 		tag := language.Make(translation.LanguageTag)
 		tree, err = messageformat.FormatTemplateParseTree(tag, translation.Value)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse messageformat: %w", err)
+			return nil, fmt.Errorf("failed to parse messageformat for key %s: %w", key, err)
 		}
 
 		items[key] = tree
@@ -99,25 +99,25 @@ func (e *Engine) renderHTML(desc *HTML, preferredLanguages []string, data interf
 		tag := language.Make(translation.LanguageTag)
 		tree, err := messageformat.FormatTemplateParseTree(tag, translation.Value)
 		if err != nil {
-			return "", fmt.Errorf("failed to parse messageformat: %w", err)
+			return "", fmt.Errorf("failed to parse messageformat for key %s: %w", key, err)
 		}
 
 		_, err = t.AddParseTree(key, tree)
 		if err != nil {
-			return "", fmt.Errorf("failed to add messageformat parse tree: %w", err)
+			return "", fmt.Errorf("failed to add messageformat parse tree for key %s: %w", key, err)
 		}
 	}
 
 	// Validate all templates
 	err = templateValidator.ValidateHTMLTemplate(t)
 	if err != nil {
-		return "", fmt.Errorf("invalid html template: %w", err)
+		return "", fmt.Errorf("invalid html template %s: %w", desc.Name, err)
 	}
 
 	var buf strings.Builder
 	err = t.Execute(NewLimitWriter(&buf), data)
 	if err != nil {
-		return "", fmt.Errorf("failed to execute html template: %w", err)
+		return "", fmt.Errorf("failed to execute html template %s: %w", desc.Name, err)
 	}
 
 	return buf.String(), nil
@@ -164,25 +164,25 @@ func (e *Engine) renderPlainText(desc *PlainText, preferredLanguages []string, d
 		tag := language.Make(translation.LanguageTag)
 		tree, err := messageformat.FormatTemplateParseTree(tag, translation.Value)
 		if err != nil {
-			return "", fmt.Errorf("failed to parse messageformat: %w", err)
+			return "", fmt.Errorf("failed to parse messageformat for key %s: %w", key, err)
 		}
 
 		_, err = t.AddParseTree(key, tree)
 		if err != nil {
-			return "", fmt.Errorf("failed to add messageformat parse tree: %w", err)
+			return "", fmt.Errorf("failed to add messageformat parse tree for key %s: %w", key, err)
 		}
 	}
 
 	// Validate all templates
 	err = templateValidator.ValidateTextTemplate(t)
 	if err != nil {
-		return "", fmt.Errorf("invalid text template: %w", err)
+		return "", fmt.Errorf("invalid text template %s: %w", desc.Name, err)
 	}
 
 	var buf strings.Builder
 	err = t.Execute(NewLimitWriter(&buf), data)
 	if err != nil {
-		return "", fmt.Errorf("failed to execute text template: %w", err)
+		return "", fmt.Errorf("failed to execute text template %s: %w", desc.Name, err)
 	}
 
 	return buf.String(), nil

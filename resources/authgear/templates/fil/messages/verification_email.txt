@@ -1,0 +1,7 @@
+Pag-verify ng Email
+
+Ipinadala ang email na ito para i-verify ang {{ .Email }} sa {{ template "app.name" }}. Gamitin ang code na ito sa pahina ng pag-verify.
+
+{{ .Code }}
+
+Huwag ibahagi ito sa sinuman. Kung hindi ka nag-sign in o nag-sign up, pakiignore na lang ang email na ito.

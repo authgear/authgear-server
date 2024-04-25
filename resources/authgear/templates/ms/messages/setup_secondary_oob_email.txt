@@ -1,0 +1,7 @@
+Sediakan Pengesahan Dua Langkah di {{ template "app.name" }}
+
+Kotak teks di bawah mengandungi kata laluan sekali sahaja yang dijana untuk menyediakan pengesahan dua langkah di {{ template "app.name" }}.
+
+{{ .Code }}
+
+Jangan kongsi dengan sesiapa. Jika anda tidak memulakan persediaan ini, sila abaikan e-mel ini.

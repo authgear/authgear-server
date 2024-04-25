@@ -1,0 +1,3 @@
+{{ .Code }} adalah sandi satu kali pakai Anda di {{ template "app.name" }}.
+
+Jangan bagikan dengan siapa pun.

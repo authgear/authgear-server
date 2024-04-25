@@ -1,0 +1,7 @@
+Log masuk ke {{ template "app.name" }}
+
+Sila ikuti pautan di bawah untuk log masuk ke {{ template "app.name" }}.
+
+{{ .URL }}
+
+Jika anda tidak memulakan log masuk, sila abaikan e-mel ini.

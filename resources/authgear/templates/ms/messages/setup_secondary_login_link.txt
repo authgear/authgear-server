@@ -1,0 +1,7 @@
+Sahkan e-mel anda dan sediakan pengesahan dua langkah di {{ template "app.name" }}
+
+Sila klik pautan di bawah untuk menyediakan pengesahan dua langkah di {{ template "app.name" }}.
+
+{{ .URL }}
+
+Jika anda tidak memulakan persediaan ini, sila abaikan e-mel ini.

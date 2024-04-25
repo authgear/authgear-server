@@ -1,0 +1,3 @@
+Daftar di {{ template "app.name" }} dengan sandi satu kali pakai ini {{ .Code }}.
+
+Jangan bagikan dengan siapa pun.

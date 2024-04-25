@@ -1,0 +1,3 @@
+Sediakan pengesahan dua langkah di {{ template "app.name" }} dengan kata laluan sekali sahaja ini {{ .Code }}.
+
+Jangan kongsi dengan sesiapa.

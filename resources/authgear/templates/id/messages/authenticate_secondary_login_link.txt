@@ -1,0 +1,7 @@
+Masuk ke {{ template "app.name" }}
+
+Silakan ikuti tautan di bawah ini untuk masuk ke {{ template "app.name" }}.
+
+{{ .URL }}
+
+Jika Anda tidak memicu login, abaikan email ini.

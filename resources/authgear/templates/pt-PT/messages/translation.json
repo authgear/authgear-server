@@ -1,0 +1,163 @@
+{
+  "PrimaryLoginLink": {
+    "Title": "Use this link to sign in {{ template \"app.name\" }}",
+    "Body": "Please click the button below to sign in to {{ template \"app.name\" }}.",
+    "Button": "Sign into {{ template \"app.name\" }}",
+    "Disclaimer": "Se não iniciou uma sessão, ignore este email."
+  },
+  "PrimaryOOBEmail": {
+    "Title": "Iniciar sessão em {{ template \"app.name\" }}",
+    "Body": "Por favor, utilize a seguinte palavra-passe única para concluir o processo de início de sessão.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Não a partilhe com ninguém. Se não iniciou uma sessão, ignore este email."
+  },
+  "SecondaryLoginLink": {
+    "Title": "Use this link to sign in {{ template \"app.name\" }}",
+    "Instruction": "Please click the button below to sign in to {{ template \"app.name\" }}.",
+    "ButtonText": "Sign into {{ template \"app.name\" }}",
+    "Disclaimer": "Se não iniciou uma sessão, ignore este email."
+  },
+  "SecondaryOOBEmail": {
+    "Title": "Iniciar sessão em {{ template \"app.name\" }}",
+    "Body": "Por favor, utilize a seguinte palavra-passe única para concluir o processo de início de sessão.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Não a partilhe com ninguém. Se não iniciou uma sessão, ignore este email."
+  },
+  "ForgotPassword": {
+    "Title": "Redefinir palavra-passe",
+    "Body": "Solicitou a redefinição da sua palavra-passe em {{ template \"app.name\" }}. Para o fazer, clique no botão abaixo.",
+    "Button": "Redefinir palavra-passe",
+    "Disclaimer": "Se não solicitou uma redefinição, ignore este email."
+  },
+  "ForgotPasswordOOBEmail": {
+    "Title": "Redefinir palavra-passe",
+    "Body": "Por favor, utilize a seguinte palavra-passe única para redefinir a sua palavra-passe em {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Não a partilhe com ninguém. Se não solicitou uma redefinição, ignore este email."
+  },
+  "SetupPrimaryLoginLink": {
+    "Title": "Verificar o seu email em {{ template \"app.name\" }}",
+    "Body": "Por favor, visite o link abaixo para concluir o seu processo de registo.",
+    "Button": "Verificar email",
+    "Disclaimer": "Se não iniciou esta configuração, ignore este email."
+  },
+  "SetupPrimaryOOBEmail": {
+    "Title": "Registar-se em {{ template \"app.name\" }}",
+    "Body": "Por favor, utilize a seguinte palavra-passe única para concluir o processo de registo.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Não a partilhe com ninguém. Se não se registou, ignore este email."
+  },
+  "SetupSecondaryLoginLink": {
+    "Title": "Verificar o seu email e configurar a verificação em 2 passos em {{ template \"app.name\" }}",
+    "Body": "Por favor, clique no botão abaixo para configurar a verificação em 2 passos.",
+    "Button": "Verificar email",
+    "Disclaimer": "Se não iniciou esta configuração, ignore este email."
+  },
+  "SetupSecondaryOOBEmail": {
+    "Title": "Configurar a Verificação em 2 Passos em {{ template \"app.name\" }}",
+    "Body": "A caixa de texto abaixo contém uma palavra-passe única gerada para configurar a verificação em 2 passos.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Não a partilhe com ninguém. Se não iniciou esta configuração, ignore este email."
+  },
+  "VerificationEmail": {
+    "Title": "Verificação de email",
+    "Body": "Este email é enviado para verificar {{ .Email }} em {{ template \"app.name\" }}. Utilize este código na página de verificação.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Não o partilhe com ninguém. Se não iniciou sessão ou não se registou, ignore este email."
+  },
+  "PrimaryLoginLinkTXT": {
+    "Title": "Iniciar sessão em {{ template \"app.name\" }}",
+    "Body": "Por favor, siga o link abaixo para iniciar sessão em {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Se não iniciou uma sessão, ignore este email."
+  },
+  "PrimaryOOBEmailTXT": {
+    "Title": "Iniciar sessão em {{ template \"app.name\" }}",
+    "Body": "Por favor, utilize a seguinte palavra-passe única para concluir o processo de início de sessão.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Não a partilhe com ninguém. Se não iniciou uma sessão, ignore este email."
+  },
+  "PrimaryOOBSMSTXT": {
+    "Title": "Inicie sessão em {{ template \"app.name\" }} com esta palavra-passe única {{ .Code }}.",
+    "Disclaimer": "Não a partilhe com ninguém."
+  },
+  "SecondaryLoginLinkTXT": {
+    "Title": "Iniciar sessão em {{ template \"app.name\" }}",
+    "Body": "Por favor, siga o link abaixo para iniciar sessão em {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Se não iniciou uma sessão, ignore este email."
+  },
+  "SecondaryOOBEmailTXT": {
+    "Title": "Iniciar sessão em {{ template \"app.name\" }}",
+    "Body": "Por favor, utilize a seguinte palavra-passe única para concluir o processo de início de sessão.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Não a partilhe com ninguém. Se não iniciou uma sessão, ignore este email."
+  },
+  "SecondaryOOBSMSTXT": {
+    "Title": "{{ .Code }} é a sua palavra-passe única de {{ template \"app.name\" }}.",
+    "Disclaimer": "Não a partilhe com ninguém."
+  },
+  "ForgotPasswordEmailTXT": {
+    "Title": "Redefinir palavra-passe",
+    "Body": "Solicitou a redefinição da sua palavra-passe em {{ template \"app.name\" }}. Por favor, visite o link abaixo para redefinir a sua palavra-passe.",
+    "Link": "{{ .Link }}",
+    "Disclaimer": "Se não solicitou uma redefinição, ignore este email."
+  },
+  "ForgotPasswordSMSTXT": {
+    "Title": "Visite este link para redefinir a sua palavra-passe em {{ template \"app.name\" }}",
+    "Disclaimer": "Ignore se não está a redefinir.",
+    "Link": "{{ .Link }}"
+  },
+  "ForgotPasswordOOBEmailTXT": {
+    "Title": "Redefinir palavra-passe",
+    "Body": "Por favor, utilize a seguinte palavra-passe única para redefinir a sua palavra-passe em {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Não a partilhe com ninguém. Se não solicitou uma redefinição, ignore este email."
+  },
+  "ForgotPasswordOOBSMSTXT": {
+    "Body": "Redefina a sua palavra-passe em {{ template \"app.name\" }} com esta palavra-passe única {{ .Code }}.",
+    "Disclaimer": "Não a partilhe com ninguém."
+  },
+  "SetupPrimaryLoginLinkTXT": {
+    "Title": "Verificar o seu email em {{ template \"app.name\" }}",
+    "Body": "Por favor, visite o link abaixo para concluir o seu processo de registo em {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Se não iniciou esta configuração, ignore este email."
+  },
+  "SetupPrimaryOOBEmailTXT": {
+    "Title": "Registar-se em {{ template \"app.name\" }}",
+    "Body": "Por favor, utilize a seguinte palavra-passe única para concluir o processo de registo em {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Não a partilhe com ninguém. Se não se registou, ignore este email."
+  },
+  "SetupPrimaryOOBSMSTXT": {
+    "Title": "Registe-se em {{ template \"app.name\" }} com esta palavra-passe única {{ .Code }}.",
+    "Disclaimer": "Não a partilhe com ninguém."
+  },
+  "SetupSecondaryLoginLinkTXT": {
+    "Title": "Verificar o seu email e configurar a verificação em 2 passos em {{ template \"app.name\" }}",
+    "Body": "Por favor, clique no link abaixo para configurar a verificação em 2 passos em {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Se não iniciou esta configuração, ignore este email."
+  },
+  "SetupSecondaryOOBEmailTXT": {
+    "Title": "Configurar a Verificação em 2 Passos em {{ template \"app.name\" }}",
+    "Body": "A caixa de texto abaixo contém uma palavra-passe única gerada para configurar a verificação em 2 passos em {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Não a partilhe com ninguém. Se não iniciou esta configuração, ignore este email."
+  },
+  "SetupSecondaryOOBSMSTXT": {
+    "Title": "Configure a verificação em 2 passos em {{ template \"app.name\" }} com esta palavra-passe única {{ .Code }}.",
+    "Disclaimer": "Não a partilhe com ninguém."
+  },
+  "VerificationEmailTXT": {
+    "Title": "Verificação de email",
+    "Body": "Este email é enviado para verificar {{ .Email }} em {{ template \"app.name\" }}. Utilize este código na página de verificação.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Não o partilhe com ninguém. Se não iniciou sessão ou não se registou, ignore este email."
+  },
+  "VerificationSMSTXT": {
+    "Code": "{{ .Code }} é o seu código de verificação de {{ template \"app.name\" }}.",
+    "Disclaimer": "Não o partilhe com ninguém."
+  }
+}

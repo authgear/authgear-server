@@ -1,0 +1,7 @@
+E-Mail-Verifizierung
+
+Diese E-Mail wird gesendet, um {{ .Email }} bei {{ template "app.name" }} zu verifizieren. Verwenden Sie diesen Code auf der Verifizierungsseite.
+
+{{ .Code }}
+
+Geben Sie es niemandem weiter. Wenn Sie sich nicht angemeldet oder registriert haben, ignorieren Sie bitte diese E-Mail.

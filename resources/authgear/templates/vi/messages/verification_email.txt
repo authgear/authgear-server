@@ -1,0 +1,7 @@
+Xác minh email
+
+Email này được gửi để xác minh {{ .Email }} trên {{ template "app.name" }}. Sử dụng mã này trên trang xác minh.
+
+{{ .Code }}
+
+Không chia sẻ với bất kỳ ai. Nếu bạn không đăng nhập hoặc đăng ký, vui lòng bỏ qua email này.

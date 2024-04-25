@@ -1,0 +1,7 @@
+Log masuk ke {{ template "app.name" }}
+
+Sila gunakan kata laluan sekali sahaja berikut untuk melengkapkan proses log masuk.
+
+{{ .Code }}
+
+Jangan kongsi dengan sesiapa. Jika anda tidak log masuk, sila abaikan e-mel ini.

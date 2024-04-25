@@ -1,0 +1,7 @@
+Masuk ke {{ template "app.name" }}
+
+Silakan gunakan sandi satu kali pakai berikut untuk menyelesaikan proses login.
+
+{{ .Code }}
+
+Jangan bagikan dengan siapa pun. Jika Anda tidak memicu login, abaikan email ini.

@@ -1,0 +1,7 @@
+Daftar di {{ template "app.name" }}
+
+Silakan gunakan sandi satu kali pakai berikut untuk menyelesaikan proses pendaftaran di {{ template "app.name" }}.
+
+{{ .Code }}
+
+Jangan bagikan dengan siapa pun. Jika Anda tidak mendaftar, abaikan email ini.

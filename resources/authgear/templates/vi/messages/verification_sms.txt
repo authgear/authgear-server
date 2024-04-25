@@ -1,0 +1,3 @@
+{{ .Code }} là mã xác minh của bạn trên {{ template "app.name" }}.
+
+Không chia sẻ với bất kỳ ai.

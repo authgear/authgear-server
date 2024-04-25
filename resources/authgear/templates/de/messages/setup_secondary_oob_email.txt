@@ -1,0 +1,7 @@
+Richten Sie die Zwei-Faktor-Authentifizierung bei {{ template "app.name" }} ein
+
+Das Textfeld unten enthält ein Einmal-Passwort, das zur Einrichtung der Zwei-Faktor-Authentifizierung bei {{ template "app.name" }} generiert wurde.
+
+{{ .Code }}
+
+Geben Sie es niemandem weiter. Wenn Sie diese Einrichtung nicht ausgelöst haben, ignorieren Sie bitte diese E-Mail.

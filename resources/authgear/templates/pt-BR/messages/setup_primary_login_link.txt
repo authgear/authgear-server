@@ -1,0 +1,7 @@
+Verifique seu e-mail no {{ template "app.name" }}
+
+Por favor, visite o link abaixo para concluir seu processo de cadastro no {{ template "app.name" }}.
+
+{{ .URL }}
+
+Se você não iniciou esta configuração, por favor ignore este e-mail.

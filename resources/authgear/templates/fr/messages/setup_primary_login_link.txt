@@ -1,0 +1,7 @@
+Vérifiez votre e-mail sur {{ template "app.name" }}
+
+Veuillez visiter le lien ci-dessous pour terminer votre processus d'inscription sur {{ template "app.name" }}.
+
+{{ .URL }}
+
+Si vous n'avez pas déclenché cette configuration, veuillez ignorer cet e-mail.

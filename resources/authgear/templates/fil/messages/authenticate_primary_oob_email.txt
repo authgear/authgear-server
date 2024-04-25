@@ -1,0 +1,7 @@
+Mag-log in sa {{ template "app.name" }}
+
+Mangyaring gamitin ang sumusunod na one-time password para makumpleto ang proseso ng pag-log in.
+
+{{ .Code }}
+
+Huwag ibahagi ito sa sinuman. Kung hindi mo pinagana ang pag-log in, pakiignore na lang ang email na ito.
