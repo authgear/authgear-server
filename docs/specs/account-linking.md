@@ -5,10 +5,10 @@
   - [Defining how the linking occurs and the corresponding action](#defining-how-the-linking-occurs-and-the-corresponding-action)
     - [Defining Linkings](#defining-linkings)
     - [Linking Actions](#linking-actions)
-  - [Defining a default for all flows](#defining-a-default-for-all-flows)
-    - [Default Behaviors](#default-behaviors)
-      - [The Current Defaults](#the-current-defaults)
-      - [The default linking of different provider types](#the-default-linking-of-different-provider-types)
+  - [Override the config per flow](#override-the-config-in-specific-flow)
+  - [Default Behaviors](#default-behaviors)
+    - [The Current Defaults](#the-current-defaults)
+    - [The default linking of different provider types](#the-default-linking-of-different-provider-types)
 - [Identity Attributes](#identity-attributes)
   - [The built-in oauth identity standard attributes](#the-built-in-oauth-identity-standard-attributes)
   - [Customizing the oauth identity attributes](#customizing-the-oauth-identity-attributes)
@@ -39,17 +39,17 @@ Let's explain with the following example:
 
 ```yaml
 authentication_flow:
+  account_linking:
+    oauth:
+      - alias: adfs
+        oauth_claim:
+          pointer: "/preferred_username"
+        user_profile:
+          pointer: "/preferred_username"
+        action: login_and_link
+        login_flow: default
   signup_flows:
     - name: default
-      account_linking:
-        oauth:
-          - alias: adfs
-            oauth_claim:
-              pointer: "/preferred_username"
-            user_profile:
-              pointer: "/preferred_username"
-            action: login_and_link
-            login_flow: default
       steps:
         - name: identify
           type: identify
@@ -63,7 +63,7 @@ authentication_flow:
             - identification: oauth
 ```
 
-The `account_linking` section inside `signup_flows` defined the account linking behavior of the `default` signup flow. It have the following meanings:
+The `account_linking` section inside `authentication_flow` defined the account linking behavior of any authentication flow. It have the following meanings:
 
 - When user is trying to sign up with an `oauth` identity, which belongs to the oauth provider with alias `adfs`, account linking may occurs. The related provider is specified by the `alias` field, which should match one of the providers specified in the `identity.oauth.providers` config.
 - Linking should occur if the new oauth identity is having a `"email"` claim, which the value is equal to the `"email"` attribute of any existing user's identity. For details, please read the [Defining Linkings](#defining-linkings) section.
@@ -120,35 +120,62 @@ We define the action to link the new oauth identity with the existing identity's
 
 Currently, only `error` and `login_and_link` will be implemented.
 
-### Defining a default for all flows
+### Override the config in specific flow
 
-All config mentioned above was defined inside a single flow object of a `signup_flows`. However, you may simply want a config applied to all signup flows. Therefore, we have the `default_account_linking` section for this purpose. Here is an example:
+We provide a way to override account linking configs in a specific flow. This is because there are valid use cases that each flow should behave differently. For example, you may probably want the `default` signup flow to do account linking with the `default` signup flow, but in other side, you want another signup flow `signup_flow_1` to do account linking with another `login_flow_1` login_flow. Use the following config to achieve this behavior:
+
 
 ```yaml
 authentication_flow:
-  default_account_linking:
+  account_linking:
     oauth:
-      - alias: google
+      - alias: adfs
         oauth_claim:
-          pointer: "/email"
+          pointer: "/preferred_username"
         user_profile:
-          pointer: "/email"
+          pointer: "/preferred_username"
         action: login_and_link
         login_flow: default
+  signup_flows:
+    - name: signup_flow_1
+      account_linking:
+        oauth:
+          - alias: adfs # This will override the account_linking configs for adfs above 
+            action: link_without_login_when_verified
+            login_flow: login_flow_1
+      steps:
+        - name: identify
+          type: identify
+          one_of:
+            - identification: email
+              steps:
+                - name: authenticate_primary_email
+                  type: create_authenticator
+                  one_of:
+                    - authentication: primary_password
+            - identification: oauth
 ```
 
-It supports all configs as mentioned in the above [Defining how the linking occurs and the corresponding action](#defining-how-the-linking-occurs-and-the-corresponding-action).
+In the above example, an `account_linking` object was added inside the signup flow `signup_flow_1`, and it overrides some configs in the `authentication_flow.account_linking`.
 
-If `authentication_flow.default_account_linking` is specified, it will be applied to all signup flows. If any signup flows does not have the `account_linking` config specified, it will be treated as having same configs inside `authentication_flow.default_account_linking`.
+There is one item in `account_linking.oauth` inside signup flow `signup_flow_1`, which has `alias: adfs`. This means the config inside that item will override any config in `authentication_flow.account_linking.oauth` with `alias` equal to `adfs`.
 
-For detail about default behaviors, please read the [Default Behaviors](#default-behaviors) section.
+As a result, the `login_flow` used to link adfs account will be changed to `login_flow_1`. And `action` will be changed to `link_without_login_when_verified`.
+
+Not all configs are overridable inside a flow. We only support overriding the following configs:
+  - `action`
+  - `login_flow`
+
+Read the above [Defining how the linking occurs and the corresponding action](#defining-how-the-linking-occurs-and-the-corresponding-action) section for meaning of each fields.
+
+`oauth_claim` and `user_profile` is not supported in the config overrides because we think there is no valid usecase for it. You propably always want a consistent linking logics between flows.
 
 ### Default Behaviors
 
 The account linking config will be read according to the below precedence:
 
 1. If exist, always use the configurations in `account_linking` inside the current flow object in `signup_flows`.
-2. Else, use the `authentication_flow.default_account_linking` confuguration, if exist.
+2. Else, use the `authentication_flow.account_linking` confuguration, if exist.
 3. Else, it is the built in default behavior. Please read the following sections for detail.
 
 #### The Current Defaults
