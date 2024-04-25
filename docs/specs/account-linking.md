@@ -15,6 +15,7 @@
 - [Login and Link Flow](#login-and-link-flow)
 - [Account Linking by Login IDs](#account-linking-by-login-ids)
   - [Defaults of Account Linking of Login IDs](#defaults-of-account-linking-of-Login-ids)
+- [Account Linking in Promote Flow](#account-linking-in-promote-flow)
 - [Q&A](#qa)
   - [Why we need to login the user before linking the account?](#why-we-need-to-login-the-user-before-linking-the-account)
   - [Why we need to continue the original signup flow instead of simply adding the oauth identity to the user?](#why-we-need-to-continue-the-original-signup-flow-instead-of-simply-adding-the-oauth-identity-to-the-user)
@@ -422,6 +423,12 @@ The default values of each login id types are different. Please see the below ta
 | `username`    | <pre><code>user_profile:<br/>&nbsp;&nbsp;pointer: "/preferred_username"<br/>action: error</code></pre> |
 
 Therefore when not specified, all attempts to link a new login id to existing users or idenitities will result in error.
+
+## Account Linking in Promote Flow
+
+Account linking can occur in promote flow, however, only `error` is allowed to be the action of account linking.
+
+Any action set in `authentication_flow.account_linking` will be treated as error. And `action` in `signup_flows.account_linking` only allows `error` as value.
 
 ## References
 
