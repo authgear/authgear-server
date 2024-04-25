@@ -127,9 +127,17 @@ def apply_cldr_territories(locale, translation, cldr_localnames_path):
           alpha2 = maybe_alpha2
 
           # Prefer the short name if alpha2 is HK or MO
-          short = f"{alpha2}-alt-short"
-          if alpha2 in ["HK", "MO"] and short in alpha2_to_localized_name:
-              value = alpha2_to_localized_name[short]
+          if alpha2 in ["HK", "MO"]:
+            short = f"{alpha2}-alt-short"
+            if short in alpha2_to_localized_name:
+                value = alpha2_to_localized_name[short]
+
+          # Prefer the alt-variant name if alpha2 is TR AND the locale is en
+          # It is because for some reason I do not know, TR does not appear to be in English.
+          if alpha2 == "TR" and locale == "en":
+            variant = f"{alpha2}-alt-variant"
+            if variant in alpha2_to_localized_name:
+                value = alpha2_to_localized_name[variant]
 
           translation[f'territory-{alpha2}'] = value
 
