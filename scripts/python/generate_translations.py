@@ -2,7 +2,6 @@ import collections
 import concurrent.futures
 import os
 import re
-from sys import argv
 import anthropic
 import json
 import json_repair
@@ -41,15 +40,18 @@ LOCALE_DICT = {
   "el": {"name": "Greek"}
 }
 
+
 def find_missing_keys(default_translation, current_translation):
   def key_is_reserved(key):
     return key.startswith("language-")
   missing_keys = [key for key in default_translation.keys() if key not in current_translation and not key_is_reserved(key)]
   return collections.OrderedDict((key, default_translation[key]) for key in missing_keys)
 
+
 def chunk_messages(messages: dict[str, str | dict[str, str]], chunk_size: int) -> list[dict[str, str | dict[str, str]]]:
   keys = list(messages.keys())
   return [collections.OrderedDict((k, messages[k]) for k in keys[i:i + chunk_size]) for i in range(0, len(keys), chunk_size)]
+
 
 def auto_translate(messages: dict[str, str | dict[str, str]], locale, chunk_size):
   if len(messages.keys()) == 0:
@@ -102,6 +104,7 @@ def auto_translate(messages: dict[str, str | dict[str, str]], locale, chunk_size
 
     yield translated_messages
 
+
 def ensure_path_exists(path):
   directory = os.path.dirname(path)
   if not os.path.exists(directory):
@@ -110,6 +113,39 @@ def ensure_path_exists(path):
   if not os.path.isfile(path):
     with open(path, 'w'):
         pass
+
+
+def apply_cldr_territories(locale, translation, cldr_localnames_path):
+  cldr = LOCALE_DICT[locale].get('cldr', locale)
+  with open(f"{cldr_localnames_path}/main/{cldr}/territories.json", 'r') as file:
+      data = json.load(file)
+
+  alpha2_to_localized_name = data['main'][cldr]['localeDisplayNames']['territories']
+
+  for maybe_alpha2, value in alpha2_to_localized_name.items():
+      if re.match(r'^[A-Z]{2}$', maybe_alpha2):
+          translation[f'territory-{maybe_alpha2}'] = value
+
+  return translation
+
+
+def fix_translation_json(translation):
+  for k, v in translation.items():
+    if isinstance(v, str):
+      # Fix escaped backslashes
+      translation[k] = re.sub(r'\\{2}', r'\\', translation[k])
+
+  return translation
+
+
+def save_translation_file(locale, default_translation, updated_translation, filepath, cldr_localnames_path):
+  translation = apply_cldr_territories(locale, updated_translation, cldr_localnames_path)
+  translation = fix_translation_json(updated_translation)
+  translation = collections.OrderedDict((k, translation[k]) for k in default_translation.keys() if k in translation)
+  with open(filepath, 'w') as file:
+    json.dump(translation, file, indent=2, ensure_ascii=False)
+    file.write('\n')
+
 
 def update_translation(locale: str, default_translation_file: str, locale_translation_file: str, chunk_size, cldr_localnames_path):
   logging.info(f'{locale} | Updating {locale_translation_file} with latest keys.')
@@ -130,47 +166,13 @@ def update_translation(locale: str, default_translation_file: str, locale_transl
 
   logging.info(f'{locale} | Found {len(missing_keys)} missing keys in {locale_translation_file}.')
 
-  def apply_cldr_territories(locale, translation):
-    cldr = LOCALE_DICT[locale].get('cldr', locale)
-    with open(f"{cldr_localnames_path}/main/{cldr}/territories.json", 'r') as file:
-        data = json.load(file)
-
-    alpha2_to_localized_name = data['main'][cldr]['localeDisplayNames']['territories']
-
-    for maybe_alpha2, value in alpha2_to_localized_name.items():
-        if re.match(r'^[A-Z]{2}$', maybe_alpha2):
-            translation[f'territory-{maybe_alpha2}'] = value
-
-    return translation
-
-  def fix_translation_json(translation):
-    for k, v in translation.items():
-      if isinstance(v, str):
-        # Fix escaped backslashes
-        translation[k] = re.sub(r'\\{2}', r'\\', translation[k])
-
-    return translation
-
-  def save_translation_file(default_translation, updated_translation, file):
-    translation = apply_cldr_territories(locale, updated_translation)
-    translation = fix_translation_json(updated_translation)
-    translation = collections.OrderedDict((k, translation[k]) for k in default_translation.keys() if k in translation)
-    with open(file, 'w') as file:
-      json.dump(translation, file, indent=2, ensure_ascii=False)
-      file.write('\n')
-
   for translated_messages in auto_translate(messages=missing_keys, locale=locale, chunk_size=chunk_size):
     locale_translation.update(translated_messages)
-    save_translation_file(default_translation, locale_translation, locale_translation_file)
 
   # Insert default translation for reserved keys (e.g. language-*)
   upodated_translation = default_translation.copy()
   upodated_translation.update(locale_translation)
-  save_translation_file(default_translation, upodated_translation, locale_translation_file)
-
-  missing_keys = find_missing_keys(default_translation, locale_translation)
-  if len(missing_keys) > 0:
-    logging.error(f'{locale} | Failed to translate the following keys: {missing_keys.keys()}.')
+  save_translation_file(locale, default_translation, upodated_translation, locale_translation_file, cldr_localnames_path)
 
   logging.info(f'{locale} | Updated {locale_translation_file} with latest keys.')
 
@@ -212,7 +214,7 @@ if __name__ == '__main__':
   chunk_size = 10
   locales = [locale for locale in LOCALE_DICT.keys()]
 
-  cldr_localnames_path = os.environ.get('CLDR_LOCALNAMES_PATH', 'cldr-localnames-modern')
+  cldr_localnames_path = "../npm/node_modules/cldr-localenames-modern"
 
   with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
     executor.map(make_update_locale_fn(cldr_localnames_path, chunk_size), locales)
