@@ -1444,6 +1444,12 @@ type AuthenticationFlowAccountLinkingJSONPointer struct {
 	Pointer jsonpointer.T `json:"pointer,omitempty"`
 }
 
+var DefaultAuthenticationFlowAccountLinkOAuthItem = &AuthenticationFlowAccountLinkOAuthItem{
+	OAuthClaim:  &AuthenticationFlowAccountLinkingJSONPointer{Pointer: jsonpointer.MustParse("/email")},
+	UserProfile: &AuthenticationFlowAccountLinkingJSONPointer{Pointer: jsonpointer.MustParse("/email")},
+	Action:      AuthenticationFlowAccountLinkingActionError,
+}
+
 func init() {
 	accountRecoveryChannelsOneOf := ""
 	addAccountRecoveryChannel := func(channel AccountRecoveryCodeChannel, otpForm AccountRecoveryCodeForm) {
