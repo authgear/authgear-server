@@ -25,6 +25,8 @@ type IntentPromoteFlow struct {
 
 var _ authflow.PublicFlow = &IntentPromoteFlow{}
 var _ authflow.EffectGetter = &IntentPromoteFlow{}
+var _ authflow.Milestone = &IntentPromoteFlow{}
+var _ MilestoneAccountLinkingConfigGetter = &IntentPromoteFlow{}
 
 func (*IntentPromoteFlow) Kind() string {
 	return "IntentPromoteFlow"
@@ -144,6 +146,20 @@ func (i *IntentPromoteFlow) GetEffects(ctx context.Context, deps *authflow.Depen
 			return nil
 		}),
 	}, nil
+}
+
+func (i *IntentPromoteFlow) Milestone() {}
+func (i *IntentPromoteFlow) MilestoneAccountLinkingConfigGetter(deps *authflow.Dependencies) (*config.AuthenticationFlowAccountLinking, error) {
+	flowRootObject, err := i.FlowRootObject(deps)
+	if err != nil {
+		return nil, err
+	}
+	// Promote flow is using AuthenticationFlowSignupFlow
+	signupFlow, ok := flowRootObject.(*config.AuthenticationFlowSignupFlow)
+	if !ok {
+		panic("flow root object is not signup flow in promote flow intent")
+	}
+	return signupFlow.AccountLinking, nil
 }
 
 func (i *IntentPromoteFlow) anonymousIdentity(f *authflow.Flow) *identity.Info {

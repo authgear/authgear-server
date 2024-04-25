@@ -7,8 +7,12 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 func init() {
@@ -65,13 +69,22 @@ func (n *NodePromoteIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.D
 		_, err = findExactOneIdentityInfo(deps, spec)
 		if err != nil {
 			if apierrors.IsKind(err, api.UserNotFound) {
+				_, conflicts, err := n.checkConflictByAccountLinkings(ctx, deps, flows, spec)
+				if len(conflicts) > 0 {
+					// In promote flow, always error if any conflicts occurs
+					conflictSpecs := slice.Map(conflicts, func(i *identity.Info) *identity.Spec {
+						s := i.ToSpec()
+						return &s
+					})
+					return nil, identityFillDetailsMany(api.ErrDuplicatedIdentity, spec, conflictSpecs)
+				}
+
 				// promote
 				info, err := newIdentityInfo(deps, n.UserID, spec)
 				if err != nil {
 					return nil, err
 				}
 
-				// TODO(tung): Check for account linking
 				return authflow.NewNodeSimple(&NodeDoCreateIdentity{
 					Identity: info,
 				}), nil
@@ -106,4 +119,20 @@ func (n *NodePromoteIdentityOAuth) OutputData(ctx context.Context, deps *authflo
 	}
 
 	return data, nil
+}
+
+func (n *NodePromoteIdentityOAuth) checkConflictByAccountLinkings(
+	ctx context.Context,
+	deps *authflow.Dependencies,
+	flows authflow.Flows,
+	spec *identity.Spec) (config config.AccountLinkingConfigObject, conflicts []*identity.Info, err error) {
+	switch spec.Type {
+	case model.IdentityTypeOAuth:
+		return linkByOAuthIncomingOAuthSpec(ctx, deps, flows, &CreateIdentityRequestOAuth{
+			Alias: n.Alias,
+			Spec:  spec,
+		})
+	default:
+		panic("unexpected spec type")
+	}
 }
