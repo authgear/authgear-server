@@ -99,37 +99,7 @@ func (i *IntentAccountLinking) ReactTo(ctx context.Context, deps *authflow.Depen
 		return nil, err
 	}
 	if flowUserID != conflictedUserID {
-		err = authflow.TraverseFlow(authflow.Traverser{
-			NodeSimple: func(nodeSimple authflow.NodeSimple, w *authflow.Flow) error {
-				milestone, ok := nodeSimple.(MilestoneSwitchToExistingUser)
-				if ok {
-					err = milestone.MilestoneSwitchToExistingUser(deps, w, conflictedUserID)
-					if err != nil {
-						return err
-					}
-				}
-				return nil
-			},
-			Intent: func(intent authflow.Intent, w *authflow.Flow) error {
-				milestone, ok := intent.(MilestoneSwitchToExistingUser)
-				if ok {
-					err = milestone.MilestoneSwitchToExistingUser(deps, w, conflictedUserID)
-					if err != nil {
-						return err
-					}
-				}
-				return nil
-			},
-		}, flows.Root)
-		if err != nil {
-			return nil, err
-		}
-		// Use synthetic input to auto select the conflicted identity in the login flow
-		return nil, &authflow.ErrorRewriteFlow{
-			Intent:         flows.Root.Intent,
-			Nodes:          flows.Root.Nodes,
-			SyntheticInput: i.createSyntheticInputOAuthConflict(milestone, i.IncomingIdentitySpec, conflictedIdentity),
-		}
+		return i.rewriteFlowIntoUserIDOfConflictedIdentity(deps, flows, milestone)
 	}
 
 	switch len(flows.Nearest.Nodes) {
@@ -168,6 +138,46 @@ func (i *IntentAccountLinking) ReactTo(ctx context.Context, deps *authflow.Depen
 	}
 
 	return nil, authflow.ErrIncompatibleInput
+}
+
+func (i *IntentAccountLinking) rewriteFlowIntoUserIDOfConflictedIdentity(
+	deps *authflow.Dependencies,
+	flows authflow.Flows,
+	milestone MilestoneUseAccountLinkingIdentification) (*authflow.Node, error) {
+
+	conflictedIdentity := milestone.MilestoneUseAccountLinkingIdentification()
+	conflictedUserID := conflictedIdentity.UserID
+	err := authflow.TraverseFlow(authflow.Traverser{
+		NodeSimple: func(nodeSimple authflow.NodeSimple, w *authflow.Flow) error {
+			milestone, ok := nodeSimple.(MilestoneSwitchToExistingUser)
+			if ok {
+				err := milestone.MilestoneSwitchToExistingUser(deps, w, conflictedUserID)
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		},
+		Intent: func(intent authflow.Intent, w *authflow.Flow) error {
+			milestone, ok := intent.(MilestoneSwitchToExistingUser)
+			if ok {
+				err := milestone.MilestoneSwitchToExistingUser(deps, w, conflictedUserID)
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		},
+	}, flows.Root)
+	if err != nil {
+		return nil, err
+	}
+	// Use synthetic input to auto select the conflicted identity in the login flow
+	return nil, &authflow.ErrorRewriteFlow{
+		Intent:         flows.Root.Intent,
+		Nodes:          flows.Root.Nodes,
+		SyntheticInput: i.createSyntheticInputOAuthConflict(milestone, i.IncomingIdentitySpec, conflictedIdentity),
+	}
 }
 
 func (i *IntentAccountLinking) createSyntheticInputOAuthConflict(
