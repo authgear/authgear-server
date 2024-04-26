@@ -122,7 +122,14 @@ func (s *Session) MakeContext(ctx context.Context, deps *Dependencies, publicFlo
 		XState:    s.XState,
 	})
 
-	ctx = intl.WithPreferredLanguageTags(ctx, intl.ParseUILocales(s.UILocales))
+	if s.UILocales != "" {
+		tags := intl.ParseUILocales(s.UILocales)
+		ctx = intl.WithPreferredLanguageTags(ctx, tags)
+	} else {
+		acceptLanguage := deps.HTTPRequest.Header.Get("Accept-Language")
+		tags := intl.ParseAcceptLanguage(acceptLanguage)
+		ctx = intl.WithPreferredLanguageTags(ctx, tags)
+	}
 
 	ctx = context.WithValue(ctx, contextKeyIDToken, s.IDToken)
 	ctx = context.WithValue(ctx, contextKeySuppressIDPSessionCookie, s.SuppressIDPSessionCookie)

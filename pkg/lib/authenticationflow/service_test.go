@@ -31,8 +31,11 @@ func TestService(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
+		httpReq, _ := http.NewRequest("POST", "", nil)
 		ctx := context.TODO()
-		deps := &Dependencies{}
+		deps := &Dependencies{
+			HTTPRequest: httpReq,
+		}
 		logger := ServiceLogger{log.Null}
 		database := &db.MockHandle{}
 		store := NewMockStore(ctrl)
@@ -360,7 +363,10 @@ func TestServiceContext(t *testing.T) {
 		defer ctrl.Finish()
 
 		ctx := context.TODO()
-		deps := &Dependencies{}
+		httpReq, _ := http.NewRequest("POST", "", nil)
+		deps := &Dependencies{
+			HTTPRequest: httpReq,
+		}
 		logger := ServiceLogger{log.Null}
 		database := &db.MockHandle{}
 		uiConfig := &config.UIConfig{AuthenticationFlow: &config.UIAuthenticationFlowConfig{}}
