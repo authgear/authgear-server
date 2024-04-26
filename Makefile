@@ -18,6 +18,7 @@ vendor:
 	go mod download
 	go install github.com/golang/mock/mockgen
 	go install github.com/google/wire/cmd/wire
+	go install golang.org/x/vuln/cmd/govulncheck@latest
 	npm --prefix ./scripts/npm ci
 	npm --prefix ./authui ci
 	npm --prefix ./portal ci
@@ -57,6 +58,10 @@ lint:
 .PHONY: fmt
 fmt:
 	go fmt ./...
+
+.PHONY: govulncheck
+govulncheck:
+	govulncheck ./...
 
 # osusergo: https://godoc.org/github.com/golang/go/src/os/user
 # netgo: https://golang.org/doc/go1.5#net
