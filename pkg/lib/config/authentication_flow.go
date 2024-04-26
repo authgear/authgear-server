@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 var _ = Schema.Add("AuthenticationFlowConfig", `
@@ -41,7 +42,8 @@ var _ = Schema.Add("AuthenticationFlowConfig", `
 			"minItems": 1,
 			"items": { "$ref": "#/$defs/AuthenticationFlowAccountRecoveryFlow" }
 		},
-		"rate_limits": { "$ref": "#/$defs/AuthenticationFlowRateLimitsConfig" }
+		"rate_limits": { "$ref": "#/$defs/AuthenticationFlowRateLimitsConfig" },
+		"default_account_linking": { "$ref": "#/$defs/AuthenticationFlowAccountLinking" }
 	}
 }
 `)
@@ -72,6 +74,7 @@ var _ = Schema.Add("AuthenticationFlowSignupFlow", `
 	"required": ["name", "steps"],
 	"properties": {
 		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
+		"account_linking": { "$ref": "#/$defs/AuthenticationFlowAccountLinking" },
 		"steps": {
 			"type": "array",
 			"minItems": 1,
@@ -624,6 +627,61 @@ var _ = Schema.Add("AuthenticationFlowAccountRecoveryIdentification", `
 }
 `)
 
+var _ = Schema.Add("AuthenticationFlowAccountLinking", `
+{
+	"type": "object",
+	"properties": {
+		"oauth": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/AuthenticationFlowAccountLinkOAuthItem" }
+		}
+	}
+}
+`)
+
+var _ = Schema.Add("AuthenticationFlowAccountLinkOAuthItem", `
+{
+	"type": "object",
+	"required": ["alias", "oauth_claim", "user_profile", "action"],
+	"properties": {
+		"alias": { "type": "string" },
+		"oauth_claim": { "$ref": "#/$defs/AuthenticationFlowAccountLinkingJSONPointer" },
+		"user_profile": { "$ref": "#/$defs/AuthenticationFlowAccountLinkingJSONPointer" },
+		"action": { "$ref": "#/$defs/AuthenticationFlowAccountLinkingAction" },
+		"login_flow": { "type": "string" }
+	}
+}
+`)
+
+var _ = Schema.Add("AuthenticationFlowAccountLinkingAction", `
+{
+	"type": "string",
+	"enum": [
+		"error",
+		"login_and_link"
+	]
+}
+`)
+
+var _ = Schema.Add("AuthenticationFlowAccountLinkingJSONPointer", `
+{
+	"type": "object",
+	"required": ["pointer"],
+	"additionalProperties": false,
+	"properties": {
+		"pointer": {
+			"type": "string",
+			"format": "json-pointer",
+			"enum": [
+				"/email",
+				"/phone_number",
+				"/preferred_username"
+			]
+		}
+	}
+}
+`)
+
 type AuthenticationFlowObject interface {
 	IsFlowObject()
 }
@@ -798,12 +856,14 @@ type AuthenticationFlowConfig struct {
 	ReauthFlows          []*AuthenticationFlowReauthFlow          `json:"reauth_flows,omitempty"`
 	AccountRecoveryFlows []*AuthenticationFlowAccountRecoveryFlow `json:"account_recovery_flows,omitempty"`
 
-	RateLimits *AuthenticationFlowRateLimitsConfig `json:"rate_limits,omitempty"`
+	RateLimits            *AuthenticationFlowRateLimitsConfig `json:"rate_limits,omitempty"`
+	DefaultAccountLinking *AuthenticationFlowAccountLinking   `json:"default_account_linking,omitempty"`
 }
 
 type AuthenticationFlowSignupFlow struct {
-	Name  string                              `json:"name,omitempty"`
-	Steps []*AuthenticationFlowSignupFlowStep `json:"steps,omitempty"`
+	Name           string                              `json:"name,omitempty"`
+	AccountLinking *AuthenticationFlowAccountLinking   `json:"account_linking,omitempty"`
+	Steps          []*AuthenticationFlowSignupFlowStep `json:"steps,omitempty"`
 }
 
 var _ AuthenticationFlowObjectFlowRoot = &AuthenticationFlowSignupFlow{}
@@ -1331,6 +1391,64 @@ const (
 	AuthenticationFlowAccountRecoveryIdentificationOnFailureError  = AuthenticationFlowAccountRecoveryIdentificationOnFailure("error")
 	AuthenticationFlowAccountRecoveryIdentificationOnFailureIgnore = AuthenticationFlowAccountRecoveryIdentificationOnFailure("ignore")
 )
+
+type AuthenticationFlowAccountLinking struct {
+	OAuth []*AuthenticationFlowAccountLinkOAuthItem `json:"oauth,omitempty"`
+}
+
+func (a *AuthenticationFlowAccountLinking) Merge(other *AuthenticationFlowAccountLinking) *AuthenticationFlowAccountLinking {
+	newConfig := AuthenticationFlowAccountLinking{}
+
+	newConfig.OAuth = append(newConfig.OAuth, a.OAuth...)
+
+	if other != nil {
+		newConfig.OAuth = append(newConfig.OAuth, other.OAuth...)
+	}
+
+	return &newConfig
+}
+
+type AccountLinkingConfigObject interface {
+	GetAction() AuthenticationFlowAccountLinkingAction
+	GetLoginFlow() string
+}
+
+type AuthenticationFlowAccountLinkOAuthItem struct {
+	Alias       string                                       `json:"alias,omitempty"`
+	OAuthClaim  *AuthenticationFlowAccountLinkingJSONPointer `json:"oauth_claim,omitempty"`
+	UserProfile *AuthenticationFlowAccountLinkingJSONPointer `json:"user_profile,omitempty"`
+	Action      AuthenticationFlowAccountLinkingAction       `json:"action,omitempty"`
+
+	// login_flow is only relevant if action is "login_and_link"
+	// If empty, the current flow name should be used
+	LoginFlow string `json:"login_flow,omitempty"`
+}
+
+var _ AccountLinkingConfigObject = &AuthenticationFlowAccountLinkOAuthItem{}
+
+func (c *AuthenticationFlowAccountLinkOAuthItem) GetAction() AuthenticationFlowAccountLinkingAction {
+	return c.Action
+}
+func (c *AuthenticationFlowAccountLinkOAuthItem) GetLoginFlow() string {
+	return c.LoginFlow
+}
+
+type AuthenticationFlowAccountLinkingAction string
+
+const (
+	AuthenticationFlowAccountLinkingActionError        AuthenticationFlowAccountLinkingAction = "error"
+	AuthenticationFlowAccountLinkingActionLoginAndLink AuthenticationFlowAccountLinkingAction = "login_and_link"
+)
+
+type AuthenticationFlowAccountLinkingJSONPointer struct {
+	Pointer jsonpointer.T `json:"pointer,omitempty"`
+}
+
+var DefaultAuthenticationFlowAccountLinkOAuthItem = &AuthenticationFlowAccountLinkOAuthItem{
+	OAuthClaim:  &AuthenticationFlowAccountLinkingJSONPointer{Pointer: jsonpointer.MustParse("/email")},
+	UserProfile: &AuthenticationFlowAccountLinkingJSONPointer{Pointer: jsonpointer.MustParse("/email")},
+	Action:      AuthenticationFlowAccountLinkingActionError,
+}
 
 func init() {
 	accountRecoveryChannelsOneOf := ""

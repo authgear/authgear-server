@@ -7,6 +7,7 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/slice"
@@ -249,4 +250,22 @@ type MilestoneDoReplaceRecoveryCode interface {
 type MilestoneDoUpdateUserProfile interface {
 	authflow.Milestone
 	MilestoneDoUpdateUserProfileSkip()
+}
+
+type MilestoneAccountLinkingConfigGetter interface {
+	authflow.Milestone
+	MilestoneAccountLinkingConfigGetter(deps *authflow.Dependencies) (*config.AuthenticationFlowAccountLinking, error)
+}
+
+type MilestoneUseAccountLinkingIdentification interface {
+	authflow.Milestone
+	MilestoneUseAccountLinkingIdentification() *identity.Info
+	MilestoneUseAccountLinkingIdentificationSelectedOption() AccountLinkingIdentificationOption
+	MilestoneUseAccountLinkingIdentificationRedirectURI() string
+	MilestoneUseAccountLinkingIdentificationResponseMode() sso.ResponseMode
+}
+
+type MilestonePromptCreatePasskey interface {
+	authflow.Milestone
+	MilestonePromptCreatePasskey()
 }

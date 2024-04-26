@@ -5,6 +5,8 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
 type OAuth struct {
@@ -31,4 +33,28 @@ func (i *OAuth) ToInfo() *Info {
 
 		OAuth: i,
 	}
+}
+
+func (i *OAuth) GetDisplayName() string {
+	if username, ok := i.Claims["preferred_username"].(string); ok && username != "" {
+		// We don't know if username is a phone number or email, just try to mask it
+		maskedMail := mail.MaskAddress(username)
+		if maskedMail != "" {
+			return maskedMail
+		}
+		maskedPhone := phone.Mask(username)
+		if maskedPhone != "" {
+			return maskedPhone
+		}
+		return username
+	}
+
+	if email, ok := i.Claims["email"].(string); ok && email != "" {
+		return mail.MaskAddress(email)
+	}
+
+	if phoneNumber, ok := i.Claims["phone_number"].(string); ok && phoneNumber != "" {
+		return phone.Mask(phoneNumber)
+	}
+	return ""
 }
