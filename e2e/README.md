@@ -76,7 +76,9 @@ steps:
           }
         }
 
+  # Use `action: input` to input data and proceed to the next step
   - name: Choose to login with username
+    action: input
     input: |
       {
         "identification": "username",
@@ -90,7 +92,9 @@ steps:
           }
         }
 
+  # You can also use `error` to check for expected errors
   - name: Enter incorrect password
+    action: input
     input: |
       {
         "authentication": "primary_password",
@@ -103,7 +107,9 @@ steps:
           "reason": "InvalidCredentials"
         }
 
+  # Finally, use `type: finish` to finish the flow
   - name: Enter correct password
+    action: input
     input: |
       {
         "authentication": "primary_password",
@@ -117,6 +123,103 @@ steps:
           }
         }
 ```
+
+### Before steps
+
+Before steps are used to create fixtures for the test. The following before steps are available:
+
+- `type: user_import`: Uses user import API to import users from a JSON file
+- `type: customsql`: Executes a custom SQL script
+
+#### User import
+
+```yaml
+- type: user_import
+  user_import: users.json
+```
+
+The format of `users.json` is documented in [user-import.md](/docs/specs/user-import.md#the-input-format)
+
+#### Custom SQL
+
+```yaml
+- type: customsql
+  customsql:
+    file: ./custom.sql
+```
+
+`custom.sql` is preprocessed as a Go template with the following variables:
+
+- `{{ .AppID }}`: The database URL
+
+### Steps
+
+Each step is an API call to the Authflow API. The following steps are available:
+
+- `action: create`: Creates a flow
+- `action: input`: Inputs data and proceeds to the next step
+- `action: oauth_redirect`: Redirects to an OAuth provider
+
+#### OAuth redirect
+
+The `oauth_redirect` action is used to redirect to an OAuth provider. The result is `prev.result.code` that can be used in the next step to finish the identification.
+
+```yaml
+- name: Redirect to Google
+  action: oauth_redirect
+  input: |
+    {
+      "provider_id": "google"
+    }
+
+- action: input
+  input: |
+    {
+      "code": "{{ .prev.result.code }}"
+    }
+  output:
+    result: |
+      {
+        "action": {
+          "type": "finished"
+        }
+      }
+```
+
+#### Assert
+
+The `output` field is used to assert the response or error from the API.
+
+```yaml
+output:
+  result: |
+    {
+      "state_token": "[[string]]",
+      "type": "login",
+      "name": "default",
+      "action": {
+          "type": "identify",
+          "data": {
+              "type": "identification_data",
+              "options": "[[array]]"
+          }
+      }
+    }
+  error: |
+    {
+      "reason": "InvalidCredentials"
+    }
+```
+
+The following matchers are available for assertions:
+
+- `[[string]]`: Matches any string
+- `[[array]]`: Matches any array
+- `[[object]]`: Matches any object
+- `[[number]]`: Matches any number
+- `[[boolean]]`: Matches any boolean
+- `[[null]]`: Matches null
+- `["[[arrayof]]", "[[object]]"]`: Matches an array of objects, 2nd element can be any matcher or a specific value
 
 ### JSON schema
 
