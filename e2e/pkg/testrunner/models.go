@@ -1,9 +1,9 @@
 package testrunner
 
 type BeforeHook struct {
-	Type       BeforeHookType      `yaml:"type"`
-	UserImport string              `yaml:"user_import"`
-	CustomSQL  BeforeHookCustomSQL `yaml:"custom_sql"`
+	Type       BeforeHookType      `json:"type"`
+	UserImport string              `json:"user_import"`
+	CustomSQL  BeforeHookCustomSQL `json:"custom_sql"`
 }
 
 var _ = TestCaseSchema.Add("AuthgearYAMLSource", `
@@ -18,8 +18,8 @@ var _ = TestCaseSchema.Add("AuthgearYAMLSource", `
 `)
 
 type AuthgearYAMLSource struct {
-	Extend   string `yaml:"extend"`
-	Override string `yaml:"override"`
+	Extend   string `json:"extend"`
+	Override string `json:"override"`
 }
 
 type BeforeHookType string
@@ -41,7 +41,7 @@ var _ = TestCaseSchema.Add("BeforeHookCustomSQL", `
 `)
 
 type BeforeHookCustomSQL struct {
-	Path string `yaml:"path"`
+	Path string `json:"path"`
 }
 
 var _ = TestCaseSchema.Add("BeforeHook", `
@@ -119,17 +119,17 @@ var _ = TestCaseSchema.Add("Step", `
 `)
 
 type Step struct {
-	Name   string     `yaml:"name"`
-	Action StepAction `yaml:"action"`
+	Name   string     `json:"name"`
+	Action StepAction `json:"action"`
 
 	// `action` == "create" or "input"
-	Input string `yaml:"input"`
+	Input string `json:"input"`
 
 	// `action` == "oauth_redirect"
-	To          string `yaml:"to"`
-	RedirectURI string `yaml:"redirect_uri"`
+	To          string `json:"to"`
+	RedirectURI string `json:"redirect_uri"`
 
-	Output *Output `yaml:"output"`
+	Output *Output `json:"output"`
 }
 
 type StepAction string
@@ -152,8 +152,8 @@ var _ = TestCaseSchema.Add("Output", `
 `)
 
 type Output struct {
-	Result string `yaml:"result"`
-	Error  string `yaml:"error"`
+	Result string `json:"result"`
+	Error  string `json:"error"`
 }
 
 var _ = TestCaseSchema.Add("StepResult", `
