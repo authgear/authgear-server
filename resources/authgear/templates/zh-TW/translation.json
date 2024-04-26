@@ -897,6 +897,7 @@
   "v2-error-password-policy-disallowed-keywords": "密碼包含禁用詞",
   "v2-error-password-policy-reuse": "請勿重用以往{size, plural, other{# 個舊密碼}}，或於{day, plural, other{# 日}}以內曾用過的舊密碼",
   "v2-error-phone-number-format": "您所輸入的電話號碼格式不正確。",
+  "v2-error-unexpected-user": "看來您使用了不同的帳號登入。請再試一次。",
   "v2-create-password-page-title": "創建密碼",
   "v2-password-policy-strength": "密碼強度",
   "v2-password-policy-minimum-length": "最少 {length, plural, other{# 位}}",
@@ -1039,5 +1040,11 @@
   "v2-wechat-auth-page-app-description": "點擊以下按鈕以繼續 WeChat 登入",
   "v2-wechat-auth-page-with-qr-code-description": "請在你的 WeChat 內掃描此QR碼",
   "v2-wechat-auth-page-open-app": "打開 WeChat 以登入",
-  "v2-wechat-auth-page-proceed": "繼續 WeChat 登入"
+  "v2-wechat-auth-page-proceed": "繼續 WeChat 登入",
+  "v2-account-linking-title": "找到現有帳戶",
+  "v2-account-linking-subtitle--login-and-link": "好像您之前已經註冊過。登入現有帳戶以連結它。",
+  "v2-account-linking-subtitle--login": "看來您之前已經註冊過。請登入下面的現有帳戶。",
+  "v2-account-linking-by-email": "登入 {IdentityDisplayName}",
+  "v2-account-linking-by-phone": "登入 {IdentityDisplayName}",
+  "v2-account-linking-by-username": "登入 {IdentityDisplayName}"
 }
