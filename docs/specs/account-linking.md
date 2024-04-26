@@ -19,6 +19,7 @@
 - [Q&A](#qa)
   - [Why we need to login the user before linking the account?](#why-we-need-to-login-the-user-before-linking-the-account)
   - [Why we need to continue the original signup flow instead of simply adding the oauth identity to the user?](#why-we-need-to-continue-the-original-signup-flow-instead-of-simply-adding-the-oauth-identity-to-the-user)
+- [Usecases](#usecases)
 - [References](#references)
 
 ## Introduction
@@ -441,6 +442,27 @@ Account linking can occur in promote flow, however, only `error` is allowed to b
 This is because currently prmote flow does not support logging in to existing user in promote flow. So actions such as `login_and_link` which actually logged in to an existing user is also not possible at the moment. However, this restriction could be relaxed after we supported logging in to an existing user in promote flow.
 
 Any action set in `authentication_flow.account_linking` will be treated as error. And `action` in `signup_flows.account_linking` only allows `error` as value.
+
+## Usecases
+
+1. User already owns an account in authgear, but logged in with an oauth account that is not known to authgear.
+  Expect one of the following results:
+  - Created a new account with no relationship with the existing account.
+  - Tell the user he has an existing account, and he should login to that account instead.
+  - Allow the user to continue login with the oauth account and finally he result in logged in the existing account, and the oauth account can also be used to login to this account in the future.
+
+2. User already owns an account in authgear, but tried to signup with a new email / phone number / username.
+  Expect one of the following results:
+  - Created a new account with no relationship with the existing account.
+  - Tell the user he has an existing account, and he should login to that account instead.
+  - Redirect the user to login to the existing account. And in future, that email / phone number / username can be used to login to same account.
+
+### Edge Cases
+
+1. Say a project has two clients, A and B. And he has two different signup flows and two login flows for the two clients. Each client should always use the flow belongs to that client. And the project want to enable account linking.
+  - Signup flow of A should use login flow of A during account linking. And signup flow of B should use login flow of B during account linking.
+  - Say if only signup flow of B allows signing up with email, while both flows support signing up with oauth. Then signup flow of B should not be able to trigger account linking by email while signing up with oauth.
+
 
 ## References
 
