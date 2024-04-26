@@ -438,6 +438,8 @@ Therefore when not specified, all attempts to link a new login id to existing us
 
 Account linking can occur in promote flow, however, only `error` is allowed to be the action of account linking.
 
+This is because currently prmote flow does not support logging in to existing user in promote flow. So actions such as `login_and_link` which actually logged in to an existing user is also not possible at the moment. However, this restriction could be relaxed after we supported logging in to an existing user in promote flow.
+
 Any action set in `authentication_flow.account_linking` will be treated as error. And `action` in `signup_flows.account_linking` only allows `error` as value.
 
 ## References
