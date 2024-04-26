@@ -2,6 +2,7 @@ package testrunner
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -88,6 +89,12 @@ func (tr *TestRunner) loadFromPath(path string) ([]TestCase, error) {
 
 			var invalidSchemaMessage = fmt.Sprintf("invalid schema at %s#%d", path, i+1)
 			err = TestCaseSchema.Validator().ValidateWithMessage(bytes.NewReader(jsonData), invalidSchemaMessage)
+			if err != nil {
+				t.Errorf(err.Error())
+				continue
+			}
+
+			err = json.Unmarshal(jsonData, &testCase)
 			if err != nil {
 				t.Errorf(err.Error())
 				continue
