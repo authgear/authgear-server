@@ -5,7 +5,7 @@
   - [Defining how the linking occurs and the corresponding action](#defining-how-the-linking-occurs-and-the-corresponding-action)
     - [Defining Linkings](#defining-linkings)
     - [Linking Actions](#linking-actions)
-  - [Override the config per flow](#override-the-config-in-specific-flow)
+  - [Override the config in specific flow](#override-the-config-in-specific-flow)
   - [Default Behaviors](#default-behaviors)
     - [The Current Defaults](#the-current-defaults)
     - [The default linking of different provider types](#the-default-linking-of-different-provider-types)
@@ -125,7 +125,6 @@ Currently, only `error` and `login_and_link` will be implemented.
 
 We provide a way to override account linking configs in a specific flow. This is because there are valid use cases that each flow should behave differently. For example, you may probably want the `default` signup flow to do account linking with the `default` signup flow, but in other side, you want another signup flow `signup_flow_1` to do account linking with another `login_flow_1` login_flow. Use the following config to achieve this behavior:
 
-
 ```yaml
 authentication_flow:
   account_linking:
@@ -137,11 +136,19 @@ authentication_flow:
           pointer: "/preferred_username"
         action: login_and_link
         login_flow: default
+      - name: adfs_link_by_email # name must be defined if overriding this config in specific flow is needed
+        alias: adfs
+        oauth_claim:
+          pointer: "/email"
+        user_profile:
+          pointer: "/email"
+        action: login_and_link
+        login_flow: default
   signup_flows:
     - name: signup_flow_1
       account_linking:
         oauth:
-          - alias: adfs # This will override the account_linking configs for adfs above 
+          - name: adfs_link_by_email # This object overrides configs with the same name
             action: link_without_login_when_verified
             login_flow: login_flow_1
       steps:
@@ -159,13 +166,16 @@ authentication_flow:
 
 In the above example, an `account_linking` object was added inside the signup flow `signup_flow_1`, and it overrides some configs in the `authentication_flow.account_linking`.
 
-There is one item in `account_linking.oauth` inside signup flow `signup_flow_1`, which has `alias: adfs`. This means the config inside that item will override any config in `authentication_flow.account_linking.oauth` with `alias` equal to `adfs`.
+The first step to define an override is to give a `name` to the object you want to override. In the above example, `name: adfs_link_by_email` was added to an object inside `authentication_flow.account_linking.oauth`. `name` can be any string, it is used to reference this object in the later configs. 
 
-As a result, the `login_flow` used to link adfs account will be changed to `login_flow_1`. And `action` will be changed to `link_without_login_when_verified`.
+Then, we add one item in `account_linking.oauth` inside the signup flow `signup_flow_1`, which has `name: adfs_link_by_email`. This means the config inside that item will override any config in `authentication_flow.account_linking.oauth` with `name` equal to `adfs_link_by_email`.
+
+As a result, the `login_flow` used to link adfs account will be changed to `login_flow_1`. And `action` will be changed to `link_without_login_when_verified`, if the linking is triggered by the `/email` claim of the adfs account, and matches any authgear identity by the `/email` user profile attribute.
 
 Not all configs are overridable inside a flow. We only support overriding the following configs:
-  - `action`
-  - `login_flow`
+
+- `action`
+- `login_flow`
 
 Read the above [Defining how the linking occurs and the corresponding action](#defining-how-the-linking-occurs-and-the-corresponding-action) section for meaning of each fields.
 
@@ -416,9 +426,9 @@ The above configs defined the account linking behavior of two login id types:
 
 The default values of each login id types are different. Please see the below table.
 
-| Login ID Type | Defaults                                                                                              |
-| ------------- | ----------------------------------------------------------------------------------------------------- |
-| `email`       | <pre><code>user_profile:<br/>&nbsp;&nbsp;pointer: "/email"<br/>action: error</code></pre>             |
+| Login ID Type | Defaults                                                                                               |
+| ------------- | ------------------------------------------------------------------------------------------------------ |
+| `email`       | <pre><code>user_profile:<br/>&nbsp;&nbsp;pointer: "/email"<br/>action: error</code></pre>              |
 | `phone`       | <pre><code>user_profile:<br/>&nbsp;&nbsp;pointer: "/phone_number"<br/>action: error</code></pre>       |
 | `username`    | <pre><code>user_profile:<br/>&nbsp;&nbsp;pointer: "/preferred_username"<br/>action: error</code></pre> |
 
