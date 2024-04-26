@@ -1,0 +1,54 @@
+part: AuthenticationFlowAccountLinking
+name: valid
+error: null
+value:
+  oauth:
+    - alias: "google"
+      action: "error"
+      oauth_claim:
+        pointer: "/email"
+      user_profile:
+        pointer: "/email"
+    - alias: "adfs"
+      action: "login_and_link"
+      oauth_claim:
+        pointer: "/preferred_username"
+      user_profile:
+        pointer: "/preferred_username"
+    - alias: "github"
+      action: "login_and_link"
+      oauth_claim:
+        pointer: "/phone_number"
+      user_profile:
+        pointer: "/phone_number"
+      login_flow: flow1
+
+---
+part: AuthenticationFlowAccountLinking
+name: invalid
+error: |-
+  invalid value:
+  /oauth/0/action: enum
+    map[actual:not_implemented_action expected:[error login_and_link]]
+  /oauth/0/oauth_claim: required
+    map[actual:<nil> expected:[pointer] missing:[pointer]]
+  /oauth/0/user_profile/pointer: enum
+    map[actual:/xemail expected:[/email /phone_number /preferred_username]]
+  /oauth/1: required
+    map[actual:[action] expected:[action alias oauth_claim user_profile] missing:[alias oauth_claim user_profile]]
+  /oauth/2: required
+    map[actual:[alias login_flow oauth_claim user_profile] expected:[action alias oauth_claim user_profile] missing:[action]]
+value:
+  oauth:
+    - alias: "google"
+      action: "not_implemented_action"
+      oauth_claim: {}
+      user_profile:
+        pointer: "/xemail"
+    - action: "error"
+    - alias: "github"
+      oauth_claim:
+        pointer: "/phone_number"
+      user_profile:
+        pointer: "/phone_number"
+      login_flow: flow1

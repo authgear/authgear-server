@@ -11,6 +11,7 @@ import (
 	loginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	config "github.com/authgear/authgear-server/pkg/lib/config"
 	gomock "github.com/golang/mock/gomock"
+	jsonpointer "github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 // MockLoginIDIdentityProvider is a mock of LoginIDIdentityProvider interface.
@@ -152,6 +153,21 @@ func (m *MockLoginIDIdentityProvider) ListByClaim(name, value string) ([]*identi
 func (mr *MockLoginIDIdentityProviderMockRecorder) ListByClaim(name, value interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByClaim", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).ListByClaim), name, value)
+}
+
+// ListByClaimJSONPointer mocks base method.
+func (m *MockLoginIDIdentityProvider) ListByClaimJSONPointer(pointer jsonpointer.T, value string) ([]*identity.LoginID, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListByClaimJSONPointer", pointer, value)
+	ret0, _ := ret[0].([]*identity.LoginID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListByClaimJSONPointer indicates an expected call of ListByClaimJSONPointer.
+func (mr *MockLoginIDIdentityProviderMockRecorder) ListByClaimJSONPointer(pointer, value interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByClaimJSONPointer", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).ListByClaimJSONPointer), pointer, value)
 }
 
 // New mocks base method.
@@ -337,6 +353,21 @@ func (m *MockOAuthIdentityProvider) ListByClaim(name, value string) ([]*identity
 func (mr *MockOAuthIdentityProviderMockRecorder) ListByClaim(name, value interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByClaim", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).ListByClaim), name, value)
+}
+
+// ListByClaimJSONPointer mocks base method.
+func (m *MockOAuthIdentityProvider) ListByClaimJSONPointer(pointer jsonpointer.T, value string) ([]*identity.OAuth, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListByClaimJSONPointer", pointer, value)
+	ret0, _ := ret[0].([]*identity.OAuth)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListByClaimJSONPointer indicates an expected call of ListByClaimJSONPointer.
+func (mr *MockOAuthIdentityProviderMockRecorder) ListByClaimJSONPointer(pointer, value interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByClaimJSONPointer", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).ListByClaimJSONPointer), pointer, value)
 }
 
 // New mocks base method.

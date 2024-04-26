@@ -2,6 +2,7 @@ package facade
 
 import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 type IdentityFacade struct {
@@ -22,6 +23,10 @@ func (i IdentityFacade) ListByUser(userID string) ([]*identity.Info, error) {
 
 func (i IdentityFacade) ListByClaim(name string, value string) ([]*identity.Info, error) {
 	return i.Coordinator.IdentityListByClaim(name, value)
+}
+
+func (i IdentityFacade) ListByClaimJSONPointer(pointer jsonpointer.T, value string) ([]*identity.Info, error) {
+	return i.Coordinator.IdentityListByClaimJSONPointer(pointer, value)
 }
 
 func (i IdentityFacade) New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error) {
@@ -46,4 +51,8 @@ func (i IdentityFacade) Delete(is *identity.Info) error {
 
 func (i IdentityFacade) CheckDuplicated(info *identity.Info) (*identity.Info, error) {
 	return i.Coordinator.IdentityCheckDuplicated(info)
+}
+
+func (i IdentityFacade) CheckDuplicatedByUniqueKey(info *identity.Info) (*identity.Info, error) {
+	return i.Coordinator.IdentityCheckDuplicatedByUniqueKey(info)
 }
