@@ -22,6 +22,9 @@ jobs:
         node-version-file: "./.tool-versions"
     - run: npm ci
       working-directory: ./authui
+    - run: npm audit
+      working-directory: ./authui
+      if: ${{ !cancelled() }}
     - run: npm run typecheck
       working-directory: ./authui
       if: ${{ !cancelled() }}
@@ -48,6 +51,9 @@ jobs:
         node-version-file: "./.tool-versions"
     - run: npm ci
       working-directory: ./portal
+    - run: npm audit
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
     - run: npm run typecheck
       working-directory: ./portal
       if: ${{ !cancelled() }}
