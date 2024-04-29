@@ -1441,12 +1441,16 @@ const (
 )
 
 type AuthenticationFlowAccountLinkingJSONPointer struct {
-	Pointer jsonpointer.T `json:"pointer,omitempty"`
+	Pointer string `json:"pointer,omitempty"`
+}
+
+func (p *AuthenticationFlowAccountLinkingJSONPointer) GetJSONPointer() jsonpointer.T {
+	return jsonpointer.MustParse(p.Pointer)
 }
 
 var DefaultAuthenticationFlowAccountLinkOAuthItem = &AuthenticationFlowAccountLinkOAuthItem{
-	OAuthClaim:  &AuthenticationFlowAccountLinkingJSONPointer{Pointer: jsonpointer.MustParse("/email")},
-	UserProfile: &AuthenticationFlowAccountLinkingJSONPointer{Pointer: jsonpointer.MustParse("/email")},
+	OAuthClaim:  &AuthenticationFlowAccountLinkingJSONPointer{Pointer: "/email"},
+	UserProfile: &AuthenticationFlowAccountLinkingJSONPointer{Pointer: "/email"},
 	Action:      AuthenticationFlowAccountLinkingActionError,
 }
 
