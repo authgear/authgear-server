@@ -1,14 +1,17 @@
 package testrunner
 
 import (
+	"bytes"
 	"fmt"
 	"os/exec"
 	"path"
+	"testing"
 )
 
 type End2EndCmd struct {
 	AppID    string
 	TestCase TestCase
+	Test     *testing.T
 }
 
 func (e *End2EndCmd) CreateConfigSource() error {
@@ -63,10 +66,13 @@ func (e *End2EndCmd) resolvePath(p string) string {
 }
 
 func (e *End2EndCmd) execCmd(cmd string) (string, error) {
+	var errb bytes.Buffer
 	execCmd := exec.Command("sh", "-c", cmd)
+	execCmd.Stderr = &errb
 	execCmd.Dir = "../../"
 	output, err := execCmd.Output()
 	if err != nil {
+		e.Test.Errorf(errb.String())
 		return "", err
 	}
 

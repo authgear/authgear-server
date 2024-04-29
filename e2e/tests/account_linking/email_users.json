@@ -1,0 +1,12 @@
+{
+  "identifier": "email",
+  "records": [
+    {
+      "email": "mock@authgear.com",
+      "password": {
+        "type": "bcrypt",
+        "password_hash": "$2a$12$paw2a1pv1uDDeUsIUVsWz.MCMxfKzZSD6X57iOXKMJCJKsMN8MZIO"
+      }
+    }
+  ]
+}
