@@ -1,4 +1,4 @@
-name: Account linking login and link
+name: Account linking login and link with nested step
 authgear.yaml:
   override: |
     authentication:
@@ -28,6 +28,10 @@ authgear.yaml:
               one_of:
               - identification: email
               - identification: oauth
+                steps:
+                  - type: identify
+                    one_of:
+                      - identification: username
       login_flows:
         - name: f1
           steps:
@@ -124,6 +128,23 @@ steps:
       {
         "authentication": "primary_password",
         "password": "12341234"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "type": "identification_data"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "test1"
       }
     output:
       result: |
