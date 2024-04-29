@@ -61,7 +61,7 @@ fmt:
 
 .PHONY: govulncheck
 govulncheck:
-	govulncheck ./...
+	govulncheck -show traces,version,verbose ./...
 
 # osusergo: https://godoc.org/github.com/golang/go/src/os/user
 # netgo: https://golang.org/doc/go1.5#net
