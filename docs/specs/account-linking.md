@@ -5,7 +5,7 @@
   - [Defining how the linking occurs and the corresponding action](#defining-how-the-linking-occurs-and-the-corresponding-action)
     - [Defining Linkings](#defining-linkings)
     - [Linking Actions](#linking-actions)
-  - [Override the config in specific flow](#override-the-config-in-specific-flow)
+  - [Override the config in specific step](#override-the-config-in-specific-step)
   - [Default Behaviors](#default-behaviors)
     - [The Current Defaults](#the-current-defaults)
     - [The default linking of different provider types](#the-default-linking-of-different-provider-types)
@@ -124,7 +124,7 @@ Currently, only `error` and `login_and_link` will be implemented.
 
 ### Override the config in specific flow
 
-We provide a way to override account linking configs in a specific flow. This is because there are valid use cases that each flow should behave differently. For example, you may probably want the `default` signup flow to do account linking with the `default` signup flow, but in other side, you want another signup flow `signup_flow_1` to do account linking with another `login_flow_1` login_flow. Use the following config to achieve this behavior:
+We provide a way to override account linking configs in a specific step. This is because there are valid use cases that each step should behave differently. For example, you want the `default` signup flow to do account linking with the `default` signup flow, but in other side, you want another signup flow `signup_flow_1` to do account linking with another `login_flow_1` login_flow. Use the following config to achieve this behavior:
 
 ```yaml
 authentication_flow:
@@ -147,11 +147,6 @@ authentication_flow:
         login_flow: default
   signup_flows:
     - name: signup_flow_1
-      account_linking:
-        oauth:
-          - name: adfs_link_by_email # This object overrides configs with the same name
-            action: link_without_login_when_verified
-            login_flow: login_flow_1
       steps:
         - name: identify
           type: identify
@@ -163,9 +158,14 @@ authentication_flow:
                   one_of:
                     - authentication: primary_password
             - identification: oauth
+              account_linking:
+                oauth:
+                  - name: adfs_link_by_email # This object overrides account linking configs with the same name
+                    action: link_without_login_when_verified
+                    login_flow: login_flow_1
 ```
 
-In the above example, an `account_linking` object was added inside the signup flow `signup_flow_1`, and it overrides some configs in the `authentication_flow.account_linking`.
+In the above example, an `account_linking` object was added inside an `identify` step of the signup flow `signup_flow_1`, and it overrides some configs in the `authentication_flow.account_linking`.
 
 The first step to define an override is to give a `name` to the object you want to override. In the above example, `name: adfs_link_by_email` was added to an object inside `authentication_flow.account_linking.oauth`. `name` can be any string, it is used to reference this object in the later configs.
 
@@ -580,6 +580,43 @@ Any action set in `authentication_flow.account_linking` will be treated as error
              one_of:
                - identification: phone
                - identification: oauth
+   ```
+
+4. Assume google oauth signup and email signup are both available for an app. Now, you want users of the app to be able to login to his own existing account even if he originally signed up by google, but entered the same email during signup. The verification step is not necessary in the signup flow. So you want:
+
+   - If the user has verified his email during signup, re-login of existing account is not needed, because you believe the owner of a same email should also own that google account.
+   - Else, he has to re-login to his existing account to prove his ownership.
+
+   It can be done by the following config:
+
+   ```yaml
+   authentication_flow:
+   account_linking:
+     login_id:
+       - name: email_linking
+         key: email
+         user_profile:
+           pointer: "/email"
+         action: login_and_link
+     signup_flows:
+       - name: default
+         steps:
+           - name: identify
+             type: identify
+             one_of:
+               - identification: email # This branch require email verification
+                 account_linking:
+                   login_id:
+                     - name: email_linking
+                       action: link_without_login_when_verified # Override action in this branch so user do not need to login again for account linking
+                 steps:
+                   - target_step: identify
+                     type: verify
+               - identification: username # Another branch that doesn't require email verification
+                 steps:
+                   - type: identity
+                     one_of:
+                       - identificaiton: email # No override, therefore login is still required for account linking
    ```
 
 ## References
