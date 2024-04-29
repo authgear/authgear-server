@@ -31,14 +31,14 @@ var _ = TestCaseSchema.Add("TestCase", `
 `)
 
 type TestCase struct {
-	Name string `yaml:"name"`
-	Path string `yaml:"path"`
+	Name string `json:"name"`
+	Path string `json:"path"`
 	// Applying focus to a test case will make it the only test case to run,
 	// mainly used for debugging new test cases.
-	Focus              bool               `yaml:"focus"`
-	AuthgearYAMLSource AuthgearYAMLSource `yaml:"authgear.yaml"`
-	Steps              []Step             `yaml:"steps"`
-	Before             []BeforeHook       `yaml:"before"`
+	Focus              bool               `json:"focus"`
+	AuthgearYAMLSource AuthgearYAMLSource `json:"authgear.yaml"`
+	Steps              []Step             `json:"steps"`
+	Before             []BeforeHook       `json:"before"`
 }
 
 func (tc *TestCase) FullName() string {
