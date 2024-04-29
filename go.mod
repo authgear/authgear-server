@@ -69,7 +69,7 @@ require (
 	cloud.google.com/go/storage v1.35.1
 	github.com/Azure/azure-storage-blob-go v0.15.0
 	github.com/aws/aws-sdk-go v1.47.9
-	github.com/davidbyttow/govips/v2 v2.13.0
+	github.com/davidbyttow/govips/v2 v2.14.0
 	github.com/ethereum/go-ethereum v1.13.15
 	github.com/goccy/go-json v0.10.2
 	github.com/stripe/stripe-go/v72 v72.122.0
@@ -189,7 +189,7 @@ require (
 	github.com/yuin/gopher-lua v1.1.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/image v0.5.0 // indirect
+	golang.org/x/image v0.10.0 // indirect
 	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
 	golang.org/x/sys v0.19.0 // indirect
