@@ -28,7 +28,7 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 				// ES6 module assumes strict mode.
 				// regeneratorRuntime is not compatible with strict mode because
 				// it uses Function to generate function, which is considered as eval.
-				"script-src 'self' 'unsafe-eval' 'unsafe-inline' cdn.jsdelivr.net unpkg.com www.googletagmanager.com cdn.mxpnl.com eu.posthog.com cmp.osano.com",
+				"script-src 'self' 'unsafe-eval' 'unsafe-inline' cdn.jsdelivr.net unpkg.com www.googletagmanager.com cdn.mxpnl.com eu.posthog.com eu-assets.i.posthog.com cmp.osano.com",
 				// monaco editor create worker with blob:
 				"worker-src 'self' 'unsafe-inline' cdn.jsdelivr.net blob:",
 				"object-src 'none'",
