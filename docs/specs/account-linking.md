@@ -5,7 +5,7 @@
   - [Defining how the linking occurs and the corresponding action](#defining-how-the-linking-occurs-and-the-corresponding-action)
     - [Defining Linkings](#defining-linkings)
     - [Linking Actions](#linking-actions)
-  - [Override the config in specific step](#override-the-config-in-specific-step)
+  - [Customize the config in specific step](#customize-the-config-in-specific-step)
   - [Default Behaviors](#default-behaviors)
     - [The Current Defaults](#the-current-defaults)
     - [The default linking of different provider types](#the-default-linking-of-different-provider-types)
@@ -40,16 +40,15 @@ To use account linking, you must define two things:
 Let's explain with the following example:
 
 ```yaml
+account_linking:
+  oauth:
+    - alias: adfs
+      oauth_claim:
+        pointer: "/preferred_username"
+      user_profile:
+        pointer: "/preferred_username"
+      action: login_and_link
 authentication_flow:
-  account_linking:
-    oauth:
-      - alias: adfs
-        oauth_claim:
-          pointer: "/preferred_username"
-        user_profile:
-          pointer: "/preferred_username"
-        action: login_and_link
-        login_flow: default
   signup_flows:
     - name: default
       steps:
@@ -65,7 +64,7 @@ authentication_flow:
             - identification: oauth
 ```
 
-The `account_linking` section inside `authentication_flow` defined the account linking behavior of any authentication flow. It have the following meanings:
+The `account_linking` section defined the account linking behavior of any authentication flow. It have the following meanings:
 
 - When user is trying to sign up with an `oauth` identity, which belongs to the oauth provider with alias `adfs`, account linking may occurs. The related provider is specified by the `alias` field, which should match one of the providers specified in the `identity.oauth.providers` config.
 - Linking should occur if the new oauth identity is having a `"email"` claim, which the value is equal to the `"email"` attribute of any existing user's identity. For details, please read the [Defining Linkings](#defining-linkings) section.
@@ -111,9 +110,7 @@ We define the action to link the new oauth identity with the existing identity's
   - `error`: Reject the signup with an error.
   - `login`: Switch to login flow of the existing account.
     - This will not be implemented as it seems a duplicate of `"error"`.
-  - `login_and_link`: Switch to login flow of the existing account. After user completing the login flow, add the new oauth identity to the logged in account. When `login_and_link` is choosed, the following additional configs are available:
-    - `login_flow`: The login flow name to switch to when an linking occurs. The selected login flow must start with a `identity` step. This field can be omitted. If omitted, the default value will be the same flow name
-    - Read the [Login and link flow](#login-and-link-flow) section for the detailed behavior of this option.
+  - `login_and_link`: Switch to login flow of the existing account. After user completing the login flow, add the new oauth identity to the logged in account. When `login_and_link` is choosed, read the [Login and link flow](#login-and-link-flow) section for the detailed behavior of this option.
   - `always_link_without_login`: This is similar to `login_and_link`, but no login is required. Caution: This could become a risk that someone will be able to takeover some authgear accounts using identities from the oauth provider. Only use this option if you trust the oauth provider and knows the linking logics works as you expected.
   - `link_without_login_when_verified`: This is similar to `login_and_link`, but no login is required only if the oauth provider claims that the email in the user's claim is verified, by using the `email_verified` claim.
   - `create_new_account`: Create a new account with this new identity, ignoring the link.
@@ -122,29 +119,27 @@ We define the action to link the new oauth identity with the existing identity's
 
 Currently, only `error` and `login_and_link` will be implemented.
 
-### Override the config in specific flow
+### Customize the config in specific step
 
-We provide a way to override account linking configs in a specific step. This is because there are valid use cases that each step should behave differently. For example, you want the `default` signup flow to do account linking with the `default` signup flow, but in other side, you want another signup flow `signup_flow_1` to do account linking with another `login_flow_1` login_flow. Use the following config to achieve this behavior:
+We provide a way to customize account linking configs in a specific step. This is because there are valid use cases that each step should behave differently. For example, you want the `default` signup flow to do account linking with the `default` signup flow, but in other side, you want another signup flow `signup_flow_1` to do account linking with another `login_flow_1` login_flow. Use the following config to achieve this behavior:
 
 ```yaml
+account_linking:
+  oauth:
+    - alias: adfs
+      oauth_claim:
+        pointer: "/preferred_username"
+      user_profile:
+        pointer: "/preferred_username"
+      action: login_and_link
+    - name: adfs_link_by_email # name must be defined if overriding this config in specific flow is needed
+      alias: adfs
+      oauth_claim:
+        pointer: "/email"
+      user_profile:
+        pointer: "/email"
+      action: login_and_link
 authentication_flow:
-  account_linking:
-    oauth:
-      - alias: adfs
-        oauth_claim:
-          pointer: "/preferred_username"
-        user_profile:
-          pointer: "/preferred_username"
-        action: login_and_link
-        login_flow: default
-      - name: adfs_link_by_email # name must be defined if overriding this config in specific flow is needed
-        alias: adfs
-        oauth_claim:
-          pointer: "/email"
-        user_profile:
-          pointer: "/email"
-        action: login_and_link
-        login_flow: default
   signup_flows:
     - name: signup_flow_1
       steps:
@@ -157,7 +152,8 @@ authentication_flow:
                   type: create_authenticator
                   one_of:
                     - authentication: primary_password
-            - identification: oauth
+            - name: identify_by_oauth
+              identification: oauth
               account_linking:
                 oauth:
                   - name: adfs_link_by_email # This object overrides account linking configs with the same name
@@ -167,20 +163,19 @@ authentication_flow:
 
 In the above example, an `account_linking` object was added inside an `identify` step of the signup flow `signup_flow_1`, and it overrides some configs in the `authentication_flow.account_linking`.
 
-The first step to define an override is to give a `name` to the object you want to override. In the above example, `name: adfs_link_by_email` was added to an object inside `authentication_flow.account_linking.oauth`. `name` can be any string, it is used to reference this object in the later configs.
+You must give a `name` to the object you want to customize. In the above example, `name: adfs_link_by_email` was added to an object inside `account_linking.oauth`. `name` can be any string, it is used to reference this object in the later configs.
 
-Then, we add one item in `account_linking.oauth` inside the signup flow `signup_flow_1`, which has `name: adfs_link_by_email`. This means the config inside that item will override any config in `authentication_flow.account_linking.oauth` with `name` equal to `adfs_link_by_email`.
-
-As a result, the `login_flow` used to link adfs account will be changed to `login_flow_1`. And `action` will be changed to `link_without_login_when_verified`, if the linking is triggered by the `/email` claim of the adfs account, and matches any authgear identity by the `/email` user profile attribute.
+Then, we add one item in `account_linking.oauth` inside step `identify_by_oauth` of the signup flow `signup_flow_1`, which has `name: adfs_link_by_email`. This means the config inside the new item will override any config in `account_linking.oauth` with `name` equal to `adfs_link_by_email`. In this example, `action` has been changed to `link_without_login_when_verified` if account linking was triggered at the step.
 
 Not all configs are overridable inside a flow. We only support overriding the following configs:
 
 - `action`
-- `login_flow`
 
 Read the above [Defining how the linking occurs and the corresponding action](#defining-how-the-linking-occurs-and-the-corresponding-action) section for meaning of each fields.
 
 `oauth_claim` and `user_profile` is not supported in the config overrides because we think there is no valid usecase for it. You propably always want a consistent linking logics between flows.
+
+Additionally, `login_flow` is available as a configurable parameter of account linking. If a login flow is triggered during account linking, and `login_flow` is provided, the configured `login_flow` will be used as the name of the login flow which used to perform account linking. If not provided, the current flow name will be used. For example, if you triggered account linking in the `default` signup flow, then `default` login flow will be used if `login_flow` is not specified.
 
 ### Default Behaviors
 
@@ -262,17 +257,16 @@ During a signup, when a linking is occurred, and `action` is set to `login_and_l
 Assume we have the following authflow config:
 
 ```yaml
+account_linking:
+  oauth:
+    - alias: google
+      oauth_claim:
+        pointer: "/email"
+      user_profile:
+        pointer: "/email"
+      action: login_and_link
 signup_flows:
   - name: default
-    account_linking:
-      oauth:
-        - alias: google
-          oauth_claim:
-            pointer: "/email"
-          user_profile:
-            pointer: "/email"
-          action: login_and_link
-          login_flow: default
     steps:
       - name: identify
         type: identify
@@ -320,7 +314,7 @@ Assume now there is an existing authgear user with the following identities and 
 And now, the user tries to sign up with a new google account, which has an email `a@example.com` in the google user profile. And authgear matched that oauth identity to the existing login ID `a@example.com`.
 
 1. The user should first select a matched identity, in this example, there is only one matched identity `Email: a@example.com`. So this identity will be selected by the user.
-2. After `Email: a@example.com` being selected, the user will switch to the `default` login flow. Which was specified by `login_flow` in the config.
+2. After `Email: a@example.com` being selected, the user will switch to the `default` login flow. The name of the login flow used, unless specified, will be the same of the current signup flow. For details about how to use a different login flow, please read [Customize the config in specific step](#customize-the-config-in-specific-step).
 3. The login flow will be executed inside the signup flow, step by step.
 4. The selected identity `Email: a@example.com` will be automatically used to pass the first identification step:
 
@@ -455,16 +449,14 @@ Any action set in `authentication_flow.account_linking` will be treated as error
 - Allow the user to continue login with the oauth account and finally he result in logged in the existing account, and the oauth account can also be used to login to this account in the future.
 
   ```yaml
-  authentication_flow:
-    account_linking:
-      oauth:
-        - alias: google
-          oauth_claim:
-            pointer: "/email"
-          user_profile:
-            pointer: "/email"
-          action: login_and_link
-          login_flow: default
+  account_linking:
+    oauth:
+      - alias: google
+        oauth_claim:
+          pointer: "/email"
+        user_profile:
+          pointer: "/email"
+        action: login_and_link
   ```
 
 2. User already owns an account in authgear, but tried to signup with a new email / phone number / username.
@@ -475,21 +467,20 @@ Any action set in `authentication_flow.account_linking` will be treated as error
 - Redirect the user to login to the existing account. And in future, that email / phone number / username can be used to login to same account.
 
   ```yaml
-  authentication_flow:
-    account_linking:
-      login_id:
-        - key: phone
-          user_profile:
-            pointer: "/phone_number"
-          action: "login_and_link"
-        - key: email
-          user_profile:
-            pointer: "/email"
-          action: "login_and_link"
-        - key: username
-          user_profile:
-            pointer: "/username"
-          action: "login_and_link"
+  account_linking:
+    login_id:
+      - key: phone
+        user_profile:
+          pointer: "/phone_number"
+        action: "login_and_link"
+      - key: email
+        user_profile:
+          pointer: "/email"
+        action: "login_and_link"
+      - key: username
+        user_profile:
+          pointer: "/username"
+        action: "login_and_link"
   ```
 
 ### Edge Cases
@@ -502,30 +493,28 @@ Any action set in `authentication_flow.account_linking` will be treated as error
    The solution is to override the login flow name per flow.
 
    ```yaml
+   account_linking:
+     oauth:
+       - name: adfs_linking
+         alias: adfs
+         oauth_claim:
+           pointer: "/preferred_username"
+         user_profile:
+           pointer: "/preferred_username"
+         action: login_and_link
    authentication_flow:
-     account_linking:
-       oauth:
-         - name: adfs_linking
-           alias: adfs
-           oauth_claim:
-             pointer: "/preferred_username"
-           user_profile:
-             pointer: "/preferred_username"
-           action: login_and_link
-           login_flow: default
      signup_flows:
        - name: flow_1
-         account_linking:
-           oauth:
-             - name: adfs_linking
-               action: login_and_link
-               login_flow: flow_1
          steps:
            - name: identify
              type: identify
              one_of:
                - identification: email
                - identification: oauth
+                 account_linking:
+                   oauth:
+                     - name: adfs_linking
+                       login_flow: flow_1
    ```
 
 2. Say a project has pre-imported users. And we know that these users may have a adfs account. We probably already know the user id of the adfs account already. So what we want is:
@@ -535,17 +524,16 @@ Any action set in `authentication_flow.account_linking` will be treated as error
    The solution is to link by a custom attribute, which was set during the user was imported.
 
    ```yaml
+   account_linking:
+     oauth:
+       - name: adfs_linking
+         alias: adfs
+         oauth_claim:
+           pointer: "/preferred_username"
+         user_profile:
+           pointer: "/x_adfs_username"
+         action: login_and_link
    authentication_flow:
-     account_linking:
-       oauth:
-         - name: adfs_linking
-           alias: adfs
-           oauth_claim:
-             pointer: "/preferred_username"
-           user_profile:
-             pointer: "/x_adfs_username"
-           action: login_and_link
-           login_flow: default
      signup_flows:
        - name: default
          steps:
@@ -565,13 +553,13 @@ Any action set in `authentication_flow.account_linking` will be treated as error
    The solution is to link by a custom attribute, which was set after the user signed up by google. The phone number collected after google signup flow should be stored into a custom attribute `/custom_profile_phone_number`.
 
    ```yaml
+   account_linking:
+     login_id:
+       - key: phone
+         user_profile:
+           pointer: "/custom_profile_phone_number"
+         action: "error"
    authentication_flow:
-    account_linking:
-      login_id:
-        - key: phone
-          user_profile:
-            pointer: "/custom_profile_phone_number"
-          action: "error"
      signup_flows:
        - name: default
          steps:
@@ -590,7 +578,6 @@ Any action set in `authentication_flow.account_linking` will be treated as error
    It can be done by the following config:
 
    ```yaml
-   authentication_flow:
    account_linking:
      login_id:
        - name: email_linking
@@ -598,6 +585,7 @@ Any action set in `authentication_flow.account_linking` will be treated as error
          user_profile:
            pointer: "/email"
          action: login_and_link
+   authentication_flow:
      signup_flows:
        - name: default
          steps:
