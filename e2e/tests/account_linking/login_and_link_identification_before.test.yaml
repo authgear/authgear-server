@@ -158,6 +158,12 @@ steps:
 name: Account linking login and link with identification email before it
 authgear.yaml:
   override: |
+    test_mode:
+      oob_otp:
+        enabled: true
+        rules:
+          - fixed_code: "aaaaaa"
+            regex: ".*"
     authentication:
       identities:
         - login_id
@@ -182,9 +188,12 @@ authgear.yaml:
                 login_flow: f1
           steps:
             - type: identify
+              name: identify
               one_of:
               - identification: email
                 steps:
+                  - type: verify
+                    target_step: identify
                   - type: identify
                     one_of:
                       - identification: oauth
@@ -223,6 +232,19 @@ steps:
       {
         "identification": "email",
         "login_id": "test@test.local"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "code": "aaaaaa"
       }
     output:
       result: |
