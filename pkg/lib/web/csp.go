@@ -158,6 +158,10 @@ var wwwgoogletagmanagercom = CSPHostSource{
 	Host: "www.googletagmanager.com",
 }
 
+var euassetsiposthogcom = CSPHostSource{
+	Host: "eu-assets.i.posthog.com",
+}
+
 var cdnjscloudflarecom = CSPHostSource{
 	Host: "cdnjs.cloudflare.com",
 }
@@ -202,10 +206,15 @@ func CSPDirectives(opts CSPDirectivesOptions) ([]string, error) {
 			},
 		}
 	}
-	scriptSrc = append(scriptSrc, wwwgoogletagmanagercom, CSPHostSource{
-		Scheme: "https",
-		Host:   "browser.sentry-cdn.com",
-	})
+	scriptSrc = append(
+		scriptSrc,
+		wwwgoogletagmanagercom,
+		euassetsiposthogcom,
+		CSPHostSource{
+			Scheme: "https",
+			Host:   "browser.sentry-cdn.com",
+		},
+	)
 	scriptSrc = append(scriptSrc, baseSrc...)
 	sort.Sort(scriptSrc)
 
