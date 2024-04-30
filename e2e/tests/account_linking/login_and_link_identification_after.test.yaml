@@ -1,5 +1,4 @@
 name: Account linking login and link with identification email after it
-focus: true
 authgear.yaml:
   override: |
     test_mode:
@@ -36,9 +35,11 @@ authgear.yaml:
               - identification: oauth
                 steps:
                   - type: identify
+                    name: identify_email
                     one_of:
                       - identification: email
-                        name: identify_email
+                  - type: verify
+                    target_step: identify_email
       login_flows:
         - name: f1
           steps:
