@@ -110,7 +110,29 @@ All fields are guaranteed that only backward-compatible changes would be made.
 - [user.pre_create](#userpre_create)
 - [user.profile.pre_update](#userprofilepre_update)
 
-Blocking event Hooks can perform mutations. See [Blocking Event Mutations](./hook.md#blocking-event-mutations).
+Some blocking event Hooks can perform mutations. See [Blocking Event Mutations](./hook.md#blocking-event-mutations). Please read the event specific section below for supported events.
+
+Some blocking event Hooks can accept a action. See [Blocking Event Action](./hook.md#blocking-event-action). Please read the event specific section below for supported events.
+
+#### user.identified
+
+Occurs right after the user is identified in the login flow by any `identification` step.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "identity": { /* ... */ }
+  }
+}
+```
+
+- `user` is the user who is trying to login.
+- `identity` is the identity of the user which is used to pass the `identification` step in the login flow.
+
+Is mutations supported: No
+
+Is action supported: Yes
 
 #### user.pre_create
 
@@ -133,6 +155,11 @@ Occurs right before the user creation. User can be created by user signup, user 
 
 - `oauth.state`: OAuth state if the signup is triggered through authorize endpoint with state parameter.
 
+
+Is mutations supported: Yes
+
+Is action supported: No
+
 #### user.profile.pre_update
 
 Occurs right before the update of user profile.
@@ -144,6 +171,10 @@ Occurs right before the update of user profile.
   }
 }
 ```
+
+Is mutations supported: Yes
+
+Is action supported: No
 
 #### user.pre_schedule_deletion
 
@@ -157,6 +188,10 @@ Occurs right before the account deletion is scheduled.
 }
 ```
 
+Is mutations supported: Yes
+
+Is action supported: No
+
 #### user.pre_schedule_anonymization
 
 Occurs right before the account anonymization is scheduled.
@@ -168,6 +203,10 @@ Occurs right before the account anonymization is scheduled.
   }
 }
 ```
+
+Is mutations supported: Yes
+
+Is action supported: No
 
 #### oidc.jwt.pre_create
 
@@ -188,6 +227,10 @@ Use this event to add custom fields to the JWT access token.
   }
 }
 ```
+
+Is mutations supported: Yes
+
+Is action supported: No
 
 ### Non-blocking Events
 

@@ -4,6 +4,7 @@
 - [Lifecycle of Event Delivery](#lifecycle-of-event-delivery)
 - [Blocking Events](#blocking-events)
   * [Blocking Event Mutations](#blocking-event-mutations)
+  * [Blocking Event Response](#blocking-event-response)
 - [Non-blocking Events](#non-blocking-events)
   * [Future works of non-blocking events](#future-works-of-non-blocking-events)
 - [Webhook](#webhook)
@@ -18,6 +19,8 @@
   * [Eventual Consistency](#eventual-consistency)
   * [CAP Theorem](#cap-theorem)
 - [Configuration in `authgear.yaml`](#configuration-in-authgearyaml)
+- [Blocking Event Actions](#blocking-event-actions)
+  * [Responding to `user.identified`](#responding-to-user.identified)
 
 # Hooks
 
@@ -144,6 +147,23 @@ The payload will only be validated after traversing the Hooks chain.
 Mutations do NOT generate extra events to avoid infinite loop.
 
 Currently, only `standard_attributes`, `custom_attributes`, `roles` and `groups` of the user object are mutable.
+
+## Blocking Event Action
+
+Hooks can response to a blocking event with a specific action if the corresponding event supports it.
+
+```json5
+{
+  "is_allowed": true,
+  "action": { /* */ }
+}
+```
+
+Interpretation and format of the `action` object is different in different events. Please read the corresponding spec for the meaning and format of `action` of each event:
+
+- [`user.identified`](#responding-to-user-identified)
+
+Events not listed above does not support the `action` object. The `action` key in the response of the hook will be simply ignored.
 
 # Non-blocking Events
 
@@ -294,3 +314,69 @@ hook:
     - events: ["user.created"]
       url: 'https://myapp.com/sync_user_creation'
 ```
+
+# Blocking Event Actions
+
+This section describe the meaning of `action` to different type of blocking events.
+
+## Responding to `user.identified`
+
+### Usecases
+
+#### Force user to use a preferred authentication method if available
+
+Assume you have a portal app which supports two signup methods: Email with Password, and Google oauth login.
+
+User of the portal can signup to the portal by one of the two methods, and login with that method afterwards.
+
+If the user has signed up with email with password, the user can connect to a Google account at any time after he logged in to the portal (For example, through [Account Linking](./account-linking.md)). In your persepctive, Google oauth login is the preferred login method because it is more secure. Therefore once user connected their google account, the portal should only accept google oauth login for the same account, and do not accept email with password logins.
+
+This can be done by implementing a hook for the `user.identified` event:
+
+1. The hook will be triggered once any user is trying to login with any identifier.
+2. Get the identity which the user is trying to use in the login flow from the event payload `identity`. If it is an `oauth` identity, he is already using Google oauth logic which you want, so stop and return `{ "is_allowed": true }` as the hook respond.
+3. Get all identities of the user who is trying to login, and find if there is at least one `oauth` identity. If no, it means the user is unable to use Google oauth login, so you should allow him to continue with email with password. Return `{ "is_allowed": true }` as the hook respond and stop.
+4. Now, we know that the user already has one Google oauth identity, but he is trying to use another identity to login. You want him to use Google login instead. So respond the following result to block the user from logging in:
+
+    ```json
+    {
+      "is_allowed": false,
+      "title": "Please use Google Login instead",
+      "reason": "Please use Google Login instead"
+    }
+    ```
+
+    However, the user will see an error message in the UI and this might not be a good UX. So, use the `action` object to switch the user to the login flow with google login selected by responding:
+
+    ```json
+    {
+      "is_allowed": true,
+      "action": {
+        "type": "switch_authentication_flow",
+        "authentication_flow": {
+          "name": "default",
+          "type": "login",
+          "input": {
+            "identification": "oauth",
+            "alias": "google",
+            "redirect_uri": "http://example.com/sso/oauth2/callback/google"
+          }
+        }
+      }
+    }
+    ```
+
+    The fields inside the action object has the following meansings:
+
+      - `type`: Type of the action object defines what type of action it is. The only possible values are:
+          - `switch_authentication_flow`: Switch the user to a new authentication flow. The `authentication_flow` object must be provided to specify the target authentication flow to switch to.
+      - `authentication_flow`: When `action.type` is `switch_authentication_flow`, this object must be provided. It is the target authentication flow to switch to.
+          - `authentication_flow.name`: The name of the target flow. Please read the [authentication flow spec](./authentication-flow-api-reference.md) for details.
+          - `authentication_flow.type`: The type of the target flow. Please read the [authentication flow spec](./authentication-flow-api-reference.md) for details.
+          - `authentication_flow.input`: The initial input to feed into the new flow. Please read the [input and output section of authentication flow spec](./authentication-flow-api-reference.md#reference-on-input-and-output) for details.
+
+    So the above `action` actually means:
+
+      1. Switch the user to a new authentication flow, with flow type `login` and flow name `default`.
+      2. In the new authentication flow, proceed the flow with an input, which selects Google oauth as the identification option.
+      3. In the UI, the user should be redirected to the Google oauth login page, and continue the flow.
