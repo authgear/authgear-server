@@ -32,6 +32,15 @@ authgear.yaml:
                   - type: identify
                     one_of:
                       - identification: username
+                  # This step should be skipped because user already have primary password
+                  - type: create_authenticator
+                    one_of:
+                    - authentication: primary_password
+                    - authentication: primary_oob_otp_email
+                  # This step should not be skipped
+                  - type: create_authenticator
+                    one_of:
+                    - authentication: secondary_password
       login_flows:
         - name: f1
           steps:
@@ -145,6 +154,20 @@ steps:
       {
         "identification": "username",
         "login_id": "test1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "secondary_password",
+        "new_password": "12341234a"
       }
     output:
       result: |
