@@ -5,19 +5,21 @@
   - [Defining how the linking occurs and the corresponding action](#defining-how-the-linking-occurs-and-the-corresponding-action)
     - [Defining Linkings](#defining-linkings)
     - [Linking Actions](#linking-actions)
-  - [Defining a default for all flows](#defining-a-default-for-all-flows)
-    - [Default Behaviors](#default-behaviors)
-      - [The Current Defaults](#the-current-defaults)
-      - [The default linking of different provider types](#the-default-linking-of-different-provider-types)
+  - [Customize the config in specific step](#customize-the-config-in-specific-step)
+  - [Default Behaviors](#default-behaviors)
+    - [The Current Defaults](#the-current-defaults)
+    - [The default linking of different provider types](#the-default-linking-of-different-provider-types)
 - [Identity Attributes](#identity-attributes)
   - [The built-in oauth identity standard attributes](#the-built-in-oauth-identity-standard-attributes)
   - [Customizing the oauth identity attributes](#customizing-the-oauth-identity-attributes)
 - [Login and Link Flow](#login-and-link-flow)
 - [Account Linking by Login IDs](#account-linking-by-login-ids)
   - [Defaults of Account Linking of Login IDs](#defaults-of-account-linking-of-Login-ids)
+- [Account Linking in Promote Flow](#account-linking-in-promote-flow)
 - [Q&A](#qa)
   - [Why we need to login the user before linking the account?](#why-we-need-to-login-the-user-before-linking-the-account)
   - [Why we need to continue the original signup flow instead of simply adding the oauth identity to the user?](#why-we-need-to-continue-the-original-signup-flow-instead-of-simply-adding-the-oauth-identity-to-the-user)
+- [Usecases](#usecases)
 - [References](#references)
 
 ## Introduction
@@ -38,18 +40,17 @@ To use account linking, you must define two things:
 Let's explain with the following example:
 
 ```yaml
+account_linking:
+  oauth:
+    - alias: adfs
+      oauth_claim:
+        pointer: "/preferred_username"
+      user_profile:
+        pointer: "/preferred_username"
+      action: login_and_link
 authentication_flow:
   signup_flows:
     - name: default
-      account_linking:
-        oauth:
-          - alias: adfs
-            oauth_claim:
-              pointer: "/preferred_username"
-            user_profile:
-              pointer: "/preferred_username"
-            action: login_and_link
-            login_flow: default
       steps:
         - name: identify
           type: identify
@@ -63,7 +64,7 @@ authentication_flow:
             - identification: oauth
 ```
 
-The `account_linking` section inside `signup_flows` defined the account linking behavior of the `default` signup flow. It have the following meanings:
+The `account_linking` section defined the account linking behavior of any authentication flow. It have the following meanings:
 
 - When user is trying to sign up with an `oauth` identity, which belongs to the oauth provider with alias `adfs`, account linking may occurs. The related provider is specified by the `alias` field, which should match one of the providers specified in the `identity.oauth.providers` config.
 - Linking should occur if the new oauth identity is having a `"email"` claim, which the value is equal to the `"email"` attribute of any existing user's identity. For details, please read the [Defining Linkings](#defining-linkings) section.
@@ -109,9 +110,7 @@ We define the action to link the new oauth identity with the existing identity's
   - `error`: Reject the signup with an error.
   - `login`: Switch to login flow of the existing account.
     - This will not be implemented as it seems a duplicate of `"error"`.
-  - `login_and_link`: Switch to login flow of the existing account. After user completing the login flow, add the new oauth identity to the logged in account. When `login_and_link` is choosed, the following additional configs are available:
-    - `login_flow`: The login flow name to switch to when an linking occurs. The selected login flow must start with a `identity` step. This field can be omitted. If omitted, the default value will be the same flow name
-    - Read the [Login and link flow](#login-and-link-flow) section for the detailed behavior of this option.
+  - `login_and_link`: Switch to login flow of the existing account. After user completing the login flow, add the new oauth identity to the logged in account. When `login_and_link` is choosed, read the [Login and link flow](#login-and-link-flow) section for the detailed behavior of this option.
   - `always_link_without_login`: This is similar to `login_and_link`, but no login is required. Caution: This could become a risk that someone will be able to takeover some authgear accounts using identities from the oauth provider. Only use this option if you trust the oauth provider and knows the linking logics works as you expected.
   - `link_without_login_when_verified`: This is similar to `login_and_link`, but no login is required only if the oauth provider claims that the email in the user's claim is verified, by using the `email_verified` claim.
   - `create_new_account`: Create a new account with this new identity, ignoring the link.
@@ -120,35 +119,70 @@ We define the action to link the new oauth identity with the existing identity's
 
 Currently, only `error` and `login_and_link` will be implemented.
 
-### Defining a default for all flows
+### Customize the config in specific step
 
-All config mentioned above was defined inside a single flow object of a `signup_flows`. However, you may simply want a config applied to all signup flows. Therefore, we have the `default_account_linking` section for this purpose. Here is an example:
+We provide a way to customize account linking configs in a specific step. This is because there are valid use cases that each step should behave differently. For example, you want the `default` signup flow to do account linking with the `default` signup flow, but in other side, you want another signup flow `signup_flow_1` to do account linking with another `login_flow_1` login_flow. Use the following config to achieve this behavior:
 
 ```yaml
+account_linking:
+  oauth:
+    - alias: adfs
+      oauth_claim:
+        pointer: "/preferred_username"
+      user_profile:
+        pointer: "/preferred_username"
+      action: login_and_link
+    - name: adfs_link_by_email # name must be defined if overriding this config in specific flow is needed
+      alias: adfs
+      oauth_claim:
+        pointer: "/email"
+      user_profile:
+        pointer: "/email"
+      action: login_and_link
 authentication_flow:
-  default_account_linking:
-    oauth:
-      - alias: google
-        oauth_claim:
-          pointer: "/email"
-        user_profile:
-          pointer: "/email"
-        action: login_and_link
-        login_flow: default
+  signup_flows:
+    - name: signup_flow_1
+      steps:
+        - name: identify
+          type: identify
+          one_of:
+            - identification: email
+              steps:
+                - name: authenticate_primary_email
+                  type: create_authenticator
+                  one_of:
+                    - authentication: primary_password
+            - name: identify_by_oauth
+              identification: oauth
+              account_linking:
+                oauth:
+                  - name: adfs_link_by_email # This object overrides account linking configs with the same name
+                    action: link_without_login_when_verified
+                    login_flow: login_flow_1
 ```
 
-It supports all configs as mentioned in the above [Defining how the linking occurs and the corresponding action](#defining-how-the-linking-occurs-and-the-corresponding-action).
+In the above example, an `account_linking` object was added inside an `identify` step of the signup flow `signup_flow_1`, and it overrides some configs in the `authentication_flow.account_linking`.
 
-If `authentication_flow.default_account_linking` is specified, it will be applied to all signup flows. If any signup flows does not have the `account_linking` config specified, it will be treated as having same configs inside `authentication_flow.default_account_linking`.
+You must give a `name` to the object you want to customize. In the above example, `name: adfs_link_by_email` was added to an object inside `account_linking.oauth`. `name` can be any string, it is used to reference this object in the later configs.
 
-For detail about default behaviors, please read the [Default Behaviors](#default-behaviors) section.
+Then, we add one item in `account_linking.oauth` inside step `identify_by_oauth` of the signup flow `signup_flow_1`, which has `name: adfs_link_by_email`. This means the config inside the new item will override any config in `account_linking.oauth` with `name` equal to `adfs_link_by_email`. In this example, `action` has been changed to `link_without_login_when_verified` if account linking was triggered at the step.
+
+Not all configs are overridable inside a flow. We only support overriding the following configs:
+
+- `action`
+
+Read the above [Defining how the linking occurs and the corresponding action](#defining-how-the-linking-occurs-and-the-corresponding-action) section for meaning of each fields.
+
+`oauth_claim` and `user_profile` is not supported in the config overrides because we think there is no valid usecase for it. You propably always want a consistent linking logics between flows.
+
+Additionally, `login_flow` is available as a configurable parameter of account linking. If a login flow is triggered during account linking, and `login_flow` is provided, the configured `login_flow` will be used as the name of the login flow which used to perform account linking. If not provided, the current flow name will be used. For example, if you triggered account linking in the `default` signup flow, then `default` login flow will be used if `login_flow` is not specified.
 
 ### Default Behaviors
 
 The account linking config will be read according to the below precedence:
 
 1. If exist, always use the configurations in `account_linking` inside the current flow object in `signup_flows`.
-2. Else, use the `authentication_flow.default_account_linking` confuguration, if exist.
+2. Else, use the `authentication_flow.account_linking` confuguration, if exist.
 3. Else, it is the built in default behavior. Please read the following sections for detail.
 
 #### The Current Defaults
@@ -223,17 +257,16 @@ During a signup, when a linking is occurred, and `action` is set to `login_and_l
 Assume we have the following authflow config:
 
 ```yaml
+account_linking:
+  oauth:
+    - alias: google
+      oauth_claim:
+        pointer: "/email"
+      user_profile:
+        pointer: "/email"
+      action: login_and_link
 signup_flows:
   - name: default
-    account_linking:
-      oauth:
-        - alias: google
-          oauth_claim:
-            pointer: "/email"
-          user_profile:
-            pointer: "/email"
-          action: login_and_link
-          login_flow: default
     steps:
       - name: identify
         type: identify
@@ -281,7 +314,7 @@ Assume now there is an existing authgear user with the following identities and 
 And now, the user tries to sign up with a new google account, which has an email `a@example.com` in the google user profile. And authgear matched that oauth identity to the existing login ID `a@example.com`.
 
 1. The user should first select a matched identity, in this example, there is only one matched identity `Email: a@example.com`. So this identity will be selected by the user.
-2. After `Email: a@example.com` being selected, the user will switch to the `default` login flow. Which was specified by `login_flow` in the config.
+2. After `Email: a@example.com` being selected, the user will switch to the `default` login flow. The name of the login flow used, unless specified, will be the same of the current signup flow. For details about how to use a different login flow, please read [Customize the config in specific step](#customize-the-config-in-specific-step).
 3. The login flow will be executed inside the signup flow, step by step.
 4. The selected identity `Email: a@example.com` will be automatically used to pass the first identification step:
 
@@ -388,13 +421,191 @@ The above configs defined the account linking behavior of two login id types:
 
 The default values of each login id types are different. Please see the below table.
 
-| Login ID Type | Defaults                                                                                              |
-| ------------- | ----------------------------------------------------------------------------------------------------- |
-| `email`       | <pre><code>user_profile:<br/>&nbsp;&nbsp;pointer: "/email"<br/>action: error</code></pre>             |
+| Login ID Type | Defaults                                                                                               |
+| ------------- | ------------------------------------------------------------------------------------------------------ |
+| `email`       | <pre><code>user_profile:<br/>&nbsp;&nbsp;pointer: "/email"<br/>action: error</code></pre>              |
 | `phone`       | <pre><code>user_profile:<br/>&nbsp;&nbsp;pointer: "/phone_number"<br/>action: error</code></pre>       |
 | `username`    | <pre><code>user_profile:<br/>&nbsp;&nbsp;pointer: "/preferred_username"<br/>action: error</code></pre> |
 
 Therefore when not specified, all attempts to link a new login id to existing users or idenitities will result in error.
+
+## Account Linking in Promote Flow
+
+Account linking can occur in promote flow, however, only `error` is allowed to be the action of account linking.
+
+This is because currently prmote flow does not support logging in to existing user in promote flow. So actions such as `login_and_link` which actually logged in to an existing user is also not possible at the moment. However, this restriction could be relaxed after we supported logging in to an existing user in promote flow.
+
+Any action set in `authentication_flow.account_linking` will be treated as error. And `action` in `signup_flows.account_linking` only allows `error` as value.
+
+## Usecases
+
+### Common Cases
+
+1. User already owns an account in authgear, but logged in with an oauth account that is not known to authgear.
+   Expect one of the following results:
+
+- Created a new account with no relationship with the existing account.
+- Tell the user he has an existing account, and he should login to that account instead.
+- Allow the user to continue login with the oauth account and finally he result in logged in the existing account, and the oauth account can also be used to login to this account in the future.
+
+  ```yaml
+  account_linking:
+    oauth:
+      - alias: google
+        oauth_claim:
+          pointer: "/email"
+        user_profile:
+          pointer: "/email"
+        action: login_and_link
+  ```
+
+2. User already owns an account in authgear, but tried to signup with a new email / phone number / username.
+   Expect one of the following results:
+
+- Created a new account with no relationship with the existing account.
+- Tell the user he has an existing account, and he should login to that account instead.
+- Redirect the user to login to the existing account. And in future, that email / phone number / username can be used to login to same account.
+
+  ```yaml
+  account_linking:
+    login_id:
+      - key: phone
+        user_profile:
+          pointer: "/phone_number"
+        action: "login_and_link"
+      - key: email
+        user_profile:
+          pointer: "/email"
+        action: "login_and_link"
+      - key: username
+        user_profile:
+          pointer: "/username"
+        action: "login_and_link"
+  ```
+
+### Edge Cases
+
+1. Say a project has two clients, A and B. And he has two different signup flows and two login flows for the two clients. Each client should always use the flow belongs to that client. And the project want to enable account linking.
+
+   - Signup flow of A should use login flow of A during account linking. And signup flow of B should use login flow of B during account linking.
+   - Say if only signup flow of B allows signing up with email, while both flows support signing up with oauth. Then signup flow of B should not be able to trigger account linking by email while signing up with oauth.
+
+   The solution is to override the login flow name per flow.
+
+   ```yaml
+   account_linking:
+     oauth:
+       - name: adfs_linking
+         alias: adfs
+         oauth_claim:
+           pointer: "/preferred_username"
+         user_profile:
+           pointer: "/preferred_username"
+         action: login_and_link
+   authentication_flow:
+     signup_flows:
+       - name: flow_1
+         steps:
+           - name: identify
+             type: identify
+             one_of:
+               - identification: email
+               - identification: oauth
+                 account_linking:
+                   oauth:
+                     - name: adfs_linking
+                       login_flow: flow_1
+   ```
+
+2. Say a project has pre-imported users. And we know that these users may have a adfs account. We probably already know the user id of the adfs account already. So what we want is:
+
+   - The pre-imported users will know about their adfs account username. So whenever a new adfs account is trying to login, we can map it to a pre-imported user. And trigger login for that user instead.
+
+   The solution is to link by a custom attribute, which was set during the user was imported.
+
+   ```yaml
+   account_linking:
+     oauth:
+       - name: adfs_linking
+         alias: adfs
+         oauth_claim:
+           pointer: "/preferred_username"
+         user_profile:
+           pointer: "/x_adfs_username"
+         action: login_and_link
+   authentication_flow:
+     signup_flows:
+       - name: default
+         steps:
+           - name: identify
+             type: identify
+             one_of:
+               - identification: email
+               - identification: oauth
+   ```
+
+3. Consider a signup flow which accepts using google account OR phone number, but phone number wil still be collected if user signup with google. And the followings are wanted:
+
+   - The user can login with the google account.
+   - The user cannot login with the phone number.
+   - No one can signup a new account with that phone number.
+
+   The solution is to link by a custom attribute, which was set after the user signed up by google. The phone number collected after google signup flow should be stored into a custom attribute `/custom_profile_phone_number`.
+
+   ```yaml
+   account_linking:
+     login_id:
+       - key: phone
+         user_profile:
+           pointer: "/custom_profile_phone_number"
+         action: "error"
+   authentication_flow:
+     signup_flows:
+       - name: default
+         steps:
+           - name: identify
+             type: identify
+             one_of:
+               - identification: phone
+               - identification: oauth
+   ```
+
+4. Assume google oauth signup and email signup are both available for an app. Now, you want users of the app to be able to login to his own existing account even if he originally signed up by google, but entered the same email during signup. The verification step is not necessary in the signup flow. So you want:
+
+   - If the user has verified his email during signup, re-login of existing account is not needed, because you believe the owner of a same email should also own that google account.
+   - Else, he has to re-login to his existing account to prove his ownership.
+
+   It can be done by the following config:
+
+   ```yaml
+   account_linking:
+     login_id:
+       - name: email_linking
+         key: email
+         user_profile:
+           pointer: "/email"
+         action: login_and_link
+   authentication_flow:
+     signup_flows:
+       - name: default
+         steps:
+           - name: identify
+             type: identify
+             one_of:
+               - identification: email # This branch require email verification
+                 account_linking:
+                   login_id:
+                     - name: email_linking
+                       action: link_without_login_when_verified # Override action in this branch so user do not need to login again for account linking
+                 steps:
+                   - target_step: identify
+                     type: verify
+               - identification: username # Another branch that doesn't require email verification
+                 steps:
+                   - type: identity
+                     one_of:
+                       - identificaiton: email # No override, therefore login is still required for account linking
+   ```
 
 ## References
 
