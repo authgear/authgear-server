@@ -12,7 +12,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
+	"github.com/authgear/authgear-server/pkg/util/log"
 )
+
+type WebHookLogger struct{ *log.Logger }
+
+func NewWebHookLogger(lf *log.Factory) WebHookLogger { return WebHookLogger{lf.New("webhook")} }
 
 type WebHook interface {
 	SupportURL(u *url.URL) bool
@@ -22,6 +27,7 @@ type WebHook interface {
 }
 
 type WebHookImpl struct {
+	Logger WebHookLogger
 	Secret *config.WebhookKeyMaterials
 }
 
@@ -65,15 +71,17 @@ func (h *WebHookImpl) PerformNoResponse(
 	client *http.Client,
 	request *http.Request) error {
 
-	resp, err := performRequest(client, request)
-
-	defer func() {
+	go func() {
+		resp, err := performRequest(client, request)
+		if err != nil {
+			h.Logger.WithError(err).Error("failed to dispatch nonblocking webhook")
+		}
 		if resp != nil {
-			resp.Body.Close()
+			defer resp.Body.Close()
 		}
 	}()
 
-	return err
+	return nil
 }
 
 type EventWebHookImpl struct {

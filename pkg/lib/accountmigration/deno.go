@@ -25,7 +25,7 @@ type AccountMigrationDenoHook struct {
 }
 
 func (h *AccountMigrationDenoHook) Call(u *url.URL, hookReq *HookRequest) (*HookResponse, error) {
-	out, err := h.Run(h.Client, u, hookReq)
+	out, err := h.RunSync(h.Client, u, hookReq)
 	if err != nil {
 		return nil, err
 	}

@@ -3,7 +3,9 @@ package hook
 import (
 	"context"
 	"net/url"
+	"runtime"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
@@ -56,6 +58,8 @@ func TestDenoHook(t *testing.T) {
 			asyncDenoClient.EXPECT().Run(ctx, "script", e).Times(1).Return(nil, nil)
 
 			err := denohook.DeliverNonBlockingEvent(u, e)
+			runtime.Gosched()
+			time.Sleep(500 * time.Millisecond)
 			So(err, ShouldBeNil)
 		})
 	})

@@ -10,6 +10,8 @@ var DependencySet = wire.NewSet(
 	NewSyncDenoClient,
 	NewAsyncDenoClient,
 	NewLogger,
+	NewWebHookLogger,
+	NewDenoHookLogger,
 	wire.Struct(new(Sink), "*"),
 	wire.Bind(new(WebHook), new(*WebHookImpl)),
 	wire.Struct(new(WebHookImpl), "*"),

@@ -49,9 +49,11 @@ func newHookSink(ctx context.Context, app *model.App, denoEndpoint config.DenoEn
 	appConfig := configConfig.AppConfig
 	hookConfig := appConfig.Hook
 	clock := _wireSystemClockValue
+	webHookLogger := hook.NewWebHookLogger(loggerFactory)
 	secretConfig := configConfig.SecretConfig
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	webHookImpl := hook.WebHookImpl{
+		Logger: webHookLogger,
 		Secret: webhookKeyMaterials,
 	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -62,9 +64,11 @@ func newHookSink(ctx context.Context, app *model.App, denoEndpoint config.DenoEn
 		AsyncHTTP:   asyncHTTPClient,
 	}
 	manager := appContext.Resources
+	denoHookLogger := hook.NewDenoHookLogger(loggerFactory)
 	denoHook := hook.DenoHook{
 		Context:         ctx,
 		ResourceManager: manager,
+		Logger:          denoHookLogger,
 	}
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, logger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, logger)

@@ -494,8 +494,10 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
+	webHookLogger := hook.NewWebHookLogger(factory)
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	webHookImpl := hook.WebHookImpl{
+		Logger: webHookLogger,
 		Secret: webhookKeyMaterials,
 	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -505,9 +507,11 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 		SyncHTTP:    syncHTTPClient,
 		AsyncHTTP:   asyncHTTPClient,
 	}
+	denoHookLogger := hook.NewDenoHookLogger(factory)
 	denoHook := hook.DenoHook{
 		Context:         c,
 		ResourceManager: manager,
+		Logger:          denoHookLogger,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)

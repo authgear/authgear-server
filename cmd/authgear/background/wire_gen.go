@@ -521,8 +521,10 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
+	webHookLogger := hook.NewWebHookLogger(factory)
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	webHookImpl := hook.WebHookImpl{
+		Logger: webHookLogger,
 		Secret: webhookKeyMaterials,
 	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -532,9 +534,11 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		SyncHTTP:    syncHTTPClient,
 		AsyncHTTP:   asyncHTTPClient,
 	}
+	denoHookLogger := hook.NewDenoHookLogger(factory)
 	denoHook := hook.DenoHook{
 		Context:         ctx,
 		ResourceManager: manager,
+		Logger:          denoHookLogger,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
