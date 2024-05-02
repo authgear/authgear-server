@@ -897,6 +897,7 @@
   "v2-error-password-policy-disallowed-keywords": "Kata laluan mengandungi kata kunci yang tidak dibenarkan",
   "v2-error-password-policy-reuse": "Tidak boleh menggunakan semula {size, plural, one{# kata laluan sebelumnya} other{# kata laluan sebelumnya}} / kata laluan sebelumnya dalam tempoh {day, plural, one{# hari} other{# hari}}",
   "v2-error-phone-number-format": "Format nombor telefon tidak betul.",
+  "v2-error-unexpected-user": "Sepertinya anda log masuk dengan akaun yang berbeza. Sila cuba lagi.",
   "v2-create-password-page-title": "Cipta Kata Laluan",
   "v2-password-policy-strength": "Kekuatan kata laluan:",
   "v2-password-policy-minimum-length": "Sekurang-kurangnya {length, plural, one{# aksara} other{# aksara}}",
@@ -1039,5 +1040,11 @@
   "v2-wechat-auth-page-app-description": "Klik butang di bawah untuk meneruskan Log Masuk WeChat",
   "v2-wechat-auth-page-with-qr-code-description": "Sila imbas kod QR dalam aplikasi WeChat anda untuk log masuk.",
   "v2-wechat-auth-page-open-app": "Buka aplikasi WeChat untuk log masuk",
-  "v2-wechat-auth-page-proceed": "Teruskan log masuk WeChat"
+  "v2-wechat-auth-page-proceed": "Teruskan log masuk WeChat",
+  "v2-account-linking-title": "Akaun sedia ada ditemui",
+  "v2-account-linking-subtitle--login-and-link": "Sepertinya anda telah mendaftar sebelum ini. Log masuk ke akaun sedia ada untuk menghubungkannya.",
+  "v2-account-linking-subtitle--login": "Sepertinya anda telah mendaftar sebelum ini. Log masuk ke akaun sedia ada di bawah.",
+  "v2-account-linking-by-email": "Log masuk ke {IdentityDisplayName}",
+  "v2-account-linking-by-phone": "Log masuk ke {IdentityDisplayName}",
+  "v2-account-linking-by-username": "Log masuk ke {IdentityDisplayName}"
 }

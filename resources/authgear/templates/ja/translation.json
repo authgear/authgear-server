@@ -897,6 +897,7 @@
   "v2-error-password-policy-disallowed-keywords": "パスワードに許可されていないキーワードが含まれています",
   "v2-error-password-policy-reuse": "{size, plural, one{# 個の前のパスワード} other{# 個の前のパスワード}}を {day, plural, one{# 日} other{# 日}}以内に再利用することはできません",
   "v2-error-phone-number-format": "電話番号のフォーマットが正しくありません。",
+  "v2-error-unexpected-user": "別のアカウントでログインしたようです。もう一度お試しください。",
   "v2-create-password-page-title": "パスワードの作成",
   "v2-password-policy-strength": "パスワードの強度:",
   "v2-password-policy-minimum-length": "最小 {length, plural, one{# 文字} other{# 文字}}",
@@ -1039,5 +1040,11 @@
   "v2-wechat-auth-page-app-description": "下のボタンをクリックして WeChat ログインを続行してください",
   "v2-wechat-auth-page-with-qr-code-description": "WeChat アプリでQRコードをスキャンしてサインインしてください。",
   "v2-wechat-auth-page-open-app": "WeChat アプリを開いてログイン",
-  "v2-wechat-auth-page-proceed": "WeChat ログインを続行"
+  "v2-wechat-auth-page-proceed": "WeChat ログインを続行",
+  "v2-account-linking-title": "既存のアカウントが見つかりました",
+  "v2-account-linking-subtitle--login-and-link": "以前に登録したことがあるようです。既存のアカウントにログインしてリンクしてください。",
+  "v2-account-linking-subtitle--login": "以前に登録したことがあるようです。以下の既存のアカウントにログインしてください。",
+  "v2-account-linking-by-email": "{IdentityDisplayName}にログイン",
+  "v2-account-linking-by-phone": "{IdentityDisplayName}にログイン",
+  "v2-account-linking-by-username": "{IdentityDisplayName}にログイン"
 }

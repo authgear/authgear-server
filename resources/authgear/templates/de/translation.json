@@ -897,6 +897,7 @@
   "v2-error-password-policy-disallowed-keywords": "Das Passwort enthält nicht zulässige Schlüsselwörter",
   "v2-error-password-policy-reuse": "Keine Wiederverwendung von {size, plural, one{# vorherigem Passwort} other{# vorherigen Passwörtern}} / vorherigem Passwort innerhalb von {day, plural, one{# Tag} other{# Tagen}}",
   "v2-error-phone-number-format": "Falsches Telefonnummernformat.",
+  "v2-error-unexpected-user": "Es sieht so aus, als hätten Sie sich mit einem anderen Konto angemeldet. Bitte versuchen Sie es erneut.",
   "v2-create-password-page-title": "Passwort erstellen",
   "v2-password-policy-strength": "Passworstärke:",
   "v2-password-policy-minimum-length": "Mindestens {length, plural, one{# Zeichen} other{# Zeichen}}",
@@ -1039,5 +1040,11 @@
   "v2-wechat-auth-page-app-description": "Klicken Sie auf die untenstehende Schaltfläche, um die WeChat-Anmeldung fortzusetzen.",
   "v2-wechat-auth-page-with-qr-code-description": "Bitte scannen Sie den QR-Code in Ihrer WeChat-App, um sich anzumelden.",
   "v2-wechat-auth-page-open-app": "WeChat-App öffnen, um sich anzumelden",
-  "v2-wechat-auth-page-proceed": "WeChat-Anmeldung fortsetzen"
+  "v2-wechat-auth-page-proceed": "WeChat-Anmeldung fortsetzen",
+  "v2-account-linking-title": "Bestehendes Konto gefunden",
+  "v2-account-linking-subtitle--login-and-link": "Es sieht so aus, als hätten Sie sich bereits registriert. Melden Sie sich an, um ein bestehendes Konto zu verknüpfen.",
+  "v2-account-linking-subtitle--login": "Es sieht so aus, als hätten Sie sich bereits registriert. Melden Sie sich unten mit einem bestehenden Konto an.",
+  "v2-account-linking-by-email": "Anmelden bei {IdentityDisplayName}",
+  "v2-account-linking-by-phone": "Anmelden bei {IdentityDisplayName}",
+  "v2-account-linking-by-username": "Anmelden bei {IdentityDisplayName}"
 }
