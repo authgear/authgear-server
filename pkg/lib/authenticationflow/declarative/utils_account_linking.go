@@ -31,10 +31,10 @@ func resolveAccountLinkingConfig(ctx context.Context, deps *authflow.Dependencie
 	}
 
 	if config == nil {
-		return deps.Config.AuthenticationFlow.DefaultAccountLinking, nil
+		return deps.Config.AuthenticationFlow.AccountLinking, nil
 	}
 
-	return config.Merge(deps.Config.AuthenticationFlow.DefaultAccountLinking), nil
+	return config.Merge(deps.Config.AuthenticationFlow.AccountLinking), nil
 }
 
 func resolveAccountLinkingConfigOAuth(
