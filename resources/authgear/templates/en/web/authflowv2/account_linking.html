@@ -7,11 +7,7 @@
         {{ template "v2-account-linking-title" }}
       </h1>
       <h2 class="screen-description">
-        {{ if eq $.Action "login_and_link" }}
-          {{ template "v2-account-linking-subtitle--login-and-link" }}
-        {{ else }}
-          {{ template "v2-account-linking-subtitle--login" }}
-        {{ end }}
+        {{ template "v2-account-linking-subtitle--login-and-link" }}
       </h2>
       {{ template "authflowv2/__alert_message.html"
         (dict

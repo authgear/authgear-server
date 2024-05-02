@@ -7,7 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
@@ -38,7 +37,7 @@ func (*IntentCheckConflictAndCreateIdenity) CanReactTo(ctx context.Context, deps
 func (i *IntentCheckConflictAndCreateIdenity) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	switch len(flows.Nearest.Nodes) {
 	case 0: // next node is NodeDoCreateIdentity, or account linking intent
-		action, conflicts, err := i.checkConflictByAccountLinkings(ctx, deps, flows)
+		conflicts, err := i.checkConflictByAccountLinkings(ctx, deps, flows)
 		if err != nil {
 			return nil, err
 		}
@@ -53,12 +52,9 @@ func (i *IntentCheckConflictAndCreateIdenity) ReactTo(ctx context.Context, deps 
 			}), nil
 		} else {
 			return authflow.NewSubFlow(&IntentAccountLinking{
-				JSONPointer:           i.JSONPointer,
-				ConflictingIdentities: conflicts,
-				IncomingIdentitySpec:  spec,
-				Action:                action,
-				// TODO(tung): Allow setting flow name
-				LoginFlowName: "",
+				JSONPointer:          i.JSONPointer,
+				Conflicts:            conflicts,
+				IncomingIdentitySpec: spec,
 			}), nil
 		}
 	}
@@ -68,13 +64,13 @@ func (i *IntentCheckConflictAndCreateIdenity) ReactTo(ctx context.Context, deps 
 func (i *IntentCheckConflictAndCreateIdenity) checkConflictByAccountLinkings(
 	ctx context.Context,
 	deps *authflow.Dependencies,
-	flows authflow.Flows) (action config.AccountLinkingAction, conflicts []*identity.Info, err error) {
+	flows authflow.Flows) (conflicts []*AccountLinkingConflict, err error) {
 	switch i.Request.Type {
 	case model.IdentityTypeOAuth:
-		return linkByOAuthIncomingOAuthSpec(ctx, deps, flows, i.Request.OAuth)
+		return linkByOAuthIncomingOAuthSpec(ctx, deps, flows, i.Request.OAuth, i.JSONPointer)
 	default:
 		// Linking of other types are not supported at the moment
-		return config.AccountLinkingActionError, []*identity.Info{}, nil
+		return nil, nil
 	}
 }
 

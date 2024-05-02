@@ -2,7 +2,6 @@ package declarative
 
 import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 )
 
@@ -12,7 +11,7 @@ func init() {
 
 type NodeUseAccountLinkingIdentification struct {
 	Option   AccountLinkingIdentificationOption `json:"option,omitempty"`
-	Identity *identity.Info                     `json:"identity,omitempty"`
+	Conflict *AccountLinkingConflict            `json:"conflict,omitempty"`
 
 	// oauth
 	RedirectURI  string           `json:"redirect_uri,omitempty"`
@@ -28,8 +27,8 @@ func (*NodeUseAccountLinkingIdentification) Kind() string {
 }
 
 func (*NodeUseAccountLinkingIdentification) Milestone() {}
-func (n *NodeUseAccountLinkingIdentification) MilestoneUseAccountLinkingIdentification() *identity.Info {
-	return n.Identity
+func (n *NodeUseAccountLinkingIdentification) MilestoneUseAccountLinkingIdentification() *AccountLinkingConflict {
+	return n.Conflict
 }
 func (n *NodeUseAccountLinkingIdentification) MilestoneUseAccountLinkingIdentificationSelectedOption() AccountLinkingIdentificationOption {
 	return n.Option

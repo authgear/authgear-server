@@ -254,7 +254,7 @@ type MilestoneDoUpdateUserProfile interface {
 
 type MilestoneUseAccountLinkingIdentification interface {
 	authflow.Milestone
-	MilestoneUseAccountLinkingIdentification() *identity.Info
+	MilestoneUseAccountLinkingIdentification() *AccountLinkingConflict
 	MilestoneUseAccountLinkingIdentificationSelectedOption() AccountLinkingIdentificationOption
 	MilestoneUseAccountLinkingIdentificationRedirectURI() string
 	MilestoneUseAccountLinkingIdentificationResponseMode() sso.ResponseMode

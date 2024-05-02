@@ -11,7 +11,6 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
@@ -69,14 +68,14 @@ func (n *NodePromoteIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.D
 		_, err = findExactOneIdentityInfo(deps, spec)
 		if err != nil {
 			if apierrors.IsKind(err, api.UserNotFound) {
-				_, conflicts, err := n.checkConflictByAccountLinkings(ctx, deps, flows, spec)
+				conflicts, err := n.checkConflictByAccountLinkings(ctx, deps, flows, spec)
 				if err != nil {
 					return nil, err
 				}
 				if len(conflicts) > 0 {
 					// In promote flow, always error if any conflicts occurs
-					conflictSpecs := slice.Map(conflicts, func(i *identity.Info) *identity.Spec {
-						s := i.ToSpec()
+					conflictSpecs := slice.Map(conflicts, func(c *AccountLinkingConflict) *identity.Spec {
+						s := c.Identity.ToSpec()
 						return &s
 					})
 					return nil, identityFillDetailsMany(api.ErrDuplicatedIdentity, spec, conflictSpecs)
@@ -128,13 +127,13 @@ func (n *NodePromoteIdentityOAuth) checkConflictByAccountLinkings(
 	ctx context.Context,
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
-	spec *identity.Spec) (action config.AccountLinkingAction, conflicts []*identity.Info, err error) {
+	spec *identity.Spec) (conflicts []*AccountLinkingConflict, err error) {
 	switch spec.Type {
 	case model.IdentityTypeOAuth:
 		return linkByOAuthIncomingOAuthSpec(ctx, deps, flows, &CreateIdentityRequestOAuth{
 			Alias: n.Alias,
 			Spec:  spec,
-		})
+		}, n.JSONPointer)
 	default:
 		panic("unexpected spec type")
 	}
