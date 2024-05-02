@@ -253,6 +253,7 @@ func (i *IntentAccountLinking) getOptions() []AccountLinkingIdentificationOption
 				MaskedDisplayName: maskedDisplayName,
 				ProviderType:      providerType,
 				Alias:             providerAlias,
+				Action:            c.Action,
 			},
 			Conflict: c,
 		}}
