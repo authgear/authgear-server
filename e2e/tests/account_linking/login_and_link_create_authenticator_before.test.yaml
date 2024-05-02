@@ -11,18 +11,17 @@ authgear.yaml:
           - alias: google
             client_id: "google"
             type: google
+    account_linking:
+      oauth:
+        - alias: google
+          action: login_and_link
+          oauth_claim:
+            pointer: "/email"
+          user_profile:
+            pointer: "/email"
     authentication_flow:
       signup_flows:
         - name: f1
-          account_linking:
-            oauth:
-              - alias: google
-                action: login_and_link
-                oauth_claim:
-                  pointer: "/email"
-                user_profile:
-                  pointer: "/email"
-                login_flow: f1
           steps:
             - type: create_authenticator
               one_of:
@@ -113,8 +112,7 @@ steps:
             "type": "identify",
             "identification": "oauth",
             "data": {
-              "type": "account_linking_identification_data",
-              "account_linking_action": "login_and_link"
+              "type": "account_linking_identification_data"
             }
           }
         }
