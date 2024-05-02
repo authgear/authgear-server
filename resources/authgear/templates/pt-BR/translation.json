@@ -897,6 +897,7 @@
   "v2-error-password-policy-disallowed-keywords": "A senha contém palavras-chave não permitidas",
   "v2-error-password-policy-reuse": "Nenhuma reutilização de {size, plural, one{# senha anterior} other{# senhas anteriores}} / senha anterior dentro de {day, plural, one{# dia} other{# dias}}",
   "v2-error-phone-number-format": "Formato de número de telefone incorreto.",
+  "v2-error-unexpected-user": "Parece que você fez login com uma conta diferente. Por favor, tente novamente.",
   "v2-create-password-page-title": "Criar Senha",
   "v2-password-policy-strength": "Força da senha:",
   "v2-password-policy-minimum-length": "Pelo menos {length, plural, one{# caractere} other{# caracteres}}",
@@ -1039,5 +1040,11 @@
   "v2-wechat-auth-page-app-description": "Clique no botão abaixo para continuar o login do WeChat",
   "v2-wechat-auth-page-with-qr-code-description": "Escaneie o código QR no seu aplicativo WeChat para fazer login.",
   "v2-wechat-auth-page-open-app": "Abrir o aplicativo WeChat para fazer login",
-  "v2-wechat-auth-page-proceed": "Prosseguir com o login do WeChat"
+  "v2-wechat-auth-page-proceed": "Prosseguir com o login do WeChat",
+  "v2-account-linking-title": "Conta existente encontrada",
+  "v2-account-linking-subtitle--login-and-link": "Parece que você se cadastrou antes. Faça login em uma conta existente para vinculá-la.",
+  "v2-account-linking-subtitle--login": "Parece que você se cadastrou antes. Faça login em uma conta existente abaixo.",
+  "v2-account-linking-by-email": "Login em {IdentityDisplayName}",
+  "v2-account-linking-by-phone": "Login em {IdentityDisplayName}",
+  "v2-account-linking-by-username": "Login em {IdentityDisplayName}"
 }

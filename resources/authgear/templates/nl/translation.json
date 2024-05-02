@@ -897,6 +897,7 @@
   "v2-error-password-policy-disallowed-keywords": "Wachtwoord bevat niet-toegestane trefwoorden",
   "v2-error-password-policy-reuse": "Geen hergebruik van {size, plural, one{# vorig wachtwoord} other{# vorige wachtwoorden}} / vorig wachtwoord binnen {day, plural, one{# dag} other{# dagen}}",
   "v2-error-phone-number-format": "Onjuist telefoonnummerformaat.",
+  "v2-error-unexpected-user": "Het lijkt erop dat u bent ingelogd met een ander account. Probeer het opnieuw.",
   "v2-create-password-page-title": "Wachtwoord aanmaken",
   "v2-password-policy-strength": "Wachtwoordsterkte:",
   "v2-password-policy-minimum-length": "Minimaal {length, plural, one{# teken} other{# tekens}}",
@@ -1039,5 +1040,11 @@
   "v2-wechat-auth-page-app-description": "Klik op de onderstaande knop om door te gaan met inloggen via WeChat",
   "v2-wechat-auth-page-with-qr-code-description": "Scan de QR-code in je WeChat-app om in te loggen.",
   "v2-wechat-auth-page-open-app": "Open de WeChat-app om in te loggen",
-  "v2-wechat-auth-page-proceed": "Ga verder met inloggen via WeChat"
+  "v2-wechat-auth-page-proceed": "Ga verder met inloggen via WeChat",
+  "v2-account-linking-title": "Bestaand account gevonden",
+  "v2-account-linking-subtitle--login-and-link": "Het lijkt erop dat u zich eerder heeft aangemeld. Log in op een bestaand account om het te koppelen.",
+  "v2-account-linking-subtitle--login": "Het lijkt erop dat u zich eerder heeft aangemeld. Log hieronder in op een bestaand account.",
+  "v2-account-linking-by-email": "Log in op {IdentityDisplayName}",
+  "v2-account-linking-by-phone": "Log in op {IdentityDisplayName}",
+  "v2-account-linking-by-username": "Log in op {IdentityDisplayName}"
 }
