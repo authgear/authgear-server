@@ -20,11 +20,9 @@ func init() {
 }
 
 type IntentAccountLinking struct {
-	JSONPointer           jsonpointer.T               `json:"json_pointer,omitempty"`
-	Action                config.AccountLinkingAction `json:"action,omitempty"`
-	LoginFlowName         string                      `json:"login_flow_name,omitempty"`
-	IncomingIdentitySpec  *identity.Spec              `json:"incoming_identity_spec,omitempty"`
-	ConflictingIdentities []*identity.Info            `json:"conflicting_identities,omitempty"`
+	JSONPointer          jsonpointer.T             `json:"json_pointer,omitempty"`
+	IncomingIdentitySpec *identity.Spec            `json:"incoming_identity_spec,omitempty"`
+	Conflicts            []*AccountLinkingConflict `json:"conflicts,omitempty"`
 }
 
 var _ authflow.Intent = &IntentAccountLinking{}
@@ -35,17 +33,13 @@ func (*IntentAccountLinking) Kind() string {
 }
 
 func (i *IntentAccountLinking) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	return NewAccountLinkingIdentifyData(i.getOptions(), i.Action), nil
+	return NewAccountLinkingIdentifyData(i.getOptions()), nil
 }
 
 func (i *IntentAccountLinking) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	if i.Action == config.AccountLinkingActionError {
-		spec := i.IncomingIdentitySpec
-		conflictSpecs := slice.Map(i.ConflictingIdentities, func(i *identity.Info) *identity.Spec {
-			s := i.ToSpec()
-			return &s
-		})
-		return nil, identityFillDetailsMany(api.ErrDuplicatedIdentity, spec, conflictSpecs)
+	err := i.errorIfSomeConflictIsError()
+	if err != nil {
+		return nil, err
 	}
 
 	switch len(flows.Nearest.Nodes) {
@@ -79,7 +73,7 @@ func (i *IntentAccountLinking) ReactTo(ctx context.Context, deps *authflow.Depen
 
 			return authflow.NewNodeSimple(&NodeUseAccountLinkingIdentification{
 				Option:       selectedOption.AccountLinkingIdentificationOption,
-				Identity:     selectedOption.Identity,
+				Conflict:     selectedOption.Conflict,
 				RedirectURI:  redirectURI,
 				ResponseMode: responseMode,
 			}), nil
@@ -93,7 +87,8 @@ func (i *IntentAccountLinking) ReactTo(ctx context.Context, deps *authflow.Depen
 	}
 
 	flowUserID, err := getUserID(flows)
-	conflictedIdentity := milestone.MilestoneUseAccountLinkingIdentification()
+	selectedConflict := milestone.MilestoneUseAccountLinkingIdentification()
+	conflictedIdentity := selectedConflict.Identity
 	conflictedUserID := conflictedIdentity.UserID
 	if err != nil {
 		return nil, err
@@ -105,10 +100,10 @@ func (i *IntentAccountLinking) ReactTo(ctx context.Context, deps *authflow.Depen
 	switch len(flows.Nearest.Nodes) {
 	case 1:
 		var skipLogin bool
-		var loginFlow string = i.LoginFlowName
-		switch i.Action {
+		var loginFlow string = selectedConflict.LoginFlow
+		switch selectedConflict.Action {
 		case config.AccountLinkingActionError:
-			panic(fmt.Errorf("unexpected to reach here if action is error"))
+			panic(fmt.Errorf("unexpected: conflict should be be choosable if action is error"))
 			// When we support actions which can skip login, set skipLogin to true
 		case config.AccountLinkingActionLoginAndLink:
 			if loginFlow == "" {
@@ -122,7 +117,7 @@ func (i *IntentAccountLinking) ReactTo(ctx context.Context, deps *authflow.Depen
 			return authflow.NewNodeSimple(&NodeSentinel{}), nil
 		}
 		if loginFlow == "" {
-			panic(fmt.Errorf("login_flow_name must be specified"))
+			panic(fmt.Errorf("login_flow must be specified"))
 		}
 		flowReference := authflow.FlowReference{
 			Type: authflow.FlowTypeLogin,
@@ -151,7 +146,7 @@ func (i *IntentAccountLinking) rewriteFlowIntoUserIDOfConflictedIdentity(
 	flows authflow.Flows,
 	milestone MilestoneUseAccountLinkingIdentification) (*authflow.Node, error) {
 
-	conflictedIdentity := milestone.MilestoneUseAccountLinkingIdentification()
+	conflictedIdentity := milestone.MilestoneUseAccountLinkingIdentification().Identity
 	conflictedUserID := conflictedIdentity.UserID
 	err := authflow.TraverseFlow(authflow.Traverser{
 		NodeSimple: func(nodeSimple authflow.NodeSimple, w *authflow.Flow) error {
@@ -216,11 +211,18 @@ func (i *IntentAccountLinking) createSyntheticInputOAuthConflict(
 }
 
 func (i *IntentAccountLinking) getOptions() []AccountLinkingIdentificationOptionInternal {
-	return slice.FlatMap(i.ConflictingIdentities, func(identity *identity.Info) []AccountLinkingIdentificationOptionInternal {
+	return slice.FlatMap(i.Conflicts, func(c *AccountLinkingConflict) []AccountLinkingIdentificationOptionInternal {
 		var identifcation config.AuthenticationFlowIdentification
 		var maskedDisplayName string
 		var providerType config.OAuthSSOProviderType
 		var providerAlias string
+
+		identity := c.Identity
+
+		if c.Action == config.AccountLinkingActionError {
+			// We don't show error as options
+			return []AccountLinkingIdentificationOptionInternal{}
+		}
 
 		switch identity.Type {
 		case model.IdentityTypeLoginID:
@@ -252,7 +254,30 @@ func (i *IntentAccountLinking) getOptions() []AccountLinkingIdentificationOption
 				ProviderType:      providerType,
 				Alias:             providerAlias,
 			},
-			Identity: identity,
+			Conflict: c,
 		}}
 	})
+}
+
+func (i *IntentAccountLinking) errorIfSomeConflictIsError() error {
+	var errorConflicts []*AccountLinkingConflict = []*AccountLinkingConflict{}
+	for _, conflict := range i.Conflicts {
+		conflict := conflict
+		if conflict.Action == config.AccountLinkingActionError {
+			errorConflicts = append(errorConflicts, conflict)
+		}
+	}
+
+	// If there is at least one conflict with action=error,
+	// return error
+	if len(errorConflicts) > 0 {
+		spec := i.IncomingIdentitySpec
+		conflictSpecs := slice.Map(errorConflicts, func(c *AccountLinkingConflict) *identity.Spec {
+			s := c.Identity.ToSpec()
+			return &s
+		})
+		return identityFillDetailsMany(api.ErrDuplicatedIdentity, spec, conflictSpecs)
+	}
+
+	return nil
 }

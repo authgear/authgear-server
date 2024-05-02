@@ -20,6 +20,7 @@ var _ = Schema.Add("AccountLinkingOAuthItem", `
 	"type": "object",
 	"required": ["alias", "oauth_claim", "user_profile", "action"],
 	"properties": {
+		"name": { "type": "string" },
 		"alias": { "type": "string" },
 		"oauth_claim": { "$ref": "#/$defs/AccountLinkingJSONPointer" },
 		"user_profile": { "$ref": "#/$defs/AccountLinkingJSONPointer" },
@@ -62,6 +63,7 @@ type AccountLinkingConfig struct {
 }
 
 type AccountLinkingOAuthItem struct {
+	Name        string                     `json:"name,omitempty"`
 	Alias       string                     `json:"alias,omitempty"`
 	OAuthClaim  *AccountLinkingJSONPointer `json:"oauth_claim,omitempty"`
 	UserProfile *AccountLinkingJSONPointer `json:"user_profile,omitempty"`

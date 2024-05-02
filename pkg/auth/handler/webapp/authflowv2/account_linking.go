@@ -44,7 +44,6 @@ type AuthflowV2AccountLinkingOption struct {
 }
 
 type AuthflowV2AccountLinkingViewModel struct {
-	Action  string
 	Options []AuthflowV2AccountLinkingOption
 }
 
@@ -74,7 +73,6 @@ func NewAuthflowV2AccountLinkingViewModel(s *webapp.Session, screen *webapp.Auth
 	}
 
 	return AuthflowV2AccountLinkingViewModel{
-		Action:  string(data.AccountLinkingAction),
 		Options: options,
 	}
 }
