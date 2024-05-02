@@ -13,6 +13,10 @@ var DenoRunError = apierrors.BadRequest.WithReason("DenoRunError")
 
 var DenoCheckError = apierrors.Invalid.WithReason("DenoCheckError")
 
+func init() {
+	apierrors.SkipLoggingForKinds[WebHookInvalidResponse] = true
+}
+
 type OperationDisallowedItem struct {
 	Title  string `json:"title"`
 	Reason string `json:"reason"`
