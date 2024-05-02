@@ -897,6 +897,7 @@
   "v2-error-password-policy-disallowed-keywords": "Le mot de passe contient des mots-clés non autorisés",
   "v2-error-password-policy-reuse": "Pas de réutilisation de {size, plural, one{# mot de passe précédent} other{# mots de passe précédents}} / mot de passe précédent dans les {day, plural, one{# jour} other{# jours}}",
   "v2-error-phone-number-format": "Format de numéro de téléphone incorrect.",
+  "v2-error-unexpected-user": "Il semble que vous vous soyez connecté avec un compte différent. Veuillez réessayer.",
   "v2-create-password-page-title": "Créer un mot de passe",
   "v2-password-policy-strength": "Niveau de sécurité du mot de passe :",
   "v2-password-policy-minimum-length": "Au moins {length, plural, one{# caractère} other{# caractères}}",
@@ -1039,5 +1040,11 @@
   "v2-wechat-auth-page-app-description": "Cliquez sur le bouton ci-dessous pour continuer la connexion WeChat",
   "v2-wechat-auth-page-with-qr-code-description": "Veuillez scanner le code QR dans votre application WeChat pour vous connecter.",
   "v2-wechat-auth-page-open-app": "Ouvrir l''application WeChat pour se connecter",
-  "v2-wechat-auth-page-proceed": "Procéder à la connexion WeChat"
+  "v2-wechat-auth-page-proceed": "Procéder à la connexion WeChat",
+  "v2-account-linking-title": "Compte existant trouvé",
+  "v2-account-linking-subtitle--login-and-link": "Il semble que vous vous soyez inscrit auparavant. Connectez-vous à un compte existant pour le lier.",
+  "v2-account-linking-subtitle--login": "Il semble que vous vous soyez inscrit auparavant. Connectez-vous à un compte existant ci-dessous.",
+  "v2-account-linking-by-email": "Connexion à {IdentityDisplayName}",
+  "v2-account-linking-by-phone": "Connexion à {IdentityDisplayName}",
+  "v2-account-linking-by-username": "Connexion à {IdentityDisplayName}"
 }

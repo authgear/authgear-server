@@ -897,6 +897,7 @@
   "v2-error-password-policy-disallowed-keywords": "รหัสผ่านมีคำที่ไม่อนุญาต",
   "v2-error-password-policy-reuse": "ห้ามใช้ซ้ำกับ {size, plural, one{# รหัสผ่านก่อนหน้า} other{# รหัสผ่านก่อนหน้า}} / รหัสผ่านก่อนหน้าภายใน {day, plural, one{# วัน} other{# วัน}}",
   "v2-error-phone-number-format": "รูปแบบหมายเลขโทรศัพท์ไม่ถูกต้อง",
+  "v2-error-unexpected-user": "ดูเหมือนว่าคุณได้เข้าสู่ระบบด้วยบัญชีอื่น โปรดลองอีกครั้ง",
   "v2-create-password-page-title": "สร้างรหัสผ่าน",
   "v2-password-policy-strength": "ความแข็งแรงของรหัสผ่าน:",
   "v2-password-policy-minimum-length": "อย่างน้อย {length, plural, one{# ตัวอักษร} other{# ตัวอักษร}}",
@@ -1039,5 +1040,11 @@
   "v2-wechat-auth-page-app-description": "คลิกปุ่มด้านล่างเพื่อดำเนินการเข้าสู่ระบบด้วย WeChat",
   "v2-wechat-auth-page-with-qr-code-description": "โปรดสแกนรหัส QR ในแอป WeChat ของคุณเพื่อเข้าสู่ระบบ",
   "v2-wechat-auth-page-open-app": "เปิดแอป WeChat เพื่อเข้าสู่ระบบ",
-  "v2-wechat-auth-page-proceed": "ดำเนินการเข้าสู่ระบบด้วย WeChat"
+  "v2-wechat-auth-page-proceed": "ดำเนินการเข้าสู่ระบบด้วย WeChat",
+  "v2-account-linking-title": "พบบัญชีที่มีอยู่แล้ว",
+  "v2-account-linking-subtitle--login-and-link": "ดูเหมือนว่าคุณได้ลงทะเบียนมาก่อนแล้ว เข้าสู่ระบบบัญชีที่มีอยู่แล้วเพื่อเชื่อมโยง",
+  "v2-account-linking-subtitle--login": "ดูเหมือนว่าคุณได้ลงทะเบียนมาก่อนแล้ว เข้าสู่ระบบบัญชีที่มีอยู่แล้วด้านล่าง",
+  "v2-account-linking-by-email": "เข้าสู่ระบบ {IdentityDisplayName}",
+  "v2-account-linking-by-phone": "เข้าสู่ระบบ {IdentityDisplayName}",
+  "v2-account-linking-by-username": "เข้าสู่ระบบ {IdentityDisplayName}"
 }

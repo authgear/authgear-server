@@ -897,6 +897,7 @@
   "v2-error-password-policy-disallowed-keywords": "Hasło zawiera niedozwolone słowa kluczowe",
   "v2-error-password-policy-reuse": "Brak ponownego użycia {size, plural, one{# poprzedniego hasła} other{# poprzednich haseł}} / poprzedniego hasła w ciągu {day, plural, one{# dnia} other{# dni}}",
   "v2-error-phone-number-format": "Nieprawidłowy format numeru telefonu.",
+  "v2-error-unexpected-user": "Wygląda na to, że zalogowałeś się na inne konto. Spróbuj ponownie.",
   "v2-create-password-page-title": "Utwórz hasło",
   "v2-password-policy-strength": "Siła hasła:",
   "v2-password-policy-minimum-length": "Co najmniej {length, plural, one{# znak} other{# znaki}}",
@@ -1039,5 +1040,11 @@
   "v2-wechat-auth-page-app-description": "Kliknij poniższy przycisk, aby kontynuować logowanie przez WeChat",
   "v2-wechat-auth-page-with-qr-code-description": "Zeskanuj kod QR w aplikacji WeChat, aby się zalogować.",
   "v2-wechat-auth-page-open-app": "Otwórz aplikację WeChat, aby się zalogować",
-  "v2-wechat-auth-page-proceed": "Kontynuuj logowanie przez WeChat"
+  "v2-wechat-auth-page-proceed": "Kontynuuj logowanie przez WeChat",
+  "v2-account-linking-title": "Znaleziono istniejące konto",
+  "v2-account-linking-subtitle--login-and-link": "Wygląda na to, że już się zarejestrowałeś. Zaloguj się na istniejące konto, aby je powiązać.",
+  "v2-account-linking-subtitle--login": "Wygląda na to, że już się zarejestrowałeś. Zaloguj się na istniejące konto poniżej.",
+  "v2-account-linking-by-email": "Zaloguj się do {IdentityDisplayName}",
+  "v2-account-linking-by-phone": "Zaloguj się do {IdentityDisplayName}",
+  "v2-account-linking-by-username": "Zaloguj się do {IdentityDisplayName}"
 }

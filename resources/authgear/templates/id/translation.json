@@ -897,6 +897,7 @@
   "v2-error-password-policy-disallowed-keywords": "Kata sandi mengandung kata kunci yang tidak diizinkan",
   "v2-error-password-policy-reuse": "Tidak boleh menggunakan kembali {size, plural, one{# kata sandi sebelumnya} other{# kata sandi sebelumnya}} / kata sandi sebelumnya dalam {day, plural, one{# hari} other{# hari}}",
   "v2-error-phone-number-format": "Format nomor telepon tidak benar.",
+  "v2-error-unexpected-user": "Sepertinya Anda masuk dengan akun yang berbeda. Silakan coba lagi.",
   "v2-create-password-page-title": "Buat Kata Sandi",
   "v2-password-policy-strength": "Kekuatan kata sandi:",
   "v2-password-policy-minimum-length": "Minimal {length, plural, one{# karakter} other{# karakter}}",
@@ -1039,5 +1040,11 @@
   "v2-wechat-auth-page-app-description": "Klik tombol di bawah untuk melanjutkan Login WeChat",
   "v2-wechat-auth-page-with-qr-code-description": "Silakan pindai kode QR di aplikasi WeChat Anda untuk masuk.",
   "v2-wechat-auth-page-open-app": "Buka aplikasi WeChat untuk login",
-  "v2-wechat-auth-page-proceed": "Lanjutkan login WeChat"
+  "v2-wechat-auth-page-proceed": "Lanjutkan login WeChat",
+  "v2-account-linking-title": "Akun yang ada ditemukan",
+  "v2-account-linking-subtitle--login-and-link": "Sepertinya Anda sudah pernah mendaftar sebelumnya. Masuk ke akun yang ada untuk menghubungkannya.",
+  "v2-account-linking-subtitle--login": "Sepertinya Anda sudah pernah mendaftar sebelumnya. Masuk ke akun yang ada di bawah ini.",
+  "v2-account-linking-by-email": "Masuk ke {IdentityDisplayName}",
+  "v2-account-linking-by-phone": "Masuk ke {IdentityDisplayName}",
+  "v2-account-linking-by-username": "Masuk ke {IdentityDisplayName}"
 }

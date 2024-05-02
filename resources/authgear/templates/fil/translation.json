@@ -897,6 +897,7 @@
   "v2-error-password-policy-disallowed-keywords": "Ang password ay naglalaman ng mga hindi pinapayagang keyword",
   "v2-error-password-policy-reuse": "Hindi pinapayagan ang muling paggamit ng {size, plural, one{# nakaraang password} other{# nakaraang mga password}} / nakaraang password sa loob ng {day, plural, one{# araw} other{# mga araw}}",
   "v2-error-phone-number-format": "Mali ang format ng numero ng telepono.",
+  "v2-error-unexpected-user": "Mukhang nag-log in ka sa ibang account. Pakisubukan muli.",
   "v2-create-password-page-title": "Gumawa ng Password",
   "v2-password-policy-strength": "Lakas ng password:",
   "v2-password-policy-minimum-length": "Hindi bababa sa {length, plural, one{# character} other{# mga character}}",
@@ -1039,5 +1040,11 @@
   "v2-wechat-auth-page-app-description": "I-click ang button sa ibaba upang magpatuloy sa WeChat Login",
   "v2-wechat-auth-page-with-qr-code-description": "Mangyaring i-scan ang QR code sa iyong WeChat app upang mag-sign in.",
   "v2-wechat-auth-page-open-app": "Buksan ang WeChat app upang mag-login",
-  "v2-wechat-auth-page-proceed": "Magpatuloy sa WeChat login"
+  "v2-wechat-auth-page-proceed": "Magpatuloy sa WeChat login",
+  "v2-account-linking-title": "Nahanap ang umiiral na account",
+  "v2-account-linking-subtitle--login-and-link": "Mukhang nag-sign up ka na noon. Mag-log in sa umiiral na account upang i-link ito.",
+  "v2-account-linking-subtitle--login": "Mukhang nag-sign up ka na noon. Mag-log in sa umiiral na account sa ibaba.",
+  "v2-account-linking-by-email": "Mag-log in sa {IdentityDisplayName}",
+  "v2-account-linking-by-phone": "Mag-log in sa {IdentityDisplayName}",
+  "v2-account-linking-by-username": "Mag-log in sa {IdentityDisplayName}"
 }
