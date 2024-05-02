@@ -128,7 +128,7 @@ func (n *NodePromoteIdentityOAuth) checkConflictByAccountLinkings(
 	ctx context.Context,
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
-	spec *identity.Spec) (config config.AccountLinkingConfigObject, conflicts []*identity.Info, err error) {
+	spec *identity.Spec) (action config.AccountLinkingAction, conflicts []*identity.Info, err error) {
 	switch spec.Type {
 	case model.IdentityTypeOAuth:
 		return linkByOAuthIncomingOAuthSpec(ctx, deps, flows, &CreateIdentityRequestOAuth{

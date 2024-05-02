@@ -25,7 +25,6 @@ var _ authflow.PublicFlow = &IntentSignupFlow{}
 var _ authflow.EffectGetter = &IntentSignupFlow{}
 var _ authflow.Milestone = &IntentSignupFlow{}
 var _ MilestoneSwitchToExistingUser = &IntentSignupFlow{}
-var _ MilestoneAccountLinkingConfigGetter = &IntentSignupFlow{}
 
 func (*IntentSignupFlow) Kind() string {
 	return "IntentSignupFlow"
@@ -54,17 +53,6 @@ func (i *IntentSignupFlow) MilestoneSwitchToExistingUser(deps *authflow.Dependen
 		milestone.MilestoneDoCreateUserUseExisting(newUserID)
 	}
 	return nil
-}
-func (i *IntentSignupFlow) MilestoneAccountLinkingConfigGetter(deps *authflow.Dependencies) (*config.AuthenticationFlowAccountLinking, error) {
-	flowRootObject, err := i.FlowRootObject(deps)
-	if err != nil {
-		return nil, err
-	}
-	signupFlow, ok := flowRootObject.(*config.AuthenticationFlowSignupFlow)
-	if !ok {
-		panic("flow root object is not signup flow in signup flow intent")
-	}
-	return signupFlow.AccountLinking, nil
 }
 
 func (i *IntentSignupFlow) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {

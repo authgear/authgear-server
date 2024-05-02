@@ -10,44 +10,22 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-func resolveAccountLinkingConfig(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (*config.AuthenticationFlowAccountLinking, error) {
-	var config *config.AuthenticationFlowAccountLinking
-
-	err := authflow.TraverseIntentFromEndToRoot(func(intent authflow.Intent) error {
-		milestone, ok := intent.(MilestoneAccountLinkingConfigGetter)
-		if !ok || config != nil {
-			return nil
-		}
-		cfg, err := milestone.MilestoneAccountLinkingConfigGetter(deps)
-		if err != nil {
-			return err
-		}
-		config = cfg
-		return nil
-	}, flows.Root)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if config == nil {
-		return deps.Config.AuthenticationFlow.AccountLinking, nil
-	}
-
-	return config.Merge(deps.Config.AuthenticationFlow.AccountLinking), nil
+func resolveAccountLinkingConfig(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (*config.AccountLinkingConfig, error) {
+	// TODO(tung): Allow overrides
+	return deps.Config.AccountLinking, nil
 }
 
 func resolveAccountLinkingConfigOAuth(
 	ctx context.Context,
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
-	request *CreateIdentityRequestOAuth) (*config.AuthenticationFlowAccountLinkOAuthItem, error) {
+	request *CreateIdentityRequestOAuth) (*config.AccountLinkingOAuthItem, error) {
 	cfg, err := resolveAccountLinkingConfig(ctx, deps, flows)
 	if err != nil {
 		return nil, err
 	}
 
-	var match *config.AuthenticationFlowAccountLinkOAuthItem
+	var match *config.AccountLinkingOAuthItem
 
 	for _, oauthConfig := range cfg.OAuth {
 		oauthConfig := oauthConfig
@@ -59,7 +37,7 @@ func resolveAccountLinkingConfigOAuth(
 
 	if match == nil {
 		// By default, always error on email conflict
-		match = config.DefaultAuthenticationFlowAccountLinkOAuthItem
+		match = config.DefaultAccountLinkingOAuthItem
 	}
 
 	return match, nil
@@ -69,11 +47,11 @@ func linkByOAuthIncomingOAuthSpec(
 	ctx context.Context,
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
-	request *CreateIdentityRequestOAuth) (cfg config.AccountLinkingConfigObject, conflicts []*identity.Info, err error) {
+	request *CreateIdentityRequestOAuth) (action config.AccountLinkingAction, conflicts []*identity.Info, err error) {
 
 	oauthConfig, err := resolveAccountLinkingConfigOAuth(ctx, deps, flows, request)
 	if err != nil {
-		return nil, nil, err
+		return "", nil, err
 	}
 
 	value, traverseErr := oauthConfig.OAuthClaim.GetJSONPointer().Traverse(request.Spec.OAuth.StandardClaims)
@@ -90,12 +68,12 @@ func linkByOAuthIncomingOAuthSpec(
 
 	// If value is empty or doesn't exist, no conflicts should occur
 	if valueStr == "" {
-		return oauthConfig, []*identity.Info{}, nil
+		return "", []*identity.Info{}, nil
 	}
 
 	conflicts, err = deps.Identities.ListByClaimJSONPointer(oauthConfig.UserProfile.GetJSONPointer(), valueStr)
 	if err != nil {
-		return oauthConfig, nil, err
+		return "", nil, err
 	}
 
 	// check for identitical identities
@@ -113,11 +91,11 @@ func linkByOAuthIncomingOAuthSpec(
 			// The identity is identical, throw error directly
 			spec := request.Spec
 			otherSpec := conflict.ToSpec()
-			return oauthConfig, nil, identityFillDetails(api.ErrDuplicatedIdentity, spec, &otherSpec)
+			return oauthConfig.Action, nil, identityFillDetails(api.ErrDuplicatedIdentity, spec, &otherSpec)
 		}
 	}
 
-	return oauthConfig, conflicts, nil
+	return oauthConfig.Action, conflicts, nil
 }
 
 type CreateIdentityRequest struct {

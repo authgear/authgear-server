@@ -38,7 +38,7 @@ func (*IntentCheckConflictAndCreateIdenity) CanReactTo(ctx context.Context, deps
 func (i *IntentCheckConflictAndCreateIdenity) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	switch len(flows.Nearest.Nodes) {
 	case 0: // next node is NodeDoCreateIdentity, or account linking intent
-		cfg, conflicts, err := i.checkConflictByAccountLinkings(ctx, deps, flows)
+		action, conflicts, err := i.checkConflictByAccountLinkings(ctx, deps, flows)
 		if err != nil {
 			return nil, err
 		}
@@ -56,8 +56,9 @@ func (i *IntentCheckConflictAndCreateIdenity) ReactTo(ctx context.Context, deps 
 				JSONPointer:           i.JSONPointer,
 				ConflictingIdentities: conflicts,
 				IncomingIdentitySpec:  spec,
-				Action:                cfg.GetAction(),
-				LoginFlowName:         cfg.GetLoginFlow(),
+				Action:                action,
+				// TODO(tung): Allow setting flow name
+				LoginFlowName: "",
 			}), nil
 		}
 	}
@@ -67,13 +68,13 @@ func (i *IntentCheckConflictAndCreateIdenity) ReactTo(ctx context.Context, deps 
 func (i *IntentCheckConflictAndCreateIdenity) checkConflictByAccountLinkings(
 	ctx context.Context,
 	deps *authflow.Dependencies,
-	flows authflow.Flows) (config config.AccountLinkingConfigObject, conflicts []*identity.Info, err error) {
+	flows authflow.Flows) (action config.AccountLinkingAction, conflicts []*identity.Info, err error) {
 	switch i.Request.Type {
 	case model.IdentityTypeOAuth:
 		return linkByOAuthIncomingOAuthSpec(ctx, deps, flows, i.Request.OAuth)
 	default:
 		// Linking of other types are not supported at the moment
-		return nil, []*identity.Info{}, nil
+		return config.AccountLinkingActionError, []*identity.Info{}, nil
 	}
 }
 
