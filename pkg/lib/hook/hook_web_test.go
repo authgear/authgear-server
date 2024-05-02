@@ -3,7 +3,9 @@ package hook
 import (
 	"net/http"
 	"net/url"
+	"runtime"
 	"testing"
+	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	. "github.com/smartystreets/goconvey/convey"
@@ -77,23 +79,9 @@ func TestEventWebHook(t *testing.T) {
 			defer func() { gock.Flush() }()
 
 			err := webhook.DeliverNonBlockingEvent(mustURL("https://example.com/a"), &e)
+			runtime.Gosched()
+			time.Sleep(500 * time.Millisecond)
 			So(err, ShouldBeNil)
-		})
-
-		Convey("invalid status code", func() {
-			e := event.Event{
-				ID:   "event-id",
-				Type: MockBlockingEventType1,
-			}
-			gock.New("https://example.com").
-				Post("/a").
-				JSON(e).
-				HeaderPresent(HeaderRequestBodySignature).
-				Reply(500)
-			defer func() { gock.Flush() }()
-
-			err := webhook.DeliverNonBlockingEvent(mustURL("https://example.com/a"), &e)
-			So(err, ShouldBeError, "invalid status code")
 		})
 
 		Convey("invalid response body", func() {

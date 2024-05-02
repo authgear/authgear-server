@@ -52,10 +52,8 @@ func (h *WriterHook) Levels() []logrus.Level {
 }
 
 func (h *WriterHook) Fire(entry *logrus.Entry) error {
-	if IgnoreEntry(entry) {
-		return nil
-	}
-
+	// The writer hook is supposed to be placed before SkipLoggingHook.
+	// So it does not skip logging any entry.
 	bytes, err := h.Formatter.Format(entry)
 	if err != nil {
 		return err

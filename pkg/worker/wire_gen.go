@@ -67,9 +67,11 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	customSMSProviderConfig := deps.ProvideCustomSMSProviderConfig(secretConfig)
 	context := p.Context
 	manager := appContext.Resources
+	denoHookLogger := hook.NewDenoHookLogger(factory)
 	denoHook := hook.DenoHook{
 		Context:         context,
 		ResourceManager: manager,
+		Logger:          denoHookLogger,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
 	hookLogger := hook.NewLogger(factory)
@@ -79,8 +81,10 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 		DenoHook: denoHook,
 		Client:   hookDenoClient,
 	}
+	webHookLogger := hook.NewWebHookLogger(factory)
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	webHookImpl := &hook.WebHookImpl{
+		Logger: webHookLogger,
 		Secret: webhookKeyMaterials,
 	}
 	hookHTTPClient := sms.NewHookHTTPClient(smsHookTimeout)

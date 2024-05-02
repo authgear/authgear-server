@@ -72,6 +72,5 @@ type SMSDenoHook struct {
 }
 
 func (d *SMSDenoHook) Call(u *url.URL, payload SendSMSPayload) error {
-	_, err := d.Run(d.Client, u, payload)
-	return err
+	return d.RunAsync(d.Client, u, payload)
 }
