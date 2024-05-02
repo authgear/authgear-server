@@ -7,6 +7,7 @@ import (
 
 	getsentry "github.com/getsentry/sentry-go"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	imagesconfig "github.com/authgear/authgear-server/pkg/images/config"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -43,6 +44,7 @@ func NewRootProvider(
 
 	loggerFactory := log.NewFactory(
 		logLevel,
+		apierrors.SkipLoggingHook{},
 		log.NewDefaultMaskLogHook(),
 		sentry.NewLogHookFromHub(sentryHub),
 	)
@@ -71,6 +73,7 @@ func NewRootProvider(
 func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppContext) *AppProvider {
 	cfg := appCtx.Config
 	loggerFactory := p.LoggerFactory.ReplaceHooks(
+		apierrors.SkipLoggingHook{},
 		log.NewDefaultMaskLogHook(),
 		config.NewSecretMaskLogHook(cfg.SecretConfig),
 		sentry.NewLogHookFromContext(ctx),

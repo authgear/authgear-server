@@ -2,8 +2,10 @@ package hook
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -13,6 +15,22 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
+
+type withoutCancelMatcher struct{}
+
+func (withoutCancelMatcher) Matches(x interface{}) bool {
+	if ctx, ok := x.(context.Context); ok {
+		s := fmt.Sprintf("%v", ctx)
+		if strings.HasSuffix(s, "WithoutCancel") {
+			return true
+		}
+	}
+	return false
+}
+
+func (withoutCancelMatcher) String() string {
+	return "matches context.WithoutContext"
+}
 
 func TestDenoHook(t *testing.T) {
 	Convey("EventDenoHook", t, func() {
@@ -55,7 +73,7 @@ func TestDenoHook(t *testing.T) {
 			resourceManager.EXPECT().Read(DenoFile, resource.AppFile{
 				Path: "deno/a.ts",
 			}).Times(1).Return([]byte("script"), nil)
-			asyncDenoClient.EXPECT().Run(ctx, "script", e).Times(1).Return(nil, nil)
+			asyncDenoClient.EXPECT().Run(withoutCancelMatcher{}, "script", e).Times(1).Return(nil, nil)
 
 			err := denohook.DeliverNonBlockingEvent(u, e)
 			runtime.Gosched()

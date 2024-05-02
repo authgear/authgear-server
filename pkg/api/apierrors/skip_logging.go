@@ -1,4 +1,4 @@
-package log
+package apierrors
 
 import (
 	"context"
@@ -9,16 +9,28 @@ import (
 
 	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
+
+	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
-func IgnoreEntry(entry *logrus.Entry) bool {
+var SkipLoggingForKinds map[Kind]bool
+
+func init() {
+	SkipLoggingForKinds = make(map[Kind]bool)
+}
+
+type SkipLoggingHook struct{}
+
+func (SkipLoggingHook) Levels() []logrus.Level { return logrus.AllLevels }
+
+func (SkipLoggingHook) Fire(entry *logrus.Entry) error {
 	if err, ok := entry.Data[logrus.ErrorKey].(error); ok {
 		if IgnoreError(err) {
-			return true
+			log.SkipLogging(entry)
 		}
 	}
 
-	return false
+	return nil
 }
 
 func IgnoreError(err error) (ignore bool) {
@@ -60,6 +72,14 @@ func IgnoreError(err error) (ignore bool) {
 		// https://pkg.go.dev/database/sql/driver#ConnBeginTx
 		// So when we call Rollback() again, this error will be returned.
 		ignore = true
+	}
+
+	// Skip logging for some kinds.
+	if apiError := AsAPIError(err); apiError != nil {
+		skipped := SkipLoggingForKinds[apiError.Kind]
+		if skipped {
+			ignore = true
+		}
 	}
 
 	return
