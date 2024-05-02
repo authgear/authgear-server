@@ -24,15 +24,15 @@ type AccountLinkingIdentificationOptionInternal struct {
 
 type AccountLinkingIdentifyData struct {
 	TypedData
-	AccountLinkingAction config.AuthenticationFlowAccountLinkingAction `json:"account_linking_action"`
-	Options              []AccountLinkingIdentificationOption          `json:"options"`
+	AccountLinkingAction config.AccountLinkingAction          `json:"account_linking_action"`
+	Options              []AccountLinkingIdentificationOption `json:"options"`
 }
 
 var _ authflow.Data = AccountLinkingIdentifyData{}
 
 func (AccountLinkingIdentifyData) Data() {}
 
-func NewAccountLinkingIdentifyData(options []AccountLinkingIdentificationOptionInternal, action config.AuthenticationFlowAccountLinkingAction) AccountLinkingIdentifyData {
+func NewAccountLinkingIdentifyData(options []AccountLinkingIdentificationOptionInternal, action config.AccountLinkingAction) AccountLinkingIdentifyData {
 	return AccountLinkingIdentifyData{
 		TypedData:            TypedData{Type: DataTypeAccountLinkingIdentificationData},
 		AccountLinkingAction: action,

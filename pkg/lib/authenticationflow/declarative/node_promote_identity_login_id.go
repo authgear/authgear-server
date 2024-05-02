@@ -143,11 +143,11 @@ func (n *NodePromoteIdentityLoginID) checkConflictByAccountLinkings(
 	ctx context.Context,
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
-	spec *identity.Spec) (config config.AccountLinkingConfigObject, conflicts []*identity.Info, err error) {
+	spec *identity.Spec) (action config.AccountLinkingAction, conflicts []*identity.Info, err error) {
 	switch spec.Type {
 	case model.IdentityTypeLoginID:
 		// account linking of login id is not implemented at the moment
-		return nil, []*identity.Info{}, nil
+		return "", []*identity.Info{}, nil
 	default:
 		panic("unexpected spec type")
 	}

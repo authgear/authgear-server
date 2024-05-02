@@ -20,11 +20,11 @@ func init() {
 }
 
 type IntentAccountLinking struct {
-	JSONPointer           jsonpointer.T                                 `json:"json_pointer,omitempty"`
-	Action                config.AuthenticationFlowAccountLinkingAction `json:"action,omitempty"`
-	LoginFlowName         string                                        `json:"login_flow_name,omitempty"`
-	IncomingIdentitySpec  *identity.Spec                                `json:"incoming_identity_spec,omitempty"`
-	ConflictingIdentities []*identity.Info                              `json:"conflicting_identities,omitempty"`
+	JSONPointer           jsonpointer.T               `json:"json_pointer,omitempty"`
+	Action                config.AccountLinkingAction `json:"action,omitempty"`
+	LoginFlowName         string                      `json:"login_flow_name,omitempty"`
+	IncomingIdentitySpec  *identity.Spec              `json:"incoming_identity_spec,omitempty"`
+	ConflictingIdentities []*identity.Info            `json:"conflicting_identities,omitempty"`
 }
 
 var _ authflow.Intent = &IntentAccountLinking{}
@@ -39,7 +39,7 @@ func (i *IntentAccountLinking) OutputData(ctx context.Context, deps *authflow.De
 }
 
 func (i *IntentAccountLinking) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	if i.Action == config.AuthenticationFlowAccountLinkingActionError {
+	if i.Action == config.AccountLinkingActionError {
 		spec := i.IncomingIdentitySpec
 		conflictSpecs := slice.Map(i.ConflictingIdentities, func(i *identity.Info) *identity.Spec {
 			s := i.ToSpec()
@@ -105,22 +105,28 @@ func (i *IntentAccountLinking) ReactTo(ctx context.Context, deps *authflow.Depen
 	switch len(flows.Nearest.Nodes) {
 	case 1:
 		var skipLogin bool
+		var loginFlow string = i.LoginFlowName
 		switch i.Action {
-		case config.AuthenticationFlowAccountLinkingActionError:
+		case config.AccountLinkingActionError:
 			panic(fmt.Errorf("unexpected to reach here if action is error"))
-		// When we support actions which can skip login, set skipLogin to true
+			// When we support actions which can skip login, set skipLogin to true
+		case config.AccountLinkingActionLoginAndLink:
+			if loginFlow == "" {
+				// Use the current flow name if it is not specified
+				loginFlow = authflow.FindCurrentFlowReference(flows.Root).Name
+			}
 		default:
 			skipLogin = false
 		}
 		if skipLogin {
 			return authflow.NewNodeSimple(&NodeSentinel{}), nil
 		}
-		if i.LoginFlowName == "" {
+		if loginFlow == "" {
 			panic(fmt.Errorf("login_flow_name must be specified"))
 		}
 		flowReference := authflow.FlowReference{
 			Type: authflow.FlowTypeLogin,
-			Name: i.LoginFlowName,
+			Name: loginFlow,
 		}
 		loginIntent := IntentLoginFlow{
 			TargetUserID:  conflictedUserID,
