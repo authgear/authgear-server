@@ -1,4 +1,4 @@
-part: AuthenticationFlowAccountLinking
+part: AccountLinkingConfig
 name: valid
 error: null
 value:
@@ -21,10 +21,9 @@ value:
         pointer: "/phone_number"
       user_profile:
         pointer: "/phone_number"
-      login_flow: flow1
 
 ---
-part: AuthenticationFlowAccountLinking
+part: AccountLinkingConfig
 name: invalid
 error: |-
   invalid value:
@@ -37,7 +36,7 @@ error: |-
   /oauth/1: required
     map[actual:[action] expected:[action alias oauth_claim user_profile] missing:[alias oauth_claim user_profile]]
   /oauth/2: required
-    map[actual:[alias login_flow oauth_claim user_profile] expected:[action alias oauth_claim user_profile] missing:[action]]
+    map[actual:[alias oauth_claim user_profile] expected:[action alias oauth_claim user_profile] missing:[action]]
 value:
   oauth:
     - alias: "google"
@@ -51,4 +50,3 @@ value:
         pointer: "/phone_number"
       user_profile:
         pointer: "/phone_number"
-      login_flow: flow1

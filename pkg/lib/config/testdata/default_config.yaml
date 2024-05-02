@@ -637,8 +637,8 @@ test_mode:
     enabled: false
   email:
     enabled: false
+account_linking: {}
 authentication_flow:
-  default_account_linking: {}
   rate_limits:
     per_ip:
       enabled: true
