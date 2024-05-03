@@ -897,6 +897,7 @@
   "v2-error-password-policy-disallowed-keywords": "密码包含不允许的关键字",
   "v2-error-password-policy-reuse": "{size, plural, one{# 个上一个密码} other{# 个上一个密码}}不能在 {day, plural, one{# 天} other{# 天}}内重复使用",
   "v2-error-phone-number-format": "电话号码格式不正确。",
+  "v2-error-unexpected-user": "看來您使用了不同的帳號登入。請再試一次。",
   "v2-create-password-page-title": "创建密码",
   "v2-password-policy-strength": "密码强度:",
   "v2-password-policy-minimum-length": "至少 {length, plural, one{# 个字符} other{# 个字符}}",
@@ -1039,5 +1040,11 @@
   "v2-wechat-auth-page-app-description": "点击下面的按钮继续微信登录",
   "v2-wechat-auth-page-with-qr-code-description": "请在您的微信应用程序中扫描二维码以登录。",
   "v2-wechat-auth-page-open-app": "打开微信应用程序登录",
-  "v2-wechat-auth-page-proceed": "继续微信登录"
+  "v2-wechat-auth-page-proceed": "继续微信登录",
+  "v2-account-linking-title": "找到現有帳戶",
+  "v2-account-linking-subtitle--login-and-link": "好像您之前已經註冊過。登入現有帳戶以連結它。",
+  "v2-account-linking-subtitle--login": "看來您之前已經註冊過。請登入下面的現有帳戶。",
+  "v2-account-linking-by-email": "登入 {IdentityDisplayName}",
+  "v2-account-linking-by-phone": "登入 {IdentityDisplayName}",
+  "v2-account-linking-by-username": "登入 {IdentityDisplayName}"
 }

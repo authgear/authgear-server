@@ -59,6 +59,7 @@ const (
 	// nolint: gosec
 	AuthflowV2RouteResetPasswordSuccess = "/authflow/v2/reset_password/success"
 	AuthflowV2RouteWechat               = "/authflow/v2/wechat"
+	AuthflowV2RouteAccountLinking       = "/authflow/v2/account_linking"
 
 	// The following routes are dead ends.
 	AuthflowV2RouteAccountStatus   = "/authflow/v2/account_status"
@@ -250,6 +251,11 @@ func (n *AuthflowV2Navigator) navigateSignupPromote(s *webapp.AuthflowScreenWith
 }
 
 func (n *AuthflowV2Navigator) navigateStepIdentify(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result, expectedPath string) {
+	if _, ok := s.StateTokenFlowResponse.Action.Data.(declarative.AccountLinkingIdentifyData); ok {
+		s.Advance(AuthflowV2RouteAccountLinking, result)
+		return
+	}
+
 	identification := s.StateTokenFlowResponse.Action.Identification
 	switch identification {
 	case "":
@@ -281,11 +287,13 @@ func (n *AuthflowV2Navigator) navigateStepIdentify(s *webapp.AuthflowScreenWithF
 		default:
 			authorizationURL, _ := url.Parse(data.OAuthAuthorizationURL)
 			q := authorizationURL.Query()
+			// Back to the current screen if error
+			errorRedirectURI := url.URL{Path: r.URL.Path, RawQuery: r.URL.Query().Encode()}
 
 			state := webapp.AuthflowOAuthState{
 				WebSessionID:     webSessionID,
 				XStep:            s.Screen.StateToken.XStep,
-				ErrorRedirectURI: expectedPath,
+				ErrorRedirectURI: errorRedirectURI.String(),
 			}
 
 			q.Set("state", state.Encode())

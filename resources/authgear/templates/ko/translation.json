@@ -897,6 +897,7 @@
   "v2-error-password-policy-disallowed-keywords": "비밀번호에 허용되지 않는 키워드가 포함되어 있습니다.",
   "v2-error-password-policy-reuse": "{size, plural, one{# 개의 이전 비밀번호} other{# 개의 이전 비밀번호}} / {day, plural, one{# 일} other{# 일}} 내에 이전 비밀번호를 재사용할 수 없습니다.",
   "v2-error-phone-number-format": "잘못된 전화번호 형식입니다.",
+  "v2-error-unexpected-user": "다른 계정으로 로그인한 것 같습니다. 다시 시도해 주세요.",
   "v2-create-password-page-title": "비밀번호 생성",
   "v2-password-policy-strength": "비밀번호 강도:",
   "v2-password-policy-minimum-length": "최소 {length, plural, one{# 자} other{# 자}}",
@@ -1039,5 +1040,11 @@
   "v2-wechat-auth-page-app-description": "아래 버튼을 클릭하여 WeChat 로그인을 계속하세요.",
   "v2-wechat-auth-page-with-qr-code-description": "WeChat 앱에서 QR 코드를 스캔하여 로그인하세요.",
   "v2-wechat-auth-page-open-app": "WeChat 앱을 열어 로그인하세요",
-  "v2-wechat-auth-page-proceed": "WeChat 로그인 진행"
+  "v2-wechat-auth-page-proceed": "WeChat 로그인 진행",
+  "v2-account-linking-title": "기존 계정 발견",
+  "v2-account-linking-subtitle--login-and-link": "이전에 가입한 것 같습니다. 기존 계정에 로그인하여 연결하세요.",
+  "v2-account-linking-subtitle--login": "이전에 가입한 것 같습니다. 아래에서 기존 계정에 로그인하세요.",
+  "v2-account-linking-by-email": "{IdentityDisplayName}에 로그인",
+  "v2-account-linking-by-phone": "{IdentityDisplayName}에 로그인",
+  "v2-account-linking-by-username": "{IdentityDisplayName}에 로그인"
 }

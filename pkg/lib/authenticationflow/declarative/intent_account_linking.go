@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -19,11 +20,11 @@ func init() {
 }
 
 type IntentAccountLinking struct {
-	JSONPointer           jsonpointer.T    `json:"json_pointer,omitempty"`
-	SkipLogin             bool             `json:"skip_login,omitempty"`
-	LoginFlowName         string           `json:"login_flow_name,omitempty"`
-	OAuthIdentitySpec     *identity.Spec   `json:"oauth_identity_spec,omitempty"`
-	ConflictingIdentities []*identity.Info `json:"conflicting_identities,omitempty"`
+	JSONPointer           jsonpointer.T                                 `json:"json_pointer,omitempty"`
+	Action                config.AuthenticationFlowAccountLinkingAction `json:"action,omitempty"`
+	LoginFlowName         string                                        `json:"login_flow_name,omitempty"`
+	IncomingIdentitySpec  *identity.Spec                                `json:"incoming_identity_spec,omitempty"`
+	ConflictingIdentities []*identity.Info                              `json:"conflicting_identities,omitempty"`
 }
 
 var _ authflow.Intent = &IntentAccountLinking{}
@@ -34,10 +35,19 @@ func (*IntentAccountLinking) Kind() string {
 }
 
 func (i *IntentAccountLinking) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	return NewAccountLinkingIdentifyData(i.getOptions()), nil
+	return NewAccountLinkingIdentifyData(i.getOptions(), i.Action), nil
 }
 
 func (i *IntentAccountLinking) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	if i.Action == config.AuthenticationFlowAccountLinkingActionError {
+		spec := i.IncomingIdentitySpec
+		conflictSpecs := slice.Map(i.ConflictingIdentities, func(i *identity.Info) *identity.Spec {
+			s := i.ToSpec()
+			return &s
+		})
+		return nil, identityFillDetailsMany(api.ErrDuplicatedIdentity, spec, conflictSpecs)
+	}
+
 	switch len(flows.Nearest.Nodes) {
 	case 0: // Ask for identity to link
 		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
@@ -89,42 +99,20 @@ func (i *IntentAccountLinking) ReactTo(ctx context.Context, deps *authflow.Depen
 		return nil, err
 	}
 	if flowUserID != conflictedUserID {
-		err = authflow.TraverseFlow(authflow.Traverser{
-			NodeSimple: func(nodeSimple authflow.NodeSimple, w *authflow.Flow) error {
-				milestone, ok := nodeSimple.(MilestoneSwitchToExistingUser)
-				if ok {
-					err = milestone.MilestoneSwitchToExistingUser(deps, w, conflictedUserID)
-					if err != nil {
-						return err
-					}
-				}
-				return nil
-			},
-			Intent: func(intent authflow.Intent, w *authflow.Flow) error {
-				milestone, ok := intent.(MilestoneSwitchToExistingUser)
-				if ok {
-					err = milestone.MilestoneSwitchToExistingUser(deps, w, conflictedUserID)
-					if err != nil {
-						return err
-					}
-				}
-				return nil
-			},
-		}, flows.Root)
-		if err != nil {
-			return nil, err
-		}
-		// Use synthetic input to auto select the conflicted identity in the login flow
-		return nil, &authflow.ErrorRewriteFlow{
-			Intent:         flows.Root.Intent,
-			Nodes:          flows.Root.Nodes,
-			SyntheticInput: i.createSyntheticInputOAuthConflict(milestone, i.OAuthIdentitySpec, conflictedIdentity),
-		}
+		return i.rewriteFlowIntoUserIDOfConflictedIdentity(deps, flows, milestone)
 	}
 
 	switch len(flows.Nearest.Nodes) {
 	case 1:
-		if i.SkipLogin {
+		var skipLogin bool
+		switch i.Action {
+		case config.AuthenticationFlowAccountLinkingActionError:
+			panic(fmt.Errorf("unexpected to reach here if action is error"))
+		// When we support actions which can skip login, set skipLogin to true
+		default:
+			skipLogin = false
+		}
+		if skipLogin {
 			return authflow.NewNodeSimple(&NodeSentinel{}), nil
 		}
 		if i.LoginFlowName == "" {
@@ -140,7 +128,7 @@ func (i *IntentAccountLinking) ReactTo(ctx context.Context, deps *authflow.Depen
 		}
 		return authflow.NewSubFlow(&loginIntent), nil
 	case 2:
-		info, err := newIdentityInfo(deps, conflictedIdentity.UserID, i.OAuthIdentitySpec)
+		info, err := newIdentityInfo(deps, conflictedIdentity.UserID, i.IncomingIdentitySpec)
 		if err != nil {
 			return nil, err
 		}
@@ -150,6 +138,46 @@ func (i *IntentAccountLinking) ReactTo(ctx context.Context, deps *authflow.Depen
 	}
 
 	return nil, authflow.ErrIncompatibleInput
+}
+
+func (i *IntentAccountLinking) rewriteFlowIntoUserIDOfConflictedIdentity(
+	deps *authflow.Dependencies,
+	flows authflow.Flows,
+	milestone MilestoneUseAccountLinkingIdentification) (*authflow.Node, error) {
+
+	conflictedIdentity := milestone.MilestoneUseAccountLinkingIdentification()
+	conflictedUserID := conflictedIdentity.UserID
+	err := authflow.TraverseFlow(authflow.Traverser{
+		NodeSimple: func(nodeSimple authflow.NodeSimple, w *authflow.Flow) error {
+			milestone, ok := nodeSimple.(MilestoneSwitchToExistingUser)
+			if ok {
+				err := milestone.MilestoneSwitchToExistingUser(deps, w, conflictedUserID)
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		},
+		Intent: func(intent authflow.Intent, w *authflow.Flow) error {
+			milestone, ok := intent.(MilestoneSwitchToExistingUser)
+			if ok {
+				err := milestone.MilestoneSwitchToExistingUser(deps, w, conflictedUserID)
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		},
+	}, flows.Root)
+	if err != nil {
+		return nil, err
+	}
+	// Use synthetic input to auto select the conflicted identity in the login flow
+	return nil, &authflow.ErrorRewriteFlow{
+		Intent:         flows.Root.Intent,
+		Nodes:          flows.Root.Nodes,
+		SyntheticInput: i.createSyntheticInputOAuthConflict(milestone, i.IncomingIdentitySpec, conflictedIdentity),
+	}
 }
 
 func (i *IntentAccountLinking) createSyntheticInputOAuthConflict(
