@@ -20,7 +20,7 @@ var nodeDefs = relay.NewNodeDefinitions(relay.NodeDefinitionsConfig{
 		// Access Control: authenticated user.
 		sessionInfo := session.GetValidSessionInfo(ctx)
 		if sessionInfo == nil {
-			return nil, nil
+			return nil, Unauthenticated.New("only authenticated users can query node")
 		}
 		// If the ID is invalid, we should return null instead of returning an error.
 		// This behavior conforms the schema.

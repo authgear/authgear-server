@@ -43,7 +43,7 @@ var _ = registerMutationField(
 			// Access Control: authenticated user.
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
-				return nil, AccessDenied.New("only authenticated users can delete collaborator")
+				return nil, Unauthenticated.New("only authenticated users can delete collaborator")
 			}
 
 			input := p.Args["input"].(map[string]interface{})
@@ -129,7 +129,7 @@ var _ = registerMutationField(
 			// Access Control: authenticated user.
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
-				return nil, AccessDenied.New("only authenticated users can delete collaborator invitation")
+				return nil, Unauthenticated.New("only authenticated users can delete collaborator invitation")
 			}
 
 			input := p.Args["input"].(map[string]interface{})
@@ -225,7 +225,7 @@ var _ = registerMutationField(
 			// Access Control: authenticated user.
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
-				return nil, AccessDenied.New("only authenticated users can create collaborator invitation")
+				return nil, Unauthenticated.New("only authenticated users can create collaborator invitation")
 			}
 
 			err := createCollaboratorInvitationInputSchema.Validator().ValidateValue(input)
@@ -319,7 +319,7 @@ var _ = registerMutationField(
 			// Access Control: authenicated user.
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
-				return nil, AccessDenied.New("only authenticated users can accept invitations")
+				return nil, Unauthenticated.New("only authenticated users can accept invitations")
 			}
 
 			collaborator, err := gqlCtx.CollaboratorService.AcceptInvitation(code)

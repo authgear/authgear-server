@@ -219,7 +219,7 @@ var _ = registerMutationField(
 			// Access Control: authenticated user.
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
-				return nil, AccessDenied.New("only authenticated users can update app")
+				return nil, Unauthenticated.New("only authenticated users can update app")
 			}
 
 			input := p.Args["input"].(map[string]interface{})
@@ -397,7 +397,7 @@ var _ = registerMutationField(
 			// Access Control: authenicated user.
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
-				return nil, AccessDenied.New("only authenticated users can create app")
+				return nil, Unauthenticated.New("only authenticated users can create app")
 			}
 
 			actorID := sessionInfo.UserID
@@ -472,7 +472,7 @@ var _ = registerMutationField(
 			// Access Control: authenicated user.
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
-				return nil, AccessDenied.New("only authenticated users can create app")
+				return nil, Unauthenticated.New("only authenticated users can create app")
 			}
 
 			input := p.Args["input"].(map[string]interface{})
@@ -542,7 +542,7 @@ var _ = registerMutationField(
 			// Access Control: authenicated user.
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
-				return nil, AccessDenied.New("only authenticated users can create app")
+				return nil, Unauthenticated.New("only authenticated users can create app")
 			}
 
 			input := p.Args["input"].(map[string]interface{})
@@ -619,7 +619,7 @@ var _ = registerMutationField(
 			// Access Control: authenicated user.
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
-				return nil, AccessDenied.New("only authenticated users can visit secrets")
+				return nil, Unauthenticated.New("only authenticated users can visit secrets")
 			}
 
 			input := p.Args["input"].(map[string]interface{})
@@ -710,7 +710,7 @@ var _ = registerMutationField(
 			// Access Control: authenicated user.
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
-				return nil, AccessDenied.New("only authenticated users can generate tester token")
+				return nil, Unauthenticated.New("only authenticated users can generate tester token")
 			}
 
 			input := p.Args["input"].(map[string]interface{})
