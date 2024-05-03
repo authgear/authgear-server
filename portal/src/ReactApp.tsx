@@ -1,4 +1,12 @@
-import React, { useContext, useEffect, useState, Suspense, lazy } from "react";
+import React, {
+  useContext,
+  useEffect,
+  useState,
+  Suspense,
+  lazy,
+  useCallback,
+  useMemo,
+} from "react";
 import { init as sentryInit } from "@sentry/react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import {
@@ -39,6 +47,11 @@ import {
   createClient,
 } from "./graphql/portal/apollo";
 import { ViewerQueryDocument } from "./graphql/portal/query/viewerQuery.generated";
+import { UnauthenticatedDialog } from "./components/auth/UnauthenticatedDialog";
+import {
+  UnauthenticatedDialogContext,
+  UnauthenticatedDialogContextValue,
+} from "./components/auth/UnauthenticatedDialogContext";
 
 const AppsScreen = lazy(async () => import("./graphql/portal/AppsScreen"));
 const CreateProjectScreen = lazy(
@@ -246,21 +259,34 @@ const LoadCurrentUser: React.VFC<LoadCurrentUserProps> =
 const ReactApp: React.VFC = function ReactApp() {
   const [systemConfig, setSystemConfig] = useState<SystemConfig | null>(null);
   const [error, setError] = useState<unknown>(null);
+  const [displayUnauthenticatedDialog, setDisplayUnauthenticatedDialog] =
+    useState(false);
 
   const [apolloClient] = useState(() => {
     const cache = createCache();
     return createClient({
       cache: cache,
       onLogout: () => {
-        cache.writeQuery({
-          query: ViewerQueryDocument,
-          data: {
-            viewer: null,
-          },
-        });
+        setDisplayUnauthenticatedDialog(true);
       },
     });
   });
+
+  const onUnauthenticatedDialogConfirm = useCallback(() => {
+    apolloClient.cache.writeQuery({
+      query: ViewerQueryDocument,
+      data: {
+        viewer: null,
+      },
+    });
+  }, [apolloClient.cache]);
+
+  const unauthenticatedDialogContextValue =
+    useMemo<UnauthenticatedDialogContextValue>(() => {
+      return {
+        setDisplayUnauthenticatedDialog,
+      };
+    }, []);
 
   useEffect(() => {
     if (!systemConfig && error == null) {
@@ -306,7 +332,15 @@ const ReactApp: React.VFC = function ReactApp() {
                 <ApolloProvider client={apolloClient}>
                   <SystemConfigContext.Provider value={systemConfig}>
                     <LoadCurrentUser>
-                      <PortalRoot />
+                      <UnauthenticatedDialogContext.Provider
+                        value={unauthenticatedDialogContextValue}
+                      >
+                        <PortalRoot />
+                      </UnauthenticatedDialogContext.Provider>
+                      <UnauthenticatedDialog
+                        isHidden={!displayUnauthenticatedDialog}
+                        onConfirm={onUnauthenticatedDialogConfirm}
+                      />
                     </LoadCurrentUser>
                   </SystemConfigContext.Provider>
                 </ApolloProvider>
