@@ -47,12 +47,17 @@ const cache = new InMemoryCache({
 
 const httpLink = new HttpLink({ uri: "/api/graphql" });
 
-export const logoutLink = onError(({ networkError }) => {
-  if (
+export const logoutLink = onError(({ networkError, graphQLErrors }) => {
+  const is401Error =
     networkError &&
     "statusCode" in networkError &&
-    networkError.statusCode === 401
-  ) {
+    networkError.statusCode === 401;
+  const isUnauthenticatedError = graphQLErrors?.some(
+    (err) =>
+      err.extensions.errorName === "Unauthorized" &&
+      err.extensions.reason === "Unauthenticated"
+  );
+  if (is401Error || isUnauthenticatedError) {
     cache.writeQuery({
       query: ViewerQueryDocument,
       data: {
