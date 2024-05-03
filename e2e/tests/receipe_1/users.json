@@ -3,7 +3,7 @@
   "records": [
     {
       "preferred_username": "e2e_recipe_1_first_time",
-      "phone_number": "+85223382338",
+      "phone_number": "+85295000001",
 
       "password": {
         "type": "bcrypt",
@@ -12,7 +12,7 @@
     },
     {
       "preferred_username": "e2e_recipe_1_employee_id",
-      "phone_number": "+85223382339",
+      "phone_number": "+85295000002",
 
       "password": {
         "type": "bcrypt",
@@ -21,7 +21,7 @@
     },
     {
       "preferred_username": "e2e_recipe_1_adfs",
-      "email": "mock@authgear.com",
+      "email": "mock@example.com",
       "email_verified": true,
 
       "password": {
@@ -31,8 +31,8 @@
     },
     {
       "preferred_username": "e2e_recipe_1_recovery_email",
-      "email": "e2e_recipe_1_recovery_email@authgear.com",
-      "phone_number": "+85223382340",
+      "email": "e2e_recipe_1_recovery_email@example.com",
+      "phone_number": "+85295000003",
 
       "password": {
         "type": "bcrypt",
@@ -41,7 +41,7 @@
     },
     {
       "preferred_username": "e2e_recipe_1_recovery_sms",
-      "phone_number": "+85223382341",
+      "phone_number": "+85295000004",
 
       "password": {
         "type": "bcrypt",
@@ -50,7 +50,7 @@
     },
     {
       "preferred_username": "e2e_recipe_1_expiry",
-      "email": "e2e_recipe_1_expiry@authgear.com",
+      "email": "e2e_recipe_1_expiry@example.com",
 
       "password": {
         "type": "bcrypt",

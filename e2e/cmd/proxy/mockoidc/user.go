@@ -25,9 +25,9 @@ type MockUser struct {
 func DefaultUser() *MockUser {
 	return &MockUser{
 		Subject:           "mock",
-		Email:             "mock@authgear.com",
+		Email:             "mock@example.com",
 		PreferredUsername: "mock",
-		Phone:             "+85223382338",
+		Phone:             "+85295000001",
 	}
 }
 

@@ -255,7 +255,7 @@ steps:
     input: |
       {
         "identification": "email",
-        "login_id": "e2e_recipe_1_recovery_email@authgear.com"
+        "login_id": "e2e_recipe_1_recovery_email@example.com"
       }
     output:
       result: |
@@ -281,7 +281,7 @@ steps:
   - action: input
     input: |
       {
-        "account_recovery_code": "{{ linkOTPCode "email" "e2e_recipe_1_recovery_email@authgear.com" }}"
+        "account_recovery_code": "{{ linkOTPCode "email" "e2e_recipe_1_recovery_email@example.com" }}"
       }
     output:
       result: |
@@ -327,7 +327,7 @@ steps:
     input: |
       {
         "identification": "phone",
-        "login_id": "+85223382341"
+        "login_id": "+85295000004"
       }
     output:
       result: |

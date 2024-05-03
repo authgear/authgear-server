@@ -40,7 +40,7 @@ steps:
     input: |
       {
         "identification": "phone",
-        "login_id": "+85223382338"
+        "login_id": "+85295000001"
       }
     output:
       result: |

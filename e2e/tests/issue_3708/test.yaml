@@ -30,7 +30,7 @@ steps:
     input: |
       {
         "identification": "email",
-        "login_id": "e2e_issue_3708@authgear.com"
+        "login_id": "e2e_issue_3708@example.com"
       }
     output:
       result: |

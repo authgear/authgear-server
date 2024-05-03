@@ -18,7 +18,7 @@ steps:
     input: |
       {
         "identification": "email",
-        "login_id": "signup@authgear.com"
+        "login_id": "signup@example.com"
       }
     output:
       result: |
