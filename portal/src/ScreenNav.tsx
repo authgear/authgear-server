@@ -15,7 +15,7 @@ import {
   ScreenNavQueryQuery,
   ScreenNavQueryDocument,
 } from "./graphql/portal/query/screenNavQuery.generated";
-import { client } from "./graphql/portal/apollo";
+import { usePortalClient } from "./graphql/portal/apollo";
 import { useAppFeatureConfigQuery } from "./graphql/portal/query/appFeatureConfigQuery";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 import styles from "./ScreenNav.module.css";
@@ -117,6 +117,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
   const { pathname } = useLocation();
   const { authgearEndpoint } = useSystemConfig();
   const { viewer } = useViewerQuery();
+  const client = usePortalClient();
   const queryResult = useQuery<ScreenNavQueryQuery>(ScreenNavQueryDocument, {
     client,
     variables: {

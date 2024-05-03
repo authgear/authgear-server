@@ -1,7 +1,7 @@
 import { useQuery, QueryResult } from "@apollo/client";
 import { Viewer } from "../globalTypes.generated";
 import { ViewerQueryQuery, ViewerQueryDocument } from "./viewerQuery.generated";
-import { client } from "../../portal/apollo";
+import { usePortalClient } from "../../portal/apollo";
 
 export interface UseViewerQueryReturnType
   extends Pick<QueryResult<ViewerQueryQuery>, "loading" | "error" | "refetch"> {
@@ -9,6 +9,7 @@ export interface UseViewerQueryReturnType
 }
 
 export function useViewerQuery(): UseViewerQueryReturnType {
+  const client = usePortalClient();
   const { data, loading, error, refetch } = useQuery<ViewerQueryQuery>(
     ViewerQueryDocument,
     {

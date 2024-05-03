@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { QueryResult, useQuery } from "@apollo/client";
-import { client } from "../../portal/apollo";
+import { usePortalClient } from "../../portal/apollo";
 import {
   AppFeatureConfigQueryQuery,
   AppFeatureConfigQueryQueryVariables,
@@ -23,6 +23,7 @@ interface AppFeatureConfigQueryResult
 export const useAppFeatureConfigQuery = (
   appID: string
 ): AppFeatureConfigQueryResult => {
+  const client = usePortalClient();
   const { data, loading, error, refetch } =
     useQuery<AppFeatureConfigQueryQuery>(AppFeatureConfigQueryDocument, {
       client,

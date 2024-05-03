@@ -1,7 +1,7 @@
 import { useCallback, useState, useEffect, useMemo } from "react";
 import { useMutation } from "@apollo/client";
 
-import { client } from "../../portal/apollo";
+import { usePortalClient } from "../../portal/apollo";
 import {
   GenerateAppSecretVisitTokenMutationDocument,
   GenerateAppSecretVisitTokenMutationMutation,
@@ -16,6 +16,7 @@ export function useGenerateAppSecretVisitTokenMutation(appID: string): {
   loading: boolean;
   error: unknown;
 } {
+  const client = usePortalClient();
   const [mutationFunction, { error, loading }] = useMutation<
     GenerateAppSecretVisitTokenMutationMutation,
     GenerateAppSecretVisitTokenMutationMutationVariables

@@ -1,7 +1,7 @@
 import React from "react";
 import { useMutation } from "@apollo/client";
 
-import { client } from "../../portal/apollo";
+import { usePortalClient } from "../../portal/apollo";
 import {
   CreateCheckoutSessionMutationMutation,
   CreateCheckoutSessionMutationDocument,
@@ -15,6 +15,7 @@ export function useCreateCheckoutSessionMutation(): {
   loading: boolean;
   error: unknown;
 } {
+  const client = usePortalClient();
   const [mutationFunction, { error, loading }] =
     useMutation<CreateCheckoutSessionMutationMutation>(
       CreateCheckoutSessionMutationDocument,

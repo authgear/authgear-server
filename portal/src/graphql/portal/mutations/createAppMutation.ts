@@ -1,7 +1,7 @@
 import React from "react";
 import { useMutation } from "@apollo/client";
 
-import { client } from "../../portal/apollo";
+import { usePortalClient } from "../../portal/apollo";
 import {
   CreateAppMutationMutation,
   CreateAppMutationDocument,
@@ -13,6 +13,7 @@ export function useCreateAppMutation(): {
   loading: boolean;
   error: unknown;
 } {
+  const client = usePortalClient();
   const [mutationFunction, { error, loading }] =
     useMutation<CreateAppMutationMutation>(CreateAppMutationDocument, {
       client,

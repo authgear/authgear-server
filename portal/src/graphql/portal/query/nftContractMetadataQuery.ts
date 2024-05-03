@@ -1,6 +1,6 @@
 import { useLazyQuery } from "@apollo/client";
 import { useCallback } from "react";
-import { client } from "../apollo";
+import { usePortalClient } from "../apollo";
 import { NftCollection } from "../globalTypes.generated";
 import {
   NftContractMetadataQueryQuery,
@@ -14,6 +14,7 @@ interface NftContractMetadataQueryResult {
 }
 
 export function useNftContractMetadataLazyQuery(): NftContractMetadataQueryResult {
+  const client = usePortalClient();
   const [fetch, { loading, error }] =
     useLazyQuery<NftContractMetadataQueryQuery>(
       NftContractMetadataQueryDocument,

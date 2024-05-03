@@ -11,7 +11,6 @@ import authgear from "@authgear/web";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import AppRoot from "./AppRoot";
 import MESSAGES from "./locale-data/en.json";
-import { client } from "./graphql/portal/apollo";
 import styles from "./ReactApp.module.css";
 import { SystemConfigContext } from "./context/SystemConfigContext";
 import {
@@ -34,6 +33,12 @@ import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 import { extractRawID } from "./util/graphql";
 import { useIdentify } from "./gtm_v2";
 import AppContextProvider from "./AppContextProvider";
+import {
+  PortalClientProvider,
+  createCache,
+  createClient,
+} from "./graphql/portal/apollo";
+import { ViewerQueryDocument } from "./graphql/portal/query/viewerQuery.generated";
 
 const AppsScreen = lazy(async () => import("./graphql/portal/AppsScreen"));
 const CreateProjectScreen = lazy(
@@ -242,6 +247,21 @@ const ReactApp: React.VFC = function ReactApp() {
   const [systemConfig, setSystemConfig] = useState<SystemConfig | null>(null);
   const [error, setError] = useState<unknown>(null);
 
+  const [apolloClient] = useState(() => {
+    const cache = createCache();
+    return createClient({
+      cache: cache,
+      onLogout: () => {
+        cache.writeQuery({
+          query: ViewerQueryDocument,
+          data: {
+            viewer: null,
+          },
+        });
+      },
+    });
+  });
+
   useEffect(() => {
     if (!systemConfig && error == null) {
       loadSystemConfig()
@@ -282,13 +302,15 @@ const ReactApp: React.VFC = function ReactApp() {
             defaultComponents={defaultComponents}
           >
             <HelmetProvider>
-              <ApolloProvider client={client}>
-                <SystemConfigContext.Provider value={systemConfig}>
-                  <LoadCurrentUser>
-                    <PortalRoot />
-                  </LoadCurrentUser>
-                </SystemConfigContext.Provider>
-              </ApolloProvider>
+              <PortalClientProvider value={apolloClient}>
+                <ApolloProvider client={apolloClient}>
+                  <SystemConfigContext.Provider value={systemConfig}>
+                    <LoadCurrentUser>
+                      <PortalRoot />
+                    </LoadCurrentUser>
+                  </SystemConfigContext.Provider>
+                </ApolloProvider>
+              </PortalClientProvider>
             </HelmetProvider>
           </LocaleProvider>
         </LoadingContextProvider>

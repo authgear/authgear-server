@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useGraphqlMutation } from "../../../hook/graphql";
-import { client } from "../apollo";
+import { usePortalClient } from "../apollo";
 import { AppResourceUpdate } from "../globalTypes.generated";
 import {
   UpdateAppTemplatesMutationMutation,
@@ -26,6 +26,7 @@ export function useUpdateAppTemplatesMutation(appID: string): {
   error: unknown;
   resetError: () => void;
 } {
+  const client = usePortalClient();
   const [mutationFunction, { error, loading }, resetError] = useGraphqlMutation<
     UpdateAppTemplatesMutationMutation,
     UpdateAppTemplatesMutationMutationVariables

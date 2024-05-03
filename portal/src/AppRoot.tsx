@@ -7,6 +7,7 @@ import { useAppAndSecretConfigQuery } from "./graphql/portal/query/appAndSecretC
 import ScreenLayout from "./ScreenLayout";
 import ShowLoading from "./ShowLoading";
 import CookieLifetimeConfigurationScreen from "./graphql/portal/CookieLifetimeConfigurationScreen";
+import { usePortalClient } from "./graphql/portal/apollo";
 
 const RolesScreen = lazy(async () => import("./graphql/adminapi/RolesScreen"));
 const AddRoleScreen = lazy(
@@ -150,9 +151,10 @@ const SubscriptionRedirect = lazy(
 
 const AppRoot: React.VFC = function AppRoot() {
   const { appID } = useParams() as { appID: string };
+  const portalClient = usePortalClient();
   const client = useMemo(() => {
-    return makeClient(appID);
-  }, [appID]);
+    return makeClient(portalClient.cache, appID);
+  }, [appID, portalClient.cache]);
 
   // NOTE: check if appID actually exist in authorized app list
   const { effectiveAppConfig, loading, error } =

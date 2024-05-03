@@ -1,5 +1,5 @@
 import { QueryResult, useQuery } from "@apollo/client";
-import { client } from "../../portal/apollo";
+import { usePortalClient } from "../../portal/apollo";
 import {
   AppListQueryQuery,
   AppListQueryDocument,
@@ -15,6 +15,7 @@ interface AppListQueryResult
 }
 
 export const useAppListQuery = (): AppListQueryResult => {
+  const client = usePortalClient();
   const { data, loading, error, refetch } = useQuery<AppListQueryQuery>(
     AppListQueryDocument,
     { client }

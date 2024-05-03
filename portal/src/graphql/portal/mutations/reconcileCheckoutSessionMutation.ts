@@ -1,7 +1,7 @@
 import React from "react";
 import { useMutation } from "@apollo/client";
 
-import { client } from "../../portal/apollo";
+import { usePortalClient } from "../../portal/apollo";
 import {
   ReconcileCheckoutSessionMutationMutation,
   ReconcileCheckoutSessionMutationDocument,
@@ -16,6 +16,7 @@ export function useReconcileCheckoutSessionMutation(): {
   loading: boolean;
   error: unknown;
 } {
+  const client = usePortalClient();
   const [mutationFunction, { error, loading }] =
     useMutation<ReconcileCheckoutSessionMutationMutation>(
       ReconcileCheckoutSessionMutationDocument,

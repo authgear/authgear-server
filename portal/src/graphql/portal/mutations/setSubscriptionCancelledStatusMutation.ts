@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useMutation } from "@apollo/client";
 
-import { client } from "../apollo";
+import { usePortalClient } from "../apollo";
 import {
   SetSubscriptionCancelledStatusMutationMutation,
   SetSubscriptionCancelledStatusMutationDocument,
@@ -12,6 +12,7 @@ export function useSetSubscriptionCancelledStatusMutation(appID: string): {
   loading: boolean;
   error: unknown;
 } {
+  const client = usePortalClient();
   const [mutationFunction, { error, loading }] =
     useMutation<SetSubscriptionCancelledStatusMutationMutation>(
       SetSubscriptionCancelledStatusMutationDocument,

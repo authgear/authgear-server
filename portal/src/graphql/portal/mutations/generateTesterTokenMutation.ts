@@ -1,6 +1,6 @@
 import { useMutation } from "@apollo/client";
 import { useCallback } from "react";
-import { client } from "../../portal/apollo";
+import { usePortalClient } from "../../portal/apollo";
 import {
   GenerateTesterTokenMutationDocument,
   GenerateTesterTokenMutationMutation,
@@ -12,6 +12,7 @@ export function useGenerateTesterTokenMutation(appID: string): {
   loading: boolean;
   error: unknown;
 } {
+  const client = usePortalClient();
   const [mutationFunction, { error, loading }] = useMutation<
     GenerateTesterTokenMutationMutation,
     GenerateTesterTokenMutationMutationVariables

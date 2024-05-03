@@ -1,6 +1,6 @@
 import { QueryResult, useQuery } from "@apollo/client";
 import { useMemo } from "react";
-import { client } from "../../portal/apollo";
+import { usePortalClient } from "../../portal/apollo";
 import { NftCollection } from "../globalTypes.generated";
 import {
   NftCollectionsQueryQuery,
@@ -19,6 +19,7 @@ interface NftCollectionsQueryResult
 export function useNftCollectionsQuery(
   appID: string
 ): NftCollectionsQueryResult {
+  const client = usePortalClient();
   const { data, loading, error, refetch } = useQuery<NftCollectionsQueryQuery>(
     NftCollectionsQueryDocument,
     {
