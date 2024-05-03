@@ -146,6 +146,7 @@ clean:
 	# Otherwise the watcher is stopped.
 	rm -rf ./resources/authgear/generated/*
 	git checkout -- ./resources/authgear/generated/*
+	rm -rf ./portal/.parcel-cache
 
 .PHONY: export-schemas
 export-schemas:
