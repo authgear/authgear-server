@@ -117893,8 +117893,10 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
+	webHookLogger := hook.NewWebHookLogger(factory)
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	webHookImpl := hook.WebHookImpl{
+		Logger: webHookLogger,
 		Secret: webhookKeyMaterials,
 	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -117904,9 +117906,11 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 		SyncHTTP:    syncHTTPClient,
 		AsyncHTTP:   asyncHTTPClient,
 	}
+	denoHookLogger := hook.NewDenoHookLogger(factory)
 	denoHook := hook.DenoHook{
 		Context:         contextContext,
 		ResourceManager: manager,
+		Logger:          denoHookLogger,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
@@ -118205,6 +118209,7 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 		Logger:   denoMiddlewareLogger,
 	}
 	hookWebHookImpl := &hook.WebHookImpl{
+		Logger: webHookLogger,
 		Secret: webhookKeyMaterials,
 	}
 	hookHTTPClient := accountmigration.NewHookHTTPClient(accountMigrationHookConfig)
