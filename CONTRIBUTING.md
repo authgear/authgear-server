@@ -301,7 +301,7 @@ Various files in this project have versioned dependencies.
 - [The dependencies in ./scripts/npm/package.json](./scripts/npm/package.json)
   - Note that you cannot simply upgrade `tzdata` because the version must match that of the server.
   - You can find out the server version by going into the container and run `apt list --installed`.
-  - The version of Debian bullseye is `2021a`, which correspond to `tzdata@v1.0.25`.
+  - The version of Debian bookworm is [2024a](https://packages.debian.org/source/bookworm/tzdata), which correspond to [tzdata@v1.0.40](https://github.com/rogierschouten/tzdata-generate/releases/tag/v1.0.40).
 - [The cropperjs type definition in ./authui/src](./authui/src)
 - [GeoLite2-Country.mmdb](./GeoLite2-Country.mmdb)
 - [GraphiQL](./pkg/util/graphqlutil/graphiql.go)
