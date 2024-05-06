@@ -5,9 +5,12 @@
 **/node_modules
 **/.parcel-cache
 **/parcel-bundle-reports
+**/__pycache__
 **/venv
 **/var
 **/resources/**/generated
+**/__generated_asset.html
+pkg/lib/webparcel/parcel_gen.go
 .env
 e2e
 k6
