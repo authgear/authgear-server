@@ -187,3 +187,7 @@ logs-summary:
 mkcert:
 	rm -f tls-cert.pem tls-key.pem
 	mkcert -cert-file tls-cert.pem -key-file tls-key.pem "::1" "127.0.0.1" localhost portal.localhost accounts.localhost accounts.portal.localhost $$(ifconfig | grep 'inet 192' | awk '{print $$2}') $$(ifconfig | grep 'inet 192' | awk '{print $$2}').nip.io
+
+.PHONY: check-dockerignore
+check-dockerignore:
+	./scripts/sh/check-dockerignore.sh

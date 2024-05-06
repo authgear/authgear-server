@@ -111,6 +111,8 @@ jobs:
       with:
         node-version-file: "./.tool-versions"
     - run: make vendor
+    - run: make check-dockerignore
+      if: ${{ !cancelled() }}
     - run: make govulncheck
       if: ${{ !cancelled() }}
     - run: make lint
