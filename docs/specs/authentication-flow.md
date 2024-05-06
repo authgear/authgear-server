@@ -521,6 +521,9 @@ signup_flows:
     type: identify
     one_of:
     - identification: oauth
+      alias: google
+    - identification: oauth
+      alias: github
     - identification: email
       steps:
       - type: authenticate
@@ -545,6 +548,9 @@ login_flows:
   - type: identify
     one_of:
     - identification: oauth
+      alias: google
+    - identification: oauth
+      alias: github
     - identification: passkey
     - identification: email
       steps:

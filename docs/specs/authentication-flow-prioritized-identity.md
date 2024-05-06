@@ -33,6 +33,7 @@ authentication_flow:
           type: identify
           one_of:
             - identification: oauth
+              alias: google
               priority: 1 # <- Configure priority here
             - identification: email
               steps:
@@ -104,6 +105,7 @@ authentication_flow:
           type: identify
           one_of:
             - identification: oauth
+              alias: google
               priority: 1
             - identification: email # <- This identification method was chosen
               steps:
@@ -169,6 +171,7 @@ authentication_flow:
           type: identify
           one_of:
             - identification: oauth
+              alias: adfs
               priority: 1
             - identification: username
               steps:
@@ -214,6 +217,7 @@ authentication_flow:
           type: identify
           one_of:
             - identification: oauth
+              alias: google
               priority: 3
             - identification: phone
               priority: 2
@@ -270,6 +274,7 @@ authentication_flow:
           type: identify
           one_of:
             - identification: oauth
+              alias: google
               priority: 1
             - identification: phone
               priority: 1
