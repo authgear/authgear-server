@@ -2,7 +2,7 @@
   "identifier": "email",
   "records": [
     {
-      "email": "user@example.com",
+      "email": "mock@example.com",
       "password": {
         "type": "bcrypt",
         "password_hash": "$2a$12$paw2a1pv1uDDeUsIUVsWz.MCMxfKzZSD6X57iOXKMJCJKsMN8MZIO"
