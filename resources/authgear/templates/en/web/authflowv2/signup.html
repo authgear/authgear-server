@@ -209,6 +209,34 @@
           {{ end }}
         {{ end }}
       {{ end }}
+
+      <!-- For signup login flow -->
+      {{ if $.PasskeyEnabled }}
+        <div class="block w-full"
+          data-controller="authflow-passkey-request"
+          data-authflow-passkey-request-options-value="{{ $.PasskeyRequestOptionsJSON }}"
+          data-authflow-passkey-request-auto-value="false">
+          <button class="secondary-btn w-full"
+            type="button"
+            data-action="click->authflow-passkey-request#use"
+            data-authgear-event="authgear.button.use_passkey">
+            <div class="flex gap-2">
+              <i class="alternative-icon material-icons">
+                passkey
+              </i>
+              <span>
+                {{ template "v2-continue-with-passkey" }}
+              </span>
+            </div>
+            </span>
+          </button>
+          <form class="hidden" method="post" novalidate>
+            {{ $.CSRFField }}
+            <input type="hidden" name="x_assertion_response" data-authflow-passkey-request-target="input">
+            <button type="submit" class="hidden" name="x_action" value="passkey" data-authflow-passkey-request-target="submit"></button>
+          </form>
+        </div>
+      {{ end }}
     </section>
   {{ end }}
 
