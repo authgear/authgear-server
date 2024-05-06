@@ -309,13 +309,12 @@ The error is:
         "identification": "oauth",
         "provider_type": "google",
         "alias": "google"
-      },
-      {
-        "identification": "phone"
       }
     ]
   }
 }
 ```
 
-`phone` will still appear as one item in `PreferredIdentitifications`, even Alice actually does not have a `phone` identity.
+`phone` will not appear as one item in `PreferredIdentitifications`, because Alice actually does not have a `phone` identity therefore this option is actually not usable.
+
+The intention of `PreferredIdentitifications` is to tell user which option should be used, so options which are not usable will not be included.
