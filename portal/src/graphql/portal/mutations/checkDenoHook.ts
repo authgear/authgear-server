@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useMutation } from "@apollo/client";
-import { client } from "../../portal/apollo";
+import { usePortalClient } from "../../portal/apollo";
 import {
   CheckDenoHookMutationDocument,
   CheckDenoHookMutationMutation,
@@ -16,6 +16,7 @@ export interface UseCheckDenoHookMutationReturnType {
 export function useCheckDenoHookMutation(
   appID: string
 ): UseCheckDenoHookMutationReturnType {
+  const client = usePortalClient();
   const [mutationFunction, { error, loading, reset }] =
     useMutation<CheckDenoHookMutationMutation>(CheckDenoHookMutationDocument, {
       client,

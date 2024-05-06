@@ -1,5 +1,5 @@
 import { QueryResult, useQuery } from "@apollo/client";
-import { client } from "../apollo";
+import { usePortalClient } from "../apollo";
 import {
   AuthenticatedForInvitationQueryQuery,
   AuthenticatedForInvitationQueryQueryVariables,
@@ -20,6 +20,7 @@ export interface AuthenticatedForInvitationQueryResult
 export const useAuthenticatedForInvitationQuery = (
   code: string
 ): AuthenticatedForInvitationQueryResult => {
+  const client = usePortalClient();
   const { data, loading, error, refetch } = useQuery<
     AuthenticatedForInvitationQueryQuery,
     AuthenticatedForInvitationQueryQueryVariables

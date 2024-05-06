@@ -1,6 +1,6 @@
 import { QueryResult, useQuery } from "@apollo/client";
 import { useMemo } from "react";
-import { client } from "../apollo";
+import { usePortalClient } from "../apollo";
 import { Periodical } from "../globalTypes.generated";
 import {
   AnalyticChartsQueryQuery,
@@ -24,6 +24,7 @@ export const useAnalyticChartsQuery = (
   rangeFrom: string,
   rangeTo: string
 ): AnalyticChartsQueryResult => {
+  const client = usePortalClient();
   const { data, loading, error, refetch } = useQuery<AnalyticChartsQueryQuery>(
     AnalyticChartsQueryDocument,
     {

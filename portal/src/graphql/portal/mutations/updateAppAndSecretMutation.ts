@@ -1,6 +1,6 @@
 import React from "react";
 
-import { client } from "../../portal/apollo";
+import { usePortalClient } from "../../portal/apollo";
 import {
   PortalAPIApp,
   PortalAPIAppConfig,
@@ -25,6 +25,7 @@ export function useUpdateAppAndSecretConfigMutation(appID: string): {
   error: unknown;
   resetError: () => void;
 } {
+  const client = usePortalClient();
   const [mutationFunction, { error, loading }, resetError] = useGraphqlMutation<
     UpdateAppAndSecretConfigMutationMutation,
     UpdateAppAndSecretConfigMutationMutationVariables

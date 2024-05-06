@@ -5,7 +5,7 @@ import {
   SubscriptionScreenQueryDocument,
   SubscriptionScreenQueryQueryHookResult,
 } from "./subscriptionScreenQuery.generated";
-import { client } from "../apollo";
+import { usePortalClient } from "../apollo";
 
 export function useSubscriptionScreenQueryQuery(
   baseOptions?: Apollo.QueryHookOptions<
@@ -13,6 +13,7 @@ export function useSubscriptionScreenQueryQuery(
     SubscriptionScreenQueryQueryVariables
   >
 ): SubscriptionScreenQueryQueryHookResult {
+  const client = usePortalClient();
   const options = { ...{ client }, ...baseOptions };
   return Apollo.useQuery<
     SubscriptionScreenQueryQuery,

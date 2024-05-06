@@ -6,13 +6,14 @@ import {
   ScreenNavQueryQuery,
   ScreenNavQueryDocument,
 } from "./query/screenNavQuery.generated";
-import { client } from "./apollo";
+import { usePortalClient } from "./apollo";
 import ShowLoading from "../../ShowLoading";
 
 const ProjectRootScreen: React.VFC = function ProjectRootScreen() {
   const { appID } = useParams() as { appID: string };
   const { analyticEnabled } = useSystemConfig();
   const navigate = useNavigate();
+  const client = usePortalClient();
   const queryResult = useQuery<ScreenNavQueryQuery>(ScreenNavQueryDocument, {
     client,
     variables: {

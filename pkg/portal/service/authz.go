@@ -10,6 +10,7 @@ import (
 )
 
 var ErrForbidden = apierrors.Forbidden.WithReason("Forbidden").New("forbidden")
+var ErrUnauthenticated = apierrors.Unauthorized.WithReason("Unauthenticated").New("unauthenticated")
 
 type AuthzConfigService interface {
 	GetStaticAppIDs() ([]string, error)
@@ -57,7 +58,7 @@ func (s *AuthzService) AddAuthorizedUser(appID string, userID string, role model
 func (s *AuthzService) CheckAccessOfViewer(appID string) (userID string, err error) {
 	sessionInfo := session.GetValidSessionInfo(s.Context)
 	if sessionInfo == nil {
-		err = ErrForbidden
+		err = ErrUnauthenticated
 		return
 	}
 

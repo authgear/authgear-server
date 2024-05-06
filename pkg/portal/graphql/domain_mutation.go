@@ -52,7 +52,7 @@ var _ = registerMutationField(
 			// Access Control: authenticated user.
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
-				return nil, AccessDenied.New("only authenticated users can create domain")
+				return nil, Unauthenticated.New("only authenticated users can create domain")
 			}
 
 			input := p.Args["input"].(map[string]interface{})
@@ -140,7 +140,7 @@ var _ = registerMutationField(
 
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
-				return nil, AccessDenied.New("only authenticated users can delete domain")
+				return nil, Unauthenticated.New("only authenticated users can delete domain")
 			}
 
 			input := p.Args["input"].(map[string]interface{})
@@ -288,7 +288,7 @@ var _ = registerMutationField(
 			// Access Control: authenticated user.
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
-				return nil, AccessDenied.New("only authenticated users can verify domain")
+				return nil, Unauthenticated.New("only authenticated users can verify domain")
 			}
 
 			input := p.Args["input"].(map[string]interface{})

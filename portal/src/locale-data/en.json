@@ -1746,6 +1746,10 @@
 
   "SearchableDropdown.empty": "No results found",
 
+  "UnauthenticatedDialog.title": "Session expired",
+  "UnauthenticatedDialog.description": "Your session is expired due to inactivity. Please login again.",
+  "UnauthenticatedDialog.button": "Login again",
+
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
   "Locales.ar": "Arabic",

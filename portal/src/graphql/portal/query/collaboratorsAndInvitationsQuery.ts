@@ -1,7 +1,7 @@
 import { QueryResult, useQuery } from "@apollo/client";
 import { useMemo } from "react";
 
-import { client } from "../../portal/apollo";
+import { usePortalClient } from "../../portal/apollo";
 import { Collaborator, CollaboratorInvitation } from "../globalTypes.generated";
 import {
   CollaboratorsAndInvitationsQueryQuery,
@@ -24,6 +24,7 @@ interface CollaboratorsAndInvitationsQueryResult
 export function useCollaboratorsAndInvitationsQuery(
   appID: string
 ): CollaboratorsAndInvitationsQueryResult {
+  const client = usePortalClient();
   const { data, loading, error, refetch } =
     useQuery<CollaboratorsAndInvitationsQueryQuery>(
       CollaboratorsAndInvitationsQueryDocument,

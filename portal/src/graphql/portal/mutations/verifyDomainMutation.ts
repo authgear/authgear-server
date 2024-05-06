@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useMutation } from "@apollo/client";
 
-import { client } from "../../portal/apollo";
+import { usePortalClient } from "../../portal/apollo";
 import {
   VerifyDomainMutationMutation,
   VerifyDomainMutationDocument,
@@ -12,6 +12,7 @@ export function useVerifyDomainMutation(appID: string): {
   loading: boolean;
   error: unknown;
 } {
+  const client = usePortalClient();
   const [mutationFunction, { error, loading }] =
     useMutation<VerifyDomainMutationMutation>(VerifyDomainMutationDocument, {
       client,

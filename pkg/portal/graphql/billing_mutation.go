@@ -48,7 +48,7 @@ var _ = registerMutationField(
 			// Access Control: authenticated user.
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
-				return nil, AccessDenied.New("only authenticated users can subscribe to a plan")
+				return nil, Unauthenticated.New("only authenticated users can subscribe to a plan")
 			}
 
 			input := p.Args["input"].(map[string]interface{})
@@ -152,7 +152,7 @@ var _ = registerMutationField(
 			// Access Control: authenticated user.
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
-				return nil, AccessDenied.New("only authenticated users can preview update subscription")
+				return nil, Unauthenticated.New("only authenticated users can preview update subscription")
 			}
 
 			input := p.Args["input"].(map[string]interface{})
@@ -243,7 +243,7 @@ var _ = registerMutationField(
 			// Access Control: authenticated user.
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
-				return nil, AccessDenied.New("only authenticated users can update subscription")
+				return nil, Unauthenticated.New("only authenticated users can update subscription")
 			}
 
 			input := p.Args["input"].(map[string]interface{})
@@ -352,7 +352,7 @@ var _ = registerMutationField(
 			// Access Control: authenticated user.
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
-				return nil, AccessDenied.New("only authenticated users can create domain")
+				return nil, Unauthenticated.New("only authenticated users can create domain")
 			}
 
 			input := p.Args["input"].(map[string]interface{})
@@ -435,7 +435,7 @@ var _ = registerMutationField(
 			// Access Control: authenticated user.
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
-				return nil, AccessDenied.New("only authenticated users can create domain")
+				return nil, Unauthenticated.New("only authenticated users can create domain")
 			}
 
 			input := p.Args["input"].(map[string]interface{})
@@ -507,7 +507,7 @@ var _ = registerMutationField(
 			// Access Control: authenticated user.
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
-				return nil, AccessDenied.New("only authenticated users can set subscription cancelled status")
+				return nil, Unauthenticated.New("only authenticated users can set subscription cancelled status")
 			}
 
 			input := p.Args["input"].(map[string]interface{})
@@ -592,7 +592,7 @@ var _ = registerMutationField(
 			// Access Control: authenticated user.
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
-				return nil, AccessDenied.New("only authenticated users can cancel failed subscription")
+				return nil, Unauthenticated.New("only authenticated users can cancel failed subscription")
 			}
 
 			input := p.Args["input"].(map[string]interface{})

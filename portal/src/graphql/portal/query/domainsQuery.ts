@@ -1,6 +1,6 @@
 import { QueryResult, useQuery } from "@apollo/client";
 import { useMemo } from "react";
-import { client } from "../../portal/apollo";
+import { usePortalClient } from "../../portal/apollo";
 import { Domain } from "../globalTypes.generated";
 import {
   DomainsQueryQuery,
@@ -17,6 +17,7 @@ interface DomainsQueryResult
 }
 
 export function useDomainsQuery(appID: string): DomainsQueryResult {
+  const client = usePortalClient();
   const { data, loading, error, refetch } = useQuery<DomainsQueryQuery>(
     DomainsQueryDocument,
     {

@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useMutation } from "@apollo/client";
-import { client } from "../../portal/apollo";
+import { usePortalClient } from "../../portal/apollo";
 import {
   SendTestEmailMutationMutation,
   SendTestEmailMutationDocument,
@@ -23,6 +23,7 @@ export interface UseSendTestEmailMutationReturnType {
 export function useSendTestEmailMutation(
   appID: string
 ): UseSendTestEmailMutationReturnType {
+  const client = usePortalClient();
   const [mutationFunction, { error, loading }] =
     useMutation<SendTestEmailMutationMutation>(SendTestEmailMutationDocument, {
       client,

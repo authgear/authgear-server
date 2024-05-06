@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useMutation } from "@apollo/client";
 
-import { client } from "../apollo";
+import { usePortalClient } from "../apollo";
 import {
   DeleteCollaboratorInvitationMutationMutation,
   DeleteCollaboratorInvitationMutationMutationVariables,
@@ -15,6 +15,7 @@ export function useDeleteCollaboratorInvitationMutation(): {
   loading: boolean;
   error: unknown;
 } {
+  const client = usePortalClient();
   const [mutationFunction, { error, loading }] = useMutation<
     DeleteCollaboratorInvitationMutationMutation,
     DeleteCollaboratorInvitationMutationMutationVariables

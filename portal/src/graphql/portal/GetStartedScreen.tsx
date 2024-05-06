@@ -17,7 +17,7 @@ import {
   ScreenNavQueryQuery,
   ScreenNavQueryDocument,
 } from "./query/screenNavQuery.generated";
-import { client } from "./apollo";
+import { usePortalClient } from "./apollo";
 import { TutorialStatusData } from "../../types";
 import {
   SkipAppTutorialMutationMutation,
@@ -430,6 +430,8 @@ function GetStartedScreenContent(props: GetStartedScreenContentProps) {
     userTotalCount,
   } = props;
 
+  const client = usePortalClient();
+
   const [
     skipAppTutorialMutationFunction,
     { loading: skipAppTutorialMutationLoading },
@@ -518,6 +520,7 @@ function GetStartedScreenContent(props: GetStartedScreenContentProps) {
 // eslint-disable-next-line complexity
 export default function GetStartedScreen(): React.ReactElement {
   const { appID } = useParams() as { appID: string };
+  const client = usePortalClient();
 
   const {
     effectiveAppConfig,

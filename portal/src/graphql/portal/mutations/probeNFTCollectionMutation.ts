@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useMutation } from "@apollo/client";
 
-import { client } from "../apollo";
+import { usePortalClient } from "../apollo";
 import {
   ProbeNftCollectionMutationMutation,
   ProbeNftCollectionMutationDocument,
@@ -12,6 +12,7 @@ export function useProbeNFTCollectionMutation(): {
   loading: boolean;
   error: unknown;
 } {
+  const client = usePortalClient();
   const [mutationFunction, { error, loading }] =
     useMutation<ProbeNftCollectionMutationMutation>(
       ProbeNftCollectionMutationDocument,

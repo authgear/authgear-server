@@ -8,7 +8,6 @@ import (
 	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/portal/model"
@@ -260,6 +259,10 @@ var nodeApp = node(
 					}
 					app := p.Source.(*model.App)
 					sessionInfo := session.GetValidSessionInfo(p.Context)
+					if sessionInfo == nil {
+						return nil, Unauthenticated.New("only authenticated users can view app secret")
+					}
+
 					secretConfig, _, err := ctx.AppService.LoadAppSecretConfig(app, sessionInfo, token)
 					if err != nil {
 						return nil, err
@@ -280,6 +283,10 @@ var nodeApp = node(
 					}
 					app := p.Source.(*model.App)
 					sessionInfo := session.GetValidSessionInfo(p.Context)
+					if sessionInfo == nil {
+						return nil, Unauthenticated.New("only authenticated users can view app secret checksum")
+					}
+
 					_, checksum, err := ctx.AppService.LoadAppSecretConfig(app, sessionInfo, token)
 					if err != nil {
 						return nil, err
@@ -428,7 +435,7 @@ var nodeApp = node(
 
 					sessionInfo := session.GetValidSessionInfo(p.Context)
 					if sessionInfo == nil {
-						return nil, apierrors.NewForbidden("forbidden")
+						return nil, Unauthenticated.New("only authenticated users can query app viewer")
 					}
 
 					app := p.Source.(*model.App)

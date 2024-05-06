@@ -5,7 +5,7 @@ import {
   UpdateSubscriptionMutationMutationHookResult,
   UpdateSubscriptionMutationMutationVariables,
 } from "./updateSubscriptionMutation.generated";
-import { client } from "../apollo";
+import { usePortalClient } from "../apollo";
 
 export function useUpdateSubscriptionMutation(
   baseOptions?: Apollo.MutationHookOptions<
@@ -13,6 +13,7 @@ export function useUpdateSubscriptionMutation(
     UpdateSubscriptionMutationMutationVariables
   >
 ): UpdateSubscriptionMutationMutationHookResult {
+  const client = usePortalClient();
   const options = {
     ...{ client },
     ...baseOptions,

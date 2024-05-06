@@ -5,7 +5,7 @@ import {
   GenerateStripeCustomerPortalSessionMutationMutationHookResult,
   GenerateStripeCustomerPortalSessionMutationMutationVariables,
 } from "./generateStripeCustomerPortalSessionMutation.generated";
-import { client } from "../apollo";
+import { usePortalClient } from "../apollo";
 
 export function useGenerateStripeCustomerPortalSessionMutationMutation(
   baseOptions?: Apollo.MutationHookOptions<
@@ -13,6 +13,7 @@ export function useGenerateStripeCustomerPortalSessionMutationMutation(
     GenerateStripeCustomerPortalSessionMutationMutationVariables
   >
 ): GenerateStripeCustomerPortalSessionMutationMutationHookResult {
+  const client = usePortalClient();
   const options = { ...{ client }, ...baseOptions };
   return Apollo.useMutation<
     GenerateStripeCustomerPortalSessionMutationMutation,
