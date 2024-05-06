@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-function setup {
+function setup {( set -e
     echo "[ ] Starting services..."
     docker compose up -d
     sleep 3
@@ -52,30 +52,31 @@ function setup {
     authgear audit database migrate up
     authgear images database migrate up
     authgear-portal database migrate up
-}
+)}
 
-function teardown {
+function teardown {( set -e
     echo "[ ] Teardown..."
     kill -9 $(lsof -ti:4000) > /dev/null 2>&1 || true
     kill -9 $(lsof -ti:8080) > /dev/null 2>&1 || true
     docker compose down
-}
+)}
 
-function tests {
+function tests {( set -e
     echo "[ ] Run tests..."
-    go test ./... -v -timeout 3m -parallel 5 | grep -v '=== RUN\|=== PAUSE\|=== CONT\|=== RUN\|no test files'
-}
+    go test ./... -v -timeout 3m -parallel 5
+)}
 
-function main {
+function main {( set -e
     teardown || true
     setup
+    trap "teardown || true" EXIT
     tests
-    teardown
-}
+)}
 
 BASEDIR=$(cd $(dirname "$0") && pwd)
 PROJECTDIR=$(cd "${BASEDIR}/.." && pwd)
 (
+    set -e
     cd "${BASEDIR}"
     if [ "$1" ]; then
         $1
