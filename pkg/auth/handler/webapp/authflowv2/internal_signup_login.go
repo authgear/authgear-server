@@ -1,6 +1,7 @@
 package authflowv2
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -137,6 +138,29 @@ func (h *InternalAuthflowV2SignupLoginHandler) ServeHTTP(w http.ResponseWriter, 
 		input := map[string]interface{}{
 			"identification": identification,
 			"login_id":       loginID,
+		}
+
+		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
+		if err != nil {
+			return err
+		}
+
+		result.WriteResponse(w, r)
+		return nil
+	})
+
+	handlers.PostAction("passkey", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+		assertionResponseStr := r.Form.Get("x_assertion_response")
+
+		var assertionResponseJSON interface{}
+		err := json.Unmarshal([]byte(assertionResponseStr), &assertionResponseJSON)
+		if err != nil {
+			return err
+		}
+
+		input := map[string]interface{}{
+			"identification":     "passkey",
+			"assertion_response": assertionResponseJSON,
 		}
 
 		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
