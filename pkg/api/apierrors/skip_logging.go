@@ -75,6 +75,11 @@ func IgnoreError(err error) (ignore bool) {
 		ignore = true
 	}
 
+	if errors.Is(err, syscall.ECONNREFUSED) {
+		// syscall.ECONNREFUSED is "connection refused"
+		ignore = true
+	}
+
 	if errors.Is(err, sql.ErrTxDone) {
 		// The sql package will rollback the transaction when the context is canceled.
 		// https://pkg.go.dev/database/sql/driver#ConnBeginTx

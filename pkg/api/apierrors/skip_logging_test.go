@@ -77,6 +77,13 @@ func TestSkipLogging(t *testing.T) {
 			So(myhook.IsSkipped, ShouldBeTrue)
 		})
 
+		Convey("Ignore syscall.ECONNREFUSED", func() {
+			err := syscall.ECONNREFUSED
+			logger.WithError(err).Error("error")
+			So(err, ShouldBeError, "connection refused")
+			So(myhook.IsSkipped, ShouldBeTrue)
+		})
+
 		Convey("Ignore sql.ErrTxDone error", func() {
 			logger.WithError(sql.ErrTxDone).Error("error")
 			So(myhook.IsSkipped, ShouldBeTrue)
