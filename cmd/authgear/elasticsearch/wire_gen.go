@@ -68,14 +68,16 @@ func NewReindexer(ctx context.Context, pool *db.Pool, databaseCredentials *confi
 		SQLExecutor: sqlExecutor,
 		Clock:       clock,
 	}
+	reindexedTimestamps := NewReindexedTimestamps()
 	reindexer := &Reindexer{
-		Clock:       clock,
-		Handle:      handle,
-		AppID:       appID,
-		Users:       store,
-		OAuth:       oauthStore,
-		LoginID:     loginidStore,
-		RolesGroups: rolesgroupsStore,
+		Clock:               clock,
+		Handle:              handle,
+		AppID:               appID,
+		Users:               store,
+		OAuth:               oauthStore,
+		LoginID:             loginidStore,
+		RolesGroups:         rolesgroupsStore,
+		ReindexedTimestamps: reindexedTimestamps,
 	}
 	return reindexer
 }

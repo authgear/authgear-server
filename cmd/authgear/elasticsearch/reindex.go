@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
+	"time"
 
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
@@ -43,14 +45,59 @@ type Item struct {
 	Cursor model.PageCursor
 }
 
+type ReindexedTimestamp struct {
+	UserID      string
+	ReindexedAt time.Time
+}
+
+type ReindexedTimestamps struct {
+	timestamps []*ReindexedTimestamp
+	mutex      sync.Mutex
+}
+
+func NewReindexedTimestamps() *ReindexedTimestamps {
+	return &ReindexedTimestamps{
+		timestamps: []*ReindexedTimestamp{},
+		mutex:      sync.Mutex{},
+	}
+}
+
+func (r *ReindexedTimestamps) Append(userID string, timestamp time.Time) {
+	r.mutex.Lock()
+	t := &ReindexedTimestamp{
+		UserID:      userID,
+		ReindexedAt: timestamp,
+	}
+	r.timestamps = append(r.timestamps, t)
+	r.mutex.Unlock()
+}
+
+func (r *ReindexedTimestamps) Flush(
+	dbHandle *appdb.Handle,
+	userStore *user.Store) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+	for _, t := range r.timestamps {
+		err := dbHandle.WithTx(func() error {
+			return userStore.UpdateLastIndexedAt([]string{t.UserID}, t.ReindexedAt)
+		})
+		if err != nil {
+			return err
+		}
+	}
+	r.timestamps = []*ReindexedTimestamp{}
+	return nil
+}
+
 type Reindexer struct {
-	Clock       clock.Clock
-	Handle      *appdb.Handle
-	AppID       config.AppID
-	Users       *user.Store
-	OAuth       *identityoauth.Store
-	LoginID     *identityloginid.Store
-	RolesGroups *rolesgroups.Store
+	Clock               clock.Clock
+	Handle              *appdb.Handle
+	AppID               config.AppID
+	Users               *user.Store
+	OAuth               *identityoauth.Store
+	LoginID             *identityloginid.Store
+	RolesGroups         *rolesgroups.Store
+	ReindexedTimestamps *ReindexedTimestamps
 }
 
 func (q *Reindexer) QueryPage(after model.PageCursor, first uint64) ([]Item, error) {
@@ -159,6 +206,12 @@ func (q *Reindexer) Reindex(es *elasticsearch.Client) (err error) {
 		return err
 	}
 
+	// Flush timestamps once after closed bulkindexer to ensure all rows are updated
+	err = q.ReindexedTimestamps.Flush(q.Handle, q.Users)
+	if err != nil {
+		return
+	}
+
 	stats := bulkIndexer.Stats()
 	log.Printf("App (%v): %v indexed; %v deleted; %v failed\n", q.AppID, stats.NumIndexed, stats.NumDeleted, stats.NumFailed)
 	return nil
@@ -226,18 +279,18 @@ func (q *Reindexer) reindex(ctx context.Context, bulkIndexer esutil.BulkIndexer)
 						ctx context.Context,
 						item esutil.BulkIndexerItem,
 						res esutil.BulkIndexerResponseItem) {
-						err := q.Handle.WithTx(func() error {
-							return q.Users.UpdateLastIndexedAt([]string{source.ID}, startAt)
-						})
-						if err != nil {
-							fmt.Fprintf(os.Stderr, "Failed to update last_indexed_at of user %s. %v\n", source.ID, err)
-						}
+						q.ReindexedTimestamps.Append(source.ID, startAt)
 					},
 				},
 			)
 			if err != nil {
 				return
 			}
+		}
+
+		err = q.ReindexedTimestamps.Flush(q.Handle, q.Users)
+		if err != nil {
+			return
 		}
 	}
 

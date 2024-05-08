@@ -37,6 +37,7 @@ var DependencySet = wire.NewSet(
 	config.NewDefaultDatabaseEnvironmentConfig,
 	NewGlobalDatabaseCredentials,
 	NewEmptyIdentityConfig,
+	NewReindexedTimestamps,
 	globaldb.DependencySet,
 	appdb.NewHandle,
 	appdb.DependencySet,
