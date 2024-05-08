@@ -2,12 +2,15 @@ package apierrors
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"syscall"
 	"testing"
 
+	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
-
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -39,8 +42,13 @@ func TestSkipLogging(t *testing.T) {
 			So(myhook.IsSkipped, ShouldBeTrue)
 		})
 
-		Convey("Ignore entry with wrapped context.Canceled error", func() {
-			logger.WithError(fmt.Errorf("wrap: %w", context.Canceled)).Error("error")
+		Convey("Ignore entry with context.DeadlineExceeded error", func() {
+			logger.WithError(context.DeadlineExceeded).Error("error")
+			So(myhook.IsSkipped, ShouldBeTrue)
+		})
+
+		Convey("Ignore entry with http.ErrAbortHandler error", func() {
+			logger.WithError(http.ErrAbortHandler).Error("error")
 			So(myhook.IsSkipped, ShouldBeTrue)
 		})
 
@@ -50,6 +58,32 @@ func TestSkipLogging(t *testing.T) {
 			So(err, ShouldBeError, "unexpected end of JSON input")
 
 			logger.WithError(err).Error("error")
+			So(myhook.IsSkipped, ShouldBeTrue)
+		})
+
+		Convey("Ignore pg.Error.Code 57014", func() {
+			err := &pq.Error{
+				Code: "57014",
+			}
+
+			logger.WithError(err).Error("error")
+			So(myhook.IsSkipped, ShouldBeTrue)
+		})
+
+		Convey("Ignore syscall.EPIPE", func() {
+			err := syscall.EPIPE
+			logger.WithError(err).Error("error")
+			So(err, ShouldBeError, "broken pipe")
+			So(myhook.IsSkipped, ShouldBeTrue)
+		})
+
+		Convey("Ignore sql.ErrTxDone error", func() {
+			logger.WithError(sql.ErrTxDone).Error("error")
+			So(myhook.IsSkipped, ShouldBeTrue)
+		})
+
+		Convey("Ignore entry with wrapped error", func() {
+			logger.WithError(fmt.Errorf("wrap: %w", context.Canceled)).Error("error")
 			So(myhook.IsSkipped, ShouldBeTrue)
 		})
 

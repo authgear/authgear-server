@@ -71,7 +71,7 @@ func IgnoreError(err error) (ignore bool) {
 	}
 
 	if errors.Is(err, syscall.EPIPE) {
-		// syscall.EPIPE is "write: broken pipe"
+		// syscall.EPIPE is "broken pipe"
 		ignore = true
 	}
 
