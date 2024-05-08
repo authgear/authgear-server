@@ -3,9 +3,9 @@ package apierrors
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"net/http"
-	"syscall"
 
 	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
@@ -53,6 +53,13 @@ func IgnoreError(err error) (ignore bool) {
 		ignore = true
 	}
 
+	// json.Unmarshal returns a SyntaxError if the JSON can't be parsed.
+	// https://pkg.go.dev/encoding/json#SyntaxError
+	var jsonSyntaxError *json.SyntaxError
+	if errors.As(err, &jsonSyntaxError) {
+		ignore = true
+	}
+
 	var pqError *pq.Error
 	if errors.As(err, &pqError) {
 		// https://www.postgresql.org/docs/13/errcodes-appendix.html
@@ -60,11 +67,6 @@ func IgnoreError(err error) (ignore bool) {
 		if pqError.Code == "57014" {
 			ignore = true
 		}
-	}
-
-	if errors.Is(err, syscall.EPIPE) {
-		// syscall.EPIPE is "write: broken pipe"
-		ignore = true
 	}
 
 	if errors.Is(err, sql.ErrTxDone) {
