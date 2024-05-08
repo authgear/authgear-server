@@ -70,18 +70,18 @@ func TestSkipLogging(t *testing.T) {
 			So(myhook.IsSkipped, ShouldBeTrue)
 		})
 
-		Convey("Ignore syscall.EPIPE", func() {
+		Convey("Do not ignore syscall.EPIPE", func() {
 			err := syscall.EPIPE
 			logger.WithError(err).Error("error")
 			So(err, ShouldBeError, "broken pipe")
-			So(myhook.IsSkipped, ShouldBeTrue)
+			So(myhook.IsSkipped, ShouldBeFalse)
 		})
 
-		Convey("Ignore syscall.ECONNREFUSED", func() {
+		Convey("Do not ignore syscall.ECONNREFUSED", func() {
 			err := syscall.ECONNREFUSED
 			logger.WithError(err).Error("error")
 			So(err, ShouldBeError, "connection refused")
-			So(myhook.IsSkipped, ShouldBeTrue)
+			So(myhook.IsSkipped, ShouldBeFalse)
 		})
 
 		Convey("Ignore sql.ErrTxDone error", func() {

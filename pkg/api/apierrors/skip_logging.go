@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"syscall"
 
 	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
@@ -68,16 +67,6 @@ func IgnoreError(err error) (ignore bool) {
 		if pqError.Code == "57014" {
 			ignore = true
 		}
-	}
-
-	if errors.Is(err, syscall.EPIPE) {
-		// syscall.EPIPE is "broken pipe"
-		ignore = true
-	}
-
-	if errors.Is(err, syscall.ECONNREFUSED) {
-		// syscall.ECONNREFUSED is "connection refused"
-		ignore = true
 	}
 
 	if errors.Is(err, sql.ErrTxDone) {
