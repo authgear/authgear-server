@@ -2,6 +2,7 @@ package apierrors
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -40,6 +41,15 @@ func TestSkipLogging(t *testing.T) {
 
 		Convey("Ignore entry with wrapped context.Canceled error", func() {
 			logger.WithError(fmt.Errorf("wrap: %w", context.Canceled)).Error("error")
+			So(myhook.IsSkipped, ShouldBeTrue)
+		})
+
+		Convey("Ignore json.SyntaxError", func() {
+			var anything interface{}
+			err := json.Unmarshal([]byte("{"), &anything)
+			So(err, ShouldBeError, "unexpected end of JSON input")
+
+			logger.WithError(err).Error("error")
 			So(myhook.IsSkipped, ShouldBeTrue)
 		})
 

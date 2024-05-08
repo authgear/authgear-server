@@ -3,6 +3,7 @@ package apierrors
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"syscall"
@@ -50,6 +51,13 @@ func IgnoreError(err error) (ignore bool) {
 	// ErrAbortHandler is a sentinel panic value to abort a handler.
 	// net/http does NOT log this error, so do we.
 	if errors.Is(err, http.ErrAbortHandler) {
+		ignore = true
+	}
+
+	// json.Unmarshal returns a SyntaxError if the JSON can't be parsed.
+	// https://pkg.go.dev/encoding/json#SyntaxError
+	var jsonSyntaxError *json.SyntaxError
+	if errors.As(err, &jsonSyntaxError) {
 		ignore = true
 	}
 
