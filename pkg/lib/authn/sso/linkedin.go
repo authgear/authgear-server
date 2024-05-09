@@ -56,12 +56,12 @@ func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 		return
 	}
 
-	meResponse, err := fetchUserProfile(f.HTTPClient, accessTokenResp, linkedinMeURL)
+	meResponse, err := oauthrelyingpartyutil.FetchUserProfile(f.HTTPClient.Client, accessTokenResp, linkedinMeURL)
 	if err != nil {
 		return
 	}
 
-	contactResponse, err := fetchUserProfile(f.HTTPClient, accessTokenResp, linkedinContactURL)
+	contactResponse, err := oauthrelyingpartyutil.FetchUserProfile(f.HTTPClient.Client, accessTokenResp, linkedinContactURL)
 	if err != nil {
 		return
 	}

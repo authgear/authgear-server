@@ -88,7 +88,7 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 	//   "short_name": "John"
 	// }
 
-	userProfile, err := fetchUserProfile(f.HTTPClient, accessTokenResp, userProfileURL.String())
+	userProfile, err := oauthrelyingpartyutil.FetchUserProfile(f.HTTPClient.Client, accessTokenResp, userProfileURL.String())
 	if err != nil {
 		return
 	}
