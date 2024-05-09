@@ -4,6 +4,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
 )
 
 const (
@@ -43,8 +44,8 @@ func (f *LinkedInImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthIn
 }
 
 func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
-	accessTokenResp, err := fetchAccessTokenResp(
-		f.HTTPClient,
+	accessTokenResp, err := oauthrelyingpartyutil.FetchAccessTokenResp(
+		f.HTTPClient.Client,
 		r.Code,
 		linkedinTokenURL,
 		param.RedirectURI,

@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/apple"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
 	"github.com/authgear/authgear-server/pkg/util/duration"
@@ -98,7 +99,7 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param
 		return
 	}
 
-	var tokenResp AccessTokenResp
+	var tokenResp oauthrelyingpartyutil.AccessTokenResp
 	jwtToken, err := appleOIDCConfig.ExchangeCode(
 		f.HTTPClient,
 		f.Clock,

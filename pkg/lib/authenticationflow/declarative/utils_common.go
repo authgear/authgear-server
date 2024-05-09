@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
@@ -674,7 +675,7 @@ func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, opts HandleOA
 		errorDescription := inputOAuth.GetOAuthErrorDescription()
 		errorURI := inputOAuth.GetOAuthErrorURI()
 
-		return nil, sso.NewOAuthError(oauthError, errorDescription, errorURI)
+		return nil, oauthrelyingpartyutil.NewOAuthError(oauthError, errorDescription, errorURI)
 	}
 
 	oauthProvider := deps.OAuthProviderFactory.NewOAuthProvider(opts.Alias)

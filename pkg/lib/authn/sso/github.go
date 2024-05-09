@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
@@ -97,7 +98,7 @@ func (g *GithubImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, p
 	return
 }
 
-func (g *GithubImpl) exchangeCode(r OAuthAuthorizationResponse, param GetAuthInfoParam) (accessTokenResp AccessTokenResp, err error) {
+func (g *GithubImpl) exchangeCode(r OAuthAuthorizationResponse, param GetAuthInfoParam) (accessTokenResp oauthrelyingpartyutil.AccessTokenResp, err error) {
 	q := make(url.Values)
 	q.Set("client_id", g.ProviderConfig.ClientID())
 	q.Set("client_secret", g.Credentials.ClientSecret)
@@ -122,18 +123,18 @@ func (g *GithubImpl) exchangeCode(r OAuthAuthorizationResponse, param GetAuthInf
 			return
 		}
 	} else {
-		var errResp oauthErrorResp
+		var errResp oauthrelyingparty.ErrorResponse
 		err = json.NewDecoder(resp.Body).Decode(&errResp)
 		if err != nil {
 			return
 		}
-		err = errResp.AsError()
+		err = oauthrelyingpartyutil.ErrorResponseAsError(errResp)
 	}
 
 	return
 }
 
-func (g *GithubImpl) fetchUserInfo(accessTokenResp AccessTokenResp) (userProfile map[string]interface{}, err error) {
+func (g *GithubImpl) fetchUserInfo(accessTokenResp oauthrelyingpartyutil.AccessTokenResp) (userProfile map[string]interface{}, err error) {
 	tokenType := accessTokenResp.TokenType()
 	accessTokenValue := accessTokenResp.AccessToken()
 	authorizationHeader := fmt.Sprintf("%s %s", tokenType, accessTokenValue)

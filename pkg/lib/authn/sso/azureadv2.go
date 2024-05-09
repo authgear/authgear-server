@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/azureadv2"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
@@ -103,7 +104,7 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, p
 		return
 	}
 
-	var tokenResp AccessTokenResp
+	var tokenResp oauthrelyingpartyutil.AccessTokenResp
 	jwtToken, err := c.ExchangeCode(
 		f.HTTPClient,
 		f.Clock,

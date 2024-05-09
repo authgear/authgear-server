@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/adfs"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -61,7 +62,7 @@ func (f *ADFSImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param 
 		return
 	}
 
-	var tokenResp AccessTokenResp
+	var tokenResp oauthrelyingpartyutil.AccessTokenResp
 	jwtToken, err := c.ExchangeCode(
 		f.HTTPClient,
 		f.Clock,

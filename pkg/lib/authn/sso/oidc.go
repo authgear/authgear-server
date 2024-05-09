@@ -11,6 +11,8 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/jwsutil"
@@ -83,7 +85,7 @@ func (d *OIDCDiscoveryDocument) ExchangeCode(
 	clientSecret string,
 	redirectURI string,
 	nonce string,
-	tokenResp *AccessTokenResp,
+	tokenResp *oauthrelyingpartyutil.AccessTokenResp,
 ) (jwt.Token, error) {
 	body := url.Values{}
 	body.Set("grant_type", "authorization_code")
@@ -104,12 +106,12 @@ func (d *OIDCDiscoveryDocument) ExchangeCode(
 			return nil, err
 		}
 	} else {
-		var errorResp oauthErrorResp
+		var errorResp oauthrelyingparty.ErrorResponse
 		err = json.NewDecoder(resp.Body).Decode(&errorResp)
 		if err != nil {
 			return nil, err
 		}
-		err = errorResp.AsError()
+		err = oauthrelyingpartyutil.ErrorResponseAsError(errorResp)
 		return nil, err
 	}
 

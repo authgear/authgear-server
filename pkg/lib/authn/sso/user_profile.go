@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
 )
 
 func fetchUserProfile(
 	client OAuthHTTPClient,
-	accessTokenResp AccessTokenResp,
+	accessTokenResp oauthrelyingpartyutil.AccessTokenResp,
 	userProfileURL string,
 ) (userProfile map[string]interface{}, err error) {
 	tokenType := accessTokenResp.TokenType()

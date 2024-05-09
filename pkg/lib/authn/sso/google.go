@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
@@ -57,7 +58,7 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, para
 		return
 	}
 
-	var tokenResp AccessTokenResp
+	var tokenResp oauthrelyingpartyutil.AccessTokenResp
 	jwtToken, err := d.ExchangeCode(
 		f.HTTPClient,
 		f.Clock,

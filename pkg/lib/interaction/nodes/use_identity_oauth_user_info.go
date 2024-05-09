@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
 )
 
@@ -59,7 +60,7 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 
 	// Handle provider error
 	if oauthError != "" {
-		return nil, sso.NewOAuthError(oauthError, errorDescription, errorURI)
+		return nil, oauthrelyingpartyutil.NewOAuthError(oauthError, errorDescription, errorURI)
 	}
 
 	if nonceSource == "" {

@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
 )
 
@@ -47,8 +48,8 @@ func (f *FacebookImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthIn
 func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	authInfo = AuthInfo{}
 
-	accessTokenResp, err := fetchAccessTokenResp(
-		f.HTTPClient,
+	accessTokenResp, err := oauthrelyingpartyutil.FetchAccessTokenResp(
+		f.HTTPClient.Client,
 		r.Code,
 		facebookTokenURL,
 		param.RedirectURI,
