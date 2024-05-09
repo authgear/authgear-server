@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/phone"
@@ -743,9 +744,9 @@ func getOAuthData(ctx context.Context, deps *authflow.Dependencies, opts GetOAut
 
 	data = NewOAuthData(OAuthData{
 		Alias:                 opts.Alias,
-		OAuthProviderType:     oauthProvider.Config().Type,
+		OAuthProviderType:     oauthProvider.Config().Type(),
 		OAuthAuthorizationURL: authorizationURL,
-		WechatAppType:         oauthProvider.Config().AppType,
+		WechatAppType:         wechat.ProviderConfig(oauthProvider.Config()).AppType(),
 	})
 	return
 }

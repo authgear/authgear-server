@@ -4,9 +4,11 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	. "github.com/smartystreets/goconvey/convey"
 	"gopkg.in/h2non/gock.v1"
+
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/google"
 )
 
 func TestGoogleImpl(t *testing.T) {
@@ -16,9 +18,9 @@ func TestGoogleImpl(t *testing.T) {
 		defer gock.Off()
 
 		g := &GoogleImpl{
-			ProviderConfig: config.OAuthSSOProviderConfig{
-				ClientID: "client_id",
-				Type:     config.OAuthSSOProviderTypeGoogle,
+			ProviderConfig: oauthrelyingparty.ProviderConfig{
+				"client_id": "client_id",
+				"type":      google.Type,
 			},
 			HTTPClient: client,
 		}

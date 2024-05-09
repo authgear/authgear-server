@@ -1,8 +1,10 @@
 package sso
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 )
 
 const (
@@ -10,26 +12,22 @@ const (
 )
 
 type WechatImpl struct {
-	ProviderConfig               config.OAuthSSOProviderConfig
+	ProviderConfig               oauthrelyingparty.ProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
 	HTTPClient                   OAuthHTTPClient
 }
 
-func (*WechatImpl) Type() config.OAuthSSOProviderType {
-	return config.OAuthSSOProviderTypeWechat
-}
-
-func (w *WechatImpl) Config() config.OAuthSSOProviderConfig {
+func (w *WechatImpl) Config() oauthrelyingparty.ProviderConfig {
 	return w.ProviderConfig
 }
 
 func (w *WechatImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	return MakeAuthorizationURL(wechatAuthorizationURL, AuthorizationURLParams{
 		// ClientID is not used by wechat.
-		WechatAppID:  w.ProviderConfig.ClientID,
+		WechatAppID:  w.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
-		Scope:        w.ProviderConfig.Type.Scope(),
+		Scope:        w.ProviderConfig.Scope(),
 		ResponseType: ResponseTypeCode,
 		// ResponseMode is unset.
 		State:  param.State,
@@ -46,7 +44,7 @@ func (w *WechatImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _
 	accessTokenResp, err := wechatFetchAccessTokenResp(
 		w.HTTPClient,
 		r.Code,
-		w.ProviderConfig.ClientID,
+		w.ProviderConfig.ClientID(),
 		w.Credentials.ClientSecret,
 	)
 	if err != nil {
@@ -58,9 +56,9 @@ func (w *WechatImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _
 		return
 	}
 
-	config := w.Config()
+	is_sandbox_account := wechat.ProviderConfig(w.ProviderConfig).IsSandboxAccount()
 	var userID string
-	if config.IsSandboxAccount {
+	if is_sandbox_account {
 		if accessTokenResp.UnionID() != "" {
 			err = InvalidConfiguration.New("invalid is_sandbox_account config, WeChat sandbox account should not have union id")
 			return

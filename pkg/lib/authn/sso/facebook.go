@@ -3,6 +3,7 @@ package sso
 import (
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
@@ -16,25 +17,21 @@ const (
 )
 
 type FacebookImpl struct {
-	ProviderConfig               config.OAuthSSOProviderConfig
+	ProviderConfig               oauthrelyingparty.ProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
 	HTTPClient                   OAuthHTTPClient
 }
 
-func (*FacebookImpl) Type() config.OAuthSSOProviderType {
-	return config.OAuthSSOProviderTypeFacebook
-}
-
-func (f *FacebookImpl) Config() config.OAuthSSOProviderConfig {
+func (f *FacebookImpl) Config() oauthrelyingparty.ProviderConfig {
 	return f.ProviderConfig
 }
 
 func (f *FacebookImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	return MakeAuthorizationURL(facebookAuthorizationURL, AuthorizationURLParams{
-		ClientID:     f.ProviderConfig.ClientID,
+		ClientID:     f.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
-		Scope:        f.ProviderConfig.Type.Scope(),
+		Scope:        f.ProviderConfig.Scope(),
 		ResponseType: ResponseTypeCode,
 		// ResponseMode is unset
 		State:  param.State,
@@ -55,7 +52,7 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 		r.Code,
 		facebookTokenURL,
 		param.RedirectURI,
-		f.ProviderConfig.ClientID,
+		f.ProviderConfig.ClientID(),
 		f.Credentials.ClientSecret,
 	)
 	if err != nil {
@@ -112,6 +109,7 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 	}
 
 	authInfo.ProviderUserID = id
+	emailRequired := f.ProviderConfig.EmailClaimConfig().Required()
 	stdAttrs, err := stdattrs.Extract(map[string]interface{}{
 		stdattrs.Email:      email,
 		stdattrs.GivenName:  firstName,
@@ -120,7 +118,7 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 		stdattrs.Nickname:   shortName,
 		stdattrs.Picture:    picture,
 	}, stdattrs.ExtractOptions{
-		EmailRequired: *f.ProviderConfig.Claims.Email.Required,
+		EmailRequired: emailRequired,
 	})
 	if err != nil {
 		return

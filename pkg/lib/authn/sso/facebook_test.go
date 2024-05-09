@@ -3,16 +3,18 @@ package sso
 import (
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/facebook"
 )
 
 func TestFacebookImpl(t *testing.T) {
 	Convey("FacebookImpl", t, func() {
 		g := &FacebookImpl{
-			ProviderConfig: config.OAuthSSOProviderConfig{
-				ClientID: "client_id",
-				Type:     config.OAuthSSOProviderTypeFacebook,
+			ProviderConfig: oauthrelyingparty.ProviderConfig{
+				"client_id": "client_id",
+				"type":      facebook.Type,
 			},
 			HTTPClient: OAuthHTTPClient{},
 		}

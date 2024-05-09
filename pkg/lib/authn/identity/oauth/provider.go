@@ -3,6 +3,7 @@ package oauth
 import (
 	"sort"
 
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -50,12 +51,12 @@ func (p *Provider) Get(userID, id string) (*identity.OAuth, error) {
 	return p.Store.Get(userID, id)
 }
 
-func (p *Provider) GetByProviderSubject(provider config.ProviderID, subjectID string) (*identity.OAuth, error) {
-	return p.Store.GetByProviderSubject(provider, subjectID)
+func (p *Provider) GetByProviderSubject(providerID oauthrelyingparty.ProviderID, subjectID string) (*identity.OAuth, error) {
+	return p.Store.GetByProviderSubject(providerID, subjectID)
 }
 
-func (p *Provider) GetByUserProvider(userID string, provider config.ProviderID) (*identity.OAuth, error) {
-	return p.Store.GetByUserProvider(userID, provider)
+func (p *Provider) GetByUserProvider(userID string, providerID oauthrelyingparty.ProviderID) (*identity.OAuth, error) {
+	return p.Store.GetByUserProvider(userID, providerID)
 }
 
 func (p *Provider) GetMany(ids []string) ([]*identity.OAuth, error) {
@@ -64,7 +65,7 @@ func (p *Provider) GetMany(ids []string) ([]*identity.OAuth, error) {
 
 func (p *Provider) New(
 	userID string,
-	provider config.ProviderID,
+	providerID oauthrelyingparty.ProviderID,
 	subjectID string,
 	profile map[string]interface{},
 	claims map[string]interface{},
@@ -72,7 +73,7 @@ func (p *Provider) New(
 	i := &identity.OAuth{
 		ID:                uuid.New(),
 		UserID:            userID,
-		ProviderID:        provider,
+		ProviderID:        providerID,
 		ProviderSubjectID: subjectID,
 		UserProfile:       profile,
 		Claims:            claims,
@@ -81,8 +82,8 @@ func (p *Provider) New(
 	alias := ""
 	for _, providerConfig := range p.IdentityConfig.OAuth.Providers {
 		providerID := providerConfig.ProviderID()
-		if providerID.Equal(&i.ProviderID) {
-			alias = providerConfig.Alias
+		if providerID.Equal(i.ProviderID) {
+			alias = providerConfig.Alias()
 		}
 	}
 	if alias != "" {

@@ -4,20 +4,21 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
 type OAuth struct {
-	ID                string                 `json:"id"`
-	CreatedAt         time.Time              `json:"created_at"`
-	UpdatedAt         time.Time              `json:"updated_at"`
-	UserID            string                 `json:"user_id"`
-	ProviderID        config.ProviderID      `json:"provider_id"`
-	ProviderSubjectID string                 `json:"provider_subject_id"`
-	UserProfile       map[string]interface{} `json:"user_profile,omitempty"`
-	Claims            map[string]interface{} `json:"claims,omitempty"`
+	ID                string                       `json:"id"`
+	CreatedAt         time.Time                    `json:"created_at"`
+	UpdatedAt         time.Time                    `json:"updated_at"`
+	UserID            string                       `json:"user_id"`
+	ProviderID        oauthrelyingparty.ProviderID `json:"provider_id"`
+	ProviderSubjectID string                       `json:"provider_subject_id"`
+	UserProfile       map[string]interface{}       `json:"user_profile,omitempty"`
+	Claims            map[string]interface{}       `json:"claims,omitempty"`
 	// This is a derived field and NOT persisted to database.
 	// We still include it in JSON serialization so it can be persisted in the graph.
 	ProviderAlias string `json:"provider_alias,omitempty"`

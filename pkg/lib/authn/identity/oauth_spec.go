@@ -1,12 +1,12 @@
 package identity
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 )
 
 type OAuthSpec struct {
-	ProviderID     config.ProviderID      `json:"provider_id"`
-	SubjectID      string                 `json:"subject_id"`
-	RawProfile     map[string]interface{} `json:"raw_profile,omitempty"`
-	StandardClaims map[string]interface{} `json:"standard_claims,omitempty"`
+	ProviderID     oauthrelyingparty.ProviderID `json:"provider_id"`
+	SubjectID      string                       `json:"subject_id"`
+	RawProfile     map[string]interface{}       `json:"raw_profile,omitempty"`
+	StandardClaims map[string]interface{}       `json:"standard_claims,omitempty"`
 }

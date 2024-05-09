@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
@@ -21,26 +22,22 @@ const (
 )
 
 type GithubImpl struct {
-	ProviderConfig               config.OAuthSSOProviderConfig
+	ProviderConfig               oauthrelyingparty.ProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
 	HTTPClient                   OAuthHTTPClient
 }
 
-func (*GithubImpl) Type() config.OAuthSSOProviderType {
-	return config.OAuthSSOProviderTypeGithub
-}
-
-func (g *GithubImpl) Config() config.OAuthSSOProviderConfig {
+func (g *GithubImpl) Config() oauthrelyingparty.ProviderConfig {
 	return g.ProviderConfig
 }
 
 func (g *GithubImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	// https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps#1-request-a-users-github-identity
 	return MakeAuthorizationURL(githubAuthorizationURL, AuthorizationURLParams{
-		ClientID:    g.ProviderConfig.ClientID,
+		ClientID:    g.ProviderConfig.ClientID(),
 		RedirectURI: param.RedirectURI,
-		Scope:       g.ProviderConfig.Type.Scope(),
+		Scope:       g.ProviderConfig.Scope(),
 		// ResponseType is unset.
 		// ResponseMode is unset.
 		State: param.State,
@@ -74,6 +71,7 @@ func (g *GithubImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, p
 	id := string(idJSONNumber)
 
 	authInfo.ProviderUserID = id
+	emailRequired := g.ProviderConfig.EmailClaimConfig().Required()
 	stdAttrs, err := stdattrs.Extract(map[string]interface{}{
 		stdattrs.Email:     email,
 		stdattrs.Name:      login,
@@ -81,7 +79,7 @@ func (g *GithubImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, p
 		stdattrs.Picture:   picture,
 		stdattrs.Profile:   profile,
 	}, stdattrs.ExtractOptions{
-		EmailRequired: *g.ProviderConfig.Claims.Email.Required,
+		EmailRequired: emailRequired,
 	})
 	if err != nil {
 		err = apierrors.AddDetails(err, errorutil.Details{
@@ -101,7 +99,7 @@ func (g *GithubImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, p
 
 func (g *GithubImpl) exchangeCode(r OAuthAuthorizationResponse, param GetAuthInfoParam) (accessTokenResp AccessTokenResp, err error) {
 	q := make(url.Values)
-	q.Set("client_id", g.ProviderConfig.ClientID)
+	q.Set("client_id", g.ProviderConfig.ClientID())
 	q.Set("client_secret", g.Credentials.ClientSecret)
 	q.Set("code", r.Code)
 	q.Set("redirect_uri", param.RedirectURI)

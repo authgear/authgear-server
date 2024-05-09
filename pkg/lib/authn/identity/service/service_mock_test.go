@@ -7,9 +7,9 @@ package service
 import (
 	reflect "reflect"
 
+	oauthrelyingparty "github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	identity "github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	loginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
-	config "github.com/authgear/authgear-server/pkg/lib/config"
 	gomock "github.com/golang/mock/gomock"
 	jsonpointer "github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
@@ -281,33 +281,33 @@ func (mr *MockOAuthIdentityProviderMockRecorder) Get(userID, id interface{}) *go
 }
 
 // GetByProviderSubject mocks base method.
-func (m *MockOAuthIdentityProvider) GetByProviderSubject(provider config.ProviderID, subjectID string) (*identity.OAuth, error) {
+func (m *MockOAuthIdentityProvider) GetByProviderSubject(providerID oauthrelyingparty.ProviderID, subjectID string) (*identity.OAuth, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByProviderSubject", provider, subjectID)
+	ret := m.ctrl.Call(m, "GetByProviderSubject", providerID, subjectID)
 	ret0, _ := ret[0].(*identity.OAuth)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByProviderSubject indicates an expected call of GetByProviderSubject.
-func (mr *MockOAuthIdentityProviderMockRecorder) GetByProviderSubject(provider, subjectID interface{}) *gomock.Call {
+func (mr *MockOAuthIdentityProviderMockRecorder) GetByProviderSubject(providerID, subjectID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByProviderSubject", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).GetByProviderSubject), provider, subjectID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByProviderSubject", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).GetByProviderSubject), providerID, subjectID)
 }
 
 // GetByUserProvider mocks base method.
-func (m *MockOAuthIdentityProvider) GetByUserProvider(userID string, provider config.ProviderID) (*identity.OAuth, error) {
+func (m *MockOAuthIdentityProvider) GetByUserProvider(userID string, providerID oauthrelyingparty.ProviderID) (*identity.OAuth, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByUserProvider", userID, provider)
+	ret := m.ctrl.Call(m, "GetByUserProvider", userID, providerID)
 	ret0, _ := ret[0].(*identity.OAuth)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByUserProvider indicates an expected call of GetByUserProvider.
-func (mr *MockOAuthIdentityProviderMockRecorder) GetByUserProvider(userID, provider interface{}) *gomock.Call {
+func (mr *MockOAuthIdentityProviderMockRecorder) GetByUserProvider(userID, providerID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUserProvider", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).GetByUserProvider), userID, provider)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUserProvider", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).GetByUserProvider), userID, providerID)
 }
 
 // GetMany mocks base method.
@@ -371,17 +371,17 @@ func (mr *MockOAuthIdentityProviderMockRecorder) ListByClaimJSONPointer(pointer,
 }
 
 // New mocks base method.
-func (m *MockOAuthIdentityProvider) New(userID string, provider config.ProviderID, subjectID string, profile, claims map[string]interface{}) *identity.OAuth {
+func (m *MockOAuthIdentityProvider) New(userID string, providerID oauthrelyingparty.ProviderID, subjectID string, profile, claims map[string]interface{}) *identity.OAuth {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "New", userID, provider, subjectID, profile, claims)
+	ret := m.ctrl.Call(m, "New", userID, providerID, subjectID, profile, claims)
 	ret0, _ := ret[0].(*identity.OAuth)
 	return ret0
 }
 
 // New indicates an expected call of New.
-func (mr *MockOAuthIdentityProviderMockRecorder) New(userID, provider, subjectID, profile, claims interface{}) *gomock.Call {
+func (mr *MockOAuthIdentityProviderMockRecorder) New(userID, providerID, subjectID, profile, claims interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).New), userID, provider, subjectID, profile, claims)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).New), userID, providerID, subjectID, profile, claims)
 }
 
 // Update mocks base method.

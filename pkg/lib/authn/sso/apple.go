@@ -8,8 +8,10 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/apple"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
 	"github.com/authgear/authgear-server/pkg/util/duration"
@@ -24,13 +26,16 @@ var appleOIDCConfig = OIDCDiscoveryDocument{
 
 type AppleImpl struct {
 	Clock                        clock.Clock
-	ProviderConfig               config.OAuthSSOProviderConfig
+	ProviderConfig               oauthrelyingparty.ProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
 	HTTPClient                   OAuthHTTPClient
 }
 
 func (f *AppleImpl) createClientSecret() (clientSecret string, err error) {
+	teamID := apple.ProviderConfig(f.ProviderConfig).TeamID()
+	keyID := apple.ProviderConfig(f.ProviderConfig).KeyID()
+
 	// https://developer.apple.com/documentation/signinwithapplerestapi/generate_and_validate_tokens
 	key, err := crypto.ParseAppleP8PrivateKey([]byte(f.Credentials.ClientSecret))
 	if err != nil {
@@ -40,7 +45,7 @@ func (f *AppleImpl) createClientSecret() (clientSecret string, err error) {
 	now := f.Clock.NowUTC()
 
 	payload := jwt.New()
-	_ = payload.Set(jwt.IssuerKey, f.ProviderConfig.TeamID)
+	_ = payload.Set(jwt.IssuerKey, teamID)
 	_ = payload.Set(jwt.IssuedAtKey, now.Unix())
 	_ = payload.Set(jwt.ExpirationKey, now.Add(duration.Short).Unix())
 	_ = payload.Set(jwt.AudienceKey, "https://appleid.apple.com")
@@ -50,7 +55,7 @@ func (f *AppleImpl) createClientSecret() (clientSecret string, err error) {
 	if err != nil {
 		return
 	}
-	_ = jwkKey.Set("kid", f.ProviderConfig.KeyID)
+	_ = jwkKey.Set("kid", keyID)
 
 	token, err := jwtutil.Sign(payload, jwa.ES256, jwkKey)
 	if err != nil {
@@ -61,19 +66,15 @@ func (f *AppleImpl) createClientSecret() (clientSecret string, err error) {
 	return
 }
 
-func (*AppleImpl) Type() config.OAuthSSOProviderType {
-	return config.OAuthSSOProviderTypeApple
-}
-
-func (f *AppleImpl) Config() config.OAuthSSOProviderConfig {
+func (f *AppleImpl) Config() oauthrelyingparty.ProviderConfig {
 	return f.ProviderConfig
 }
 
 func (f *AppleImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	return appleOIDCConfig.MakeOAuthURL(AuthorizationURLParams{
-		ClientID:     f.ProviderConfig.ClientID,
+		ClientID:     f.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
-		Scope:        f.ProviderConfig.Type.Scope(),
+		Scope:        f.ProviderConfig.Scope(),
 		ResponseType: ResponseTypeCode,
 		ResponseMode: param.ResponseMode,
 		State:        param.State,
@@ -103,7 +104,7 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param
 		f.Clock,
 		r.Code,
 		keySet,
-		f.ProviderConfig.ClientID,
+		f.ProviderConfig.ClientID(),
 		clientSecret,
 		param.RedirectURI,
 		param.Nonce,
@@ -148,8 +149,9 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param
 	authInfo.ProviderRawProfile = claims
 	authInfo.ProviderUserID = sub
 
+	emailRequired := f.ProviderConfig.EmailClaimConfig().Required()
 	stdAttrs, err := stdattrs.Extract(claims, stdattrs.ExtractOptions{
-		EmailRequired: *f.ProviderConfig.Claims.Email.Required,
+		EmailRequired: emailRequired,
 	})
 	if err != nil {
 		return

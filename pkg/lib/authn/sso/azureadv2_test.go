@@ -4,9 +4,11 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	. "github.com/smartystreets/goconvey/convey"
 	"gopkg.in/h2non/gock.v1"
+
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/azureadv2"
 )
 
 func TestAzureadv2Impl(t *testing.T) {
@@ -16,10 +18,10 @@ func TestAzureadv2Impl(t *testing.T) {
 		defer gock.Off()
 
 		g := &Azureadv2Impl{
-			ProviderConfig: config.OAuthSSOProviderConfig{
-				ClientID: "client_id",
-				Type:     config.OAuthSSOProviderTypeAzureADv2,
-				Tenant:   "common",
+			ProviderConfig: oauthrelyingparty.ProviderConfig{
+				"client_id": "client_id",
+				"type":      azureadv2.Type,
+				"tenant":    "common",
 			},
 			HTTPClient: client,
 		}

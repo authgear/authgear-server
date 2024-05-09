@@ -3,16 +3,18 @@ package sso
 import (
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/apple"
 )
 
 func TestAppleImpl(t *testing.T) {
 	Convey("AppleImpl", t, func() {
 		g := &AppleImpl{
-			ProviderConfig: config.OAuthSSOProviderConfig{
-				ClientID: "client_id",
-				Type:     config.OAuthSSOProviderTypeApple,
+			ProviderConfig: oauthrelyingparty.ProviderConfig{
+				"client_id": "client_id",
+				"type":      apple.Type,
 			},
 			HTTPClient: OAuthHTTPClient{},
 		}

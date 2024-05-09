@@ -4,22 +4,25 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/azureadb2c"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 type Azureadb2cImpl struct {
 	Clock                        clock.Clock
-	ProviderConfig               config.OAuthSSOProviderConfig
+	ProviderConfig               oauthrelyingparty.ProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
 	HTTPClient                   OAuthHTTPClient
 }
 
 func (f *Azureadb2cImpl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error) {
-	tenant := f.ProviderConfig.Tenant
-	policy := f.ProviderConfig.Policy
+	azureadb2cConfig := azureadb2c.ProviderConfig(f.ProviderConfig)
+	tenant := azureadb2cConfig.Tenant()
+	policy := azureadb2cConfig.Policy()
 
 	endpoint := fmt.Sprintf(
 		"https://%s.b2clogin.com/%s.onmicrosoft.com/%s/v2.0/.well-known/openid-configuration",
@@ -31,11 +34,7 @@ func (f *Azureadb2cImpl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error
 	return FetchOIDCDiscoveryDocument(f.HTTPClient, endpoint)
 }
 
-func (f *Azureadb2cImpl) Type() config.OAuthSSOProviderType {
-	return config.OAuthSSOProviderTypeAzureADB2C
-}
-
-func (f *Azureadb2cImpl) Config() config.OAuthSSOProviderConfig {
+func (f *Azureadb2cImpl) Config() oauthrelyingparty.ProviderConfig {
 	return f.ProviderConfig
 }
 
@@ -45,9 +44,9 @@ func (f *Azureadb2cImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 		return "", err
 	}
 	return c.MakeOAuthURL(AuthorizationURLParams{
-		ClientID:     f.ProviderConfig.ClientID,
+		ClientID:     f.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
-		Scope:        f.ProviderConfig.Type.Scope(),
+		Scope:        f.ProviderConfig.Scope(),
 		ResponseType: ResponseTypeCode,
 		ResponseMode: param.ResponseMode,
 		State:        param.State,
@@ -77,7 +76,7 @@ func (f *Azureadb2cImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, 
 		f.Clock,
 		r.Code,
 		keySet,
-		f.ProviderConfig.ClientID,
+		f.ProviderConfig.ClientID(),
 		f.Credentials.ClientSecret,
 		param.RedirectURI,
 		param.Nonce,
@@ -179,8 +178,9 @@ func (f *Azureadb2cImpl) Extract(claims map[string]interface{}) (stdattrs.T, err
 	}
 	out[stdattrs.Email] = email
 
+	emailRequired := f.ProviderConfig.EmailClaimConfig().Required()
 	return stdattrs.Extract(out, stdattrs.ExtractOptions{
-		EmailRequired: *f.ProviderConfig.Claims.Email.Required,
+		EmailRequired: emailRequired,
 	})
 }
 

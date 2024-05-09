@@ -8,6 +8,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	liboauthrelyingparty "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -101,7 +102,7 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 	// Validation 1: lifetime of refresh token >= lifetime of access token
 	c.validateTokenLifetime(ctx)
 
-	// Validation 2: OAuth provider cannot duplicate.
+	// Validation 2: oauth provider
 	c.validateOAuthProvider(ctx)
 
 	// Validation 3: identity must have usable primary authenticator.
@@ -137,36 +138,26 @@ func (c *AppConfig) validateTokenLifetime(ctx *validation.Context) {
 }
 
 func (c *AppConfig) validateOAuthProvider(ctx *validation.Context) {
-	oAuthProviderIDs := map[string]struct{}{}
+	// We used to validate that ProviderID is unique.
+	// We now relax the validation, only alias is unique.
 	oauthProviderAliases := map[string]struct{}{}
-	for i, provider := range c.Identity.OAuth.Providers {
-		// Ensure provider ID is not duplicated
-		// Except WeChat provider with different app type
-		providerID := map[string]interface{}{}
-		for k, v := range provider.ProviderID().Claims() {
-			providerID[k] = v
-		}
-		if provider.Type == OAuthSSOProviderTypeWechat {
-			providerID["app_type"] = provider.AppType
-		}
-		id, err := json.Marshal(providerID)
-		if err != nil {
-			panic("config: cannot marshal provider ID claims: " + err.Error())
-		}
-		if _, ok := oAuthProviderIDs[string(id)]; ok {
-			ctx.Child("identity", "oauth", "providers", strconv.Itoa(i)).
-				EmitErrorMessage("duplicated OAuth provider")
-			continue
-		}
-		oAuthProviderIDs[string(id)] = struct{}{}
+	for i, providerConfig := range c.Identity.OAuth.Providers {
+		// We used to ensure provider ID is not duplicated.
+		// We now expect alias to be unique.
+		alias := providerConfig.Alias()
+		childCtx := ctx.Child("identity", "oauth", "providers", strconv.Itoa(i))
 
-		// Ensure alias is not duplicated.
-		if _, ok := oauthProviderAliases[provider.Alias]; ok {
-			ctx.Child("identity", "oauth", "providers", strconv.Itoa(i)).
-				EmitErrorMessage("duplicated OAuth provider alias")
+		if _, ok := oauthProviderAliases[alias]; ok {
+			childCtx.EmitErrorMessage("duplicated OAuth provider alias")
 			continue
 		}
-		oauthProviderAliases[provider.Alias] = struct{}{}
+		oauthProviderAliases[alias] = struct{}{}
+
+		// Validate provider config if it is a builin provider.
+		provider := providerConfig.MustGetProvider()
+		if builtinProvider, ok := provider.(liboauthrelyingparty.BuiltinProvider); ok {
+			builtinProvider.ValidateProviderConfig(childCtx, providerConfig)
+		}
 	}
 }
 

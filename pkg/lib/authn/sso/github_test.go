@@ -3,16 +3,18 @@ package sso
 import (
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/github"
 )
 
 func TestGithubImpl(t *testing.T) {
 	Convey("GithubImpl", t, func() {
 		g := &GithubImpl{
-			ProviderConfig: config.OAuthSSOProviderConfig{
-				ClientID: "client_id",
-				Type:     config.OAuthSSOProviderTypeGithub,
+			ProviderConfig: oauthrelyingparty.ProviderConfig{
+				"client_id": "client_id",
+				"type":      github.Type,
 			},
 			HTTPClient: OAuthHTTPClient{},
 		}

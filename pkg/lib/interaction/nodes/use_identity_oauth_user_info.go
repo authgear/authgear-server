@@ -6,9 +6,9 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
 )
@@ -28,7 +28,7 @@ type InputUseIdentityOAuthUserInfo interface {
 type EdgeUseIdentityOAuthUserInfo struct {
 	IsAuthentication bool
 	IsCreating       bool
-	Config           config.OAuthSSOProviderConfig
+	Config           oauthrelyingparty.ProviderConfig
 	HashedNonce      string
 	ErrorRedirectURI string
 }
@@ -47,8 +47,9 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 	errorURI := input.GetErrorURI()
 	hashedNonce := e.HashedNonce
 
-	if e.Config.Alias != alias {
-		return nil, fmt.Errorf("interaction: unexpected provider alias %s != %s", e.Config.Alias, alias)
+	providerConfigAlias := e.Config.Alias()
+	if providerConfigAlias != alias {
+		return nil, fmt.Errorf("interaction: unexpected provider alias %s != %s", providerConfigAlias, alias)
 	}
 
 	oauthProvider := ctx.OAuthProviderFactory.NewOAuthProvider(alias)

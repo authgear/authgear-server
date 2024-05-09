@@ -3,6 +3,7 @@ package sso
 import (
 	"context"
 
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -14,7 +15,7 @@ const (
 
 type GoogleImpl struct {
 	Clock                        clock.Clock
-	ProviderConfig               config.OAuthSSOProviderConfig
+	ProviderConfig               oauthrelyingparty.ProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
 	HTTPClient                   OAuthHTTPClient
@@ -26,9 +27,9 @@ func (f *GoogleImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 		return "", err
 	}
 	return d.MakeOAuthURL(AuthorizationURLParams{
-		ClientID:     f.ProviderConfig.ClientID,
+		ClientID:     f.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
-		Scope:        f.ProviderConfig.Type.Scope(),
+		Scope:        f.ProviderConfig.Scope(),
 		ResponseType: ResponseTypeCode,
 		ResponseMode: param.ResponseMode,
 		State:        param.State,
@@ -37,11 +38,7 @@ func (f *GoogleImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	}), nil
 }
 
-func (*GoogleImpl) Type() config.OAuthSSOProviderType {
-	return config.OAuthSSOProviderTypeGoogle
-}
-
-func (f *GoogleImpl) Config() config.OAuthSSOProviderConfig {
+func (f *GoogleImpl) Config() oauthrelyingparty.ProviderConfig {
 	return f.ProviderConfig
 }
 
@@ -66,7 +63,7 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, para
 		f.Clock,
 		r.Code,
 		keySet,
-		f.ProviderConfig.ClientID,
+		f.ProviderConfig.ClientID(),
 		f.Credentials.ClientSecret,
 		param.RedirectURI,
 		param.Nonce,
@@ -105,8 +102,9 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, para
 	// Google supports
 	// given_name, family_name, email, picture, profile, locale
 	// https://developers.google.com/identity/protocols/oauth2/openid-connect#obtainuserinfo
+	emailRequired := f.ProviderConfig.EmailClaimConfig().Required()
 	stdAttrs, err := stdattrs.Extract(claims, stdattrs.ExtractOptions{
-		EmailRequired: *f.ProviderConfig.Claims.Email.Required,
+		EmailRequired: emailRequired,
 	})
 	if err != nil {
 		return

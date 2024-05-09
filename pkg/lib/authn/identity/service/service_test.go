@@ -8,8 +8,10 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/google"
 )
 
 func newBool(b bool) *bool {
@@ -53,11 +55,11 @@ func TestProviderListCandidates(t *testing.T) {
 
 		Convey("oauth", func() {
 			p.Authentication.Identities = []model.IdentityType{model.IdentityTypeOAuth}
-			p.Identity.OAuth.Providers = []config.OAuthSSOProviderConfig{
+			p.Identity.OAuth.Providers = []oauthrelyingparty.ProviderConfig{
 				{
-					Alias:          "google",
-					Type:           "google",
-					ModifyDisabled: newBool(false),
+					"alias":           "google",
+					"type":            google.Type,
+					"modify_disabled": false,
 				},
 			}
 
@@ -103,11 +105,11 @@ func TestProviderListCandidates(t *testing.T) {
 		})
 
 		Convey("respect authentication", func() {
-			p.Identity.OAuth.Providers = []config.OAuthSSOProviderConfig{
+			p.Identity.OAuth.Providers = []oauthrelyingparty.ProviderConfig{
 				{
-					Alias:          "google",
-					Type:           "google",
-					ModifyDisabled: newBool(false),
+					"alias":           "google",
+					"type":            google.Type,
+					"modify_disabled": false,
 				},
 			}
 			p.Identity.LoginID.Keys = []config.LoginIDKeyConfig{
@@ -167,11 +169,11 @@ func TestProviderListCandidates(t *testing.T) {
 			userID := "a"
 
 			p.Authentication.Identities = []model.IdentityType{model.IdentityTypeOAuth}
-			p.Identity.OAuth.Providers = []config.OAuthSSOProviderConfig{
+			p.Identity.OAuth.Providers = []oauthrelyingparty.ProviderConfig{
 				{
-					Alias:          "google",
-					Type:           "google",
-					ModifyDisabled: newBool(false),
+					"alias":           "google",
+					"type":            google.Type,
+					"modify_disabled": false,
 				},
 			}
 
@@ -179,8 +181,8 @@ func TestProviderListCandidates(t *testing.T) {
 			siweProvider.EXPECT().List(userID).Return(nil, nil)
 			oauthProvider.EXPECT().List(userID).Return([]*identity.OAuth{
 				{
-					ProviderID: config.ProviderID{
-						Type: "google",
+					ProviderID: oauthrelyingparty.ProviderID{
+						Type: google.Type,
 						Keys: map[string]interface{}{},
 					},
 					ProviderSubjectID: "john.doe@gmail.com",

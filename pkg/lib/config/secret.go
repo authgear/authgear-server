@@ -149,18 +149,19 @@ func (c *SecretConfig) validateOAuthProviders(ctx *validation.Context, appConfig
 	oauth, ok := data.(*OAuthSSOProviderCredentials)
 	if ok {
 		for _, p := range appConfig.Identity.OAuth.Providers {
+			providerAlias := p.Alias()
 			var matchedItem *OAuthSSOProviderCredentialsItem = nil
 			var matchedItemIndex int = -1
 			for index := range oauth.Items {
 				item := oauth.Items[index]
-				if p.Alias == item.Alias {
+				if providerAlias == item.Alias {
 					matchedItem = &item
 					matchedItemIndex = index
 					break
 				}
 			}
 			if matchedItem == nil {
-				ctx.EmitErrorMessage(fmt.Sprintf("OAuth SSO provider client credentials for '%s' is required", p.Alias))
+				ctx.EmitErrorMessage(fmt.Sprintf("OAuth SSO provider client credentials for '%s' is required", providerAlias))
 			} else {
 				if matchedItem.ClientSecret == "" {
 					ctx.Child("secrets", fmt.Sprintf("%d", secretIndex), "data", "items", fmt.Sprintf("%d", matchedItemIndex)).EmitError(

@@ -5,6 +5,7 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 )
 
 type IdentificationData struct {
@@ -25,11 +26,11 @@ type IdentificationOption struct {
 	Identification config.AuthenticationFlowIdentification `json:"identification"`
 
 	// ProviderType is specific to OAuth.
-	ProviderType config.OAuthSSOProviderType `json:"provider_type,omitempty"`
+	ProviderType string `json:"provider_type,omitempty"`
 	// Alias is specific to OAuth.
 	Alias string `json:"alias,omitempty"`
 	// WechatAppType is specific to OAuth.
-	WechatAppType config.OAuthSSOWeChatAppType `json:"wechat_app_type,omitempty"`
+	WechatAppType wechat.AppType `json:"wechat_app_type,omitempty"`
 
 	// WebAuthnRequestOptions is specific to Passkey.
 	RequestOptions *model.WebAuthnRequestOptions `json:"request_options,omitempty"`
@@ -50,12 +51,12 @@ func NewIdentificationOptionLoginID(i config.AuthenticationFlowIdentification) I
 func NewIdentificationOptionsOAuth(oauthConfig *config.OAuthSSOConfig, oauthFeatureConfig *config.OAuthSSOProvidersFeatureConfig) []IdentificationOption {
 	output := []IdentificationOption{}
 	for _, p := range oauthConfig.Providers {
-		if !identity.IsOAuthSSOProviderTypeDisabled(p.Type, oauthFeatureConfig) {
+		if !identity.IsOAuthSSOProviderTypeDisabled(p, oauthFeatureConfig) {
 			output = append(output, IdentificationOption{
 				Identification: config.AuthenticationFlowIdentificationOAuth,
-				ProviderType:   p.Type,
-				Alias:          p.Alias,
-				WechatAppType:  p.AppType,
+				ProviderType:   p.Type(),
+				Alias:          p.Alias(),
+				WechatAppType:  wechat.ProviderConfig(p).AppType(),
 			})
 		}
 	}

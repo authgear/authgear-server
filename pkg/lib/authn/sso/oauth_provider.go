@@ -1,8 +1,18 @@
 package sso
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/adfs"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/apple"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/azureadb2c"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/azureadv2"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/facebook"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/github"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/google"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/linkedin"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
@@ -25,8 +35,7 @@ type OAuthAuthorizationResponse struct {
 
 // OAuthProvider is OAuth 2.0 based provider.
 type OAuthProvider interface {
-	Type() config.OAuthSSOProviderType
-	Config() config.OAuthSSOProviderConfig
+	Config() oauthrelyingparty.ProviderConfig
 	GetAuthURL(param GetAuthURLParam) (url string, err error)
 	GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (AuthInfo, error)
 	GetPrompt(prompt []string) []string
@@ -75,8 +84,8 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 		return nil
 	}
 
-	switch providerConfig.Type {
-	case config.OAuthSSOProviderTypeGoogle:
+	switch providerConfig.Type() {
+	case google.Type:
 		return &GoogleImpl{
 			Clock:                        p.Clock,
 			ProviderConfig:               *providerConfig,
@@ -84,28 +93,28 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
 			HTTPClient:                   p.HTTPClient,
 		}
-	case config.OAuthSSOProviderTypeFacebook:
+	case facebook.Type:
 		return &FacebookImpl{
 			ProviderConfig:               *providerConfig,
 			Credentials:                  *credentials,
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
 			HTTPClient:                   p.HTTPClient,
 		}
-	case config.OAuthSSOProviderTypeGithub:
+	case github.Type:
 		return &GithubImpl{
 			ProviderConfig:               *providerConfig,
 			Credentials:                  *credentials,
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
 			HTTPClient:                   p.HTTPClient,
 		}
-	case config.OAuthSSOProviderTypeLinkedIn:
+	case linkedin.Type:
 		return &LinkedInImpl{
 			ProviderConfig:               *providerConfig,
 			Credentials:                  *credentials,
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
 			HTTPClient:                   p.HTTPClient,
 		}
-	case config.OAuthSSOProviderTypeAzureADv2:
+	case azureadv2.Type:
 		return &Azureadv2Impl{
 			Clock:                        p.Clock,
 			ProviderConfig:               *providerConfig,
@@ -113,7 +122,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
 			HTTPClient:                   p.HTTPClient,
 		}
-	case config.OAuthSSOProviderTypeAzureADB2C:
+	case azureadb2c.Type:
 		return &Azureadb2cImpl{
 			Clock:                        p.Clock,
 			ProviderConfig:               *providerConfig,
@@ -121,7 +130,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
 			HTTPClient:                   p.HTTPClient,
 		}
-	case config.OAuthSSOProviderTypeADFS:
+	case adfs.Type:
 		return &ADFSImpl{
 			Clock:                        p.Clock,
 			ProviderConfig:               *providerConfig,
@@ -129,7 +138,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
 			HTTPClient:                   p.HTTPClient,
 		}
-	case config.OAuthSSOProviderTypeApple:
+	case apple.Type:
 		return &AppleImpl{
 			Clock:                        p.Clock,
 			ProviderConfig:               *providerConfig,
@@ -137,7 +146,7 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
 			HTTPClient:                   p.HTTPClient,
 		}
-	case config.OAuthSSOProviderTypeWechat:
+	case wechat.Type:
 		return &WechatImpl{
 			ProviderConfig:               *providerConfig,
 			Credentials:                  *credentials,

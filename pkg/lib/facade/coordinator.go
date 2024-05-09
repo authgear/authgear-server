@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
@@ -588,11 +589,11 @@ func (c *Coordinator) markOAuthEmailAsVerified(info *identity.Info) error {
 
 	providerID := info.OAuth.ProviderID
 
-	var cfg *config.OAuthSSOProviderConfig
+	var cfg oauthrelyingparty.ProviderConfig
 	for _, c := range c.IdentityConfig.OAuth.Providers {
-		if c.ProviderID().Equal(&providerID) {
-			c := c
-			cfg = &c
+		c := c
+		if c.ProviderID().Equal(providerID) {
+			cfg = c
 			break
 		}
 	}
@@ -600,13 +601,16 @@ func (c *Coordinator) markOAuthEmailAsVerified(info *identity.Info) error {
 	standardClaims := info.IdentityAwareStandardClaims()
 
 	email, ok := standardClaims[model.ClaimEmail]
-	if ok && cfg != nil && *cfg.Claims.Email.AssumeVerified {
-		// Mark as verified if OAuth email is assumed to be verified
-		err := c.markVerified(info.UserID, map[model.ClaimName]string{
-			model.ClaimEmail: email,
-		})
-		if err != nil {
-			return err
+	if ok && cfg != nil {
+		assumedVerified := cfg.EmailClaimConfig().AssumeVerified()
+		if assumedVerified {
+			// Mark as verified if OAuth email is assumed to be verified
+			err := c.markVerified(info.UserID, map[model.ClaimName]string{
+				model.ClaimEmail: email,
+			})
+			if err != nil {
+				return err
+			}
 		}
 	}
 

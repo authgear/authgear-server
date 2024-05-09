@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 )
 
 const (
@@ -261,7 +262,7 @@ func (n *AuthflowNavigator) navigateStepIdentify(s *AuthflowScreenWithFlowRespon
 		data := s.StateTokenFlowResponse.Action.Data.(declarative.OAuthData)
 
 		switch data.OAuthProviderType {
-		case config.OAuthSSOProviderTypeWechat:
+		case wechat.Type:
 			s.Advance(AuthflowRouteWechat, result)
 		default:
 			authorizationURL, _ := url.Parse(data.OAuthAuthorizationURL)

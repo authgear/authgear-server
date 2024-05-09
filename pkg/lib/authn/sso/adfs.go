@@ -3,30 +3,28 @@ package sso
 import (
 	"context"
 
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/adfs"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 type ADFSImpl struct {
 	Clock                        clock.Clock
-	ProviderConfig               config.OAuthSSOProviderConfig
+	ProviderConfig               oauthrelyingparty.ProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
 	HTTPClient                   OAuthHTTPClient
 }
 
-func (*ADFSImpl) Type() config.OAuthSSOProviderType {
-	return config.OAuthSSOProviderTypeADFS
-}
-
-func (f *ADFSImpl) Config() config.OAuthSSOProviderConfig {
+func (f *ADFSImpl) Config() oauthrelyingparty.ProviderConfig {
 	return f.ProviderConfig
 }
 
 func (f *ADFSImpl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error) {
-	endpoint := f.ProviderConfig.DiscoveryDocumentEndpoint
+	endpoint := adfs.ProviderConfig(f.ProviderConfig).DiscoveryDocumentEndpoint()
 	return FetchOIDCDiscoveryDocument(f.HTTPClient, endpoint)
 }
 
@@ -36,9 +34,9 @@ func (f *ADFSImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 		return "", err
 	}
 	return c.MakeOAuthURL(AuthorizationURLParams{
-		ClientID:     f.ProviderConfig.ClientID,
+		ClientID:     f.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
-		Scope:        f.ProviderConfig.Type.Scope(),
+		Scope:        f.ProviderConfig.Scope(),
 		ResponseType: ResponseTypeCode,
 		ResponseMode: param.ResponseMode,
 		State:        param.State,
@@ -69,7 +67,7 @@ func (f *ADFSImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param 
 		f.Clock,
 		r.Code,
 		keySet,
-		f.ProviderConfig.ClientID,
+		f.ProviderConfig.ClientID(),
 		f.Credentials.ClientSecret,
 		param.RedirectURI,
 		param.Nonce,
@@ -115,8 +113,9 @@ func (f *ADFSImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param 
 		}
 	}
 
+	emailRequired := f.ProviderConfig.EmailClaimConfig().Required()
 	extracted, err = stdattrs.Extract(extracted, stdattrs.ExtractOptions{
-		EmailRequired: *f.ProviderConfig.Claims.Email.Required,
+		EmailRequired: emailRequired,
 	})
 	if err != nil {
 		return

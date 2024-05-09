@@ -1,10 +1,10 @@
 package identity
 
 import (
-	"fmt"
-
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 )
 
 type Candidate map[string]interface{}
@@ -27,16 +27,16 @@ const (
 	CandidateKeyModifyDisabled = "modify_disabled"
 )
 
-func NewOAuthCandidate(c *config.OAuthSSOProviderConfig) Candidate {
+func NewOAuthCandidate(cfg oauthrelyingparty.ProviderConfig) Candidate {
 	return Candidate{
 		CandidateKeyIdentityID:        "",
 		CandidateKeyType:              string(model.IdentityTypeOAuth),
-		CandidateKeyProviderType:      string(c.Type),
-		CandidateKeyProviderAlias:     c.Alias,
+		CandidateKeyProviderType:      string(cfg.Type()),
+		CandidateKeyProviderAlias:     cfg.Alias(),
 		CandidateKeyProviderSubjectID: "",
-		CandidateKeyProviderAppType:   string(c.AppType),
+		CandidateKeyProviderAppType:   string(wechat.ProviderConfig(cfg).AppType()),
 		CandidateKeyDisplayID:         "",
-		CandidateKeyModifyDisabled:    *c.ModifyDisabled,
+		CandidateKeyModifyDisabled:    cfg.ModifyDisabled(),
 	}
 }
 
@@ -60,27 +60,6 @@ func NewSIWECandidate() Candidate {
 	}
 }
 
-func IsOAuthSSOProviderTypeDisabled(typ config.OAuthSSOProviderType, featureConfig *config.OAuthSSOProvidersFeatureConfig) bool {
-	switch typ {
-	case config.OAuthSSOProviderTypeGoogle:
-		return featureConfig.Google.Disabled
-	case config.OAuthSSOProviderTypeFacebook:
-		return featureConfig.Facebook.Disabled
-	case config.OAuthSSOProviderTypeGithub:
-		return featureConfig.Github.Disabled
-	case config.OAuthSSOProviderTypeLinkedIn:
-		return featureConfig.LinkedIn.Disabled
-	case config.OAuthSSOProviderTypeAzureADv2:
-		return featureConfig.Azureadv2.Disabled
-	case config.OAuthSSOProviderTypeAzureADB2C:
-		return featureConfig.Azureadb2c.Disabled
-	case config.OAuthSSOProviderTypeADFS:
-		return featureConfig.ADFS.Disabled
-	case config.OAuthSSOProviderTypeApple:
-		return featureConfig.Apple.Disabled
-	case config.OAuthSSOProviderTypeWechat:
-		return featureConfig.Wechat.Disabled
-	default:
-		panic(fmt.Sprintf("node: unknown oauth sso type: %T", typ))
-	}
+func IsOAuthSSOProviderTypeDisabled(cfg oauthrelyingparty.ProviderConfig, featureConfig *config.OAuthSSOProvidersFeatureConfig) bool {
+	return featureConfig.IsDisabled(cfg)
 }

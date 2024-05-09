@@ -1,6 +1,7 @@
 package sso
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
@@ -14,25 +15,21 @@ const (
 )
 
 type LinkedInImpl struct {
-	ProviderConfig               config.OAuthSSOProviderConfig
+	ProviderConfig               oauthrelyingparty.ProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
 	HTTPClient                   OAuthHTTPClient
 }
 
-func (*LinkedInImpl) Type() config.OAuthSSOProviderType {
-	return config.OAuthSSOProviderTypeLinkedIn
-}
-
-func (f *LinkedInImpl) Config() config.OAuthSSOProviderConfig {
+func (f *LinkedInImpl) Config() oauthrelyingparty.ProviderConfig {
 	return f.ProviderConfig
 }
 
 func (f *LinkedInImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	return MakeAuthorizationURL(linkedinAuthorizationURL, AuthorizationURLParams{
-		ClientID:     f.ProviderConfig.ClientID,
+		ClientID:     f.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
-		Scope:        f.ProviderConfig.Type.Scope(),
+		Scope:        f.ProviderConfig.Scope(),
 		ResponseType: ResponseTypeCode,
 		// ResponseMode is unset.
 		State:  param.State,
@@ -51,7 +48,7 @@ func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 		r.Code,
 		linkedinTokenURL,
 		param.RedirectURI,
-		f.ProviderConfig.ClientID,
+		f.ProviderConfig.ClientID(),
 		f.Credentials.ClientSecret,
 	)
 	if err != nil {
@@ -276,8 +273,9 @@ func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 	id, attrs := decodeLinkedIn(combinedResponse)
 	authInfo.ProviderUserID = id
 
+	emailRequired := f.ProviderConfig.EmailClaimConfig().Required()
 	attrs, err = stdattrs.Extract(attrs, stdattrs.ExtractOptions{
-		EmailRequired: *f.ProviderConfig.Claims.Email.Required,
+		EmailRequired: emailRequired,
 	})
 	if err != nil {
 		return

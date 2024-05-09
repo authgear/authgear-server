@@ -4,14 +4,16 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/azureadv2"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 type Azureadv2Impl struct {
 	Clock                        clock.Clock
-	ProviderConfig               config.OAuthSSOProviderConfig
+	ProviderConfig               oauthrelyingparty.ProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
 	HTTPClient                   OAuthHTTPClient
@@ -20,7 +22,8 @@ type Azureadv2Impl struct {
 func (f *Azureadv2Impl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error) {
 	// OPTIMIZE(sso): Cache OpenID configuration
 
-	tenant := f.ProviderConfig.Tenant
+	tenant := azureadv2.ProviderConfig(f.ProviderConfig).Tenant()
+
 	var endpoint string
 	// Azure special tenant
 	//
@@ -64,11 +67,7 @@ func (f *Azureadv2Impl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error)
 	return FetchOIDCDiscoveryDocument(f.HTTPClient, endpoint)
 }
 
-func (*Azureadv2Impl) Type() config.OAuthSSOProviderType {
-	return config.OAuthSSOProviderTypeAzureADv2
-}
-
-func (f *Azureadv2Impl) Config() config.OAuthSSOProviderConfig {
+func (f *Azureadv2Impl) Config() oauthrelyingparty.ProviderConfig {
 	return f.ProviderConfig
 }
 
@@ -78,9 +77,9 @@ func (f *Azureadv2Impl) GetAuthURL(param GetAuthURLParam) (string, error) {
 		return "", err
 	}
 	return c.MakeOAuthURL(AuthorizationURLParams{
-		ClientID:     f.ProviderConfig.ClientID,
+		ClientID:     f.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
-		Scope:        f.ProviderConfig.Type.Scope(),
+		Scope:        f.ProviderConfig.Scope(),
 		ResponseType: ResponseTypeCode,
 		ResponseMode: param.ResponseMode,
 		State:        param.State,
@@ -110,7 +109,7 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, p
 		f.Clock,
 		r.Code,
 		keySet,
-		f.ProviderConfig.ClientID,
+		f.ProviderConfig.ClientID(),
 		f.Credentials.ClientSecret,
 		param.RedirectURI,
 		param.Nonce,
@@ -136,8 +135,9 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, p
 
 	authInfo.ProviderRawProfile = claims
 	authInfo.ProviderUserID = oid
+	emailRequired := f.ProviderConfig.EmailClaimConfig().Required()
 	stdAttrs, err := stdattrs.Extract(claims, stdattrs.ExtractOptions{
-		EmailRequired: *f.ProviderConfig.Claims.Email.Required,
+		EmailRequired: emailRequired,
 	})
 	if err != nil {
 		return

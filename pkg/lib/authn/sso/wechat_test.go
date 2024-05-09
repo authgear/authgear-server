@@ -3,17 +3,19 @@ package sso
 import (
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 )
 
 func TestWechatImpl(t *testing.T) {
 	Convey("WechatImpl", t, func() {
 
 		g := &WechatImpl{
-			ProviderConfig: config.OAuthSSOProviderConfig{
-				ClientID: "client_id",
-				Type:     config.OAuthSSOProviderTypeWechat,
+			ProviderConfig: oauthrelyingparty.ProviderConfig{
+				"client_id": "client_id",
+				"type":      wechat.Type,
 			},
 			HTTPClient: OAuthHTTPClient{},
 		}

@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	oauthrelyingpartywechat "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/wechat"
 )
@@ -65,7 +66,7 @@ func (m *WeChatRedirectURIMiddleware) Handle(next http.Handler) http.Handler {
 
 func (m *WeChatRedirectURIMiddleware) isWechatEnabled() bool {
 	for _, providerConfig := range m.IdentityConfig.OAuth.Providers {
-		if providerConfig.Type == config.OAuthSSOProviderTypeWechat {
+		if providerConfig.Type() == oauthrelyingpartywechat.Type {
 			return true
 		}
 	}
@@ -82,8 +83,8 @@ func (m *WeChatRedirectURIMiddleware) populateWechatRedirectURI(
 		// Validate x_wechat_redirect_uri
 		valid := false
 		for _, providerConfig := range m.IdentityConfig.OAuth.Providers {
-			if providerConfig.Type == config.OAuthSSOProviderTypeWechat {
-				for _, allowed := range providerConfig.WeChatRedirectURIs {
+			if providerConfig.Type() == oauthrelyingpartywechat.Type {
+				for _, allowed := range oauthrelyingpartywechat.ProviderConfig(providerConfig).WechatRedirectURIs() {
 					if weChatRedirectURI == allowed {
 						valid = true
 					}

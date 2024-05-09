@@ -3,16 +3,18 @@ package sso
 import (
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/linkedin"
 )
 
 func TestLinkedInImpl(t *testing.T) {
 	Convey("LinkedInImpl", t, func() {
 		g := &LinkedInImpl{
-			ProviderConfig: config.OAuthSSOProviderConfig{
-				ClientID: "client_id",
-				Type:     config.OAuthSSOProviderTypeLinkedIn,
+			ProviderConfig: oauthrelyingparty.ProviderConfig{
+				"client_id": "client_id",
+				"type":      linkedin.Type,
 			},
 			HTTPClient: OAuthHTTPClient{},
 		}

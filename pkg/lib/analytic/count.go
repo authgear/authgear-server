@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -40,7 +40,7 @@ func init() {
 			string(typ), fmt.Sprintf(DailySignupWithLoginIDCountType, typ),
 		})
 	}
-	for _, typ := range config.OAuthSSOProviderTypes {
+	for _, typ := range oauthrelyingparty.BuiltinProviderTypes {
 		DailySignupCountTypeByMethods = append(DailySignupCountTypeByMethods, &DailySignupCountTypeByMethod{
 			string(typ), fmt.Sprintf(DailySignupWithOAuthCountType, typ),
 		})
