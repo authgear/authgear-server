@@ -55,7 +55,7 @@ func (f *Azureadb2cImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthoriz
 	}), nil
 }
 
-func (f *Azureadb2cImpl) GetAuthInfo(param GetAuthInfoParam) (authInfo AuthInfo, err error) {
+func (f *Azureadb2cImpl) GetUserProfile(param GetUserProfileOptions) (authInfo UserProfile, err error) {
 	c, err := f.getOpenIDConfiguration()
 	if err != nil {
 		return

@@ -43,8 +43,8 @@ func (f *FacebookImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizat
 	}.Query()), nil
 }
 
-func (f *FacebookImpl) GetAuthInfo(param GetAuthInfoParam) (authInfo AuthInfo, err error) {
-	authInfo = AuthInfo{}
+func (f *FacebookImpl) GetUserProfile(param GetUserProfileOptions) (authInfo UserProfile, err error) {
+	authInfo = UserProfile{}
 
 	accessTokenResp, err := oauthrelyingpartyutil.FetchAccessTokenResp(
 		f.HTTPClient.Client,

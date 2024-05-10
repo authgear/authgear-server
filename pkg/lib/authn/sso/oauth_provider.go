@@ -16,7 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
-type GetAuthInfoParam struct {
+type GetUserProfileOptions struct {
 	Code        string
 	RedirectURI string
 	Nonce       string
@@ -26,7 +26,7 @@ type GetAuthInfoParam struct {
 type OAuthProvider interface {
 	Config() oauthrelyingparty.ProviderConfig
 	GetAuthorizationURL(options oauthrelyingparty.GetAuthorizationURLOptions) (url string, err error)
-	GetAuthInfo(param GetAuthInfoParam) (AuthInfo, error)
+	GetUserProfile(options GetUserProfileOptions) (UserProfile, error)
 }
 
 type StandardAttributesNormalizer interface {

@@ -45,7 +45,7 @@ func (f *ADFSImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizationU
 	}), nil
 }
 
-func (f *ADFSImpl) GetAuthInfo(param GetAuthInfoParam) (authInfo AuthInfo, err error) {
+func (f *ADFSImpl) GetUserProfile(param GetUserProfileOptions) (authInfo UserProfile, err error) {
 	c, err := f.getOpenIDConfiguration()
 	if err != nil {
 		return

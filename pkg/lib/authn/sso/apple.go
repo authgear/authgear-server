@@ -86,7 +86,7 @@ func (f *AppleImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorization
 	}), nil
 }
 
-func (f *AppleImpl) GetAuthInfo(param GetAuthInfoParam) (authInfo AuthInfo, err error) {
+func (f *AppleImpl) GetUserProfile(param GetUserProfileOptions) (authInfo UserProfile, err error) {
 	keySet, err := appleOIDCConfig.FetchJWKs(f.HTTPClient)
 	if err != nil {
 		return

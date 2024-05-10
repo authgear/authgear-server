@@ -690,8 +690,8 @@ func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, opts HandleOA
 	// Nonce in the current implementation is stored in cookies.
 	// In the Authentication Flow API, cookies are not sent in Safari in third-party context.
 	emptyNonce := ""
-	authInfo, err := oauthProvider.GetAuthInfo(
-		sso.GetAuthInfoParam{
+	authInfo, err := oauthProvider.GetUserProfile(
+		sso.GetUserProfileOptions{
 			Code:        code,
 			RedirectURI: opts.RedirectURI,
 			Nonce:       emptyNonce,
