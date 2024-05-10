@@ -79,7 +79,7 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 		redirectURIForOAuthProvider = ctx.OAuthRedirectURIBuilder.WeChatCallbackEndpointURL().String()
 	}
 
-	param := sso.GetAuthURLParam{
+	param := sso.GetAuthorizationURLOptions{
 		RedirectURI: redirectURIForOAuthProvider,
 		// We use response_mode=form_post if it is supported.
 		ResponseMode: oauthrelyingparty.ResponseModeFormPost,
@@ -87,7 +87,7 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 		Prompt:       input.GetPrompt(),
 		State:        ctx.WebSessionID,
 	}
-	redirectURI, err := oauthProvider.GetAuthURL(param)
+	redirectURI, err := oauthProvider.GetAuthorizationURL(param)
 	if err != nil {
 		return nil, err
 	}

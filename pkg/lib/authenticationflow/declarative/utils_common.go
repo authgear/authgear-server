@@ -732,13 +732,13 @@ func getOAuthData(ctx context.Context, deps *authflow.Dependencies, opts GetOAut
 
 	uiParam := uiparam.GetUIParam(ctx)
 
-	param := sso.GetAuthURLParam{
+	param := sso.GetAuthorizationURLOptions{
 		RedirectURI:  opts.RedirectURI,
 		ResponseMode: opts.ResponseMode,
 		Prompt:       uiParam.Prompt,
 	}
 
-	authorizationURL, err := oauthProvider.GetAuthURL(param)
+	authorizationURL, err := oauthProvider.GetAuthorizationURL(param)
 	if err != nil {
 		return
 	}

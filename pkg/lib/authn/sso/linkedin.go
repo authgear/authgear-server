@@ -25,7 +25,7 @@ func (f *LinkedInImpl) Config() oauthrelyingparty.ProviderConfig {
 	return f.ProviderConfig
 }
 
-func (f *LinkedInImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
+func (f *LinkedInImpl) GetAuthorizationURL(param GetAuthorizationURLOptions) (string, error) {
 	return oauthrelyingpartyutil.MakeAuthorizationURL(linkedinAuthorizationURL, oauthrelyingpartyutil.AuthorizationURLParams{
 		ClientID:     f.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,

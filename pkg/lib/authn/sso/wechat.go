@@ -22,7 +22,7 @@ func (w *WechatImpl) Config() oauthrelyingparty.ProviderConfig {
 	return w.ProviderConfig
 }
 
-func (w *WechatImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
+func (w *WechatImpl) GetAuthorizationURL(param GetAuthorizationURLOptions) (string, error) {
 	return oauthrelyingpartyutil.MakeAuthorizationURL(wechatAuthorizationURL, oauthrelyingpartyutil.AuthorizationURLParams{
 		// ClientID is not used by wechat.
 		WechatAppID:  w.ProviderConfig.ClientID(),

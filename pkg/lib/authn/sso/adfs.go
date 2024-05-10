@@ -28,7 +28,7 @@ func (f *ADFSImpl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error) {
 	return FetchOIDCDiscoveryDocument(f.HTTPClient, endpoint)
 }
 
-func (f *ADFSImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
+func (f *ADFSImpl) GetAuthorizationURL(param GetAuthorizationURLOptions) (string, error) {
 	c, err := f.getOpenIDConfiguration()
 	if err != nil {
 		return "", err

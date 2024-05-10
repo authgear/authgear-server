@@ -20,7 +20,7 @@ func TestWechatImpl(t *testing.T) {
 			HTTPClient: OAuthHTTPClient{},
 		}
 
-		u, err := g.GetAuthURL(GetAuthURLParam{
+		u, err := g.GetAuthorizationURL(GetAuthorizationURLOptions{
 			Nonce:  "nonce",
 			State:  "state",
 			Prompt: []string{"login"},

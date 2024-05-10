@@ -70,7 +70,7 @@ func (f *AppleImpl) Config() oauthrelyingparty.ProviderConfig {
 	return f.ProviderConfig
 }
 
-func (f *AppleImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
+func (f *AppleImpl) GetAuthorizationURL(param GetAuthorizationURLOptions) (string, error) {
 	return appleOIDCConfig.MakeOAuthURL(oauthrelyingpartyutil.AuthorizationURLParams{
 		ClientID:     f.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,

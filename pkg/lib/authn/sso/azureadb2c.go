@@ -38,7 +38,7 @@ func (f *Azureadb2cImpl) Config() oauthrelyingparty.ProviderConfig {
 	return f.ProviderConfig
 }
 
-func (f *Azureadb2cImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
+func (f *Azureadb2cImpl) GetAuthorizationURL(param GetAuthorizationURLOptions) (string, error) {
 	c, err := f.getOpenIDConfiguration()
 	if err != nil {
 		return "", err
