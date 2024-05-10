@@ -18,10 +18,6 @@ type WechatImpl struct {
 	HTTPClient                   OAuthHTTPClient
 }
 
-func (w *WechatImpl) Config() oauthrelyingparty.ProviderConfig {
-	return w.ProviderConfig
-}
-
 func (w *WechatImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
 	return oauthrelyingpartyutil.MakeAuthorizationURL(wechatAuthorizationURL, oauthrelyingpartyutil.AuthorizationURLParams{
 		// ClientID is not used by wechat.

@@ -23,10 +23,6 @@ type FacebookImpl struct {
 	HTTPClient                   OAuthHTTPClient
 }
 
-func (f *FacebookImpl) Config() oauthrelyingparty.ProviderConfig {
-	return f.ProviderConfig
-}
-
 func (f *FacebookImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
 	return oauthrelyingpartyutil.MakeAuthorizationURL(facebookAuthorizationURL, oauthrelyingpartyutil.AuthorizationURLParams{
 		ClientID:     f.ProviderConfig.ClientID(),

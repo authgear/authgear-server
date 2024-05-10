@@ -28,10 +28,6 @@ type GithubImpl struct {
 	HTTPClient                   OAuthHTTPClient
 }
 
-func (g *GithubImpl) Config() oauthrelyingparty.ProviderConfig {
-	return g.ProviderConfig
-}
-
 func (g *GithubImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
 	// https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps#1-request-a-users-github-identity
 	return oauthrelyingpartyutil.MakeAuthorizationURL(githubAuthorizationURL, oauthrelyingpartyutil.AuthorizationURLParams{

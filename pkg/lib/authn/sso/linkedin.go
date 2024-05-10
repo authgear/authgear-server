@@ -21,10 +21,6 @@ type LinkedInImpl struct {
 	HTTPClient                   OAuthHTTPClient
 }
 
-func (f *LinkedInImpl) Config() oauthrelyingparty.ProviderConfig {
-	return f.ProviderConfig
-}
-
 func (f *LinkedInImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
 	return oauthrelyingpartyutil.MakeAuthorizationURL(linkedinAuthorizationURL, oauthrelyingpartyutil.AuthorizationURLParams{
 		ClientID:     f.ProviderConfig.ClientID(),

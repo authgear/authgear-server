@@ -19,7 +19,6 @@ import (
 
 // OAuthProvider is OAuth 2.0 based provider.
 type OAuthProvider interface {
-	Config() oauthrelyingparty.ProviderConfig
 	GetAuthorizationURL(options oauthrelyingparty.GetAuthorizationURLOptions) (url string, err error)
 	GetUserProfile(options oauthrelyingparty.GetUserProfileOptions) (oauthrelyingparty.UserProfile, error)
 }

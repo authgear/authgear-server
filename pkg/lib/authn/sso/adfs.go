@@ -19,10 +19,6 @@ type ADFSImpl struct {
 	HTTPClient                   OAuthHTTPClient
 }
 
-func (f *ADFSImpl) Config() oauthrelyingparty.ProviderConfig {
-	return f.ProviderConfig
-}
-
 func (f *ADFSImpl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error) {
 	endpoint := adfs.ProviderConfig(f.ProviderConfig).DiscoveryDocumentEndpoint()
 	return FetchOIDCDiscoveryDocument(f.HTTPClient, endpoint)

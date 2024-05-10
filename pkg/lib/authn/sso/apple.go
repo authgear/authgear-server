@@ -66,10 +66,6 @@ func (f *AppleImpl) createClientSecret() (clientSecret string, err error) {
 	return
 }
 
-func (f *AppleImpl) Config() oauthrelyingparty.ProviderConfig {
-	return f.ProviderConfig
-}
-
 func (f *AppleImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
 	return appleOIDCConfig.MakeOAuthURL(oauthrelyingpartyutil.AuthorizationURLParams{
 		ClientID:     f.ProviderConfig.ClientID(),

@@ -67,10 +67,6 @@ func (f *Azureadv2Impl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error)
 	return FetchOIDCDiscoveryDocument(f.HTTPClient, endpoint)
 }
 
-func (f *Azureadv2Impl) Config() oauthrelyingparty.ProviderConfig {
-	return f.ProviderConfig
-}
-
 func (f *Azureadv2Impl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
 	c, err := f.getOpenIDConfiguration()
 	if err != nil {
