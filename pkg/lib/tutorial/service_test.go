@@ -5,6 +5,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/google"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 

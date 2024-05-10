@@ -10,6 +10,8 @@ import (
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	configtest "github.com/authgear/authgear-server/pkg/lib/config/test"
+	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/facebook"
+	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/google"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
