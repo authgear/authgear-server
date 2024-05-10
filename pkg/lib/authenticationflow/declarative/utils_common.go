@@ -709,7 +709,7 @@ func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, opts HandleOA
 			ProviderID:     providerID,
 			SubjectID:      authInfo.ProviderUserID,
 			RawProfile:     authInfo.ProviderRawProfile,
-			StandardClaims: authInfo.StandardAttributes.ToClaims(),
+			StandardClaims: authInfo.StandardAttributes,
 		},
 	}
 

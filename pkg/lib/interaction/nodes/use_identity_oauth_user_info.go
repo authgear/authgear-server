@@ -92,7 +92,7 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 			ProviderID:     providerID,
 			SubjectID:      userInfo.ProviderUserID,
 			RawProfile:     userInfo.ProviderRawProfile,
-			StandardClaims: userInfo.StandardAttributes.ToClaims(),
+			StandardClaims: userInfo.StandardAttributes,
 		},
 	}
 
