@@ -78,8 +78,11 @@ func (f *AppleImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		ResponseMode: param.ResponseMode,
 		State:        param.State,
-		Prompt:       f.GetPrompt(param.Prompt),
-		Nonce:        param.Nonce,
+		// Prompt is unset.
+		// Apple doesn't support prompt parameter
+		// See "Send the Required Query Parameters" section for supporting parameters
+		// https://developer.apple.com/documentation/sign_in_with_apple/sign_in_with_apple_js/incorporating_sign_in_with_apple_into_other_platforms
+		Nonce: param.Nonce,
 	}), nil
 }
 
@@ -160,13 +163,6 @@ func (f *AppleImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoP
 	}
 
 	return
-}
-
-func (f *AppleImpl) GetPrompt(prompt []string) []string {
-	// apple doesn't support prompt parameter
-	// see "Send the Required Query Parameters" section for supporting parameters
-	// ref: https://developer.apple.com/documentation/sign_in_with_apple/sign_in_with_apple_js/incorporating_sign_in_with_apple_into_other_platforms
-	return []string{}
 }
 
 var (

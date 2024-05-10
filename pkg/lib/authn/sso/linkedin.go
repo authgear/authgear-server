@@ -32,8 +32,11 @@ func (f *LinkedInImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 		Scope:        f.ProviderConfig.Scope(),
 		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		// ResponseMode is unset.
-		State:  param.State,
-		Prompt: f.GetPrompt(param.Prompt),
+		State: param.State,
+		// Prompt is unset.
+		// Linkedin doesn't support prompt parameter
+		// https://docs.microsoft.com/en-us/linkedin/shared/authentication/authorization-code-flow?tabs=HTTPS#step-2-request-an-authorization-code
+
 		// Nonce is unset
 	}.Query()), nil
 }
@@ -284,12 +287,6 @@ func (f *LinkedInImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthIn
 	}
 
 	return
-}
-
-func (f *LinkedInImpl) GetPrompt(prompt []string) []string {
-	// linkedin doesn't support prompt parameter
-	// ref: https://docs.microsoft.com/en-us/linkedin/shared/authentication/authorization-code-flow?tabs=HTTPS#step-2-request-an-authorization-code
-	return []string{}
 }
 
 func decodeLinkedIn(userInfo map[string]interface{}) (string, stdattrs.T) {

@@ -34,8 +34,11 @@ func (f *FacebookImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 		Scope:        f.ProviderConfig.Scope(),
 		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		// ResponseMode is unset
-		State:  param.State,
-		Prompt: f.GetPrompt(param.Prompt),
+		State: param.State,
+		// Prompt is unset.
+		// Facebook doesn't support prompt parameter
+		// https://developers.facebook.com/docs/facebook-login/manually-build-a-login-flow/
+
 		// Nonce is unset
 	}.Query()), nil
 }
@@ -127,12 +130,6 @@ func (f *FacebookImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthIn
 	}
 
 	return
-}
-
-func (f *FacebookImpl) GetPrompt(prompt []string) []string {
-	// facebook doesn't support prompt parameter
-	// https://developers.facebook.com/docs/facebook-login/manually-build-a-login-flow/
-	return []string{}
 }
 
 var (

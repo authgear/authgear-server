@@ -164,11 +164,6 @@ func (g *GithubImpl) fetchUserInfo(accessTokenResp oauthrelyingpartyutil.AccessT
 	return
 }
 
-func (*GithubImpl) GetPrompt(prompt []string) []string {
-	// Github does not support prompt.
-	return []string{}
-}
-
 var (
 	_ OAuthProvider = &GithubImpl{}
 )

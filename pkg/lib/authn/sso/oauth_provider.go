@@ -38,7 +38,6 @@ type OAuthProvider interface {
 	Config() oauthrelyingparty.ProviderConfig
 	GetAuthURL(param GetAuthURLParam) (url string, err error)
 	GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (AuthInfo, error)
-	GetPrompt(prompt []string) []string
 }
 
 type StandardAttributesNormalizer interface {

@@ -30,8 +30,10 @@ func (w *WechatImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 		Scope:        w.ProviderConfig.Scope(),
 		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		// ResponseMode is unset.
-		State:  param.State,
-		Prompt: w.GetPrompt(param.Prompt),
+		State: param.State,
+		// Prompt is unset.
+		// Wechat doesn't support prompt parameter
+		// https://developers.weixin.qq.com/doc/oplatform/en/Third-party_Platforms/Official_Accounts/official_account_website_authorization.html
 		// Nonce is unset.
 	}.Query()), nil
 }
@@ -111,12 +113,6 @@ func (w *WechatImpl) GetAuthInfo(r OAuthAuthorizationResponse, _ GetAuthInfoPara
 	}
 
 	return
-}
-
-func (w *WechatImpl) GetPrompt(prompt []string) []string {
-	// wechat doesn't support prompt parameter
-	// ref: https://developers.weixin.qq.com/doc/oplatform/en/Third-party_Platforms/Official_Accounts/official_account_website_authorization.html
-	return []string{}
 }
 
 var (

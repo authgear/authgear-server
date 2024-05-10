@@ -34,7 +34,7 @@ func (f *GoogleImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 		ResponseMode: param.ResponseMode,
 		State:        param.State,
 		Nonce:        param.Nonce,
-		Prompt:       f.GetPrompt(param.Prompt),
+		Prompt:       f.getPrompt(param.Prompt),
 	}), nil
 }
 
@@ -115,11 +115,11 @@ func (f *GoogleImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfo
 	return
 }
 
-func (f *GoogleImpl) GetPrompt(prompt []string) []string {
-	// google support `none`, `concent` and `select_account` for prompt
-	// the usage of `none` is for checking existing authentication and/or consent
-	// which doesn't fit auth ui case
-	// ref: https://developers.google.com/identity/protocols/oauth2/openid-connect#authenticationuriparameters
+func (f *GoogleImpl) getPrompt(prompt []string) []string {
+	// Google supports `none`, `consent` and `select_account` for prompt.
+	// The usage of `none` is for checking existing authentication and/or consent
+	// which doesn't fit auth ui case.
+	// https://developers.google.com/identity/protocols/oauth2/openid-connect#authenticationuriparameters
 	newPrompt := []string{}
 	for _, p := range prompt {
 		if p == "consent" ||

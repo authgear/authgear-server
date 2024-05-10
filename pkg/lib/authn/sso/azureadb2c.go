@@ -50,7 +50,7 @@ func (f *Azureadb2cImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		ResponseMode: param.ResponseMode,
 		State:        param.State,
-		Prompt:       f.GetPrompt(param.Prompt),
+		Prompt:       f.getPrompt(param.Prompt),
 		Nonce:        param.Nonce,
 	}), nil
 }
@@ -180,7 +180,7 @@ func (f *Azureadb2cImpl) Extract(claims map[string]interface{}) (stdattrs.T, err
 	})
 }
 
-func (f *Azureadb2cImpl) GetPrompt(prompt []string) []string {
+func (f *Azureadb2cImpl) getPrompt(prompt []string) []string {
 	// The only supported value is login.
 	// See https://docs.microsoft.com/en-us/azure/active-directory-b2c/openid-connect
 	for _, p := range prompt {

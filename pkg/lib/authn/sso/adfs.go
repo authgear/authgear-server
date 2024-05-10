@@ -40,7 +40,7 @@ func (f *ADFSImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		ResponseMode: param.ResponseMode,
 		State:        param.State,
-		Prompt:       f.GetPrompt(param.Prompt),
+		Prompt:       f.getPrompt(param.Prompt),
 		Nonce:        param.Nonce,
 	}), nil
 }
@@ -129,9 +129,9 @@ func (f *ADFSImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoPa
 	return
 }
 
-func (f *ADFSImpl) GetPrompt(prompt []string) []string {
-	// adfs only support prompt=login
-	// ref: https://docs.microsoft.com/en-us/windows-server/identity/ad-fs/operations/ad-fs-prompt-login
+func (f *ADFSImpl) getPrompt(prompt []string) []string {
+	// ADFS only supports prompt=login
+	// https://docs.microsoft.com/en-us/windows-server/identity/ad-fs/operations/ad-fs-prompt-login
 	for _, p := range prompt {
 		if p == "login" {
 			return []string{"login"}
