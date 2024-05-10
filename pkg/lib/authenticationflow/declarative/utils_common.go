@@ -678,18 +678,19 @@ func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, opts HandleOA
 		return nil, oauthrelyingpartyutil.NewOAuthError(oauthError, errorDescription, errorURI)
 	}
 
-	oauthProvider := deps.OAuthProviderFactory.NewOAuthProvider(opts.Alias)
-	if oauthProvider == nil {
-		return nil, api.ErrOAuthProviderNotFound
-	}
-
 	code := inputOAuth.GetOAuthAuthorizationCode()
+
+	providerConfig, err := deps.OAuthProviderFactory.GetProviderConfig(opts.Alias)
+	if err != nil {
+		return nil, err
+	}
 
 	// TODO(authflow): support nonce but do not save nonce in cookies.
 	// Nonce in the current implementation is stored in cookies.
 	// In the Authentication Flow API, cookies are not sent in Safari in third-party context.
 	emptyNonce := ""
-	authInfo, err := oauthProvider.GetUserProfile(
+	authInfo, err := deps.OAuthProviderFactory.GetUserProfile(
+		opts.Alias,
 		oauthrelyingparty.GetUserProfileOptions{
 			Code:        code,
 			RedirectURI: opts.RedirectURI,
@@ -700,7 +701,6 @@ func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, opts HandleOA
 		return nil, err
 	}
 
-	providerConfig := oauthProvider.Config()
 	providerID := providerConfig.ProviderID()
 	identitySpec := &identity.Spec{
 		Type: model.IdentityTypeOAuth,
@@ -722,9 +722,8 @@ type GetOAuthDataOptions struct {
 }
 
 func getOAuthData(ctx context.Context, deps *authflow.Dependencies, opts GetOAuthDataOptions) (data OAuthData, err error) {
-	oauthProvider := deps.OAuthProviderFactory.NewOAuthProvider(opts.Alias)
-	if oauthProvider == nil {
-		err = api.ErrOAuthProviderNotFound
+	providerConfig, err := deps.OAuthProviderFactory.GetProviderConfig(opts.Alias)
+	if err != nil {
 		return
 	}
 
@@ -736,16 +735,16 @@ func getOAuthData(ctx context.Context, deps *authflow.Dependencies, opts GetOAut
 		Prompt:       uiParam.Prompt,
 	}
 
-	authorizationURL, err := oauthProvider.GetAuthorizationURL(param)
+	authorizationURL, err := deps.OAuthProviderFactory.GetAuthorizationURL(opts.Alias, param)
 	if err != nil {
 		return
 	}
 
 	data = NewOAuthData(OAuthData{
 		Alias:                 opts.Alias,
-		OAuthProviderType:     oauthProvider.Config().Type(),
+		OAuthProviderType:     providerConfig.Type(),
 		OAuthAuthorizationURL: authorizationURL,
-		WechatAppType:         wechat.ProviderConfig(oauthProvider.Config()).AppType(),
+		WechatAppType:         wechat.ProviderConfig(providerConfig).AppType(),
 	})
 	return
 }

@@ -65,16 +65,16 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 	nonceSource := ctx.Nonces.GenerateAndSet()
 	errorRedirectURI := input.GetErrorRedirectURI()
 
-	oauthProvider := ctx.OAuthProviderFactory.NewOAuthProvider(alias)
-	if oauthProvider == nil {
-		return nil, api.ErrOAuthProviderNotFound
+	providerConfig, err := ctx.OAuthProviderFactory.GetProviderConfig(alias)
+	if err != nil {
+		return nil, err
 	}
 
 	nonce := crypto.SHA256String(nonceSource)
 
 	redirectURIForOAuthProvider := ctx.OAuthRedirectURIBuilder.SSOCallbackURL(alias).String()
 	// Special case: wechat needs to use a special callback endpoint.
-	if oauthProvider.Config().Type() == wechat.Type {
+	if providerConfig.Type() == wechat.Type {
 		redirectURIForOAuthProvider = ctx.OAuthRedirectURIBuilder.WeChatCallbackEndpointURL().String()
 	}
 
@@ -86,13 +86,13 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 		Prompt:       input.GetPrompt(),
 		State:        ctx.WebSessionID,
 	}
-	redirectURI, err := oauthProvider.GetAuthorizationURL(param)
+	redirectURI, err := ctx.OAuthProviderFactory.GetAuthorizationURL(alias, param)
 	if err != nil {
 		return nil, err
 	}
 
 	// Special case: wechat needs to redirect a special page.
-	if oauthProvider.Config().Type() == wechat.Type {
+	if providerConfig.Type() == wechat.Type {
 		v := url.Values{}
 		v.Add("x_auth_url", redirectURI)
 		redirectURI = ctx.OAuthRedirectURIBuilder.WeChatAuthorizeURL(alias).String() + "?" + v.Encode()

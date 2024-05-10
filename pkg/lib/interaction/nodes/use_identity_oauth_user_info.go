@@ -4,7 +4,6 @@ import (
 	"crypto/subtle"
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -66,14 +65,15 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 		return nil, fmt.Errorf("invalid nonce")
 	}
 
-	oauthProvider := ctx.OAuthProviderFactory.NewOAuthProvider(alias)
-	if oauthProvider == nil {
-		return nil, api.ErrOAuthProviderNotFound
-	}
-
 	redirectURI := ctx.OAuthRedirectURIBuilder.SSOCallbackURL(alias)
 
-	userInfo, err := oauthProvider.GetUserProfile(
+	providerConfig, err := ctx.OAuthProviderFactory.GetProviderConfig(alias)
+	if err != nil {
+		return nil, err
+	}
+
+	userInfo, err := ctx.OAuthProviderFactory.GetUserProfile(
+		alias,
 		oauthrelyingparty.GetUserProfileOptions{
 			Code:        code,
 			RedirectURI: redirectURI.String(),
@@ -84,7 +84,6 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 		return nil, err
 	}
 
-	providerConfig := oauthProvider.Config()
 	providerID := providerConfig.ProviderID()
 	spec := &identity.Spec{
 		Type: model.IdentityTypeOAuth,

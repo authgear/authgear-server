@@ -257,11 +257,11 @@ type OAuthSSOConfig struct {
 	Providers []oauthrelyingparty.ProviderConfig `json:"providers,omitempty"`
 }
 
-func (c *OAuthSSOConfig) GetProviderConfig(alias string) (*oauthrelyingparty.ProviderConfig, bool) {
+func (c *OAuthSSOConfig) GetProviderConfig(alias string) (oauthrelyingparty.ProviderConfig, bool) {
 	for _, conf := range c.Providers {
 		if conf.Alias() == alias {
 			cc := conf
-			return &cc, true
+			return cc, true
 		}
 	}
 	return nil, false
