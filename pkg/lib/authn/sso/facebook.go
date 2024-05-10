@@ -41,10 +41,6 @@ func (f *FacebookImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 }
 
 func (f *FacebookImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
-	return f.NonOpenIDConnectGetAuthInfo(r, param)
-}
-
-func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	authInfo = AuthInfo{}
 
 	accessTokenResp, err := oauthrelyingpartyutil.FetchAccessTokenResp(
@@ -140,6 +136,5 @@ func (f *FacebookImpl) GetPrompt(prompt []string) []string {
 }
 
 var (
-	_ OAuthProvider            = &FacebookImpl{}
-	_ NonOpenIDConnectProvider = &FacebookImpl{}
+	_ OAuthProvider = &FacebookImpl{}
 )

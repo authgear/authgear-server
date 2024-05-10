@@ -36,11 +36,7 @@ func (w *WechatImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	}.Query()), nil
 }
 
-func (w *WechatImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (AuthInfo, error) {
-	return w.NonOpenIDConnectGetAuthInfo(r, param)
-}
-
-func (w *WechatImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _ GetAuthInfoParam) (authInfo AuthInfo, err error) {
+func (w *WechatImpl) GetAuthInfo(r OAuthAuthorizationResponse, _ GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	accessTokenResp, err := wechatFetchAccessTokenResp(
 		w.HTTPClient,
 		r.Code,
@@ -124,6 +120,5 @@ func (w *WechatImpl) GetPrompt(prompt []string) []string {
 }
 
 var (
-	_ OAuthProvider            = &WechatImpl{}
-	_ NonOpenIDConnectProvider = &WechatImpl{}
+	_ OAuthProvider = &WechatImpl{}
 )

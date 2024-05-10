@@ -41,27 +41,6 @@ type OAuthProvider interface {
 	GetPrompt(prompt []string) []string
 }
 
-// NonOpenIDConnectProvider are OAuth 2.0 provider that does not
-// implement OpenID Connect or we do not implement yet.
-// They are
-// "facebook"
-// "linkedin"
-// "wechat"
-type NonOpenIDConnectProvider interface {
-	NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error)
-}
-
-// OpenIDConnectProvider are OpenID Connect provider.
-// They are
-// "google"
-// "apple"
-// "azureadv2"
-// "azureadb2c"
-// "adfs"
-type OpenIDConnectProvider interface {
-	OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error)
-}
-
 type StandardAttributesNormalizer interface {
 	Normalize(stdattrs.T) error
 }

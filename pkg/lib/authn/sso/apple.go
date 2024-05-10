@@ -84,10 +84,6 @@ func (f *AppleImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 }
 
 func (f *AppleImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
-	return f.OpenIDConnectGetAuthInfo(r, param)
-}
-
-func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	keySet, err := appleOIDCConfig.FetchJWKs(f.HTTPClient)
 	if err != nil {
 		return
@@ -174,6 +170,5 @@ func (f *AppleImpl) GetPrompt(prompt []string) []string {
 }
 
 var (
-	_ OAuthProvider         = &AppleImpl{}
-	_ OpenIDConnectProvider = &AppleImpl{}
+	_ OAuthProvider = &AppleImpl{}
 )

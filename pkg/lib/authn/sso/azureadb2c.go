@@ -56,10 +56,6 @@ func (f *Azureadb2cImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 }
 
 func (f *Azureadb2cImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
-	return f.OpenIDConnectGetAuthInfo(r, param)
-}
-
-func (f *Azureadb2cImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	c, err := f.getOpenIDConfiguration()
 	if err != nil {
 		return
@@ -196,6 +192,5 @@ func (f *Azureadb2cImpl) GetPrompt(prompt []string) []string {
 }
 
 var (
-	_ OAuthProvider         = &Azureadb2cImpl{}
-	_ OpenIDConnectProvider = &Azureadb2cImpl{}
+	_ OAuthProvider = &Azureadb2cImpl{}
 )

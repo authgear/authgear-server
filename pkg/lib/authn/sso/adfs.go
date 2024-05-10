@@ -46,10 +46,6 @@ func (f *ADFSImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 }
 
 func (f *ADFSImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
-	return f.OpenIDConnectGetAuthInfo(r, param)
-}
-
-func (f *ADFSImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	c, err := f.getOpenIDConfiguration()
 	if err != nil {
 		return
@@ -145,6 +141,5 @@ func (f *ADFSImpl) GetPrompt(prompt []string) []string {
 }
 
 var (
-	_ OAuthProvider         = &ADFSImpl{}
-	_ OpenIDConnectProvider = &ADFSImpl{}
+	_ OAuthProvider = &ADFSImpl{}
 )

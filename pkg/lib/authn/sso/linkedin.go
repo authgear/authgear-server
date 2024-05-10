@@ -39,10 +39,6 @@ func (f *LinkedInImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 }
 
 func (f *LinkedInImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
-	return f.NonOpenIDConnectGetAuthInfo(r, param)
-}
-
-func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	accessTokenResp, err := oauthrelyingpartyutil.FetchAccessTokenResp(
 		f.HTTPClient.Client,
 		r.Code,
@@ -352,6 +348,5 @@ func decodeLinkedIn(userInfo map[string]interface{}) (string, stdattrs.T) {
 }
 
 var (
-	_ OAuthProvider            = &LinkedInImpl{}
-	_ NonOpenIDConnectProvider = &LinkedInImpl{}
+	_ OAuthProvider = &LinkedInImpl{}
 )

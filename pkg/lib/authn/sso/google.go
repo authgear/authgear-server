@@ -43,10 +43,6 @@ func (f *GoogleImpl) Config() oauthrelyingparty.ProviderConfig {
 }
 
 func (f *GoogleImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
-	return f.OpenIDConnectGetAuthInfo(r, param)
-}
-
-func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	d, err := FetchOIDCDiscoveryDocument(f.HTTPClient, googleOIDCDiscoveryDocumentURL)
 	if err != nil {
 		return
@@ -139,6 +135,5 @@ func (f *GoogleImpl) GetPrompt(prompt []string) []string {
 }
 
 var (
-	_ OAuthProvider         = &GoogleImpl{}
-	_ OpenIDConnectProvider = &GoogleImpl{}
+	_ OAuthProvider = &GoogleImpl{}
 )

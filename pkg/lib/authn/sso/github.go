@@ -47,10 +47,6 @@ func (g *GithubImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 }
 
 func (g *GithubImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
-	return g.NonOpenIDConnectGetAuthInfo(r, param)
-}
-
-func (g *GithubImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	accessTokenResp, err := g.exchangeCode(r, param)
 	if err != nil {
 		return
@@ -174,6 +170,5 @@ func (*GithubImpl) GetPrompt(prompt []string) []string {
 }
 
 var (
-	_ OAuthProvider            = &GithubImpl{}
-	_ NonOpenIDConnectProvider = &GithubImpl{}
+	_ OAuthProvider = &GithubImpl{}
 )
