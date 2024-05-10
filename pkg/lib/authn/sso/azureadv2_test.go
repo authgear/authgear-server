@@ -99,7 +99,7 @@ func TestAzureadv2Impl(t *testing.T) {
 			`)
 		defer func() { gock.Flush() }()
 
-		u, err := g.GetAuthorizationURL(GetAuthorizationURLOptions{
+		u, err := g.GetAuthorizationURL(oauthrelyingparty.GetAuthorizationURLOptions{
 			RedirectURI:  "https://localhost/",
 			ResponseMode: oauthrelyingparty.ResponseModeFormPost,
 			Nonce:        "nonce",

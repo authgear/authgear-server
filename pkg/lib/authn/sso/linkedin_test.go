@@ -19,7 +19,7 @@ func TestLinkedInImpl(t *testing.T) {
 			HTTPClient: OAuthHTTPClient{},
 		}
 
-		u, err := g.GetAuthorizationURL(GetAuthorizationURLOptions{
+		u, err := g.GetAuthorizationURL(oauthrelyingparty.GetAuthorizationURLOptions{
 			RedirectURI: "https://localhost/",
 			Nonce:       "nonce",
 			State:       "state",

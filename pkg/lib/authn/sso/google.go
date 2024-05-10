@@ -21,7 +21,7 @@ type GoogleImpl struct {
 	HTTPClient                   OAuthHTTPClient
 }
 
-func (f *GoogleImpl) GetAuthorizationURL(param GetAuthorizationURLOptions) (string, error) {
+func (f *GoogleImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
 	d, err := FetchOIDCDiscoveryDocument(f.HTTPClient, googleOIDCDiscoveryDocumentURL)
 	if err != nil {
 		return "", err

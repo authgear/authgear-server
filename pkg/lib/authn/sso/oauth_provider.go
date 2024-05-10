@@ -16,14 +16,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
-type GetAuthorizationURLOptions struct {
-	RedirectURI  string
-	ResponseMode string
-	Nonce        string
-	State        string
-	Prompt       []string
-}
-
 type GetAuthInfoParam struct {
 	RedirectURI string
 	Nonce       string
@@ -36,7 +28,7 @@ type OAuthAuthorizationResponse struct {
 // OAuthProvider is OAuth 2.0 based provider.
 type OAuthProvider interface {
 	Config() oauthrelyingparty.ProviderConfig
-	GetAuthorizationURL(options GetAuthorizationURLOptions) (url string, err error)
+	GetAuthorizationURL(options oauthrelyingparty.GetAuthorizationURLOptions) (url string, err error)
 	GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (AuthInfo, error)
 }
 

@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -732,7 +733,7 @@ func getOAuthData(ctx context.Context, deps *authflow.Dependencies, opts GetOAut
 
 	uiParam := uiparam.GetUIParam(ctx)
 
-	param := sso.GetAuthorizationURLOptions{
+	param := oauthrelyingparty.GetAuthorizationURLOptions{
 		RedirectURI:  opts.RedirectURI,
 		ResponseMode: opts.ResponseMode,
 		Prompt:       uiParam.Prompt,

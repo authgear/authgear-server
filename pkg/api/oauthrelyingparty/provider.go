@@ -137,6 +137,14 @@ func (i ProviderID) Equal(that ProviderID) bool {
 	return true
 }
 
+type GetAuthorizationURLOptions struct {
+	RedirectURI  string
+	ResponseMode string
+	Nonce        string
+	State        string
+	Prompt       []string
+}
+
 type Provider interface {
 	SetDefaults(cfg ProviderConfig)
 	ProviderID(cfg ProviderConfig) ProviderID

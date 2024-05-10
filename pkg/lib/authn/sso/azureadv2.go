@@ -71,7 +71,7 @@ func (f *Azureadv2Impl) Config() oauthrelyingparty.ProviderConfig {
 	return f.ProviderConfig
 }
 
-func (f *Azureadv2Impl) GetAuthorizationURL(param GetAuthorizationURLOptions) (string, error) {
+func (f *Azureadv2Impl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
 	c, err := f.getOpenIDConfiguration()
 	if err != nil {
 		return "", err
