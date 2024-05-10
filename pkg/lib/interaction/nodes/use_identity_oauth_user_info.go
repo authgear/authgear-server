@@ -53,11 +53,6 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 		return nil, fmt.Errorf("interaction: unexpected provider alias %s != %s", providerConfigAlias, alias)
 	}
 
-	oauthProvider := ctx.OAuthProviderFactory.NewOAuthProvider(alias)
-	if oauthProvider == nil {
-		return nil, api.ErrOAuthProviderNotFound
-	}
-
 	// Handle provider error
 	if oauthError != "" {
 		return nil, oauthrelyingpartyutil.NewOAuthError(oauthError, errorDescription, errorURI)
@@ -66,9 +61,15 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 	if nonceSource == "" {
 		return nil, fmt.Errorf("nonce does not present in the request")
 	}
+
 	nonce := crypto.SHA256String(nonceSource)
 	if subtle.ConstantTimeCompare([]byte(hashedNonce), []byte(nonce)) != 1 {
 		return nil, fmt.Errorf("invalid nonce")
+	}
+
+	oauthProvider := ctx.OAuthProviderFactory.NewOAuthProvider(alias)
+	if oauthProvider == nil {
+		return nil, api.ErrOAuthProviderNotFound
 	}
 
 	redirectURI := ctx.OAuthRedirectURIBuilder.SSOCallbackURL(alias)
