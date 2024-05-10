@@ -29,11 +29,11 @@ func (f *FacebookImpl) Config() oauthrelyingparty.ProviderConfig {
 }
 
 func (f *FacebookImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
-	return MakeAuthorizationURL(facebookAuthorizationURL, AuthorizationURLParams{
+	return oauthrelyingpartyutil.MakeAuthorizationURL(facebookAuthorizationURL, oauthrelyingpartyutil.AuthorizationURLParams{
 		ClientID:     f.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
 		Scope:        f.ProviderConfig.Scope(),
-		ResponseType: ResponseTypeCode,
+		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		// ResponseMode is unset
 		State:  param.State,
 		Prompt: f.GetPrompt(param.Prompt),

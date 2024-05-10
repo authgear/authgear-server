@@ -44,11 +44,11 @@ func (f *Azureadb2cImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return c.MakeOAuthURL(AuthorizationURLParams{
+	return c.MakeOAuthURL(oauthrelyingpartyutil.AuthorizationURLParams{
 		ClientID:     f.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
 		Scope:        f.ProviderConfig.Scope(),
-		ResponseType: ResponseTypeCode,
+		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		ResponseMode: param.ResponseMode,
 		State:        param.State,
 		Prompt:       f.GetPrompt(param.Prompt),

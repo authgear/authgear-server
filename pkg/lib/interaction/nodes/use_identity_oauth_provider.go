@@ -82,7 +82,7 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 	param := sso.GetAuthURLParam{
 		RedirectURI: redirectURIForOAuthProvider,
 		// We use response_mode=form_post if it is supported.
-		ResponseMode: sso.ResponseModeFormPost,
+		ResponseMode: oauthrelyingparty.ResponseModeFormPost,
 		Nonce:        nonce,
 		Prompt:       input.GetPrompt(),
 		State:        ctx.WebSessionID,

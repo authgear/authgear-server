@@ -27,11 +27,11 @@ func (f *GoogleImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return d.MakeOAuthURL(AuthorizationURLParams{
+	return d.MakeOAuthURL(oauthrelyingpartyutil.AuthorizationURLParams{
 		ClientID:     f.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
 		Scope:        f.ProviderConfig.Scope(),
-		ResponseType: ResponseTypeCode,
+		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		ResponseMode: param.ResponseMode,
 		State:        param.State,
 		Nonce:        param.Nonce,

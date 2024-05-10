@@ -58,8 +58,8 @@ func FetchOIDCDiscoveryDocument(client OAuthHTTPClient, endpoint string) (*OIDCD
 	return &document, nil
 }
 
-func (d *OIDCDiscoveryDocument) MakeOAuthURL(params AuthorizationURLParams) string {
-	return MakeAuthorizationURL(d.AuthorizationEndpoint, params.Query())
+func (d *OIDCDiscoveryDocument) MakeOAuthURL(params oauthrelyingpartyutil.AuthorizationURLParams) string {
+	return oauthrelyingpartyutil.MakeAuthorizationURL(d.AuthorizationEndpoint, params.Query())
 }
 
 func (d *OIDCDiscoveryDocument) FetchJWKs(client OAuthHTTPClient) (jwk.Set, error) {

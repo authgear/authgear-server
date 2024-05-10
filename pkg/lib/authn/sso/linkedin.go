@@ -27,11 +27,11 @@ func (f *LinkedInImpl) Config() oauthrelyingparty.ProviderConfig {
 }
 
 func (f *LinkedInImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
-	return MakeAuthorizationURL(linkedinAuthorizationURL, AuthorizationURLParams{
+	return oauthrelyingpartyutil.MakeAuthorizationURL(linkedinAuthorizationURL, oauthrelyingpartyutil.AuthorizationURLParams{
 		ClientID:     f.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
 		Scope:        f.ProviderConfig.Scope(),
-		ResponseType: ResponseTypeCode,
+		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		// ResponseMode is unset.
 		State:  param.State,
 		Prompt: f.GetPrompt(param.Prompt),

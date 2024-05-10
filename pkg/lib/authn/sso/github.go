@@ -35,7 +35,7 @@ func (g *GithubImpl) Config() oauthrelyingparty.ProviderConfig {
 
 func (g *GithubImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	// https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps#1-request-a-users-github-identity
-	return MakeAuthorizationURL(githubAuthorizationURL, AuthorizationURLParams{
+	return oauthrelyingpartyutil.MakeAuthorizationURL(githubAuthorizationURL, oauthrelyingpartyutil.AuthorizationURLParams{
 		ClientID:    g.ProviderConfig.ClientID(),
 		RedirectURI: param.RedirectURI,
 		Scope:       g.ProviderConfig.Scope(),

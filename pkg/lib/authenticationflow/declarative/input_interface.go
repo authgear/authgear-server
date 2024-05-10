@@ -6,7 +6,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -47,7 +46,7 @@ type inputTakeIDToken interface {
 type inputTakeOAuthAuthorizationRequest interface {
 	GetOAuthAlias() string
 	GetOAuthRedirectURI() string
-	GetOAuthResponseMode() sso.ResponseMode
+	GetOAuthResponseMode() string
 	// We used to accept `state`.
 	// But it turns out to be confusing.
 	// `state` is used to maintain state between the request and the callback.

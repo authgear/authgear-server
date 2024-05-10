@@ -72,11 +72,11 @@ func (f *AppleImpl) Config() oauthrelyingparty.ProviderConfig {
 }
 
 func (f *AppleImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
-	return appleOIDCConfig.MakeOAuthURL(AuthorizationURLParams{
+	return appleOIDCConfig.MakeOAuthURL(oauthrelyingpartyutil.AuthorizationURLParams{
 		ClientID:     f.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
 		Scope:        f.ProviderConfig.Scope(),
-		ResponseType: ResponseTypeCode,
+		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		ResponseMode: param.ResponseMode,
 		State:        param.State,
 		Prompt:       f.GetPrompt(param.Prompt),

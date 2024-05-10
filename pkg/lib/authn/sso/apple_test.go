@@ -21,7 +21,7 @@ func TestAppleImpl(t *testing.T) {
 
 		u, err := g.GetAuthURL(GetAuthURLParam{
 			RedirectURI:  "https://localhost/",
-			ResponseMode: ResponseModeFormPost,
+			ResponseMode: oauthrelyingparty.ResponseModeFormPost,
 			Nonce:        "nonce",
 			State:        "state",
 			Prompt:       []string{"login"},

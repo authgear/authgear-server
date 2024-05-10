@@ -4,6 +4,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 )
 
@@ -23,12 +24,12 @@ func (w *WechatImpl) Config() oauthrelyingparty.ProviderConfig {
 }
 
 func (w *WechatImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
-	return MakeAuthorizationURL(wechatAuthorizationURL, AuthorizationURLParams{
+	return oauthrelyingpartyutil.MakeAuthorizationURL(wechatAuthorizationURL, oauthrelyingpartyutil.AuthorizationURLParams{
 		// ClientID is not used by wechat.
 		WechatAppID:  w.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
 		Scope:        w.ProviderConfig.Scope(),
-		ResponseType: ResponseTypeCode,
+		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		// ResponseMode is unset.
 		State:  param.State,
 		Prompt: w.GetPrompt(param.Prompt),

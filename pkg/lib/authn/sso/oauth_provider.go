@@ -18,7 +18,7 @@ import (
 
 type GetAuthURLParam struct {
 	RedirectURI  string
-	ResponseMode ResponseMode
+	ResponseMode string
 	Nonce        string
 	State        string
 	Prompt       []string

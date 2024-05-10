@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	v2viewmodels "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -98,7 +98,7 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 			"identification": "oauth",
 			"alias":          providerAlias,
 			"redirect_uri":   callbackURL,
-			"response_mode":  string(sso.ResponseModeFormPost),
+			"response_mode":  oauthrelyingparty.ResponseModeFormPost,
 		}
 
 		result, err := h.Controller.ReplaceScreen(r, s, authflow.FlowTypeSignupLogin, input)

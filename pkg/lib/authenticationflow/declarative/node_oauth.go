@@ -7,7 +7,6 @@ import (
 
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 )
 
 func init() {
@@ -15,11 +14,11 @@ func init() {
 }
 
 type NodeOAuth struct {
-	JSONPointer  jsonpointer.T    `json:"json_pointer,omitempty"`
-	NewUserID    string           `json:"new_user_id,omitempty"`
-	Alias        string           `json:"alias,omitempty"`
-	RedirectURI  string           `json:"redirect_uri,omitempty"`
-	ResponseMode sso.ResponseMode `json:"response_mode,omitempty"`
+	JSONPointer  jsonpointer.T `json:"json_pointer,omitempty"`
+	NewUserID    string        `json:"new_user_id,omitempty"`
+	Alias        string        `json:"alias,omitempty"`
+	RedirectURI  string        `json:"redirect_uri,omitempty"`
+	ResponseMode string        `json:"response_mode,omitempty"`
 }
 
 var _ authflow.NodeSimple = &NodeOAuth{}

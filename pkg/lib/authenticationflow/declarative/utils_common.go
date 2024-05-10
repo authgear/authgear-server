@@ -720,7 +720,7 @@ func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, opts HandleOA
 type GetOAuthDataOptions struct {
 	RedirectURI  string
 	Alias        string
-	ResponseMode sso.ResponseMode
+	ResponseMode string
 }
 
 func getOAuthData(ctx context.Context, deps *authflow.Dependencies, opts GetOAuthDataOptions) (data OAuthData, err error) {
