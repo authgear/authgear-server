@@ -77,17 +77,17 @@ func (Github) ProviderID(cfg oauthrelyingparty.ProviderConfig) oauthrelyingparty
 	return oauthrelyingparty.NewProviderID(cfg.Type(), nil)
 }
 
-func (Github) Scope(_ oauthrelyingparty.ProviderConfig) []string {
+func (Github) scope() []string {
 	// https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps
 	return []string{"read:user", "user:email"}
 }
 
-func (Github) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
+func (p Github) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
 	// https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps#1-request-a-users-github-identity
 	return oauthrelyingpartyutil.MakeAuthorizationURL(githubAuthorizationURL, oauthrelyingpartyutil.AuthorizationURLParams{
 		ClientID:    deps.ProviderConfig.ClientID(),
 		RedirectURI: param.RedirectURI,
-		Scope:       deps.ProviderConfig.Scope(),
+		Scope:       p.scope(),
 		// ResponseType is unset.
 		// ResponseMode is unset.
 		State: param.State,

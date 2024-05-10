@@ -127,17 +127,17 @@ func (Wechat) ProviderID(cfg oauthrelyingparty.ProviderConfig) oauthrelyingparty
 	return oauthrelyingparty.NewProviderID(cfg.Type(), keys)
 }
 
-func (Wechat) Scope(_ oauthrelyingparty.ProviderConfig) []string {
+func (Wechat) scope() []string {
 	// https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/Wechat_webpage_authorization.html
 	return []string{"snsapi_userinfo"}
 }
 
-func (Wechat) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
+func (p Wechat) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
 	return oauthrelyingpartyutil.MakeAuthorizationURL(wechatAuthorizationURL, oauthrelyingpartyutil.AuthorizationURLParams{
 		// ClientID is not used by wechat.
 		WechatAppID:  deps.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
-		Scope:        deps.ProviderConfig.Scope(),
+		Scope:        p.scope(),
 		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		// ResponseMode is unset.
 		State: param.State,

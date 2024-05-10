@@ -76,17 +76,17 @@ func (Linkedin) ProviderID(cfg oauthrelyingparty.ProviderConfig) oauthrelyingpar
 	return oauthrelyingparty.NewProviderID(cfg.Type(), keys)
 }
 
-func (Linkedin) Scope(_ oauthrelyingparty.ProviderConfig) []string {
+func (Linkedin) scope() []string {
 	// https://docs.microsoft.com/en-us/linkedin/shared/references/v2/profile/lite-profile
 	// https://docs.microsoft.com/en-us/linkedin/shared/integrations/people/primary-contact-api?context=linkedin/compliance/context
 	return []string{"r_liteprofile", "r_emailaddress"}
 }
 
-func (Linkedin) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
+func (p Linkedin) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
 	return oauthrelyingpartyutil.MakeAuthorizationURL(linkedinAuthorizationURL, oauthrelyingpartyutil.AuthorizationURLParams{
 		ClientID:     deps.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
-		Scope:        deps.ProviderConfig.Scope(),
+		Scope:        p.scope(),
 		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		// ResponseMode is unset.
 		State: param.State,

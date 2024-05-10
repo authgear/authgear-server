@@ -87,7 +87,7 @@ func (AzureADB2C) ProviderID(cfg oauthrelyingparty.ProviderConfig) oauthrelyingp
 	return oauthrelyingparty.NewProviderID(cfg.Type(), keys)
 }
 
-func (AzureADB2C) Scope(_ oauthrelyingparty.ProviderConfig) []string {
+func (AzureADB2C) scope() []string {
 	// Instead of specifying scope to request a specific claim,
 	// the developer must customize the policy to allow which claims are returned to the relying party.
 	// If the developer is using User Flow policy, then those claims are called Application Claims.
@@ -117,7 +117,7 @@ func (p AzureADB2C) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, par
 	return c.MakeOAuthURL(oauthrelyingpartyutil.AuthorizationURLParams{
 		ClientID:     deps.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
-		Scope:        deps.ProviderConfig.Scope(),
+		Scope:        p.scope(),
 		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		ResponseMode: param.ResponseMode,
 		State:        param.State,

@@ -71,7 +71,7 @@ func (Google) ProviderID(cfg oauthrelyingparty.ProviderConfig) oauthrelyingparty
 	return oauthrelyingparty.NewProviderID(cfg.Type(), nil)
 }
 
-func (Google) Scope(_ oauthrelyingparty.ProviderConfig) []string {
+func (Google) scope() []string {
 	// https://developers.google.com/identity/protocols/oauth2/openid-connect
 	return []string{"openid", "profile", "email"}
 }
@@ -84,7 +84,7 @@ func (p Google) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param o
 	return d.MakeOAuthURL(oauthrelyingpartyutil.AuthorizationURLParams{
 		ClientID:     deps.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
-		Scope:        deps.ProviderConfig.Scope(),
+		Scope:        p.scope(),
 		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		ResponseMode: param.ResponseMode,
 		State:        param.State,

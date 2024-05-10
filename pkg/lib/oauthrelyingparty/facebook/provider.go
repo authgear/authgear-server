@@ -79,16 +79,16 @@ func (Facebook) ProviderID(cfg oauthrelyingparty.ProviderConfig) oauthrelyingpar
 	return oauthrelyingparty.NewProviderID(cfg.Type(), keys)
 }
 
-func (Facebook) Scope(_ oauthrelyingparty.ProviderConfig) []string {
+func (Facebook) scope() []string {
 	// https://developers.facebook.com/docs/permissions/reference
 	return []string{"email", "public_profile"}
 }
 
-func (Facebook) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
+func (p Facebook) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
 	return oauthrelyingpartyutil.MakeAuthorizationURL(facebookAuthorizationURL, oauthrelyingpartyutil.AuthorizationURLParams{
 		ClientID:     deps.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
-		Scope:        deps.ProviderConfig.Scope(),
+		Scope:        p.scope(),
 		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		// ResponseMode is unset
 		State: param.State,

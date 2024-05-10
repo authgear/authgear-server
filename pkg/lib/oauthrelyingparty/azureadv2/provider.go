@@ -84,7 +84,7 @@ func (AzureADv2) ProviderID(cfg oauthrelyingparty.ProviderConfig) oauthrelyingpa
 	return oauthrelyingparty.NewProviderID(cfg.Type(), keys)
 }
 
-func (AzureADv2) Scope(_ oauthrelyingparty.ProviderConfig) []string {
+func (AzureADv2) scope() []string {
 	// https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
 	return []string{"openid", "profile", "email"}
 }
@@ -145,7 +145,7 @@ func (p AzureADv2) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, para
 	return c.MakeOAuthURL(oauthrelyingpartyutil.AuthorizationURLParams{
 		ClientID:     deps.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
-		Scope:        deps.ProviderConfig.Scope(),
+		Scope:        p.scope(),
 		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		ResponseMode: param.ResponseMode,
 		State:        param.State,

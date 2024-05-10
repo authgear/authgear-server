@@ -102,7 +102,7 @@ func (Apple) ProviderID(cfg oauthrelyingparty.ProviderConfig) oauthrelyingparty.
 	return oauthrelyingparty.NewProviderID(cfg.Type(), keys)
 }
 
-func (Apple) Scope(_ oauthrelyingparty.ProviderConfig) []string {
+func (Apple) scope() []string {
 	// https://developer.apple.com/documentation/sign_in_with_apple/sign_in_with_apple_js/incorporating_sign_in_with_apple_into_other_platforms
 	return []string{"name", "email"}
 }
@@ -141,11 +141,11 @@ func (Apple) createClientSecret(deps oauthrelyingparty.Dependencies) (clientSecr
 	return
 }
 
-func (Apple) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
+func (p Apple) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
 	return appleOIDCConfig.MakeOAuthURL(oauthrelyingpartyutil.AuthorizationURLParams{
 		ClientID:     deps.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
-		Scope:        deps.ProviderConfig.Scope(),
+		Scope:        p.scope(),
 		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		ResponseMode: param.ResponseMode,
 		State:        param.State,

@@ -81,11 +81,6 @@ func (c ProviderConfig) SetDefaults() {
 	provider.SetDefaults(c)
 }
 
-func (c ProviderConfig) Scope() []string {
-	provider := c.MustGetProvider()
-	return provider.Scope(c)
-}
-
 func (c ProviderConfig) ProviderID() ProviderID {
 	provider := c.MustGetProvider()
 	return provider.ProviderID(c)
@@ -175,7 +170,6 @@ type Dependencies struct {
 type Provider interface {
 	SetDefaults(cfg ProviderConfig)
 	ProviderID(cfg ProviderConfig) ProviderID
-	Scope(cfg ProviderConfig) []string
 	GetAuthorizationURL(deps Dependencies, options GetAuthorizationURLOptions) (url string, err error)
 	GetUserProfile(deps Dependencies, options GetUserProfileOptions) (UserProfile, error)
 }

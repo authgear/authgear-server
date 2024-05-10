@@ -71,7 +71,7 @@ func (ADFS) ProviderID(cfg oauthrelyingparty.ProviderConfig) oauthrelyingparty.P
 	return oauthrelyingparty.NewProviderID(cfg.Type(), nil)
 }
 
-func (ADFS) Scope(_ oauthrelyingparty.ProviderConfig) []string {
+func (ADFS) scope() []string {
 	// The supported scopes are observed from a AD FS server.
 	return []string{"openid", "profile", "email"}
 }
@@ -89,7 +89,7 @@ func (p ADFS) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oau
 	return c.MakeOAuthURL(oauthrelyingpartyutil.AuthorizationURLParams{
 		ClientID:     deps.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
-		Scope:        deps.ProviderConfig.Scope(),
+		Scope:        p.scope(),
 		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		ResponseMode: param.ResponseMode,
 		State:        param.State,
