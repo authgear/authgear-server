@@ -12,11 +12,10 @@ import (
 )
 
 type Azureadv2Impl struct {
-	Clock                        clock.Clock
-	ProviderConfig               oauthrelyingparty.ProviderConfig
-	ClientSecret                 string
-	StandardAttributesNormalizer StandardAttributesNormalizer
-	HTTPClient                   OAuthHTTPClient
+	Clock          clock.Clock
+	ProviderConfig oauthrelyingparty.ProviderConfig
+	ClientSecret   string
+	HTTPClient     OAuthHTTPClient
 }
 
 func (f *Azureadv2Impl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error) {
@@ -135,11 +134,6 @@ func (f *Azureadv2Impl) GetUserProfile(param oauthrelyingparty.GetUserProfileOpt
 		return
 	}
 	authInfo.StandardAttributes = stdAttrs
-
-	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
-	if err != nil {
-		return
-	}
 
 	return
 }

@@ -12,10 +12,9 @@ const (
 )
 
 type WechatImpl struct {
-	ProviderConfig               oauthrelyingparty.ProviderConfig
-	ClientSecret                 string
-	StandardAttributesNormalizer StandardAttributesNormalizer
-	HTTPClient                   OAuthHTTPClient
+	ProviderConfig oauthrelyingparty.ProviderConfig
+	ClientSecret   string
+	HTTPClient     OAuthHTTPClient
 }
 
 func (w *WechatImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
@@ -102,11 +101,6 @@ func (w *WechatImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOption
 		stdattrs.Locale: locale,
 		stdattrs.Gender: gender,
 	}.WithNameCopiedToGivenName()
-
-	err = w.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
-	if err != nil {
-		return
-	}
 
 	return
 }

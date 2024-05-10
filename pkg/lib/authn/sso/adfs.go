@@ -12,11 +12,10 @@ import (
 )
 
 type ADFSImpl struct {
-	Clock                        clock.Clock
-	ProviderConfig               oauthrelyingparty.ProviderConfig
-	ClientSecret                 string
-	StandardAttributesNormalizer StandardAttributesNormalizer
-	HTTPClient                   OAuthHTTPClient
+	Clock          clock.Clock
+	ProviderConfig oauthrelyingparty.ProviderConfig
+	ClientSecret   string
+	HTTPClient     OAuthHTTPClient
 }
 
 func (f *ADFSImpl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error) {
@@ -116,11 +115,6 @@ func (f *ADFSImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOptions)
 
 	authInfo.ProviderRawProfile = claims
 	authInfo.ProviderUserID = sub
-
-	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
-	if err != nil {
-		return
-	}
 
 	return
 }

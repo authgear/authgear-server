@@ -14,11 +14,10 @@ const (
 )
 
 type GoogleImpl struct {
-	Clock                        clock.Clock
-	ProviderConfig               oauthrelyingparty.ProviderConfig
-	ClientSecret                 string
-	StandardAttributesNormalizer StandardAttributesNormalizer
-	HTTPClient                   OAuthHTTPClient
+	Clock          clock.Clock
+	ProviderConfig oauthrelyingparty.ProviderConfig
+	ClientSecret   string
+	HTTPClient     OAuthHTTPClient
 }
 
 func (f *GoogleImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
@@ -102,11 +101,6 @@ func (f *GoogleImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOption
 		return
 	}
 	authInfo.StandardAttributes = stdAttrs
-
-	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
-	if err != nil {
-		return
-	}
 
 	return
 }

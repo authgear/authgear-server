@@ -15,10 +15,9 @@ const (
 )
 
 type LinkedInImpl struct {
-	ProviderConfig               oauthrelyingparty.ProviderConfig
-	ClientSecret                 string
-	StandardAttributesNormalizer StandardAttributesNormalizer
-	HTTPClient                   OAuthHTTPClient
+	ProviderConfig oauthrelyingparty.ProviderConfig
+	ClientSecret   string
+	HTTPClient     OAuthHTTPClient
 }
 
 func (f *LinkedInImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
@@ -276,11 +275,6 @@ func (f *LinkedInImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOpti
 		return
 	}
 	authInfo.StandardAttributes = attrs
-
-	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
-	if err != nil {
-		return
-	}
 
 	return
 }

@@ -22,10 +22,9 @@ const (
 )
 
 type GithubImpl struct {
-	ProviderConfig               oauthrelyingparty.ProviderConfig
-	ClientSecret                 string
-	StandardAttributesNormalizer StandardAttributesNormalizer
-	HTTPClient                   OAuthHTTPClient
+	ProviderConfig oauthrelyingparty.ProviderConfig
+	ClientSecret   string
+	HTTPClient     OAuthHTTPClient
 }
 
 func (g *GithubImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
@@ -80,11 +79,6 @@ func (g *GithubImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOption
 		return
 	}
 	authInfo.StandardAttributes = stdAttrs
-
-	err = g.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
-	if err != nil {
-		return
-	}
 
 	return
 }

@@ -17,10 +17,9 @@ const (
 )
 
 type FacebookImpl struct {
-	ProviderConfig               oauthrelyingparty.ProviderConfig
-	ClientSecret                 string
-	StandardAttributesNormalizer StandardAttributesNormalizer
-	HTTPClient                   OAuthHTTPClient
+	ProviderConfig oauthrelyingparty.ProviderConfig
+	ClientSecret   string
+	HTTPClient     OAuthHTTPClient
 }
 
 func (f *FacebookImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
@@ -119,11 +118,6 @@ func (f *FacebookImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOpti
 		return
 	}
 	authInfo.StandardAttributes = stdAttrs
-
-	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
-	if err != nil {
-		return
-	}
 
 	return
 }

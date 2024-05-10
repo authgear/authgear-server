@@ -25,11 +25,10 @@ var appleOIDCConfig = OIDCDiscoveryDocument{
 }
 
 type AppleImpl struct {
-	Clock                        clock.Clock
-	ProviderConfig               oauthrelyingparty.ProviderConfig
-	ClientSecret                 string
-	StandardAttributesNormalizer StandardAttributesNormalizer
-	HTTPClient                   OAuthHTTPClient
+	Clock          clock.Clock
+	ProviderConfig oauthrelyingparty.ProviderConfig
+	ClientSecret   string
+	HTTPClient     OAuthHTTPClient
 }
 
 func (f *AppleImpl) createClientSecret() (clientSecret string, err error) {
@@ -152,11 +151,6 @@ func (f *AppleImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOptions
 		return
 	}
 	authInfo.StandardAttributes = stdAttrs.WithNameCopiedToGivenName()
-
-	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
-	if err != nil {
-		return
-	}
 
 	return
 }
