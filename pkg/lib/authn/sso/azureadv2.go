@@ -12,7 +12,7 @@ import (
 
 type Azureadv2Impl struct{}
 
-func (f *Azureadv2Impl) getOpenIDConfiguration(deps oauthrelyingparty.Dependencies) (*OIDCDiscoveryDocument, error) {
+func (f *Azureadv2Impl) getOpenIDConfiguration(deps oauthrelyingparty.Dependencies) (*oauthrelyingpartyutil.OIDCDiscoveryDocument, error) {
 	// OPTIMIZE(sso): Cache OpenID configuration
 
 	tenant := azureadv2.ProviderConfig(deps.ProviderConfig).Tenant()
@@ -57,7 +57,7 @@ func (f *Azureadv2Impl) getOpenIDConfiguration(deps oauthrelyingparty.Dependenci
 		endpoint = fmt.Sprintf("https://login.microsoftonline.com/%s/v2.0/.well-known/openid-configuration", tenant)
 	}
 
-	return FetchOIDCDiscoveryDocument(deps.HTTPClient, endpoint)
+	return oauthrelyingpartyutil.FetchOIDCDiscoveryDocument(deps.HTTPClient, endpoint)
 }
 
 func (f *Azureadv2Impl) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {

@@ -17,7 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 )
 
-var appleOIDCConfig = OIDCDiscoveryDocument{
+var appleOIDCConfig = oauthrelyingpartyutil.OIDCDiscoveryDocument{
 	JWKSUri:               "https://appleid.apple.com/auth/keys",
 	TokenEndpoint:         "https://appleid.apple.com/auth/token",
 	AuthorizationEndpoint: "https://appleid.apple.com/auth/authorize",

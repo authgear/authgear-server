@@ -1,4 +1,4 @@
-package sso
+package oauthrelyingpartyutil
 
 import (
 	"crypto/subtle"
@@ -12,7 +12,6 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwt"
 
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/jwsutil"
 )
@@ -57,8 +56,8 @@ func FetchOIDCDiscoveryDocument(client *http.Client, endpoint string) (*OIDCDisc
 	return &document, nil
 }
 
-func (d *OIDCDiscoveryDocument) MakeOAuthURL(params oauthrelyingpartyutil.AuthorizationURLParams) string {
-	return oauthrelyingpartyutil.MakeAuthorizationURL(d.AuthorizationEndpoint, params.Query())
+func (d *OIDCDiscoveryDocument) MakeOAuthURL(params AuthorizationURLParams) string {
+	return MakeAuthorizationURL(d.AuthorizationEndpoint, params.Query())
 }
 
 func (d *OIDCDiscoveryDocument) FetchJWKs(client *http.Client) (jwk.Set, error) {
@@ -84,7 +83,7 @@ func (d *OIDCDiscoveryDocument) ExchangeCode(
 	clientSecret string,
 	redirectURI string,
 	nonce string,
-	tokenResp *oauthrelyingpartyutil.AccessTokenResp,
+	tokenResp *AccessTokenResp,
 ) (jwt.Token, error) {
 	body := url.Values{}
 	body.Set("grant_type", "authorization_code")
@@ -110,7 +109,7 @@ func (d *OIDCDiscoveryDocument) ExchangeCode(
 		if err != nil {
 			return nil, err
 		}
-		err = oauthrelyingpartyutil.ErrorResponseAsError(errorResp)
+		err = ErrorResponseAsError(errorResp)
 		return nil, err
 	}
 

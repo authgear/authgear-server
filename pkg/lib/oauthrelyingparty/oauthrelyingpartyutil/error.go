@@ -5,6 +5,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 )
 
+var InvalidConfiguration = apierrors.InternalError.WithReason("InvalidConfiguration")
+var OAuthProtocolError = apierrors.BadRequest.WithReason("OAuthProtocolError")
 var OAuthError = apierrors.BadRequest.WithReason("OAuthError")
 
 func NewOAuthError(errorString string, errorDescription string, errorURI string) error {

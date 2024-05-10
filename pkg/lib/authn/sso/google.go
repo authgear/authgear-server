@@ -15,7 +15,7 @@ const (
 type GoogleImpl struct{}
 
 func (f *GoogleImpl) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
-	d, err := FetchOIDCDiscoveryDocument(deps.HTTPClient, googleOIDCDiscoveryDocumentURL)
+	d, err := oauthrelyingpartyutil.FetchOIDCDiscoveryDocument(deps.HTTPClient, googleOIDCDiscoveryDocumentURL)
 	if err != nil {
 		return "", err
 	}
@@ -32,7 +32,7 @@ func (f *GoogleImpl) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, pa
 }
 
 func (f *GoogleImpl) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
-	d, err := FetchOIDCDiscoveryDocument(deps.HTTPClient, googleOIDCDiscoveryDocumentURL)
+	d, err := oauthrelyingpartyutil.FetchOIDCDiscoveryDocument(deps.HTTPClient, googleOIDCDiscoveryDocumentURL)
 	if err != nil {
 		return
 	}

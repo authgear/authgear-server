@@ -12,7 +12,7 @@ import (
 
 type Azureadb2cImpl struct{}
 
-func (f *Azureadb2cImpl) getOpenIDConfiguration(deps oauthrelyingparty.Dependencies) (*OIDCDiscoveryDocument, error) {
+func (f *Azureadb2cImpl) getOpenIDConfiguration(deps oauthrelyingparty.Dependencies) (*oauthrelyingpartyutil.OIDCDiscoveryDocument, error) {
 	azureadb2cConfig := azureadb2c.ProviderConfig(deps.ProviderConfig)
 	tenant := azureadb2cConfig.Tenant()
 	policy := azureadb2cConfig.Policy()
@@ -24,7 +24,7 @@ func (f *Azureadb2cImpl) getOpenIDConfiguration(deps oauthrelyingparty.Dependenc
 		policy,
 	)
 
-	return FetchOIDCDiscoveryDocument(deps.HTTPClient, endpoint)
+	return oauthrelyingpartyutil.FetchOIDCDiscoveryDocument(deps.HTTPClient, endpoint)
 }
 
 func (f *Azureadb2cImpl) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {

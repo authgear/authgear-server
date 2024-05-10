@@ -12,9 +12,9 @@ import (
 
 type ADFSImpl struct{}
 
-func (f *ADFSImpl) getOpenIDConfiguration(deps oauthrelyingparty.Dependencies) (*OIDCDiscoveryDocument, error) {
+func (f *ADFSImpl) getOpenIDConfiguration(deps oauthrelyingparty.Dependencies) (*oauthrelyingpartyutil.OIDCDiscoveryDocument, error) {
 	endpoint := adfs.ProviderConfig(deps.ProviderConfig).DiscoveryDocumentEndpoint()
-	return FetchOIDCDiscoveryDocument(deps.HTTPClient, endpoint)
+	return oauthrelyingpartyutil.FetchOIDCDiscoveryDocument(deps.HTTPClient, endpoint)
 }
 
 func (f *ADFSImpl) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
