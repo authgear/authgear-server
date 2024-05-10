@@ -1,4 +1,4 @@
-package sso
+package wechat
 
 import (
 	"testing"
@@ -6,19 +6,18 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 )
 
-func TestWechatImpl(t *testing.T) {
-	Convey("WechatImpl", t, func() {
+func TestWechat(t *testing.T) {
+	Convey("Wechat", t, func() {
 		deps := oauthrelyingparty.Dependencies{
 			ProviderConfig: oauthrelyingparty.ProviderConfig{
 				"client_id": "client_id",
-				"type":      wechat.Type,
+				"type":      Type,
 			},
 		}
 
-		g := &WechatImpl{}
+		g := Wechat{}
 
 		u, err := g.GetAuthorizationURL(deps, oauthrelyingparty.GetAuthorizationURLOptions{
 			Nonce:  "nonce",

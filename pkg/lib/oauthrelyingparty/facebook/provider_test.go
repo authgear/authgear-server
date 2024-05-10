@@ -1,4 +1,4 @@
-package sso
+package facebook
 
 import (
 	"testing"
@@ -6,18 +6,17 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/facebook"
 )
 
-func TestFacebookImpl(t *testing.T) {
-	Convey("FacebookImpl", t, func() {
+func TestFacebook(t *testing.T) {
+	Convey("Facebook", t, func() {
 		deps := oauthrelyingparty.Dependencies{
 			ProviderConfig: oauthrelyingparty.ProviderConfig{
 				"client_id": "client_id",
-				"type":      facebook.Type,
+				"type":      Type,
 			},
 		}
-		g := &FacebookImpl{}
+		g := Facebook{}
 
 		u, err := g.GetAuthorizationURL(deps, oauthrelyingparty.GetAuthorizationURLOptions{
 			RedirectURI: "https://localhost/",

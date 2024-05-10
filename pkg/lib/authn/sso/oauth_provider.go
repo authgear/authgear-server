@@ -5,23 +5,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/adfs"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/apple"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/azureadb2c"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/azureadv2"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/facebook"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/github"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/google"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/linkedin"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
-
-// OAuthProvider is OAuth 2.0 based provider.
-type OAuthProvider interface {
-	GetAuthorizationURL(deps oauthrelyingparty.Dependencies, options oauthrelyingparty.GetAuthorizationURLOptions) (url string, err error)
-	GetUserProfile(deps oauthrelyingparty.Dependencies, options oauthrelyingparty.GetUserProfileOptions) (oauthrelyingparty.UserProfile, error)
-}
 
 type StandardAttributesNormalizer interface {
 	Normalize(stdattrs.T) error
@@ -43,7 +28,7 @@ func (p *OAuthProviderFactory) GetProviderConfig(alias string) (oauthrelyingpart
 	return providerConfig, nil
 }
 
-func (p *OAuthProviderFactory) getProvider(alias string) (provider OAuthProvider, deps *oauthrelyingparty.Dependencies, err error) {
+func (p *OAuthProviderFactory) getProvider(alias string) (provider oauthrelyingparty.Provider, deps *oauthrelyingparty.Dependencies, err error) {
 	providerConfig, err := p.GetProviderConfig(alias)
 	if err != nil {
 		return
@@ -62,39 +47,8 @@ func (p *OAuthProviderFactory) getProvider(alias string) (provider OAuthProvider
 		HTTPClient:     p.HTTPClient.Client,
 	}
 
-	switch providerConfig.Type() {
-	case google.Type:
-		provider = &GoogleImpl{}
-		return
-	case facebook.Type:
-		provider = &FacebookImpl{}
-		return
-	case github.Type:
-		provider = &GithubImpl{}
-		return
-	case linkedin.Type:
-		provider = &LinkedInImpl{}
-		return
-	case azureadv2.Type:
-		provider = &Azureadv2Impl{}
-		return
-	case azureadb2c.Type:
-		provider = &Azureadb2cImpl{}
-		return
-	case adfs.Type:
-		provider = &ADFSImpl{}
-		return
-	case apple.Type:
-		provider = &AppleImpl{}
-		return
-	case wechat.Type:
-		provider = &WechatImpl{}
-		return
-	default:
-		// TODO(oauth): switch to registry-based resolution.
-		err = api.ErrOAuthProviderNotFound
-		return
-	}
+	provider = providerConfig.MustGetProvider()
+	return
 }
 
 func (p *OAuthProviderFactory) GetAuthorizationURL(alias string, options oauthrelyingparty.GetAuthorizationURLOptions) (url string, err error) {

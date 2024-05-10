@@ -1,4 +1,4 @@
-package sso
+package github
 
 import (
 	"testing"
@@ -6,18 +6,17 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/linkedin"
 )
 
-func TestLinkedInImpl(t *testing.T) {
-	Convey("LinkedInImpl", t, func() {
+func TestGithub(t *testing.T) {
+	Convey("Github", t, func() {
 		deps := oauthrelyingparty.Dependencies{
 			ProviderConfig: oauthrelyingparty.ProviderConfig{
 				"client_id": "client_id",
-				"type":      linkedin.Type,
+				"type":      Type,
 			},
 		}
-		g := &LinkedInImpl{}
+		g := Github{}
 
 		u, err := g.GetAuthorizationURL(deps, oauthrelyingparty.GetAuthorizationURLOptions{
 			RedirectURI: "https://localhost/",
@@ -26,6 +25,6 @@ func TestLinkedInImpl(t *testing.T) {
 			Prompt:      []string{"login"},
 		})
 		So(err, ShouldBeNil)
-		So(u, ShouldEqual, "https://www.linkedin.com/oauth/v2/authorization?client_id=client_id&redirect_uri=https%3A%2F%2Flocalhost%2F&response_type=code&scope=r_liteprofile+r_emailaddress&state=state")
+		So(u, ShouldEqual, "https://github.com/login/oauth/authorize?client_id=client_id&redirect_uri=https%3A%2F%2Flocalhost%2F&scope=read%3Auser+user%3Aemail&state=state")
 	})
 }

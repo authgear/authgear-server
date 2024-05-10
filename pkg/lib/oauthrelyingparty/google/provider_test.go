@@ -1,4 +1,4 @@
-package sso
+package google
 
 import (
 	"net/http"
@@ -8,7 +8,6 @@ import (
 	"gopkg.in/h2non/gock.v1"
 
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/google"
 )
 
 func TestGoogleImpl(t *testing.T) {
@@ -20,12 +19,12 @@ func TestGoogleImpl(t *testing.T) {
 		deps := oauthrelyingparty.Dependencies{
 			ProviderConfig: oauthrelyingparty.ProviderConfig{
 				"client_id": "client_id",
-				"type":      google.Type,
+				"type":      Type,
 			},
 			HTTPClient: client,
 		}
 
-		g := &GoogleImpl{}
+		g := Google{}
 
 		gock.New(googleOIDCDiscoveryDocumentURL).
 			Reply(200).

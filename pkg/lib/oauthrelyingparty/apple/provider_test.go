@@ -1,4 +1,4 @@
-package sso
+package apple
 
 import (
 	"testing"
@@ -6,7 +6,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/apple"
 )
 
 func TestAppleImpl(t *testing.T) {
@@ -14,10 +13,10 @@ func TestAppleImpl(t *testing.T) {
 		deps := oauthrelyingparty.Dependencies{
 			ProviderConfig: oauthrelyingparty.ProviderConfig{
 				"client_id": "client_id",
-				"type":      apple.Type,
+				"type":      Type,
 			},
 		}
-		g := &AppleImpl{}
+		g := Apple{}
 
 		u, err := g.GetAuthorizationURL(deps, oauthrelyingparty.GetAuthorizationURLOptions{
 			RedirectURI:  "https://localhost/",

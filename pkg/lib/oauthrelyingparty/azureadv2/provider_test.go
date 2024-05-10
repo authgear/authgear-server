@@ -1,4 +1,4 @@
-package sso
+package azureadv2
 
 import (
 	"net/http"
@@ -8,7 +8,6 @@ import (
 	"gopkg.in/h2non/gock.v1"
 
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/azureadv2"
 )
 
 func TestAzureadv2Impl(t *testing.T) {
@@ -20,13 +19,13 @@ func TestAzureadv2Impl(t *testing.T) {
 		deps := oauthrelyingparty.Dependencies{
 			ProviderConfig: oauthrelyingparty.ProviderConfig{
 				"client_id": "client_id",
-				"type":      azureadv2.Type,
+				"type":      Type,
 				"tenant":    "common",
 			},
 			HTTPClient: client,
 		}
 
-		g := &Azureadv2Impl{}
+		g := AzureADv2{}
 
 		gock.New("https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration").
 			Reply(200).

@@ -1,4 +1,4 @@
-package sso
+package adfs
 
 import (
 	"net/http"
@@ -8,11 +8,10 @@ import (
 	"gopkg.in/h2non/gock.v1"
 
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/adfs"
 )
 
-func TestADFSImpl(t *testing.T) {
-	Convey("ADFSImpl", t, func() {
+func TestADFS(t *testing.T) {
+	Convey("ADFS", t, func() {
 		client := &http.Client{}
 		gock.InterceptClient(client)
 		defer gock.Off()
@@ -20,13 +19,13 @@ func TestADFSImpl(t *testing.T) {
 		deps := oauthrelyingparty.Dependencies{
 			ProviderConfig: oauthrelyingparty.ProviderConfig{
 				"client_id":                   "client_id",
-				"type":                        adfs.Type,
+				"type":                        Type,
 				"discovery_document_endpoint": "https://localhost/.well-known/openid-configuration",
 			},
 			HTTPClient: client,
 		}
 
-		g := &ADFSImpl{}
+		g := ADFS{}
 
 		gock.New("https://localhost/.well-known/openid-configuration").
 			Reply(200).

@@ -2,15 +2,7 @@ package config
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/adfs"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/apple"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/azureadb2c"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/azureadv2"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/facebook"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/github"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/google"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/linkedin"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
+	liboauthrelyingparty "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty"
 )
 
 var _ = FeatureConfigSchema.Add("IdentityFeatureConfig", `
@@ -127,23 +119,23 @@ type OAuthSSOProvidersFeatureConfig struct {
 
 func (c *OAuthSSOProvidersFeatureConfig) IsDisabled(cfg oauthrelyingparty.ProviderConfig) bool {
 	switch cfg.Type() {
-	case google.Type:
+	case liboauthrelyingparty.TypeGoogle:
 		return c.Google.Disabled
-	case facebook.Type:
+	case liboauthrelyingparty.TypeFacebook:
 		return c.Facebook.Disabled
-	case github.Type:
+	case liboauthrelyingparty.TypeGithub:
 		return c.Github.Disabled
-	case linkedin.Type:
+	case liboauthrelyingparty.TypeLinkedin:
 		return c.LinkedIn.Disabled
-	case azureadv2.Type:
+	case liboauthrelyingparty.TypeAzureADv2:
 		return c.Azureadv2.Disabled
-	case azureadb2c.Type:
+	case liboauthrelyingparty.TypeAzureADB2C:
 		return c.Azureadb2c.Disabled
-	case adfs.Type:
+	case liboauthrelyingparty.TypeADFS:
 		return c.ADFS.Disabled
-	case apple.Type:
+	case liboauthrelyingparty.TypeApple:
 		return c.Apple.Disabled
-	case wechat.Type:
+	case liboauthrelyingparty.TypeWechat:
 		return c.Wechat.Disabled
 	default:
 		// Not a provider we recognize here. Allow it.

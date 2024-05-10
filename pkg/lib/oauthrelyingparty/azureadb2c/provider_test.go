@@ -1,4 +1,4 @@
-package sso
+package azureadb2c
 
 import (
 	"net/http"
@@ -8,7 +8,6 @@ import (
 	"gopkg.in/h2non/gock.v1"
 
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/azureadb2c"
 )
 
 func TestAzureadb2cImpl(t *testing.T) {
@@ -20,14 +19,14 @@ func TestAzureadb2cImpl(t *testing.T) {
 		deps := oauthrelyingparty.Dependencies{
 			ProviderConfig: oauthrelyingparty.ProviderConfig{
 				"client_id": "client_id",
-				"type":      azureadb2c.Type,
+				"type":      Type,
 				"tenant":    "tenant",
 				"policy":    "policy",
 			},
 			HTTPClient: client,
 		}
 
-		g := &Azureadb2cImpl{}
+		g := AzureADB2C{}
 
 		gock.New("https://tenant.b2clogin.com/tenant.onmicrosoft.com/policy/v2.0/.well-known/openid-configuration").
 			Reply(200).

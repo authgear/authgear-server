@@ -176,4 +176,6 @@ type Provider interface {
 	SetDefaults(cfg ProviderConfig)
 	ProviderID(cfg ProviderConfig) ProviderID
 	Scope(cfg ProviderConfig) []string
+	GetAuthorizationURL(deps Dependencies, options GetAuthorizationURLOptions) (url string, err error)
+	GetUserProfile(deps Dependencies, options GetUserProfileOptions) (UserProfile, error)
 }
