@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
 )
@@ -19,7 +18,7 @@ const (
 
 type FacebookImpl struct {
 	ProviderConfig               oauthrelyingparty.ProviderConfig
-	Credentials                  config.OAuthSSOProviderCredentialsItem
+	ClientSecret                 string
 	StandardAttributesNormalizer StandardAttributesNormalizer
 	HTTPClient                   OAuthHTTPClient
 }
@@ -54,7 +53,7 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 		facebookTokenURL,
 		param.RedirectURI,
 		f.ProviderConfig.ClientID(),
-		f.Credentials.ClientSecret,
+		f.ClientSecret,
 	)
 	if err != nil {
 		return
@@ -65,7 +64,7 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 		return
 	}
 	q := userProfileURL.Query()
-	appSecretProof := crypto.HMACSHA256String([]byte(f.Credentials.ClientSecret), []byte(accessTokenResp.AccessToken()))
+	appSecretProof := crypto.HMACSHA256String([]byte(f.ClientSecret), []byte(accessTokenResp.AccessToken()))
 	q.Set("appsecret_proof", appSecretProof)
 	userProfileURL.RawQuery = q.Encode()
 

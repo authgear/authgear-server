@@ -10,7 +10,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/apple"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -28,7 +27,7 @@ var appleOIDCConfig = OIDCDiscoveryDocument{
 type AppleImpl struct {
 	Clock                        clock.Clock
 	ProviderConfig               oauthrelyingparty.ProviderConfig
-	Credentials                  config.OAuthSSOProviderCredentialsItem
+	ClientSecret                 string
 	StandardAttributesNormalizer StandardAttributesNormalizer
 	HTTPClient                   OAuthHTTPClient
 }
@@ -38,7 +37,7 @@ func (f *AppleImpl) createClientSecret() (clientSecret string, err error) {
 	keyID := apple.ProviderConfig(f.ProviderConfig).KeyID()
 
 	// https://developer.apple.com/documentation/signinwithapplerestapi/generate_and_validate_tokens
-	key, err := crypto.ParseAppleP8PrivateKey([]byte(f.Credentials.ClientSecret))
+	key, err := crypto.ParseAppleP8PrivateKey([]byte(f.ClientSecret))
 	if err != nil {
 		return
 	}

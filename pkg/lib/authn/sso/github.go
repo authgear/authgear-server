@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
@@ -24,7 +23,7 @@ const (
 
 type GithubImpl struct {
 	ProviderConfig               oauthrelyingparty.ProviderConfig
-	Credentials                  config.OAuthSSOProviderCredentialsItem
+	ClientSecret                 string
 	StandardAttributesNormalizer StandardAttributesNormalizer
 	HTTPClient                   OAuthHTTPClient
 }
@@ -101,7 +100,7 @@ func (g *GithubImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, p
 func (g *GithubImpl) exchangeCode(r OAuthAuthorizationResponse, param GetAuthInfoParam) (accessTokenResp oauthrelyingpartyutil.AccessTokenResp, err error) {
 	q := make(url.Values)
 	q.Set("client_id", g.ProviderConfig.ClientID())
-	q.Set("client_secret", g.Credentials.ClientSecret)
+	q.Set("client_secret", g.ClientSecret)
 	q.Set("code", r.Code)
 	q.Set("redirect_uri", param.RedirectURI)
 

@@ -3,7 +3,6 @@ package sso
 import (
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
 )
 
@@ -17,7 +16,7 @@ const (
 
 type LinkedInImpl struct {
 	ProviderConfig               oauthrelyingparty.ProviderConfig
-	Credentials                  config.OAuthSSOProviderCredentialsItem
+	ClientSecret                 string
 	StandardAttributesNormalizer StandardAttributesNormalizer
 	HTTPClient                   OAuthHTTPClient
 }
@@ -50,7 +49,7 @@ func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 		linkedinTokenURL,
 		param.RedirectURI,
 		f.ProviderConfig.ClientID(),
-		f.Credentials.ClientSecret,
+		f.ClientSecret,
 	)
 	if err != nil {
 		return

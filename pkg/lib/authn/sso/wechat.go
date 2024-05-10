@@ -3,7 +3,6 @@ package sso
 import (
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 )
@@ -14,7 +13,7 @@ const (
 
 type WechatImpl struct {
 	ProviderConfig               oauthrelyingparty.ProviderConfig
-	Credentials                  config.OAuthSSOProviderCredentialsItem
+	ClientSecret                 string
 	StandardAttributesNormalizer StandardAttributesNormalizer
 	HTTPClient                   OAuthHTTPClient
 }
@@ -46,7 +45,7 @@ func (w *WechatImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _
 		w.HTTPClient,
 		r.Code,
 		w.ProviderConfig.ClientID(),
-		w.Credentials.ClientSecret,
+		w.ClientSecret,
 	)
 	if err != nil {
 		return

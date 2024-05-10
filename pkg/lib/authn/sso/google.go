@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
@@ -17,7 +16,7 @@ const (
 type GoogleImpl struct {
 	Clock                        clock.Clock
 	ProviderConfig               oauthrelyingparty.ProviderConfig
-	Credentials                  config.OAuthSSOProviderCredentialsItem
+	ClientSecret                 string
 	StandardAttributesNormalizer StandardAttributesNormalizer
 	HTTPClient                   OAuthHTTPClient
 }
@@ -65,7 +64,7 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, para
 		r.Code,
 		keySet,
 		f.ProviderConfig.ClientID(),
-		f.Credentials.ClientSecret,
+		f.ClientSecret,
 		param.RedirectURI,
 		param.Nonce,
 		&tokenResp,

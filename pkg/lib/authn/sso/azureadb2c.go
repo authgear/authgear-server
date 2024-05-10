@@ -6,7 +6,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/azureadb2c"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -15,7 +14,7 @@ import (
 type Azureadb2cImpl struct {
 	Clock                        clock.Clock
 	ProviderConfig               oauthrelyingparty.ProviderConfig
-	Credentials                  config.OAuthSSOProviderCredentialsItem
+	ClientSecret                 string
 	StandardAttributesNormalizer StandardAttributesNormalizer
 	HTTPClient                   OAuthHTTPClient
 }
@@ -78,7 +77,7 @@ func (f *Azureadb2cImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, 
 		r.Code,
 		keySet,
 		f.ProviderConfig.ClientID(),
-		f.Credentials.ClientSecret,
+		f.ClientSecret,
 		param.RedirectURI,
 		param.Nonce,
 		&tokenResp,
