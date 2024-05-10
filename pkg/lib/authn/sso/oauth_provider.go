@@ -16,17 +16,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
-type GetUserProfileOptions struct {
-	Code        string
-	RedirectURI string
-	Nonce       string
-}
-
 // OAuthProvider is OAuth 2.0 based provider.
 type OAuthProvider interface {
 	Config() oauthrelyingparty.ProviderConfig
 	GetAuthorizationURL(options oauthrelyingparty.GetAuthorizationURLOptions) (url string, err error)
-	GetUserProfile(options GetUserProfileOptions) (UserProfile, error)
+	GetUserProfile(options oauthrelyingparty.GetUserProfileOptions) (oauthrelyingparty.UserProfile, error)
 }
 
 type StandardAttributesNormalizer interface {

@@ -42,7 +42,7 @@ func (f *GoogleImpl) Config() oauthrelyingparty.ProviderConfig {
 	return f.ProviderConfig
 }
 
-func (f *GoogleImpl) GetUserProfile(param GetUserProfileOptions) (authInfo UserProfile, err error) {
+func (f *GoogleImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
 	d, err := FetchOIDCDiscoveryDocument(f.HTTPClient, googleOIDCDiscoveryDocumentURL)
 	if err != nil {
 		return

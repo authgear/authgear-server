@@ -46,7 +46,7 @@ func (g *GithubImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizatio
 	}.Query()), nil
 }
 
-func (g *GithubImpl) GetUserProfile(param GetUserProfileOptions) (authInfo UserProfile, err error) {
+func (g *GithubImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
 	accessTokenResp, err := g.exchangeCode(param)
 	if err != nil {
 		return
@@ -93,7 +93,7 @@ func (g *GithubImpl) GetUserProfile(param GetUserProfileOptions) (authInfo UserP
 	return
 }
 
-func (g *GithubImpl) exchangeCode(param GetUserProfileOptions) (accessTokenResp oauthrelyingpartyutil.AccessTokenResp, err error) {
+func (g *GithubImpl) exchangeCode(param oauthrelyingparty.GetUserProfileOptions) (accessTokenResp oauthrelyingpartyutil.AccessTokenResp, err error) {
 	q := make(url.Values)
 	q.Set("client_id", g.ProviderConfig.ClientID())
 	q.Set("client_secret", g.ClientSecret)

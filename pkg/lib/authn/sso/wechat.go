@@ -38,7 +38,7 @@ func (w *WechatImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizatio
 	}.Query()), nil
 }
 
-func (w *WechatImpl) GetUserProfile(param GetUserProfileOptions) (authInfo UserProfile, err error) {
+func (w *WechatImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
 	accessTokenResp, err := wechatFetchAccessTokenResp(
 		w.HTTPClient,
 		param.Code,

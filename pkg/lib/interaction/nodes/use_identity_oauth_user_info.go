@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
@@ -75,7 +74,7 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 	redirectURI := ctx.OAuthRedirectURIBuilder.SSOCallbackURL(alias)
 
 	userInfo, err := oauthProvider.GetUserProfile(
-		sso.GetUserProfileOptions{
+		oauthrelyingparty.GetUserProfileOptions{
 			Code:        code,
 			RedirectURI: redirectURI.String(),
 			Nonce:       hashedNonce,

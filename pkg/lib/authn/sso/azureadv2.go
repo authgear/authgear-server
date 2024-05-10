@@ -88,7 +88,7 @@ func (f *Azureadv2Impl) GetAuthorizationURL(param oauthrelyingparty.GetAuthoriza
 	}), nil
 }
 
-func (f *Azureadv2Impl) GetUserProfile(param GetUserProfileOptions) (authInfo UserProfile, err error) {
+func (f *Azureadv2Impl) GetUserProfile(param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
 	c, err := f.getOpenIDConfiguration()
 	if err != nil {
 		return
