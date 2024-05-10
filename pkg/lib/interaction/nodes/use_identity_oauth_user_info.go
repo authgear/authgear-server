@@ -74,10 +74,8 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 	redirectURI := ctx.OAuthRedirectURIBuilder.SSOCallbackURL(alias)
 
 	userInfo, err := oauthProvider.GetAuthInfo(
-		sso.OAuthAuthorizationResponse{
-			Code: code,
-		},
 		sso.GetAuthInfoParam{
+			Code:        code,
 			RedirectURI: redirectURI.String(),
 			Nonce:       hashedNonce,
 		},

@@ -86,7 +86,7 @@ func (f *AppleImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorization
 	}), nil
 }
 
-func (f *AppleImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
+func (f *AppleImpl) GetAuthInfo(param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	keySet, err := appleOIDCConfig.FetchJWKs(f.HTTPClient)
 	if err != nil {
 		return
@@ -101,7 +101,7 @@ func (f *AppleImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoP
 	jwtToken, err := appleOIDCConfig.ExchangeCode(
 		f.HTTPClient,
 		f.Clock,
-		r.Code,
+		param.Code,
 		keySet,
 		f.ProviderConfig.ClientID(),
 		clientSecret,

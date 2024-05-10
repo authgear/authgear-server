@@ -41,10 +41,10 @@ func (f *LinkedInImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizat
 	}.Query()), nil
 }
 
-func (f *LinkedInImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
+func (f *LinkedInImpl) GetAuthInfo(param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	accessTokenResp, err := oauthrelyingpartyutil.FetchAccessTokenResp(
 		f.HTTPClient.Client,
-		r.Code,
+		param.Code,
 		linkedinTokenURL,
 		param.RedirectURI,
 		f.ProviderConfig.ClientID(),

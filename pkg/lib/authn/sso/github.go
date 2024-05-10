@@ -46,8 +46,8 @@ func (g *GithubImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizatio
 	}.Query()), nil
 }
 
-func (g *GithubImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
-	accessTokenResp, err := g.exchangeCode(r, param)
+func (g *GithubImpl) GetAuthInfo(param GetAuthInfoParam) (authInfo AuthInfo, err error) {
+	accessTokenResp, err := g.exchangeCode(param)
 	if err != nil {
 		return
 	}
@@ -93,11 +93,11 @@ func (g *GithubImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfo
 	return
 }
 
-func (g *GithubImpl) exchangeCode(r OAuthAuthorizationResponse, param GetAuthInfoParam) (accessTokenResp oauthrelyingpartyutil.AccessTokenResp, err error) {
+func (g *GithubImpl) exchangeCode(param GetAuthInfoParam) (accessTokenResp oauthrelyingpartyutil.AccessTokenResp, err error) {
 	q := make(url.Values)
 	q.Set("client_id", g.ProviderConfig.ClientID())
 	q.Set("client_secret", g.ClientSecret)
-	q.Set("code", r.Code)
+	q.Set("code", param.Code)
 	q.Set("redirect_uri", param.RedirectURI)
 
 	body := strings.NewReader(q.Encode())

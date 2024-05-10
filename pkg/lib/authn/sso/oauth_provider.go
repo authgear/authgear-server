@@ -17,19 +17,16 @@ import (
 )
 
 type GetAuthInfoParam struct {
+	Code        string
 	RedirectURI string
 	Nonce       string
-}
-
-type OAuthAuthorizationResponse struct {
-	Code string
 }
 
 // OAuthProvider is OAuth 2.0 based provider.
 type OAuthProvider interface {
 	Config() oauthrelyingparty.ProviderConfig
 	GetAuthorizationURL(options oauthrelyingparty.GetAuthorizationURLOptions) (url string, err error)
-	GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (AuthInfo, error)
+	GetAuthInfo(param GetAuthInfoParam) (AuthInfo, error)
 }
 
 type StandardAttributesNormalizer interface {

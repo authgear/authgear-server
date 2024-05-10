@@ -55,7 +55,7 @@ func (f *Azureadb2cImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthoriz
 	}), nil
 }
 
-func (f *Azureadb2cImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
+func (f *Azureadb2cImpl) GetAuthInfo(param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	c, err := f.getOpenIDConfiguration()
 	if err != nil {
 		return
@@ -70,7 +70,7 @@ func (f *Azureadb2cImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuth
 	jwtToken, err := c.ExchangeCode(
 		f.HTTPClient,
 		f.Clock,
-		r.Code,
+		param.Code,
 		keySet,
 		f.ProviderConfig.ClientID(),
 		f.ClientSecret,

@@ -42,7 +42,7 @@ func (f *GoogleImpl) Config() oauthrelyingparty.ProviderConfig {
 	return f.ProviderConfig
 }
 
-func (f *GoogleImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
+func (f *GoogleImpl) GetAuthInfo(param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	d, err := FetchOIDCDiscoveryDocument(f.HTTPClient, googleOIDCDiscoveryDocumentURL)
 	if err != nil {
 		return
@@ -57,7 +57,7 @@ func (f *GoogleImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfo
 	jwtToken, err := d.ExchangeCode(
 		f.HTTPClient,
 		f.Clock,
-		r.Code,
+		param.Code,
 		keySet,
 		f.ProviderConfig.ClientID(),
 		f.ClientSecret,

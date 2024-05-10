@@ -38,10 +38,10 @@ func (w *WechatImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizatio
 	}.Query()), nil
 }
 
-func (w *WechatImpl) GetAuthInfo(r OAuthAuthorizationResponse, _ GetAuthInfoParam) (authInfo AuthInfo, err error) {
+func (w *WechatImpl) GetAuthInfo(param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	accessTokenResp, err := wechatFetchAccessTokenResp(
 		w.HTTPClient,
-		r.Code,
+		param.Code,
 		w.ProviderConfig.ClientID(),
 		w.ClientSecret,
 	)

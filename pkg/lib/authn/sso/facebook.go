@@ -43,12 +43,12 @@ func (f *FacebookImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizat
 	}.Query()), nil
 }
 
-func (f *FacebookImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
+func (f *FacebookImpl) GetAuthInfo(param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	authInfo = AuthInfo{}
 
 	accessTokenResp, err := oauthrelyingpartyutil.FetchAccessTokenResp(
 		f.HTTPClient.Client,
-		r.Code,
+		param.Code,
 		facebookTokenURL,
 		param.RedirectURI,
 		f.ProviderConfig.ClientID(),

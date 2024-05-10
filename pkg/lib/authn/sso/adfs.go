@@ -45,7 +45,7 @@ func (f *ADFSImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizationU
 	}), nil
 }
 
-func (f *ADFSImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
+func (f *ADFSImpl) GetAuthInfo(param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	c, err := f.getOpenIDConfiguration()
 	if err != nil {
 		return
@@ -61,7 +61,7 @@ func (f *ADFSImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoPa
 	jwtToken, err := c.ExchangeCode(
 		f.HTTPClient,
 		f.Clock,
-		r.Code,
+		param.Code,
 		keySet,
 		f.ProviderConfig.ClientID(),
 		f.ClientSecret,

@@ -691,10 +691,8 @@ func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, opts HandleOA
 	// In the Authentication Flow API, cookies are not sent in Safari in third-party context.
 	emptyNonce := ""
 	authInfo, err := oauthProvider.GetAuthInfo(
-		sso.OAuthAuthorizationResponse{
-			Code: code,
-		},
 		sso.GetAuthInfoParam{
+			Code:        code,
 			RedirectURI: opts.RedirectURI,
 			Nonce:       emptyNonce,
 		},
