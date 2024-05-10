@@ -7,31 +7,25 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/adfs"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
-	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-type ADFSImpl struct {
-	Clock          clock.Clock
-	ProviderConfig oauthrelyingparty.ProviderConfig
-	ClientSecret   string
-	HTTPClient     OAuthHTTPClient
+type ADFSImpl struct{}
+
+func (f *ADFSImpl) getOpenIDConfiguration(deps oauthrelyingparty.Dependencies) (*OIDCDiscoveryDocument, error) {
+	endpoint := adfs.ProviderConfig(deps.ProviderConfig).DiscoveryDocumentEndpoint()
+	return FetchOIDCDiscoveryDocument(deps.HTTPClient, endpoint)
 }
 
-func (f *ADFSImpl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error) {
-	endpoint := adfs.ProviderConfig(f.ProviderConfig).DiscoveryDocumentEndpoint()
-	return FetchOIDCDiscoveryDocument(f.HTTPClient, endpoint)
-}
-
-func (f *ADFSImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
-	c, err := f.getOpenIDConfiguration()
+func (f *ADFSImpl) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
+	c, err := f.getOpenIDConfiguration(deps)
 	if err != nil {
 		return "", err
 	}
 	return c.MakeOAuthURL(oauthrelyingpartyutil.AuthorizationURLParams{
-		ClientID:     f.ProviderConfig.ClientID(),
+		ClientID:     deps.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
-		Scope:        f.ProviderConfig.Scope(),
+		Scope:        deps.ProviderConfig.Scope(),
 		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		ResponseMode: param.ResponseMode,
 		State:        param.State,
@@ -40,26 +34,26 @@ func (f *ADFSImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizationU
 	}), nil
 }
 
-func (f *ADFSImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
-	c, err := f.getOpenIDConfiguration()
+func (f *ADFSImpl) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
+	c, err := f.getOpenIDConfiguration(deps)
 	if err != nil {
 		return
 	}
 
 	// OPTIMIZE(sso): Cache JWKs
-	keySet, err := c.FetchJWKs(f.HTTPClient)
+	keySet, err := c.FetchJWKs(deps.HTTPClient)
 	if err != nil {
 		return
 	}
 
 	var tokenResp oauthrelyingpartyutil.AccessTokenResp
 	jwtToken, err := c.ExchangeCode(
-		f.HTTPClient,
-		f.Clock,
+		deps.HTTPClient,
+		deps.Clock,
 		param.Code,
 		keySet,
-		f.ProviderConfig.ClientID(),
-		f.ClientSecret,
+		deps.ProviderConfig.ClientID(),
+		deps.ClientSecret,
 		param.RedirectURI,
 		param.Nonce,
 		&tokenResp,
@@ -104,7 +98,7 @@ func (f *ADFSImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOptions)
 		}
 	}
 
-	emailRequired := f.ProviderConfig.EmailClaimConfig().Required()
+	emailRequired := deps.ProviderConfig.EmailClaimConfig().Required()
 	extracted, err = stdattrs.Extract(extracted, stdattrs.ExtractOptions{
 		EmailRequired: emailRequired,
 	})

@@ -11,16 +11,16 @@ import (
 
 func TestWechatImpl(t *testing.T) {
 	Convey("WechatImpl", t, func() {
-
-		g := &WechatImpl{
+		deps := oauthrelyingparty.Dependencies{
 			ProviderConfig: oauthrelyingparty.ProviderConfig{
 				"client_id": "client_id",
 				"type":      wechat.Type,
 			},
-			HTTPClient: OAuthHTTPClient{},
 		}
 
-		u, err := g.GetAuthorizationURL(oauthrelyingparty.GetAuthorizationURLOptions{
+		g := &WechatImpl{}
+
+		u, err := g.GetAuthorizationURL(deps, oauthrelyingparty.GetAuthorizationURLOptions{
 			Nonce:  "nonce",
 			State:  "state",
 			Prompt: []string{"login"},

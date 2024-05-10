@@ -2,6 +2,8 @@ package oauthrelyingparty
 
 import (
 	"fmt"
+	"net/http"
+	"time"
 )
 
 type ProviderConfig map[string]interface{}
@@ -157,6 +159,17 @@ type UserProfile struct {
 	// If there exists a more unique identifier than sub, that identifier is chosen instead.
 	ProviderUserID     string
 	StandardAttributes map[string]interface{}
+}
+
+type Clock interface {
+	NowUTC() time.Time
+}
+
+type Dependencies struct {
+	Clock          Clock
+	ProviderConfig ProviderConfig
+	ClientSecret   string
+	HTTPClient     *http.Client
 }
 
 type Provider interface {

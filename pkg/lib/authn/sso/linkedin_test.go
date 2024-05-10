@@ -11,15 +11,15 @@ import (
 
 func TestLinkedInImpl(t *testing.T) {
 	Convey("LinkedInImpl", t, func() {
-		g := &LinkedInImpl{
+		deps := oauthrelyingparty.Dependencies{
 			ProviderConfig: oauthrelyingparty.ProviderConfig{
 				"client_id": "client_id",
 				"type":      linkedin.Type,
 			},
-			HTTPClient: OAuthHTTPClient{},
 		}
+		g := &LinkedInImpl{}
 
-		u, err := g.GetAuthorizationURL(oauthrelyingparty.GetAuthorizationURLOptions{
+		u, err := g.GetAuthorizationURL(deps, oauthrelyingparty.GetAuthorizationURLOptions{
 			RedirectURI: "https://localhost/",
 			Nonce:       "nonce",
 			State:       "state",

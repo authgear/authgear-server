@@ -14,17 +14,13 @@ const (
 	linkedinContactURL string = "https://api.linkedin.com/v2/clientAwareMemberHandles?q=members&projection=(elements*(primary,type,handle~))"
 )
 
-type LinkedInImpl struct {
-	ProviderConfig oauthrelyingparty.ProviderConfig
-	ClientSecret   string
-	HTTPClient     OAuthHTTPClient
-}
+type LinkedInImpl struct{}
 
-func (f *LinkedInImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
+func (f *LinkedInImpl) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
 	return oauthrelyingpartyutil.MakeAuthorizationURL(linkedinAuthorizationURL, oauthrelyingpartyutil.AuthorizationURLParams{
-		ClientID:     f.ProviderConfig.ClientID(),
+		ClientID:     deps.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
-		Scope:        f.ProviderConfig.Scope(),
+		Scope:        deps.ProviderConfig.Scope(),
 		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		// ResponseMode is unset.
 		State: param.State,
@@ -36,25 +32,25 @@ func (f *LinkedInImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizat
 	}.Query()), nil
 }
 
-func (f *LinkedInImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
+func (f *LinkedInImpl) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
 	accessTokenResp, err := oauthrelyingpartyutil.FetchAccessTokenResp(
-		f.HTTPClient.Client,
+		deps.HTTPClient,
 		param.Code,
 		linkedinTokenURL,
 		param.RedirectURI,
-		f.ProviderConfig.ClientID(),
-		f.ClientSecret,
+		deps.ProviderConfig.ClientID(),
+		deps.ClientSecret,
 	)
 	if err != nil {
 		return
 	}
 
-	meResponse, err := oauthrelyingpartyutil.FetchUserProfile(f.HTTPClient.Client, accessTokenResp, linkedinMeURL)
+	meResponse, err := oauthrelyingpartyutil.FetchUserProfile(deps.HTTPClient, accessTokenResp, linkedinMeURL)
 	if err != nil {
 		return
 	}
 
-	contactResponse, err := oauthrelyingpartyutil.FetchUserProfile(f.HTTPClient.Client, accessTokenResp, linkedinContactURL)
+	contactResponse, err := oauthrelyingpartyutil.FetchUserProfile(deps.HTTPClient, accessTokenResp, linkedinContactURL)
 	if err != nil {
 		return
 	}
@@ -267,7 +263,7 @@ func (f *LinkedInImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOpti
 	id, attrs := decodeLinkedIn(combinedResponse)
 	authInfo.ProviderUserID = id
 
-	emailRequired := f.ProviderConfig.EmailClaimConfig().Required()
+	emailRequired := deps.ProviderConfig.EmailClaimConfig().Required()
 	attrs, err = stdattrs.Extract(attrs, stdattrs.ExtractOptions{
 		EmailRequired: emailRequired,
 	})

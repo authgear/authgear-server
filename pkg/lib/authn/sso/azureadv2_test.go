@@ -13,11 +13,11 @@ import (
 
 func TestAzureadv2Impl(t *testing.T) {
 	Convey("Azureadv2Impl", t, func() {
-		client := OAuthHTTPClient{&http.Client{}}
-		gock.InterceptClient(client.Client)
+		client := &http.Client{}
+		gock.InterceptClient(client)
 		defer gock.Off()
 
-		g := &Azureadv2Impl{
+		deps := oauthrelyingparty.Dependencies{
 			ProviderConfig: oauthrelyingparty.ProviderConfig{
 				"client_id": "client_id",
 				"type":      azureadv2.Type,
@@ -25,6 +25,8 @@ func TestAzureadv2Impl(t *testing.T) {
 			},
 			HTTPClient: client,
 		}
+
+		g := &Azureadv2Impl{}
 
 		gock.New("https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration").
 			Reply(200).
@@ -99,7 +101,7 @@ func TestAzureadv2Impl(t *testing.T) {
 			`)
 		defer func() { gock.Flush() }()
 
-		u, err := g.GetAuthorizationURL(oauthrelyingparty.GetAuthorizationURLOptions{
+		u, err := g.GetAuthorizationURL(deps, oauthrelyingparty.GetAuthorizationURLOptions{
 			RedirectURI:  "https://localhost/",
 			ResponseMode: oauthrelyingparty.ResponseModeFormPost,
 			Nonce:        "nonce",

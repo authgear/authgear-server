@@ -11,15 +11,15 @@ import (
 
 func TestFacebookImpl(t *testing.T) {
 	Convey("FacebookImpl", t, func() {
-		g := &FacebookImpl{
+		deps := oauthrelyingparty.Dependencies{
 			ProviderConfig: oauthrelyingparty.ProviderConfig{
 				"client_id": "client_id",
 				"type":      facebook.Type,
 			},
-			HTTPClient: OAuthHTTPClient{},
 		}
+		g := &FacebookImpl{}
 
-		u, err := g.GetAuthorizationURL(oauthrelyingparty.GetAuthorizationURLOptions{
+		u, err := g.GetAuthorizationURL(deps, oauthrelyingparty.GetAuthorizationURLOptions{
 			RedirectURI: "https://localhost/",
 			Nonce:       "nonce",
 			State:       "state",

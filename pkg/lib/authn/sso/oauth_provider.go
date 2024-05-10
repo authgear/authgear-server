@@ -19,8 +19,8 @@ import (
 
 // OAuthProvider is OAuth 2.0 based provider.
 type OAuthProvider interface {
-	GetAuthorizationURL(options oauthrelyingparty.GetAuthorizationURLOptions) (url string, err error)
-	GetUserProfile(options oauthrelyingparty.GetUserProfileOptions) (oauthrelyingparty.UserProfile, error)
+	GetAuthorizationURL(deps oauthrelyingparty.Dependencies, options oauthrelyingparty.GetAuthorizationURLOptions) (url string, err error)
+	GetUserProfile(deps oauthrelyingparty.Dependencies, options oauthrelyingparty.GetUserProfileOptions) (oauthrelyingparty.UserProfile, error)
 }
 
 type StandardAttributesNormalizer interface {
@@ -43,7 +43,7 @@ func (p *OAuthProviderFactory) GetProviderConfig(alias string) (oauthrelyingpart
 	return providerConfig, nil
 }
 
-func (p *OAuthProviderFactory) getProvider(alias string) (provider OAuthProvider, err error) {
+func (p *OAuthProviderFactory) getProvider(alias string) (provider OAuthProvider, deps *oauthrelyingparty.Dependencies, err error) {
 	providerConfig, err := p.GetProviderConfig(alias)
 	if err != nil {
 		return
@@ -55,66 +55,41 @@ func (p *OAuthProviderFactory) getProvider(alias string) (provider OAuthProvider
 		return
 	}
 
+	deps = &oauthrelyingparty.Dependencies{
+		Clock:          p.Clock,
+		ProviderConfig: providerConfig,
+		ClientSecret:   credentials.ClientSecret,
+		HTTPClient:     p.HTTPClient.Client,
+	}
+
 	switch providerConfig.Type() {
 	case google.Type:
-		return &GoogleImpl{
-			Clock:          p.Clock,
-			ProviderConfig: providerConfig,
-			ClientSecret:   credentials.ClientSecret,
-			HTTPClient:     p.HTTPClient,
-		}, nil
+		provider = &GoogleImpl{}
+		return
 	case facebook.Type:
-		return &FacebookImpl{
-			ProviderConfig: providerConfig,
-			ClientSecret:   credentials.ClientSecret,
-			HTTPClient:     p.HTTPClient,
-		}, nil
+		provider = &FacebookImpl{}
+		return
 	case github.Type:
-		return &GithubImpl{
-			ProviderConfig: providerConfig,
-			ClientSecret:   credentials.ClientSecret,
-			HTTPClient:     p.HTTPClient,
-		}, nil
+		provider = &GithubImpl{}
+		return
 	case linkedin.Type:
-		return &LinkedInImpl{
-			ProviderConfig: providerConfig,
-			ClientSecret:   credentials.ClientSecret,
-			HTTPClient:     p.HTTPClient,
-		}, nil
+		provider = &LinkedInImpl{}
+		return
 	case azureadv2.Type:
-		return &Azureadv2Impl{
-			Clock:          p.Clock,
-			ProviderConfig: providerConfig,
-			ClientSecret:   credentials.ClientSecret,
-			HTTPClient:     p.HTTPClient,
-		}, nil
+		provider = &Azureadv2Impl{}
+		return
 	case azureadb2c.Type:
-		return &Azureadb2cImpl{
-			Clock:          p.Clock,
-			ProviderConfig: providerConfig,
-			ClientSecret:   credentials.ClientSecret,
-			HTTPClient:     p.HTTPClient,
-		}, nil
+		provider = &Azureadb2cImpl{}
+		return
 	case adfs.Type:
-		return &ADFSImpl{
-			Clock:          p.Clock,
-			ProviderConfig: providerConfig,
-			ClientSecret:   credentials.ClientSecret,
-			HTTPClient:     p.HTTPClient,
-		}, nil
+		provider = &ADFSImpl{}
+		return
 	case apple.Type:
-		return &AppleImpl{
-			Clock:          p.Clock,
-			ProviderConfig: providerConfig,
-			ClientSecret:   credentials.ClientSecret,
-			HTTPClient:     p.HTTPClient,
-		}, nil
+		provider = &AppleImpl{}
+		return
 	case wechat.Type:
-		return &WechatImpl{
-			ProviderConfig: providerConfig,
-			ClientSecret:   credentials.ClientSecret,
-			HTTPClient:     p.HTTPClient,
-		}, nil
+		provider = &WechatImpl{}
+		return
 	default:
 		// TODO(oauth): switch to registry-based resolution.
 		err = api.ErrOAuthProviderNotFound
@@ -123,21 +98,21 @@ func (p *OAuthProviderFactory) getProvider(alias string) (provider OAuthProvider
 }
 
 func (p *OAuthProviderFactory) GetAuthorizationURL(alias string, options oauthrelyingparty.GetAuthorizationURLOptions) (url string, err error) {
-	provider, err := p.getProvider(alias)
+	provider, deps, err := p.getProvider(alias)
 	if err != nil {
 		return
 	}
 
-	return provider.GetAuthorizationURL(options)
+	return provider.GetAuthorizationURL(*deps, options)
 }
 
 func (p *OAuthProviderFactory) GetUserProfile(alias string, options oauthrelyingparty.GetUserProfileOptions) (userProfile oauthrelyingparty.UserProfile, err error) {
-	provider, err := p.getProvider(alias)
+	provider, deps, err := p.getProvider(alias)
 	if err != nil {
 		return
 	}
 
-	userProfile, err = provider.GetUserProfile(options)
+	userProfile, err = provider.GetUserProfile(*deps, options)
 	if err != nil {
 		return
 	}

@@ -21,18 +21,14 @@ const (
 	githubUserInfoURL string = "https://api.github.com/user"
 )
 
-type GithubImpl struct {
-	ProviderConfig oauthrelyingparty.ProviderConfig
-	ClientSecret   string
-	HTTPClient     OAuthHTTPClient
-}
+type GithubImpl struct{}
 
-func (g *GithubImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
+func (g *GithubImpl) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
 	// https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps#1-request-a-users-github-identity
 	return oauthrelyingpartyutil.MakeAuthorizationURL(githubAuthorizationURL, oauthrelyingpartyutil.AuthorizationURLParams{
-		ClientID:    g.ProviderConfig.ClientID(),
+		ClientID:    deps.ProviderConfig.ClientID(),
 		RedirectURI: param.RedirectURI,
-		Scope:       g.ProviderConfig.Scope(),
+		Scope:       deps.ProviderConfig.Scope(),
 		// ResponseType is unset.
 		// ResponseMode is unset.
 		State: param.State,
@@ -41,13 +37,13 @@ func (g *GithubImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizatio
 	}.Query()), nil
 }
 
-func (g *GithubImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
-	accessTokenResp, err := g.exchangeCode(param)
+func (g *GithubImpl) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
+	accessTokenResp, err := g.exchangeCode(deps, param)
 	if err != nil {
 		return
 	}
 
-	userProfile, err := g.fetchUserInfo(accessTokenResp)
+	userProfile, err := g.fetchUserInfo(deps, accessTokenResp)
 	if err != nil {
 		return
 	}
@@ -62,7 +58,7 @@ func (g *GithubImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOption
 	id := string(idJSONNumber)
 
 	authInfo.ProviderUserID = id
-	emailRequired := g.ProviderConfig.EmailClaimConfig().Required()
+	emailRequired := deps.ProviderConfig.EmailClaimConfig().Required()
 	stdAttrs, err := stdattrs.Extract(map[string]interface{}{
 		stdattrs.Email:     email,
 		stdattrs.Name:      login,
@@ -74,7 +70,7 @@ func (g *GithubImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOption
 	})
 	if err != nil {
 		err = apierrors.AddDetails(err, errorutil.Details{
-			"ProviderType": apierrors.APIErrorDetail.Value(g.ProviderConfig.Type),
+			"ProviderType": apierrors.APIErrorDetail.Value(deps.ProviderConfig.Type()),
 		})
 		return
 	}
@@ -83,10 +79,10 @@ func (g *GithubImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOption
 	return
 }
 
-func (g *GithubImpl) exchangeCode(param oauthrelyingparty.GetUserProfileOptions) (accessTokenResp oauthrelyingpartyutil.AccessTokenResp, err error) {
+func (g *GithubImpl) exchangeCode(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (accessTokenResp oauthrelyingpartyutil.AccessTokenResp, err error) {
 	q := make(url.Values)
-	q.Set("client_id", g.ProviderConfig.ClientID())
-	q.Set("client_secret", g.ClientSecret)
+	q.Set("client_id", deps.ProviderConfig.ClientID())
+	q.Set("client_secret", deps.ClientSecret)
 	q.Set("code", param.Code)
 	q.Set("redirect_uri", param.RedirectURI)
 
@@ -96,7 +92,7 @@ func (g *GithubImpl) exchangeCode(param oauthrelyingparty.GetUserProfileOptions)
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := g.HTTPClient.Do(req)
+	resp, err := deps.HTTPClient.Do(req)
 	if err != nil {
 		return
 	}
@@ -119,7 +115,7 @@ func (g *GithubImpl) exchangeCode(param oauthrelyingparty.GetUserProfileOptions)
 	return
 }
 
-func (g *GithubImpl) fetchUserInfo(accessTokenResp oauthrelyingpartyutil.AccessTokenResp) (userProfile map[string]interface{}, err error) {
+func (g *GithubImpl) fetchUserInfo(deps oauthrelyingparty.Dependencies, accessTokenResp oauthrelyingpartyutil.AccessTokenResp) (userProfile map[string]interface{}, err error) {
 	tokenType := accessTokenResp.TokenType()
 	accessTokenValue := accessTokenResp.AccessToken()
 	authorizationHeader := fmt.Sprintf("%s %s", tokenType, accessTokenValue)
@@ -130,7 +126,7 @@ func (g *GithubImpl) fetchUserInfo(accessTokenResp oauthrelyingpartyutil.AccessT
 	}
 	req.Header.Add("Authorization", authorizationHeader)
 
-	resp, err := g.HTTPClient.Do(req)
+	resp, err := deps.HTTPClient.Do(req)
 	if resp != nil {
 		defer resp.Body.Close()
 	}

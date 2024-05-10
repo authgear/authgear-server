@@ -13,11 +13,11 @@ import (
 
 func TestAzureadb2cImpl(t *testing.T) {
 	Convey("Azureadb2cImpl", t, func() {
-		client := OAuthHTTPClient{&http.Client{}}
-		gock.InterceptClient(client.Client)
+		client := &http.Client{}
+		gock.InterceptClient(client)
 		defer gock.Off()
 
-		g := &Azureadb2cImpl{
+		deps := oauthrelyingparty.Dependencies{
 			ProviderConfig: oauthrelyingparty.ProviderConfig{
 				"client_id": "client_id",
 				"type":      azureadb2c.Type,
@@ -26,6 +26,8 @@ func TestAzureadb2cImpl(t *testing.T) {
 			},
 			HTTPClient: client,
 		}
+
+		g := &Azureadb2cImpl{}
 
 		gock.New("https://tenant.b2clogin.com/tenant.onmicrosoft.com/policy/v2.0/.well-known/openid-configuration").
 			Reply(200).
@@ -36,7 +38,7 @@ func TestAzureadb2cImpl(t *testing.T) {
 			`)
 		defer func() { gock.Flush() }()
 
-		u, err := g.GetAuthorizationURL(oauthrelyingparty.GetAuthorizationURLOptions{
+		u, err := g.GetAuthorizationURL(deps, oauthrelyingparty.GetAuthorizationURLOptions{
 			RedirectURI:  "https://localhost/",
 			ResponseMode: oauthrelyingparty.ResponseModeFormPost,
 			Nonce:        "nonce",

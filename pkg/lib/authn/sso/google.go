@@ -6,29 +6,23 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
-	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 const (
 	googleOIDCDiscoveryDocumentURL string = "https://accounts.google.com/.well-known/openid-configuration"
 )
 
-type GoogleImpl struct {
-	Clock          clock.Clock
-	ProviderConfig oauthrelyingparty.ProviderConfig
-	ClientSecret   string
-	HTTPClient     OAuthHTTPClient
-}
+type GoogleImpl struct{}
 
-func (f *GoogleImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
-	d, err := FetchOIDCDiscoveryDocument(f.HTTPClient, googleOIDCDiscoveryDocumentURL)
+func (f *GoogleImpl) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
+	d, err := FetchOIDCDiscoveryDocument(deps.HTTPClient, googleOIDCDiscoveryDocumentURL)
 	if err != nil {
 		return "", err
 	}
 	return d.MakeOAuthURL(oauthrelyingpartyutil.AuthorizationURLParams{
-		ClientID:     f.ProviderConfig.ClientID(),
+		ClientID:     deps.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
-		Scope:        f.ProviderConfig.Scope(),
+		Scope:        deps.ProviderConfig.Scope(),
 		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		ResponseMode: param.ResponseMode,
 		State:        param.State,
@@ -37,25 +31,25 @@ func (f *GoogleImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizatio
 	}), nil
 }
 
-func (f *GoogleImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
-	d, err := FetchOIDCDiscoveryDocument(f.HTTPClient, googleOIDCDiscoveryDocumentURL)
+func (f *GoogleImpl) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
+	d, err := FetchOIDCDiscoveryDocument(deps.HTTPClient, googleOIDCDiscoveryDocumentURL)
 	if err != nil {
 		return
 	}
 	// OPTIMIZE(sso): Cache JWKs
-	keySet, err := d.FetchJWKs(f.HTTPClient)
+	keySet, err := d.FetchJWKs(deps.HTTPClient)
 	if err != nil {
 		return
 	}
 
 	var tokenResp oauthrelyingpartyutil.AccessTokenResp
 	jwtToken, err := d.ExchangeCode(
-		f.HTTPClient,
-		f.Clock,
+		deps.HTTPClient,
+		deps.Clock,
 		param.Code,
 		keySet,
-		f.ProviderConfig.ClientID(),
-		f.ClientSecret,
+		deps.ProviderConfig.ClientID(),
+		deps.ClientSecret,
 		param.RedirectURI,
 		param.Nonce,
 		&tokenResp,
@@ -93,7 +87,7 @@ func (f *GoogleImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOption
 	// Google supports
 	// given_name, family_name, email, picture, profile, locale
 	// https://developers.google.com/identity/protocols/oauth2/openid-connect#obtainuserinfo
-	emailRequired := f.ProviderConfig.EmailClaimConfig().Required()
+	emailRequired := deps.ProviderConfig.EmailClaimConfig().Required()
 	stdAttrs, err := stdattrs.Extract(claims, stdattrs.ExtractOptions{
 		EmailRequired: emailRequired,
 	})

@@ -8,20 +8,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/azureadv2"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
-	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
-type Azureadv2Impl struct {
-	Clock          clock.Clock
-	ProviderConfig oauthrelyingparty.ProviderConfig
-	ClientSecret   string
-	HTTPClient     OAuthHTTPClient
-}
+type Azureadv2Impl struct{}
 
-func (f *Azureadv2Impl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error) {
+func (f *Azureadv2Impl) getOpenIDConfiguration(deps oauthrelyingparty.Dependencies) (*OIDCDiscoveryDocument, error) {
 	// OPTIMIZE(sso): Cache OpenID configuration
 
-	tenant := azureadv2.ProviderConfig(f.ProviderConfig).Tenant()
+	tenant := azureadv2.ProviderConfig(deps.ProviderConfig).Tenant()
 
 	var endpoint string
 	// Azure special tenant
@@ -63,18 +57,18 @@ func (f *Azureadv2Impl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error)
 		endpoint = fmt.Sprintf("https://login.microsoftonline.com/%s/v2.0/.well-known/openid-configuration", tenant)
 	}
 
-	return FetchOIDCDiscoveryDocument(f.HTTPClient, endpoint)
+	return FetchOIDCDiscoveryDocument(deps.HTTPClient, endpoint)
 }
 
-func (f *Azureadv2Impl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
-	c, err := f.getOpenIDConfiguration()
+func (f *Azureadv2Impl) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
+	c, err := f.getOpenIDConfiguration(deps)
 	if err != nil {
 		return "", err
 	}
 	return c.MakeOAuthURL(oauthrelyingpartyutil.AuthorizationURLParams{
-		ClientID:     f.ProviderConfig.ClientID(),
+		ClientID:     deps.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
-		Scope:        f.ProviderConfig.Scope(),
+		Scope:        deps.ProviderConfig.Scope(),
 		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		ResponseMode: param.ResponseMode,
 		State:        param.State,
@@ -83,25 +77,25 @@ func (f *Azureadv2Impl) GetAuthorizationURL(param oauthrelyingparty.GetAuthoriza
 	}), nil
 }
 
-func (f *Azureadv2Impl) GetUserProfile(param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
-	c, err := f.getOpenIDConfiguration()
+func (f *Azureadv2Impl) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
+	c, err := f.getOpenIDConfiguration(deps)
 	if err != nil {
 		return
 	}
 	// OPTIMIZE(sso): Cache JWKs
-	keySet, err := c.FetchJWKs(f.HTTPClient)
+	keySet, err := c.FetchJWKs(deps.HTTPClient)
 	if err != nil {
 		return
 	}
 
 	var tokenResp oauthrelyingpartyutil.AccessTokenResp
 	jwtToken, err := c.ExchangeCode(
-		f.HTTPClient,
-		f.Clock,
+		deps.HTTPClient,
+		deps.Clock,
 		param.Code,
 		keySet,
-		f.ProviderConfig.ClientID(),
-		f.ClientSecret,
+		deps.ProviderConfig.ClientID(),
+		deps.ClientSecret,
 		param.RedirectURI,
 		param.Nonce,
 		&tokenResp,
@@ -126,7 +120,7 @@ func (f *Azureadv2Impl) GetUserProfile(param oauthrelyingparty.GetUserProfileOpt
 
 	authInfo.ProviderRawProfile = claims
 	authInfo.ProviderUserID = oid
-	emailRequired := f.ProviderConfig.EmailClaimConfig().Required()
+	emailRequired := deps.ProviderConfig.EmailClaimConfig().Required()
 	stdAttrs, err := stdattrs.Extract(claims, stdattrs.ExtractOptions{
 		EmailRequired: emailRequired,
 	})

@@ -8,18 +8,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/azureadb2c"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
-	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
-type Azureadb2cImpl struct {
-	Clock          clock.Clock
-	ProviderConfig oauthrelyingparty.ProviderConfig
-	ClientSecret   string
-	HTTPClient     OAuthHTTPClient
-}
+type Azureadb2cImpl struct{}
 
-func (f *Azureadb2cImpl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error) {
-	azureadb2cConfig := azureadb2c.ProviderConfig(f.ProviderConfig)
+func (f *Azureadb2cImpl) getOpenIDConfiguration(deps oauthrelyingparty.Dependencies) (*OIDCDiscoveryDocument, error) {
+	azureadb2cConfig := azureadb2c.ProviderConfig(deps.ProviderConfig)
 	tenant := azureadb2cConfig.Tenant()
 	policy := azureadb2cConfig.Policy()
 
@@ -30,18 +24,18 @@ func (f *Azureadb2cImpl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error
 		policy,
 	)
 
-	return FetchOIDCDiscoveryDocument(f.HTTPClient, endpoint)
+	return FetchOIDCDiscoveryDocument(deps.HTTPClient, endpoint)
 }
 
-func (f *Azureadb2cImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
-	c, err := f.getOpenIDConfiguration()
+func (f *Azureadb2cImpl) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
+	c, err := f.getOpenIDConfiguration(deps)
 	if err != nil {
 		return "", err
 	}
 	return c.MakeOAuthURL(oauthrelyingpartyutil.AuthorizationURLParams{
-		ClientID:     f.ProviderConfig.ClientID(),
+		ClientID:     deps.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
-		Scope:        f.ProviderConfig.Scope(),
+		Scope:        deps.ProviderConfig.Scope(),
 		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		ResponseMode: param.ResponseMode,
 		State:        param.State,
@@ -50,25 +44,25 @@ func (f *Azureadb2cImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthoriz
 	}), nil
 }
 
-func (f *Azureadb2cImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
-	c, err := f.getOpenIDConfiguration()
+func (f *Azureadb2cImpl) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
+	c, err := f.getOpenIDConfiguration(deps)
 	if err != nil {
 		return
 	}
 	// OPTIMIZE(sso): Cache JWKs
-	keySet, err := c.FetchJWKs(f.HTTPClient)
+	keySet, err := c.FetchJWKs(deps.HTTPClient)
 	if err != nil {
 		return
 	}
 
 	var tokenResp oauthrelyingpartyutil.AccessTokenResp
 	jwtToken, err := c.ExchangeCode(
-		f.HTTPClient,
-		f.Clock,
+		deps.HTTPClient,
+		deps.Clock,
 		param.Code,
 		keySet,
-		f.ProviderConfig.ClientID(),
-		f.ClientSecret,
+		deps.ProviderConfig.ClientID(),
+		deps.ClientSecret,
 		param.RedirectURI,
 		param.Nonce,
 		&tokenResp,
@@ -103,7 +97,7 @@ func (f *Azureadb2cImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOp
 	authInfo.ProviderRawProfile = claims
 	authInfo.ProviderUserID = sub
 
-	stdAttrs, err := f.Extract(claims)
+	stdAttrs, err := f.Extract(deps, claims)
 	if err != nil {
 		return
 	}
@@ -112,7 +106,7 @@ func (f *Azureadb2cImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOp
 	return
 }
 
-func (f *Azureadb2cImpl) Extract(claims map[string]interface{}) (stdattrs.T, error) {
+func (f *Azureadb2cImpl) Extract(deps oauthrelyingparty.Dependencies, claims map[string]interface{}) (stdattrs.T, error) {
 	// Here is the list of possible builtin claims of user flows
 	// https://learn.microsoft.com/en-us/azure/active-directory-b2c/user-flow-overview#user-flows
 	// city: free text
@@ -164,7 +158,7 @@ func (f *Azureadb2cImpl) Extract(claims map[string]interface{}) (stdattrs.T, err
 	}
 	out[stdattrs.Email] = email
 
-	emailRequired := f.ProviderConfig.EmailClaimConfig().Required()
+	emailRequired := deps.ProviderConfig.EmailClaimConfig().Required()
 	return stdattrs.Extract(out, stdattrs.ExtractOptions{
 		EmailRequired: emailRequired,
 	})

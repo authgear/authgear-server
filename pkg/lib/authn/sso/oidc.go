@@ -13,13 +13,12 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
-	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/jwsutil"
 )
 
 type jwtClock struct {
-	Clock clock.Clock
+	Clock oauthrelyingparty.Clock
 }
 
 func (c jwtClock) Now() time.Time {
@@ -33,7 +32,7 @@ type OIDCDiscoveryDocument struct {
 	JWKSUri               string `json:"jwks_uri"`
 }
 
-func FetchOIDCDiscoveryDocument(client OAuthHTTPClient, endpoint string) (*OIDCDiscoveryDocument, error) {
+func FetchOIDCDiscoveryDocument(client *http.Client, endpoint string) (*OIDCDiscoveryDocument, error) {
 	resp, err := client.Get(endpoint)
 	if resp != nil {
 		defer resp.Body.Close()
@@ -62,7 +61,7 @@ func (d *OIDCDiscoveryDocument) MakeOAuthURL(params oauthrelyingpartyutil.Author
 	return oauthrelyingpartyutil.MakeAuthorizationURL(d.AuthorizationEndpoint, params.Query())
 }
 
-func (d *OIDCDiscoveryDocument) FetchJWKs(client OAuthHTTPClient) (jwk.Set, error) {
+func (d *OIDCDiscoveryDocument) FetchJWKs(client *http.Client) (jwk.Set, error) {
 	resp, err := client.Get(d.JWKSUri)
 	if resp != nil {
 		defer resp.Body.Close()
@@ -77,8 +76,8 @@ func (d *OIDCDiscoveryDocument) FetchJWKs(client OAuthHTTPClient) (jwk.Set, erro
 }
 
 func (d *OIDCDiscoveryDocument) ExchangeCode(
-	client OAuthHTTPClient,
-	clock clock.Clock,
+	client *http.Client,
+	clock oauthrelyingparty.Clock,
 	code string,
 	jwks jwk.Set,
 	clientID string,

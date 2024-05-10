@@ -11,18 +11,14 @@ const (
 	wechatAuthorizationURL string = "https://open.weixin.qq.com/connect/oauth2/authorize"
 )
 
-type WechatImpl struct {
-	ProviderConfig oauthrelyingparty.ProviderConfig
-	ClientSecret   string
-	HTTPClient     OAuthHTTPClient
-}
+type WechatImpl struct{}
 
-func (w *WechatImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
+func (w *WechatImpl) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
 	return oauthrelyingpartyutil.MakeAuthorizationURL(wechatAuthorizationURL, oauthrelyingpartyutil.AuthorizationURLParams{
 		// ClientID is not used by wechat.
-		WechatAppID:  w.ProviderConfig.ClientID(),
+		WechatAppID:  deps.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
-		Scope:        w.ProviderConfig.Scope(),
+		Scope:        deps.ProviderConfig.Scope(),
 		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		// ResponseMode is unset.
 		State: param.State,
@@ -33,23 +29,23 @@ func (w *WechatImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizatio
 	}.Query()), nil
 }
 
-func (w *WechatImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
+func (w *WechatImpl) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
 	accessTokenResp, err := wechatFetchAccessTokenResp(
-		w.HTTPClient,
+		deps.HTTPClient,
 		param.Code,
-		w.ProviderConfig.ClientID(),
-		w.ClientSecret,
+		deps.ProviderConfig.ClientID(),
+		deps.ClientSecret,
 	)
 	if err != nil {
 		return
 	}
 
-	rawProfile, err := wechatFetchUserProfile(w.HTTPClient, accessTokenResp)
+	rawProfile, err := wechatFetchUserProfile(deps.HTTPClient, accessTokenResp)
 	if err != nil {
 		return
 	}
 
-	is_sandbox_account := wechat.ProviderConfig(w.ProviderConfig).IsSandboxAccount()
+	is_sandbox_account := wechat.ProviderConfig(deps.ProviderConfig).IsSandboxAccount()
 	var userID string
 	if is_sandbox_account {
 		if accessTokenResp.UnionID() != "" {

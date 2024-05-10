@@ -11,15 +11,15 @@ import (
 
 func TestGithubImpl(t *testing.T) {
 	Convey("GithubImpl", t, func() {
-		g := &GithubImpl{
+		deps := oauthrelyingparty.Dependencies{
 			ProviderConfig: oauthrelyingparty.ProviderConfig{
 				"client_id": "client_id",
 				"type":      github.Type,
 			},
-			HTTPClient: OAuthHTTPClient{},
 		}
+		g := &GithubImpl{}
 
-		u, err := g.GetAuthorizationURL(oauthrelyingparty.GetAuthorizationURLOptions{
+		u, err := g.GetAuthorizationURL(deps, oauthrelyingparty.GetAuthorizationURLOptions{
 			RedirectURI: "https://localhost/",
 			Nonce:       "nonce",
 			State:       "state",

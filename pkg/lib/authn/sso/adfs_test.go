@@ -13,11 +13,11 @@ import (
 
 func TestADFSImpl(t *testing.T) {
 	Convey("ADFSImpl", t, func() {
-		client := OAuthHTTPClient{&http.Client{}}
-		gock.InterceptClient(client.Client)
+		client := &http.Client{}
+		gock.InterceptClient(client)
 		defer gock.Off()
 
-		g := &ADFSImpl{
+		deps := oauthrelyingparty.Dependencies{
 			ProviderConfig: oauthrelyingparty.ProviderConfig{
 				"client_id":                   "client_id",
 				"type":                        adfs.Type,
@@ -25,6 +25,8 @@ func TestADFSImpl(t *testing.T) {
 			},
 			HTTPClient: client,
 		}
+
+		g := &ADFSImpl{}
 
 		gock.New("https://localhost/.well-known/openid-configuration").
 			Reply(200).
@@ -35,7 +37,7 @@ func TestADFSImpl(t *testing.T) {
 			`)
 		defer func() { gock.Flush() }()
 
-		u, err := g.GetAuthorizationURL(oauthrelyingparty.GetAuthorizationURLOptions{
+		u, err := g.GetAuthorizationURL(deps, oauthrelyingparty.GetAuthorizationURLOptions{
 			RedirectURI:  "https://localhost/",
 			ResponseMode: oauthrelyingparty.ResponseModeFormPost,
 			Nonce:        "nonce",

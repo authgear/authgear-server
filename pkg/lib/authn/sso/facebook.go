@@ -16,17 +16,13 @@ const (
 	facebookUserInfoURL string = "https://graph.facebook.com/v11.0/me?fields=id,email,first_name,last_name,middle_name,name,name_format,picture,short_name"
 )
 
-type FacebookImpl struct {
-	ProviderConfig oauthrelyingparty.ProviderConfig
-	ClientSecret   string
-	HTTPClient     OAuthHTTPClient
-}
+type FacebookImpl struct{}
 
-func (f *FacebookImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
+func (f *FacebookImpl) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
 	return oauthrelyingpartyutil.MakeAuthorizationURL(facebookAuthorizationURL, oauthrelyingpartyutil.AuthorizationURLParams{
-		ClientID:     f.ProviderConfig.ClientID(),
+		ClientID:     deps.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
-		Scope:        f.ProviderConfig.Scope(),
+		Scope:        deps.ProviderConfig.Scope(),
 		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		// ResponseMode is unset
 		State: param.State,
@@ -38,16 +34,16 @@ func (f *FacebookImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizat
 	}.Query()), nil
 }
 
-func (f *FacebookImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
+func (f *FacebookImpl) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
 	authInfo = oauthrelyingparty.UserProfile{}
 
 	accessTokenResp, err := oauthrelyingpartyutil.FetchAccessTokenResp(
-		f.HTTPClient.Client,
+		deps.HTTPClient,
 		param.Code,
 		facebookTokenURL,
 		param.RedirectURI,
-		f.ProviderConfig.ClientID(),
-		f.ClientSecret,
+		deps.ProviderConfig.ClientID(),
+		deps.ClientSecret,
 	)
 	if err != nil {
 		return
@@ -58,7 +54,7 @@ func (f *FacebookImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOpti
 		return
 	}
 	q := userProfileURL.Query()
-	appSecretProof := crypto.HMACSHA256String([]byte(f.ClientSecret), []byte(accessTokenResp.AccessToken()))
+	appSecretProof := crypto.HMACSHA256String([]byte(deps.ClientSecret), []byte(accessTokenResp.AccessToken()))
 	q.Set("appsecret_proof", appSecretProof)
 	userProfileURL.RawQuery = q.Encode()
 
@@ -81,7 +77,7 @@ func (f *FacebookImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOpti
 	//   "short_name": "John"
 	// }
 
-	userProfile, err := oauthrelyingpartyutil.FetchUserProfile(f.HTTPClient.Client, accessTokenResp, userProfileURL.String())
+	userProfile, err := oauthrelyingpartyutil.FetchUserProfile(deps.HTTPClient, accessTokenResp, userProfileURL.String())
 	if err != nil {
 		return
 	}
@@ -103,7 +99,7 @@ func (f *FacebookImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOpti
 	}
 
 	authInfo.ProviderUserID = id
-	emailRequired := f.ProviderConfig.EmailClaimConfig().Required()
+	emailRequired := deps.ProviderConfig.EmailClaimConfig().Required()
 	stdAttrs, err := stdattrs.Extract(map[string]interface{}{
 		stdattrs.Email:      email,
 		stdattrs.GivenName:  firstName,

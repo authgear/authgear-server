@@ -11,15 +11,15 @@ import (
 
 func TestAppleImpl(t *testing.T) {
 	Convey("AppleImpl", t, func() {
-		g := &AppleImpl{
+		deps := oauthrelyingparty.Dependencies{
 			ProviderConfig: oauthrelyingparty.ProviderConfig{
 				"client_id": "client_id",
 				"type":      apple.Type,
 			},
-			HTTPClient: OAuthHTTPClient{},
 		}
+		g := &AppleImpl{}
 
-		u, err := g.GetAuthorizationURL(oauthrelyingparty.GetAuthorizationURLOptions{
+		u, err := g.GetAuthorizationURL(deps, oauthrelyingparty.GetAuthorizationURLOptions{
 			RedirectURI:  "https://localhost/",
 			ResponseMode: oauthrelyingparty.ResponseModeFormPost,
 			Nonce:        "nonce",

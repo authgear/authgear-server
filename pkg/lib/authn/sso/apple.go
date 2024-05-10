@@ -12,7 +12,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/apple"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
-	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
@@ -24,31 +23,26 @@ var appleOIDCConfig = OIDCDiscoveryDocument{
 	AuthorizationEndpoint: "https://appleid.apple.com/auth/authorize",
 }
 
-type AppleImpl struct {
-	Clock          clock.Clock
-	ProviderConfig oauthrelyingparty.ProviderConfig
-	ClientSecret   string
-	HTTPClient     OAuthHTTPClient
-}
+type AppleImpl struct{}
 
-func (f *AppleImpl) createClientSecret() (clientSecret string, err error) {
-	teamID := apple.ProviderConfig(f.ProviderConfig).TeamID()
-	keyID := apple.ProviderConfig(f.ProviderConfig).KeyID()
+func (f *AppleImpl) createClientSecret(deps oauthrelyingparty.Dependencies) (clientSecret string, err error) {
+	teamID := apple.ProviderConfig(deps.ProviderConfig).TeamID()
+	keyID := apple.ProviderConfig(deps.ProviderConfig).KeyID()
 
 	// https://developer.apple.com/documentation/signinwithapplerestapi/generate_and_validate_tokens
-	key, err := crypto.ParseAppleP8PrivateKey([]byte(f.ClientSecret))
+	key, err := crypto.ParseAppleP8PrivateKey([]byte(deps.ClientSecret))
 	if err != nil {
 		return
 	}
 
-	now := f.Clock.NowUTC()
+	now := deps.Clock.NowUTC()
 
 	payload := jwt.New()
 	_ = payload.Set(jwt.IssuerKey, teamID)
 	_ = payload.Set(jwt.IssuedAtKey, now.Unix())
 	_ = payload.Set(jwt.ExpirationKey, now.Add(duration.Short).Unix())
 	_ = payload.Set(jwt.AudienceKey, "https://appleid.apple.com")
-	_ = payload.Set(jwt.SubjectKey, f.ProviderConfig.ClientID)
+	_ = payload.Set(jwt.SubjectKey, deps.ProviderConfig.ClientID)
 
 	jwkKey, err := jwk.FromRaw(key)
 	if err != nil {
@@ -65,11 +59,11 @@ func (f *AppleImpl) createClientSecret() (clientSecret string, err error) {
 	return
 }
 
-func (f *AppleImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
+func (f *AppleImpl) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
 	return appleOIDCConfig.MakeOAuthURL(oauthrelyingpartyutil.AuthorizationURLParams{
-		ClientID:     f.ProviderConfig.ClientID(),
+		ClientID:     deps.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
-		Scope:        f.ProviderConfig.Scope(),
+		Scope:        deps.ProviderConfig.Scope(),
 		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		ResponseMode: param.ResponseMode,
 		State:        param.State,
@@ -81,24 +75,24 @@ func (f *AppleImpl) GetAuthorizationURL(param oauthrelyingparty.GetAuthorization
 	}), nil
 }
 
-func (f *AppleImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
-	keySet, err := appleOIDCConfig.FetchJWKs(f.HTTPClient)
+func (f *AppleImpl) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
+	keySet, err := appleOIDCConfig.FetchJWKs(deps.HTTPClient)
 	if err != nil {
 		return
 	}
 
-	clientSecret, err := f.createClientSecret()
+	clientSecret, err := f.createClientSecret(deps)
 	if err != nil {
 		return
 	}
 
 	var tokenResp oauthrelyingpartyutil.AccessTokenResp
 	jwtToken, err := appleOIDCConfig.ExchangeCode(
-		f.HTTPClient,
-		f.Clock,
+		deps.HTTPClient,
+		deps.Clock,
 		param.Code,
 		keySet,
-		f.ProviderConfig.ClientID(),
+		deps.ProviderConfig.ClientID(),
 		clientSecret,
 		param.RedirectURI,
 		param.Nonce,
@@ -143,7 +137,7 @@ func (f *AppleImpl) GetUserProfile(param oauthrelyingparty.GetUserProfileOptions
 	authInfo.ProviderRawProfile = claims
 	authInfo.ProviderUserID = sub
 
-	emailRequired := f.ProviderConfig.EmailClaimConfig().Required()
+	emailRequired := deps.ProviderConfig.EmailClaimConfig().Required()
 	stdAttrs, err := stdattrs.Extract(claims, stdattrs.ExtractOptions{
 		EmailRequired: emailRequired,
 	})
