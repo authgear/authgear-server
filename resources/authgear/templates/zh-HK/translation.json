@@ -872,7 +872,7 @@
   "v2-no-results-found": "找不到結果",
   "v2-search-label": "搜尋",
   "v2-continue-with-text-login-id": "使用{variant, select, email {電郵} username {使用者名稱} other {電郵 / 使用者名稱}}繼續",
-  "v2-continue-with-phone": "以電話繼續",
+  "v2-continue-with-phone": "以電話號碼繼續",
   "v2-continue-with-passkey": "以通行密匙繼續",
   "v2-oauth-branding-apple": "以 Apple 帳戶登入",
   "v2-oauth-branding-google": "以 Google 帳戶登入",
