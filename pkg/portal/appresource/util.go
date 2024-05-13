@@ -4,8 +4,9 @@ import (
 	"io/ioutil"
 	"path"
 
-	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/spf13/afero"
+
+	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
 func cloneFS(fs resource.Fs) (afero.Fs, error) {

@@ -5,10 +5,11 @@ import (
 	"errors"
 	"fmt"
 
+	goredis "github.com/go-redis/redis/v8"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/pubsub"
-	goredis "github.com/go-redis/redis/v8"
 )
 
 type eventRedisPool struct{ *appredis.Handle }

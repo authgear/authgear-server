@@ -4,8 +4,9 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/util/hexstring"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/util/hexstring"
 )
 
 func TestHexCmp(t *testing.T) {

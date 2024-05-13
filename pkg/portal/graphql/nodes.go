@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/authgear/authgear-server/pkg/portal/session"
 	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
+
+	"github.com/authgear/authgear-server/pkg/portal/session"
 )
 
 type NodeResolver func(ctx context.Context, id string) (interface{}, error)

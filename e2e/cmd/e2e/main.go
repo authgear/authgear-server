@@ -5,10 +5,11 @@ import (
 	"log"
 	"os"
 
-	cmd "github.com/authgear/authgear-server/e2e/cmd/e2e/cmd"
-	"github.com/authgear/authgear-server/pkg/util/debug"
 	"github.com/joho/godotenv"
 	_ "go.uber.org/automaxprocs"
+
+	cmd "github.com/authgear/authgear-server/e2e/cmd/e2e/cmd"
+	"github.com/authgear/authgear-server/pkg/util/debug"
 )
 
 func main() {

@@ -24,10 +24,11 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/restmapper"
 
+	certmanagerclientset "github.com/cert-manager/cert-manager/pkg/client/clientset/versioned"
+
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/util/kubeutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
-	certmanagerclientset "github.com/cert-manager/cert-manager/pkg/client/clientset/versioned"
 )
 
 var LabelAppID = "authgear.com/app-id"

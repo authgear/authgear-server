@@ -4,9 +4,10 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/lib/pq"
+
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	"github.com/lib/pq"
 )
 
 func (s *Store) scanUserID(scanner db.Scanner) (string, error) {

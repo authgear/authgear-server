@@ -4,12 +4,13 @@ import (
 	"errors"
 	"time"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
-	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 type GenerateOptions struct {

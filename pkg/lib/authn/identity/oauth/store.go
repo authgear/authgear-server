@@ -9,12 +9,13 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 	"github.com/lib/pq"
 
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
-	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 )
 
 type Store struct {

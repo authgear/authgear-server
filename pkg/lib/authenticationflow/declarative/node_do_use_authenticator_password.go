@@ -1,10 +1,11 @@
 package declarative
 
 import (
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 func init() {

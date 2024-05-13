@@ -11,11 +11,12 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/authgear/authgear-server/e2e/cmd/proxy/mockoidc"
-	"github.com/authgear/authgear-server/e2e/cmd/proxy/modifier"
 	"github.com/google/martian"
 	"github.com/google/martian/httpspec"
 	"github.com/google/martian/mitm"
+
+	"github.com/authgear/authgear-server/e2e/cmd/proxy/mockoidc"
+	"github.com/authgear/authgear-server/e2e/cmd/proxy/modifier"
 )
 
 func main() {

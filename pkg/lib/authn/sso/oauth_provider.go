@@ -1,11 +1,12 @@
 package sso
 
 import (
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
+
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 )
 
 type StandardAttributesNormalizer interface {

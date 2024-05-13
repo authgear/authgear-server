@@ -7,8 +7,9 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
+
+	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
 func TestInfoJSON(t *testing.T) {

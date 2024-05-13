@@ -7,10 +7,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	. "github.com/smartystreets/goconvey/convey"
 	goyaml "gopkg.in/yaml.v2"
 	"sigs.k8s.io/yaml"
+
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func TestParseFeatureConfig(t *testing.T) {

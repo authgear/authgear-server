@@ -3,8 +3,9 @@ package otp
 import (
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
+	"github.com/authgear/authgear-server/pkg/util/duration"
 )
 
 const (

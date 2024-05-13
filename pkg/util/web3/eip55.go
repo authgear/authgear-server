@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/authgear/authgear-server/pkg/util/hexstring"
 	"github.com/ethereum/go-ethereum/common"
+
+	"github.com/authgear/authgear-server/pkg/util/hexstring"
 )
 
 // https://eips.ethereum.org/EIPS/eip-55

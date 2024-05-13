@@ -5,8 +5,9 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/util/web3"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/util/web3"
 )
 
 func TestNew(t *testing.T) {

@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 // PublicFlow is a instantiable intent by the public.

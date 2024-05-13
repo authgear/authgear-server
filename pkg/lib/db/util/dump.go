@@ -9,9 +9,10 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/lib/pq"
+
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/util/log"
-	"github.com/lib/pq"
 )
 
 type Dumper struct {

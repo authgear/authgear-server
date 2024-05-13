@@ -3,10 +3,11 @@ package stdattrs
 import (
 	"testing"
 
+	. "github.com/smartystreets/goconvey/convey"
+
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestPictureTransformer(t *testing.T) {

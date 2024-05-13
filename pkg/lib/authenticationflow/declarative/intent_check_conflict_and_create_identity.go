@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 func init() {

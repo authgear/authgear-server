@@ -3,8 +3,9 @@ package images_test
 import (
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/lib/images"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/lib/images"
 )
 
 func TestFileMetadata(t *testing.T) {

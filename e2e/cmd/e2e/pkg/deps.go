@@ -3,9 +3,10 @@ package e2e
 import (
 	"net/http"
 
+	"github.com/google/wire"
+
 	deps "github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/google/wire"
 )
 
 func ProvideEnd2EndHTTPRequest() *http.Request {

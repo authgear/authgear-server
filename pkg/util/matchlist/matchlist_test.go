@@ -3,8 +3,9 @@ package matchlist_test
 import (
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/util/matchlist"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/util/matchlist"
 )
 
 func TestMatchList(t *testing.T) {

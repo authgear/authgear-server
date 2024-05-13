@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"testing"
 
+	. "github.com/smartystreets/goconvey/convey"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/util/validation"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestInputSchemaTakeOOBOTPChannel(t *testing.T) {

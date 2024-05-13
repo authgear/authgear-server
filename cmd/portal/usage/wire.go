@@ -8,11 +8,12 @@ import (
 
 	"github.com/getsentry/sentry-go"
 
+	"github.com/google/wire"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
-	"github.com/google/wire"
 )
 
 func NewCountCollector(

@@ -7,8 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/lib/web"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/lib/web"
 )
 
 func TestGlobalEmbeddedResourceManager(t *testing.T) {

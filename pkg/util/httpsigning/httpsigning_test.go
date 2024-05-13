@@ -5,8 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func TestHTTPSigning(t *testing.T) {

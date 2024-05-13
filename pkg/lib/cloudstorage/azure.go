@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-storage-blob-go/azblob"
+
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 

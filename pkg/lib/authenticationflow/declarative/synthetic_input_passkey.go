@@ -1,9 +1,10 @@
 package declarative
 
 import (
+	"github.com/go-webauthn/webauthn/protocol"
+
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/go-webauthn/webauthn/protocol"
 )
 
 type SyntheticInputPasskey struct {

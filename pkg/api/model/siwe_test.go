@@ -6,8 +6,9 @@ import (
 	"crypto/rand"
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/api/model"
 
 	"github.com/ethereum/go-ethereum/crypto"
 )

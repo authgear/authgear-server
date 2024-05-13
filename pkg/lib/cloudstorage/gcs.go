@@ -10,9 +10,10 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
-	"github.com/authgear/authgear-server/pkg/util/clock"
 	"google.golang.org/api/option"
 	raw "google.golang.org/api/storage/v1"
+
+	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 type GCSStorage struct {
