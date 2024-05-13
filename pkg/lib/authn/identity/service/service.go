@@ -4,12 +4,13 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package service

@@ -7,7 +7,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"gopkg.in/h2non/gock.v1"
 
-	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 )
 
 func TestAzureadb2cImpl(t *testing.T) {

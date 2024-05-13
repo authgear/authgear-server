@@ -1,6 +1,6 @@
 package oauthrelyingpartyutil
 
-import "github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
+import "github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
 func Email_AssumeVerified_Required() oauthrelyingparty.ProviderClaimConfig {
 	return oauthrelyingparty.ProviderClaimConfig{

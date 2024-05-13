@@ -1,8 +1,8 @@
 package oauthrelyingparty
 
 import (
-	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/util/validation"
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 )
 
 const (

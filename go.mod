@@ -94,7 +94,10 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 )
 
-require github.com/go-jose/go-jose/v3 v3.0.3
+require (
+	github.com/authgear/oauthrelyingparty v1.0.0
+	github.com/go-jose/go-jose/v3 v3.0.3
+)
 
 require (
 	cloud.google.com/go v0.110.8 // indirect

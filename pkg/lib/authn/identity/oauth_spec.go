@@ -1,7 +1,7 @@
 package identity
 
 import (
-	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 )
 
 type OAuthSpec struct {

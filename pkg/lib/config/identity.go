@@ -2,7 +2,7 @@ package config
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 )
 
 var _ = Schema.Add("IdentityConfig", `

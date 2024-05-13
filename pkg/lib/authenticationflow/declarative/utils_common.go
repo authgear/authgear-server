@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -21,6 +20,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 

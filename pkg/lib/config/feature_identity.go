@@ -1,8 +1,8 @@
 package config
 
 import (
-	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	liboauthrelyingparty "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty"
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 )
 
 var _ = FeatureConfigSchema.Add("IdentityFeatureConfig", `

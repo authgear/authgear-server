@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	v2viewmodels "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -17,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 )
 
 var TemplateWebAuthflowLoginHTML = template.RegisterHTML(

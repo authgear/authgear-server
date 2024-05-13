@@ -2,7 +2,7 @@ package oauthrelyingpartyutil
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 )
 
 var InvalidConfiguration = apierrors.InternalError.WithReason("InvalidConfiguration")

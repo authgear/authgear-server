@@ -3,9 +3,9 @@ package identity
 import (
 	"time"
 
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 )

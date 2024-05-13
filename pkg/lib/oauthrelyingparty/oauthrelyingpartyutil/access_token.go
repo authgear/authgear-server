@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 )
 
 type AccessTokenResp map[string]interface{}

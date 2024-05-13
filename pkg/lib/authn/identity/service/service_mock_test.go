@@ -7,9 +7,9 @@ package service
 import (
 	reflect "reflect"
 
-	oauthrelyingparty "github.com/authgear/authgear-server/pkg/api/oauthrelyingparty"
 	identity "github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	loginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
+	oauthrelyingparty "github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 	gomock "github.com/golang/mock/gomock"
 	jsonpointer "github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
