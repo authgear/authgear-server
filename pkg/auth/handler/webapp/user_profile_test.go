@@ -3,9 +3,10 @@ package webapp
 import (
 	"testing"
 
+	. "github.com/smartystreets/goconvey/convey"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func makeFull() *model.User {

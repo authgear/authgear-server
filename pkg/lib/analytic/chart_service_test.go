@@ -4,12 +4,13 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/smartystreets/goconvey/convey"
+
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/periodical"
 	"github.com/authgear/authgear-server/pkg/util/timeutil"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestChartService(t *testing.T) {

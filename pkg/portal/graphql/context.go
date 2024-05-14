@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/stripe/stripe-go/v72"
+
 	"github.com/authgear/authgear-server/pkg/api/event"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
@@ -19,7 +21,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/web3"
-	"github.com/stripe/stripe-go/v72"
 )
 
 type UserLoader interface {

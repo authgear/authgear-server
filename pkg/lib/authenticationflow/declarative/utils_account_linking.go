@@ -3,12 +3,13 @@ package declarative
 import (
 	"context"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 func resolveAccountLinkingConfigsOAuth(
@@ -143,7 +144,7 @@ func linkByOAuthIncomingOAuthSpec(
 			// Not the same type, so must be not identical
 			continue
 		}
-		if !conflict.Identity.OAuth.ProviderID.Equal(&request.Spec.OAuth.ProviderID) {
+		if !conflict.Identity.OAuth.ProviderID.Equal(request.Spec.OAuth.ProviderID) {
 			// Not the same provider
 			continue
 		}

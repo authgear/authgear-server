@@ -1,9 +1,50 @@
-package sso
+package linkedin
 
 import (
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
+
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
-	"github.com/authgear/authgear-server/pkg/lib/config"
+	liboauthrelyingparty "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
+
+func init() {
+	oauthrelyingparty.RegisterProvider(Type, Linkedin{})
+}
+
+const Type = liboauthrelyingparty.TypeLinkedin
+
+var _ oauthrelyingparty.Provider = Linkedin{}
+var _ liboauthrelyingparty.BuiltinProvider = Linkedin{}
+
+var Schema = validation.NewSimpleSchema(`
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"alias": { "type": "string" },
+		"type": { "type": "string" },
+		"modify_disabled": { "type": "boolean" },
+		"client_id": { "type": "string", "minLength": 1 },
+		"claims": {
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {
+				"email": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"assume_verified": { "type": "boolean" },
+						"required": { "type": "boolean" }
+					}
+				}
+			}
+		}
+	},
+	"required": ["alias", "type", "client_id"]
+}
+`)
 
 const (
 	linkedinAuthorizationURL string = "https://www.linkedin.com/oauth/v2/authorization"
@@ -13,57 +54,70 @@ const (
 	linkedinContactURL string = "https://api.linkedin.com/v2/clientAwareMemberHandles?q=members&projection=(elements*(primary,type,handle~))"
 )
 
-type LinkedInImpl struct {
-	ProviderConfig               config.OAuthSSOProviderConfig
-	Credentials                  config.OAuthSSOProviderCredentialsItem
-	StandardAttributesNormalizer StandardAttributesNormalizer
-	HTTPClient                   OAuthHTTPClient
+type Linkedin struct{}
+
+func (Linkedin) ValidateProviderConfig(ctx *validation.Context, cfg oauthrelyingparty.ProviderConfig) {
+	ctx.AddError(Schema.Validator().ValidateValue(cfg))
 }
 
-func (*LinkedInImpl) Type() config.OAuthSSOProviderType {
-	return config.OAuthSSOProviderTypeLinkedIn
+func (Linkedin) SetDefaults(cfg oauthrelyingparty.ProviderConfig) {
+	cfg.SetDefaultsModifyDisabledFalse()
+	cfg.SetDefaultsEmailClaimConfig(oauthrelyingpartyutil.Email_AssumeVerified_Required())
 }
 
-func (f *LinkedInImpl) Config() config.OAuthSSOProviderConfig {
-	return f.ProviderConfig
+func (Linkedin) ProviderID(cfg oauthrelyingparty.ProviderConfig) oauthrelyingparty.ProviderID {
+	// Linkedin does NOT support OIDC.
+	// Linkedin user ID is scoped to client_id.
+	// Therefore, ProviderID is Type + client_id.
+	//
+	// Rotating the OAuth application is problematic.
+	keys := map[string]interface{}{
+		"client_id": cfg.ClientID(),
+	}
+	return oauthrelyingparty.NewProviderID(cfg.Type(), keys)
 }
 
-func (f *LinkedInImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
-	return MakeAuthorizationURL(linkedinAuthorizationURL, AuthorizationURLParams{
-		ClientID:     f.ProviderConfig.ClientID,
+func (Linkedin) scope() []string {
+	// https://docs.microsoft.com/en-us/linkedin/shared/references/v2/profile/lite-profile
+	// https://docs.microsoft.com/en-us/linkedin/shared/integrations/people/primary-contact-api?context=linkedin/compliance/context
+	return []string{"r_liteprofile", "r_emailaddress"}
+}
+
+func (p Linkedin) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
+	return oauthrelyingpartyutil.MakeAuthorizationURL(linkedinAuthorizationURL, oauthrelyingpartyutil.AuthorizationURLParams{
+		ClientID:     deps.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
-		Scope:        f.ProviderConfig.Type.Scope(),
-		ResponseType: ResponseTypeCode,
+		Scope:        p.scope(),
+		ResponseType: oauthrelyingparty.ResponseTypeCode,
 		// ResponseMode is unset.
-		State:  param.State,
-		Prompt: f.GetPrompt(param.Prompt),
+		State: param.State,
+		// Prompt is unset.
+		// Linkedin doesn't support prompt parameter
+		// https://docs.microsoft.com/en-us/linkedin/shared/authentication/authorization-code-flow?tabs=HTTPS#step-2-request-an-authorization-code
+
 		// Nonce is unset
 	}.Query()), nil
 }
 
-func (f *LinkedInImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
-	return f.NonOpenIDConnectGetAuthInfo(r, param)
-}
-
-func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
-	accessTokenResp, err := fetchAccessTokenResp(
-		f.HTTPClient,
-		r.Code,
+func (Linkedin) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
+	accessTokenResp, err := oauthrelyingpartyutil.FetchAccessTokenResp(
+		deps.HTTPClient,
+		param.Code,
 		linkedinTokenURL,
 		param.RedirectURI,
-		f.ProviderConfig.ClientID,
-		f.Credentials.ClientSecret,
+		deps.ProviderConfig.ClientID(),
+		deps.ClientSecret,
 	)
 	if err != nil {
 		return
 	}
 
-	meResponse, err := fetchUserProfile(f.HTTPClient, accessTokenResp, linkedinMeURL)
+	meResponse, err := oauthrelyingpartyutil.FetchUserProfile(deps.HTTPClient, accessTokenResp, linkedinMeURL)
 	if err != nil {
 		return
 	}
 
-	contactResponse, err := fetchUserProfile(f.HTTPClient, accessTokenResp, linkedinContactURL)
+	contactResponse, err := oauthrelyingpartyutil.FetchUserProfile(deps.HTTPClient, accessTokenResp, linkedinContactURL)
 	if err != nil {
 		return
 	}
@@ -276,26 +330,16 @@ func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 	id, attrs := decodeLinkedIn(combinedResponse)
 	authInfo.ProviderUserID = id
 
+	emailRequired := deps.ProviderConfig.EmailClaimConfig().Required()
 	attrs, err = stdattrs.Extract(attrs, stdattrs.ExtractOptions{
-		EmailRequired: *f.ProviderConfig.Claims.Email.Required,
+		EmailRequired: emailRequired,
 	})
 	if err != nil {
 		return
 	}
 	authInfo.StandardAttributes = attrs
 
-	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
-	if err != nil {
-		return
-	}
-
 	return
-}
-
-func (f *LinkedInImpl) GetPrompt(prompt []string) []string {
-	// linkedin doesn't support prompt parameter
-	// ref: https://docs.microsoft.com/en-us/linkedin/shared/authentication/authorization-code-flow?tabs=HTTPS#step-2-request-an-authorization-code
-	return []string{}
 }
 
 func decodeLinkedIn(userInfo map[string]interface{}) (string, stdattrs.T) {
@@ -352,8 +396,3 @@ func decodeLinkedIn(userInfo map[string]interface{}) (string, stdattrs.T) {
 		stdattrs.Picture:    picture,
 	}
 }
-
-var (
-	_ OAuthProvider            = &LinkedInImpl{}
-	_ NonOpenIDConnectProvider = &LinkedInImpl{}
-)

@@ -10,6 +10,7 @@ import (
 	goyaml "gopkg.in/yaml.v2"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/google"
 )
 
 func TestParseSecret(t *testing.T) {

@@ -3,9 +3,10 @@ package handler_test
 import (
 	"testing"
 
+	. "github.com/smartystreets/goconvey/convey"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestProxyRedirectHandler(t *testing.T) {

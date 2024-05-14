@@ -8,21 +8,17 @@ import (
 	"golang.org/x/text/secure/precis"
 	"golang.org/x/text/unicode/norm"
 
+	"github.com/authgear/authgear-server/pkg/api/internalinterface"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
-type Normalizer interface {
-	Normalize(loginID string) (string, error)
-	ComputeUniqueKey(normalizeLoginID string) (string, error)
-}
-
 type NormalizerFactory struct {
 	Config *config.LoginIDConfig
 }
 
-func (f *NormalizerFactory) NormalizerWithLoginIDType(loginIDKeyType model.LoginIDKeyType) Normalizer {
+func (f *NormalizerFactory) NormalizerWithLoginIDType(loginIDKeyType model.LoginIDKeyType) internalinterface.LoginIDNormalizer {
 	switch loginIDKeyType {
 	case model.LoginIDKeyTypeEmail:
 		return &EmailNormalizer{
@@ -42,6 +38,8 @@ func (f *NormalizerFactory) NormalizerWithLoginIDType(loginIDKeyType model.Login
 type EmailNormalizer struct {
 	Config *config.LoginIDEmailConfig
 }
+
+var _ internalinterface.LoginIDNormalizer = &EmailNormalizer{}
 
 func (n *EmailNormalizer) Normalize(loginID string) (string, error) {
 	// refs from stdlib
@@ -95,6 +93,8 @@ type UsernameNormalizer struct {
 	Config *config.LoginIDUsernameConfig
 }
 
+var _ internalinterface.LoginIDNormalizer = &UsernameNormalizer{}
+
 func (n *UsernameNormalizer) Normalize(loginID string) (string, error) {
 	loginID = norm.NFKC.String(loginID)
 
@@ -117,6 +117,8 @@ func (n *UsernameNormalizer) ComputeUniqueKey(normalizeLoginID string) (string, 
 type PhoneNumberNormalizer struct {
 }
 
+var _ internalinterface.LoginIDNormalizer = &PhoneNumberNormalizer{}
+
 func (n *PhoneNumberNormalizer) Normalize(loginID string) (string, error) {
 	e164, err := phone.LegalParser.ParseInputPhoneNumber(loginID)
 	if err != nil {
@@ -131,6 +133,8 @@ func (n *PhoneNumberNormalizer) ComputeUniqueKey(normalizeLoginID string) (strin
 }
 
 type NullNormalizer struct{}
+
+var _ internalinterface.LoginIDNormalizer = &NullNormalizer{}
 
 func (n *NullNormalizer) Normalize(loginID string) (string, error) {
 	return loginID, nil

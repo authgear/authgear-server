@@ -4,10 +4,11 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
+
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -82,7 +83,7 @@ func (h *AuthflowPromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 			"identification": "oauth",
 			"alias":          providerAlias,
 			"redirect_uri":   callbackURL,
-			"response_mode":  string(sso.ResponseModeFormPost),
+			"response_mode":  oauthrelyingparty.ResponseModeFormPost,
 		}
 
 		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)

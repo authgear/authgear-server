@@ -1,28 +1,31 @@
-package sso
+package azureadv2
 
 import (
 	"net/http"
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	. "github.com/smartystreets/goconvey/convey"
 	"gopkg.in/h2non/gock.v1"
+
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 )
 
 func TestAzureadv2Impl(t *testing.T) {
 	Convey("Azureadv2Impl", t, func() {
-		client := OAuthHTTPClient{&http.Client{}}
-		gock.InterceptClient(client.Client)
+		client := &http.Client{}
+		gock.InterceptClient(client)
 		defer gock.Off()
 
-		g := &Azureadv2Impl{
-			ProviderConfig: config.OAuthSSOProviderConfig{
-				ClientID: "client_id",
-				Type:     config.OAuthSSOProviderTypeAzureADv2,
-				Tenant:   "common",
+		deps := oauthrelyingparty.Dependencies{
+			ProviderConfig: oauthrelyingparty.ProviderConfig{
+				"client_id": "client_id",
+				"type":      Type,
+				"tenant":    "common",
 			},
 			HTTPClient: client,
 		}
+
+		g := AzureADv2{}
 
 		gock.New("https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration").
 			Reply(200).
@@ -97,9 +100,9 @@ func TestAzureadv2Impl(t *testing.T) {
 			`)
 		defer func() { gock.Flush() }()
 
-		u, err := g.GetAuthURL(GetAuthURLParam{
+		u, err := g.GetAuthorizationURL(deps, oauthrelyingparty.GetAuthorizationURLOptions{
 			RedirectURI:  "https://localhost/",
-			ResponseMode: ResponseModeFormPost,
+			ResponseMode: oauthrelyingparty.ResponseModeFormPost,
 			Nonce:        "nonce",
 			State:        "state",
 			Prompt:       []string{"login"},

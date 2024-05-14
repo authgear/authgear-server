@@ -1,10 +1,13 @@
-package sso
+package oauthrelyingpartyutil
 
 import (
 	"encoding/json"
+	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 )
 
 type AccessTokenResp map[string]interface{}
@@ -76,8 +79,8 @@ func (r AccessTokenResp) TokenType() string {
 	}
 }
 
-func fetchAccessTokenResp(
-	client OAuthHTTPClient,
+func FetchAccessTokenResp(
+	client *http.Client,
 	code string,
 	accessTokenURL string,
 	redirectURL string,
@@ -106,12 +109,12 @@ func fetchAccessTokenResp(
 			return
 		}
 	} else { // normally 400 Bad Request
-		var errResp oauthErrorResp
+		var errResp oauthrelyingparty.ErrorResponse
 		err = json.NewDecoder(resp.Body).Decode(&errResp)
 		if err != nil {
 			return
 		}
-		err = errResp.AsError()
+		err = ErrorResponseAsError(errResp)
 	}
 
 	return

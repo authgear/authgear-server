@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
@@ -282,17 +284,18 @@ func (i *Info) ModifyDisabled(c *config.IdentityConfig) bool {
 		return *keyConfig.ModifyDisabled
 	case model.IdentityTypeOAuth:
 		alias := i.OAuth.ProviderAlias
-		var providerConfig *config.OAuthSSOProviderConfig
+		var providerConfig oauthrelyingparty.ProviderConfig
 		for _, pc := range c.OAuth.Providers {
-			if pc.Alias == alias {
+			pcAlias := pc.Alias()
+			if pcAlias == alias {
 				pcc := pc
-				providerConfig = &pcc
+				providerConfig = pcc
 			}
 		}
 		if providerConfig == nil {
 			return true
 		}
-		return *providerConfig.ModifyDisabled
+		return providerConfig.ModifyDisabled()
 	case model.IdentityTypeAnonymous:
 		// modify_disabled is only applicable to login_id and oauth.
 		// So we return false here.

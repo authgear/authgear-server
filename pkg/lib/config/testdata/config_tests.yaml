@@ -209,68 +209,6 @@ config:
         x_application_type: confidential
         redirect_uris:
           - "http://example.com/oauth-redirect"
----
-name: dupe-oauth-provider
-error: |-
-  invalid configuration:
-  /identity/oauth/providers/1: duplicated OAuth provider
-config:
-  id: test
-  http:
-    public_origin: http://test
-  identity:
-    oauth:
-      providers:
-        - alias: google_a
-          type: google
-          client_id: client_a
-        - alias: google_b
-          type: google
-          client_id: client_b
-
----
-name: dupe-wechat-oauth-provider
-error: |-
-  invalid configuration:
-  /identity/oauth/providers/1: duplicated OAuth provider
-config:
-  id: test
-  http:
-    public_origin: http://test
-  identity:
-    oauth:
-      providers:
-        - alias: wechat_a
-          type: wechat
-          client_id: client_id_a
-          account_id: gh_accountid
-          app_type: mobile
-        - alias: wechat_b
-          type: wechat
-          client_id: client_id_b
-          account_id: gh_accountid
-          app_type: mobile
-
----
-name: dupe-wechat-oauth-provider-different-app-type
-error: null
-config:
-  id: test
-  http:
-    public_origin: http://test
-  identity:
-    oauth:
-      providers:
-        - alias: wechat_a
-          type: wechat
-          client_id: client_id_a
-          account_id: gh_accountida
-          app_type: mobile
-        - alias: wechat_b
-          type: wechat
-          client_id: client_id_b
-          account_id: gh_accountidb
-          app_type: web
 
 ---
 name: invalid-wechat-oauth-provider-account-id
@@ -296,7 +234,7 @@ name: missing-oauth-provider-alias
 error: |-
   invalid configuration:
   /identity/oauth/providers/0: required
-    map[actual:[client_id type] expected:[alias client_id type] missing:[alias]]
+    map[actual:[claims client_id modify_disabled type] expected:[alias client_id type] missing:[alias]]
 config:
   id: test
   http:
@@ -331,7 +269,7 @@ name: oauth-provider-apple
 error: |-
   invalid configuration:
   /identity/oauth/providers/0: required
-    map[actual:[alias client_id type] expected:[key_id team_id] missing:[key_id team_id]]
+    map[actual:[alias claims client_id modify_disabled type] expected:[alias client_id key_id team_id type] missing:[key_id team_id]]
 config:
   id: test
   http:
@@ -348,7 +286,7 @@ name: oauth-provider-azureadv2
 error: |-
   invalid configuration:
   /identity/oauth/providers/0: required
-    map[actual:[alias client_id type] expected:[tenant] missing:[tenant]]
+    map[actual:[alias claims client_id modify_disabled type] expected:[alias client_id tenant type] missing:[tenant]]
 config:
   id: test
   http:
@@ -364,7 +302,7 @@ name: oauth-provider-azureadb2c
 error: |-
   invalid configuration:
   /identity/oauth/providers/0: required
-    map[actual:[alias client_id type] expected:[policy tenant] missing:[policy tenant]]
+    map[actual:[alias claims client_id modify_disabled type] expected:[alias client_id policy tenant type] missing:[policy tenant]]
 config:
   id: test
   http:
@@ -381,7 +319,7 @@ name: oauth-provider-adfs
 error: |-
   invalid configuration:
   /identity/oauth/providers/0: required
-    map[actual:[alias client_id type] expected:[discovery_document_endpoint] missing:[discovery_document_endpoint]]
+    map[actual:[alias claims client_id modify_disabled type] expected:[alias client_id discovery_document_endpoint type] missing:[discovery_document_endpoint]]
 config:
   id: test
   http:

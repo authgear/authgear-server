@@ -3,11 +3,13 @@ package nodes
 import (
 	"net/url"
 
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
+
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
 )
 
@@ -24,7 +26,7 @@ type InputUseIdentityOAuthProvider interface {
 type EdgeUseIdentityOAuthProvider struct {
 	IsAuthentication bool
 	IsCreating       bool
-	Configs          []config.OAuthSSOProviderConfig
+	Configs          []oauthrelyingparty.ProviderConfig
 	FeatureConfig    *config.OAuthSSOProvidersFeatureConfig
 }
 
@@ -32,8 +34,8 @@ func (e *EdgeUseIdentityOAuthProvider) GetIdentityCandidates() []identity.Candid
 	candidates := []identity.Candidate{}
 	for _, c := range e.Configs {
 		conf := c
-		if !identity.IsOAuthSSOProviderTypeDisabled(conf.Type, e.FeatureConfig) {
-			candidates = append(candidates, identity.NewOAuthCandidate(&conf))
+		if !identity.IsOAuthSSOProviderTypeDisabled(conf, e.FeatureConfig) {
+			candidates = append(candidates, identity.NewOAuthCandidate(conf))
 		}
 	}
 	return candidates
@@ -46,14 +48,14 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 	}
 
 	alias := input.GetProviderAlias()
-	var oauthConfig *config.OAuthSSOProviderConfig
+	var oauthConfig oauthrelyingparty.ProviderConfig
 	for _, c := range e.Configs {
-		if identity.IsOAuthSSOProviderTypeDisabled(c.Type, e.FeatureConfig) {
+		if identity.IsOAuthSSOProviderTypeDisabled(c, e.FeatureConfig) {
 			continue
 		}
-		if c.Alias == alias {
+		if c.Alias() == alias {
 			conf := c
-			oauthConfig = &conf
+			oauthConfig = conf
 			break
 		}
 	}
@@ -64,34 +66,34 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 	nonceSource := ctx.Nonces.GenerateAndSet()
 	errorRedirectURI := input.GetErrorRedirectURI()
 
-	oauthProvider := ctx.OAuthProviderFactory.NewOAuthProvider(alias)
-	if oauthProvider == nil {
-		return nil, api.ErrOAuthProviderNotFound
+	providerConfig, err := ctx.OAuthProviderFactory.GetProviderConfig(alias)
+	if err != nil {
+		return nil, err
 	}
 
 	nonce := crypto.SHA256String(nonceSource)
 
 	redirectURIForOAuthProvider := ctx.OAuthRedirectURIBuilder.SSOCallbackURL(alias).String()
 	// Special case: wechat needs to use a special callback endpoint.
-	if oauthProvider.Config().Type == config.OAuthSSOProviderTypeWechat {
+	if providerConfig.Type() == wechat.Type {
 		redirectURIForOAuthProvider = ctx.OAuthRedirectURIBuilder.WeChatCallbackEndpointURL().String()
 	}
 
-	param := sso.GetAuthURLParam{
+	param := oauthrelyingparty.GetAuthorizationURLOptions{
 		RedirectURI: redirectURIForOAuthProvider,
 		// We use response_mode=form_post if it is supported.
-		ResponseMode: sso.ResponseModeFormPost,
+		ResponseMode: oauthrelyingparty.ResponseModeFormPost,
 		Nonce:        nonce,
 		Prompt:       input.GetPrompt(),
 		State:        ctx.WebSessionID,
 	}
-	redirectURI, err := oauthProvider.GetAuthURL(param)
+	redirectURI, err := ctx.OAuthProviderFactory.GetAuthorizationURL(alias, param)
 	if err != nil {
 		return nil, err
 	}
 
 	// Special case: wechat needs to redirect a special page.
-	if oauthProvider.Config().Type == config.OAuthSSOProviderTypeWechat {
+	if providerConfig.Type() == wechat.Type {
 		v := url.Values{}
 		v.Add("x_auth_url", redirectURI)
 		redirectURI = ctx.OAuthRedirectURIBuilder.WeChatAuthorizeURL(alias).String() + "?" + v.Encode()
@@ -100,7 +102,7 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 	return &NodeUseIdentityOAuthProvider{
 		IsAuthentication: e.IsAuthentication,
 		IsCreating:       e.IsCreating,
-		Config:           *oauthConfig,
+		Config:           oauthConfig,
 		HashedNonce:      nonce,
 		ErrorRedirectURI: errorRedirectURI,
 		RedirectURI:      redirectURI,
@@ -108,12 +110,12 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 }
 
 type NodeUseIdentityOAuthProvider struct {
-	IsAuthentication bool                          `json:"is_authentication"`
-	IsCreating       bool                          `json:"is_creating"`
-	Config           config.OAuthSSOProviderConfig `json:"provider_config"`
-	HashedNonce      string                        `json:"hashed_nonce"`
-	ErrorRedirectURI string                        `json:"error_redirect_uri"`
-	RedirectURI      string                        `json:"redirect_uri"`
+	IsAuthentication bool                             `json:"is_authentication"`
+	IsCreating       bool                             `json:"is_creating"`
+	Config           oauthrelyingparty.ProviderConfig `json:"provider_config"`
+	HashedNonce      string                           `json:"hashed_nonce"`
+	ErrorRedirectURI string                           `json:"error_redirect_uri"`
+	RedirectURI      string                           `json:"redirect_uri"`
 }
 
 // GetRedirectURI implements RedirectURIGetter.

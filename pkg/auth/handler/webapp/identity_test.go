@@ -5,10 +5,11 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func TestIdentitiesDisplayName(t *testing.T) {
@@ -22,7 +23,7 @@ func TestIdentitiesDisplayName(t *testing.T) {
 	oauthProviderIdentity := &identity.Info{
 		Type: model.IdentityTypeOAuth,
 		OAuth: &identity.OAuth{
-			ProviderID: config.ProviderID{
+			ProviderID: oauthrelyingparty.ProviderID{
 				Type: "provider",
 			},
 			Claims: map[string]interface{}{
@@ -34,7 +35,7 @@ func TestIdentitiesDisplayName(t *testing.T) {
 	oauthProviderIdentityWithStandardClaims := &identity.Info{
 		Type: model.IdentityTypeOAuth,
 		OAuth: &identity.OAuth{
-			ProviderID: config.ProviderID{
+			ProviderID: oauthrelyingparty.ProviderID{
 				Type: "provider2",
 			},
 			Claims: map[string]interface{}{},

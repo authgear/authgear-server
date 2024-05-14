@@ -5,6 +5,9 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -12,14 +15,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
-	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
-	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 func authenticatorIsDefault(deps *authflow.Dependencies, userID string, authenticatorKind model.AuthenticatorKind) (isDefault bool, err error) {
@@ -673,25 +676,24 @@ func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, opts HandleOA
 		errorDescription := inputOAuth.GetOAuthErrorDescription()
 		errorURI := inputOAuth.GetOAuthErrorURI()
 
-		return nil, sso.NewOAuthError(oauthError, errorDescription, errorURI)
-	}
-
-	oauthProvider := deps.OAuthProviderFactory.NewOAuthProvider(opts.Alias)
-	if oauthProvider == nil {
-		return nil, api.ErrOAuthProviderNotFound
+		return nil, oauthrelyingpartyutil.NewOAuthError(oauthError, errorDescription, errorURI)
 	}
 
 	code := inputOAuth.GetOAuthAuthorizationCode()
+
+	providerConfig, err := deps.OAuthProviderFactory.GetProviderConfig(opts.Alias)
+	if err != nil {
+		return nil, err
+	}
 
 	// TODO(authflow): support nonce but do not save nonce in cookies.
 	// Nonce in the current implementation is stored in cookies.
 	// In the Authentication Flow API, cookies are not sent in Safari in third-party context.
 	emptyNonce := ""
-	authInfo, err := oauthProvider.GetAuthInfo(
-		sso.OAuthAuthorizationResponse{
-			Code: code,
-		},
-		sso.GetAuthInfoParam{
+	authInfo, err := deps.OAuthProviderFactory.GetUserProfile(
+		opts.Alias,
+		oauthrelyingparty.GetUserProfileOptions{
+			Code:        code,
 			RedirectURI: opts.RedirectURI,
 			Nonce:       emptyNonce,
 		},
@@ -700,7 +702,6 @@ func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, opts HandleOA
 		return nil, err
 	}
 
-	providerConfig := oauthProvider.Config()
 	providerID := providerConfig.ProviderID()
 	identitySpec := &identity.Spec{
 		Type: model.IdentityTypeOAuth,
@@ -708,7 +709,7 @@ func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, opts HandleOA
 			ProviderID:     providerID,
 			SubjectID:      authInfo.ProviderUserID,
 			RawProfile:     authInfo.ProviderRawProfile,
-			StandardClaims: authInfo.StandardAttributes.ToClaims(),
+			StandardClaims: authInfo.StandardAttributes,
 		},
 	}
 
@@ -718,34 +719,33 @@ func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, opts HandleOA
 type GetOAuthDataOptions struct {
 	RedirectURI  string
 	Alias        string
-	ResponseMode sso.ResponseMode
+	ResponseMode string
 }
 
 func getOAuthData(ctx context.Context, deps *authflow.Dependencies, opts GetOAuthDataOptions) (data OAuthData, err error) {
-	oauthProvider := deps.OAuthProviderFactory.NewOAuthProvider(opts.Alias)
-	if oauthProvider == nil {
-		err = api.ErrOAuthProviderNotFound
+	providerConfig, err := deps.OAuthProviderFactory.GetProviderConfig(opts.Alias)
+	if err != nil {
 		return
 	}
 
 	uiParam := uiparam.GetUIParam(ctx)
 
-	param := sso.GetAuthURLParam{
+	param := oauthrelyingparty.GetAuthorizationURLOptions{
 		RedirectURI:  opts.RedirectURI,
 		ResponseMode: opts.ResponseMode,
 		Prompt:       uiParam.Prompt,
 	}
 
-	authorizationURL, err := oauthProvider.GetAuthURL(param)
+	authorizationURL, err := deps.OAuthProviderFactory.GetAuthorizationURL(opts.Alias, param)
 	if err != nil {
 		return
 	}
 
 	data = NewOAuthData(OAuthData{
 		Alias:                 opts.Alias,
-		OAuthProviderType:     oauthProvider.Config().Type,
+		OAuthProviderType:     providerConfig.Type(),
 		OAuthAuthorizationURL: authorizationURL,
-		WechatAppType:         oauthProvider.Config().AppType,
+		WechatAppType:         wechat.ProviderConfig(providerConfig).AppType(),
 	})
 	return
 }

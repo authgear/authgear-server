@@ -3,13 +3,14 @@ package rolesgroups
 import (
 	"sort"
 
+	"github.com/lib/pq"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
-	"github.com/lib/pq"
 )
 
 func (s *Store) ListRolesByUserIDs(userIDs []string) (map[string][]*Role, error) {

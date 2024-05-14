@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/log"
-	"github.com/sirupsen/logrus"
 )
 
 type ServiceLogger struct{ *log.Logger }

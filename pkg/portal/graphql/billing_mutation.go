@@ -3,14 +3,15 @@ package graphql
 import (
 	"errors"
 
+	relay "github.com/authgear/graphql-go-relay"
+	"github.com/graphql-go/graphql"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
-	relay "github.com/authgear/graphql-go-relay"
-	"github.com/graphql-go/graphql"
 )
 
 var createCheckoutSessionInput = graphql.NewInputObject(graphql.InputObjectConfig{

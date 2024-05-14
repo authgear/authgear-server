@@ -1,7 +1,6 @@
 package declarative
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -15,7 +14,7 @@ type SyntheticInputAccountLinkingIdentify struct {
 	// For identification=oauth
 	Alias        string
 	RedirectURI  string
-	ResponseMode sso.ResponseMode
+	ResponseMode string
 }
 
 // GetLoginID implements inputTakeLoginID.
@@ -39,7 +38,7 @@ func (i *SyntheticInputAccountLinkingIdentify) GetOAuthRedirectURI() string {
 }
 
 // GetOAuthResponseMode implements inputTakeOAuthAuthorizationRequest.
-func (i *SyntheticInputAccountLinkingIdentify) GetOAuthResponseMode() sso.ResponseMode {
+func (i *SyntheticInputAccountLinkingIdentify) GetOAuthResponseMode() string {
 	return i.ResponseMode
 }
 

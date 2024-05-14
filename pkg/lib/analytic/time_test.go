@@ -4,9 +4,10 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/smartystreets/goconvey/convey"
+
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/util/periodical"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestGetDateListByRangeInclusive(t *testing.T) {

@@ -1,27 +1,30 @@
-package sso
+package google
 
 import (
 	"net/http"
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	. "github.com/smartystreets/goconvey/convey"
 	"gopkg.in/h2non/gock.v1"
+
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 )
 
 func TestGoogleImpl(t *testing.T) {
 	Convey("GoogleImpl", t, func() {
-		client := OAuthHTTPClient{&http.Client{}}
-		gock.InterceptClient(client.Client)
+		client := &http.Client{}
+		gock.InterceptClient(client)
 		defer gock.Off()
 
-		g := &GoogleImpl{
-			ProviderConfig: config.OAuthSSOProviderConfig{
-				ClientID: "client_id",
-				Type:     config.OAuthSSOProviderTypeGoogle,
+		deps := oauthrelyingparty.Dependencies{
+			ProviderConfig: oauthrelyingparty.ProviderConfig{
+				"client_id": "client_id",
+				"type":      Type,
 			},
 			HTTPClient: client,
 		}
+
+		g := Google{}
 
 		gock.New(googleOIDCDiscoveryDocumentURL).
 			Reply(200).
@@ -87,9 +90,9 @@ func TestGoogleImpl(t *testing.T) {
 			`)
 		defer func() { gock.Flush() }()
 
-		u, err := g.GetAuthURL(GetAuthURLParam{
+		u, err := g.GetAuthorizationURL(deps, oauthrelyingparty.GetAuthorizationURLOptions{
 			RedirectURI:  "https://localhost/",
-			ResponseMode: ResponseModeFormPost,
+			ResponseMode: oauthrelyingparty.ResponseModeFormPost,
 			Nonce:        "nonce",
 			State:        "state",
 			Prompt:       []string{"login"},

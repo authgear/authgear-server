@@ -5,6 +5,7 @@ package server
 
 import (
 	"context"
+
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"

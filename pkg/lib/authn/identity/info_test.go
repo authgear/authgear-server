@@ -5,9 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
+
+	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
 func TestInfoJSON(t *testing.T) {
@@ -60,7 +62,7 @@ func TestInfoJSON(t *testing.T) {
 				CreatedAt: time.Date(2006, 1, 2, 0, 0, 0, 0, time.UTC),
 				UpdatedAt: time.Date(2006, 1, 2, 0, 0, 0, 0, time.UTC),
 
-				ProviderID: config.ProviderID{
+				ProviderID: oauthrelyingparty.ProviderID{
 					Type: "provider",
 					Keys: map[string]interface{}{
 						"client_id": "client_id",

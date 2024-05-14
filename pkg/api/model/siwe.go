@@ -5,8 +5,9 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/util/web3"
 	"github.com/ethereum/go-ethereum/crypto"
+
+	"github.com/authgear/authgear-server/pkg/util/web3"
 )
 
 type SIWEPublicKey string

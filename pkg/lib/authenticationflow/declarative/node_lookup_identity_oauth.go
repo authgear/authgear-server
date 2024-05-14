@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -22,7 +21,7 @@ type NodeLookupIdentityOAuth struct {
 	SyntheticInput *InputStepIdentify `json:"synthetic_input,omitempty"`
 	Alias          string             `json:"alias,omitempty"`
 	RedirectURI    string             `json:"redirect_uri,omitempty"`
-	ResponseMode   sso.ResponseMode   `json:"response_mode,omitempty"`
+	ResponseMode   string             `json:"response_mode,omitempty"`
 }
 
 var _ authflow.NodeSimple = &NodeLookupIdentityOAuth{}

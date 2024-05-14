@@ -1,8 +1,9 @@
 package facade
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
 
 type IdentityFacade struct {

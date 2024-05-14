@@ -5,10 +5,20 @@ import (
 	"log"
 	"os"
 
-	cmd "github.com/authgear/authgear-server/e2e/cmd/e2e/cmd"
-	"github.com/authgear/authgear-server/pkg/util/debug"
 	"github.com/joho/godotenv"
 	_ "go.uber.org/automaxprocs"
+
+	cmd "github.com/authgear/authgear-server/e2e/cmd/e2e/cmd"
+	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/adfs"
+	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/apple"
+	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/azureadb2c"
+	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/azureadv2"
+	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/facebook"
+	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/github"
+	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/google"
+	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/linkedin"
+	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
+	"github.com/authgear/authgear-server/pkg/util/debug"
 )
 
 func main() {

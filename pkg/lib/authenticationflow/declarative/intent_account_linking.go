@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
@@ -12,7 +14,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/slice"
-	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 func init() {
@@ -214,7 +215,7 @@ func (i *IntentAccountLinking) getOptions() []AccountLinkingIdentificationOption
 	return slice.FlatMap(i.Conflicts, func(c *AccountLinkingConflict) []AccountLinkingIdentificationOptionInternal {
 		var identifcation config.AuthenticationFlowIdentification
 		var maskedDisplayName string
-		var providerType config.OAuthSSOProviderType
+		var providerType string
 		var providerAlias string
 
 		identity := c.Identity
@@ -239,7 +240,7 @@ func (i *IntentAccountLinking) getOptions() []AccountLinkingIdentificationOption
 			}
 		case model.IdentityTypeOAuth:
 			identifcation = config.AuthenticationFlowIdentificationOAuth
-			providerType = config.OAuthSSOProviderType(identity.OAuth.ProviderID.Type)
+			providerType = identity.OAuth.ProviderID.Type
 			maskedDisplayName = identity.OAuth.GetDisplayName()
 			providerAlias = identity.OAuth.ProviderAlias
 		default:

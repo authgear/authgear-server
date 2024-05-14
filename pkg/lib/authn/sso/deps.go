@@ -7,8 +7,9 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/google/wire"
+
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func ProvideOAuthHTTPClient(env *config.EnvironmentConfig) OAuthHTTPClient {

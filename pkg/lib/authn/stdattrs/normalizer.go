@@ -3,8 +3,8 @@ package stdattrs
 import (
 	"golang.org/x/text/language"
 
+	"github.com/authgear/authgear-server/pkg/api/internalinterface"
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -12,7 +12,7 @@ import (
 //go:generate mockgen -source=normalizer.go -destination=normalizer_mock_test.go -package stdattrs
 
 type LoginIDNormalizerFactory interface {
-	NormalizerWithLoginIDType(loginIDKeyType model.LoginIDKeyType) loginid.Normalizer
+	NormalizerWithLoginIDType(loginIDKeyType model.LoginIDKeyType) internalinterface.LoginIDNormalizer
 }
 
 type Normalizer struct {

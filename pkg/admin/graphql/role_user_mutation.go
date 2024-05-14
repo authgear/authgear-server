@@ -1,14 +1,15 @@
 package graphql
 
 import (
+	relay "github.com/authgear/graphql-go-relay"
+	"github.com/graphql-go/graphql"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/slice"
-	relay "github.com/authgear/graphql-go-relay"
-	"github.com/graphql-go/graphql"
 )
 
 var addRoleToUsersInput = graphql.NewInputObject(graphql.InputObjectConfig{

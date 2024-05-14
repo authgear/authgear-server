@@ -5,6 +5,7 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 )
 

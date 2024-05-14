@@ -3,8 +3,9 @@ package cmd
 import (
 	"fmt"
 
-	e2e "github.com/authgear/authgear-server/e2e/cmd/e2e/pkg"
 	"github.com/spf13/cobra"
+
+	e2e "github.com/authgear/authgear-server/e2e/cmd/e2e/pkg"
 )
 
 func init() {

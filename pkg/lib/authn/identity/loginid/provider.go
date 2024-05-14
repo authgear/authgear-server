@@ -4,12 +4,13 @@ import (
 	"errors"
 	"sort"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
-	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 type Provider struct {

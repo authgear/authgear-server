@@ -1,29 +1,16 @@
-package sso
+package oauthrelyingpartyutil
 
 import (
 	"net/url"
 	"strings"
 )
 
-type ResponseType string
-
-const (
-	ResponseTypeCode ResponseType = "code"
-)
-
-type ResponseMode string
-
-const (
-	ResponseModeFormPost ResponseMode = "form_post"
-	ResponseModeQuery    ResponseMode = "query"
-)
-
 type AuthorizationURLParams struct {
 	ClientID     string
 	RedirectURI  string
 	Scope        []string
-	ResponseType ResponseType
-	ResponseMode ResponseMode
+	ResponseType string
+	ResponseMode string
 	State        string
 	Prompt       []string
 	Nonce        string

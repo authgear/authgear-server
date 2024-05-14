@@ -3,6 +3,9 @@ package facade
 import (
 	"errors"
 
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
@@ -21,7 +24,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
-	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 type EventService interface {
@@ -588,11 +590,11 @@ func (c *Coordinator) markOAuthEmailAsVerified(info *identity.Info) error {
 
 	providerID := info.OAuth.ProviderID
 
-	var cfg *config.OAuthSSOProviderConfig
+	var cfg oauthrelyingparty.ProviderConfig
 	for _, c := range c.IdentityConfig.OAuth.Providers {
-		if c.ProviderID().Equal(&providerID) {
-			c := c
-			cfg = &c
+		c := c
+		if c.ProviderID().Equal(providerID) {
+			cfg = c
 			break
 		}
 	}
@@ -600,13 +602,16 @@ func (c *Coordinator) markOAuthEmailAsVerified(info *identity.Info) error {
 	standardClaims := info.IdentityAwareStandardClaims()
 
 	email, ok := standardClaims[model.ClaimEmail]
-	if ok && cfg != nil && *cfg.Claims.Email.AssumeVerified {
-		// Mark as verified if OAuth email is assumed to be verified
-		err := c.markVerified(info.UserID, map[model.ClaimName]string{
-			model.ClaimEmail: email,
-		})
-		if err != nil {
-			return err
+	if ok && cfg != nil {
+		assumedVerified := cfg.EmailClaimConfig().AssumeVerified()
+		if assumedVerified {
+			// Mark as verified if OAuth email is assumed to be verified
+			err := c.markVerified(info.UserID, map[model.ClaimName]string{
+				model.ClaimEmail: email,
+			})
+			if err != nil {
+				return err
+			}
 		}
 	}
 

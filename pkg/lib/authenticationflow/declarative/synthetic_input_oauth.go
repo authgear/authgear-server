@@ -3,7 +3,6 @@ package declarative
 import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -12,7 +11,7 @@ type SyntheticInputOAuth struct {
 	Alias          string                                  `json:"alias,omitempty"`
 	State          string                                  `json:"state,omitempty"`
 	RedirectURI    string                                  `json:"redirect_uri,omitempty"`
-	ResponseMode   sso.ResponseMode                        `json:"response_mode,omitempty"`
+	ResponseMode   string                                  `json:"response_mode,omitempty"`
 	IdentitySpec   *identity.Spec                          `json:"identity_spec,omitempty"`
 }
 
@@ -39,7 +38,7 @@ func (i *SyntheticInputOAuth) GetOAuthRedirectURI() string {
 	return i.RedirectURI
 }
 
-func (i *SyntheticInputOAuth) GetOAuthResponseMode() sso.ResponseMode {
+func (i *SyntheticInputOAuth) GetOAuthResponseMode() string {
 	return i.ResponseMode
 }
 

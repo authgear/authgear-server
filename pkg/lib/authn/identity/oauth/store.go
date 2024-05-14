@@ -9,6 +9,8 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 	"github.com/lib/pq"
 
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -75,8 +77,8 @@ func (s *Store) scan(scn db.Scanner) (*identity.OAuth, error) {
 	alias := ""
 	for _, providerConfig := range s.IdentityConfig.OAuth.Providers {
 		providerID := providerConfig.ProviderID()
-		if providerID.Equal(&i.ProviderID) {
-			alias = providerConfig.Alias
+		if providerID.Equal(i.ProviderID) {
+			alias = providerConfig.Alias()
 		}
 	}
 	if alias != "" {
@@ -182,15 +184,15 @@ func (s *Store) Get(userID string, id string) (*identity.OAuth, error) {
 	return s.scan(rows)
 }
 
-func (s *Store) GetByProviderSubject(provider config.ProviderID, subjectID string) (*identity.OAuth, error) {
-	providerKeys, err := json.Marshal(provider.Keys)
+func (s *Store) GetByProviderSubject(providerID oauthrelyingparty.ProviderID, subjectID string) (*identity.OAuth, error) {
+	providerKeys, err := json.Marshal(providerID.Keys)
 	if err != nil {
 		return nil, err
 	}
 
 	q := s.selectQuery().Where(
 		"o.provider_type = ? AND o.provider_keys = ? AND o.provider_user_id = ?",
-		provider.Type, providerKeys, subjectID)
+		providerID.Type, providerKeys, subjectID)
 	rows, err := s.SQLExecutor.QueryRowWith(q)
 	if err != nil {
 		return nil, err
@@ -199,15 +201,15 @@ func (s *Store) GetByProviderSubject(provider config.ProviderID, subjectID strin
 	return s.scan(rows)
 }
 
-func (s *Store) GetByUserProvider(userID string, provider config.ProviderID) (*identity.OAuth, error) {
-	providerKeys, err := json.Marshal(provider.Keys)
+func (s *Store) GetByUserProvider(userID string, providerID oauthrelyingparty.ProviderID) (*identity.OAuth, error) {
+	providerKeys, err := json.Marshal(providerID.Keys)
 	if err != nil {
 		return nil, err
 	}
 
 	q := s.selectQuery().Where(
 		"o.provider_type = ? AND o.provider_keys = ? AND p.user_id = ?",
-		provider.Type, providerKeys, userID)
+		providerID.Type, providerKeys, userID)
 	rows, err := s.SQLExecutor.QueryRowWith(q)
 	if err != nil {
 		return nil, err

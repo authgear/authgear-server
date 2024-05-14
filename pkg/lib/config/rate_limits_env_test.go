@@ -4,8 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func TestParseRateLimitsEnv(t *testing.T) {

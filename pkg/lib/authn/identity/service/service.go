@@ -4,11 +4,13 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package service
@@ -32,13 +34,13 @@ type OAuthIdentityProvider interface {
 	Get(userID, id string) (*identity.OAuth, error)
 	GetMany(ids []string) ([]*identity.OAuth, error)
 	List(userID string) ([]*identity.OAuth, error)
-	GetByProviderSubject(provider config.ProviderID, subjectID string) (*identity.OAuth, error)
-	GetByUserProvider(userID string, provider config.ProviderID) (*identity.OAuth, error)
+	GetByProviderSubject(providerID oauthrelyingparty.ProviderID, subjectID string) (*identity.OAuth, error)
+	GetByUserProvider(userID string, providerID oauthrelyingparty.ProviderID) (*identity.OAuth, error)
 	ListByClaim(name string, value string) ([]*identity.OAuth, error)
 	ListByClaimJSONPointer(pointer jsonpointer.T, value string) ([]*identity.OAuth, error)
 	New(
 		userID string,
-		provider config.ProviderID,
+		providerID oauthrelyingparty.ProviderID,
 		subjectID string,
 		profile map[string]interface{},
 		claims map[string]interface{},
@@ -844,14 +846,14 @@ func (s *Service) listOAuthCandidates(oauths []*identity.OAuth) []identity.Candi
 	out := []identity.Candidate{}
 	for _, providerConfig := range s.Identity.OAuth.Providers {
 		pc := providerConfig
-		if identity.IsOAuthSSOProviderTypeDisabled(pc.Type, s.IdentityFeatureConfig.OAuth.Providers) {
+		if identity.IsOAuthSSOProviderTypeDisabled(pc, s.IdentityFeatureConfig.OAuth.Providers) {
 			continue
 		}
 		configProviderID := pc.ProviderID()
-		candidate := identity.NewOAuthCandidate(&pc)
+		candidate := identity.NewOAuthCandidate(pc)
 		matched := false
 		for _, iden := range oauths {
-			if iden.ProviderID.Equal(&configProviderID) {
+			if iden.ProviderID.Equal(configProviderID) {
 				matched = true
 				candidate[identity.CandidateKeyIdentityID] = iden.ID
 				candidate[identity.CandidateKeyProviderSubjectID] = string(iden.ProviderSubjectID)
@@ -859,7 +861,7 @@ func (s *Service) listOAuthCandidates(oauths []*identity.OAuth) []identity.Candi
 			}
 		}
 		canAppend := true
-		if *providerConfig.ModifyDisabled && !matched {
+		if providerConfig.ModifyDisabled() && !matched {
 			canAppend = false
 		}
 		if canAppend {

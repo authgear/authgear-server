@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	siwego "github.com/spruceid/siwe-go"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -18,7 +20,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/web3"
-	siwego "github.com/spruceid/siwe-go"
 )
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package siwe

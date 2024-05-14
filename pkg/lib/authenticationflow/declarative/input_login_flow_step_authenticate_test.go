@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"testing"
 
+	. "github.com/smartystreets/goconvey/convey"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/validation"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {

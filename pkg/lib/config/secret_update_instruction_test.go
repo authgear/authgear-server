@@ -13,11 +13,12 @@ import (
 	goyaml "gopkg.in/yaml.v2"
 	"sigs.k8s.io/yaml"
 
+	"github.com/lestrrat-go/jwx/v2/jwk"
+	. "github.com/smartystreets/goconvey/convey"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
-	"github.com/lestrrat-go/jwx/v2/jwk"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestSecretConfigUpdateInstruction(t *testing.T) {

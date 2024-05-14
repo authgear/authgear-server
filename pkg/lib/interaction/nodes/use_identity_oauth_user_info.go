@@ -4,12 +4,12 @@ import (
 	"crypto/subtle"
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
 )
 
@@ -28,7 +28,7 @@ type InputUseIdentityOAuthUserInfo interface {
 type EdgeUseIdentityOAuthUserInfo struct {
 	IsAuthentication bool
 	IsCreating       bool
-	Config           config.OAuthSSOProviderConfig
+	Config           oauthrelyingparty.ProviderConfig
 	HashedNonce      string
 	ErrorRedirectURI string
 }
@@ -47,23 +47,20 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 	errorURI := input.GetErrorURI()
 	hashedNonce := e.HashedNonce
 
-	if e.Config.Alias != alias {
-		return nil, fmt.Errorf("interaction: unexpected provider alias %s != %s", e.Config.Alias, alias)
-	}
-
-	oauthProvider := ctx.OAuthProviderFactory.NewOAuthProvider(alias)
-	if oauthProvider == nil {
-		return nil, api.ErrOAuthProviderNotFound
+	providerConfigAlias := e.Config.Alias()
+	if providerConfigAlias != alias {
+		return nil, fmt.Errorf("interaction: unexpected provider alias %s != %s", providerConfigAlias, alias)
 	}
 
 	// Handle provider error
 	if oauthError != "" {
-		return nil, sso.NewOAuthError(oauthError, errorDescription, errorURI)
+		return nil, oauthrelyingpartyutil.NewOAuthError(oauthError, errorDescription, errorURI)
 	}
 
 	if nonceSource == "" {
 		return nil, fmt.Errorf("nonce does not present in the request")
 	}
+
 	nonce := crypto.SHA256String(nonceSource)
 	if subtle.ConstantTimeCompare([]byte(hashedNonce), []byte(nonce)) != 1 {
 		return nil, fmt.Errorf("invalid nonce")
@@ -71,11 +68,15 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 
 	redirectURI := ctx.OAuthRedirectURIBuilder.SSOCallbackURL(alias)
 
-	userInfo, err := oauthProvider.GetAuthInfo(
-		sso.OAuthAuthorizationResponse{
-			Code: code,
-		},
-		sso.GetAuthInfoParam{
+	providerConfig, err := ctx.OAuthProviderFactory.GetProviderConfig(alias)
+	if err != nil {
+		return nil, err
+	}
+
+	userInfo, err := ctx.OAuthProviderFactory.GetUserProfile(
+		alias,
+		oauthrelyingparty.GetUserProfileOptions{
+			Code:        code,
 			RedirectURI: redirectURI.String(),
 			Nonce:       hashedNonce,
 		},
@@ -84,7 +85,6 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 		return nil, err
 	}
 
-	providerConfig := oauthProvider.Config()
 	providerID := providerConfig.ProviderID()
 	spec := &identity.Spec{
 		Type: model.IdentityTypeOAuth,
@@ -92,7 +92,7 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 			ProviderID:     providerID,
 			SubjectID:      userInfo.ProviderUserID,
 			RawProfile:     userInfo.ProviderRawProfile,
-			StandardClaims: userInfo.StandardAttributes.ToClaims(),
+			StandardClaims: userInfo.StandardAttributes,
 		},
 	}
 

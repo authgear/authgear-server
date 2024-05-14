@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
@@ -24,7 +23,7 @@ type NodePromoteIdentityOAuth struct {
 	SyntheticInput *InputStepIdentify `json:"synthetic_input,omitempty"`
 	Alias          string             `json:"alias,omitempty"`
 	RedirectURI    string             `json:"redirect_uri,omitempty"`
-	ResponseMode   sso.ResponseMode   `json:"response_mode,omitempty"`
+	ResponseMode   string             `json:"response_mode,omitempty"`
 }
 
 var _ authflow.NodeSimple = &NodePromoteIdentityOAuth{}

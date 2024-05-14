@@ -16,6 +16,15 @@ import (
 	_ "github.com/authgear/authgear-server/cmd/portal/cmd/cmdpricing"
 	_ "github.com/authgear/authgear-server/cmd/portal/cmd/cmdstart"
 	_ "github.com/authgear/authgear-server/cmd/portal/cmd/cmdusage"
+	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/adfs"
+	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/apple"
+	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/azureadb2c"
+	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/azureadv2"
+	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/facebook"
+	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/github"
+	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/google"
+	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/linkedin"
+	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 	"github.com/authgear/authgear-server/pkg/util/debug"
 )
 

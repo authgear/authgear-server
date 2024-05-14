@@ -19,6 +19,7 @@ vendor:
 	go install github.com/golang/mock/mockgen
 	go install github.com/google/wire/cmd/wire
 	go install golang.org/x/vuln/cmd/govulncheck@latest
+	go install golang.org/x/tools/cmd/goimports@latest
 	npm --prefix ./scripts/npm ci
 	npm --prefix ./authui ci
 	npm --prefix ./portal ci
@@ -57,7 +58,8 @@ lint:
 
 .PHONY: fmt
 fmt:
-	go fmt ./...
+	# Ignore generated files, such as wire_gen.go and *_mock_test.go
+	find ./pkg ./cmd ./e2e -name '*.go' -not -name 'wire_gen.go' -not -name '*_mock_test.go' | sort | xargs goimports -w -format-only -local github.com/authgear/authgear-server
 
 .PHONY: govulncheck
 govulncheck:

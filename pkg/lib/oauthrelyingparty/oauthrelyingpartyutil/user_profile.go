@@ -1,4 +1,4 @@
-package sso
+package oauthrelyingpartyutil
 
 import (
 	"encoding/json"
@@ -6,8 +6,8 @@ import (
 	"net/http"
 )
 
-func fetchUserProfile(
-	client OAuthHTTPClient,
+func FetchUserProfile(
+	client *http.Client,
 	accessTokenResp AccessTokenResp,
 	userProfileURL string,
 ) (userProfile map[string]interface{}, err error) {
