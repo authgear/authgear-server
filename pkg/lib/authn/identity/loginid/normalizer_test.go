@@ -5,6 +5,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/api/internalinterface"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -13,7 +14,7 @@ func TestNormalizers(t *testing.T) {
 		LoginID           string
 		NormalizedLoginID string
 	}
-	f := func(c Case, n Normalizer) {
+	f := func(c Case, n internalinterface.LoginIDNormalizer) {
 		result, _ := n.Normalize(c.LoginID)
 		So(result, ShouldEqual, c.NormalizedLoginID)
 	}

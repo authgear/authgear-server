@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 )
 
 type Candidate map[string]interface{}
@@ -28,16 +29,13 @@ const (
 )
 
 func NewOAuthCandidate(cfg oauthrelyingparty.ProviderConfig) Candidate {
-	// Ideally, we should import oauthrelyingparty/wechat and use ProviderConfig there.
-	// But that will result in import cycle.
-	app_type, _ := cfg["app_type"].(string)
 	return Candidate{
 		CandidateKeyIdentityID:        "",
 		CandidateKeyType:              string(model.IdentityTypeOAuth),
 		CandidateKeyProviderType:      string(cfg.Type()),
 		CandidateKeyProviderAlias:     cfg.Alias(),
 		CandidateKeyProviderSubjectID: "",
-		CandidateKeyProviderAppType:   app_type,
+		CandidateKeyProviderAppType:   string(wechat.ProviderConfig(cfg).AppType()),
 		CandidateKeyDisplayID:         "",
 		CandidateKeyModifyDisabled:    cfg.ModifyDisabled(),
 	}
