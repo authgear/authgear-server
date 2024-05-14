@@ -27,18 +27,24 @@ var _ authflow.Milestone = &NodeCreateIdentityLoginID{}
 var _ MilestoneIdentificationMethod = &NodeCreateIdentityLoginID{}
 var _ authflow.InputReactor = &NodeCreateIdentityLoginID{}
 
+func (*NodeCreateIdentityLoginID) Milestone() {}
+
 func (*NodeCreateIdentityLoginID) Kind() string {
 	return "NodeCreateIdentityLoginID"
 }
 
-func (*NodeCreateIdentityLoginID) Milestone() {}
 func (n *NodeCreateIdentityLoginID) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
 	return n.Identification
 }
 
 func (n *NodeCreateIdentityLoginID) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	if err != nil {
+		return nil, err
+	}
 	return &InputSchemaTakeLoginID{
-		JSONPointer: n.JSONPointer,
+		FlowRootObject: flowRootObject,
+		JSONPointer:    n.JSONPointer,
 	}, nil
 }
 
@@ -48,13 +54,10 @@ func (n *NodeCreateIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.
 		loginID := inputTakeLoginID.GetLoginID()
 		spec := n.makeLoginIDSpec(loginID)
 
-		info, err := newIdentityInfo(deps, n.UserID, spec)
-		if err != nil {
-			return nil, err
-		}
-
-		return authflow.NewNodeSimple(&NodeDoCreateIdentity{
-			Identity: info,
+		return authflow.NewSubFlow(&IntentCheckConflictAndCreateIdenity{
+			JSONPointer: n.JSONPointer,
+			UserID:      n.UserID,
+			Request:     NewCreateLoginIDIdentityRequest(spec),
 		}), nil
 	}
 

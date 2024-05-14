@@ -33,8 +33,14 @@ func (*NodeLoginFlowChangePassword) Kind() string {
 }
 
 func (n *NodeLoginFlowChangePassword) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	if err != nil {
+		return nil, err
+	}
+
 	return &InputSchemaTakeNewPassword{
-		JSONPointer: n.JSONPointer,
+		FlowRootObject: flowRootObject,
+		JSONPointer:    n.JSONPointer,
 	}, nil
 }
 

@@ -33,9 +33,10 @@ var _ authflow.Data = IntentAccountRecoveryFlowStepSelectDestinationData{}
 func (IntentAccountRecoveryFlowStepSelectDestinationData) Data() {}
 
 type IntentAccountRecoveryFlowStepSelectDestination struct {
-	JSONPointer jsonpointer.T                               `json:"json_pointer,omitempty"`
-	StepName    string                                      `json:"step_name,omitempty"`
-	Options     []*AccountRecoveryDestinationOptionInternal `json:"options"`
+	FlowReference authflow.FlowReference                      `json:"flow_reference,omitempty"`
+	JSONPointer   jsonpointer.T                               `json:"json_pointer,omitempty"`
+	StepName      string                                      `json:"step_name,omitempty"`
+	Options       []*AccountRecoveryDestinationOptionInternal `json:"options"`
 }
 
 var _ authflow.TargetStep = &IntentAccountRecoveryFlowStepSelectDestination{}
@@ -57,7 +58,7 @@ func NewIntentAccountRecoveryFlowStepSelectDestination(
 	flows authflow.Flows,
 	i *IntentAccountRecoveryFlowStepSelectDestination,
 ) (*IntentAccountRecoveryFlowStepSelectDestination, error) {
-	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	current, err := i.currentFlowObject(deps)
 	if err != nil {
 		return nil, err
 	}
@@ -88,9 +89,14 @@ func (*IntentAccountRecoveryFlowStepSelectDestination) Kind() string {
 func (i *IntentAccountRecoveryFlowStepSelectDestination) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	switch len(flows.Nearest.Nodes) {
 	case 0:
+		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		if err != nil {
+			return nil, err
+		}
 		return &InputSchemaStepAccountRecoverySelectDestination{
-			JSONPointer: i.JSONPointer,
-			Options:     i.getOptions(),
+			JSONPointer:    i.JSONPointer,
+			FlowRootObject: flowRootObject,
+			Options:        i.getOptions(),
 		}, nil
 	default:
 		return nil, authflow.ErrEOF
@@ -124,6 +130,18 @@ func (*IntentAccountRecoveryFlowStepSelectDestination) step(o config.Authenticat
 	}
 
 	return step
+}
+
+func (i *IntentAccountRecoveryFlowStepSelectDestination) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
+	rootObject, err := flowRootObject(deps, i.FlowReference)
+	if err != nil {
+		return nil, err
+	}
+	current, err := authflow.FlowObject(rootObject, i.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
+	return current, nil
 }
 
 func (i *IntentAccountRecoveryFlowStepSelectDestination) getOptions() []AccountRecoveryDestinationOption {

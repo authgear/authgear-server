@@ -10,13 +10,14 @@
   * [Retrieve a state again](#retrieve-a-state-again)
   * [Listen for change with Websocket](#listen-for-change-with-websocket)
 - [Reference on input and output](#reference-on-input-and-output)
-  * [type: signup; step.type: identification](#type-signup-steptype-identification)
+  * [type: signup; action.type: identification](#type-signup-actiontype-identification)
     + [identification: email](#identification-email)
     + [identification: phone](#identification-phone)
     + [identification: username](#identification-username)
     + [identification: oauth](#identification-oauth)
-  * [type: signup; step.type: verify](#type-signup-steptype-verify)
-  * [type: signup; step.type: create_authenticator](#type-signup-steptype-create_authenticator)
+  * [type: signup; action.type: identification; data.type: account_linking_identification_data](#type-signup-actiontype-identification-datatype-account_linking_identification_data)
+  * [type: signup; action.type: verify](#type-signup-actiontype-verify)
+  * [type: signup; action.type: create_authenticator](#type-signup-actiontype-create_authenticator)
     + [authentication: primary_password](#authentication-primary_password)
     + [authentication: primary_oob_otp_email](#authentication-primary_oob_otp_email)
     + [authentication: primary_oob_otp_sms](#authentication-primary_oob_otp_sms)
@@ -24,10 +25,10 @@
     + [authentication: secondary_oob_otp_email](#authentication-secondary_oob_otp_email)
     + [authentication: secondary_oob_otp_sms](#authentication-secondary_oob_otp_sms)
     + [authentication: secondary_totp](#authentication-secondary_totp)
-  * [type: signup; step.type: view_recovery_code](#type-signup-steptype-view_recovery_code)
-  * [type: signup; step.type: prompt_create_passkey](#type-signup-steptype-prompt_create_passkey)
-  * [type: login; step.type: identify](#type-login-steptype-identify)
-  * [type: login; step.type: authenticate](#type-login-steptype-authenticate)
+  * [type: signup; action.type: view_recovery_code](#type-signup-actiontype-view_recovery_code)
+  * [type: signup; action.type: prompt_create_passkey](#type-signup-actiontype-prompt_create_passkey)
+  * [type: login; action.type: identify](#type-login-actiontype-identify)
+  * [type: login; action.type: authenticate](#type-login-actiontype-authenticate)
     + [authentication: primary_password](#authentication-primary_password-1)
     + [authentication: primary_oob_otp_email](#authentication-primary_oob_otp_email-1)
     + [authentication: primary_oob_otp_sms](#authentication-primary_oob_otp_sms-1)
@@ -36,13 +37,13 @@
     + [authentication: secondary_oob_otp_email](#authentication-secondary_oob_otp_email-1)
     + [authentication: secondary_oob_otp_sms](#authentication-secondary_oob_otp_sms-1)
     + [authentication: secondary_totp](#authentication-secondary_totp-1)
-  * [type: login; step.type: change_password](#type-login-steptype-change_password)
-  * [type: login; step.type: prompt_create_passkey](#type-login-steptype-prompt_create_passkey)
-  * [type: signup_login; step.type: identify](#type-signup_login-steptype-identify)
-  * [type: account_recovery; step.type: identify](#type-account_recovery-steptype-identify)
-  * [type: account_recovery; step.type: select_destination](#type-account_recovery-steptype-select_destination)
-  * [type: account_recovery; step.type: verify_account_recovery_code](#type-account_recovery-steptype-verify_account_recovery_code)
-  * [type: account_recovery; step.type: reset_password](#type-account_recovery-steptype-reset_password)
+  * [type: login; action.type: change_password](#type-login-actiontype-change_password)
+  * [type: login; action.type: prompt_create_passkey](#type-login-actiontype-prompt_create_passkey)
+  * [type: signup_login; action.type: identify](#type-signup_login-actiontype-identify)
+  * [type: account_recovery; action.type: identify](#type-account_recovery-actiontype-identify)
+  * [type: account_recovery; action.type: select_destination](#type-account_recovery-actiontype-select_destination)
+  * [type: account_recovery; action.type: verify_account_recovery_code](#type-account_recovery-actiontype-verify_account_recovery_code)
+  * [type: account_recovery; action.type: reset_password](#type-account_recovery-actiontype-reset_password)
 
 # Authentication Flow API
 
@@ -199,7 +200,7 @@ Connect to the websocket by specifying `flow_id`. The only message you will rece
 
 # Reference on input and output
 
-## type: signup; step.type: identification
+## type: signup; action.type: identification
 
 When you are in this step of this flow, you will see a response like the following.
 
@@ -383,7 +384,74 @@ for the successful case. Or this input
 
 for the failure case. `error_description` and `error_uri` are optional.
 
-## type: signup; step.type: verify
+### type: signup; action.type: identification; data.type: account_linking_identification_data
+
+During identification steps in signup flow, an account linking could be triggered. In this case, you will see a response like the following:
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_9A2FKQJ9YWBM85255632SFQT6RQ41P5V",
+    "type": "signup",
+    "name": "default",
+    "action": {
+      "type": "identify",
+      "identification": "oauth",
+      "data": {
+        "type": "account_linking_identification_data",
+        "options": [
+          {
+            "identification": "email",
+            "action": "login_and_link",
+            "masked_display_name": "exam****@gmail.com"
+          },
+          {
+            "identification": "oauth",
+            "action": "login_and_link",
+            "masked_display_name": "exam****@gmail.com",
+            "provider_type": "github",
+            "alias": "github"
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+This means account linking was triggered by the previously identified identity. You can find the followings in `action.data`:
+
+- `options`: Contains options that you can use to continue the account linking flow. The items contains the following fields:
+  - `identification`: See [type: signup; action.type: identification](#type-signup-actiontype-identification). They are having the same meaning.
+  - `action`: This field specify what is going to happen when this option is selected. The only possible value in current version is `login_and_link`.
+      - `login_and_link`: You need to login to one of the account in `options`. After that, the identity you have just created in previous steps will be linked to the logged in account.
+  - `masked_display_name`: The display name of the identity to use. Different from signup flow, during account linking, you must use an existing identity to start account linking. The display name here is the display name of the referred identity of this option. If it is an `email`, a masked email will be displayed. If it is a `phone`, a masked phone number will be displayed. If it is a `username`, the username will be displayed without masking. If it is a `oauth` identity, the display name will be a name which you should be able to recongize the account in that provider.
+
+  - `provider_type`: Only exist if `identification` is `oauth`. It is the type of the oauth provider. Read [identification: oauth](#identification-oauth) for details.
+  - `alias`: Only exist if `identification` is `oauth`. It is the alias of the oauth provider. Read [identification: oauth](#identification-oauth) for details.
+
+You should pass an input to choose an option to continue for the account linking, here is an example of the corresponding input:
+
+```json
+{
+  "index": 0
+}
+```
+
+- `index`: The index of the option you choose.
+
+In case the option you are choosing is `"identification": "oauth"`, `redirect_uri` must be included in the input as well:
+
+```json
+{
+  "index": 0,
+  "redirect_uri": "http://localhost:3000/sso/oauth2/callback/github"
+}
+```
+
+- `redirect_uri`: The redirect URI after the provider has finished authenticating the end-user. Read [identification: oauth](#identification-oauth) for details.
+
+## type: signup; action.type: verify
 
 When you are in this step, you **MAY** see a response like the following
 
@@ -513,7 +581,7 @@ To request a resend, pass this input
 
 `code_length` tells you the length of the OTP. It is typically relevant when `otp_form` is `code`, because it gives an hint to the end-user how long the OTP is. When `otp_form` is `link`, the OTP is included in the link, the length is not an important information to the end-user.
 
-## type: signup; step.type: create_authenticator
+## type: signup; action.type: create_authenticator
 
 When you are in this step, you will see the following response if you are setting up a primary authenticator.
 
@@ -826,7 +894,7 @@ After the end-user has set up the TOTP, they have to verify once to prove that t
 }
 ```
 
-## type: signup; step.type: view_recovery_code
+## type: signup; action.type: view_recovery_code
 
 When you are in this step of this flow, you will see a response like the following.
 
@@ -872,7 +940,7 @@ You need to present `recovery_codes` to the end-user, preferably allow them to d
 }
 ```
 
-## type: signup; step.type: prompt_create_passkey
+## type: signup; action.type: prompt_create_passkey
 
 When you are in this step of this flow, you will see a response like the following
 
@@ -1103,11 +1171,11 @@ Pass `creation_options` to `main` and then pass this input
 }
 ```
 
-## type: login; step.type: identify
+## type: login; action.type: identify
 
-See [type: signup; step.type: identification](#type-signup-steptype-identification). They are the same except that `type` is `login`.
+See [type: signup; action.type: identification](#type-signup-actiontype-identification). They are the same except that `type` is `login`.
 
-## type: login; step.type: authenticate
+## type: login; action.type: authenticate
 
 When you are in this step, you will see a response like the following if you are performing primary authentication.
 
@@ -1231,7 +1299,7 @@ The corresponding input is
 }
 ```
 
-After passing the input, you **WILL** enter a state where you need to verify the OTP. [type: signup; step.type: verify](#type-signup-steptype-verify)
+After passing the input, you **WILL** enter a state where you need to verify the OTP. [type: signup; action.type: verify](#type-signup-actiontype-verify)
 
 ### authentication: primary_oob_otp_sms
 
@@ -1259,7 +1327,7 @@ The corresponding input is
 }
 ```
 
-After passing the input, you **WILL** enter a state where you need to verify the OTP. [type: signup; step.type: verify](#type-signup-steptype-verify)
+After passing the input, you **WILL** enter a state where you need to verify the OTP. [type: signup; action.type: verify](#type-signup-actiontype-verify)
 
 ### authentication: primary_passkey
 
@@ -1495,7 +1563,7 @@ The corresponding input is
 }
 ```
 
-After passing the input, you **WILL** enter a state where you need to verify the OTP. [type: signup; step.type: verify](#type-signup-steptype-verify)
+After passing the input, you **WILL** enter a state where you need to verify the OTP. [type: signup; action.type: verify](#type-signup-actiontype-verify)
 
 ### authentication: secondary_oob_otp_sms
 
@@ -1522,7 +1590,7 @@ The corresponding input is
 }
 ```
 
-After passing the input, you **WILL** enter a state where you need to verify the OTP. [type: signup; step.type: verify](#type-signup-steptype-verify)
+After passing the input, you **WILL** enter a state where you need to verify the OTP. [type: signup; action.type: verify](#type-signup-actiontype-verify)
 
 ### authentication: secondary_totp
 
@@ -1543,7 +1611,7 @@ The corresponding input is
 }
 ```
 
-## type: login; step.type: change_password
+## type: login; action.type: change_password
 
 When you are in this step, you will see a response like the following
 
@@ -1578,15 +1646,15 @@ The corresponding input is
 }
 ```
 
-## type: login; step.type: prompt_create_passkey
+## type: login; action.type: prompt_create_passkey
 
-See [type: signup; step.type: prompt_create_passkey](#type-signup-steptype-prompt_create_passkey). They are the same except that `type` is `login`.
+See [type: signup; action.type: prompt_create_passkey](#type-signup-actiontype-prompt_create_passkey). They are the same except that `type` is `login`.
 
-## type: signup_login; step.type: identify
+## type: signup_login; action.type: identify
 
-See [type: signup; step.type: identification](#type-signup-steptype-identification). They are the same except that `type` is `signup_login`.
+See [type: signup; action.type: identification](#type-signup-actiontype-identification). They are the same except that `type` is `signup_login`.
 
-## type: account_recovery; step.type: identify
+## type: account_recovery; action.type: identify
 
 When you are in this step of this flow, you will see a response like the following.
 
@@ -1654,7 +1722,7 @@ The corresponding input is
 
 Note that the phone number **MUST BE** in **E.164** format without any separators nor spaces.
 
-## type: account_recovery; step.type: select_destination
+## type: account_recovery; action.type: select_destination
 
 When you are in this step of this flow, you will see a response like the following.
 
@@ -1707,7 +1775,7 @@ You pass the following input to indicate your choice:
 
 `index` is the index of the option in `options` array. For `0`, it sends an sms with a 6-digit account recovery code to `+8529876****`.
 
-## type: account_recovery; step.type: verify_account_recovery_code
+## type: account_recovery; action.type: verify_account_recovery_code
 
 When you are in this step of this flow, you will see a response like the following.
 
@@ -1759,7 +1827,7 @@ Note that `state_token` can be omitted in this step, if and only if your selecte
 }
 ```
 
-## type: account_recovery; step.type: reset_password
+## type: account_recovery; action.type: reset_password
 
 When you are in this step of this flow, you will see a response like the following.
 

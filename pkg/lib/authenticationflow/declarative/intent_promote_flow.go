@@ -68,8 +68,9 @@ func (i *IntentPromoteFlow) ReactTo(ctx context.Context, deps *authflow.Dependen
 		return authflow.NewNodeSimple(node), nil
 	case len(flows.Nearest.Nodes) == 1:
 		return authflow.NewSubFlow(&IntentPromoteFlowSteps{
-			JSONPointer: i.JSONPointer,
-			UserID:      i.userID(flows.Nearest),
+			FlowReference: i.FlowReference,
+			JSONPointer:   i.JSONPointer,
+			UserID:        i.userID(flows.Nearest),
 		}), nil
 	case len(flows.Nearest.Nodes) == 2:
 		n, err := NewNodeDoCreateSession(ctx, deps, flows, &NodeDoCreateSession{

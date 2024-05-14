@@ -14,6 +14,7 @@ import (
 
 type InputSchemaLoginFlowStepAuthenticate struct {
 	JSONPointer        jsonpointer.T
+	FlowRootObject     config.AuthenticationFlowObject
 	Options            []AuthenticateOption
 	DeviceTokenEnabled bool
 }
@@ -22,6 +23,10 @@ var _ authflow.InputSchema = &InputSchemaLoginFlowStepAuthenticate{}
 
 func (i *InputSchemaLoginFlowStepAuthenticate) GetJSONPointer() jsonpointer.T {
 	return i.JSONPointer
+}
+
+func (i *InputSchemaLoginFlowStepAuthenticate) GetFlowRootObject() config.AuthenticationFlowObject {
+	return i.FlowRootObject
 }
 
 func (i *InputSchemaLoginFlowStepAuthenticate) SchemaBuilder() validation.SchemaBuilder {

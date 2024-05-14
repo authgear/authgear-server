@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -130,6 +131,28 @@ func (s *Store) List(userID string) ([]*identity.OAuth, error) {
 func (s *Store) ListByClaim(name string, value string) ([]*identity.OAuth, error) {
 	q := s.selectQuery().
 		Where("(o.claims ->> ?) = ?", name, value)
+
+	rows, err := s.SQLExecutor.QueryWith(q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var is []*identity.OAuth
+	for rows.Next() {
+		i, err := s.scan(rows)
+		if err != nil {
+			return nil, err
+		}
+		is = append(is, i)
+	}
+
+	return is, nil
+}
+
+func (s *Store) ListByClaimJSONPointer(pointer jsonpointer.T, value string) ([]*identity.OAuth, error) {
+	q := s.selectQuery().
+		Where("(o.claims #>> ?) = ?", pq.Array(pointer), value)
 
 	rows, err := s.SQLExecutor.QueryWith(q)
 	if err != nil {

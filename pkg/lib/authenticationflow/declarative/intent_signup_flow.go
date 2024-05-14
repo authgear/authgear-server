@@ -23,6 +23,8 @@ type IntentSignupFlow struct {
 
 var _ authflow.PublicFlow = &IntentSignupFlow{}
 var _ authflow.EffectGetter = &IntentSignupFlow{}
+var _ authflow.Milestone = &IntentSignupFlow{}
+var _ MilestoneSwitchToExistingUser = &IntentSignupFlow{}
 
 func (*IntentSignupFlow) Kind() string {
 	return "IntentSignupFlow"
@@ -42,6 +44,15 @@ func (i *IntentSignupFlow) FlowFlowReference() authflow.FlowReference {
 
 func (i *IntentSignupFlow) FlowRootObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
 	return flowRootObject(deps, i.FlowReference)
+}
+
+func (*IntentSignupFlow) Milestone() {}
+func (i *IntentSignupFlow) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
+	milestone, ok := authflow.FindFirstMilestone[MilestoneDoCreateUser](flow)
+	if ok {
+		milestone.MilestoneDoCreateUserUseExisting(newUserID)
+	}
+	return nil
 }
 
 func (i *IntentSignupFlow) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
@@ -69,8 +80,9 @@ func (i *IntentSignupFlow) ReactTo(ctx context.Context, deps *authflow.Dependenc
 		}), nil
 	case len(flows.Nearest.Nodes) == 1:
 		return authflow.NewSubFlow(&IntentSignupFlowSteps{
-			JSONPointer: i.JSONPointer,
-			UserID:      i.userID(flows.Nearest),
+			FlowReference: i.FlowReference,
+			JSONPointer:   i.JSONPointer,
+			UserID:        i.userID(flows.Nearest),
 		}), nil
 	case len(flows.Nearest.Nodes) == 2:
 		n, err := NewNodeDoCreateSession(ctx, deps, flows, &NodeDoCreateSession{
@@ -100,6 +112,10 @@ func (i *IntentSignupFlow) GetEffects(ctx context.Context, deps *authflow.Depend
 		}),
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
 			userID := i.userID(flows.Nearest)
+			if userID == "" {
+				// The creation is skipped for some reason, such as entered account linking flow
+				return nil
+			}
 			isAdminAPI := false
 
 			u, err := deps.Users.GetRaw(userID)
@@ -138,7 +154,11 @@ func (i *IntentSignupFlow) userID(w *authflow.Flow) string {
 		panic(fmt.Errorf("expected userID"))
 	}
 
-	id := m.MilestoneDoCreateUser()
+	id, created := m.MilestoneDoCreateUser()
+
+	if !created {
+		return ""
+	}
 
 	return id
 }

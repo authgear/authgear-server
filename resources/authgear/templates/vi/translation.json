@@ -897,6 +897,7 @@
   "v2-error-password-policy-disallowed-keywords": "Mật khẩu chứa từ khóa không được phép",
   "v2-error-password-policy-reuse": "Không được sử dụng lại {size, plural, one{# mật khẩu trước} other{# mật khẩu trước}} / mật khẩu trước trong vòng {day, plural, one{# ngày} other{# ngày}}",
   "v2-error-phone-number-format": "Định dạng số điện thoại không chính xác.",
+  "v2-error-unexpected-user": "Có vẻ như bạn đã đăng nhập bằng một tài khoản khác. Vui lòng thử lại.",
   "v2-create-password-page-title": "Tạo Mật Khẩu",
   "v2-password-policy-strength": "Độ mạnh của mật khẩu:",
   "v2-password-policy-minimum-length": "Ít nhất {length, plural, one{# ký tự} other{# ký tự}}",
@@ -1039,5 +1040,11 @@
   "v2-wechat-auth-page-app-description": "Nhấp vào nút bên dưới để tiếp tục Đăng nhập WeChat",
   "v2-wechat-auth-page-with-qr-code-description": "Vui lòng quét mã QR trong ứng dụng WeChat của bạn để đăng nhập.",
   "v2-wechat-auth-page-open-app": "Mở ứng dụng WeChat để đăng nhập",
-  "v2-wechat-auth-page-proceed": "Tiếp tục đăng nhập WeChat"
+  "v2-wechat-auth-page-proceed": "Tiếp tục đăng nhập WeChat",
+  "v2-account-linking-title": "Tìm thấy tài khoản hiện có",
+  "v2-account-linking-subtitle--login-and-link": "Có vẻ như bạn đã đăng ký trước đây. Đăng nhập vào tài khoản hiện có để liên kết nó.",
+  "v2-account-linking-subtitle--login": "Có vẻ như bạn đã đăng ký trước đây. Đăng nhập vào tài khoản hiện có bên dưới.",
+  "v2-account-linking-by-email": "Đăng nhập vào {IdentityDisplayName}",
+  "v2-account-linking-by-phone": "Đăng nhập vào {IdentityDisplayName}",
+  "v2-account-linking-by-username": "Đăng nhập vào {IdentityDisplayName}"
 }

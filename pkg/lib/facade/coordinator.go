@@ -21,6 +21,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 type EventService interface {
@@ -33,12 +34,14 @@ type IdentityService interface {
 	SearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, otherMatches []*identity.Info, err error)
 	ListByUser(userID string) ([]*identity.Info, error)
 	ListByClaim(name string, value string) ([]*identity.Info, error)
+	ListByClaimJSONPointer(pointer jsonpointer.T, value string) ([]*identity.Info, error)
 	New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
 	UpdateWithSpec(is *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
 	Create(is *identity.Info) error
 	Update(info *identity.Info) error
 	Delete(is *identity.Info) error
 	CheckDuplicated(info *identity.Info) (*identity.Info, error)
+	CheckDuplicatedByUniqueKey(info *identity.Info) (*identity.Info, error)
 }
 
 type AuthenticatorService interface {
@@ -161,6 +164,10 @@ func (c *Coordinator) IdentityListByUser(userID string) ([]*identity.Info, error
 
 func (c *Coordinator) IdentityListByClaim(name string, value string) ([]*identity.Info, error) {
 	return c.Identities.ListByClaim(name, value)
+}
+
+func (c *Coordinator) IdentityListByClaimJSONPointer(pointer jsonpointer.T, value string) ([]*identity.Info, error) {
+	return c.Identities.ListByClaimJSONPointer(pointer, value)
 }
 
 func (c *Coordinator) IdentityNew(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error) {
@@ -295,6 +302,10 @@ func (c *Coordinator) IdentityDelete(is *identity.Info) error {
 
 func (c *Coordinator) IdentityCheckDuplicated(info *identity.Info) (*identity.Info, error) {
 	return c.Identities.CheckDuplicated(info)
+}
+
+func (c *Coordinator) IdentityCheckDuplicatedByUniqueKey(info *identity.Info) (*identity.Info, error) {
+	return c.Identities.CheckDuplicatedByUniqueKey(info)
 }
 
 func (c *Coordinator) AuthenticatorGet(id string) (*authenticator.Info, error) {

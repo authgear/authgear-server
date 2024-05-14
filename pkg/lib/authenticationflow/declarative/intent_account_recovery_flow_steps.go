@@ -33,7 +33,7 @@ func (*IntentAccountRecoveryFlowSteps) Milestone()            {}
 func (*IntentAccountRecoveryFlowSteps) MilestoneNestedSteps() {}
 
 func (i *IntentAccountRecoveryFlowSteps) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	current, err := i.currentFlowObject(deps)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func (i *IntentAccountRecoveryFlowSteps) CanReactTo(ctx context.Context, deps *a
 }
 
 func (i *IntentAccountRecoveryFlowSteps) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, _ authflow.Input) (*authflow.Node, error) {
-	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	current, err := i.currentFlowObject(deps)
 	if err != nil {
 		return nil, err
 	}
@@ -80,8 +80,9 @@ func (i *IntentAccountRecoveryFlowSteps) ReactTo(ctx context.Context, deps *auth
 			deps,
 			flows,
 			&IntentAccountRecoveryFlowStepSelectDestination{
-				StepName:    step.Name,
-				JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+				FlowReference: i.FlowReference,
+				StepName:      step.Name,
+				JSONPointer:   authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			},
 		)
 		if err != nil {
@@ -114,6 +115,18 @@ func (*IntentAccountRecoveryFlowSteps) steps(o config.AuthenticationFlowObject) 
 	}
 
 	return steps
+}
+
+func (i *IntentAccountRecoveryFlowSteps) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
+	rootObject, err := flowRootObject(deps, i.FlowReference)
+	if err != nil {
+		return nil, err
+	}
+	current, err := authflow.FlowObject(rootObject, i.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
+	return current, nil
 }
 
 func (i *IntentAccountRecoveryFlowSteps) initialStepIndex() int {

@@ -38,8 +38,14 @@ func (n *NodeUseAuthenticatorTOTP) MilestoneAuthenticationMethod() config.Authen
 }
 
 func (n *NodeUseAuthenticatorTOTP) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	if err != nil {
+		return nil, err
+	}
+
 	return &InputSchemaTakeTOTP{
-		JSONPointer: n.JSONPointer,
+		JSONPointer:    n.JSONPointer,
+		FlowRootObject: flowRootObject,
 	}, nil
 }
 

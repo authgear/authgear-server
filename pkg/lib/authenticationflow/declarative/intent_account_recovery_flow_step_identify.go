@@ -51,7 +51,7 @@ var _ authflow.Intent = &IntentAccountRecoveryFlowStepIdentify{}
 var _ authflow.DataOutputer = &IntentAccountRecoveryFlowStepIdentify{}
 
 func NewIntentAccountRecoveryFlowStepIdentify(ctx context.Context, deps *authflow.Dependencies, i *IntentAccountRecoveryFlowStepIdentify) (*IntentAccountRecoveryFlowStepIdentify, error) {
-	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	current, err := i.currentFlowObject(deps)
 	if err != nil {
 		return nil, err
 	}
@@ -84,9 +84,14 @@ func (i *IntentAccountRecoveryFlowStepIdentify) CanReactTo(ctx context.Context, 
 			// When restoring the intent, no input is needed
 			return nil, nil
 		}
+		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		if err != nil {
+			return nil, err
+		}
 		return &InputSchemaStepAccountRecoveryIdentify{
-			JSONPointer: i.JSONPointer,
-			Options:     i.Options,
+			FlowRootObject: flowRootObject,
+			JSONPointer:    i.JSONPointer,
+			Options:        i.Options,
 		}, nil
 	}
 
@@ -103,7 +108,7 @@ func (i *IntentAccountRecoveryFlowStepIdentify) CanReactTo(ctx context.Context, 
 }
 
 func (i *IntentAccountRecoveryFlowStepIdentify) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
-	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	current, err := i.currentFlowObject(deps)
 	if err != nil {
 		return nil, err
 	}
@@ -173,6 +178,18 @@ func (*IntentAccountRecoveryFlowStepIdentify) step(o config.AuthenticationFlowOb
 	}
 
 	return step
+}
+
+func (i *IntentAccountRecoveryFlowStepIdentify) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
+	rootObject, err := flowRootObject(deps, i.FlowReference)
+	if err != nil {
+		return nil, err
+	}
+	current, err := authflow.FlowObject(rootObject, i.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
+	return current, nil
 }
 
 func (*IntentAccountRecoveryFlowStepIdentify) checkIdentificationMethod(

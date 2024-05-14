@@ -52,6 +52,7 @@ func (tc *TestCase) Run(t *testing.T) {
 	cmd := &End2EndCmd{
 		AppID:    appID,
 		TestCase: *tc,
+		Test:     t,
 	}
 
 	// Create project per test case

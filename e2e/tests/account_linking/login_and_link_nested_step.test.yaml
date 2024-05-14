@@ -1,0 +1,176 @@
+name: Account linking login and link with nested step
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+        - login_id
+        - oauth
+    identity:
+      oauth:
+        providers:
+          - alias: google
+            client_id: "google"
+            type: google
+    account_linking:
+      oauth:
+        - alias: google
+          action: login_and_link
+          oauth_claim:
+            pointer: "/email"
+          user_profile:
+            pointer: "/email"
+    authentication_flow:
+      signup_flows:
+        - name: f1
+          steps:
+            - type: identify
+              one_of:
+              - identification: email
+              - identification: oauth
+                steps:
+                  - type: identify
+                    one_of:
+                      - identification: username
+                  # This step should be skipped because user already have primary password
+                  - type: create_authenticator
+                    one_of:
+                    - authentication: primary_password
+                    - authentication: primary_oob_otp_email
+                  # This step should not be skipped
+                  - type: create_authenticator
+                    one_of:
+                    - authentication: secondary_password
+      login_flows:
+        - name: f1
+          steps:
+          - name: identify
+            type: identify
+            one_of:
+            - identification: oauth
+            - identification: email
+              steps:
+              - type: authenticate
+                one_of:
+                - authentication: primary_password
+before:
+  - type: user_import
+    user_import: email_users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "f1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "oauth",
+        "alias": "google",
+        "redirect_uri": "http://mock"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "oauth_authorization_url": "[[string]]"
+            }
+          }
+        }
+
+  - action: oauth_redirect
+    to: "{{ .prev.result.action.data.oauth_authorization_url }}"
+    redirect_uri: http://mock
+    output:
+      result: |
+        {
+          "code": "[[string]]"
+        }
+
+  - action: input
+    input: |
+      {
+        "code": "{{ .prev.result.code }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "identification": "oauth",
+            "data": {
+              "type": "account_linking_identification_data"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "index": 0
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "type": "authentication_data"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "12341234"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "type": "identification_data"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "test1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "secondary_password",
+        "new_password": "12341234a"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }

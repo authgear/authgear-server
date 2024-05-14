@@ -12,6 +12,7 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 func init() {
@@ -40,8 +41,13 @@ func (n *NodePromoteIdentityLoginID) MilestoneIdentificationMethod() config.Auth
 }
 
 func (n *NodePromoteIdentityLoginID) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	if err != nil {
+		return nil, err
+	}
 	return &InputSchemaTakeLoginID{
-		JSONPointer: n.JSONPointer,
+		FlowRootObject: flowRootObject,
+		JSONPointer:    n.JSONPointer,
 	}, nil
 }
 
@@ -66,6 +72,20 @@ func (n *NodePromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authflow
 			// promote
 			if apierrors.IsKind(err, api.UserNotFound) {
 				spec := n.makeLoginIDSpec(loginID)
+
+				_, conflicts, err := n.checkConflictByAccountLinkings(ctx, deps, flows, spec)
+				if err != nil {
+					return nil, err
+				}
+				if len(conflicts) > 0 {
+					// In promote flow, always error if any conflicts occurs
+					conflictSpecs := slice.Map(conflicts, func(i *identity.Info) *identity.Spec {
+						s := i.ToSpec()
+						return &s
+					})
+					return nil, identityFillDetailsMany(api.ErrDuplicatedIdentity, spec, conflictSpecs)
+				}
+
 				info, err := newIdentityInfo(deps, n.UserID, spec)
 				if err != nil {
 					return nil, err
@@ -81,7 +101,7 @@ func (n *NodePromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authflow
 		}
 
 		// login
-		flowReference := authflow.GetFlowReference(ctx)
+		flowReference := authflow.FindCurrentFlowReference(flows.Root)
 		return nil, &authflow.ErrorSwitchFlow{
 			FlowReference: authflow.FlowReference{
 				Type: authflow.FlowTypeLogin,
@@ -117,4 +137,18 @@ func (n *NodePromoteIdentityLoginID) makeLoginIDSpec(loginID string) *identity.S
 	}
 
 	return spec
+}
+
+func (n *NodePromoteIdentityLoginID) checkConflictByAccountLinkings(
+	ctx context.Context,
+	deps *authflow.Dependencies,
+	flows authflow.Flows,
+	spec *identity.Spec) (action config.AccountLinkingAction, conflicts []*identity.Info, err error) {
+	switch spec.Type {
+	case model.IdentityTypeLoginID:
+		// account linking of login id is not implemented at the moment
+		return "", []*identity.Info{}, nil
+	default:
+		panic("unexpected spec type")
+	}
 }

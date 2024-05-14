@@ -897,6 +897,7 @@
   "v2-error-password-policy-disallowed-keywords": "Password contains disallowed keywords",
   "v2-error-password-policy-reuse": "No reuse of {size, plural, one{# previous password} other{# previous passwords}} / previous password within {day, plural, one{# day} other{# days}}",
   "v2-error-phone-number-format": "Incorrect phone number format.",
+  "v2-error-unexpected-user": "Seems like you logged in with a different account. Please try again.",
   "v2-create-password-page-title": "Create Password",
   "v2-password-policy-strength": "Password strength:",
   "v2-password-policy-minimum-length": "At least {length, plural, one{# character} other{# characters}}",
@@ -1039,5 +1040,11 @@
   "v2-wechat-auth-page-app-description": "Click the below button to continue WeChat Login",
   "v2-wechat-auth-page-with-qr-code-description": "Please scan the QR code in your WeChat app to sign in.",
   "v2-wechat-auth-page-open-app": "Open WeChat app to login",
-  "v2-wechat-auth-page-proceed": "Proceed WeChat login"
+  "v2-wechat-auth-page-proceed": "Proceed WeChat login",
+  "v2-account-linking-title": "Existing account found",
+  "v2-account-linking-subtitle--login-and-link": "Seems like you have signed up before. Log in to an existing account to link it.",
+  "v2-account-linking-subtitle--login": "Seems like you have signed up before. Log in to an existing account below.",
+  "v2-account-linking-by-email": "Login to {IdentityDisplayName}",
+  "v2-account-linking-by-phone": "Login to {IdentityDisplayName}",
+  "v2-account-linking-by-username": "Login to {IdentityDisplayName}"
 }

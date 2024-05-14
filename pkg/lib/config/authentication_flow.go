@@ -178,7 +178,8 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowIdentify", `
 		"steps": {
 			"type": "array",
 			"items": { "$ref": "#/$defs/AuthenticationFlowSignupFlowStep" }
-		}
+		},
+		"account_linking": { "$ref": "#/$defs/AuthenticationFlowAccountLinking" }
 	}
 }
 `)
@@ -624,6 +625,30 @@ var _ = Schema.Add("AuthenticationFlowAccountRecoveryIdentification", `
 }
 `)
 
+var _ = Schema.Add("AuthenticationFlowAccountLinking", `
+{
+	"type": "object",
+	"properties": {
+		"oauth": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/AuthenticationFlowAccountLinkingOAuthItem" }
+		}
+	}
+}
+`)
+
+var _ = Schema.Add("AuthenticationFlowAccountLinkingOAuthItem", `
+{
+	"type": "object",
+	"required": ["name"],
+	"properties": {
+		"name": { "type": "string" },
+		"action": { "$ref": "#/$defs/AccountLinkingAction" },
+		"login_flow": { "type": "string" }
+	}
+}
+`)
+
 type AuthenticationFlowObject interface {
 	IsFlowObject()
 }
@@ -868,6 +893,8 @@ func (s *AuthenticationFlowSignupFlowStep) GetOneOf() []AuthenticationFlowObject
 type AuthenticationFlowSignupFlowOneOf struct {
 	// Identification is specific to identify.
 	Identification AuthenticationFlowIdentification `json:"identification,omitempty"`
+	// AccountLinking is specific to identify.
+	AccountLinking *AuthenticationFlowAccountLinking `json:"account_linking,omitempty"`
 
 	// Authentication is specific to authenticate.
 	Authentication AuthenticationFlowAuthentication `json:"authentication,omitempty"`
@@ -881,6 +908,7 @@ type AuthenticationFlowSignupFlowOneOf struct {
 }
 
 var _ AuthenticationFlowObjectFlowBranch = &AuthenticationFlowSignupFlowOneOf{}
+var _ AuthenticationFlowObjectAccountLinkingConfigProvider = &AuthenticationFlowSignupFlowOneOf{}
 
 func (f *AuthenticationFlowSignupFlowOneOf) IsFlowObject() {}
 
@@ -903,6 +931,10 @@ func (f *AuthenticationFlowSignupFlowOneOf) GetBranchInfo() AuthenticationFlowOb
 func (f *AuthenticationFlowSignupFlowOneOf) IsVerificationRequired() bool {
 	// If it is unspecified (i.e. nil), then verification is required.
 	return f.VerificationRequired == nil || *f.VerificationRequired
+}
+
+func (f *AuthenticationFlowSignupFlowOneOf) GetAccountLinkingConfig() *AuthenticationFlowAccountLinking {
+	return f.AccountLinking
 }
 
 type AuthenticationFlowSignupFlowUserProfile struct {
@@ -1331,6 +1363,20 @@ const (
 	AuthenticationFlowAccountRecoveryIdentificationOnFailureError  = AuthenticationFlowAccountRecoveryIdentificationOnFailure("error")
 	AuthenticationFlowAccountRecoveryIdentificationOnFailureIgnore = AuthenticationFlowAccountRecoveryIdentificationOnFailure("ignore")
 )
+
+type AuthenticationFlowAccountLinking struct {
+	OAuth []*AuthenticationFlowAccountLinkingOAuthItem `json:"oauth,omitempty"`
+}
+
+type AuthenticationFlowAccountLinkingOAuthItem struct {
+	Name      string               `json:"name,omitempty"`
+	Action    AccountLinkingAction `json:"action,omitempty"`
+	LoginFlow string               `json:"login_flow,omitempty"`
+}
+
+type AuthenticationFlowObjectAccountLinkingConfigProvider interface {
+	GetAccountLinkingConfig() *AuthenticationFlowAccountLinking
+}
 
 func init() {
 	accountRecoveryChannelsOneOf := ""

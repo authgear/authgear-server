@@ -15,7 +15,8 @@ func init() {
 }
 
 type IntentLoginFlowSteps struct {
-	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
+	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
+	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
 }
 
 var _ authflow.Intent = &IntentLoginFlowSteps{}
@@ -30,7 +31,7 @@ func (*IntentLoginFlowSteps) Milestone()            {}
 func (*IntentLoginFlowSteps) MilestoneNestedSteps() {}
 
 func (i *IntentLoginFlowSteps) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	current, err := i.currentFlowObject(deps)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +45,7 @@ func (i *IntentLoginFlowSteps) CanReactTo(ctx context.Context, deps *authflow.De
 }
 
 func (i *IntentLoginFlowSteps) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, _ authflow.Input) (*authflow.Node, error) {
-	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	current, err := i.currentFlowObject(deps)
 	if err != nil {
 		return nil, err
 	}
@@ -56,8 +57,9 @@ func (i *IntentLoginFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depen
 	switch step.Type {
 	case config.AuthenticationFlowLoginFlowStepTypeIdentify:
 		stepIdentify, err := NewIntentLoginFlowStepIdentify(ctx, deps, &IntentLoginFlowStepIdentify{
-			StepName:    step.Name,
-			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			FlowReference: i.FlowReference,
+			StepName:      step.Name,
+			JSONPointer:   authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 		})
 		if err != nil {
 			return nil, err
@@ -65,9 +67,10 @@ func (i *IntentLoginFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depen
 		return authflow.NewSubFlow(stepIdentify), nil
 	case config.AuthenticationFlowLoginFlowStepTypeAuthenticate:
 		stepAuthenticate, err := NewIntentLoginFlowStepAuthenticate(ctx, deps, flows, &IntentLoginFlowStepAuthenticate{
-			StepName:    step.Name,
-			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
-			UserID:      i.userID(flows),
+			FlowReference: i.FlowReference,
+			StepName:      step.Name,
+			JSONPointer:   authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:        i.userID(flows),
 		})
 		if err != nil {
 			return nil, err
@@ -75,31 +78,47 @@ func (i *IntentLoginFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depen
 		return authflow.NewSubFlow(stepAuthenticate), nil
 	case config.AuthenticationFlowLoginFlowStepTypeCheckAccountStatus:
 		return authflow.NewSubFlow(&IntentLoginFlowStepCheckAccountStatus{
-			StepName:    step.Name,
-			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
-			UserID:      i.userID(flows),
+			FlowReference: i.FlowReference,
+			StepName:      step.Name,
+			JSONPointer:   authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:        i.userID(flows),
 		}), nil
 	case config.AuthenticationFlowLoginFlowStepTypeTerminateOtherSessions:
 		return authflow.NewSubFlow(&IntentLoginFlowStepTerminateOtherSessions{
-			StepName:    step.Name,
-			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
-			UserID:      i.userID(flows),
+			FlowReference: i.FlowReference,
+			StepName:      step.Name,
+			JSONPointer:   authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:        i.userID(flows),
 		}), nil
 	case config.AuthenticationFlowLoginFlowStepTypeChangePassword:
 		return authflow.NewSubFlow(&IntentLoginFlowStepChangePassword{
-			StepName:    step.Name,
-			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
-			UserID:      i.userID(flows),
+			FlowReference: i.FlowReference,
+			StepName:      step.Name,
+			JSONPointer:   authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:        i.userID(flows),
 		}), nil
 	case config.AuthenticationFlowLoginFlowStepTypePromptCreatePasskey:
 		return authflow.NewSubFlow(&IntentLoginFlowStepPromptCreatePasskey{
-			StepName:    step.Name,
-			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
-			UserID:      i.userID(flows),
+			FlowReference: i.FlowReference,
+			StepName:      step.Name,
+			JSONPointer:   authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:        i.userID(flows),
 		}), nil
 	}
 
 	return nil, authflow.ErrIncompatibleInput
+}
+
+func (i *IntentLoginFlowSteps) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
+	rootObject, err := flowRootObject(deps, i.FlowReference)
+	if err != nil {
+		return nil, err
+	}
+	current, err := authflow.FlowObject(rootObject, i.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
+	return current, nil
 }
 
 func (*IntentLoginFlowSteps) steps(o config.AuthenticationFlowObject) []config.AuthenticationFlowObject {

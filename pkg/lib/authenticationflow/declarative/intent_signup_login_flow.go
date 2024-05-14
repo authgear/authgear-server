@@ -52,7 +52,8 @@ func (i *IntentSignupLoginFlow) ReactTo(ctx context.Context, deps *authflow.Depe
 	switch {
 	case len(flows.Nearest.Nodes) == 0:
 		return authflow.NewSubFlow(&IntentSignupLoginFlowSteps{
-			JSONPointer: i.JSONPointer,
+			FlowReference: i.FlowReference,
+			JSONPointer:   i.JSONPointer,
 		}), nil
 	}
 

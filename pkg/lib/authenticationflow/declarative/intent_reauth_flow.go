@@ -55,7 +55,8 @@ func (i *IntentReauthFlow) ReactTo(ctx context.Context, deps *authflow.Dependenc
 	switch {
 	case len(flows.Nearest.Nodes) == 0:
 		return authflow.NewSubFlow(&IntentReauthFlowSteps{
-			JSONPointer: i.JSONPointer,
+			FlowReference: i.FlowReference,
+			JSONPointer:   i.JSONPointer,
 		}), nil
 	case len(flows.Nearest.Nodes) == 1:
 		n, err := NewNodeDidReauthenticate(ctx, deps, flows, &NodeDidReauthenticate{

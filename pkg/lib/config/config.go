@@ -38,6 +38,7 @@ var _ = Schema.Add("AppConfig", `
 		"user_profile": { "$ref": "#/$defs/UserProfileConfig" },
 		"account_deletion": { "$ref": "#/$defs/AccountDeletionConfig" },
 		"account_anonymization": { "$ref": "#/$defs/AccountAnonymizationConfig" },
+		"account_linking": { "$ref": "#/$defs/AccountLinkingConfig" },
 		"forgot_password": { "$ref": "#/$defs/ForgotPasswordConfig" },
 		"welcome_message": { "$ref": "#/$defs/WelcomeMessageConfig" },
 		"verification": { "$ref": "#/$defs/VerificationConfig" },
@@ -71,6 +72,7 @@ type AppConfig struct {
 	UserProfile          *UserProfileConfig          `json:"user_profile,omitempty"`
 	AccountDeletion      *AccountDeletionConfig      `json:"account_deletion,omitempty"`
 	AccountAnonymization *AccountAnonymizationConfig `json:"account_anonymization,omitempty"`
+	AccountLinking       *AccountLinkingConfig       `json:"account_linking,omitempty"`
 
 	ForgotPassword            *ForgotPasswordConfig `json:"forgot_password,omitempty"`
 	Deprecated_WelcomeMessage *WelcomeMessageConfig `json:"welcome_message,omitempty"`

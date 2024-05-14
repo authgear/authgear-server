@@ -7,6 +7,7 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/slice"
@@ -129,17 +130,27 @@ type MilestoneDoCreateSession interface {
 
 type MilestoneDoCreateUser interface {
 	authflow.Milestone
-	MilestoneDoCreateUser() string
+	MilestoneDoCreateUser() (string, bool)
+	MilestoneDoCreateUserUseExisting(userID string)
 }
 
 type MilestoneDoCreateIdentity interface {
 	authflow.Milestone
 	MilestoneDoCreateIdentity() *identity.Info
+	MilestoneDoCreateIdentitySkipCreate()
+	MilestoneDoCreateIdentityUpdate(newInfo *identity.Info)
 }
 
 type MilestoneDoCreateAuthenticator interface {
 	authflow.Milestone
 	MilestoneDoCreateAuthenticator() *authenticator.Info
+	MilestoneDoCreateAuthenticatorSkipCreate()
+	MilestoneDoCreateAuthenticatorUpdate(newInfo *authenticator.Info)
+}
+
+type MilestoneDoCreatePasskey interface {
+	authflow.Milestone
+	MilestoneDoCreatePasskeyUpdateUserID(userID string)
 }
 
 type MilestoneDoUseUser interface {
@@ -186,11 +197,19 @@ type MilestoneDoUseAuthenticatorPassword interface {
 type MilestoneDoPopulateStandardAttributes interface {
 	authflow.Milestone
 	MilestoneDoPopulateStandardAttributes()
+	MilestoneDoPopulateStandardAttributesSkip()
+}
+
+type MilestoneVerifyClaim interface {
+	authflow.Milestone
+	MilestoneVerifyClaim()
+	MilestoneVerifyClaimUpdateUserID(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error
 }
 
 type MilestoneDoMarkClaimVerified interface {
 	authflow.Milestone
 	MilestoneDoMarkClaimVerified()
+	MilestoneDoMarkClaimVerifiedUpdateUserID(newUserID string)
 }
 
 type MilestoneDeviceTokenInspected interface {
@@ -216,4 +235,32 @@ type MilestoneDoUseAnonymousUser interface {
 type MilestoneDidReauthenticate interface {
 	authflow.Milestone
 	MilestoneDidReauthenticate()
+}
+
+type MilestoneSwitchToExistingUser interface {
+	authflow.Milestone
+	MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error
+}
+
+type MilestoneDoReplaceRecoveryCode interface {
+	authflow.Milestone
+	MilestoneDoReplaceRecoveryCodeUpdateUserID(newUserID string)
+}
+
+type MilestoneDoUpdateUserProfile interface {
+	authflow.Milestone
+	MilestoneDoUpdateUserProfileSkip()
+}
+
+type MilestoneUseAccountLinkingIdentification interface {
+	authflow.Milestone
+	MilestoneUseAccountLinkingIdentification() *AccountLinkingConflict
+	MilestoneUseAccountLinkingIdentificationSelectedOption() AccountLinkingIdentificationOption
+	MilestoneUseAccountLinkingIdentificationRedirectURI() string
+	MilestoneUseAccountLinkingIdentificationResponseMode() sso.ResponseMode
+}
+
+type MilestonePromptCreatePasskey interface {
+	authflow.Milestone
+	MilestonePromptCreatePasskey()
 }

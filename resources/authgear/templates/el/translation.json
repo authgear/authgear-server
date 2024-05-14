@@ -897,6 +897,7 @@
   "v2-error-password-policy-disallowed-keywords": "Ο κωδικός πρόσβασης περιέχει μη επιτρεπόμενες λέξεις-κλειδιά",
   "v2-error-password-policy-reuse": "Δεν επιτρέπεται η επαναχρησιμοποίηση {size, plural, one{# προηγούμενου κωδικού πρόσβασης} other{# προηγούμενων κωδικών πρόσβασης}} / προηγούμενου κωδικού πρόσβασης εντός {day, plural, one{# ημέρας} other{# ημερών}}",
   "v2-error-phone-number-format": "Μη έγκυρη μορφή τηλεφωνικού αριθμού.",
+  "v2-error-unexpected-user": "Φαίνεται ότι συνδεθήκατε με διαφορετικό λογαριασμό. Παρακαλώ δοκιμάστε ξανά.",
   "v2-create-password-page-title": "Δημιουργία Κωδικού Πρόσβασης",
   "v2-password-policy-strength": "Ισχύς κωδικού πρόσβασης:",
   "v2-password-policy-minimum-length": "Τουλάχιστον {length, plural, one{# χαρακτήρας} other{# χαρακτήρες}}",
@@ -1039,5 +1040,11 @@
   "v2-wechat-auth-page-app-description": "Κάντε κλικ στο παρακάτω κουμπί για να συνεχίσετε τη σύνδεση με WeChat",
   "v2-wechat-auth-page-with-qr-code-description": "Παρακαλώ σαρώστε τον κωδικό QR στην εφαρμογή WeChat σας για να συνδεθείτε.",
   "v2-wechat-auth-page-open-app": "Ανοίξτε την εφαρμογή WeChat για να συνδεθείτε",
-  "v2-wechat-auth-page-proceed": "Προχωρήστε στη σύνδεση Passkey"
+  "v2-wechat-auth-page-proceed": "Προχωρήστε στη σύνδεση με WeChat",
+  "v2-account-linking-title": "Βρέθηκε υπάρχων λογαριασμός",
+  "v2-account-linking-subtitle--login-and-link": "Φαίνεται ότι έχετε εγγραφεί ξανά. Συνδεθείτε σε υπάρχοντα λογαριασμό για να τον συνδέσετε.",
+  "v2-account-linking-subtitle--login": "Φαίνεται ότι έχετε εγγραφεί ξανά. Συνδεθείτε σε υπάρχοντα λογαριασμό παρακάτω.",
+  "v2-account-linking-by-email": "Συνδεθείτε στο {IdentityDisplayName}",
+  "v2-account-linking-by-phone": "Συνδεθείτε στο {IdentityDisplayName}",
+  "v2-account-linking-by-username": "Συνδεθείτε στο {IdentityDisplayName}"
 }

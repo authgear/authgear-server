@@ -36,9 +36,14 @@ func (i *IntentPromoteIdentityOAuth) MilestoneIdentificationMethod() config.Auth
 func (i *IntentPromoteIdentityOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	if len(flows.Nearest.Nodes) == 0 {
 		oauthOptions := NewIdentificationOptionsOAuth(deps.Config.Identity.OAuth, deps.FeatureConfig.Identity.OAuth.Providers)
+		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		if err != nil {
+			return nil, err
+		}
 		return &InputSchemaTakeOAuthAuthorizationRequest{
-			JSONPointer:  i.JSONPointer,
-			OAuthOptions: oauthOptions,
+			FlowRootObject: flowRootObject,
+			JSONPointer:    i.JSONPointer,
+			OAuthOptions:   oauthOptions,
 		}, nil
 	}
 	return nil, authflow.ErrEOF

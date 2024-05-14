@@ -31,8 +31,13 @@ func (*NodeOAuth) Kind() string {
 }
 
 func (n *NodeOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	if err != nil {
+		return nil, err
+	}
 	return &InputSchemaTakeOAuthAuthorizationResponse{
-		JSONPointer: n.JSONPointer,
+		FlowRootObject: flowRootObject,
+		JSONPointer:    n.JSONPointer,
 	}, nil
 }
 
@@ -79,13 +84,10 @@ func (n *NodeOAuth) OutputData(ctx context.Context, deps *authflow.Dependencies,
 func (n *NodeOAuth) reactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, spec *identity.Spec) (*authflow.Node, error) {
 	// signup
 	if n.NewUserID != "" {
-		info, err := newIdentityInfo(deps, n.NewUserID, spec)
-		if err != nil {
-			return nil, err
-		}
-
-		return authflow.NewNodeSimple(&NodeDoCreateIdentity{
-			Identity: info,
+		return authflow.NewSubFlow(&IntentCheckConflictAndCreateIdenity{
+			JSONPointer: n.JSONPointer,
+			UserID:      n.NewUserID,
+			Request:     NewCreateOAuthIdentityRequest(n.Alias, spec),
 		}), nil
 	}
 	// Else login

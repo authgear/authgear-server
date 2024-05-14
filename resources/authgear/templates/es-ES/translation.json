@@ -897,6 +897,7 @@
   "v2-error-password-policy-disallowed-keywords": "La contraseña contiene palabras clave no permitidas",
   "v2-error-password-policy-reuse": "No se puede reutilizar {size, plural, one{# contraseña anterior} other{# contraseñas anteriores}} / contraseña anterior dentro de {day, plural, one{# día} other{# días}}",
   "v2-error-phone-number-format": "Formato de número de teléfono incorrecto.",
+  "v2-error-unexpected-user": "Parece que has iniciado sesi??n con una cuenta diferente. Int??ntalo de nuevo.",
   "v2-create-password-page-title": "Crear contraseña",
   "v2-password-policy-strength": "Fortaleza de la contraseña:",
   "v2-password-policy-minimum-length": "Al menos {length, plural, one{# carácter} other{# caracteres}}",
@@ -1039,5 +1040,11 @@
   "v2-wechat-auth-page-app-description": "Haga clic en el botón de abajo para continuar con el inicio de sesión de WeChat",
   "v2-wechat-auth-page-with-qr-code-description": "Escanee el código QR en su aplicación WeChat para iniciar sesión.",
   "v2-wechat-auth-page-open-app": "Abrir la aplicación WeChat para iniciar sesión",
-  "v2-wechat-auth-page-proceed": "Proceder con el inicio de sesión de WeChat"
+  "v2-wechat-auth-page-proceed": "Proceder con el inicio de sesión de WeChat",
+  "v2-account-linking-title": "Se encontr?? una cuenta existente",
+  "v2-account-linking-subtitle--login-and-link": "Parece que te has registrado antes. Inicia sesi??n en una cuenta existente para vincularla.",
+  "v2-account-linking-subtitle--login": "Parece que te has registrado antes. Inicia sesi??n en una cuenta existente a continuaci??n.",
+  "v2-account-linking-by-email": "Iniciar sesi??n en {IdentityDisplayName}",
+  "v2-account-linking-by-phone": "Iniciar sesi??n en {IdentityDisplayName}",
+  "v2-account-linking-by-username": "Iniciar sesi??n en {IdentityDisplayName}"
 }

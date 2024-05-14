@@ -40,6 +40,8 @@ type NodePromptCreatePasskey struct {
 var _ authflow.NodeSimple = &NodePromptCreatePasskey{}
 var _ authflow.InputReactor = &NodePromptCreatePasskey{}
 var _ authflow.DataOutputer = &NodePromptCreatePasskey{}
+var _ authflow.Milestone = &NodePromptCreatePasskey{}
+var _ MilestonePromptCreatePasskey = &NodePromptCreatePasskey{}
 
 func NewNodePromptCreatePasskey(deps *authflow.Dependencies, n *NodePromptCreatePasskey) (*NodePromptCreatePasskey, error) {
 	creationOptions, err := deps.PasskeyCreationOptionsService.MakeCreationOptions(n.UserID)
@@ -55,13 +57,32 @@ func (n *NodePromptCreatePasskey) Kind() string {
 	return "NodePromptCreatePasskey"
 }
 
+func (n *NodePromptCreatePasskey) Milestone()                    {}
+func (n *NodePromptCreatePasskey) MilestonePromptCreatePasskey() {}
+
 func (n *NodePromptCreatePasskey) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+
+	if n.isAlreadyPrompted(flows) {
+		// Don't ask for input if already prompted once
+		return nil, nil
+	}
+
+	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	if err != nil {
+		return nil, err
+	}
+
 	return &InputSchemaPromptCreatePasskey{
-		JSONPointer: n.JSONPointer,
+		JSONPointer:    n.JSONPointer,
+		FlowRootObject: flowRootObject,
 	}, nil
 }
 
 func (n *NodePromptCreatePasskey) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+	if n.isAlreadyPrompted(flows) {
+		return authflow.NewNodeSimple(&NodeSentinel{}), nil
+	}
+
 	var inputNodePromptCreatePasskey inputNodePromptCreatePasskey
 	if !authflow.AsInput(input, &inputNodePromptCreatePasskey) {
 		return nil, authflow.ErrIncompatibleInput
@@ -117,4 +138,13 @@ func (n *NodePromptCreatePasskey) OutputData(ctx context.Context, deps *authflow
 	return NewNodePromptCreatePasskeyData(NodePromptCreatePasskeyData{
 		CreationOptions: n.CreationOptions,
 	}), nil
+}
+
+func (n *NodePromptCreatePasskey) isAlreadyPrompted(flows authflow.Flows) bool {
+	mileStone, ok := authflow.FindFirstMilestone[MilestonePromptCreatePasskey](flows.Root)
+
+	if !ok || mileStone == n {
+		return false
+	}
+	return true
 }

@@ -228,6 +228,8 @@
         {{ else }}
         <span>{{ .Error.message }}</span>
         {{ end }}
+    {{ else if eq .Error.reason "AuthenticationFlowDifferentUserID" }}
+      <span>{{ template "v2-error-unexpected-user" }}</span>
     {{ else }}
       <span>{{ template "error-unknown" }}{{ call $.LogUnknownError .Error }}</span>
     {{ end }}
