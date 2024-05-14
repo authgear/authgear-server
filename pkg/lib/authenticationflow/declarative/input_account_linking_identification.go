@@ -3,10 +3,10 @@ package declarative
 import (
 	"encoding/json"
 
+	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -43,7 +43,7 @@ func (i *InputSchemaAccountLinkingIdentification) SchemaBuilder() validation.Sch
 			// response_mode is optional.
 			b.Properties().Property("response_mode", validation.SchemaBuilder{}.
 				Type(validation.TypeString).
-				Enum(sso.ResponseModeFormPost, sso.ResponseModeQuery))
+				Enum(oauthrelyingparty.ResponseModeFormPost, oauthrelyingparty.ResponseModeQuery))
 		}
 		b.Required(required...)
 		oneOf = append(oneOf, b)
@@ -70,8 +70,8 @@ func (i *InputSchemaAccountLinkingIdentification) MakeInput(rawMessage json.RawM
 type InputAccountLinkingIdentification struct {
 	Index int `json:"index,omitempty"`
 
-	RedirectURI  string           `json:"redirect_uri,omitempty"`
-	ResponseMode sso.ResponseMode `json:"response_mode,omitempty"`
+	RedirectURI  string `json:"redirect_uri,omitempty"`
+	ResponseMode string `json:"response_mode,omitempty"`
 }
 
 var _ authflow.Input = &InputAccountLinkingIdentification{}
@@ -85,6 +85,6 @@ func (i *InputAccountLinkingIdentification) GetAccountLinkingIdentificationIndex
 func (i *InputAccountLinkingIdentification) GetAccountLinkingOAuthRedirectURI() string {
 	return i.RedirectURI
 }
-func (i *InputAccountLinkingIdentification) GetAccountLinkingOAuthResponseMode() sso.ResponseMode {
+func (i *InputAccountLinkingIdentification) GetAccountLinkingOAuthResponseMode() string {
 	return i.ResponseMode
 }

@@ -39,7 +39,7 @@ func ConfigureAuthflowV2AccountLinkingRoute(route httproute.Route) httproute.Rou
 type AuthflowV2AccountLinkingOption struct {
 	Identification    config.AuthenticationFlowIdentification
 	MaskedDisplayName string
-	ProviderType      config.OAuthSSOProviderType
+	ProviderType      string
 	Index             int
 }
 

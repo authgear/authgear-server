@@ -9,7 +9,6 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/slice"
@@ -258,7 +257,7 @@ type MilestoneUseAccountLinkingIdentification interface {
 	MilestoneUseAccountLinkingIdentification() *AccountLinkingConflict
 	MilestoneUseAccountLinkingIdentificationSelectedOption() AccountLinkingIdentificationOption
 	MilestoneUseAccountLinkingIdentificationRedirectURI() string
-	MilestoneUseAccountLinkingIdentificationResponseMode() sso.ResponseMode
+	MilestoneUseAccountLinkingIdentificationResponseMode() string
 }
 
 type MilestonePromptCreatePasskey interface {

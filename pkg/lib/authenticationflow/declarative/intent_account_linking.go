@@ -215,7 +215,7 @@ func (i *IntentAccountLinking) getOptions() []AccountLinkingIdentificationOption
 	return slice.FlatMap(i.Conflicts, func(c *AccountLinkingConflict) []AccountLinkingIdentificationOptionInternal {
 		var identifcation config.AuthenticationFlowIdentification
 		var maskedDisplayName string
-		var providerType config.OAuthSSOProviderType
+		var providerType string
 		var providerAlias string
 
 		identity := c.Identity
@@ -240,7 +240,7 @@ func (i *IntentAccountLinking) getOptions() []AccountLinkingIdentificationOption
 			}
 		case model.IdentityTypeOAuth:
 			identifcation = config.AuthenticationFlowIdentificationOAuth
-			providerType = config.OAuthSSOProviderType(identity.OAuth.ProviderID.Type)
+			providerType = identity.OAuth.ProviderID.Type
 			maskedDisplayName = identity.OAuth.GetDisplayName()
 			providerAlias = identity.OAuth.ProviderAlias
 		default:

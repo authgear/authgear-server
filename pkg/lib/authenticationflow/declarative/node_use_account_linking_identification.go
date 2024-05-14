@@ -2,7 +2,6 @@ package declarative
 
 import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 )
 
 func init() {
@@ -14,8 +13,8 @@ type NodeUseAccountLinkingIdentification struct {
 	Conflict *AccountLinkingConflict            `json:"conflict,omitempty"`
 
 	// oauth
-	RedirectURI  string           `json:"redirect_uri,omitempty"`
-	ResponseMode sso.ResponseMode `json:"response_mode,omitempty"`
+	RedirectURI  string `json:"redirect_uri,omitempty"`
+	ResponseMode string `json:"response_mode,omitempty"`
 }
 
 var _ authflow.NodeSimple = &NodeUseAccountLinkingIdentification{}
@@ -36,6 +35,6 @@ func (n *NodeUseAccountLinkingIdentification) MilestoneUseAccountLinkingIdentifi
 func (n *NodeUseAccountLinkingIdentification) MilestoneUseAccountLinkingIdentificationRedirectURI() string {
 	return n.RedirectURI
 }
-func (n *NodeUseAccountLinkingIdentification) MilestoneUseAccountLinkingIdentificationResponseMode() sso.ResponseMode {
+func (n *NodeUseAccountLinkingIdentification) MilestoneUseAccountLinkingIdentificationResponseMode() string {
 	return n.ResponseMode
 }

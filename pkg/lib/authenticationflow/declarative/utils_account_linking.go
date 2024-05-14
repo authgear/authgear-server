@@ -144,7 +144,7 @@ func linkByOAuthIncomingOAuthSpec(
 			// Not the same type, so must be not identical
 			continue
 		}
-		if !conflict.Identity.OAuth.ProviderID.Equal(&request.Spec.OAuth.ProviderID) {
+		if !conflict.Identity.OAuth.ProviderID.Equal(request.Spec.OAuth.ProviderID) {
 			// Not the same provider
 			continue
 		}
