@@ -16,7 +16,7 @@ load_dotenv()
 LOCALE_DICT = {
   "zh-HK": {"name": "Chinese (Hong Kong)", "cldr": "zh-Hant-HK"},
   "zh-TW": {"name": "Chinese (Taiwan)", "cldr": "zh-Hant"},
-  "zh-CN": {"name": "Chinese (China)", "base_language": "zh-HK", "cldr": "zh-Hans"},
+  "zh-CN": {"name": "Chinese (China)", "cldr": "zh-Hans"},
   "ko": {"name": "Korean"},
   "ja": {"name": "Japanese"},
   "vi": {"name": "Vietnamese"},

@@ -1,3 +1,3 @@
-使用此一次性密码 {{ .Code }} 在 {{ template "app.name" }} 上设置双步验证。
+使用此一次性密码 {{ .Code }} 在 {{ template "app.name" }} 上设置双重验证。
 
 不要与任何人分享。

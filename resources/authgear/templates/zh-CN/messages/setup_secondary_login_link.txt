@@ -1,6 +1,6 @@
-在 {{ template "app.name" }} 上验证您的电子邮件并设置双步验证
+在 {{ template "app.name" }} 上验证您的电子邮箱并设置双重验证
 
-请单击下面的链接在 {{ template "app.name" }} 上设置双步验证。
+请单击下面的链接以在 {{ template "app.name" }} 上设置双重验证。
 
 {{ .URL }}
 

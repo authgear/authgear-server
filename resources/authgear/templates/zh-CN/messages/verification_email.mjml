@@ -11,10 +11,10 @@
       <mj-text font-weight="bold" font-size="24px" align="left">电子邮件验证</mj-text>
       <mj-divider border-width="1px" border-color="#c7c7c7" />
       <mj-text font-size="16px" align="left" line-height="24px">
-        此电子邮件用于在 {{ template "app.name" }} 上验证 {{ .Email }}。在验证页面上使用此代码。
+        此电子邮件用于验证 {{ .Email }} 在 {{ template "app.name" }} 上。请在验证页面使用此代码。
       </mj-text>
       <mj-text font-size="32px" font-weight="heavy" font-family="monospace" letter-spacing="12px" padding="24px 24px 24px 40px">{{ .Code }}</mj-text>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">不要与任何人分享。如果您没有登录或注册,请忽略此电子邮件。</mj-text>
+      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">请勿与任何人分享。如果您没有登录或注册，请忽略此电子邮件。</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>
