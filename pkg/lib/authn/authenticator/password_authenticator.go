@@ -7,13 +7,14 @@ import (
 )
 
 type Password struct {
-	ID           string    `json:"id"`
-	UserID       string    `json:"user_id"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	Kind         string    `json:"kind"`
-	IsDefault    bool      `json:"is_default"`
-	PasswordHash []byte    `json:"password_hash,omitempty"`
+	ID           string     `json:"id"`
+	UserID       string     `json:"user_id"`
+	CreatedAt    time.Time  `json:"created_at"`
+	UpdatedAt    time.Time  `json:"updated_at"`
+	Kind         string     `json:"kind"`
+	IsDefault    bool       `json:"is_default"`
+	PasswordHash []byte     `json:"password_hash,omitempty"`
+	ExpireAfter  *time.Time `json:"expire_after,omitempty"`
 }
 
 func (a *Password) ToInfo() *Info {
