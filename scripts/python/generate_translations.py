@@ -71,8 +71,9 @@ def auto_translate(messages: dict[str, str | dict[str, str]], locale, chunk_size
     """
 
     client = anthropic.Anthropic()
+    # Replace model claude-3-haiku-20240307 as it failed to return special characters: electrónico -> electr??nico
     message = client.messages.create(
-      model="claude-3-haiku-20240307",
+      model="claude-3-sonnet-20240229",
       max_tokens=4000,
       temperature=0,
       system=prompt,
