@@ -1,7 +1,7 @@
-登录 {{ template "app.name" }}
+登录到 {{ template "app.name" }}
 
-请访问下面的链接登录 {{ template "app.name" }}。
+请点击下面的链接登录到 {{ template "app.name" }}。
 
 {{ .URL }}
 
-如果您没有触发登录,请忽略此电子邮件。
+如果您没有触发登录，请忽略此电子邮件。

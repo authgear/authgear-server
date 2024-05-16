@@ -25,13 +25,13 @@
   },
   "ForgotPassword": {
     "Title": "重置密码",
-    "Body": "您已请求重置 {{ template \"app.name\" }} 上的密码。要执行此操作,请单击下面的按钮。",
+    "Body": "您已请求在 {{ template \"app.name\" }} 上重置密码。要这样做,请单击下面的按钮。",
     "Button": "重置密码",
     "Disclaimer": "如果您没有请求重置,请忽略此电子邮件。"
   },
   "ForgotPasswordOOBEmail": {
     "Title": "重置密码",
-    "Body": "请使用以下一次性密码重置 {{ template \"app.name\" }} 上的密码。",
+    "Body": "请使用以下一次性密码在 {{ template \"app.name\" }} 上重置您的密码。",
     "Code": "{{ .Code }}",
     "Disclaimer": "不要与任何人分享。如果您没有请求重置,请忽略此电子邮件。"
   },
@@ -61,65 +61,65 @@
   },
   "VerificationEmail": {
     "Title": "电子邮件验证",
-    "Body": "此电子邮件用于在 {{ template \"app.name\" }} 上验证 {{ .Email }}。在验证页面上使用此代码。",
+    "Body": "此电子邮件用于验证 {{ .Email }} 在 {{ template \"app.name\" }} 上。请在验证页面使用此代码。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "不要与任何人分享。如果您没有登录或注册,请忽略此电子邮件。"
+    "Disclaimer": "请勿与任何人分享。如果您没有登录或注册，请忽略此电子邮件。"
   },
   "PrimaryLoginLinkTXT": {
-    "Title": "登录 {{ template \"app.name\" }}",
-    "Body": "请访问下面的链接登录 {{ template \"app.name\" }}。",
+    "Title": "登录到 {{ template \"app.name\" }}",
+    "Body": "请点击下面的链接登录到 {{ template \"app.name\" }}。",
     "URL": "{{ .URL }}",
-    "Disclaimer": "如果您没有触发登录,请忽略此电子邮件。"
+    "Disclaimer": "如果您没有触发登录，请忽略此电子邮件。"
   },
   "PrimaryOOBEmailTXT": {
-    "Title": "登录 {{ template \"app.name\" }}",
+    "Title": "登录到 {{ template \"app.name\" }}",
     "Body": "请使用以下一次性密码完成登录过程。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "不要与任何人分享。如果您没有触发登录,请忽略此电子邮件。"
+    "Disclaimer": "请勿与任何人分享。如果您没有触发登录，请忽略此电子邮件。"
   },
   "PrimaryOOBSMSTXT": {
-    "Title": "使用此一次性密码 {{ .Code }} 登录 {{ template \"app.name\" }}。",
-    "Disclaimer": "不要与任何人分享。"
+    "Title": "使用此一次性密码 {{ .Code }} 登录到 {{ template \"app.name\" }}。",
+    "Disclaimer": "请勿与任何人分享。"
   },
   "SecondaryLoginLinkTXT": {
-    "Title": "登录 {{ template \"app.name\" }}",
-    "Body": "请访问下面的链接登录 {{ template \"app.name\" }}。",
+    "Title": "登录到 {{ template \"app.name\" }}",
+    "Body": "请点击下面的链接登录到 {{ template \"app.name\" }}。",
     "URL": "{{ .URL }}",
-    "Disclaimer": "如果您没有触发登录,请忽略此电子邮件。"
+    "Disclaimer": "如果您没有触发登录，请忽略此电子邮件。"
   },
   "SecondaryOOBEmailTXT": {
-    "Title": "登录 {{ template \"app.name\" }}",
+    "Title": "登录到 {{ template \"app.name\" }}",
     "Body": "请使用以下一次性密码完成登录过程。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "不要与任何人分享。如果您没有登录,请忽略此电子邮件。"
+    "Disclaimer": "请勿与任何人分享。如果您没有登录，请忽略此电子邮件。"
   },
   "SecondaryOOBSMSTXT": {
-    "Title": "{{ .Code }} 是您在 {{ template \"app.name\" }} 上的一次性密码。",
-    "Disclaimer": "不要与任何人分享。"
+    "Title": "{{ .Code }} 是您在 {{ template \"app.name\" }} 的一次性密码。",
+    "Disclaimer": "请勿与任何人分享。"
   },
   "ForgotPasswordEmailTXT": {
     "Title": "重置密码",
-    "Body": "您已请求重置 {{ template \"app.name\" }} 上的密码。请访问下面的链接重置您的密码。",
+    "Body": "您已请求重置在 {{ template \"app.name\" }} 上的密码。请访问下面的链接以重置您的密码。",
     "Link": "{{ .Link }}",
-    "Disclaimer": "如果您没有请求重置,请忽略此电子邮件。"
+    "Disclaimer": "如果您没有请求重置，请忽略此电子邮件。"
   },
   "ForgotPasswordSMSTXT": {
-    "Title": "访问此链接以重置 {{ template \"app.name\" }} 上的密码",
-    "Disclaimer": "如果您不是在重置,请忽略此消息。",
+    "Title": "访问此链接以重置您在 {{ template \"app.name\" }} 上的密码",
+    "Disclaimer": "如果您没有重置，请忽略。",
     "Link": "{{ .Link }}"
   },
   "ForgotPasswordOOBEmailTXT": {
     "Title": "重置密码",
-    "Body": "请使用以下一次性密码重置 {{ template \"app.name\" }} 上的密码。",
+    "Body": "请使用以下一次性密码在 {{ template \"app.name\" }} 上重置您的密码。",
     "Code": "{{ .Code }}",
-    "Disclaimer": "不要与任何人分享。如果您没有请求重置,请忽略此电子邮件。"
+    "Disclaimer": "请勿与任何人分享。如果您没有请求重置，请忽略此电子邮件。"
   },
   "ForgotPasswordOOBSMSTXT": {
     "Body": "使用此一次性密码 {{ .Code }} 在 {{ template \"app.name\" }} 上重置您的密码。",
     "Disclaimer": "不要与任何人分享。"
   },
   "SetupPrimaryLoginLinkTXT": {
-    "Title": "在 {{ template \"app.name\" }} 上验证您的电子邮件",
+    "Title": "在 {{ template \"app.name\" }} 上验证您的电子邮箱",
     "Body": "请访问下面的链接以完成在 {{ template \"app.name\" }} 上的注册过程。",
     "URL": "{{ .URL }}",
     "Disclaimer": "如果您没有触发此设置,请忽略此电子邮件。"
@@ -135,24 +135,24 @@
     "Disclaimer": "不要与任何人分享。"
   },
   "SetupSecondaryLoginLinkTXT": {
-    "Title": "在 {{ template \"app.name\" }} 上验证您的电子邮件并设置双步验证",
-    "Body": "请单击下面的链接在 {{ template \"app.name\" }} 上设置双步验证。",
+    "Title": "在 {{ template \"app.name\" }} 上验证您的电子邮箱并设置双重验证",
+    "Body": "请单击下面的链接以在 {{ template \"app.name\" }} 上设置双重验证。",
     "URL": "{{ .URL }}",
     "Disclaimer": "如果您没有触发此设置,请忽略此电子邮件。"
   },
   "SetupSecondaryOOBEmailTXT": {
-    "Title": "在 {{ template \"app.name\" }} 上设置双步验证",
-    "Body": "下面的文本框包含一个用于在 {{ template \"app.name\" }} 上设置双步验证的一次性密码。",
+    "Title": "在 {{ template \"app.name\" }} 上设置双重验证",
+    "Body": "下面的文本框包含一个用于在 {{ template \"app.name\" }} 上设置双重验证的一次性密码。",
     "Code": "{{ .Code }}",
     "Disclaimer": "不要与任何人分享。如果您没有触发此设置,请忽略此电子邮件。"
   },
   "SetupSecondaryOOBSMSTXT": {
-    "Title": "使用此一次性密码 {{ .Code }} 在 {{ template \"app.name\" }} 上设置双步验证。",
+    "Title": "使用此一次性密码 {{ .Code }} 在 {{ template \"app.name\" }} 上设置双重验证。",
     "Disclaimer": "不要与任何人分享。"
   },
   "VerificationEmailTXT": {
-    "Title": "电子邮件验证",
-    "Body": "此电子邮件用于在 {{ template \"app.name\" }} 上验证 {{ .Email }}。在验证页面上使用此代码。",
+    "Title": "电子邮箱验证",
+    "Body": "此电子邮件用于验证 {{ .Email }} 在 {{ template \"app.name\" }} 上的注册。在验证页面上使用此代码。",
     "Code": "{{ .Code }}",
     "Disclaimer": "不要与任何人分享。如果您没有登录或注册,请忽略此电子邮件。"
   },

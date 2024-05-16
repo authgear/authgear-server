@@ -1,4 +1,4 @@
-在 {{ template "app.name" }} 上验证您的电子邮件
+在 {{ template "app.name" }} 上验证您的电子邮箱
 
 请访问下面的链接以完成在 {{ template "app.name" }} 上的注册过程。
 

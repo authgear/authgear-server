@@ -1,6 +1,6 @@
-在 {{ template "app.name" }} 上设置双步验证
+在 {{ template "app.name" }} 上设置双重验证
 
-下面的文本框包含一个用于在 {{ template "app.name" }} 上设置双步验证的一次性密码。
+下面的文本框包含一个用于在 {{ template "app.name" }} 上设置双重验证的一次性密码。
 
 {{ .Code }}
 
