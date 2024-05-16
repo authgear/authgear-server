@@ -1,0 +1,28 @@
+<mjml>
+<mj-head>
+  <mj-attributes>
+    <mj-text align="left" font-family="Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji" />
+    <mj-button border-radius="2px" background-color="#1F67EF" />
+  </mj-attributes>
+</mj-head>
+<mj-body background-color="#ffffff">
+  <mj-section padding-top="10px">
+    <mj-column>
+      <mj-text font-weight="bold" font-size="24px">Verifique seu e-mail em {{ template "app.name" }}</mj-text>
+      <mj-text font-size="16px" padding-top="10px" line-height="24px">
+        Por favor, visite o link abaixo para completar o processo de inscrição.
+      </mj-text>
+    </mj-column>
+  </mj-section>
+  <mj-section padding="0 20px">
+    <mj-column>
+      <mj-button href="{{ .URL }}" width="300px" padding="24px 0">Verificar E-mail</mj-button>
+    </mj-column>
+  </mj-section>
+  <mj-section>
+    <mj-column>
+      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">Se você não acionou esta configuração, ignore este e-mail.</mj-text>
+    </mj-column>
+  </mj-section>
+</mj-body>
+</mjml>

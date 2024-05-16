@@ -1,0 +1,7 @@
+Inscreva-se em {{ template "app.name" }}
+
+Por favor, use a seguinte senha única para completar o processo de inscrição em {{ template "app.name" }}.
+
+{{ .Code }}
+
+Não a compartilhe com ninguém. Se você não se inscreveu, ignore este e-mail.

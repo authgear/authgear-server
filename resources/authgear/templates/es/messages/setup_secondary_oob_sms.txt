@@ -1,0 +1,3 @@
+Configura la verificación de dos pasos en {{ template "app.name" }} con este código de un solo uso {{ .Code }}.
+
+No lo compartas con nadie.

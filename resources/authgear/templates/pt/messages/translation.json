@@ -1,0 +1,163 @@
+{
+  "PrimaryLoginLink": {
+    "Title": "Use este link para entrar em {{ template \"app.name\" }}",
+    "Body": "Por favor, clique no botão abaixo para entrar em {{ template \"app.name\" }}.",
+    "Button": "Entrar em {{ template \"app.name\" }}",
+    "Disclaimer": "Se você não acionou um login, ignore este e-mail."
+  },
+  "PrimaryOOBEmail": {
+    "Title": "Entrar em {{ template \"app.name\" }}",
+    "Body": "Por favor, use a seguinte senha de uso único para completar o processo de login.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Não compartilhe com ninguém. Se você não acionou um login, ignore este e-mail."
+  },
+  "SecondaryLoginLink": {
+    "Title": "Use este link para entrar em {{ template \"app.name\" }}",
+    "Instruction": "Por favor, clique no botão abaixo para entrar em {{ template \"app.name\" }}.",
+    "ButtonText": "Entrar em {{ template \"app.name\" }}",
+    "Disclaimer": "Se você não acionou um login, ignore este e-mail."
+  },
+  "SecondaryOOBEmail": {
+    "Title": "Entrar em {{ template \"app.name\" }}",
+    "Body": "Por favor, use a seguinte senha de uso único para completar o processo de login.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Não compartilhe com ninguém. Se você não fez login, ignore este e-mail."
+  },
+  "ForgotPassword": {
+    "Title": "Redefinir Senha",
+    "Body": "Você solicitou redefinir sua senha em {{ template \"app.name\" }}. Para fazer isso, clique no botão abaixo.",
+    "Button": "Redefinir Senha",
+    "Disclaimer": "Se você não solicitou uma redefinição, ignore este e-mail."
+  },
+  "ForgotPasswordOOBEmail": {
+    "Title": "Redefinir Senha",
+    "Body": "Por favor, use a seguinte senha de uso único para redefinir sua senha em {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Não compartilhe com ninguém. Se você não solicitou uma redefinição, ignore este e-mail."
+  },
+  "SetupPrimaryLoginLink": {
+    "Title": "Verifique seu e-mail em {{ template \"app.name\" }}",
+    "Body": "Por favor, visite o link abaixo para completar o processo de inscrição.",
+    "Button": "Verificar E-mail",
+    "Disclaimer": "Se você não acionou esta configuração, ignore este e-mail."
+  },
+  "SetupPrimaryOOBEmail": {
+    "Title": "Inscrever-se em {{ template \"app.name\" }}",
+    "Body": "Por favor, use a seguinte senha de uso único para completar o processo de inscrição.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Não compartilhe com ninguém. Se você não se inscreveu, ignore este e-mail."
+  },
+  "SetupSecondaryLoginLink": {
+    "Title": "Verifique seu e-mail e configure a verificação de 2 etapas em {{ template \"app.name\" }}",
+    "Body": "Por favor, clique no botão abaixo para configurar a verificação de 2 etapas.",
+    "Button": "Verificar E-mail",
+    "Disclaimer": "Se você não acionou esta configuração, ignore este e-mail."
+  },
+  "SetupSecondaryOOBEmail": {
+    "Title": "Configurar Verificação de Duas Etapas em {{ template \"app.name\" }}",
+    "Body": "A caixa de texto abaixo contém uma senha de uso único gerada para configurar a verificação de duas etapas.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Não compartilhe com ninguém. Se você não acionou esta configuração, ignore este e-mail."
+  },
+  "VerificationEmail": {
+    "Title": "Verificação de Email",
+    "Body": "Este email é enviado para verificar {{ .Email }} em {{ template \"app.name\" }}. Use este código na página de verificação.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Não compartilhe com ninguém. Se você não fez login ou se inscreveu, ignore este email."
+  },
+  "PrimaryLoginLinkTXT": {
+    "Title": "Faça login em {{ template \"app.name\" }}",
+    "Body": "Por favor, siga o link abaixo para fazer login em {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Se você não acionou um login, ignore este email."
+  },
+  "PrimaryOOBEmailTXT": {
+    "Title": "Faça login em {{ template \"app.name\" }}",
+    "Body": "Por favor, use a seguinte senha de uso único para completar o processo de login.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Não compartilhe com ninguém. Se você não acionou um login, ignore este email."
+  },
+  "PrimaryOOBSMSTXT": {
+    "Title": "Faça login em {{ template \"app.name\" }} com esta senha de uso único {{ .Code }}.",
+    "Disclaimer": "Não compartilhe com ninguém."
+  },
+  "SecondaryLoginLinkTXT": {
+    "Title": "Faça login em {{ template \"app.name\" }}",
+    "Body": "Por favor, siga o link abaixo para fazer login em {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Se você não acionou um login, ignore este email."
+  },
+  "SecondaryOOBEmailTXT": {
+    "Title": "Faça login em {{ template \"app.name\" }}",
+    "Body": "Por favor, use a seguinte senha de uso único para completar o processo de login.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Não compartilhe com ninguém. Se você não fez login, ignore este email."
+  },
+  "SecondaryOOBSMSTXT": {
+    "Title": "{{ .Code }} é sua senha de uso único do {{ template \"app.name\" }}.",
+    "Disclaimer": "Não compartilhe com ninguém."
+  },
+  "ForgotPasswordEmailTXT": {
+    "Title": "Redefinir Senha",
+    "Body": "Você solicitou redefinir sua senha em {{ template \"app.name\" }}. Por favor, visite o link abaixo para redefinir sua senha.",
+    "Link": "{{ .Link }}",
+    "Disclaimer": "Se você não solicitou uma redefinição, ignore este email."
+  },
+  "ForgotPasswordSMSTXT": {
+    "Title": "Visite este link para redefinir sua senha em {{ template \"app.name\" }}",
+    "Disclaimer": "Ignore se você não estiver redefinindo.",
+    "Link": "{{ .Link }}"
+  },
+  "ForgotPasswordOOBEmailTXT": {
+    "Title": "Redefinir Senha",
+    "Body": "Por favor, use a seguinte senha de uso único para redefinir sua senha em {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Não compartilhe com ninguém. Se você não solicitou uma redefinição, ignore este email."
+  },
+  "ForgotPasswordOOBSMSTXT": {
+    "Body": "Redefina sua senha em {{ template \"app.name\" }} com esta senha única {{ .Code }}.",
+    "Disclaimer": "Não a compartilhe com ninguém."
+  },
+  "SetupPrimaryLoginLinkTXT": {
+    "Title": "Verifique seu e-mail em {{ template \"app.name\" }}",
+    "Body": "Por favor, visite o link abaixo para completar o processo de inscrição em {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Se você não acionou esta configuração, ignore este e-mail."
+  },
+  "SetupPrimaryOOBEmailTXT": {
+    "Title": "Inscreva-se em {{ template \"app.name\" }}",
+    "Body": "Por favor, use a seguinte senha única para completar o processo de inscrição em {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Não a compartilhe com ninguém. Se você não se inscreveu, ignore este e-mail."
+  },
+  "SetupPrimaryOOBSMSTXT": {
+    "Title": "Inscreva-se em {{ template \"app.name\" }} com esta senha única {{ .Code }}.",
+    "Disclaimer": "Não a compartilhe com ninguém."
+  },
+  "SetupSecondaryLoginLinkTXT": {
+    "Title": "Verifique seu e-mail e configure a verificação de 2 etapas em {{ template \"app.name\" }}",
+    "Body": "Clique no link abaixo para configurar a verificação de 2 etapas em {{ template \"app.name\" }}.",
+    "URL": "{{ .URL }}",
+    "Disclaimer": "Se você não acionou esta configuração, ignore este e-mail."
+  },
+  "SetupSecondaryOOBEmailTXT": {
+    "Title": "Configure a Verificação de Duas Etapas em {{ template \"app.name\" }}",
+    "Body": "A caixa de texto abaixo contém uma senha única gerada para configurar a verificação de duas etapas em {{ template \"app.name\" }}.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Não a compartilhe com ninguém. Se você não acionou esta configuração, ignore este e-mail."
+  },
+  "SetupSecondaryOOBSMSTXT": {
+    "Title": "Configure a verificação de duas etapas em {{ template \"app.name\" }} com esta senha única {{ .Code }}.",
+    "Disclaimer": "Não a compartilhe com ninguém."
+  },
+  "VerificationEmailTXT": {
+    "Title": "Verificação de E-mail",
+    "Body": "Este e-mail é enviado para verificar {{ .Email }} em {{ template \"app.name\" }}. Use este código na página de verificação.",
+    "Code": "{{ .Code }}",
+    "Disclaimer": "Não o compartilhe com ninguém. Se você não fez login ou se inscreveu, ignore este e-mail."
+  },
+  "VerificationSMSTXT": {
+    "Code": "{{ .Code }} é seu código de verificação {{ template \"app.name\" }}.",
+    "Disclaimer": "Não o compartilhe com ninguém."
+  }
+}

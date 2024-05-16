@@ -1,0 +1,3 @@
+{{ .Code }} é seu código de verificação {{ template "app.name" }}.
+
+Não o compartilhe com ninguém.

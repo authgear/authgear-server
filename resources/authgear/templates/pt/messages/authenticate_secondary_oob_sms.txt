@@ -1,0 +1,3 @@
+{{ .Code }} é sua senha de uso único do {{ template "app.name" }}.
+
+Não compartilhe com ninguém.
