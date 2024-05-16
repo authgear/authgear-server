@@ -500,7 +500,7 @@
   "account-deletion-delete-account-link-label": "刪除您的帳戶",
   "account-deletion-title": "刪除您的帳戶",
   "account-deletion-description": "一旦你刪除你的帳戶，所有資料將會被移除而不能復完。如你確定繼續，你的帳戶將在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除",
-  "account-deletion-confirmation-label": "請輸入<b>DELETE</b>確定",
+  "account-deletion-confirmation-label": "請輸入<b>{deleteConfirmationText}</b>以確認",
   "account-deletion-delete-account-button-label": "刪除帳戶",
   "account-deletion-success-title": "帳戶將會被刪除",
   "account-deletion-success-description": "你的帳戶已被停用，而將會在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除",

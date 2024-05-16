@@ -500,7 +500,7 @@
   "account-deletion-delete-account-link-label": "Padam akaun anda",
   "account-deletion-title": "Padam akaun anda",
   "account-deletion-description": "Dengan memadam akaun, semua data akan dipadamkan secara kekal dan kami tidak akan dapat memulihkannya. Jika anda teruskan, akaun anda akan dipadamkan pada <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
-  "account-deletion-confirmation-label": "Sila taip <b>PADAM</b> untuk mengesahkan",
+  "account-deletion-confirmation-label": "Sila taip <b>{deleteConfirmationText}</b> untuk mengesahkan",
   "account-deletion-delete-account-button-label": "Padam akaun",
   "account-deletion-success-title": "Penjadualan pemadaman akaun",
   "account-deletion-success-description": "Akaun anda telah dinyahaktifkan dan data akan dipadamkan pada <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",

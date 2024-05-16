@@ -500,7 +500,7 @@
   "account-deletion-delete-account-link-label": "Tanggalin ang iyong account",
   "account-deletion-title": "Tanggalin ang iyong account",
   "account-deletion-description": "Sa pamamagitan ng pagtatanggal ng account, ang lahat ng data ay permanenteng matatanggal at hindi na namin ito maisasauli. Kung magpapatuloy ka, ang iyong account ay matatanggal sa <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
-  "account-deletion-confirmation-label": "Mangyaring i-type ang <b>TANGGALIN</b> upang kumpirmahin",
+  "account-deletion-confirmation-label": "Mangyaring i-type ang <b>{deleteConfirmationText}</b> upang kumpirmahin",
   "account-deletion-delete-account-button-label": "Tanggalin ang account",
   "account-deletion-success-title": "Naiskedyul ang pagtatanggal ng account",
   "account-deletion-success-description": "Ang iyong account ay nadeaktibate na at ang data ay matatanggal sa <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",

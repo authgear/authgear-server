@@ -500,7 +500,7 @@
   "account-deletion-delete-account-link-label": "Hapus akun Anda",
   "account-deletion-title": "Hapus akun Anda",
   "account-deletion-description": "Dengan menghapus akun, semua data akan dihapus secara permanen dan kami tidak dapat mengambilnya kembali. Jika Anda melanjutkan, akun Anda akan dihapus pada <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
-  "account-deletion-confirmation-label": "Silakan ketik <b>HAPUS</b> untuk mengonfirmasi",
+  "account-deletion-confirmation-label": "Silakan ketik <b>{deleteConfirmationText}</b> untuk mengonfirmasi",
   "account-deletion-delete-account-button-label": "Hapus akun",
   "account-deletion-success-title": "Penghapusan akun dijadwalkan",
   "account-deletion-success-description": "Akun Anda telah dinonaktifkan dan data akan dihapus pada <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",

@@ -500,7 +500,7 @@
   "account-deletion-delete-account-link-label": "Xóa tài khoản của bạn",
   "account-deletion-title": "Xóa tài khoản của bạn",
   "account-deletion-description": "Bằng cách xóa tài khoản, tất cả dữ liệu sẽ bị xóa vĩnh viễn và chúng tôi sẽ không thể khôi phục lại. Nếu bạn tiếp tục, tài khoản của bạn sẽ bị xóa vào <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
-  "account-deletion-confirmation-label": "Vui lòng gõ <b>XÓA</b> để xác nhận",
+  "account-deletion-confirmation-label": "Vui lòng nhập <b>{deleteConfirmationText}</b> để xác nhận",
   "account-deletion-delete-account-button-label": "Xóa tài khoản",
   "account-deletion-success-title": "Xóa tài khoản đã được lên lịch",
   "account-deletion-success-description": "Tài khoản của bạn đã bị vô hiệu hóa và dữ liệu sẽ bị xóa vào <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",

@@ -500,7 +500,7 @@
   "account-deletion-delete-account-link-label": "Excluir sua conta",
   "account-deletion-title": "Excluir sua conta",
   "account-deletion-description": "Ao excluir a conta, todos os dados serão permanentemente excluídos e não poderemos recuperá-los. Se você continuar, sua conta será excluída em <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
-  "account-deletion-confirmation-label": "Por favor, digite <b>EXCLUIR</b> para confirmar",
+  "account-deletion-confirmation-label": "Por favor, digite <b>{deleteConfirmationText}</b> para confirmar",
   "account-deletion-delete-account-button-label": "Excluir conta",
   "account-deletion-success-title": "Exclusão de conta agendada",
   "account-deletion-success-description": "Sua conta foi desativada e os dados serão excluídos em <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",

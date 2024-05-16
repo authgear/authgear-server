@@ -500,7 +500,7 @@
   "account-deletion-delete-account-link-label": "Hesabınızı silin",
   "account-deletion-title": "Hesabınızı silin",
   "account-deletion-description": "Hesabı silerek tüm veriler kalıcı olarak silinecek ve geri getirilemeyecek. Devam ederseniz, hesabınız <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span> tarihinde silinecek",
-  "account-deletion-confirmation-label": "Onaylamak için <b>SİL</b> yazın",
+  "account-deletion-confirmation-label": "Veuillez saisir <b>{deleteConfirmationText}</b> pour confirmer",
   "account-deletion-delete-account-button-label": "Hesabı sil",
   "account-deletion-success-title": "Hesap silme zamanlandı",
   "account-deletion-success-description": "Hesabınız devre dışı bırakıldı ve veriler <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span> tarihinde silinecek",

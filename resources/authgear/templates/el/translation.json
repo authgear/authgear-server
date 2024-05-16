@@ -500,7 +500,7 @@
   "account-deletion-delete-account-link-label": "Διαγραφή του λογαριασμού σας",
   "account-deletion-title": "Διαγραφή του λογαριασμού σας",
   "account-deletion-description": "Διαγράφοντας τον λογαριασμό, όλα τα δεδομένα θα διαγραφούν οριστικά και δεν θα μπορούμε να τα ανακτήσουμε. Αν συνεχίσετε, ο λογαριασμός σας θα διαγραφεί στις <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
-  "account-deletion-confirmation-label": "Παρακαλώ πληκτρολογήστε <b>ΔΙΑΓΡΑΦΗ</b> για επιβεβαίωση",
+  "account-deletion-confirmation-label": "Παρακαλώ πληκτρολογήστε <b>{deleteConfirmationText}</b> για επιβεβαίωση",
   "account-deletion-delete-account-button-label": "Διαγραφή λογαριασμού",
   "account-deletion-success-title": "Η διαγραφή του λογαριασμού έχει προγραμματιστεί",
   "account-deletion-success-description": "Ο λογαριασμός σας έχει απενεργοποιηθεί και τα δεδομένα θα διαγραφούν στις <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",

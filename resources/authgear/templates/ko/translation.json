@@ -500,7 +500,7 @@
   "account-deletion-delete-account-link-label": "계정 삭제",
   "account-deletion-title": "계정 삭제",
   "account-deletion-description": "계정을 삭제하면 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다. 계속하시면 <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>에 계정이 삭제됩니다.",
-  "account-deletion-confirmation-label": "<b>DELETE</b>를 입력하여 확인해 주세요",
+  "account-deletion-confirmation-label": "계정 삭제를 확인하려면 <b>{deleteConfirmationText}</b>를 입력하세요",
   "account-deletion-delete-account-button-label": "계정 삭제",
   "account-deletion-success-title": "계정 삭제 예약됨",
   "account-deletion-success-description": "계정이 비활성화되었으며 데이터는 <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>에 삭제됩니다.",
