@@ -1,0 +1,3 @@
+Configure a verificação de duas etapas em {{ template "app.name" }} com esta senha única {{ .Code }}.
+
+Não a compartilhe com ninguém.

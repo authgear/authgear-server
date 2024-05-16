@@ -1,0 +1,7 @@
+Verifique seu e-mail e configure a verificação de 2 etapas em {{ template "app.name" }}
+
+Clique no link abaixo para configurar a verificação de 2 etapas em {{ template "app.name" }}.
+
+{{ .URL }}
+
+Se você não acionou esta configuração, ignore este e-mail.

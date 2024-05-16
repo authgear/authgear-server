@@ -1,0 +1,7 @@
+Iniciar sesión en {{ template "app.name" }}
+
+Siga el siguiente enlace para iniciar sesión en {{ template "app.name" }}.
+
+{{ .URL }}
+
+Si no ha solicitado un inicio de sesión, ignore este correo electrónico.

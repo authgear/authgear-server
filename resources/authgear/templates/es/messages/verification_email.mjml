@@ -1,0 +1,21 @@
+<mjml>
+<mj-head>
+  <mj-attributes>
+    <mj-text align="center" font-family="Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji" />
+    <mj-button border-radius="2px" font-family="Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji" background-color="#1F67EF" />
+  </mj-attributes>
+</mj-head>
+<mj-body background-color="#f3f3f3">
+  <mj-section>
+    <mj-column background-color="#ffffff" border-radius="2px" padding="16px 8px">
+      <mj-text font-weight="bold" font-size="24px" align="left">Verificación de correo electrónico</mj-text>
+      <mj-divider border-width="1px" border-color="#c7c7c7" />
+      <mj-text font-size="16px" align="left" line-height="24px">
+        Este correo electrónico se envía para verificar {{ .Email }} en {{ template "app.name" }}. Utilice este código en la página de verificación.
+      </mj-text>
+      <mj-text font-size="32px" font-weight="heavy" font-family="monospace" letter-spacing="12px" padding="24px 24px 24px 40px">{{ .Code }}</mj-text>
+      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">No lo comparta con nadie. Si no ha iniciado sesión o se ha registrado, ignore este correo electrónico.</mj-text>
+    </mj-column>
+  </mj-section>
+</mj-body>
+</mjml>
