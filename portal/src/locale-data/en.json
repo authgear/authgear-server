@@ -79,6 +79,7 @@
   "login-id-key.phone": "Phone",
 
   "ScreenHeader.sign-out": "Sign Out",
+  "ScreenHeader.cookie-preference": "Cookie Preference",
   "ScreenHeader.settings": "Account Settings",
   "ScreenHeader.links.schedule-demo": "Discuss your needs",
   "ScreenHeader.links.documentation": "Docs",
