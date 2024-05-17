@@ -118,11 +118,16 @@ type AuthorizationHandler struct {
 }
 
 func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.Result {
+	// Before we know the client, we cannot validate the redirect uri
+	// Just parse what is given in the request, and only use it to return error
+	errorRedirectUri, _ := url.Parse(r.RedirectURI())
+
 	client := resolveClient(h.ClientResolver, r)
 	if client == nil {
 		return authorizationResultError{
 			ResponseMode: r.ResponseMode(),
 			Response:     protocol.NewErrorResponse("unauthorized_client", "invalid client ID"),
+			RedirectURI:  errorRedirectUri,
 		}
 	}
 
@@ -131,6 +136,7 @@ func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.
 		return authorizationResultError{
 			ResponseMode: r.ResponseMode(),
 			Response:     errResp,
+			RedirectURI:  errorRedirectUri,
 		}
 	}
 
