@@ -1,7 +1,7 @@
-Inicia sesión en {{ template "app.name" }}
+Accedi a {{ template "app.name" }}
 
-Utiliza la siguiente contraseña de un solo uso para completar el proceso de inicio de sesión.
+Utilizza la seguente password monouso per completare il processo di accesso.
 
 {{ .Code }}
 
-No la compartas con nadie. Si no iniciaste sesión, por favor ignora este correo electrónico.
+Non condividerla con nessuno. Se non hai effettuato l''accesso, ignora questa email.

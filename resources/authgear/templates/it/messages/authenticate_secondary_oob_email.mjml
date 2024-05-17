@@ -7,9 +7,9 @@
 <mj-body background-color="#ffffff">
   <mj-section padding-top="10px">
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px">Inicia sesión en {{ template "app.name" }}</mj-text>
+      <mj-text font-weight="bold" font-size="24px">Accedi a {{ template "app.name" }}</mj-text>
       <mj-text font-size="16px" padding-top="10px" line-height="24px">
-        Utiliza la siguiente contraseña de un solo uso para completar el proceso de inicio de sesión.
+        Per favore usa la seguente password monouso per completare il processo di accesso.
       </mj-text>
     </mj-column>
   </mj-section>
@@ -20,7 +20,7 @@
   </mj-section>
   <mj-section>
     <mj-column>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">No la compartas con nadie. Si no iniciaste sesión, por favor ignora este correo electrónico.</mj-text>
+      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">Non condividerla con nessuno. Se non hai effettuato l''accesso, ignora questa email.</mj-text>
     </mj-column>
   </mj-section>
 </mjml>
