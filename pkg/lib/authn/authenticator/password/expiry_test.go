@@ -63,6 +63,21 @@ func TestValidateCurrentPassword(t *testing.T) {
 		}
 		`)
 
+		expireAfter := now.Add(time.Millisecond * -1)
+		test(pc, &authenticator.Password{
+			ID:          "3",
+			UserID:      "coffee",
+			UpdatedAt:   now,
+			ExpireAfter: &expireAfter,
+		}, `
+		{
+			"name": "Invalid",
+			"reason": "PasswordExpiryForceChange",
+			"message": "password expired",
+			"code": 400
+		}
+		`)
+
 		test(pc, &authenticator.Password{
 			ID:        "3",
 			UserID:    "coffee",
