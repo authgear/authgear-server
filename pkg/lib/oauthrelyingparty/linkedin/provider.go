@@ -100,9 +100,14 @@ func (p Linkedin) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param
 }
 
 func (Linkedin) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
+	code, err := oauthrelyingpartyutil.GetCode(param.Query)
+	if err != nil {
+		return
+	}
+
 	accessTokenResp, err := oauthrelyingpartyutil.FetchAccessTokenResp(
 		deps.HTTPClient,
-		param.Code,
+		code,
 		linkedinTokenURL,
 		param.RedirectURI,
 		deps.ProviderConfig.ClientID(),

@@ -104,9 +104,14 @@ func (p Facebook) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param
 func (Facebook) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
 	authInfo = oauthrelyingparty.UserProfile{}
 
+	code, err := oauthrelyingpartyutil.GetCode(param.Query)
+	if err != nil {
+		return
+	}
+
 	accessTokenResp, err := oauthrelyingpartyutil.FetchAccessTokenResp(
 		deps.HTTPClient,
-		param.Code,
+		code,
 		facebookTokenURL,
 		param.RedirectURI,
 		deps.ProviderConfig.ClientID(),

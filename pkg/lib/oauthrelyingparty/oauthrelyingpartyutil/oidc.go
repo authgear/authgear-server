@@ -110,7 +110,7 @@ func (d *OIDCDiscoveryDocument) ExchangeCode(
 		if err != nil {
 			return nil, err
 		}
-		err = ErrorResponseAsError(errorResp)
+		err = &errorResp
 		return nil, err
 	}
 

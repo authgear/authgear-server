@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
 )
 
@@ -19,10 +18,7 @@ func init() {
 
 type InputUseIdentityOAuthUserInfo interface {
 	GetProviderAlias() string
-	GetCode() string
-	GetError() string
-	GetErrorDescription() string
-	GetErrorURI() string
+	GetQuery() string
 }
 
 type EdgeUseIdentityOAuthUserInfo struct {
@@ -40,21 +36,13 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 	}
 
 	alias := input.GetProviderAlias()
+	query := input.GetQuery()
 	nonceSource := ctx.Nonces.GetAndClear()
-	code := input.GetCode()
-	oauthError := input.GetError()
-	errorDescription := input.GetErrorDescription()
-	errorURI := input.GetErrorURI()
 	hashedNonce := e.HashedNonce
 
 	providerConfigAlias := e.Config.Alias()
 	if providerConfigAlias != alias {
 		return nil, fmt.Errorf("interaction: unexpected provider alias %s != %s", providerConfigAlias, alias)
-	}
-
-	// Handle provider error
-	if oauthError != "" {
-		return nil, oauthrelyingpartyutil.NewOAuthError(oauthError, errorDescription, errorURI)
 	}
 
 	if nonceSource == "" {
@@ -76,7 +64,7 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 	userInfo, err := ctx.OAuthProviderFactory.GetUserProfile(
 		alias,
 		oauthrelyingparty.GetUserProfileOptions{
-			Code:        code,
+			Query:       query,
 			RedirectURI: redirectURI.String(),
 			Nonce:       hashedNonce,
 		},

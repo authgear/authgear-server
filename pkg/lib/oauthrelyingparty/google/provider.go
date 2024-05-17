@@ -95,6 +95,11 @@ func (p Google) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param o
 }
 
 func (Google) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
+	code, err := oauthrelyingpartyutil.GetCode(param.Query)
+	if err != nil {
+		return
+	}
+
 	d, err := oauthrelyingpartyutil.FetchOIDCDiscoveryDocument(deps.HTTPClient, googleOIDCDiscoveryDocumentURL)
 	if err != nil {
 		return
@@ -109,7 +114,7 @@ func (Google) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthrel
 	jwtToken, err := d.ExchangeCode(
 		deps.HTTPClient,
 		deps.Clock,
-		param.Code,
+		code,
 		keySet,
 		deps.ProviderConfig.ClientID(),
 		deps.ClientSecret,

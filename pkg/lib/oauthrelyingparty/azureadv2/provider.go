@@ -166,11 +166,16 @@ func (p AzureADv2) GetUserProfile(deps oauthrelyingparty.Dependencies, param oau
 		return
 	}
 
+	code, err := oauthrelyingpartyutil.GetCode(param.Query)
+	if err != nil {
+		return
+	}
+
 	var tokenResp oauthrelyingpartyutil.AccessTokenResp
 	jwtToken, err := c.ExchangeCode(
 		deps.HTTPClient,
 		deps.Clock,
-		param.Code,
+		code,
 		keySet,
 		deps.ProviderConfig.ClientID(),
 		deps.ClientSecret,

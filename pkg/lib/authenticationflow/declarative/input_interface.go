@@ -57,10 +57,7 @@ type inputTakeOAuthAuthorizationRequest interface {
 }
 
 type inputTakeOAuthAuthorizationResponse interface {
-	GetOAuthAuthorizationCode() string
-	GetOAuthError() string
-	GetOAuthErrorDescription() string
-	GetOAuthErrorURI() string
+	GetQuery() string
 }
 
 type inputTakePasskeyAssertionResponse interface {

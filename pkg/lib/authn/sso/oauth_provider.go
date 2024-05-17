@@ -1,11 +1,14 @@
 package sso
 
 import (
+	"errors"
+
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
@@ -69,6 +72,12 @@ func (p *OAuthProviderFactory) GetUserProfile(alias string, options oauthrelying
 
 	userProfile, err = provider.GetUserProfile(*deps, options)
 	if err != nil {
+		var oauthErrorResponse *oauthrelyingparty.ErrorResponse
+		if errors.As(err, &oauthErrorResponse) {
+			err = oauthrelyingpartyutil.NewOAuthError(oauthErrorResponse)
+			return
+		}
+
 		return
 	}
 

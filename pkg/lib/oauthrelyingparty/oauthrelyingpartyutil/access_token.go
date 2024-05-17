@@ -114,7 +114,8 @@ func FetchAccessTokenResp(
 		if err != nil {
 			return
 		}
-		err = ErrorResponseAsError(errResp)
+		err = &errResp
+		return
 	}
 
 	return

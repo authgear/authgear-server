@@ -359,30 +359,23 @@ After passing this input, you will see a response like this
 
 You must redirect the end user to `oauth_authorization_url`. This is typically done by `window.location.href = {{ oauth_authorization_url }}`. Before you perform redirection, you typically need to add the query parameter `state` to `oauth_authorization_url`, so that you can resume the authentication flow.
 
-The OAuth provider will authenticate the end-user. There will be 2 cases:
+The OAuth provider will authenticate the end-user, and then redirect back to the `redirect_uri` you provided.
+You parse the callback URI and extract the `state` parameter in the query to resume your authentication flow.
+You pass the URL encoded query as the next input.
 
-- The OAuth provider authenticated the end-user successfully. `code` and `state` will be present in the query string.
-- The OAuth provider encountered an error. `error` and `state` will be present in the query string. Additionally, `error_description` and `error_uri` may be present as well.
-
-In either case, use `state` to resume your authentication flow. After that pass the following input
-
-```json
-{
-  "code": "{{ code }}"
-}
-```
-
-for the successful case. Or this input
+Here are some examples:
 
 ```json
 {
-  "error": "{{ error }}",
-  "error_description": "{{ error_description }}",
-  "error_uri": "{{ error_uri }}"
+  "query": "state=mystate&code=some_authorization_code"
 }
 ```
 
-for the failure case. `error_description` and `error_uri` are optional.
+```json
+{
+  "query": "state=mystate&error=some_error&error_description=this+is+url+encoded+spaces+become+plus+sign"
+}
+```
 
 ### type: signup; action.type: identification; data.type: account_linking_identification_data
 

@@ -18,37 +18,14 @@ func TestInputSchemaTakeOAuthAuthorizationResponse(t *testing.T) {
 
 		test(&InputSchemaTakeOAuthAuthorizationResponse{}, `
 {
-    "oneOf": [
-        {
-            "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "error": {
-                    "type": "string"
-                },
-                "error_description": {
-                    "type": "string"
-                },
-                "error_uri": {
-                    "type": "string",
-		    "format": "uri"
-                }
-            },
-            "required": [
-                "code"
-            ],
-            "type": "object"
-        },
-        {
-            "required": [
-                "error"
-            ],
-            "type": "object"
-        }
-    ],
-    "type": "object"
+	"type": "object",
+	"required": ["query"],
+	"properties": {
+		"query": {
+			"type": "string"
+		}
+	}
 }
-		`)
+`)
 	})
 }
