@@ -575,11 +575,13 @@ func (s *UserImportService) insertGroupsInTxn(ctx context.Context, detail *Detai
 }
 
 func (s *UserImportService) insertPasswordInTxn(ctx context.Context, detail *Detail, record Record, userID string) (err error) {
-	password, ok := record.Password()
+	pw, ok := record.Password()
 	if !ok {
 		return
 	}
-	passwordHash := Password(password).PasswordHash()
+	password := Password(pw)
+	passwordHash := password.PasswordHash()
+	passwordExpireAfter := password.ExpireAfter()
 
 	spec := &authenticator.Spec{
 		UserID:    userID,
@@ -588,6 +590,7 @@ func (s *UserImportService) insertPasswordInTxn(ctx context.Context, detail *Det
 		Kind:      authenticator.KindPrimary,
 		Password: &authenticator.PasswordSpec{
 			PasswordHash: passwordHash,
+			ExpireAfter:  passwordExpireAfter,
 		},
 	}
 
@@ -615,8 +618,10 @@ func (s *UserImportService) insertMFAPasswordInTxn(ctx context.Context, detail *
 	if !ok {
 		return
 	}
+	mfaPassword := Password(mfaPasswordObj)
 
-	passwordHash := Password(mfaPasswordObj).PasswordHash()
+	passwordHash := mfaPassword.PasswordHash()
+	passwordExpireAfter := mfaPassword.ExpireAfter()
 
 	spec := &authenticator.Spec{
 		UserID:    userID,
@@ -625,6 +630,7 @@ func (s *UserImportService) insertMFAPasswordInTxn(ctx context.Context, detail *
 		Kind:      authenticator.KindSecondary,
 		Password: &authenticator.PasswordSpec{
 			PasswordHash: passwordHash,
+			ExpireAfter:  passwordExpireAfter,
 		},
 	}
 

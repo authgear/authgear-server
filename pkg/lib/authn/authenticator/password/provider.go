@@ -54,10 +54,11 @@ func (p *Provider) New(id string, userID string, passwordSpec *authenticator.Pas
 		id = uuid.New()
 	}
 	authen := &authenticator.Password{
-		ID:        id,
-		UserID:    userID,
-		IsDefault: isDefault,
-		Kind:      kind,
+		ID:          id,
+		UserID:      userID,
+		IsDefault:   isDefault,
+		Kind:        kind,
+		ExpireAfter: passwordSpec.ExpireAfter,
 	}
 
 	switch {
