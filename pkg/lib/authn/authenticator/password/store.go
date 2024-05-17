@@ -178,6 +178,7 @@ func (s *Store) UpdatePasswordHash(a *authenticator.Password) error {
 	q := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_authenticator_password")).
 		Set("password_hash", a.PasswordHash).
+		Set("expire_after", a.ExpireAfter).
 		Where("id = ?", a.ID)
 	_, err := s.SQLExecutor.ExecWith(q)
 	if err != nil {

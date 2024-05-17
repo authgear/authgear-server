@@ -159,6 +159,7 @@ func (p *Provider) Authenticate(a *authenticator.Password, password string) (ver
 func (p *Provider) UpdatePassword(a *authenticator.Password) error {
 	now := p.Clock.NowUTC()
 	a.UpdatedAt = now
+	a.ExpireAfter = nil
 
 	err := p.Store.UpdatePasswordHash(a)
 	if err != nil {
