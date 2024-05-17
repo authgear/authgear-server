@@ -64,9 +64,10 @@ def auto_translate(messages: dict[str, str | dict[str, str]], locale, chunk_size
 
   for idx, chunk in enumerate(chunks):
     logging.info(f'{locale} | Starting translation of chunk {idx + 1}/{len(chunks)}')
+    locale_info = LOCALE_DICT[locale]
 
     prompt = f"""
-    - translate the values in the JSON from English into {locale}.
+    - translate the values in the JSON from English into {locale_info["name"]}({locale}).
     - Don't translate the phrase "Passkey", keep it as is.
     - Return only the JSON and nothing else
     - Escape astrophes (') with double astrophes ('')
