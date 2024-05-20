@@ -169,11 +169,16 @@ func (p Apple) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthre
 		return
 	}
 
+	code, err := oauthrelyingpartyutil.GetCode(param.Query)
+	if err != nil {
+		return
+	}
+
 	var tokenResp oauthrelyingpartyutil.AccessTokenResp
 	jwtToken, err := appleOIDCConfig.ExchangeCode(
 		deps.HTTPClient,
 		deps.Clock,
-		param.Code,
+		code,
 		keySet,
 		deps.ProviderConfig.ClientID(),
 		clientSecret,

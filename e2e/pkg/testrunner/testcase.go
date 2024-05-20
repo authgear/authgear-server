@@ -181,18 +181,13 @@ func (tc *TestCase) executeStep(
 			return
 		}
 
-		finalURLQueryMap := make(map[string]string)
-		for key, values := range finalURLParsed.Query() {
-			if len(values) > 0 {
-				finalURLQueryMap[key] = values[0]
-			}
-		}
-
 		nextState = state
 
 		result = &StepResult{
-			Result: finalURLQueryMap,
-			Error:  nil,
+			Result: map[string]interface{}{
+				"query": finalURLParsed.RawQuery,
+			},
+			Error: nil,
 		}
 
 	case StepActionInput:

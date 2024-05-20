@@ -263,20 +263,13 @@ func (i *InputSetupTOTP) GetTOTPDisplayName() string { return i.DisplayName }
 
 type InputOAuthCallback struct {
 	ProviderAlias string
-
-	Code             string
-	Error            string
-	ErrorDescription string
-	ErrorURI         string
+	Query         string
 }
 
 var _ nodes.InputUseIdentityOAuthUserInfo = &InputOAuthCallback{}
 
-func (i *InputOAuthCallback) GetProviderAlias() string    { return i.ProviderAlias }
-func (i *InputOAuthCallback) GetCode() string             { return i.Code }
-func (i *InputOAuthCallback) GetError() string            { return i.Error }
-func (i *InputOAuthCallback) GetErrorDescription() string { return i.ErrorDescription }
-func (i *InputOAuthCallback) GetErrorURI() string         { return i.ErrorURI }
+func (i *InputOAuthCallback) GetProviderAlias() string { return i.ProviderAlias }
+func (i *InputOAuthCallback) GetQuery() string         { return i.Query }
 
 type InputVerificationCode struct {
 	Code string

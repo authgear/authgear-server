@@ -140,10 +140,15 @@ func (p Github) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthr
 }
 
 func (Github) exchangeCode(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (accessTokenResp oauthrelyingpartyutil.AccessTokenResp, err error) {
+	code, err := oauthrelyingpartyutil.GetCode(param.Query)
+	if err != nil {
+		return
+	}
+
 	q := make(url.Values)
 	q.Set("client_id", deps.ProviderConfig.ClientID())
 	q.Set("client_secret", deps.ClientSecret)
-	q.Set("code", param.Code)
+	q.Set("code", code)
 	q.Set("redirect_uri", param.RedirectURI)
 
 	body := strings.NewReader(q.Encode())
@@ -169,7 +174,8 @@ func (Github) exchangeCode(deps oauthrelyingparty.Dependencies, param oauthrelyi
 		if err != nil {
 			return
 		}
-		err = oauthrelyingpartyutil.ErrorResponseAsError(errResp)
+		err = &errResp
+		return
 	}
 
 	return

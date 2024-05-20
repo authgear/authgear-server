@@ -150,9 +150,14 @@ func (p Wechat) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param o
 }
 
 func (Wechat) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
+	code, err := oauthrelyingpartyutil.GetCode(param.Query)
+	if err != nil {
+		return
+	}
+
 	accessTokenResp, err := wechatFetchAccessTokenResp(
 		deps.HTTPClient,
-		param.Code,
+		code,
 		deps.ProviderConfig.ClientID(),
 		deps.ClientSecret,
 	)

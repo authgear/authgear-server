@@ -112,12 +112,16 @@ func (h *WechatAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if session != nil {
 			step := session.CurrentStep()
 			action, ok := step.FormData["x_action"].(string)
+
 			if ok && action == WechatActionCallback {
+				query := url.Values{}
+				query.Set("code", step.FormData["x_code"].(string))
+				query.Set("error", step.FormData["x_error"].(string))
+				query.Set("error_description", step.FormData["x_error_description"].(string))
+
 				data := InputOAuthCallback{
-					ProviderAlias:    httproute.GetParam(r, "alias"),
-					Code:             step.FormData["x_code"].(string),
-					Error:            step.FormData["x_error"].(string),
-					ErrorDescription: step.FormData["x_error_description"].(string),
+					ProviderAlias: httproute.GetParam(r, "alias"),
+					Query:         query.Encode(),
 				}
 
 				result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
@@ -152,11 +156,14 @@ func (h *WechatAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			step := session.CurrentStep()
 			action, ok := step.FormData["x_action"].(string)
 			if ok && action == WechatActionCallback {
+				query := url.Values{}
+				query.Set("code", step.FormData["x_code"].(string))
+				query.Set("error", step.FormData["x_error"].(string))
+				query.Set("error_description", step.FormData["x_error_description"].(string))
+
 				data := InputOAuthCallback{
-					ProviderAlias:    httproute.GetParam(r, "alias"),
-					Code:             step.FormData["x_code"].(string),
-					Error:            step.FormData["x_error"].(string),
-					ErrorDescription: step.FormData["x_error_description"].(string),
+					ProviderAlias: httproute.GetParam(r, "alias"),
+					Query:         query.Encode(),
 				}
 
 				result, err := ctrl.InteractionPost(func() (input interface{}, err error) {

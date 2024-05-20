@@ -25,11 +25,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	state := r.Form.Get("state")
-	code := r.Form.Get("code")
-	error_ := r.Form.Get("error")
-	errorDescription := r.Form.Get("error_description")
-	errorURI := r.Form.Get("error_uri")
+	state := r.FormValue("state")
 
 	switch h.UIConfig.Implementation.WithDefault() {
 	case config.UIImplementationAuthflow:
@@ -37,11 +33,8 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case config.UIImplementationAuthflowV2:
 		// authflow
 		h.AuthflowController.HandleOAuthCallback(w, r, AuthflowOAuthCallbackResponse{
-			State:            state,
-			Code:             code,
-			Error:            error_,
-			ErrorDescription: errorDescription,
-			ErrorURI:         errorURI,
+			Query: r.Form.Encode(),
+			State: state,
 		})
 	default:
 		// interaction
@@ -54,11 +47,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		data := InputOAuthCallback{
 			ProviderAlias: httproute.GetParam(r, "alias"),
-
-			Code:             code,
-			Error:            error_,
-			ErrorDescription: errorDescription,
-			ErrorURI:         errorURI,
+			Query:         r.Form.Encode(),
 		}
 
 		handler := func() error {

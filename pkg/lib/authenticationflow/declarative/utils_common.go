@@ -17,7 +17,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
-	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
@@ -672,15 +671,6 @@ type HandleOAuthAuthorizationResponseOptions struct {
 }
 
 func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, opts HandleOAuthAuthorizationResponseOptions, inputOAuth inputTakeOAuthAuthorizationResponse) (*identity.Spec, error) {
-	if oauthError := inputOAuth.GetOAuthError(); oauthError != "" {
-		errorDescription := inputOAuth.GetOAuthErrorDescription()
-		errorURI := inputOAuth.GetOAuthErrorURI()
-
-		return nil, oauthrelyingpartyutil.NewOAuthError(oauthError, errorDescription, errorURI)
-	}
-
-	code := inputOAuth.GetOAuthAuthorizationCode()
-
 	providerConfig, err := deps.OAuthProviderFactory.GetProviderConfig(opts.Alias)
 	if err != nil {
 		return nil, err
@@ -693,7 +683,7 @@ func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, opts HandleOA
 	authInfo, err := deps.OAuthProviderFactory.GetUserProfile(
 		opts.Alias,
 		oauthrelyingparty.GetUserProfileOptions{
-			Code:        code,
+			Query:       inputOAuth.GetQuery(),
 			RedirectURI: opts.RedirectURI,
 			Nonce:       emptyNonce,
 		},

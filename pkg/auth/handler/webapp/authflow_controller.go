@@ -99,11 +99,8 @@ func GetXStepFromQuery(r *http.Request) string {
 }
 
 type AuthflowOAuthCallbackResponse struct {
-	State            string
-	Code             string
-	Error            string
-	ErrorDescription string
-	ErrorURI         string
+	Query string
+	State string
 }
 
 type AuthflowController struct {
@@ -211,14 +208,8 @@ func (c *AuthflowController) HandleOAuthCallback(w http.ResponseWriter, r *http.
 		return
 	}
 
-	input := map[string]interface{}{}
-	switch {
-	case callbackResponse.Code != "":
-		input["code"] = callbackResponse.Code
-	case callbackResponse.Error != "":
-		input["error"] = callbackResponse.Error
-		input["error_description"] = callbackResponse.ErrorDescription
-		input["error_uri"] = callbackResponse.ErrorURI
+	input := map[string]interface{}{
+		"query": callbackResponse.Query,
 	}
 	result, err := c.AdvanceWithInput(r, s, screen, input, nil)
 	if err != nil {

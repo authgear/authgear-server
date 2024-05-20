@@ -81,13 +81,13 @@ steps:
     output:
       result: |
         {
-          "code": "[[string]]"
+          "query": "[[string]]"
         }
 
   - action: input
     input: |
       {
-        "code": "{{ .prev.result.code }}"
+        "query": "{{ .prev.result.query }}"
       }
     output:
       result: |
