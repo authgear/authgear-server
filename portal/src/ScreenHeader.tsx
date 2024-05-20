@@ -199,6 +199,14 @@ const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
       });
   }, [redirectURI, reset]);
 
+  const onClickCookiePreference = useCallback(() => {
+    if (window.Osano?.cm !== undefined) {
+      window.Osano.cm.showDrawer("osano-cm-dom-info-dialog-open");
+    } else {
+      console.error("Osano is not loaded");
+    }
+  }, []);
+
   const onClickContactUs = useCallback(() => {
     capture("header.clicked-contact_us");
   }, [capture]);
@@ -226,27 +234,43 @@ const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
   );
 
   const menuProps = useMemo(() => {
-    return {
-      items: [
-        {
-          key: "settings",
-          text: renderToString("ScreenHeader.settings"),
-          iconProps: {
-            iconName: "PlayerSettings",
-          },
-          href: authgearEndpoint + "/settings",
+    const items = [
+      {
+        key: "settings",
+        text: renderToString("ScreenHeader.settings"),
+        iconProps: {
+          iconName: "PlayerSettings",
         },
-        {
-          key: "logout",
-          text: renderToString("ScreenHeader.sign-out"),
-          iconProps: {
-            iconName: "SignOut",
-          },
-          onClick: onClickLogout,
+        href: authgearEndpoint + "/settings",
+      },
+      {
+        key: "logout",
+        text: renderToString("ScreenHeader.sign-out"),
+        iconProps: {
+          iconName: "SignOut",
         },
-      ],
-    };
-  }, [onClickLogout, renderToString, authgearEndpoint]);
+        onClick: onClickLogout,
+      },
+    ];
+
+    if (window.Osano !== undefined) {
+      items.splice(1, 0, {
+        key: "cookie",
+        text: renderToString("ScreenHeader.cookie-preference"),
+        iconProps: {
+          iconName: "Cookies",
+        },
+        onClick: onClickCookiePreference,
+      });
+    }
+
+    return { items };
+  }, [
+    onClickLogout,
+    onClickCookiePreference,
+    renderToString,
+    authgearEndpoint,
+  ]);
 
   return (
     <header className={styles.header} style={headerStyle}>
