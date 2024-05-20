@@ -1,7 +1,7 @@
-Regístrate en {{ template "app.name" }}
+Registrati su {{ template "app.name" }}
 
-Utiliza la siguiente contraseña de un solo uso para completar el proceso de registro en {{ template "app.name" }}.
+Per favore usa la seguente password monouso per completare il processo di registrazione su {{ template "app.name" }}.
 
 {{ .Code }}
 
-No la compartas con nadie. Si no te registraste, por favor ignora este correo electrónico.
+Non condividerla con nessuno. Se non ti sei registrato, ignora questa email.

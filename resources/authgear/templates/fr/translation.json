@@ -500,7 +500,7 @@
   "account-deletion-delete-account-link-label": "Supprimer votre compte",
   "account-deletion-title": "Supprimer votre compte",
   "account-deletion-description": "En supprimant le compte, toutes les données seront définitivement supprimées et nous ne pourrons pas les récupérer. Si vous continuez, votre compte sera supprimé le <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
-  "account-deletion-confirmation-label": "Veuillez taper <b>SUPPRIMER</b> pour confirmer",
+  "account-deletion-confirmation-label": "Veuillez saisir <b>{deleteConfirmationText}</b> pour confirmer",
   "account-deletion-delete-account-button-label": "Supprimer le compte",
   "account-deletion-success-title": "Suppression du compte programmée",
   "account-deletion-success-description": "Votre compte a été désactivé et les données seront supprimées le <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",

@@ -500,7 +500,7 @@
   "account-deletion-delete-account-link-label": "Delete your account",
   "account-deletion-title": "Delete your account",
   "account-deletion-description": "By deleting the account, all data will be permanently deleted and we will not be able to retrieve it. If you continue, your account will be deleted on <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
-  "account-deletion-confirmation-label": "Please type <b>DELETE</b> to confirm",
+  "account-deletion-confirmation-label": "Please type <b>{deleteConfirmationText}</b> to confirm",
   "account-deletion-delete-account-button-label": "Delete account",
   "account-deletion-success-title": "Account deletion scheduled",
   "account-deletion-success-description": "Your account has been deactivated and the data will be deleted on <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",

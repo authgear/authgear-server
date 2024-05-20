@@ -7,9 +7,9 @@
 <mj-body background-color="#ffffff">
   <mj-section padding-top="10px">
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px">Configurar la verificación en dos pasos en {{ template "app.name" }}</mj-text>
+      <mj-text font-weight="bold" font-size="24px">Configura la Verifica in Due Passaggi su {{ template "app.name" }}</mj-text>
       <mj-text font-size="16px" padding-top="10px" line-height="24px">
-        El cuadro de texto de abajo contiene una contraseña de un solo uso generada para configurar la verificación en dos pasos.
+        La casella di testo qui sotto contiene una password monouso generata per configurare la verifica in due passaggi.
       </mj-text>
     </mj-column>
   </mj-section>
@@ -20,7 +20,7 @@
   </mj-section>
   <mj-section>
     <mj-column>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">No la compartas con nadie. Si no desencadenaste esta configuración, por favor ignora este correo electrónico.</mj-text>
+      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">Non condividerla con nessuno. Se non hai richiesto questa configurazione, ignora questa email.</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

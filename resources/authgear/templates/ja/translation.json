@@ -500,7 +500,7 @@
   "account-deletion-delete-account-link-label": "アカウントを削除する",
   "account-deletion-title": "アカウントを削除する",
   "account-deletion-description": "アカウントを削除すると、すべてのデータが完全に削除され、復元することはできません。続行する場合、アカウントは<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>に削除されます",
-  "account-deletion-confirmation-label": "<b>DELETE</b>と入力して確認してください",
+  "account-deletion-confirmation-label": "確認するには<b>{deleteConfirmationText}</b>と入力してください",
   "account-deletion-delete-account-button-label": "アカウントを削除する",
   "account-deletion-success-title": "アカウントの削除がスケジュールされました",
   "account-deletion-success-description": "アカウントが非アクティブ化され、データは<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>に削除されます",

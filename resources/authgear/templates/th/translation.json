@@ -500,7 +500,7 @@
   "account-deletion-delete-account-link-label": "ลบบัญชีของคุณ",
   "account-deletion-title": "ลบบัญชีของคุณ",
   "account-deletion-description": "การลบบัญชีจะทำให้ข้อมูลทั้งหมดถูกลบอย่างถาวร และเราจะไม่สามารถกู้คืนได้ หากคุณดำเนินการต่อ บัญชีของคุณจะถูกลบในวันที่ <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
-  "account-deletion-confirmation-label": "โปรดพิมพ์ <b>DELETE</b> เพื่อยืนยัน",
+  "account-deletion-confirmation-label": "กรุณาพิมพ์ <b>{deleteConfirmationText}</b> เพื่อยืนยัน",
   "account-deletion-delete-account-button-label": "ลบบัญชี",
   "account-deletion-success-title": "การลบบัญชีได้รับการกำหนดเวลา",
   "account-deletion-success-description": "บัญชีของคุณได้ถูกปิดใช้งานแล้ว และข้อมูลจะถูกลบในวันที่ <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",

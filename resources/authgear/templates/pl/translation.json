@@ -500,7 +500,7 @@
   "account-deletion-delete-account-link-label": "Usuń swoje konto",
   "account-deletion-title": "Usuń swoje konto",
   "account-deletion-description": "Usunięcie konta spowoduje trwałe usunięcie wszystkich danych, których nie będziemy mogli odzyskać. Jeśli kontynuujesz, Twoje konto zostanie usunięte <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
-  "account-deletion-confirmation-label": "Proszę wpisać <b>USUŃ</b> aby potwierdzić",
+  "account-deletion-confirmation-label": "Wpisz <b>{deleteConfirmationText}</b>, aby potwierdzić",
   "account-deletion-delete-account-button-label": "Usuń konto",
   "account-deletion-success-title": "Zaplanowano usunięcie konta",
   "account-deletion-success-description": "Twoje konto zostało dezaktywowane, a dane zostaną usunięte <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",

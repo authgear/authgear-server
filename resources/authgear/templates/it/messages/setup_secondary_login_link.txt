@@ -1,7 +1,7 @@
-Verifica tu correo electrónico y configura la verificación en dos pasos en {{ template "app.name" }}
+Verifica la tua email e configura la verifica in 2 passaggi su {{ template "app.name" }}
 
-Haz clic en el enlace de abajo para configurar la verificación en dos pasos en {{ template "app.name" }}.
+Per favore clicca sul link sottostante per configurare la verifica in 2 passaggi su {{ template "app.name" }}.
 
 {{ .URL }}
 
-Si no desencadenaste esta configuración, por favor ignora este correo electrónico.
+Se non hai avviato questa configurazione, ignora questa email.

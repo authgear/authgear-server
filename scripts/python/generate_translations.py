@@ -14,28 +14,28 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 load_dotenv()
 
 LOCALE_DICT = {
-  "zh-HK": {"name": "Chinese (Hong Kong)", "cldr": "zh-Hant-HK"},
-  "zh-TW": {"name": "Chinese (Taiwan)", "cldr": "zh-Hant"},
-  "zh-CN": {"name": "Chinese (China)", "cldr": "zh-Hans"},
+  "zh-HK": {"name": "Traditional Chinese", "cldr": "zh-Hant-HK"},
+  "zh-TW": {"name": "Traditional Chinese", "cldr": "zh-Hant"},
+  "zh-CN": {"name": "Simplified Chinese", "cldr": "zh-Hans"},
   "ko": {"name": "Korean"},
   "ja": {"name": "Japanese"},
   "vi": {"name": "Vietnamese"},
   "th": {"name": "Thai"},
   "ms": {"name": "Malay"},
-  "fil": {"name": "Filipino (Tagalog)"},
+  "fil": {"name": "Filipino"},
   "id": {"name": "Indonesian"},
 
-  # "en-GB": {"name": "English (United Kingdom)", "base_language": "en"},
-  # "en-US": {"name": "English (United States)", "base_language": "en"},
+  # "en-GB": {"name": "British English", "base_language": "en"},
+  # "en-US": {"name": "American English", "base_language": "en"},
   "en": {"name": "English"},
   "fr": {"name": "French"},
   "es": {"name": "Spanish"},
-  "es-ES": {"name": "Spanish (Spain)", "cldr": "es"},
-  "es-419": {"name": "Spanish (Latin America)"},
+  "es-ES": {"name": "European Spanish", "cldr": "es"},
+  "es-419": {"name": "Latin American Spanish"},
   "it": {"name": "Italian"},
   "pt": {"name": "Portuguese"},
-  "pt-PT": {"name": "Portuguese (Portugal)"},
-  "pt-BR": {"name": "Portuguese (Brazil)", "cldr": "pt"},
+  "pt-PT": {"name": "European Portuguese"},
+  "pt-BR": {"name": "Brazilian Portuguese", "cldr": "pt"},
   "de": {"name": "German"},
   "pl": {"name": "Polish"},
   "nl": {"name": "Dutch"},
@@ -64,9 +64,10 @@ def auto_translate(messages: dict[str, str | dict[str, str]], locale, chunk_size
 
   for idx, chunk in enumerate(chunks):
     logging.info(f'{locale} | Starting translation of chunk {idx + 1}/{len(chunks)}')
+    locale_info = LOCALE_DICT[locale]
 
     prompt = f"""
-    - translate the values in the JSON from English into {locale}.
+    - translate the values in the JSON from English into {locale_info["name"]}({locale}).
     - Don't translate the phrase "Passkey", keep it as is.
     - Return only the JSON and nothing else
     - Escape astrophes (') with double astrophes ('')

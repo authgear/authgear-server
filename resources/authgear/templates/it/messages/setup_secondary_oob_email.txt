@@ -1,7 +1,7 @@
-Configurar la verificación en dos pasos en {{ template "app.name" }}
+Configura la verifica in due passaggi su {{ template "app.name" }}
 
-El cuadro de texto de abajo contiene una contraseña de un solo uso generada para configurar la verificación en dos pasos en {{ template "app.name" }}.
+La casella di testo sottostante contiene una password monouso generata per configurare la verifica in due passaggi su {{ template "app.name" }}.
 
 {{ .Code }}
 
-No la compartas con nadie. Si no desencadenaste esta configuración, por favor ignora este correo electrónico.
+Non condividerla con nessuno. Se non hai avviato questa configurazione, ignora questa email.

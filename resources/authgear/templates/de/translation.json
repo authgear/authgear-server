@@ -500,7 +500,7 @@
   "account-deletion-delete-account-link-label": "Löschen Sie Ihr Konto",
   "account-deletion-title": "Löschen Sie Ihr Konto",
   "account-deletion-description": "Durch das Löschen des Kontos werden alle Daten dauerhaft gelöscht und wir können sie nicht mehr wiederherstellen. Wenn Sie fortfahren, wird Ihr Konto am <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span> gelöscht",
-  "account-deletion-confirmation-label": "Bitte geben Sie <b>LÖSCHEN</b> ein, um zu bestätigen",
+  "account-deletion-confirmation-label": "Bitte geben Sie <b>{deleteConfirmationText}</b> ein, um zu bestätigen",
   "account-deletion-delete-account-button-label": "Konto löschen",
   "account-deletion-success-title": "Kontolöschung geplant",
   "account-deletion-success-description": "Ihr Konto wurde deaktiviert und die Daten werden am <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span> gelöscht",

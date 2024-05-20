@@ -1,7 +1,7 @@
-Inicia sesión en {{ template "app.name" }}
+Accedi a {{ template "app.name" }}
 
-Sigue el enlace de abajo para iniciar sesión en {{ template "app.name" }}.
+Segui il link sottostante per accedere a {{ template "app.name" }}.
 
 {{ .URL }}
 
-Si no iniciaste un inicio de sesión, por favor ignora este correo electrónico.
+Se non hai richiesto l''accesso, ignora questa email.

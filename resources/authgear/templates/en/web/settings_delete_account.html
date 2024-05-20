@@ -15,7 +15,7 @@
   {{ $.CSRFField }}
   <label class="flex flex-col">
     <span class="secondary-txt text-sm">
-      {{ template "account-deletion-confirmation-label" }}
+      {{ template "account-deletion-confirmation-label" (dict "deleteConfirmationText" "DELETE") }}
     </span>
     <input class="primary-txt text-input"
       name="delete"

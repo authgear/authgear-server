@@ -1,7 +1,7 @@
-Verificación de correo electrónico
+Verifica email
 
-Este correo electrónico se envía para verificar {{ .Email }} en {{ template "app.name" }}. Usa este código en la página de verificación.
+Questa email viene inviata per verificare {{ .Email }} su {{ template "app.name" }}. Usa questo codice nella pagina di verifica.
 
 {{ .Code }}
 
-No lo compartas con nadie. Si no iniciaste sesión o no te registraste, por favor ignora este correo electrónico.
+Non condividerlo con nessuno. Se non hai effettuato l''accesso o la registrazione, ignora questa email.

@@ -500,7 +500,7 @@
   "account-deletion-delete-account-link-label": "Verwijder uw account",
   "account-deletion-title": "Verwijder uw account",
   "account-deletion-description": "Door het account te verwijderen, worden alle gegevens permanent verwijderd en kunnen we deze niet meer ophalen. Als u doorgaat, wordt uw account verwijderd op <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
-  "account-deletion-confirmation-label": "Typ <b>VERWIJDER</b> om te bevestigen",
+  "account-deletion-confirmation-label": "Typ alstublieft <b>{deleteConfirmationText}</b> om te bevestigen",
   "account-deletion-delete-account-button-label": "Account verwijderen",
   "account-deletion-success-title": "Account verwijdering gepland",
   "account-deletion-success-description": "Uw account is gedeactiveerd en de gegevens worden verwijderd op <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",

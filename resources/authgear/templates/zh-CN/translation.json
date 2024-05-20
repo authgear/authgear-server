@@ -500,7 +500,7 @@
   "account-deletion-delete-account-link-label": "删除您的帐户",
   "account-deletion-title": "删除您的帐户",
   "account-deletion-description": "通过删除帐户,所有数据将被永久删除,我们将无法恢复它。如果您继续,您的帐户将在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被删除",
-  "account-deletion-confirmation-label": "请输入<b>DELETE</b>以确认",
+  "account-deletion-confirmation-label": "请输入<b>{deleteConfirmationText}</b>以确认",
   "account-deletion-delete-account-button-label": "删除帐户",
   "account-deletion-success-title": "已计划删除帐户",
   "account-deletion-success-description": "您的帐户已被停用,数据将在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被删除",
