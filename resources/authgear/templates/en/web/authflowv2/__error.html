@@ -221,6 +221,8 @@
       </span>
     {{ else if eq .Error.reason "InvalidWhatsappUser" }}
       <span>{{ template "error-invalid-whatsapp-user" }}</span>
+    {{ else if eq .Error.reason "NoAvailableWhatsappClient" }}
+      <span>{{ template "error-no-available-whatsapp-client" }}</span>
     {{ else if eq .Error.reason "ChangePasswordFailed" }}
       {{ $cause := .Error.info.cause }}
         {{ if (eq $cause.kind "PasswordReused") }}

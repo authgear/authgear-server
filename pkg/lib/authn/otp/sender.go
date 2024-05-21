@@ -319,6 +319,8 @@ func (s *MessageSender) sendWhatsapp(msg *PreparedMessage, opts SendOptions) err
 	err = msg.whatsapp.Send(s.WhatsappService)
 	if errors.Is(err, whatsapp.ErrInvalidUser) {
 		return ErrInvalidWhatsappUser
+	} else if errors.Is(err, whatsapp.ErrNoAvailableClient) {
+		return ErrNoAvailableWhatsappClient
 	} else {
 		return err
 	}
