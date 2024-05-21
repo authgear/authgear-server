@@ -78,6 +78,7 @@
   "error-account-locked--countdown": "Il tuo account è bloccato. Per favore riprova tra <span data-date=\"{rfc3339}\" data-date-type=\"luxon-relative-duration\">{datetime, time, long}</span>.",
   "error-account-locked": "Il tuo account è bloccato. Per favore riprova.",
   "error-invalid-whatsapp-user": "Impossibile inviare il messaggio WhatsApp perché il numero di telefono non è un utente WhatsApp valido.",
+  "error-no-available-whatsapp-client": "La configurazione dell''API WhatsApp è mancante, contatta l''amministratore di sistema.",
   "error-network": "Il tuo dispositivo è offline. Per favore controlla prima la tua connessione di rete.",
   "error-server": "Si è verificato un errore interno del server.",
   "error-invalid-selected-image": "L''immagine selezionata non è valida. Prova con un''altra.",

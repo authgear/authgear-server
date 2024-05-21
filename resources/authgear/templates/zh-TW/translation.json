@@ -78,6 +78,7 @@
   "error-account-locked--countdown": "你的帳戶已被鎖定。請於 <span data-date=\"{rfc3339}\" data-date-type=\"luxon-relative-duration\">{datetime, time, long}</span> 後再試。",
   "error-account-locked": "你的帳戶已被鎖定。",
   "error-invalid-whatsapp-user": "無法傳送 WhatsApp 訊息，因為電話號碼不是有效的 Whatsapp 使用者。",
+  "error-no-available-whatsapp-client": "缺少 WhatsApp API 配置,請聯繫系統管理員。",
   "error-network": "你的裝置是離線狀態。請先檢查你的網絡連線",
   "error-server": "伺服器內部錯誤。",
   "error-invalid-selected-image": "你所選擇的圖片格式有誤。請嘗試使用另一張圖片。",

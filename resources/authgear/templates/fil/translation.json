@@ -78,6 +78,7 @@
   "error-account-locked--countdown": "Ang iyong account ay na-lock out. Pakisubukang muli pagkatapos ng <span data-date=\"{rfc3339}\" data-date-type=\"luxon-relative-duration\">{datetime, time, long}</span>.",
   "error-account-locked": "Ang iyong account ay na-lock out. Pakisubukang muli.",
   "error-invalid-whatsapp-user": "Hindi maibigay ang WhatsApp message dahil ang numero ng telepono ay hindi isang valid na whatsapp user.",
+  "error-no-available-whatsapp-client": "Nawawala ang kumpigurasyon ng WhatsApp API, mangyaring makipag-ugnayan sa system admin.",
   "error-network": "Ang iyong device ay offline. Mangyaring suriin muna ang iyong koneksyon sa network.",
   "error-server": "Ang server ay nakatagpo ng isang internal na error.",
   "error-invalid-selected-image": "Ang napiling imahe ay hindi wasto. Subukang gumamit ng isa pang imahe.",

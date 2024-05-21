@@ -78,6 +78,7 @@
   "error-account-locked--countdown": "Akaun anda telah dikunci. Sila cuba lagi selepas <span data-date=\"{rfc3339}\" data-date-type=\"luxon-relative-duration\">{datetime, time, long}</span>.",
   "error-account-locked": "Akaun anda telah dikunci. Sila cuba lagi.",
   "error-invalid-whatsapp-user": "Gagal menghantar mesej WhatsApp kerana nombor telefon bukan pengguna WhatsApp yang sah.",
+  "error-no-available-whatsapp-client": "Konfigurasi API WhatsApp tiada, sila hubungi pentadbir sistem.",
   "error-network": "Peranti anda di luar talian. Sila semak sambungan rangkaian anda dahulu.",
   "error-server": "Pelayan menghadapi ralat dalaman.",
   "error-invalid-selected-image": "Imej yang dipilih tidak sah. Cuba yang lain.",

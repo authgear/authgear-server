@@ -78,6 +78,7 @@
   "error-account-locked--countdown": "บัญชีของคุณถูกล็อค กรุณาลองใหม่อีกครั้งหลังจาก <span data-date=\"{rfc3339}\" data-date-type=\"luxon-relative-duration\">{datetime, time, long}</span>",
   "error-account-locked": "บัญชีของคุณถูกล็อค กรุณาลองใหม่อีกครั้ง",
   "error-invalid-whatsapp-user": "ไม่สามารถส่งข้อความ WhatsApp ได้เนื่องจากหมายเลขโทรศัพท์ไม่ใช่ผู้ใช้ WhatsApp ที่ถูกต้อง",
+  "error-no-available-whatsapp-client": "ไม่มีการกำหนดค่า WhatsApp API โปรดติดต่อผู้ดูแลระบบ",
   "error-network": "อุปกรณ์ของคุณออฟไลน์ กรุณาตรวจสอบการเชื่อมต่อเครือข่ายของคุณก่อน",
   "error-server": "เซิร์ฟเวอร์พบข้อผิดพลาดภายใน",
   "error-invalid-selected-image": "รูปภาพที่เลือกไม่ถูกต้อง ลองเลือกรูปภาพอื่น",

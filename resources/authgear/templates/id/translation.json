@@ -78,6 +78,7 @@
   "error-account-locked--countdown": "Akun Anda terkunci. Silakan coba lagi setelah <span data-date=\"{rfc3339}\" data-date-type=\"luxon-relative-duration\">{datetime, time, long}</span>.",
   "error-account-locked": "Akun Anda terkunci. Silakan coba lagi.",
   "error-invalid-whatsapp-user": "Gagal mengirim pesan WhatsApp karena nomor telepon bukan pengguna WhatsApp yang valid.",
+  "error-no-available-whatsapp-client": "Konfigurasi API WhatsApp hilang, silakan hubungi admin sistem.",
   "error-network": "Perangkat Anda offline. Silakan periksa koneksi jaringan Anda terlebih dahulu.",
   "error-server": "Server mengalami kesalahan internal.",
   "error-invalid-selected-image": "Gambar yang dipilih tidak valid. Coba yang lain.",

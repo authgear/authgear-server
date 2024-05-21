@@ -78,6 +78,7 @@
   "error-account-locked--countdown": "Ο λογαριασμός σας έχει κλειδωθεί. Παρακαλώ δοκιμάστε ξανά μετά από <span data-date=\"{rfc3339}\" data-date-type=\"luxon-relative-duration\">{datetime, time, long}</span>.",
   "error-account-locked": "Ο λογαριασμός σας έχει κλειδωθεί. Παρακαλώ δοκιμάστε ξανά.",
   "error-invalid-whatsapp-user": "Αποτυχία παράδοσης μηνύματος WhatsApp επειδή ο αριθμός τηλεφώνου δεν είναι έγκυρος χρήστης whatsapp.",
+  "error-no-available-whatsapp-client": "Η διαμόρφωση του WhatsApp API λείπει, παρακαλώ επικοινωνήστε με τον διαχειριστή συστήματος.",
   "error-network": "Η συσκευή σας είναι εκτός σύνδεσης. Παρακαλώ ελέγξτε πρώτα τη σύνδεση δικτύου σας.",
   "error-server": "Ο διακομιστής αντιμετώπισε εσωτερικό σφάλμα.",
   "error-invalid-selected-image": "Η επιλεγμένη εικόνα δεν είναι έγκυρη. Δοκιμάστε μια άλλη.",

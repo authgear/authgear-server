@@ -78,6 +78,7 @@
   "error-account-locked--countdown": "Votre compte est verrouillé. Veuillez réessayer après <span data-date=\"{rfc3339}\" data-date-type=\"luxon-relative-duration\">{datetime, time, long}</span>.",
   "error-account-locked": "Votre compte est verrouillé. Veuillez réessayer.",
   "error-invalid-whatsapp-user": "Échec de la livraison du message WhatsApp car le numéro de téléphone n''est pas un utilisateur WhatsApp valide.",
+  "error-no-available-whatsapp-client": "La configuration de l''API WhatsApp est manquante, veuillez contacter l''administrateur système.",
   "error-network": "Votre appareil est hors ligne. Veuillez d''abord vérifier votre connexion réseau.",
   "error-server": "Le serveur a rencontré une erreur interne.",
   "error-invalid-selected-image": "L''image sélectionnée est invalide. Essayez-en une autre.",

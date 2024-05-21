@@ -78,6 +78,7 @@
   "error-account-locked--countdown": "Sua conta está bloqueada. Por favor, tente novamente após <span data-date=\"{rfc3339}\" data-date-type=\"luxon-relative-duration\">{datetime, time, long}</span>.",
   "error-account-locked": "Sua conta está bloqueada. Por favor, tente novamente.",
   "error-invalid-whatsapp-user": "Falha ao entregar a mensagem do WhatsApp porque o número de telefone não é um usuário válido do WhatsApp.",
+  "error-no-available-whatsapp-client": "A configuração da API do WhatsApp está faltando, entre em contato com o administrador do sistema.",
   "error-network": "Seu dispositivo está off-line. Por favor, verifique sua conexão de rede primeiro.",
   "error-server": "O servidor encontrou um erro interno.",
   "error-invalid-selected-image": "A imagem selecionada é inválida. Tente outra.",
