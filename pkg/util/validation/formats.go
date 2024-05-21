@@ -267,7 +267,7 @@ type FormatDateTime struct{}
 func (FormatDateTime) CheckFormat(value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
-		return fmt.Errorf("date-time must be string")
+		return nil
 	}
 
 	_, err := time.Parse(time.RFC3339, str)
