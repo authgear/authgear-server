@@ -31,6 +31,7 @@ var cmdInit = &cobra.Command{
 			log.Fatalf("invalid input: %s", err.Error())
 			return
 		}
+		phoneOTPMode := config.ReadPhoneOTPMode()
 		skipEmailVerification := config.ReadSkipEmailVerification()
 		var appSecretsOpts *libconfig.GenerateSecretConfigOptions
 		if forHelmChart, err := cmd.Flags().GetBool("for-helm-chart"); err == nil && forHelmChart {
@@ -56,6 +57,15 @@ var cmdInit = &cobra.Command{
 			appConfig.OAuth = &libconfig.OAuthConfig{}
 		}
 		appConfig.OAuth.Clients = append(appConfig.OAuth.Clients, *oauthClientConfig)
+
+		// assign phone otp mode to app config
+		appConfig.Authenticator = &libconfig.AuthenticatorConfig{
+			OOB: &libconfig.AuthenticatorOOBConfig{
+				SMS: &libconfig.AuthenticatorOOBSMSConfig{
+					PhoneOTPMode: phoneOTPMode,
+				},
+			},
+		}
 
 		// assign email verification enabled
 		emailVerificationEnabled := !skipEmailVerification

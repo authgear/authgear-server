@@ -47,6 +47,35 @@ func ReadOAuthClientConfigsFromConsole() (*config.GenerateOAuthClientConfigOptio
 	}, nil
 }
 
+func ReadPhoneOTPMode() config.AuthenticatorPhoneOTPMode {
+	p := promptString{
+		Title:        `Phone OTP Mode (sms, whatsapp, whatsapp_sms)`,
+		DefaultValue: "sms",
+		Validate: func(value string) error {
+			validChoices := []string{"sms", "whatsapp", "whatsapp_sms"}
+			for _, choice := range validChoices {
+				if value == choice {
+					return nil
+				}
+			}
+			return errors.New("must enter 'sms', 'whatsapp', or 'whatsapp_sms'")
+		},
+	}
+	input := p.Prompt()
+
+	switch input {
+	case "sms":
+		return config.AuthenticatorPhoneOTPModeSMSOnly
+	case "whatsapp":
+		return config.AuthenticatorPhoneOTPModeWhatsappOnly
+	case "whatsapp_sms":
+		return config.AuthenticatorPhoneOTPModeWhatsappSMS
+	default:
+		// This case should never be reached due to validation
+		return config.AuthenticatorPhoneOTPModeSMSOnly
+	}
+}
+
 func ReadSkipEmailVerification() bool {
 	return promptBool{
 		Title:        "Would you like to turn off email verification? (In case you don't have SMTP credentials in your initial setup)",
