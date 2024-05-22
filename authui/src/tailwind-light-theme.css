@@ -295,6 +295,14 @@
     border-color: var(--color-text-shaded-2);
   }
 
+  .light-btn--destructive,
+  .light-btn--destructive:focus,
+  .light-btn--destructive:hover,
+  .light-btn--destructive:active {
+    color: var(--color-error-shaded-6);
+    border-color: var(--color-error-shaded-6);
+  }
+
   .action-btn {
     @apply border border-solid;
     color: var(--color-text-unshaded);

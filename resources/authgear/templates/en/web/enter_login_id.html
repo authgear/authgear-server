@@ -11,70 +11,74 @@
 	{{ end }}
 </h1>
 
-{{ if $.IdentityID }}
-<p class="text-sm m-0 break-words secondary-txt text-center">
-	{{ template "enter-login-id-page-description--change" (dict "key" $.LoginIDKey "displayID" $.DisplayID) }}
-</p>
-{{ end }}
+{{/* If new identity or update is allowed, display the input */}}
+{{ $is_input_displayed := or (not $.IdentityID) (and $.IdentityID (not $.UpdateDisabled)) }}
 
-<form id="main-form" class="twc-container-vertical" method="post" novalidate>
+{{ if $is_input_displayed }}
 
-{{ $.CSRFField }}
+	{{ if $.IdentityID }}
+	<p class="text-sm m-0 break-words secondary-txt text-center">
+		{{ template "enter-login-id-page-description--change" (dict "key" $.LoginIDKey "displayID" $.DisplayID) }}
+	</p>
+	{{ end }}
 
-{{ if eq .LoginIDInputType "phone" }}
-<input
-	data-intl-tel-input="true"
-	data-intl-tel-input-class-value="flex flex-row"
-	class="primary-txt text-input w-full"
-	tabindex="0"
-	{{ if $.ShouldFocusInput }}autofocus{{ end }}
-	type="text"
-	inputmode="tel"
-	autocomplete="tel-national"
-	autocapitalize="none"
-	name="q_login_id"
-	placeholder="{{ template "phone-number-placeholder" }}"
-	data-controller="intl-tel-input"
-	data-action="input->intl-tel-input#input countrychange->intl-tel-input#input"
->
-{{ else }}
-<input
-	tabindex="0"
-	{{ if $.ShouldFocusInput }}autofocus{{ end }}
-	class="text-input primary-txt"
-	type="{{ .LoginIDInputType }}"
-	autocomplete="username"
-	autocapitalize="none"
-	name="q_login_id"
-	placeholder="{{ template "login-id-placeholder" (dict "variant" .LoginIDType) }}"
->
+	<form id="main-form" class="twc-container-vertical" method="post" novalidate>
+
+	{{ $.CSRFField }}
+
+	{{ if eq .LoginIDInputType "phone" }}
+	<input
+		data-intl-tel-input="true"
+		data-intl-tel-input-class-value="flex flex-row"
+		class="primary-txt text-input w-full"
+		tabindex="0"
+		{{ if $.ShouldFocusInput }}autofocus{{ end }}
+		type="text"
+		inputmode="tel"
+		autocomplete="tel-national"
+		autocapitalize="none"
+		name="q_login_id"
+		placeholder="{{ template "phone-number-placeholder--new" }}"
+		data-controller="intl-tel-input"
+		data-action="input->intl-tel-input#input countrychange->intl-tel-input#input"
+	>
+	{{ else }}
+	<input
+		tabindex="0"
+		{{ if $.ShouldFocusInput }}autofocus{{ end }}
+		class="text-input primary-txt"
+		type="{{ .LoginIDInputType }}"
+		autocomplete="username"
+		autocapitalize="none"
+		name="q_login_id"
+		placeholder="{{ template "login-id-placeholder--new" (dict "variant" .LoginIDType) }}"
+	>
+	{{ end }}
 {{ end }}
 
 <div class="grid grid-cols-1 auto-rows-auto gap-y-2 mt-5">
-	<button
-		form="main-form"
-		class="btn primary-btn"
-		type="submit"
-		name="x_action"
-		value="add_or_update"
-		data-authgear-event="authgear.button.change_login_id"
-	>{{ template "next-button-label" }}</button>
+	{{ if $is_input_displayed }}
+		<button
+			form="main-form"
+			class="btn primary-btn"
+			type="submit"
+			name="x_action"
+			value="add_or_update"
+			data-authgear-event="authgear.button.change_login_id"
+		>{{ template "next-button-label" }}</button>
+	{{ end }}
 
-	{{ if .IdentityID }}{{ if gt $.IdentityCount 1 }}
-	<button
-		form="remove-form"
-		class="btn secondary-btn text-left text-sm"
-		type="submit"
-		name="x_action"
-		value="remove"
-		data-authgear-event="authgear.button.remove_login_id"
-	>
-		{{ if eq .LoginIDType "username" }}
-		{{ template "remove-button-label" }}
-		{{ else }}
-		{{ template "disconnect-button-label" }}
-		{{ end }}
-	</button>
+	{{ if and .IdentityID (not .DeleteDisabled) }}{{ if gt $.IdentityCount 1 }}
+		<button
+			form="remove-form"
+			class="btn light-btn light-btn--destructive text-left text-sm"
+			type="submit"
+			name="x_action"
+			value="remove"
+			data-authgear-event="authgear.button.remove_login_id"
+		>
+			{{ template "remove-login-id-label" (dict "variant" .LoginIDType) }}
+		</button>
 	{{ end }}{{ end }}
 </div>
 

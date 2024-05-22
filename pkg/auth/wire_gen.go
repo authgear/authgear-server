@@ -17007,6 +17007,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		AuthenticationViewModel: authenticationViewModeler,
 		Renderer:                responseRenderer,
 		Identities:              serviceService,
+		IdentityConfig:          identityConfig,
 	}
 	return enterLoginIDHandler
 }
