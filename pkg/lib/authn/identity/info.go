@@ -281,7 +281,7 @@ func (i *Info) ModifyDisabled(c *config.IdentityConfig) bool {
 		if keyConfig == nil {
 			return true
 		}
-		return *keyConfig.ModifyDisabled
+		return *keyConfig.Deprecated_ModifyDisabled
 	case model.IdentityTypeOAuth:
 		alias := i.OAuth.ProviderAlias
 		var providerConfig oauthrelyingparty.ProviderConfig

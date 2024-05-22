@@ -196,17 +196,23 @@ var _ = Schema.Add("LoginIDKeyConfig", `
 		"key": { "type": "string" },
 		"type": { "$ref": "#/$defs/LoginIDKeyType" },
 		"max_length": { "type": "integer" },
-		"modify_disabled": { "type": "boolean" }
+		"modify_disabled": { "type": "boolean" },
+		"update_disabled": { "type": "boolean" },
+		"create_disabled": { "type": "boolean" },
+		"delete_disabled": { "type": "boolean" }
 	},
 	"required": ["type"]
 }
 `)
 
 type LoginIDKeyConfig struct {
-	Key            string               `json:"key,omitempty"`
-	Type           model.LoginIDKeyType `json:"type,omitempty"`
-	MaxLength      *int                 `json:"max_length,omitempty"`
-	ModifyDisabled *bool                `json:"modify_disabled,omitempty"`
+	Key                       string               `json:"key,omitempty"`
+	Type                      model.LoginIDKeyType `json:"type,omitempty"`
+	MaxLength                 *int                 `json:"max_length,omitempty"`
+	Deprecated_ModifyDisabled *bool                `json:"modify_disabled,omitempty"`
+	UpdateDisabled            *bool                `json:"update_disabled,omitempty"`
+	CreateDisabled            *bool                `json:"create_disabled,omitempty"`
+	DeleteDisabled            *bool                `json:"delete_disabled,omitempty"`
 }
 
 func (c *LoginIDKeyConfig) SetDefaults() {
@@ -232,8 +238,17 @@ func (c *LoginIDKeyConfig) SetDefaults() {
 	if c.Key == "" {
 		c.Key = string(c.Type)
 	}
-	if c.ModifyDisabled == nil {
-		c.ModifyDisabled = newBool(false)
+	if c.Deprecated_ModifyDisabled == nil {
+		c.Deprecated_ModifyDisabled = newBool(false)
+	}
+	if c.UpdateDisabled == nil {
+		c.UpdateDisabled = c.Deprecated_ModifyDisabled
+	}
+	if c.CreateDisabled == nil {
+		c.CreateDisabled = c.Deprecated_ModifyDisabled
+	}
+	if c.DeleteDisabled == nil {
+		c.DeleteDisabled = c.Deprecated_ModifyDisabled
 	}
 }
 

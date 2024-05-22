@@ -84,9 +84,9 @@ func TestProviderListCandidates(t *testing.T) {
 			p.Authentication.Identities = []model.IdentityType{model.IdentityTypeLoginID}
 			p.Identity.LoginID.Keys = []config.LoginIDKeyConfig{
 				{
-					Type:           "email",
-					Key:            "email",
-					ModifyDisabled: newBool(false),
+					Type:                      "email",
+					Key:                       "email",
+					Deprecated_ModifyDisabled: newBool(false),
 				},
 			}
 
@@ -115,9 +115,9 @@ func TestProviderListCandidates(t *testing.T) {
 			}
 			p.Identity.LoginID.Keys = []config.LoginIDKeyConfig{
 				{
-					Type:           "email",
-					Key:            "email",
-					ModifyDisabled: newBool(false),
+					Type:                      "email",
+					Key:                       "email",
+					Deprecated_ModifyDisabled: newBool(false),
 				},
 			}
 
@@ -132,9 +132,9 @@ func TestProviderListCandidates(t *testing.T) {
 			p.Authentication.Identities = []model.IdentityType{model.IdentityTypeLoginID}
 			p.Identity.LoginID.Keys = []config.LoginIDKeyConfig{
 				{
-					Type:           "email",
-					Key:            "email",
-					ModifyDisabled: newBool(false),
+					Type:                      "email",
+					Key:                       "email",
+					Deprecated_ModifyDisabled: newBool(false),
 				},
 			}
 

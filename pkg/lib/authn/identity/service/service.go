@@ -886,7 +886,7 @@ func (s *Service) listLoginIDCandidates(loginIDs []*identity.LoginID) []identity
 			}
 		}
 		canAppend := true
-		if *loginIDKeyConfig.ModifyDisabled && !matched {
+		if *loginIDKeyConfig.Deprecated_ModifyDisabled && !matched {
 			canAppend = false
 		}
 		if canAppend {

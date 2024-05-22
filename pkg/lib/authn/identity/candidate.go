@@ -49,7 +49,7 @@ func NewLoginIDCandidate(c *config.LoginIDKeyConfig) Candidate {
 		CandidateKeyLoginIDKey:     c.Key,
 		CandidateKeyLoginIDValue:   "",
 		CandidateKeyDisplayID:      "",
-		CandidateKeyModifyDisabled: *c.ModifyDisabled,
+		CandidateKeyModifyDisabled: *c.Deprecated_ModifyDisabled,
 	}
 }
 
