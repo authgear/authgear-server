@@ -60,7 +60,7 @@ import FormContainer from "../../FormContainer";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import WidgetDescription from "../../WidgetDescription";
 import Toggle from "../../Toggle";
-import { ErrorParseRule, ParsedAPIError } from "../../error/parse";
+import { ErrorParseRule, ErrorParseRuleResult } from "../../error/parse";
 import { APIError } from "../../error/error";
 import { useDelayedSave } from "../../hook/useDelayedSave";
 
@@ -943,7 +943,7 @@ const UISettingsScreen: React.VFC = function UISettingsScreen() {
   );
 
   const imageSizeTooLargeErrorRule = useCallback(
-    (apiError: APIError): ParsedAPIError[] => {
+    (apiError: APIError): ErrorParseRuleResult => {
       if (apiError.reason === "RequestEntityTooLarge") {
         // When the request is blocked by the load balancer due to RequestEntityTooLarge
         // We try to get the largest resource from the state
@@ -972,17 +972,23 @@ const UISettingsScreen: React.VFC = function UISettingsScreen() {
           }
         }
 
-        return [
-          {
-            messageID: "errors.resource-too-large",
-            arguments: {
-              maxSize: ImageMaxSizeInKB,
-              resourceType,
+        return {
+          parsedAPIErrors: [
+            {
+              messageID: "errors.resource-too-large",
+              arguments: {
+                maxSize: ImageMaxSizeInKB,
+                resourceType,
+              },
             },
-          },
-        ];
+          ],
+          fullyHandled: true,
+        };
       }
-      return [];
+      return {
+        parsedAPIErrors: [],
+        fullyHandled: false,
+      };
     },
     [state.resources]
   );
