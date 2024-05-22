@@ -24,8 +24,8 @@ type EdgeDoCreateIdentity struct {
 
 func (e *EdgeDoCreateIdentity) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	isAdminAPI := interaction.IsAdminAPI(rawInput)
-	modifyDisabled := e.Identity.ModifyDisabled(ctx.Config.Identity)
-	if e.IsAddition && !isAdminAPI && modifyDisabled {
+	createDisabled := e.Identity.CreateDisabled(ctx.Config.Identity)
+	if e.IsAddition && !isAdminAPI && createDisabled {
 		return nil, api.ErrIdentityModifyDisabled
 	}
 
