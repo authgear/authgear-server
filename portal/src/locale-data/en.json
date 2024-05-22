@@ -93,6 +93,7 @@
   "errors.validation.format": "{format, select, email{Please enter an email address} phone{Please enter a phone number} username{Invalid username format} uri{Please enter an URL} wechat_account_id{Wechat account ID starts with gh_} http_origin_spec{An origin is a hostname without userinfo, path, query or fragment. Optionally it can start with http: or https: to enforce a scheme, otherwise HTTP or HTTPS is allowed} x_custom_attribute_pointer{Invalid attribute name} google_tag_manager_container_id{Google Tag Manager Container ID starts with GTM-} other{Invalid format}}",
   "errors.validation.format.duration.nonPositive": "Please enter a positive value",
   "errors.validation.minItems": "Expect at least {expected} items",
+  "errors.validation.minItems.ui.phoneInput.allowList": "Please select at least {expected} country for the phone number settings",
   "errors.validation.uniqueItems": "Expect unique items in the list",
   "errors.validation.minimum": "Expect number larger than or equal to {minimum}",
   "errors.validation.maximum": "Expect number smaller than or equal to {maximum}",

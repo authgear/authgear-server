@@ -98,7 +98,10 @@ import { useTagPickerWithNewTags } from "../../hook/useInput";
 import { fixTagPickerStyles } from "../../bugs";
 import { useResourceForm } from "../../hook/useResourceForm";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
-import { makeValidationErrorMatchUnknownKindParseRule } from "../../error/parse";
+import {
+  makeValidationErrorMatchUnknownKindParseRule,
+  makeValidationErrorCustomMessageIDRule,
+} from "../../error/parse";
 import {
   ensureInteger,
   ensurePositiveNumber,
@@ -145,6 +148,11 @@ const ERROR_RULES = [
     "const",
     /\/authentication\/identities/,
     "errors.validation.passkey"
+  ),
+  makeValidationErrorCustomMessageIDRule(
+    "minItems",
+    /\/ui\/phone_input\/allowlist/,
+    "errors.validation.minItems.ui.phoneInput.allowList"
   ),
 ];
 
