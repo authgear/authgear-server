@@ -250,6 +250,8 @@ func (c *LoginIDKeyConfig) SetDefaults() {
 	if c.DeleteDisabled == nil {
 		c.DeleteDisabled = c.Deprecated_ModifyDisabled
 	}
+
+	c.Deprecated_ModifyDisabled = nil
 }
 
 var _ = Schema.Add("LoginIDKeyType", `

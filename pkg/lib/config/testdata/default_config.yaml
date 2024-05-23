@@ -384,7 +384,6 @@ identity:
       - key: email
         type: email
         max_length: 320
-        modify_disabled: false
         create_disabled: false
         update_disabled: false
         delete_disabled: false
