@@ -29,7 +29,9 @@ export type LoginIDKeyType = typeof loginIDKeyTypes[number];
 export interface LoginIDKeyConfig {
   type: LoginIDKeyType;
   maximum?: number;
-  modify_disabled?: boolean;
+  create_disabled?: boolean;
+  update_disabled?: boolean;
+  delete_disabled?: boolean;
 }
 
 // LoginIDTypesConfig
