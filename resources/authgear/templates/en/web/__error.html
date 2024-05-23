@@ -240,6 +240,8 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
     </li>
     {{ else if eq .Error.reason "InvalidWhatsappUser" }}
     <li>{{ template "error-invalid-whatsapp-user" }}</li>
+    {{ else if eq .Error.reason "NoAvailableWhatsappClient" }}
+    <li>{{ template "error-no-available-whatsapp-client" }}</li>
     {{ else if eq .Error.reason "ChangePasswordFailed" }}
       {{ $cause := .Error.info.cause }}
         {{ if (eq $cause.kind "PasswordReused") }}

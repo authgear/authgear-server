@@ -78,6 +78,7 @@
   "error-account-locked--countdown": "Your account is locked out. Please try again after <span data-date=\"{rfc3339}\" data-date-type=\"luxon-relative-duration\">{datetime, time, long}</span>.",
   "error-account-locked": "Your account is locked out. Please try again.",
   "error-invalid-whatsapp-user": "Failed to deliver WhatsApp message because the phone number is not a valid whatsapp user.",
+  "error-no-available-whatsapp-client": "WhatsApp API configuration is missing, please contact system admin.",
   "error-network": "Your device is offline. Please check your network connection first.",
   "error-server": "Server encountered an internal error.",
   "error-invalid-selected-image": "The selected image is invalid. Try another one.",

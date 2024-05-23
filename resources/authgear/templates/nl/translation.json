@@ -78,6 +78,7 @@
   "error-account-locked--countdown": "Uw account is geblokkeerd. Probeer het opnieuw na <span data-date=\"{rfc3339}\" data-date-type=\"luxon-relative-duration\">{datetime, time, long}</span>.",
   "error-account-locked": "Uw account is geblokkeerd. Probeer het opnieuw.",
   "error-invalid-whatsapp-user": "Kan WhatsApp-bericht niet bezorgen omdat het telefoonnummer geen geldige WhatsApp-gebruiker is.",
+  "error-no-available-whatsapp-client": "WhatsApp API-configuratie ontbreekt, neem contact op met de systeembeheerder.",
   "error-network": "Uw apparaat is offline. Controleer eerst uw netwerkverbinding.",
   "error-server": "De server heeft een interne fout aangetroffen.",
   "error-invalid-selected-image": "De geselecteerde afbeelding is ongeldig. Probeer een andere.",

@@ -78,6 +78,7 @@
   "error-account-locked--countdown": "Tài khoản của bạn đã bị khóa. Vui lòng thử lại sau <span data-date=\"{rfc3339}\" data-date-type=\"luxon-relative-duration\">{datetime, time, long}</span>.",
   "error-account-locked": "Tài khoản của bạn đã bị khóa. Vui lòng thử lại.",
   "error-invalid-whatsapp-user": "Không thể gửi tin nhắn WhatsApp vì số điện thoại không phải là người dùng WhatsApp hợp lệ.",
+  "error-no-available-whatsapp-client": "Thiếu cấu hình API WhatsApp, vui lòng liên hệ với quản trị viên hệ thống.",
   "error-network": "Thiết bị của bạn đang ngoại tuyến. Vui lòng kiểm tra kết nối mạng của bạn trước.",
   "error-server": "Máy chủ gặp lỗi nội bộ.",
   "error-invalid-selected-image": "Hình ảnh đã chọn không hợp lệ. Hãy thử một hình ảnh khác.",

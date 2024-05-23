@@ -78,6 +78,7 @@
   "error-account-locked--countdown": "アカウントがロックアウトされています。<span data-date=\"{rfc3339}\" data-date-type=\"luxon-relative-duration\">{datetime, time, long}</span>後に再試行してください。",
   "error-account-locked": "アカウントがロックアウトされています。後で再試行してください。",
   "error-invalid-whatsapp-user": "WhatsAppメッセージの配信に失敗しました。電話番号が有効なWhatsAppユーザーではありません。",
+  "error-no-available-whatsapp-client": "WhatsAppのAPI設定がありません。システム管理者に連絡してください。",
   "error-network": "デバイスがオフラインです。ネットワーク接続を確認してください。",
   "error-server": "サーバーで内部エラーが発生しました。",
   "error-invalid-selected-image": "選択した画像が無効です。別の画像を試してください。",

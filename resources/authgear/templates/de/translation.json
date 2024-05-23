@@ -78,6 +78,7 @@
   "error-account-locked--countdown": "Ihr Konto ist gesperrt. Bitte versuchen Sie es nach <span data-date=\"{rfc3339}\" data-date-type=\"luxon-relative-duration\">{datetime, time, long}</span> erneut.",
   "error-account-locked": "Ihr Konto ist gesperrt. Bitte versuchen Sie es erneut.",
   "error-invalid-whatsapp-user": "Die Zustellung der WhatsApp-Nachricht ist fehlgeschlagen, da die Telefonnummer kein gültiger WhatsApp-Nutzer ist.",
+  "error-no-available-whatsapp-client": "WhatsApp-API-Konfiguration fehlt, bitte wenden Sie sich an den Systemadministrator.",
   "error-network": "Ihr Gerät ist offline. Bitte überprüfen Sie zuerst Ihre Netzwerkverbindung.",
   "error-server": "Der Server hat einen internen Fehler festgestellt.",
   "error-invalid-selected-image": "Das ausgewählte Bild ist ungültig. Versuchen Sie es mit einem anderen Bild.",

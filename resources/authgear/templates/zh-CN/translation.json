@@ -78,6 +78,7 @@
   "error-account-locked--countdown": "您的帐户已被锁定。请在 <span data-date=\"{rfc3339}\" data-date-type=\"luxon-relative-duration\">{datetime, time, long}</span> 后重试。",
   "error-account-locked": "您的帐户已被锁定。请重试。",
   "error-invalid-whatsapp-user": "无法交付 WhatsApp 消息,因为电话号码不是有效的 WhatsApp 用户。",
+  "error-no-available-whatsapp-client": "缺少WhatsApp API配置,请联系系统管理员。",
   "error-network": "您的设备处于离线状态。请先检查您的网络连接。",
   "error-server": "服务器遇到内部错误。",
   "error-invalid-selected-image": "所选图像无效。请尝试另一个。",
