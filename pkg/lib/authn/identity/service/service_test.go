@@ -75,7 +75,9 @@ func TestProviderListCandidates(t *testing.T) {
 					"provider_alias":      "google",
 					"provider_subject_id": "",
 					"provider_app_type":   "",
-					"modify_disabled":     false,
+					"create_disabled":     false,
+					"update_disabled":     false,
+					"delete_disabled":     false,
 				},
 			})
 		})
@@ -102,7 +104,9 @@ func TestProviderListCandidates(t *testing.T) {
 					"login_id_type":   "email",
 					"login_id_key":    "email",
 					"login_id_value":  "",
-					"modify_disabled": false,
+					"create_disabled": false,
+					"update_disabled": false,
+					"delete_disabled": false,
 				},
 			})
 		})
@@ -167,7 +171,9 @@ func TestProviderListCandidates(t *testing.T) {
 					"login_id_type":   "email",
 					"login_id_key":    "email",
 					"login_id_value":  "john.doe@example.com",
-					"modify_disabled": false,
+					"create_disabled": false,
+					"update_disabled": false,
+					"delete_disabled": false,
 				},
 			})
 		})
@@ -210,7 +216,9 @@ func TestProviderListCandidates(t *testing.T) {
 					"provider_alias":      "google",
 					"provider_subject_id": "john.doe@gmail.com",
 					"provider_app_type":   "",
-					"modify_disabled":     false,
+					"create_disabled":     false,
+					"update_disabled":     false,
+					"delete_disabled":     false,
 				},
 			})
 		})
