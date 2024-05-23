@@ -289,25 +289,36 @@ func (s *MessageSender) sendSMS(msg *PreparedMessage, opts SendOptions) error {
 	return msg.sms.Send()
 }
 
-func (s *MessageSender) sendWhatsapp(msg *PreparedMessage, opts SendOptions) error {
+func (s *MessageSender) sendWhatsapp(msg *PreparedMessage, opts SendOptions) (err error) {
+	// Rewrite the error to be APIError.
+	defer func() {
+		if err != nil {
+			if errors.Is(err, whatsapp.ErrInvalidUser) {
+				err = ErrInvalidWhatsappUser
+			} else if errors.Is(err, whatsapp.ErrNoAvailableClient) {
+				err = ErrNoAvailableWhatsappClient
+			}
+		}
+	}()
+
 	ctx, err := s.setupTemplateContext(msg, opts)
 	if err != nil {
-		return err
+		return
 	}
 
 	language, err := s.WhatsappService.ResolveOTPTemplateLanguage()
 	if err != nil {
-		return err
+		return
 	}
 
 	data, err := s.Translation.WhatsappMessageData(language, msg.spec, ctx)
 	if err != nil {
-		return err
+		return
 	}
 
 	prepared, err := s.WhatsappService.PrepareOTPTemplate(language, data.Body, opts.OTP)
 	if err != nil {
-		return err
+		return
 	}
 
 	msg.whatsapp.Options.TemplateName = prepared.TemplateName
@@ -317,11 +328,9 @@ func (s *MessageSender) sendWhatsapp(msg *PreparedMessage, opts SendOptions) err
 	msg.whatsapp.Options.Namespace = prepared.Namespace
 
 	err = msg.whatsapp.Send(s.WhatsappService)
-	if errors.Is(err, whatsapp.ErrInvalidUser) {
-		return ErrInvalidWhatsappUser
-	} else if errors.Is(err, whatsapp.ErrNoAvailableClient) {
-		return ErrNoAvailableWhatsappClient
-	} else {
-		return err
+	if err != nil {
+		return
 	}
+
+	return
 }
