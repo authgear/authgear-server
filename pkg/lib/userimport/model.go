@@ -45,6 +45,7 @@ func init() {
 
 		password := validation.SchemaBuilder{}.
 			Type(validation.TypeObject).
+			AdditionalPropertiesFalse().
 			Required("type", "password_hash")
 		password.Properties().
 			Property("type", validation.SchemaBuilder{}.Type(validation.TypeString).Enum("bcrypt")).
@@ -53,12 +54,14 @@ func init() {
 
 		totp := validation.SchemaBuilder{}.
 			Type(validation.TypeObject).
+			AdditionalPropertiesFalse().
 			Required("secret")
 		totp.Properties().
 			Property("secret", str)
 
 		mfa := validation.SchemaBuilder{}.
-			Type(validation.TypeObject)
+			Type(validation.TypeObject).
+			AdditionalPropertiesFalse()
 		mfa.Properties().
 			Property("email", nullString).
 			Property("phone_number", nullString).

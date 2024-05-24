@@ -760,6 +760,67 @@ func TestRecordSchema(t *testing.T) {
 }
 		`
 
+	Convey("Record JSON schema for password", t, func() {
+		test := func(recordString string, errorString string) {
+			var record Record
+			r, _ := http.NewRequest("POST", "/", strings.NewReader(recordString))
+			r.Header.Set("Content-Type", "application/json")
+			w := httptest.NewRecorder()
+
+			err := httputil.BindJSONBody(r, w, RecordSchemaForIdentifierEmail.Validator(), &record)
+			if errorString == "" {
+				So(err, ShouldBeNil)
+			} else {
+				So(err, ShouldBeError, errorString)
+			}
+		}
+
+		test(`{
+			"email": "user@example.com",
+			"password": {
+				"unknown": 1
+			}
+		}`, `invalid request body:
+/password: required
+  map[actual:[unknown] expected:[password_hash type] missing:[password_hash type]]
+/password/unknown: `)
+	})
+
+	Convey("Record JSON schema for mfa", t, func() {
+		test := func(recordString string, errorString string) {
+			var record Record
+			r, _ := http.NewRequest("POST", "/", strings.NewReader(recordString))
+			r.Header.Set("Content-Type", "application/json")
+			w := httptest.NewRecorder()
+
+			err := httputil.BindJSONBody(r, w, RecordSchemaForIdentifierEmail.Validator(), &record)
+			if errorString == "" {
+				So(err, ShouldBeNil)
+			} else {
+				So(err, ShouldBeError, errorString)
+			}
+		}
+
+		test(`{
+			"email": "user@example.com",
+			"mfa": {
+				"unknown": 1
+			}
+		}`, `invalid request body:
+/mfa/unknown: `)
+
+		test(`{
+			"email": "user@example.com",
+			"mfa": {
+				"totp": {
+					"secret": "a",
+					"unknown": 1
+				}
+			}
+		}`, `invalid request body:
+/mfa/totp/unknown: `)
+	})
+
 	Convey("Record JSON Schema for email", t, func() {
 		test := func(recordString string, errorString string) {
 			var record Record
