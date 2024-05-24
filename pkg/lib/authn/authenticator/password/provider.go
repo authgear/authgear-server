@@ -54,10 +54,11 @@ func (p *Provider) New(id string, userID string, passwordSpec *authenticator.Pas
 		id = uuid.New()
 	}
 	authen := &authenticator.Password{
-		ID:        id,
-		UserID:    userID,
-		IsDefault: isDefault,
-		Kind:      kind,
+		ID:          id,
+		UserID:      userID,
+		IsDefault:   isDefault,
+		Kind:        kind,
+		ExpireAfter: passwordSpec.ExpireAfter,
 	}
 
 	switch {
@@ -158,6 +159,7 @@ func (p *Provider) Authenticate(a *authenticator.Password, password string) (ver
 func (p *Provider) UpdatePassword(a *authenticator.Password) error {
 	now := p.Clock.NowUTC()
 	a.UpdatedAt = now
+	a.ExpireAfter = nil
 
 	err := p.Store.UpdatePasswordHash(a)
 	if err != nil {

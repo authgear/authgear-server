@@ -34,6 +34,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["wechat_account_id"] = FormatWeChatAccountID{}
 	jsonschemaformat.DefaultChecker["bcp47"] = FormatBCP47{}
 	jsonschemaformat.DefaultChecker["timezone"] = FormatTimezone{}
+	jsonschemaformat.DefaultChecker["date-time"] = FormatDateTime{}
 	jsonschemaformat.DefaultChecker["birthdate"] = FormatBirthdate{}
 	jsonschemaformat.DefaultChecker["iso3166-1-alpha-2"] = FormatAlpha2{}
 	jsonschemaformat.DefaultChecker["x_totp_code"] = secretcode.OOBOTPSecretCode
@@ -256,6 +257,22 @@ func (FormatTimezone) CheckFormat(value interface{}) error {
 	_, err := time.LoadLocation(str)
 	if err != nil {
 		return fmt.Errorf("invalid timezone name: %w", err)
+	}
+
+	return nil
+}
+
+type FormatDateTime struct{}
+
+func (FormatDateTime) CheckFormat(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+
+	_, err := time.Parse(time.RFC3339, str)
+	if err != nil {
+		return fmt.Errorf("date-time must be in rfc3999 format")
 	}
 
 	return nil

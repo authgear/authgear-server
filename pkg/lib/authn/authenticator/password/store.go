@@ -27,6 +27,7 @@ func (s *Store) selectQuery() db.SelectBuilder {
 			"a.is_default",
 			"a.kind",
 			"ap.password_hash",
+			"ap.expire_after",
 		).
 		From(s.SQLBuilder.TableName("_auth_authenticator"), "a").
 		Join(s.SQLBuilder.TableName("_auth_authenticator_password"), "ap", "a.id = ap.id")
@@ -43,6 +44,7 @@ func (s *Store) scan(scn db.Scanner) (*authenticator.Password, error) {
 		&a.IsDefault,
 		&a.Kind,
 		&a.PasswordHash,
+		&a.ExpireAfter,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, authenticator.ErrAuthenticatorNotFound
@@ -157,10 +159,12 @@ func (s *Store) Create(a *authenticator.Password) (err error) {
 		Columns(
 			"id",
 			"password_hash",
+			"expire_after",
 		).
 		Values(
 			a.ID,
 			a.PasswordHash,
+			a.ExpireAfter,
 		)
 	_, err = s.SQLExecutor.ExecWith(q)
 	if err != nil {
@@ -174,6 +178,7 @@ func (s *Store) UpdatePasswordHash(a *authenticator.Password) error {
 	q := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_authenticator_password")).
 		Set("password_hash", a.PasswordHash).
+		Set("expire_after", a.ExpireAfter).
 		Where("id = ?", a.ID)
 	_, err := s.SQLExecutor.ExecWith(q)
 	if err != nil {

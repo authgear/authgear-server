@@ -45,19 +45,23 @@ func init() {
 
 		password := validation.SchemaBuilder{}.
 			Type(validation.TypeObject).
+			AdditionalPropertiesFalse().
 			Required("type", "password_hash")
 		password.Properties().
 			Property("type", validation.SchemaBuilder{}.Type(validation.TypeString).Enum("bcrypt")).
-			Property("password_hash", str)
+			Property("password_hash", str).
+			Property("expire_after", validation.SchemaBuilder{}.Type(validation.TypeString).Format("date-time"))
 
 		totp := validation.SchemaBuilder{}.
 			Type(validation.TypeObject).
+			AdditionalPropertiesFalse().
 			Required("secret")
 		totp.Properties().
 			Property("secret", str)
 
 		mfa := validation.SchemaBuilder{}.
-			Type(validation.TypeObject)
+			Type(validation.TypeObject).
+			AdditionalPropertiesFalse()
 		mfa.Properties().
 			Property("email", nullString).
 			Property("phone_number", nullString).
@@ -227,6 +231,21 @@ func (m Password) Type() string {
 
 func (m Password) PasswordHash() string {
 	return m["password_hash"].(string)
+}
+
+func (m Password) ExpireAfter() *time.Time {
+	var dt interface{}
+	var ok bool
+	if dt, ok = m["expire_after"]; !ok {
+		return nil
+	}
+	t, err := time.Parse(time.RFC3339, dt.(string))
+	if err != nil {
+		// The json schema validation should already ensure it is in correct format.
+		// If it is not valid, it should be a panic.
+		panic(err)
+	}
+	return &t
 }
 
 func (m Password) Redact() {

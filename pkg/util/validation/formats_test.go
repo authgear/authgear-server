@@ -284,3 +284,16 @@ func TestFormatBase64URL(t *testing.T) {
 		So(f("a\nA"), ShouldBeNil)
 	})
 }
+
+func TestFormatDateTime(t *testing.T) {
+	f := FormatDateTime{}.CheckFormat
+
+	Convey("TestFormatDateTime", t, func() {
+		So(f(1), ShouldBeNil)
+		So(f("2024-05-17T08:08:13.26635Z"), ShouldBeNil)
+		So(f("2024-05-17T08:08:13Z"), ShouldBeNil)
+		So(f("2024-05-17T08:08:13.26635+08:00"), ShouldBeNil)
+
+		So(f(""), ShouldBeError, `date-time must be in rfc3999 format`)
+	})
+}
