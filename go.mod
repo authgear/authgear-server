@@ -36,7 +36,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/lithdew/quickjs v0.0.0-20200714182134-aaa42285c9d2
 	github.com/njern/gonexmo v2.0.0+incompatible
-	github.com/nyaruka/phonenumbers v1.2.2
+	github.com/nyaruka/phonenumbers v1.3.5
 	github.com/oschwald/geoip2-golang v1.9.0
 	github.com/pquerna/otp v1.4.0
 	github.com/rubenv/sql-migrate v1.5.2
@@ -90,7 +90,7 @@ require (
 	github.com/twilio/twilio-go v1.15.1
 	github.com/yudai/gojsondiff v1.0.0
 	go.uber.org/automaxprocs v1.5.3
-	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa
+	golang.org/x/exp v0.0.0-20231214170342-aacd6d4b4611
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -194,7 +194,7 @@ require (
 	golang.org/x/sync v0.5.0 // indirect
 	golang.org/x/sys v0.19.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
-	golang.org/x/tools v0.15.0 // indirect
+	golang.org/x/tools v0.16.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20231016165738-49dd2c1f3d0b // indirect
