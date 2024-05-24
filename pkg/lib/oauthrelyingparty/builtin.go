@@ -1,11 +1,5 @@
 package oauthrelyingparty
 
-import (
-	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
-
-	"github.com/authgear/authgear-server/pkg/util/validation"
-)
-
 const (
 	TypeGoogle     = "google"
 	TypeFacebook   = "facebook"
@@ -28,8 +22,4 @@ var BuiltinProviderTypes = []string{
 	TypeADFS,
 	TypeApple,
 	TypeWechat,
-}
-
-type BuiltinProvider interface {
-	ValidateProviderConfig(ctx *validation.Context, providerConfig oauthrelyingparty.ProviderConfig)
 }

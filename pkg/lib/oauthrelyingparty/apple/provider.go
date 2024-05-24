@@ -38,34 +38,6 @@ func (c ProviderConfig) KeyID() string {
 }
 
 var _ oauthrelyingparty.Provider = Apple{}
-var _ liboauthrelyingparty.BuiltinProvider = Apple{}
-
-var Schema = validation.NewSimpleSchema(`
-{
-	"type": "object",
-	"properties": {
-		"type": { "type": "string" },
-		"client_id": { "type": "string", "minLength": 1 },
-		"claims": {
-			"type": "object",
-			"additionalProperties": false,
-			"properties": {
-				"email": {
-					"type": "object",
-					"additionalProperties": false,
-					"properties": {
-						"assume_verified": { "type": "boolean" },
-						"required": { "type": "boolean" }
-					}
-				}
-			}
-		},
-		"key_id": { "type": "string" },
-		"team_id": { "type": "string" }
-	},
-	"required": ["type", "client_id", "key_id", "team_id"]
-}
-`)
 
 var appleOIDCConfig = oauthrelyingpartyutil.OIDCDiscoveryDocument{
 	JWKSUri:               "https://appleid.apple.com/auth/keys",
@@ -75,8 +47,25 @@ var appleOIDCConfig = oauthrelyingpartyutil.OIDCDiscoveryDocument{
 
 type Apple struct{}
 
-func (Apple) ValidateProviderConfig(ctx *validation.Context, cfg oauthrelyingparty.ProviderConfig) {
-	ctx.AddError(Schema.Validator().ValidateValue(cfg))
+func (Apple) GetJSONSchema() map[string]interface{} {
+	builder := validation.SchemaBuilder{}
+	builder.Type(validation.TypeObject)
+	builder.Properties().
+		Property("type", validation.SchemaBuilder{}.Type(validation.TypeString)).
+		Property("client_id", validation.SchemaBuilder{}.Type(validation.TypeString).MinLength(1)).
+		Property("claims", validation.SchemaBuilder{}.Type(validation.TypeObject).
+			AdditionalPropertiesFalse().
+			Properties().
+			Property("email", validation.SchemaBuilder{}.Type(validation.TypeObject).
+				AdditionalPropertiesFalse().Properties().
+				Property("assume_verified", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
+				Property("required", validation.SchemaBuilder{}.Type(validation.TypeBoolean)),
+			),
+		).
+		Property("key_id", validation.SchemaBuilder{}.Type(validation.TypeString)).
+		Property("team_id", validation.SchemaBuilder{}.Type(validation.TypeString))
+	builder.Required("type", "client_id", "key_id", "team_id")
+	return builder
 }
 
 func (Apple) SetDefaults(cfg oauthrelyingparty.ProviderConfig) {

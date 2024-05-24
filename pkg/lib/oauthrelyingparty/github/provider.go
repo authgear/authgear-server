@@ -24,32 +24,6 @@ func init() {
 const Type = liboauthrelyingparty.TypeGithub
 
 var _ oauthrelyingparty.Provider = Github{}
-var _ liboauthrelyingparty.BuiltinProvider = Github{}
-
-var Schema = validation.NewSimpleSchema(`
-{
-	"type": "object",
-	"properties": {
-		"type": { "type": "string" },
-		"client_id": { "type": "string", "minLength": 1 },
-		"claims": {
-			"type": "object",
-			"additionalProperties": false,
-			"properties": {
-				"email": {
-					"type": "object",
-					"additionalProperties": false,
-					"properties": {
-						"assume_verified": { "type": "boolean" },
-						"required": { "type": "boolean" }
-					}
-				}
-			}
-		}
-	},
-	"required": ["type", "client_id"]
-}
-`)
 
 const (
 	githubAuthorizationURL string = "https://github.com/login/oauth/authorize"
@@ -60,8 +34,23 @@ const (
 
 type Github struct{}
 
-func (Github) ValidateProviderConfig(ctx *validation.Context, cfg oauthrelyingparty.ProviderConfig) {
-	ctx.AddError(Schema.Validator().ValidateValue(cfg))
+func (Github) GetJSONSchema() map[string]interface{} {
+	builder := validation.SchemaBuilder{}
+	builder.Type(validation.TypeObject)
+	builder.Properties().
+		Property("type", validation.SchemaBuilder{}.Type(validation.TypeString)).
+		Property("client_id", validation.SchemaBuilder{}.Type(validation.TypeString).MinLength(1)).
+		Property("claims", validation.SchemaBuilder{}.Type(validation.TypeObject).
+			AdditionalPropertiesFalse().
+			Properties().
+			Property("email", validation.SchemaBuilder{}.Type(validation.TypeObject).
+				AdditionalPropertiesFalse().Properties().
+				Property("assume_verified", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
+				Property("required", validation.SchemaBuilder{}.Type(validation.TypeBoolean)),
+			),
+		)
+	builder.Required("type", "client_id")
+	return builder
 }
 
 func (Github) SetDefaults(cfg oauthrelyingparty.ProviderConfig) {
