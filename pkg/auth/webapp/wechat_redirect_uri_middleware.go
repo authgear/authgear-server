@@ -66,7 +66,7 @@ func (m *WeChatRedirectURIMiddleware) Handle(next http.Handler) http.Handler {
 
 func (m *WeChatRedirectURIMiddleware) isWechatEnabled() bool {
 	for _, providerConfig := range m.IdentityConfig.OAuth.Providers {
-		if providerConfig.Type() == oauthrelyingpartywechat.Type {
+		if providerConfig.AsProviderConfig().Type() == oauthrelyingpartywechat.Type {
 			return true
 		}
 	}
@@ -83,7 +83,7 @@ func (m *WeChatRedirectURIMiddleware) populateWechatRedirectURI(
 		// Validate x_wechat_redirect_uri
 		valid := false
 		for _, providerConfig := range m.IdentityConfig.OAuth.Providers {
-			if providerConfig.Type() == oauthrelyingpartywechat.Type {
+			if providerConfig.AsProviderConfig().Type() == oauthrelyingpartywechat.Type {
 				for _, allowed := range oauthrelyingpartywechat.ProviderConfig(providerConfig).WechatRedirectURIs() {
 					if weChatRedirectURI == allowed {
 						valid = true

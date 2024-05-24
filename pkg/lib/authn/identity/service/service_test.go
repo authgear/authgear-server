@@ -56,11 +56,12 @@ func TestProviderListCandidates(t *testing.T) {
 
 		Convey("oauth", func() {
 			p.Authentication.Identities = []model.IdentityType{model.IdentityTypeOAuth}
-			p.Identity.OAuth.Providers = []oauthrelyingparty.ProviderConfig{
+			p.Identity.OAuth.Providers = []config.OAuthSSOProviderConfig{
 				{
 					"alias":           "google",
 					"type":            google.Type,
-					"modify_disabled": false,
+					"create_disabled": false,
+					"delete_disabled": false,
 				},
 			}
 
@@ -76,7 +77,7 @@ func TestProviderListCandidates(t *testing.T) {
 					"provider_subject_id": "",
 					"provider_app_type":   "",
 					"create_disabled":     false,
-					"update_disabled":     false,
+					"update_disabled":     true,
 					"delete_disabled":     false,
 				},
 			})
@@ -112,11 +113,12 @@ func TestProviderListCandidates(t *testing.T) {
 		})
 
 		Convey("respect authentication", func() {
-			p.Identity.OAuth.Providers = []oauthrelyingparty.ProviderConfig{
+			p.Identity.OAuth.Providers = []config.OAuthSSOProviderConfig{
 				{
 					"alias":           "google",
 					"type":            google.Type,
-					"modify_disabled": false,
+					"create_disabled": false,
+					"delete_disabled": false,
 				},
 			}
 			p.Identity.LoginID.Keys = []config.LoginIDKeyConfig{
@@ -182,11 +184,12 @@ func TestProviderListCandidates(t *testing.T) {
 			userID := "a"
 
 			p.Authentication.Identities = []model.IdentityType{model.IdentityTypeOAuth}
-			p.Identity.OAuth.Providers = []oauthrelyingparty.ProviderConfig{
+			p.Identity.OAuth.Providers = []config.OAuthSSOProviderConfig{
 				{
 					"alias":           "google",
 					"type":            google.Type,
-					"modify_disabled": false,
+					"create_disabled": false,
+					"delete_disabled": false,
 				},
 			}
 
@@ -217,7 +220,7 @@ func TestProviderListCandidates(t *testing.T) {
 					"provider_subject_id": "john.doe@gmail.com",
 					"provider_app_type":   "",
 					"create_disabled":     false,
-					"update_disabled":     false,
+					"update_disabled":     true,
 					"delete_disabled":     false,
 				},
 			})

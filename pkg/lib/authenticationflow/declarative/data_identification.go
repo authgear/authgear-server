@@ -51,10 +51,10 @@ func NewIdentificationOptionLoginID(i config.AuthenticationFlowIdentification) I
 func NewIdentificationOptionsOAuth(oauthConfig *config.OAuthSSOConfig, oauthFeatureConfig *config.OAuthSSOProvidersFeatureConfig) []IdentificationOption {
 	output := []IdentificationOption{}
 	for _, p := range oauthConfig.Providers {
-		if !identity.IsOAuthSSOProviderTypeDisabled(p, oauthFeatureConfig) {
+		if !identity.IsOAuthSSOProviderTypeDisabled(p.AsProviderConfig(), oauthFeatureConfig) {
 			output = append(output, IdentificationOption{
 				Identification: config.AuthenticationFlowIdentificationOAuth,
-				ProviderType:   p.Type(),
+				ProviderType:   p.AsProviderConfig().Type(),
 				Alias:          p.Alias(),
 				WechatAppType:  wechat.ProviderConfig(p).AppType(),
 			})

@@ -154,9 +154,10 @@ func (c *AppConfig) validateOAuthProvider(ctx *validation.Context) {
 		oauthProviderAliases[alias] = struct{}{}
 
 		// Validate provider config if it is a builin provider.
-		provider := providerConfig.MustGetProvider()
+		// TODO(tung): ValidateProviderConfig should be defined in external package?
+		provider := providerConfig.AsProviderConfig().MustGetProvider()
 		if builtinProvider, ok := provider.(liboauthrelyingparty.BuiltinProvider); ok {
-			builtinProvider.ValidateProviderConfig(childCtx, providerConfig)
+			builtinProvider.ValidateProviderConfig(childCtx, providerConfig.AsProviderConfig())
 		}
 	}
 }

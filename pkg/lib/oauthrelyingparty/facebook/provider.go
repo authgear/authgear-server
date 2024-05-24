@@ -24,11 +24,8 @@ var _ liboauthrelyingparty.BuiltinProvider = Facebook{}
 var Schema = validation.NewSimpleSchema(`
 {
 	"type": "object",
-	"additionalProperties": false,
 	"properties": {
-		"alias": { "type": "string" },
 		"type": { "type": "string" },
-		"modify_disabled": { "type": "boolean" },
 		"client_id": { "type": "string", "minLength": 1 },
 		"claims": {
 			"type": "object",
@@ -45,7 +42,7 @@ var Schema = validation.NewSimpleSchema(`
 			}
 		}
 	},
-	"required": ["alias", "type", "client_id"]
+	"required": ["type", "client_id"]
 }
 `)
 
@@ -63,7 +60,6 @@ func (Facebook) ValidateProviderConfig(ctx *validation.Context, cfg oauthrelying
 }
 
 func (Facebook) SetDefaults(cfg oauthrelyingparty.ProviderConfig) {
-	cfg.SetDefaultsModifyDisabledFalse()
 	cfg.SetDefaultsEmailClaimConfig(oauthrelyingpartyutil.Email_AssumeVerified_Required())
 }
 

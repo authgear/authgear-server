@@ -26,7 +26,7 @@ type InputUseIdentityOAuthProvider interface {
 type EdgeUseIdentityOAuthProvider struct {
 	IsAuthentication bool
 	IsCreating       bool
-	Configs          []oauthrelyingparty.ProviderConfig
+	Configs          []config.OAuthSSOProviderConfig
 	FeatureConfig    *config.OAuthSSOProvidersFeatureConfig
 }
 
@@ -34,7 +34,7 @@ func (e *EdgeUseIdentityOAuthProvider) GetIdentityCandidates() []identity.Candid
 	candidates := []identity.Candidate{}
 	for _, c := range e.Configs {
 		conf := c
-		if !identity.IsOAuthSSOProviderTypeDisabled(conf, e.FeatureConfig) {
+		if !identity.IsOAuthSSOProviderTypeDisabled(conf.AsProviderConfig(), e.FeatureConfig) {
 			candidates = append(candidates, identity.NewOAuthCandidate(conf))
 		}
 	}
@@ -48,9 +48,9 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 	}
 
 	alias := input.GetProviderAlias()
-	var oauthConfig oauthrelyingparty.ProviderConfig
+	var oauthConfig config.OAuthSSOProviderConfig
 	for _, c := range e.Configs {
-		if identity.IsOAuthSSOProviderTypeDisabled(c, e.FeatureConfig) {
+		if identity.IsOAuthSSOProviderTypeDisabled(c.AsProviderConfig(), e.FeatureConfig) {
 			continue
 		}
 		if c.Alias() == alias {
@@ -110,12 +110,12 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 }
 
 type NodeUseIdentityOAuthProvider struct {
-	IsAuthentication bool                             `json:"is_authentication"`
-	IsCreating       bool                             `json:"is_creating"`
-	Config           oauthrelyingparty.ProviderConfig `json:"provider_config"`
-	HashedNonce      string                           `json:"hashed_nonce"`
-	ErrorRedirectURI string                           `json:"error_redirect_uri"`
-	RedirectURI      string                           `json:"redirect_uri"`
+	IsAuthentication bool                          `json:"is_authentication"`
+	IsCreating       bool                          `json:"is_creating"`
+	Config           config.OAuthSSOProviderConfig `json:"provider_config"`
+	HashedNonce      string                        `json:"hashed_nonce"`
+	ErrorRedirectURI string                        `json:"error_redirect_uri"`
+	RedirectURI      string                        `json:"redirect_uri"`
 }
 
 // GetRedirectURI implements RedirectURIGetter.

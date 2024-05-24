@@ -23,11 +23,8 @@ var _ liboauthrelyingparty.BuiltinProvider = Google{}
 var Schema = validation.NewSimpleSchema(`
 {
 	"type": "object",
-	"additionalProperties": false,
 	"properties": {
-		"alias": { "type": "string" },
 		"type": { "type": "string" },
-		"modify_disabled": { "type": "boolean" },
 		"client_id": { "type": "string", "minLength": 1 },
 		"claims": {
 			"type": "object",
@@ -44,7 +41,7 @@ var Schema = validation.NewSimpleSchema(`
 			}
 		}
 	},
-	"required": ["alias", "type", "client_id"]
+	"required": ["type", "client_id"]
 }
 `)
 
@@ -59,7 +56,6 @@ func (Google) ValidateProviderConfig(ctx *validation.Context, cfg oauthrelyingpa
 }
 
 func (Google) SetDefaults(cfg oauthrelyingparty.ProviderConfig) {
-	cfg.SetDefaultsModifyDisabledFalse()
 	cfg.SetDefaultsEmailClaimConfig(oauthrelyingpartyutil.Email_AssumeVerified_Required())
 }
 

@@ -43,11 +43,8 @@ var _ liboauthrelyingparty.BuiltinProvider = Apple{}
 var Schema = validation.NewSimpleSchema(`
 {
 	"type": "object",
-	"additionalProperties": false,
 	"properties": {
-		"alias": { "type": "string" },
 		"type": { "type": "string" },
-		"modify_disabled": { "type": "boolean" },
 		"client_id": { "type": "string", "minLength": 1 },
 		"claims": {
 			"type": "object",
@@ -66,7 +63,7 @@ var Schema = validation.NewSimpleSchema(`
 		"key_id": { "type": "string" },
 		"team_id": { "type": "string" }
 	},
-	"required": ["alias", "type", "client_id", "key_id", "team_id"]
+	"required": ["type", "client_id", "key_id", "team_id"]
 }
 `)
 
@@ -83,7 +80,6 @@ func (Apple) ValidateProviderConfig(ctx *validation.Context, cfg oauthrelyingpar
 }
 
 func (Apple) SetDefaults(cfg oauthrelyingparty.ProviderConfig) {
-	cfg.SetDefaultsModifyDisabledFalse()
 	cfg.SetDefaultsEmailClaimConfig(oauthrelyingpartyutil.Email_AssumeVerified_Required())
 }
 

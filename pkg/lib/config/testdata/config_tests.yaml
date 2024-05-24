@@ -234,7 +234,7 @@ name: missing-oauth-provider-alias
 error: |-
   invalid configuration:
   /identity/oauth/providers/0: required
-    map[actual:[claims client_id modify_disabled type] expected:[alias client_id type] missing:[alias]]
+    map[actual:[client_id type] expected:[alias] missing:[alias]]
 config:
   id: test
   http:
@@ -269,7 +269,7 @@ name: oauth-provider-apple
 error: |-
   invalid configuration:
   /identity/oauth/providers/0: required
-    map[actual:[alias claims client_id modify_disabled type] expected:[alias client_id key_id team_id type] missing:[key_id team_id]]
+    map[actual:[alias claims client_id create_disabled delete_disabled type] expected:[client_id key_id team_id type] missing:[key_id team_id]]
 config:
   id: test
   http:
@@ -286,7 +286,7 @@ name: oauth-provider-azureadv2
 error: |-
   invalid configuration:
   /identity/oauth/providers/0: required
-    map[actual:[alias claims client_id modify_disabled type] expected:[alias client_id tenant type] missing:[tenant]]
+    map[actual:[alias claims client_id create_disabled delete_disabled type] expected:[client_id tenant type] missing:[tenant]]
 config:
   id: test
   http:
@@ -302,7 +302,7 @@ name: oauth-provider-azureadb2c
 error: |-
   invalid configuration:
   /identity/oauth/providers/0: required
-    map[actual:[alias claims client_id modify_disabled type] expected:[alias client_id policy tenant type] missing:[policy tenant]]
+    map[actual:[alias claims client_id create_disabled delete_disabled type] expected:[client_id policy tenant type] missing:[policy tenant]]
 config:
   id: test
   http:
@@ -319,7 +319,7 @@ name: oauth-provider-adfs
 error: |-
   invalid configuration:
   /identity/oauth/providers/0: required
-    map[actual:[alias claims client_id modify_disabled type] expected:[alias client_id discovery_document_endpoint type] missing:[discovery_document_endpoint]]
+    map[actual:[alias claims client_id create_disabled delete_disabled type] expected:[client_id discovery_document_endpoint type] missing:[discovery_document_endpoint]]
 config:
   id: test
   http:

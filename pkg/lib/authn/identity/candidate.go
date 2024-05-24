@@ -30,18 +30,19 @@ const (
 	CandidateKeyDeleteDisabled = "delete_disabled"
 )
 
-func NewOAuthCandidate(cfg oauthrelyingparty.ProviderConfig) Candidate {
+func NewOAuthCandidate(cfg config.OAuthSSOProviderConfig) Candidate {
 	return Candidate{
 		CandidateKeyIdentityID:        "",
 		CandidateKeyType:              string(model.IdentityTypeOAuth),
-		CandidateKeyProviderType:      string(cfg.Type()),
+		CandidateKeyProviderType:      string(cfg.AsProviderConfig().Type()),
 		CandidateKeyProviderAlias:     cfg.Alias(),
 		CandidateKeyProviderSubjectID: "",
 		CandidateKeyProviderAppType:   string(wechat.ProviderConfig(cfg).AppType()),
 		CandidateKeyDisplayID:         "",
-		CandidateKeyCreateDisabled:    cfg.ModifyDisabled(),
-		CandidateKeyUpdateDisabled:    cfg.ModifyDisabled(),
-		CandidateKeyDeleteDisabled:    cfg.ModifyDisabled(),
+		CandidateKeyCreateDisabled:    cfg.CreateDisabled(),
+		// Update is not supported
+		CandidateKeyUpdateDisabled: true,
+		CandidateKeyDeleteDisabled: cfg.DeleteDisabled(),
 	}
 }
 

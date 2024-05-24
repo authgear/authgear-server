@@ -269,20 +269,72 @@ var _ = Schema.Add("OAuthSSOConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"providers": { "type": "array", "items": { "type": "object" } }
+		"providers": { "type": "array", "items": { "$ref": "#/$defs/OAuthSSOProviderConfig" } }
 	}
 }
 `)
 
+// These are the basic configs that must exist in all provider configs
+// There could be additional configs for each provider implementation
+var _ = Schema.Add("OAuthSSOProviderConfig", `
+{
+	"type": "object",
+	"additionalProperties": true,
+	"properties": {
+		"alias": { "type": "string" },
+		"modify_disabled": { "type": "boolean" },
+		"create_disabled": { "type": "boolean" },
+		"delete_disabled": { "type": "boolean" }
+	},
+	"required": ["alias"]
+}
+`)
+
+type OAuthSSOProviderConfig oauthrelyingparty.ProviderConfig
+
+func (c OAuthSSOProviderConfig) SetDefaults() {
+	if _, ok := c["modify_disabled"].(bool); !ok {
+		c["modify_disabled"] = false
+	}
+
+	if _, ok := c["create_disabled"].(bool); !ok {
+		c["create_disabled"] = c["modify_disabled"].(bool)
+	}
+
+	if _, ok := c["delete_disabled"].(bool); !ok {
+		c["delete_disabled"] = c["modify_disabled"].(bool)
+	}
+
+	c.AsProviderConfig().SetDefaults()
+
+	// Cleanup deprecated fields
+	delete(c, "modify_disabled")
+}
+
+func (c OAuthSSOProviderConfig) AsProviderConfig() oauthrelyingparty.ProviderConfig {
+	return oauthrelyingparty.ProviderConfig(c)
+}
+
+func (c OAuthSSOProviderConfig) Alias() string {
+	return c["alias"].(string)
+}
+
+func (c OAuthSSOProviderConfig) CreateDisabled() bool {
+	return c["create_disabled"].(bool)
+}
+func (c OAuthSSOProviderConfig) DeleteDisabled() bool {
+	return c["delete_disabled"].(bool)
+}
+
 type OAuthSSOConfig struct {
-	Providers []oauthrelyingparty.ProviderConfig `json:"providers,omitempty"`
+	Providers []OAuthSSOProviderConfig `json:"providers,omitempty"`
 }
 
 func (c *OAuthSSOConfig) GetProviderConfig(alias string) (oauthrelyingparty.ProviderConfig, bool) {
 	for _, conf := range c.Providers {
 		if conf.Alias() == alias {
 			cc := conf
-			return cc, true
+			return cc.AsProviderConfig(), true
 		}
 	}
 	return nil, false

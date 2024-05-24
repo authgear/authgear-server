@@ -82,7 +82,7 @@ func (p *Provider) New(
 
 	alias := ""
 	for _, providerConfig := range p.IdentityConfig.OAuth.Providers {
-		providerID := providerConfig.ProviderID()
+		providerID := providerConfig.AsProviderConfig().ProviderID()
 		if providerID.Equal(i.ProviderID) {
 			alias = providerConfig.Alias()
 		}

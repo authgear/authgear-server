@@ -30,11 +30,8 @@ var _ liboauthrelyingparty.BuiltinProvider = ADFS{}
 var Schema = validation.NewSimpleSchema(`
 {
 	"type": "object",
-	"additionalProperties": false,
 	"properties": {
-		"alias": { "type": "string" },
 		"type": { "type": "string" },
-		"modify_disabled": { "type": "boolean" },
 		"client_id": { "type": "string", "minLength": 1 },
 		"claims": {
 			"type": "object",
@@ -52,7 +49,7 @@ var Schema = validation.NewSimpleSchema(`
 		},
 		"discovery_document_endpoint": { "type": "string", "format": "uri" }
 	},
-	"required": ["alias", "type", "client_id", "discovery_document_endpoint"]
+	"required": ["type", "client_id", "discovery_document_endpoint"]
 }
 `)
 
@@ -63,7 +60,6 @@ func (ADFS) ValidateProviderConfig(ctx *validation.Context, cfg oauthrelyingpart
 }
 
 func (ADFS) SetDefaults(cfg oauthrelyingparty.ProviderConfig) {
-	cfg.SetDefaultsModifyDisabledFalse()
 	cfg.SetDefaultsEmailClaimConfig(oauthrelyingpartyutil.Email_AssumeVerified_Required())
 }
 

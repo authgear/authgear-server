@@ -64,11 +64,8 @@ var _ liboauthrelyingparty.BuiltinProvider = Wechat{}
 var Schema = validation.NewSimpleSchema(`
 {
 	"type": "object",
-	"additionalProperties": false,
 	"properties": {
-		"alias": { "type": "string" },
 		"type": { "type": "string" },
-		"modify_disabled": { "type": "boolean" },
 		"client_id": { "type": "string", "minLength": 1 },
 		"claims": {
 			"type": "object",
@@ -89,7 +86,7 @@ var Schema = validation.NewSimpleSchema(`
 		"is_sandbox_account": { "type": "boolean" },
 		"wechat_redirect_uris": { "type": "array", "items": { "type": "string", "format": "uri" } }
 	},
-	"required": ["alias", "type", "client_id", "app_type", "account_id"]
+	"required": ["type", "client_id", "app_type", "account_id"]
 }
 `)
 
@@ -107,7 +104,6 @@ func (Wechat) ValidateProviderConfig(ctx *validation.Context, cfg oauthrelyingpa
 }
 
 func (Wechat) SetDefaults(cfg oauthrelyingparty.ProviderConfig) {
-	cfg.SetDefaultsModifyDisabledFalse()
 	cfg.SetDefaultsEmailClaimConfig(oauthrelyingpartyutil.Email_AssumeVerified_NOT_Required())
 }
 

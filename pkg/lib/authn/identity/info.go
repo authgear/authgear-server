@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
-
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
@@ -281,9 +279,9 @@ func (i *Info) findLoginIDConfig(c *config.IdentityConfig) (*config.LoginIDKeyCo
 	return keyConfig, ok
 }
 
-func (i *Info) findOAuthConfig(c *config.IdentityConfig) (oauthrelyingparty.ProviderConfig, bool) {
+func (i *Info) findOAuthConfig(c *config.IdentityConfig) (config.OAuthSSOProviderConfig, bool) {
 	alias := i.OAuth.ProviderAlias
-	var providerConfig oauthrelyingparty.ProviderConfig
+	var providerConfig config.OAuthSSOProviderConfig
 	var ok bool = false
 	for _, pc := range c.OAuth.Providers {
 		pcAlias := pc.Alias()
@@ -309,8 +307,7 @@ func (i *Info) CreateDisabled(c *config.IdentityConfig) bool {
 		if !ok {
 			return true
 		}
-		// TODO(tung): Change to use create_disabled
-		return providerConfig.ModifyDisabled()
+		return providerConfig.CreateDisabled()
 	case model.IdentityTypeAnonymous:
 		fallthrough
 	case model.IdentityTypeBiometric:
@@ -339,8 +336,7 @@ func (i *Info) DeleteDisabled(c *config.IdentityConfig) bool {
 		if !ok {
 			return true
 		}
-		// TODO(tung): Change to use delete_disabled
-		return providerConfig.ModifyDisabled()
+		return providerConfig.DeleteDisabled()
 	case model.IdentityTypeAnonymous:
 		fallthrough
 	case model.IdentityTypeBiometric:
@@ -365,12 +361,8 @@ func (i *Info) UpdateDisabled(c *config.IdentityConfig) bool {
 		}
 		return *keyConfig.UpdateDisabled
 	case model.IdentityTypeOAuth:
-		providerConfig, ok := i.findOAuthConfig(c)
-		if !ok {
-			return true
-		}
-		// TODO(tung): Change to use update_disabled
-		return providerConfig.ModifyDisabled()
+		// Update is not supported for oauth identity
+		return false
 	case model.IdentityTypeAnonymous:
 		fallthrough
 	case model.IdentityTypeBiometric:

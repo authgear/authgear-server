@@ -31,11 +31,8 @@ var _ liboauthrelyingparty.BuiltinProvider = AzureADv2{}
 var Schema = validation.NewSimpleSchema(`
 {
 	"type": "object",
-	"additionalProperties": false,
 	"properties": {
-		"alias": { "type": "string" },
 		"type": { "type": "string" },
-		"modify_disabled": { "type": "boolean" },
 		"client_id": { "type": "string", "minLength": 1 },
 		"claims": {
 			"type": "object",
@@ -53,7 +50,7 @@ var Schema = validation.NewSimpleSchema(`
 		},
 		"tenant": { "type": "string" }
 	},
-	"required": ["alias", "type", "client_id", "tenant"]
+	"required": ["type", "client_id", "tenant"]
 }
 `)
 
@@ -64,7 +61,6 @@ func (AzureADv2) ValidateProviderConfig(ctx *validation.Context, cfg oauthrelyin
 }
 
 func (AzureADv2) SetDefaults(cfg oauthrelyingparty.ProviderConfig) {
-	cfg.SetDefaultsModifyDisabledFalse()
 	cfg.SetDefaultsEmailClaimConfig(oauthrelyingpartyutil.Email_AssumeVerified_Required())
 }
 
