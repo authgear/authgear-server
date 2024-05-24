@@ -81,7 +81,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "client_secret",
       "key_id",
       "team_id",
-      "modify_disabled",
+      "create_disabled",
+      "delete_disabled",
     ]),
     isSecretFieldTextArea: true,
   },
@@ -92,7 +93,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "alias",
       "client_id",
       "client_secret",
-      "modify_disabled",
+      "create_disabled",
+      "delete_disabled",
     ]),
     isSecretFieldTextArea: false,
   },
@@ -105,7 +107,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "alias",
       "client_id",
       "client_secret",
-      "modify_disabled",
+      "create_disabled",
+      "delete_disabled",
     ]),
     isSecretFieldTextArea: false,
   },
@@ -116,7 +119,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "alias",
       "client_id",
       "client_secret",
-      "modify_disabled",
+      "create_disabled",
+      "delete_disabled",
       "email_required",
     ]),
     isSecretFieldTextArea: false,
@@ -130,7 +134,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "alias",
       "client_id",
       "client_secret",
-      "modify_disabled",
+      "create_disabled",
+      "delete_disabled",
     ]),
     isSecretFieldTextArea: false,
   },
@@ -144,7 +149,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "client_id",
       "client_secret",
       "tenant",
-      "modify_disabled",
+      "create_disabled",
+      "delete_disabled",
       "email_required",
     ]),
     isSecretFieldTextArea: false,
@@ -160,7 +166,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "client_secret",
       "tenant",
       "policy",
-      "modify_disabled",
+      "create_disabled",
+      "delete_disabled",
       "email_required",
     ]),
     isSecretFieldTextArea: false,
@@ -175,7 +182,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "client_id",
       "client_secret",
       "discovery_document_endpoint",
-      "modify_disabled",
+      "create_disabled",
+      "delete_disabled",
       "email_required",
     ]),
     isSecretFieldTextArea: false,
@@ -190,7 +198,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "client_secret",
       "account_id",
       "is_sandbox_account",
-      "modify_disabled",
+      "create_disabled",
+      "delete_disabled",
     ]),
     isSecretFieldTextArea: false,
   },
@@ -204,7 +213,8 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "client_secret",
       "account_id",
       "wechat_redirect_uris",
-      "modify_disabled",
+      "create_disabled",
+      "delete_disabled",
     ]),
     isSecretFieldTextArea: false,
   },
@@ -346,9 +356,14 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
         ),
       [onChange, config, secret]
     );
-    const onModifyDisabledChange = useCallback(
+    const onCreateDisabledChange = useCallback(
       (_, value?: boolean) =>
-        onChange({ ...config, modify_disabled: value ?? false }, secret),
+        onChange({ ...config, create_disabled: value ?? false }, secret),
+      [onChange, config, secret]
+    );
+    const onDeleteDisabledChange = useCallback(
+      (_, value?: boolean) =>
+        onChange({ ...config, delete_disabled: value ?? false }, secret),
       [onChange, config, secret]
     );
     const onEmailRequiredChange = useCallback(
@@ -590,14 +605,25 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
             disabled={noneditable}
           />
         ) : null}
-        {visibleFields.has("modify_disabled") ? (
+        {visibleFields.has("create_disabled") ? (
           <Checkbox
             label={renderToString(
-              "SingleSignOnConfigurationScreen.widget.modify-disabled"
+              "SingleSignOnConfigurationScreen.widget.create-disabled"
             )}
             className={styles.checkbox}
-            checked={config.modify_disabled ?? false}
-            onChange={onModifyDisabledChange}
+            checked={config.create_disabled ?? false}
+            onChange={onCreateDisabledChange}
+            disabled={noneditable}
+          />
+        ) : null}
+        {visibleFields.has("delete_disabled") ? (
+          <Checkbox
+            label={renderToString(
+              "SingleSignOnConfigurationScreen.widget.delete-disabled"
+            )}
+            className={styles.checkbox}
+            checked={config.delete_disabled ?? false}
+            onChange={onDeleteDisabledChange}
             disabled={noneditable}
           />
         ) : null}
