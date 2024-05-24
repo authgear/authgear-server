@@ -154,7 +154,7 @@ func (c *AppConfig) validateOAuthProvider(ctx *validation.Context) {
 
 		// Validate provider config
 		provider := providerConfig.AsProviderConfig().MustGetProvider()
-		schema := validation.SchemaBuilder(provider.GetJSONSchema()).ToSimpleSchema()
+		schema := OAuthSSOProviderConfigSchemaBuilder(validation.SchemaBuilder(provider.GetJSONSchema())).ToSimpleSchema()
 		childCtx.AddError(schema.Validator().ValidateValue(providerConfig))
 	}
 }

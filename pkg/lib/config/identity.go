@@ -4,6 +4,7 @@ import (
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 var _ = Schema.Add("IdentityConfig", `
@@ -269,26 +270,20 @@ var _ = Schema.Add("OAuthSSOConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"providers": { "type": "array", "items": { "$ref": "#/$defs/OAuthSSOProviderConfig" } }
+		"providers": { "type": "array", "items": { "type": "object" } }
 	}
 }
 `)
 
-// These are the basic configs that must exist in all provider configs
-// There could be additional configs for each provider implementation
-var _ = Schema.Add("OAuthSSOProviderConfig", `
-{
-	"type": "object",
-	"additionalProperties": true,
-	"properties": {
-		"alias": { "type": "string" },
-		"modify_disabled": { "type": "boolean" },
-		"create_disabled": { "type": "boolean" },
-		"delete_disabled": { "type": "boolean" }
-	},
-	"required": ["alias"]
+func OAuthSSOProviderConfigSchemaBuilder(builder validation.SchemaBuilder) validation.SchemaBuilder {
+	builder.Properties().
+		Property("alias", validation.SchemaBuilder{}.Type(validation.TypeString)).
+		Property("modify_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
+		Property("create_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
+		Property("delete_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean))
+	builder.AddRequired("alias")
+	return builder
 }
-`)
 
 type OAuthSSOProviderConfig oauthrelyingparty.ProviderConfig
 
@@ -316,7 +311,13 @@ func (c OAuthSSOProviderConfig) AsProviderConfig() oauthrelyingparty.ProviderCon
 }
 
 func (c OAuthSSOProviderConfig) Alias() string {
-	return c["alias"].(string)
+	alias, ok := c["alias"].(string)
+	if ok {
+		return alias
+	}
+	// This method is called in validateOAuthProvider which is part of the validation process
+	// So it is possible that alias is an invalid value
+	return ""
 }
 
 func (c OAuthSSOProviderConfig) CreateDisabled() bool {
