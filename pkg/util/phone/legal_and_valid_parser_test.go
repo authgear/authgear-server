@@ -25,6 +25,9 @@ func TestLegalAndValidParser(t *testing.T) {
 			tooShort := "+85222"
 			So(parser.CheckE164(tooShort), ShouldBeError, "invalid phone number")
 
+			// Hong Kong number starting with 7
+			So(parser.CheckE164("+85270123456"), ShouldBeNil)
+
 			nonsense := "a"
 			So(parser.CheckE164(nonsense), ShouldNotBeNil)
 		})
