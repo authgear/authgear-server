@@ -14,13 +14,13 @@
 {{/* If new identity or update is allowed, display the input */}}
 {{ $is_input_displayed := or (not $.IdentityID) (and $.IdentityID (not $.UpdateDisabled)) }}
 
-{{ if $is_input_displayed }}
-
-	{{ if $.IdentityID }}
+{{ if $.IdentityID }}
 	<p class="text-sm m-0 break-words secondary-txt text-center">
 		{{ template "enter-login-id-page-description--change" (dict "key" $.LoginIDKey "displayID" $.DisplayID) }}
 	</p>
-	{{ end }}
+{{ end }}
+
+{{ if $is_input_displayed }}
 
 	<form id="main-form" class="twc-container-vertical" method="post" novalidate>
 
