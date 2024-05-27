@@ -29,6 +29,23 @@ func (e *EdgeDoCreateIdentity) Instantiate(ctx *interaction.Context, graph *inte
 		return nil, api.ErrIdentityModifyDisabled
 	}
 
+	identities, err := ctx.Identities.ListByUser(graph.MustGetUserID())
+	if err != nil {
+		return nil, err
+	}
+
+	switch e.Identity.Type {
+	case model.IdentityTypeLoginID:
+		// Block duplicated login id of the same key
+		for _, iden := range identities {
+			if iden.Type == model.IdentityTypeLoginID && iden.LoginID.LoginIDKey == e.Identity.LoginID.LoginIDKey {
+				return nil, api.ErrMultipleIdentityDisallowed
+			}
+		}
+	default:
+		// Always allow creation for other types
+	}
+
 	skipCreateIdentityEvent := false
 	if _, creating := graph.GetNewUserID(); creating {
 		skipCreateIdentityEvent = true
@@ -36,11 +53,7 @@ func (e *EdgeDoCreateIdentity) Instantiate(ctx *interaction.Context, graph *inte
 		// not user signup
 		// determine if the flow is user promotion by checking user's identities
 		// this node need to be run before removing the anonymous identity
-		iis, err := ctx.Identities.ListByUser(graph.MustGetUserID())
-		if err != nil {
-			return nil, err
-		}
-		for _, ii := range iis {
+		for _, ii := range identities {
 			if ii.Type == model.IdentityTypeAnonymous {
 				// skip create identity event for anonymous user promotion
 				skipCreateIdentityEvent = true

@@ -31,6 +31,7 @@ var ErrOAuthProviderNotFound = apierrors.NotFound.WithReason("OAuthProviderNotFo
 var ErrIdentityModifyDisabled = NewInvariantViolated("IdentityModifyDisabled", "identity modification disabled", nil)
 var ErrMismatchedUser = NewInvariantViolated("MismatchedUser", "mismatched user", nil)
 var ErrNoAuthenticator = NewInvariantViolated("NoAuthenticator", "no authenticator", nil)
+var ErrMultipleIdentityDisallowed = NewInvariantViolated("MultipleIdentityDisallowed", "multiple identities of this type is not allowed", nil)
 var ErrClaimNotVerifiable = NewInvariantViolated("ClaimNotVerifiable", "claim not verifiable", nil)
 
 var ChangePasswordFailed = apierrors.Invalid.WithReason("ChangePasswordFailed")
