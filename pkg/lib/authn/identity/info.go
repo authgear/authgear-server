@@ -267,49 +267,118 @@ func (i *Info) PrimaryAuthenticatorTypes() []model.AuthenticatorType {
 	return i.Type.PrimaryAuthenticatorTypes(loginIDKeyType)
 }
 
-func (i *Info) ModifyDisabled(c *config.IdentityConfig) bool {
+func (i *Info) findLoginIDConfig(c *config.IdentityConfig) (*config.LoginIDKeyConfig, bool) {
+	loginIDKey := i.LoginID.LoginIDKey
+	var keyConfig *config.LoginIDKeyConfig
+	var ok bool = false
+	for _, kc := range c.LoginID.Keys {
+		if kc.Key == loginIDKey {
+			kcc := kc
+			keyConfig = &kcc
+			ok = true
+		}
+	}
+	return keyConfig, ok
+}
+
+func (i *Info) findOAuthConfig(c *config.IdentityConfig) (oauthrelyingparty.ProviderConfig, bool) {
+	alias := i.OAuth.ProviderAlias
+	var providerConfig oauthrelyingparty.ProviderConfig
+	var ok bool = false
+	for _, pc := range c.OAuth.Providers {
+		pcAlias := pc.Alias()
+		if pcAlias == alias {
+			pcc := pc
+			providerConfig = pcc
+			ok = true
+		}
+	}
+	return providerConfig, ok
+}
+
+func (i *Info) CreateDisabled(c *config.IdentityConfig) bool {
 	switch i.Type {
 	case model.IdentityTypeLoginID:
-		loginIDKey := i.LoginID.LoginIDKey
-		var keyConfig *config.LoginIDKeyConfig
-		for _, kc := range c.LoginID.Keys {
-			if kc.Key == loginIDKey {
-				kcc := kc
-				keyConfig = &kcc
-			}
-		}
-		if keyConfig == nil {
+		keyConfig, ok := i.findLoginIDConfig(c)
+		if !ok {
 			return true
 		}
-		return *keyConfig.ModifyDisabled
+		return *keyConfig.CreateDisabled
 	case model.IdentityTypeOAuth:
-		alias := i.OAuth.ProviderAlias
-		var providerConfig oauthrelyingparty.ProviderConfig
-		for _, pc := range c.OAuth.Providers {
-			pcAlias := pc.Alias()
-			if pcAlias == alias {
-				pcc := pc
-				providerConfig = pcc
-			}
-		}
-		if providerConfig == nil {
+		providerConfig, ok := i.findOAuthConfig(c)
+		if !ok {
 			return true
 		}
+		// TODO(tung): Change to use create_disabled
 		return providerConfig.ModifyDisabled()
 	case model.IdentityTypeAnonymous:
-		// modify_disabled is only applicable to login_id and oauth.
-		// So we return false here.
-		return false
+		fallthrough
 	case model.IdentityTypeBiometric:
-		// modify_disabled is only applicable to login_id and oauth.
-		// So we return false here.
-		return false
+		fallthrough
 	case model.IdentityTypePasskey:
-		// modify_disabled is only applicable to login_id and oauth.
+		fallthrough
+	case model.IdentityTypeSIWE:
+		// create_disabled is only applicable to login_id and oauth.
 		// So we return false here.
 		return false
+	default:
+		panic(fmt.Sprintf("identity: unexpected identity type: %s", i.Type))
+	}
+}
+
+func (i *Info) DeleteDisabled(c *config.IdentityConfig) bool {
+	switch i.Type {
+	case model.IdentityTypeLoginID:
+		keyConfig, ok := i.findLoginIDConfig(c)
+		if !ok {
+			return true
+		}
+		return *keyConfig.DeleteDisabled
+	case model.IdentityTypeOAuth:
+		providerConfig, ok := i.findOAuthConfig(c)
+		if !ok {
+			return true
+		}
+		// TODO(tung): Change to use delete_disabled
+		return providerConfig.ModifyDisabled()
+	case model.IdentityTypeAnonymous:
+		fallthrough
+	case model.IdentityTypeBiometric:
+		fallthrough
+	case model.IdentityTypePasskey:
+		fallthrough
 	case model.IdentityTypeSIWE:
-		// modify_disabled is only applicable to login_id and oauth.
+		// delete_disabled is only applicable to login_id and oauth.
+		// So we return false here.
+		return false
+	default:
+		panic(fmt.Sprintf("identity: unexpected identity type: %s", i.Type))
+	}
+}
+
+func (i *Info) UpdateDisabled(c *config.IdentityConfig) bool {
+	switch i.Type {
+	case model.IdentityTypeLoginID:
+		keyConfig, ok := i.findLoginIDConfig(c)
+		if !ok {
+			return true
+		}
+		return *keyConfig.UpdateDisabled
+	case model.IdentityTypeOAuth:
+		providerConfig, ok := i.findOAuthConfig(c)
+		if !ok {
+			return true
+		}
+		// TODO(tung): Change to use update_disabled
+		return providerConfig.ModifyDisabled()
+	case model.IdentityTypeAnonymous:
+		fallthrough
+	case model.IdentityTypeBiometric:
+		fallthrough
+	case model.IdentityTypePasskey:
+		fallthrough
+	case model.IdentityTypeSIWE:
+		// update_disabled is only applicable to login_id and oauth.
 		// So we return false here.
 		return false
 	default:

@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -26,6 +27,8 @@ type EnterLoginIDViewModel struct {
 	LoginIDInputType string
 	IdentityID       string
 	DisplayID        string
+	UpdateDisabled   bool
+	DeleteDisabled   bool
 }
 
 type EnterLoginIDService interface {
@@ -33,18 +36,32 @@ type EnterLoginIDService interface {
 	ListCandidates(userID string) ([]identity.Candidate, error)
 }
 
-func NewEnterLoginIDViewModel(r *http.Request, displayID string) EnterLoginIDViewModel {
+func NewEnterLoginIDViewModel(r *http.Request, cfg *config.IdentityConfig, info *identity.Info) EnterLoginIDViewModel {
 	loginIDKey := r.Form.Get("q_login_id_key")
 	loginIDType := r.Form.Get("q_login_id_type")
 	loginIDInputType := r.Form.Get("q_login_id_input_type")
 	identityID := r.Form.Get("q_identity_id")
 
-	return EnterLoginIDViewModel{
-		LoginIDKey:       loginIDKey,
-		LoginIDType:      loginIDType,
-		LoginIDInputType: loginIDInputType,
-		IdentityID:       identityID,
-		DisplayID:        displayID,
+	if info == nil {
+		return EnterLoginIDViewModel{
+			LoginIDKey:       loginIDKey,
+			LoginIDType:      loginIDType,
+			LoginIDInputType: loginIDInputType,
+			IdentityID:       identityID,
+			DisplayID:        "",
+			UpdateDisabled:   true,
+			DeleteDisabled:   true,
+		}
+	} else {
+		return EnterLoginIDViewModel{
+			LoginIDKey:       loginIDKey,
+			LoginIDType:      loginIDType,
+			LoginIDInputType: loginIDInputType,
+			IdentityID:       identityID,
+			DisplayID:        info.DisplayID(),
+			UpdateDisabled:   info.UpdateDisabled(cfg),
+			DeleteDisabled:   info.DeleteDisabled(cfg),
+		}
 	}
 }
 
@@ -83,6 +100,7 @@ type EnterLoginIDHandler struct {
 	AuthenticationViewModel *viewmodels.AuthenticationViewModeler
 	Renderer                Renderer
 	Identities              EnterLoginIDService
+	IdentityConfig          *config.IdentityConfig
 }
 
 func (h *EnterLoginIDHandler) GetData(userID string, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -98,9 +116,9 @@ func (h *EnterLoginIDHandler) GetData(userID string, r *http.Request, rw http.Re
 		} else if err != nil {
 			return nil, err
 		}
-		enterLoginIDViewModel = NewEnterLoginIDViewModel(r, idnInfo.DisplayID())
+		enterLoginIDViewModel = NewEnterLoginIDViewModel(r, h.IdentityConfig, idnInfo)
 	} else {
-		enterLoginIDViewModel = NewEnterLoginIDViewModel(r, "")
+		enterLoginIDViewModel = NewEnterLoginIDViewModel(r, h.IdentityConfig, nil)
 	}
 
 	candidates, err := h.Identities.ListCandidates(userID)

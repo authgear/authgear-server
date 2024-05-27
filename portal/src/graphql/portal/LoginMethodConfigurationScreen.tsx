@@ -2103,7 +2103,8 @@ function useUpdateLinesValue(
 
 function useOnChangeModifyDisabled(
   setState: FormModel["setState"],
-  typ: LoginIDKeyType
+  typ: LoginIDKeyType,
+  fieldKey: "create_disabled" | "update_disabled" | "delete_disabled"
 ) {
   return useCallback(
     (_e, checked) => {
@@ -2116,12 +2117,12 @@ function useOnChangeModifyDisabled(
             (a) => a.value.type === typ
           );
           if (c != null) {
-            c.value.modify_disabled = checked;
+            c.value[fieldKey] = checked;
           }
         })
       );
     },
-    [setState, typ]
+    [setState, typ, fieldKey]
   );
 }
 
@@ -2223,7 +2224,21 @@ function EmailSettings(props: EmailSettingsProps) {
     [setState]
   );
 
-  const onChangeModifyDisabled = useOnChangeModifyDisabled(setState, "email");
+  const onChangeCreateDisabled = useOnChangeModifyDisabled(
+    setState,
+    "email",
+    "create_disabled"
+  );
+  const onChangeUpdateDisabled = useOnChangeModifyDisabled(
+    setState,
+    "email",
+    "update_disabled"
+  );
+  const onChangeDeleteDisabled = useOnChangeModifyDisabled(
+    setState,
+    "email",
+    "delete_disabled"
+  );
 
   return (
     <Widget>
@@ -2310,13 +2325,33 @@ function EmailSettings(props: EmailSettingsProps) {
       </CheckboxWithContentLayout>
       <Checkbox
         label={renderToString(
-          "LoginIDConfigurationScreen.email.modify-disabled"
+          "LoginIDConfigurationScreen.email.create-disabled"
         )}
         checked={
           loginIDKeyConfigsControl.find((a) => a.value.type === "email")?.value
-            .modify_disabled ?? false
+            .create_disabled ?? false
         }
-        onChange={onChangeModifyDisabled}
+        onChange={onChangeCreateDisabled}
+      />
+      <Checkbox
+        label={renderToString(
+          "LoginIDConfigurationScreen.email.update-disabled"
+        )}
+        checked={
+          loginIDKeyConfigsControl.find((a) => a.value.type === "email")?.value
+            .update_disabled ?? false
+        }
+        onChange={onChangeUpdateDisabled}
+      />
+      <Checkbox
+        label={renderToString(
+          "LoginIDConfigurationScreen.email.delete-disabled"
+        )}
+        checked={
+          loginIDKeyConfigsControl.find((a) => a.value.type === "email")?.value
+            .delete_disabled ?? false
+        }
+        onChange={onChangeDeleteDisabled}
       />
     </Widget>
   );
@@ -2358,7 +2393,21 @@ function PhoneSettings(props: PhoneSettingsProps) {
     [setState]
   );
 
-  const onChangeModifyDisabled = useOnChangeModifyDisabled(setState, "phone");
+  const onChangeCreateDisabled = useOnChangeModifyDisabled(
+    setState,
+    "phone",
+    "create_disabled"
+  );
+  const onChangeUpdateDisabled = useOnChangeModifyDisabled(
+    setState,
+    "phone",
+    "update_disabled"
+  );
+  const onChangeDeleteDisabled = useOnChangeModifyDisabled(
+    setState,
+    "phone",
+    "delete_disabled"
+  );
 
   return (
     <Widget>
@@ -2383,13 +2432,33 @@ function PhoneSettings(props: PhoneSettingsProps) {
       />
       <Checkbox
         label={renderToString(
-          "LoginIDConfigurationScreen.phone.modify-disabled"
+          "LoginIDConfigurationScreen.phone.create-disabled"
         )}
         checked={
           loginIDKeyConfigsControl.find((a) => a.value.type === "phone")?.value
-            .modify_disabled ?? false
+            .create_disabled ?? false
         }
-        onChange={onChangeModifyDisabled}
+        onChange={onChangeCreateDisabled}
+      />
+      <Checkbox
+        label={renderToString(
+          "LoginIDConfigurationScreen.phone.update-disabled"
+        )}
+        checked={
+          loginIDKeyConfigsControl.find((a) => a.value.type === "phone")?.value
+            .update_disabled ?? false
+        }
+        onChange={onChangeUpdateDisabled}
+      />
+      <Checkbox
+        label={renderToString(
+          "LoginIDConfigurationScreen.phone.delete-disabled"
+        )}
+        checked={
+          loginIDKeyConfigsControl.find((a) => a.value.type === "phone")?.value
+            .delete_disabled ?? false
+        }
+        onChange={onChangeDeleteDisabled}
       />
     </Widget>
   );
@@ -2460,9 +2529,20 @@ function UsernameSettings(props: UsernameSettingsProps) {
     "ascii_only"
   );
 
-  const onChangeModifyDisabled = useOnChangeModifyDisabled(
+  const onChangeCreateDisabled = useOnChangeModifyDisabled(
     setState,
-    "username"
+    "username",
+    "create_disabled"
+  );
+  const onChangeUpdateDisabled = useOnChangeModifyDisabled(
+    setState,
+    "username",
+    "update_disabled"
+  );
+  const onChangeDeleteDisabled = useOnChangeModifyDisabled(
+    setState,
+    "username",
+    "delete_disabled"
   );
 
   return (
@@ -2517,13 +2597,33 @@ function UsernameSettings(props: UsernameSettingsProps) {
       />
       <Checkbox
         label={renderToString(
-          "LoginIDConfigurationScreen.username.modify-disabled"
+          "LoginIDConfigurationScreen.username.create-disabled"
         )}
         checked={
           loginIDKeyConfigsControl.find((a) => a.value.type === "username")
-            ?.value.modify_disabled ?? false
+            ?.value.create_disabled ?? false
         }
-        onChange={onChangeModifyDisabled}
+        onChange={onChangeCreateDisabled}
+      />
+      <Checkbox
+        label={renderToString(
+          "LoginIDConfigurationScreen.username.update-disabled"
+        )}
+        checked={
+          loginIDKeyConfigsControl.find((a) => a.value.type === "username")
+            ?.value.update_disabled ?? false
+        }
+        onChange={onChangeUpdateDisabled}
+      />
+      <Checkbox
+        label={renderToString(
+          "LoginIDConfigurationScreen.username.delete-disabled"
+        )}
+        checked={
+          loginIDKeyConfigsControl.find((a) => a.value.type === "username")
+            ?.value.delete_disabled ?? false
+        }
+        onChange={onChangeDeleteDisabled}
       />
     </Widget>
   );

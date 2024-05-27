@@ -25,7 +25,9 @@ const (
 
 	CandidateKeyDisplayID = "display_id"
 
-	CandidateKeyModifyDisabled = "modify_disabled"
+	CandidateKeyCreateDisabled = "create_disabled"
+	CandidateKeyUpdateDisabled = "update_disabled"
+	CandidateKeyDeleteDisabled = "delete_disabled"
 )
 
 func NewOAuthCandidate(cfg oauthrelyingparty.ProviderConfig) Candidate {
@@ -37,7 +39,9 @@ func NewOAuthCandidate(cfg oauthrelyingparty.ProviderConfig) Candidate {
 		CandidateKeyProviderSubjectID: "",
 		CandidateKeyProviderAppType:   string(wechat.ProviderConfig(cfg).AppType()),
 		CandidateKeyDisplayID:         "",
-		CandidateKeyModifyDisabled:    cfg.ModifyDisabled(),
+		CandidateKeyCreateDisabled:    cfg.ModifyDisabled(),
+		CandidateKeyUpdateDisabled:    cfg.ModifyDisabled(),
+		CandidateKeyDeleteDisabled:    cfg.ModifyDisabled(),
 	}
 }
 
@@ -49,7 +53,9 @@ func NewLoginIDCandidate(c *config.LoginIDKeyConfig) Candidate {
 		CandidateKeyLoginIDKey:     c.Key,
 		CandidateKeyLoginIDValue:   "",
 		CandidateKeyDisplayID:      "",
-		CandidateKeyModifyDisabled: *c.ModifyDisabled,
+		CandidateKeyCreateDisabled: *c.CreateDisabled,
+		CandidateKeyUpdateDisabled: *c.UpdateDisabled,
+		CandidateKeyDeleteDisabled: *c.DeleteDisabled,
 	}
 }
 
