@@ -152,6 +152,10 @@ interface ConfirmationDialogData {
   identityName: string;
 }
 
+interface AddIdenityOptionMenuItem extends IContextualMenuItem {
+  key: LoginIDIdentityType;
+}
+
 const oauthIconMap: Record<OAuthSSOProviderType, React.ReactNode> = {
   apple: <i className={cn("fab", "fa-apple")} />,
   google: <i className={cn("fab", "fa-google")} />,
@@ -1177,7 +1181,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
     );
 
     const addIdentitiesMenuProps: IContextualMenuProps = useMemo(() => {
-      const availableMenuItem = [
+      const availableMenuItem: AddIdenityOptionMenuItem[] = [
         {
           key: "email",
           text: renderToString("UserDetails.connected-identities.email"),
@@ -1198,13 +1202,22 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
         },
       ];
       const enabledItems = availableMenuItem.filter((item) => {
-        return availableLoginIdIdentities.includes(item.key);
+        const notAlreadyHasOne =
+          identities.findIndex(
+            (identity) =>
+              identity.type === "LOGIN_ID" &&
+              identity.claims["https://authgear.com/claims/login_id/type"] ===
+                item.key
+          ) === -1;
+        return (
+          availableLoginIdIdentities.includes(item.key) && notAlreadyHasOne
+        );
       });
       return {
         items: enabledItems,
         directionalHintFixed: true,
       };
-    }, [renderToString, navigate, availableLoginIdIdentities]);
+    }, [renderToString, navigate, identities, availableLoginIdIdentities]);
 
     const confirmationDialogContentProps = useMemo(() => {
       return {
