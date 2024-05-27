@@ -242,13 +242,16 @@ func (c *LoginIDKeyConfig) SetDefaults() {
 		c.Deprecated_ModifyDisabled = newBool(false)
 	}
 	if c.UpdateDisabled == nil {
-		c.UpdateDisabled = c.Deprecated_ModifyDisabled
+		b := *c.Deprecated_ModifyDisabled
+		c.UpdateDisabled = &b
 	}
 	if c.CreateDisabled == nil {
-		c.CreateDisabled = c.Deprecated_ModifyDisabled
+		b := *c.Deprecated_ModifyDisabled
+		c.CreateDisabled = &b
 	}
 	if c.DeleteDisabled == nil {
-		c.DeleteDisabled = c.Deprecated_ModifyDisabled
+		b := *c.Deprecated_ModifyDisabled
+		c.DeleteDisabled = &b
 	}
 
 	c.Deprecated_ModifyDisabled = nil
