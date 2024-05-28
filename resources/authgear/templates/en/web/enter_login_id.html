@@ -65,7 +65,13 @@
 			name="x_action"
 			value="add_or_update"
 			data-authgear-event="authgear.button.change_login_id"
-		>{{ template "next-button-label" }}</button>
+		>
+			{{ if $.IdentityID }}
+				{{ template "update-login-id-label" (dict "variant" .LoginIDType) }}
+			{{ else }}
+				{{ template "add-login-id-label" (dict "variant" .LoginIDType) }}
+			{{ end }}
+		</button>
 	{{ end }}
 
 	{{ if and .IdentityID (not .DeleteDisabled) }}{{ if gt $.IdentityCount 1 }}
