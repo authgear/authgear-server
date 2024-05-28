@@ -141,6 +141,8 @@
   "phone-number-placeholder--new": "Số điện thoại mới",
   "login-id-placeholder": "{variant, select, email {Địa chỉ email} username {Tên người dùng} other {Địa chỉ email hoặc tên người dùng}}",
   "login-id-placeholder--new": "Mới {variant, select, email {Địa chỉ email} username {Tên người dùng} other {Địa chỉ email hoặc tên người dùng}}",
+  "add-login-id-label": "Thêm {variant, select, email {Địa chỉ email} username {Tên đăng nhập} phone {Số điện thoại} other {Địa chỉ email hoặc tên đăng nhập}}",
+  "update-login-id-label": "Cập nhật {variant, select, email {Địa chỉ email} username {Tên đăng nhập} phone {Số điện thoại} other {Địa chỉ email hoặc tên đăng nhập}}",
   "remove-login-id-label": "Xóa {variant, select, email {Địa chỉ email} username {Tên người dùng} phone {Số điện thoại} other {Địa chỉ email hoặc tên người dùng}}",
   "use-text-login-id-description": "Sử dụng {variant, select, email {địa chỉ email} username {tên người dùng} other {địa chỉ email hoặc tên người dùng}} thay vì",
   "use-email-login-id-description": "Sử dụng địa chỉ email thay vì",

@@ -141,6 +141,8 @@
   "phone-number-placeholder--new": "새 전화번호",
   "login-id-placeholder": "{variant, select, email {이메일 주소} username {사용자명} other {이메일 주소 또는 사용자명}}",
   "login-id-placeholder--new": "새 {variant, select, email {이메일 주소} username {사용자 이름} other {이메일 주소 또는 사용자 이름}}",
+  "add-login-id-label": "추가 {variant, select, email {이메일 주소} username {사용자 이름} phone {전화번호} other {이메일 주소 또는 사용자 이름}}",
+  "update-login-id-label": "업데이트 {variant, select, email {이메일 주소} username {사용자 이름} phone {전화번호} other {이메일 주소 또는 사용자 이름}}",
   "remove-login-id-label": "{variant, select, email {이메일 주소} username {사용자 이름} phone {전화번호} other {이메일 주소 또는 사용자 이름}} 제거",
   "use-text-login-id-description": "{variant, select, email {이메일 주소} username {사용자명} other {이메일 주소 또는 사용자명}}를 사용하세요",
   "use-email-login-id-description": "이메일 주소를 사용하세요",

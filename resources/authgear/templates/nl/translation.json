@@ -141,6 +141,8 @@
   "phone-number-placeholder--new": "Nieuw telefoonnummer",
   "login-id-placeholder": "{variant, select, email {E-mailadres} username {Gebruikersnaam} other {E-mailadres of gebruikersnaam}}",
   "login-id-placeholder--new": "Nieuw {variant, select, email {E-mailadres} username {Gebruikersnaam} other {E-mailadres of gebruikersnaam}}",
+  "add-login-id-label": "Voeg {variant, select, email {E-mailadres} username {Gebruikersnaam} phone {Telefoonnummer} other {E-mailadres of gebruikersnaam}} toe",
+  "update-login-id-label": "Werk {variant, select, email {E-mailadres} username {Gebruikersnaam} phone {Telefoonnummer} other {E-mailadres of gebruikersnaam}} bij",
   "remove-login-id-label": "Verwijder {variant, select, email {E-mailadres} username {Gebruikersnaam} phone {Telefoonnummer} other {E-mailadres of gebruikersnaam}}",
   "use-text-login-id-description": "Gebruik {variant, select, email {e-mailadres} username {gebruikersnaam} other {e-mailadres of gebruikersnaam}} in plaats daarvan",
   "use-email-login-id-description": "Gebruik e-mailadres in plaats daarvan",

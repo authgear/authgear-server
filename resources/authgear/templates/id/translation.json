@@ -141,6 +141,8 @@
   "phone-number-placeholder--new": "Nomor telepon baru",
   "login-id-placeholder": "{variant, select, email {Alamat email} username {Nama pengguna} other {Alamat email atau nama pengguna}}",
   "login-id-placeholder--new": "Baru {variant, select, email {Alamat email} username {Nama pengguna} other {Alamat email atau nama pengguna}}",
+  "add-login-id-label": "Tambahkan {variant, select, email {Alamat Email} username {Nama Pengguna} phone {Nomor Telepon} other {Alamat Email atau nama pengguna}}",
+  "update-login-id-label": "Perbarui {variant, select, email {Alamat Email} username {Nama Pengguna} phone {Nomor Telepon} other {Alamat Email atau nama pengguna}}",
   "remove-login-id-label": "Hapus {variant, select, email {Alamat email} username {Nama pengguna} phone {Nomor Telepon} other {Alamat email atau nama pengguna}}",
   "use-text-login-id-description": "Gunakan {variant, select, email {alamat email} username {nama pengguna} other {alamat email atau nama pengguna}} sebagai gantinya",
   "use-email-login-id-description": "Gunakan alamat email sebagai gantinya",

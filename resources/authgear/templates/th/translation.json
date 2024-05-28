@@ -141,6 +141,8 @@
   "phone-number-placeholder--new": "หมายเลขโทรศัพท์ใหม่",
   "login-id-placeholder": "{variant, select, email {ที่อยู่อีเมล} username {ชื่อผู้ใช้} other {ที่อยู่อีเมลหรือชื่อผู้ใช้}}",
   "login-id-placeholder--new": "ใหม่ {variant, select, email {ที่อยู่อีเมล} username {ชื่อผู้ใช้} other {ที่อยู่อีเมลหรือชื่อผู้ใช้}}",
+  "add-login-id-label": "เพิ่ม {variant, select, email {ที่อยู่อีเมล} username {ชื่อผู้ใช้} phone {หมายเลขโทรศัพท์} other {ที่อยู่อีเมลหรือชื่อผู้ใช้}}",
+  "update-login-id-label": "อัปเดต {variant, select, email {ที่อยู่อีเมล} username {ชื่อผู้ใช้} phone {หมายเลขโทรศัพท์} other {ที่อยู่อีเมลหรือชื่อผู้ใช้}}",
   "remove-login-id-label": "ลบ {variant, select, email {ที่อยู่อีเมล} username {ชื่อผู้ใช้} phone {หมายเลขโทรศัพท์} other {ที่อยู่อีเมลหรือชื่อผู้ใช้}}",
   "use-text-login-id-description": "ใช้ {variant, select, email {ที่อยู่อีเมล} username {ชื่อผู้ใช้} other {ที่อยู่อีเมลหรือชื่อผู้ใช้}} แทน",
   "use-email-login-id-description": "ใช้ที่อยู่อีเมลแทน",
