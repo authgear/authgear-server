@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/webappoauth"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -100,7 +101,7 @@ func GetXStepFromQuery(r *http.Request) string {
 
 type AuthflowOAuthCallbackResponse struct {
 	Query string
-	State string
+	State *webappoauth.WebappOAuthState
 }
 
 type AuthflowController struct {
@@ -185,12 +186,7 @@ func (c *AuthflowController) HandleStartOfFlow(
 }
 
 func (c *AuthflowController) HandleOAuthCallback(w http.ResponseWriter, r *http.Request, callbackResponse AuthflowOAuthCallbackResponse) {
-	state, err := webapp.DecodeAuthflowOAuthState(callbackResponse.State)
-	if err != nil {
-		c.Logger.WithError(err).Errorf("failed to get screen")
-		c.renderError(w, r, err)
-		return
-	}
+	state := callbackResponse.State
 
 	s, err := c.Sessions.Get(state.WebSessionID)
 	if err != nil {

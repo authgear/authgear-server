@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/webappoauth"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -58,7 +59,7 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	errorDescription := r.Form.Get("error_description")
 
 	updateWebSession := func() error {
-		if authflowOAuthState, err := webapp.DecodeAuthflowOAuthState(state); err == nil {
+		if authflowOAuthState, err := webappoauth.DecodeWebappOAuthState(state); err == nil {
 			session, err := ctrl.GetSession(authflowOAuthState.WebSessionID)
 			if err != nil {
 				return err

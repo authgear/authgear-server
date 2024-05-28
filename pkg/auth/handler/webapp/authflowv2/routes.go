@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/webappoauth"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
@@ -291,8 +292,9 @@ func (n *AuthflowV2Navigator) navigateStepIdentify(s *webapp.AuthflowScreenWithF
 			// Back to the current screen if error
 			errorRedirectURI := url.URL{Path: r.URL.Path, RawQuery: r.URL.Query().Encode()}
 
-			state := webapp.AuthflowOAuthState{
+			state := webappoauth.WebappOAuthState{
 				WebSessionID:     webSessionID,
+				UIImplementation: config.UIImplementationAuthflowV2,
 				XStep:            s.Screen.StateToken.XStep,
 				ErrorRedirectURI: errorRedirectURI.String(),
 			}

@@ -3,6 +3,7 @@ package webapp
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/auth/webappoauth"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
@@ -25,9 +26,13 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	state := r.FormValue("state")
+	stateStr := r.FormValue("state")
+	state, err := webappoauth.DecodeWebappOAuthState(stateStr)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
 
-	switch h.UIConfig.Implementation.WithDefault() {
+	switch state.UIImplementation.WithDefault() {
 	case config.UIImplementationAuthflow:
 		fallthrough
 	case config.UIImplementationAuthflowV2:
@@ -36,6 +41,8 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Query: r.Form.Encode(),
 			State: state,
 		})
+	case config.UIImplementationInteraction:
+		fallthrough
 	default:
 		// interaction
 		ctrl, err := h.ControllerFactory.New(r, w)

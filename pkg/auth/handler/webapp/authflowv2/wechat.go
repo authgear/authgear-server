@@ -11,7 +11,9 @@ import (
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/webappoauth"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	coreimage "github.com/authgear/authgear-server/pkg/util/image"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -48,9 +50,10 @@ func (h *AuthflowV2WechatHandler) GetData(w http.ResponseWriter, r *http.Request
 	viewmodels.Embed(data, baseViewModel)
 
 	screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.OAuthData)
-	state := webapp.AuthflowOAuthState{
-		WebSessionID: s.ID,
-		XStep:        screen.Screen.StateToken.XStep,
+	state := webappoauth.WebappOAuthState{
+		WebSessionID:     s.ID,
+		UIImplementation: config.UIImplementationAuthflowV2,
+		XStep:            screen.Screen.StateToken.XStep,
 		ErrorRedirectURI: (&url.URL{
 			Path:     r.URL.Path,
 			RawQuery: r.URL.Query().Encode(),

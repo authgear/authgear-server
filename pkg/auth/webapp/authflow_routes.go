@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/auth/webappoauth"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
@@ -268,8 +269,9 @@ func (n *AuthflowNavigator) navigateStepIdentify(s *AuthflowScreenWithFlowRespon
 			authorizationURL, _ := url.Parse(data.OAuthAuthorizationURL)
 			q := authorizationURL.Query()
 
-			state := AuthflowOAuthState{
+			state := webappoauth.WebappOAuthState{
 				WebSessionID:     webSessionID,
+				UIImplementation: config.UIImplementationAuthflow,
 				XStep:            s.Screen.StateToken.XStep,
 				ErrorRedirectURI: expectedPath,
 			}

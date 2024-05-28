@@ -1,7 +1,6 @@
 package webapp
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -24,12 +23,6 @@ type AuthflowWechatCallbackData struct {
 	ErrorDescription string `json:"error_description,omitempty"`
 }
 
-type AuthflowOAuthState struct {
-	WebSessionID     string `json:"web_session_id"`
-	XStep            string `json:"x_step"`
-	ErrorRedirectURI string `json:"error_redirect_uri"`
-}
-
 type AuthflowFinishedUIScreenData struct {
 	FlowType          authflow.FlowType `json:"flow_type,omitempty"`
 	FinishRedirectURI string            `json:"finish_redirect_uri,omitempty"`
@@ -37,30 +30,6 @@ type AuthflowFinishedUIScreenData struct {
 
 type AuthflowDelayedUIScreenData struct {
 	TargetResult *Result `json:"target_result,omitempty"`
-}
-
-func (s AuthflowOAuthState) Encode() string {
-	b, err := json.Marshal(s)
-	if err != nil {
-		panic(err)
-	}
-
-	return base64.RawURLEncoding.EncodeToString(b)
-}
-
-func DecodeAuthflowOAuthState(stateStr string) (*AuthflowOAuthState, error) {
-	b, err := base64.RawURLEncoding.DecodeString(stateStr)
-	if err != nil {
-		return nil, err
-	}
-
-	var state AuthflowOAuthState
-	err = json.Unmarshal(b, &state)
-	if err != nil {
-		return nil, err
-	}
-
-	return &state, nil
 }
 
 const AuthflowQueryKey = "x_step"
