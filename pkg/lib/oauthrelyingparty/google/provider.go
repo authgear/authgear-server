@@ -18,16 +18,12 @@ func init() {
 const Type = liboauthrelyingparty.TypeGoogle
 
 var _ oauthrelyingparty.Provider = Google{}
-var _ liboauthrelyingparty.BuiltinProvider = Google{}
 
 var Schema = validation.NewSimpleSchema(`
 {
 	"type": "object",
-	"additionalProperties": false,
 	"properties": {
-		"alias": { "type": "string" },
 		"type": { "type": "string" },
-		"modify_disabled": { "type": "boolean" },
 		"client_id": { "type": "string", "minLength": 1 },
 		"claims": {
 			"type": "object",
@@ -44,7 +40,7 @@ var Schema = validation.NewSimpleSchema(`
 			}
 		}
 	},
-	"required": ["alias", "type", "client_id"]
+	"required": ["type", "client_id"]
 }
 `)
 
@@ -54,12 +50,26 @@ const (
 
 type Google struct{}
 
-func (Google) ValidateProviderConfig(ctx *validation.Context, cfg oauthrelyingparty.ProviderConfig) {
-	ctx.AddError(Schema.Validator().ValidateValue(cfg))
+func (Google) GetJSONSchema() map[string]interface{} {
+	builder := validation.SchemaBuilder{}
+	builder.Type(validation.TypeObject)
+	builder.Properties().
+		Property("type", validation.SchemaBuilder{}.Type(validation.TypeString)).
+		Property("client_id", validation.SchemaBuilder{}.Type(validation.TypeString).MinLength(1)).
+		Property("claims", validation.SchemaBuilder{}.Type(validation.TypeObject).
+			AdditionalPropertiesFalse().
+			Properties().
+			Property("email", validation.SchemaBuilder{}.Type(validation.TypeObject).
+				AdditionalPropertiesFalse().Properties().
+				Property("assume_verified", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
+				Property("required", validation.SchemaBuilder{}.Type(validation.TypeBoolean)),
+			),
+		)
+	builder.Required("type", "client_id")
+	return builder
 }
 
 func (Google) SetDefaults(cfg oauthrelyingparty.ProviderConfig) {
-	cfg.SetDefaultsModifyDisabledFalse()
 	cfg.SetDefaultsEmailClaimConfig(oauthrelyingpartyutil.Email_AssumeVerified_Required())
 }
 

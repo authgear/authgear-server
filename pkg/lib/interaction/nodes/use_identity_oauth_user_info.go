@@ -8,6 +8,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
 )
@@ -24,7 +25,7 @@ type InputUseIdentityOAuthUserInfo interface {
 type EdgeUseIdentityOAuthUserInfo struct {
 	IsAuthentication bool
 	IsCreating       bool
-	Config           oauthrelyingparty.ProviderConfig
+	Config           config.OAuthSSOProviderConfig
 	HashedNonce      string
 	ErrorRedirectURI string
 }

@@ -593,8 +593,8 @@ func (c *Coordinator) markOAuthEmailAsVerified(info *identity.Info) error {
 	var cfg oauthrelyingparty.ProviderConfig
 	for _, c := range c.IdentityConfig.OAuth.Providers {
 		c := c
-		if c.ProviderID().Equal(providerID) {
-			cfg = c
+		if c.AsProviderConfig().ProviderID().Equal(providerID) {
+			cfg = c.AsProviderConfig()
 			break
 		}
 	}

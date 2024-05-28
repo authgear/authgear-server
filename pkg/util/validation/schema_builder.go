@@ -57,6 +57,17 @@ func (b SchemaBuilder) Required(keys ...string) SchemaBuilder {
 	return b
 }
 
+func (b SchemaBuilder) AddRequired(keys ...string) SchemaBuilder {
+	originals, ok := b["required"].([]string)
+	if ok {
+		newRequired := append(originals, keys...)
+		b["required"] = newRequired
+	} else {
+		b["required"] = keys
+	}
+	return b
+}
+
 func (b SchemaBuilder) Enum(values ...interface{}) SchemaBuilder {
 	b["enum"] = values
 	return b

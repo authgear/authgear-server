@@ -391,7 +391,8 @@ identity:
     providers:
       - type: google
         alias: google
-        modify_disabled: false
+        create_disabled: false
+        delete_disabled: false
         claims:
           email:
             assume_verified: true
@@ -399,7 +400,8 @@ identity:
         client_id: a
       - type: facebook
         alias: facebook
-        modify_disabled: false
+        create_disabled: false
+        delete_disabled: false
         claims:
           email:
             assume_verified: true
@@ -407,7 +409,8 @@ identity:
         client_id: a
       - type: linkedin
         alias: linkedin
-        modify_disabled: false
+        create_disabled: false
+        delete_disabled: false
         claims:
           email:
             assume_verified: true
@@ -415,7 +418,8 @@ identity:
         client_id: a
       - type: azureadv2
         alias: azureadv2
-        modify_disabled: false
+        create_disabled: false
+        delete_disabled: false
         claims:
           email:
             assume_verified: true
@@ -424,7 +428,8 @@ identity:
         tenant: a
       - type: azureadb2c
         alias: azureadb2c
-        modify_disabled: false
+        create_disabled: false
+        delete_disabled: false
         claims:
           email:
             assume_verified: true
@@ -434,7 +439,8 @@ identity:
         policy: a
       - type: adfs
         alias: adfs
-        modify_disabled: false
+        create_disabled: false
+        delete_disabled: false
         claims:
           email:
             assume_verified: true
@@ -443,7 +449,8 @@ identity:
         discovery_document_endpoint: http://test
       - type: apple
         alias: apple
-        modify_disabled: false
+        create_disabled: false
+        delete_disabled: false
         claims:
           email:
             assume_verified: true
@@ -453,7 +460,8 @@ identity:
         team_id: a
       - type: wechat
         alias: wechat
-        modify_disabled: false
+        create_disabled: false
+        delete_disabled: false
         claims:
           email:
             assume_verified: true

@@ -25,45 +25,30 @@ func (c ProviderConfig) DiscoveryDocumentEndpoint() string {
 }
 
 var _ oauthrelyingparty.Provider = ADFS{}
-var _ liboauthrelyingparty.BuiltinProvider = ADFS{}
-
-var Schema = validation.NewSimpleSchema(`
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"alias": { "type": "string" },
-		"type": { "type": "string" },
-		"modify_disabled": { "type": "boolean" },
-		"client_id": { "type": "string", "minLength": 1 },
-		"claims": {
-			"type": "object",
-			"additionalProperties": false,
-			"properties": {
-				"email": {
-					"type": "object",
-					"additionalProperties": false,
-					"properties": {
-						"assume_verified": { "type": "boolean" },
-						"required": { "type": "boolean" }
-					}
-				}
-			}
-		},
-		"discovery_document_endpoint": { "type": "string", "format": "uri" }
-	},
-	"required": ["alias", "type", "client_id", "discovery_document_endpoint"]
-}
-`)
 
 type ADFS struct{}
 
-func (ADFS) ValidateProviderConfig(ctx *validation.Context, cfg oauthrelyingparty.ProviderConfig) {
-	ctx.AddError(Schema.Validator().ValidateValue(cfg))
+func (ADFS) GetJSONSchema() map[string]interface{} {
+	builder := validation.SchemaBuilder{}
+	builder.Type(validation.TypeObject)
+	builder.Properties().
+		Property("type", validation.SchemaBuilder{}.Type(validation.TypeString)).
+		Property("client_id", validation.SchemaBuilder{}.Type(validation.TypeString).MinLength(1)).
+		Property("claims", validation.SchemaBuilder{}.Type(validation.TypeObject).
+			AdditionalPropertiesFalse().
+			Properties().
+			Property("email", validation.SchemaBuilder{}.Type(validation.TypeObject).
+				AdditionalPropertiesFalse().Properties().
+				Property("assume_verified", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
+				Property("required", validation.SchemaBuilder{}.Type(validation.TypeBoolean)),
+			),
+		).
+		Property("discovery_document_endpoint", validation.SchemaBuilder{}.Type(validation.TypeString).Format("uri"))
+	builder.Required("type", "client_id", "discovery_document_endpoint")
+	return builder
 }
 
 func (ADFS) SetDefaults(cfg oauthrelyingparty.ProviderConfig) {
-	cfg.SetDefaultsModifyDisabledFalse()
 	cfg.SetDefaultsEmailClaimConfig(oauthrelyingpartyutil.Email_AssumeVerified_Required())
 }
 

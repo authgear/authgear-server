@@ -86,7 +86,8 @@ export interface OAuthClaimsConfig {
 export interface OAuthSSOProviderConfig {
   alias: string;
   type: OAuthSSOProviderType;
-  modify_disabled?: boolean;
+  create_disabled?: boolean;
+  delete_disabled?: boolean;
   client_id?: string;
   tenant?: string;
   key_id?: string;

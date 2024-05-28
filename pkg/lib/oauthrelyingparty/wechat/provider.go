@@ -59,39 +59,6 @@ func (c ProviderConfig) WechatRedirectURIs() []string {
 const Type = liboauthrelyingparty.TypeWechat
 
 var _ oauthrelyingparty.Provider = Wechat{}
-var _ liboauthrelyingparty.BuiltinProvider = Wechat{}
-
-var Schema = validation.NewSimpleSchema(`
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"alias": { "type": "string" },
-		"type": { "type": "string" },
-		"modify_disabled": { "type": "boolean" },
-		"client_id": { "type": "string", "minLength": 1 },
-		"claims": {
-			"type": "object",
-			"additionalProperties": false,
-			"properties": {
-				"email": {
-					"type": "object",
-					"additionalProperties": false,
-					"properties": {
-						"assume_verified": { "type": "boolean" },
-						"required": { "type": "boolean" }
-					}
-				}
-			}
-		},
-		"app_type": { "type": "string", "enum": ["mobile", "web"] },
-		"account_id": { "type": "string", "format": "wechat_account_id" },
-		"is_sandbox_account": { "type": "boolean" },
-		"wechat_redirect_uris": { "type": "array", "items": { "type": "string", "format": "uri" } }
-	},
-	"required": ["alias", "type", "client_id", "app_type", "account_id"]
-}
-`)
 
 const (
 	wechatAuthorizationURL = "https://open.weixin.qq.com/connect/oauth2/authorize"
@@ -102,12 +69,32 @@ const (
 
 type Wechat struct{}
 
-func (Wechat) ValidateProviderConfig(ctx *validation.Context, cfg oauthrelyingparty.ProviderConfig) {
-	ctx.AddError(Schema.Validator().ValidateValue(cfg))
+func (Wechat) GetJSONSchema() map[string]interface{} {
+	builder := validation.SchemaBuilder{}
+	builder.Type(validation.TypeObject)
+	builder.Properties().
+		Property("type", validation.SchemaBuilder{}.Type(validation.TypeString)).
+		Property("client_id", validation.SchemaBuilder{}.Type(validation.TypeString).MinLength(1)).
+		Property("claims", validation.SchemaBuilder{}.Type(validation.TypeObject).
+			AdditionalPropertiesFalse().
+			Properties().
+			Property("email", validation.SchemaBuilder{}.Type(validation.TypeObject).
+				AdditionalPropertiesFalse().Properties().
+				Property("assume_verified", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
+				Property("required", validation.SchemaBuilder{}.Type(validation.TypeBoolean)),
+			),
+		).
+		Property("app_type", validation.SchemaBuilder{}.Type(validation.TypeString).Enum("mobile", "web")).
+		Property("account_id", validation.SchemaBuilder{}.Type(validation.TypeString).Format("wechat_account_id")).
+		Property("is_sandbox_account", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
+		Property("wechat_redirect_uris", validation.SchemaBuilder{}.Type(validation.TypeArray).
+			Items(validation.SchemaBuilder{}.Type(validation.TypeString).Format("uri")),
+		)
+	builder.Required("type", "client_id", "app_type", "account_id")
+	return builder
 }
 
 func (Wechat) SetDefaults(cfg oauthrelyingparty.ProviderConfig) {
-	cfg.SetDefaultsModifyDisabledFalse()
 	cfg.SetDefaultsEmailClaimConfig(oauthrelyingpartyutil.Email_AssumeVerified_NOT_Required())
 }
 

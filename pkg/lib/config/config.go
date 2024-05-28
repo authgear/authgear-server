@@ -8,7 +8,6 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
-	liboauthrelyingparty "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -153,11 +152,10 @@ func (c *AppConfig) validateOAuthProvider(ctx *validation.Context) {
 		}
 		oauthProviderAliases[alias] = struct{}{}
 
-		// Validate provider config if it is a builin provider.
-		provider := providerConfig.MustGetProvider()
-		if builtinProvider, ok := provider.(liboauthrelyingparty.BuiltinProvider); ok {
-			builtinProvider.ValidateProviderConfig(childCtx, providerConfig)
-		}
+		// Validate provider config
+		provider := providerConfig.AsProviderConfig().MustGetProvider()
+		schema := OAuthSSOProviderConfigSchemaBuilder(validation.SchemaBuilder(provider.GetJSONSchema())).ToSimpleSchema()
+		childCtx.AddError(schema.Validator().ValidateValue(providerConfig))
 	}
 }
 

@@ -846,10 +846,10 @@ func (s *Service) listOAuthCandidates(oauths []*identity.OAuth) []identity.Candi
 	out := []identity.Candidate{}
 	for _, providerConfig := range s.Identity.OAuth.Providers {
 		pc := providerConfig
-		if identity.IsOAuthSSOProviderTypeDisabled(pc, s.IdentityFeatureConfig.OAuth.Providers) {
+		if identity.IsOAuthSSOProviderTypeDisabled(pc.AsProviderConfig(), s.IdentityFeatureConfig.OAuth.Providers) {
 			continue
 		}
-		configProviderID := pc.ProviderID()
+		configProviderID := pc.AsProviderConfig().ProviderID()
 		candidate := identity.NewOAuthCandidate(pc)
 		matched := false
 		for _, iden := range oauths {
@@ -861,7 +861,7 @@ func (s *Service) listOAuthCandidates(oauths []*identity.OAuth) []identity.Candi
 			}
 		}
 		canAppend := true
-		if providerConfig.ModifyDisabled() && !matched {
+		if providerConfig.DeleteDisabled() && !matched {
 			canAppend = false
 		}
 		if canAppend {

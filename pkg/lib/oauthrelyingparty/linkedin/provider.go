@@ -16,35 +16,6 @@ func init() {
 const Type = liboauthrelyingparty.TypeLinkedin
 
 var _ oauthrelyingparty.Provider = Linkedin{}
-var _ liboauthrelyingparty.BuiltinProvider = Linkedin{}
-
-var Schema = validation.NewSimpleSchema(`
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"alias": { "type": "string" },
-		"type": { "type": "string" },
-		"modify_disabled": { "type": "boolean" },
-		"client_id": { "type": "string", "minLength": 1 },
-		"claims": {
-			"type": "object",
-			"additionalProperties": false,
-			"properties": {
-				"email": {
-					"type": "object",
-					"additionalProperties": false,
-					"properties": {
-						"assume_verified": { "type": "boolean" },
-						"required": { "type": "boolean" }
-					}
-				}
-			}
-		}
-	},
-	"required": ["alias", "type", "client_id"]
-}
-`)
 
 const (
 	linkedinAuthorizationURL string = "https://www.linkedin.com/oauth/v2/authorization"
@@ -56,12 +27,26 @@ const (
 
 type Linkedin struct{}
 
-func (Linkedin) ValidateProviderConfig(ctx *validation.Context, cfg oauthrelyingparty.ProviderConfig) {
-	ctx.AddError(Schema.Validator().ValidateValue(cfg))
+func (Linkedin) GetJSONSchema() map[string]interface{} {
+	builder := validation.SchemaBuilder{}
+	builder.Type(validation.TypeObject)
+	builder.Properties().
+		Property("type", validation.SchemaBuilder{}.Type(validation.TypeString)).
+		Property("client_id", validation.SchemaBuilder{}.Type(validation.TypeString).MinLength(1)).
+		Property("claims", validation.SchemaBuilder{}.Type(validation.TypeObject).
+			AdditionalPropertiesFalse().
+			Properties().
+			Property("email", validation.SchemaBuilder{}.Type(validation.TypeObject).
+				AdditionalPropertiesFalse().Properties().
+				Property("assume_verified", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
+				Property("required", validation.SchemaBuilder{}.Type(validation.TypeBoolean)),
+			),
+		)
+	builder.Required("type", "client_id")
+	return builder
 }
 
 func (Linkedin) SetDefaults(cfg oauthrelyingparty.ProviderConfig) {
-	cfg.SetDefaultsModifyDisabledFalse()
 	cfg.SetDefaultsEmailClaimConfig(oauthrelyingpartyutil.Email_AssumeVerified_Required())
 }
 

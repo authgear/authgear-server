@@ -31,46 +31,31 @@ func (c ProviderConfig) Policy() string {
 }
 
 var _ oauthrelyingparty.Provider = AzureADB2C{}
-var _ liboauthrelyingparty.BuiltinProvider = AzureADB2C{}
-
-var Schema = validation.NewSimpleSchema(`
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"alias": { "type": "string" },
-		"type": { "type": "string" },
-		"modify_disabled": { "type": "boolean" },
-		"client_id": { "type": "string", "minLength": 1 },
-		"claims": {
-			"type": "object",
-			"additionalProperties": false,
-			"properties": {
-				"email": {
-					"type": "object",
-					"additionalProperties": false,
-					"properties": {
-						"assume_verified": { "type": "boolean" },
-						"required": { "type": "boolean" }
-					}
-				}
-			}
-		},
-		"tenant": { "type": "string" },
-		"policy": { "type": "string" }
-	},
-	"required": ["alias", "type", "client_id", "tenant", "policy"]
-}
-`)
 
 type AzureADB2C struct{}
 
-func (AzureADB2C) ValidateProviderConfig(ctx *validation.Context, cfg oauthrelyingparty.ProviderConfig) {
-	ctx.AddError(Schema.Validator().ValidateValue(cfg))
+func (AzureADB2C) GetJSONSchema() map[string]interface{} {
+	builder := validation.SchemaBuilder{}
+	builder.Type(validation.TypeObject)
+	builder.Properties().
+		Property("type", validation.SchemaBuilder{}.Type(validation.TypeString)).
+		Property("client_id", validation.SchemaBuilder{}.Type(validation.TypeString).MinLength(1)).
+		Property("claims", validation.SchemaBuilder{}.Type(validation.TypeObject).
+			AdditionalPropertiesFalse().
+			Properties().
+			Property("email", validation.SchemaBuilder{}.Type(validation.TypeObject).
+				AdditionalPropertiesFalse().Properties().
+				Property("assume_verified", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
+				Property("required", validation.SchemaBuilder{}.Type(validation.TypeBoolean)),
+			),
+		).
+		Property("tenant", validation.SchemaBuilder{}.Type(validation.TypeString)).
+		Property("policy", validation.SchemaBuilder{}.Type(validation.TypeString))
+	builder.Required("type", "client_id", "tenant", "policy")
+	return builder
 }
 
 func (AzureADB2C) SetDefaults(cfg oauthrelyingparty.ProviderConfig) {
-	cfg.SetDefaultsModifyDisabledFalse()
 	cfg.SetDefaultsEmailClaimConfig(oauthrelyingpartyutil.Email_AssumeVerified_Required())
 }
 

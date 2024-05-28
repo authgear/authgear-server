@@ -4,6 +4,7 @@ import (
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 var _ = Schema.Add("IdentityConfig", `
@@ -274,15 +275,67 @@ var _ = Schema.Add("OAuthSSOConfig", `
 }
 `)
 
+func OAuthSSOProviderConfigSchemaBuilder(builder validation.SchemaBuilder) validation.SchemaBuilder {
+	builder.Properties().
+		Property("alias", validation.SchemaBuilder{}.Type(validation.TypeString)).
+		Property("modify_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
+		Property("create_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean)).
+		Property("delete_disabled", validation.SchemaBuilder{}.Type(validation.TypeBoolean))
+	builder.AddRequired("alias")
+	return builder
+}
+
+type OAuthSSOProviderConfig oauthrelyingparty.ProviderConfig
+
+func (c OAuthSSOProviderConfig) SetDefaults() {
+	if _, ok := c["modify_disabled"].(bool); !ok {
+		c["modify_disabled"] = false
+	}
+
+	if _, ok := c["create_disabled"].(bool); !ok {
+		c["create_disabled"] = c["modify_disabled"].(bool)
+	}
+
+	if _, ok := c["delete_disabled"].(bool); !ok {
+		c["delete_disabled"] = c["modify_disabled"].(bool)
+	}
+
+	c.AsProviderConfig().SetDefaults()
+
+	// Cleanup deprecated fields
+	delete(c, "modify_disabled")
+}
+
+func (c OAuthSSOProviderConfig) AsProviderConfig() oauthrelyingparty.ProviderConfig {
+	return oauthrelyingparty.ProviderConfig(c)
+}
+
+func (c OAuthSSOProviderConfig) Alias() string {
+	alias, ok := c["alias"].(string)
+	if ok {
+		return alias
+	}
+	// This method is called in validateOAuthProvider which is part of the validation process
+	// So it is possible that alias is an invalid value
+	return ""
+}
+
+func (c OAuthSSOProviderConfig) CreateDisabled() bool {
+	return c["create_disabled"].(bool)
+}
+func (c OAuthSSOProviderConfig) DeleteDisabled() bool {
+	return c["delete_disabled"].(bool)
+}
+
 type OAuthSSOConfig struct {
-	Providers []oauthrelyingparty.ProviderConfig `json:"providers,omitempty"`
+	Providers []OAuthSSOProviderConfig `json:"providers,omitempty"`
 }
 
 func (c *OAuthSSOConfig) GetProviderConfig(alias string) (oauthrelyingparty.ProviderConfig, bool) {
 	for _, conf := range c.Providers {
 		if conf.Alias() == alias {
 			cc := conf
-			return cc, true
+			return cc.AsProviderConfig(), true
 		}
 	}
 	return nil, false

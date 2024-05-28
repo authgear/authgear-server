@@ -76,7 +76,7 @@ func (s *Store) scan(scn db.Scanner) (*identity.OAuth, error) {
 
 	alias := ""
 	for _, providerConfig := range s.IdentityConfig.OAuth.Providers {
-		providerID := providerConfig.ProviderID()
+		providerID := providerConfig.AsProviderConfig().ProviderID()
 		if providerID.Equal(i.ProviderID) {
 			alias = providerConfig.Alias()
 		}
