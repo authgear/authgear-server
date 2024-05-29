@@ -41,7 +41,7 @@ export function authflowCreate({ type, name, questionMarkQuery }) {
   const json = response.json();
   const checkResult = checkJSON(json);
   if (!checkResult) {
-    fail(`failed to create authflow ${type}:${name}`);
+    fail(`failed to create authflow ${type}:${name} ${JSON.stringify(json)}`);
   }
   return {
     response,
@@ -66,7 +66,7 @@ export function authflowInput({ result, input }) {
   const json = response.json();
   const checkResult = checkJSON(json);
   if (!checkResult) {
-    fail(`failed to input: ${state_token}`);
+    fail(`failed to input: ${state_token} ${JSON.stringify(json)}`);
   }
   return {
     response,
@@ -82,7 +82,7 @@ export function redirect(result) {
       typeof r.action.data.finish_redirect_uri === "string",
   });
   if (!checkResult) {
-    fail(`unexpected action: ${result.action}`);
+    fail(`unexpected action: ${result}`);
   }
   return http.get(result.action.data.finish_redirect_uri);
 }
