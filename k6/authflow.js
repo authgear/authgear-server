@@ -87,7 +87,7 @@ export function redirect(result) {
   return http.get(result.action.data.finish_redirect_uri);
 }
 
-function authflowIdentify({ phone, email, result }) {
+function authflowIdentify({ username, phone, email, result }) {
   const options = result.action.data.options;
   const first = options[0];
   switch (first.identification) {
@@ -105,6 +105,14 @@ function authflowIdentify({ phone, email, result }) {
         input: {
           identification: "phone",
           login_id: phone,
+        },
+      });
+    case "username":
+      return authflowInput({
+        result,
+        input: {
+          identification: "username",
+          login_id: username,
         },
       });
     default:
@@ -223,7 +231,7 @@ function authflowAuthenticate({ result }) {
   }
 }
 
-export function authflowRun({ phone, email, type, name }) {
+export function authflowRun({ username, phone, email, type, name }) {
   const url = makeAuthenticationURL({
     endpoint: ENDPOINT,
     client_id: CLIENT_ID,
@@ -243,7 +251,7 @@ export function authflowRun({ phone, email, type, name }) {
   while (ret.result.action.type !== "finished") {
     switch (ret.result.action.type) {
       case "identify":
-        ret = authflowIdentify({ phone, email, result: ret.result });
+        ret = authflowIdentify({ username, phone, email, result: ret.result });
         break;
       case "verify":
         ret = authflowVerify({ result: ret.result });
