@@ -30,6 +30,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	state, err := webappoauth.DecodeWebappOAuthState(stateStr)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	switch state.UIImplementation.WithDefault() {
