@@ -141,6 +141,8 @@
   "phone-number-placeholder--new": "New Phone number",
   "login-id-placeholder": "{variant, select, email {Email address} username {Username} other {Email address or username}}",
   "login-id-placeholder--new": "New {variant, select, email {Email address} username {Username} other {Email address or username}}",
+  "add-login-id-label": "Add {variant, select, email {Email address} username {Username} phone {Phone Number} other {Email address or username}}",
+  "update-login-id-label": "Update {variant, select, email {Email address} username {Username} phone {Phone Number} other {Email address or username}}",
   "remove-login-id-label": "Remove {variant, select, email {Email address} username {Username} phone {Phone Number} other {Email address or username}}",
   "use-text-login-id-description": "Use {variant, select, email {email address} username {username} other {email address or username}} instead",
   "use-email-login-id-description": "Use email address instead",

@@ -14,13 +14,13 @@
 {{/* If new identity or update is allowed, display the input */}}
 {{ $is_input_displayed := or (not $.IdentityID) (and $.IdentityID (not $.UpdateDisabled)) }}
 
-{{ if $is_input_displayed }}
-
-	{{ if $.IdentityID }}
+{{ if $.IdentityID }}
 	<p class="text-sm m-0 break-words secondary-txt text-center">
 		{{ template "enter-login-id-page-description--change" (dict "key" $.LoginIDKey "displayID" $.DisplayID) }}
 	</p>
-	{{ end }}
+{{ end }}
+
+{{ if $is_input_displayed }}
 
 	<form id="main-form" class="twc-container-vertical" method="post" novalidate>
 
@@ -65,13 +65,19 @@
 			name="x_action"
 			value="add_or_update"
 			data-authgear-event="authgear.button.change_login_id"
-		>{{ template "next-button-label" }}</button>
+		>
+			{{ if $.IdentityID }}
+				{{ template "update-login-id-label" (dict "variant" .LoginIDType) }}
+			{{ else }}
+				{{ template "add-login-id-label" (dict "variant" .LoginIDType) }}
+			{{ end }}
+		</button>
 	{{ end }}
 
 	{{ if and .IdentityID (not .DeleteDisabled) }}{{ if gt $.IdentityCount 1 }}
 		<button
 			form="remove-form"
-			class="btn light-btn light-btn--destructive text-left text-sm"
+			class="btn outlined-btn outlined-btn--destructive text-left text-sm"
 			type="submit"
 			name="x_action"
 			value="remove"

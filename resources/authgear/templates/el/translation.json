@@ -141,6 +141,8 @@
   "phone-number-placeholder--new": "Νέος αριθμός τηλεφώνου",
   "login-id-placeholder": "{variant, select, email {Διεύθυνση email} username {Όνομα χρήστη} other {Διεύθυνση email ή όνομα χρήστη}}",
   "login-id-placeholder--new": "Νέο {variant, select, email {Διεύθυνση email} username {Όνομα χρήστη} other {Διεύθυνση email ή όνομα χρήστη}}",
+  "add-login-id-label": "Προσθήκη {variant, select, email {Διεύθυνσης ηλεκτρονικού ταχυδρομείου} username {Ονόματος χρήστη} phone {Αριθμού τηλεφώνου} other {Διεύθυνσης ηλεκτρονικού ταχυδρομείου ή ονόματος χρήστη}}",
+  "update-login-id-label": "Ενημέρωση {variant, select, email {Διεύθυνσης ηλεκτρονικού ταχυδρομείου} username {Ονόματος χρήστη} phone {Αριθμού τηλεφώνου} other {Διεύθυνσης ηλεκτρονικού ταχυδρομείου ή ονόματος χρήστη}}",
   "remove-login-id-label": "Αφαίρεση {variant, select, email {Διεύθυνσης email} username {Ονόματος χρήστη} phone {Αριθμού τηλεφώνου} other {Διεύθυνσης email ή ονόματος χρήστη}}",
   "use-text-login-id-description": "Χρησιμοποιήστε {variant, select, email {διεύθυνση email} username {όνομα χρήστη} other {διεύθυνση email ή όνομα χρήστη}} αντ'' αυτού",
   "use-email-login-id-description": "Χρησιμοποιήστε τη διεύθυνση email αντί",

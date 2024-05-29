@@ -141,6 +141,8 @@
   "phone-number-placeholder--new": "新しい電話番号",
   "login-id-placeholder": "{variant, select, email {メールアドレス} username {ユーザー名} other {メールアドレスまたはユーザー名}}",
   "login-id-placeholder--new": "新しい{variant, select, email {メールアドレス} username {ユーザー名} other {メールアドレスまたはユーザー名}}",
+  "add-login-id-label": "追加 {variant, select, email {メールアドレス} username {ユーザー名} phone {電話番号} other {メールアドレスまたはユーザー名}}",
+  "update-login-id-label": "更新 {variant, select, email {メールアドレス} username {ユーザー名} phone {電話番号} other {メールアドレスまたはユーザー名}}",
   "remove-login-id-label": "{variant, select, email {メールアドレス} username {ユーザー名} phone {電話番号} other {メールアドレスまたはユーザー名}}を削除",
   "use-text-login-id-description": "{variant, select, email {メールアドレス} username {ユーザー名} other {メールアドレスまたはユーザー名}}を使用する",
   "use-email-login-id-description": "メールアドレスを使用する",

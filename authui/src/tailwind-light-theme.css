@@ -295,10 +295,21 @@
     border-color: var(--color-text-shaded-2);
   }
 
-  .light-btn--destructive,
-  .light-btn--destructive:focus,
-  .light-btn--destructive:hover,
-  .light-btn--destructive:active {
+  .outlined-btn {
+    @apply border border-solid;
+    color: var(--color-text-unshaded);
+    background-color: transparent;
+    border-color: var(--color-text-unshaded);
+  }
+
+  .outlined-btn--destructive {
+    color: var(--color-error-unshaded);
+    border-color: var(--color-error-unshaded);
+  }
+
+  .outlined-btn--destructive:focus,
+  .outlined-btn--destructive:hover,
+  .outlined-btn--destructive:active {
     color: var(--color-error-shaded-6);
     border-color: var(--color-error-shaded-6);
   }

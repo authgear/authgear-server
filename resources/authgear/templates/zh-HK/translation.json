@@ -141,6 +141,8 @@
   "phone-number-placeholder--new": "新的電話號碼",
   "login-id-placeholder": "{variant, select, email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}}",
   "login-id-placeholder--new": "新的{variant, select, email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}}",
+  "add-login-id-label": "新增{variant, select, email {電郵地址} username {用戶名稱} phone {電話號碼} other {電郵地址或用戶名稱}}",
+  "update-login-id-label": "更新{variant, select, email {電郵地址} username {用戶名稱} phone {電話號碼} other {電郵地址或用戶名稱}}",
   "remove-login-id-label": "移除{variant, select, email {電郵地址} username {用戶名稱} phone {電話號碼} other {電郵地址或用戶名稱}}",
   "use-text-login-id-description": "使用{variant, select, email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}}登入",
   "use-email-login-id-description": "使用電郵地址登入",

@@ -189,7 +189,7 @@
     {{/* Action */}}
     {{ if eq .type "login_id" }}
       {{ if .identity_id }}
-        {{ if or (not .delete_disabled) (not .update_disabled) }}
+        {{ if or (not .update_disabled) (and (not .delete_disabled) (gt $.IdentityCount 1)) }}
           <a class="link w-6 flex flex-col items-end justify-center" href="{{ call $.MakeURL "/settings/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type "q_identity_id" .identity_id }}">
             <i class="ti ti-edit"></i>
           </a>

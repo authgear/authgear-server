@@ -141,6 +141,8 @@
   "phone-number-placeholder--new": "Bagong numero ng telepono",
   "login-id-placeholder": "{variant, select, email {Email address} username {Username} other {Email address o username}}",
   "login-id-placeholder--new": "Bagong {variant, select, email {Email address} username {Username} other {Email address o username}}",
+  "add-login-id-label": "Magdagdag ng {variant, select, email {Email address} username {Username} phone {Numero ng Telepono} other {Email address o username}}",
+  "update-login-id-label": "I-update ang {variant, select, email {Email address} username {Username} phone {Numero ng Telepono} other {Email address o username}}",
   "remove-login-id-label": "Alisin ang {variant, select, email {Email address} username {Username} phone {Numero ng Telepono} other {Email address o username}}",
   "use-text-login-id-description": "Gumamit ng {variant, select, email {email address} username {username} other {email address o username}} sa halip",
   "use-email-login-id-description": "Gumamit ng email address sa halip",
