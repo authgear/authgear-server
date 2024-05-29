@@ -25,6 +25,10 @@ login:
 refresh_access_token:
 	k6 run --vus $(VUS) --duration $(DURATION) ./refresh_access_token.js
 
+.PHONY: get_user_info
+get_user_info:
+	k6 run --vus $(VUS) --duration $(DURATION) ./get_user_info.js
+
 .PHONY: healthz
 healthz:
 	k6 run --vus $(VUS) --duration $(DURATION) ./healthz.js
