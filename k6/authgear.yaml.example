@@ -1,0 +1,62 @@
+authentication:
+  identities:
+  - login_id
+  primary_authenticators:
+  - password
+  secondary_authentication_mode: disabled
+authenticator:
+  oob_otp:
+    sms:
+      phone_otp_mode: sms
+http:
+  public_origin: http://localhost:3100
+id: loadtest
+identity:
+  login_id:
+    keys:
+    - type: email
+localization:
+  fallback_language: en
+  supported_languages:
+  - en
+oauth:
+  clients:
+  - access_token_lifetime_seconds: 300
+    client_id: test
+    client_name: loadtest
+    grant_types:
+    - authorization_code
+    - refresh_token
+    issue_jwt_access_token: true
+    name: loadtest
+    redirect_uris:
+    - "com.example://host"
+    response_types:
+    - none
+    - code
+test_mode:
+  oob_otp:
+    enabled: true
+    rules:
+    - fixed_code: "000000"
+      regex: .+
+  sms:
+    enabled: true
+    rules:
+    - regex: .+
+      suppressed: true
+  email:
+    enabled: true
+    rules:
+    - regex: .+
+      suppressed: true
+ui:
+  implementation: authflowv2
+verification:
+  claims:
+    email:
+      enabled: true
+      required: false
+    phone_number:
+      enabled: true
+      required: false
