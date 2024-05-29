@@ -1,0 +1,21 @@
+.choiceButton {
+  background-color: white;
+}
+.pressedChoiceButton {
+  color: #176df3;
+  border-color: #176df3;
+}
+.pressedChoiceButton :hover {
+  color: #176df3;
+  border-color: #176df3;
+}
+.singleChoiceButtonGroup {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 50px;
+  margin-bottom: 50px;
+  justify-content: center;
+  width: 100%;
+}

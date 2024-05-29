@@ -57,6 +57,9 @@ const AppsScreen = lazy(async () => import("./graphql/portal/AppsScreen"));
 const CreateProjectScreen = lazy(
   async () => import("./graphql/portal/CreateProjectScreen")
 );
+const OnboardingSurveyScreen = lazy(
+  async () => import("./OnboardingSurveyScreen")
+);
 const ProjectWizardScreen = lazy(
   async () => import("./graphql/portal/ProjectWizardScreen")
 );
@@ -126,7 +129,20 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
             }
           />
         </Route>
-
+        <Route path="onboarding-survey">
+          <Route
+            index={true}
+            // @ts-expect-error
+            path="*"
+            element={
+              <Authenticated>
+                <Suspense fallback={<ShowLoading />}>
+                  <OnboardingSurveyScreen />
+                </Suspense>
+              </Authenticated>
+            }
+          />
+        </Route>
         <Route path="/project">
           <Route path=":appID">
             <Route
