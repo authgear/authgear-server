@@ -4,9 +4,11 @@ import { URL } from "https://jslib.k6.io/url/1.0.0/index.js";
 
 const response_type = "code";
 const code_challenge_method = "S256";
-const code_verifier = "secret";
-// code_challenge is S256 of "secret".
-const code_challenge = "K7gNU3sdo-OL0wNhqoVWhr3g6s1xYv72ol_pe_Unols";
+// code_verifier must be at least 43 characters long.
+// See https://github.com/authgear/authgear-server/pull/4126
+const code_verifier = "the-quick-brown-fox-jumps-over-the-lazy-dog";
+// code_challenge is S256 of code_verifier.
+const code_challenge = "lSqEXx4ypW-y7Dj_NrquA6XliP_YgrqI9C1nkbNMIUs";
 const scope = "openid offline_access https://authgear.com/scopes/full-access";
 const x_suppress_idp_session_cookie = "true";
 const x_sso_enabled = "false";
