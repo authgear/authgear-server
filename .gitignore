@@ -33,3 +33,6 @@ pkg/lib/webparcel/parcel_gen.go
 
 # OSX
 .DS_Store
+
+# custom build of k6
+/k6/k6

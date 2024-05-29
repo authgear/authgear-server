@@ -13,22 +13,34 @@ export FIXTURE_PHONE_NUMBER_COUNTRY_CALLING_CODE=+852
 export FIXTURE_PHONE_NUMBER_LOW=52000000
 export FIXTURE_PHONE_NUMBER_HIGH=57999999
 
+.PHONY: go-test
+go-test:
+	go test .
+
+.PHONY: k6
+k6:
+	xk6 build --with github.com/authgear/authgear-server/k6=.
+
+.PHONY: clean
+clean:
+	rm -rf ./k6
+
 .PHONY: signup
 signup:
-	k6 run --vus $(VUS) --duration $(DURATION) ./signup.js
+	./k6 run --vus $(VUS) --duration $(DURATION) ./signup.js
 
 .PHONY: login
 login:
-	k6 run --vus $(VUS) --duration $(DURATION) ./login.js
+	./k6 run --vus $(VUS) --duration $(DURATION) ./login.js
 
 .PHONY: refresh_access_token
 refresh_access_token:
-	k6 run --vus $(VUS) --duration $(DURATION) ./refresh_access_token.js
+	./k6 run --vus $(VUS) --duration $(DURATION) ./refresh_access_token.js
 
 .PHONY: get_user_info
 get_user_info:
-	k6 run --vus $(VUS) --duration $(DURATION) ./get_user_info.js
+	./k6 run --vus $(VUS) --duration $(DURATION) ./get_user_info.js
 
 .PHONY: healthz
 healthz:
-	k6 run --vus $(VUS) --duration $(DURATION) ./healthz.js
+	./k6 run --vus $(VUS) --duration $(DURATION) ./healthz.js
