@@ -21,6 +21,10 @@ signup:
 login:
 	k6 run --vus $(VUS) --duration $(DURATION) ./login.js
 
+.PHONY: refresh_access_token
+refresh_access_token:
+	k6 run --vus $(VUS) --duration $(DURATION) ./refresh_access_token.js
+
 .PHONY: healthz
 healthz:
 	k6 run --vus $(VUS) --duration $(DURATION) ./healthz.js

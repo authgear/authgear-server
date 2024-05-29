@@ -282,4 +282,6 @@ export function authflowRun({ username, phone, email, type, name }) {
   if (!checkResult) {
     fail("failed to exchange code");
   }
+
+  return tokenResponse;
 }
