@@ -1,0 +1,39 @@
+.root {
+  background-color: #faf9f8;
+  height: 100vh;
+}
+.logo {
+  position: absolute;
+  height: 24px;
+  margin: 12px 10px;
+}
+.center {
+  position: relative;
+  height: 80vh;
+  margin: auto;
+  top: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  @apply w-2/5 mobile:w-11/12;
+}
+.navigation {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.title {
+  font-size: x-large;
+  font-weight: 600;
+  white-space: pre-line;
+  text-align: center;
+  margin-bottom: 20px;
+}
+.subtitle {
+  font-size: medium;
+  font-weight: 400;
+  white-space: pre-line;
+  text-align: center;
+  color: #605e5c;
+}
