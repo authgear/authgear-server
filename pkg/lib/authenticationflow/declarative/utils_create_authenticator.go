@@ -12,26 +12,26 @@ func getCreateAuthenticatorOOBOTPTargetFromTargetStep(
 	ctx context.Context,
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
-	targetStepName string) (string, error) {
+	targetStepName string) (target string, isSkipped bool, err error) {
 	targetStepFlow, err := authflow.FindTargetStep(flows.Root, targetStepName)
 	if err != nil {
-		return "", err
+		return "", false, err
 	}
 
-	target, ok := targetStepFlow.Intent.(IntentSignupFlowStepCreateAuthenticatorTarget)
+	targetStep, ok := targetStepFlow.Intent.(IntentSignupFlowStepCreateAuthenticatorTarget)
 	if !ok {
-		return "", InvalidTargetStep.NewWithInfo("invalid target_step", apierrors.Details{
+		return "", false, InvalidTargetStep.NewWithInfo("invalid target_step", apierrors.Details{
 			"target_step": targetStepName,
 		})
 	}
 
-	if target.IsSkipped() {
-		return "", nil
+	if targetStep.IsSkipped() {
+		return "", true, nil
 	}
 
-	claims, err := target.GetOOBOTPClaims(ctx, deps, flows.Replace(targetStepFlow))
+	claims, err := targetStep.GetOOBOTPClaims(ctx, deps, flows.Replace(targetStepFlow))
 	if err != nil {
-		return "", err
+		return "", false, err
 	}
 
 	var claimNames []model.ClaimName
@@ -41,7 +41,7 @@ func getCreateAuthenticatorOOBOTPTargetFromTargetStep(
 
 	if len(claimNames) != 1 {
 		// TODO(authflow): support create more than 1 OOB OTP authenticator?
-		return "", InvalidTargetStep.NewWithInfo("target_step does not contain exactly one claim for OOB-OTP", apierrors.Details{
+		return "", false, InvalidTargetStep.NewWithInfo("target_step does not contain exactly one claim for OOB-OTP", apierrors.Details{
 			"claims": claimNames,
 		})
 	}
@@ -53,13 +53,13 @@ func getCreateAuthenticatorOOBOTPTargetFromTargetStep(
 	case model.ClaimPhoneNumber:
 		break
 	default:
-		return "", InvalidTargetStep.NewWithInfo("target_step contains unsupported claim for OOB-OTP", apierrors.Details{
+		return "", false, InvalidTargetStep.NewWithInfo("target_step contains unsupported claim for OOB-OTP", apierrors.Details{
 			"claim_name": claimName,
 		})
 	}
 
 	oobOTPTarget := claims[claimName]
-	return oobOTPTarget, nil
+	return oobOTPTarget, false, nil
 }
 
 func getCreateAuthenticatorOOBOTPTargetVerified(
