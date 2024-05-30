@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
+	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
 )
 
@@ -79,13 +80,18 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 		redirectURIForOAuthProvider = ctx.OAuthRedirectURIBuilder.WeChatCallbackEndpointURL().String()
 	}
 
+	state := webappoauth.WebappOAuthState{
+		UIImplementation: config.UIImplementationInteraction,
+		WebSessionID:     ctx.WebSessionID,
+	}
+
 	param := oauthrelyingparty.GetAuthorizationURLOptions{
 		RedirectURI: redirectURIForOAuthProvider,
 		// We use response_mode=form_post if it is supported.
 		ResponseMode: oauthrelyingparty.ResponseModeFormPost,
 		Nonce:        nonce,
 		Prompt:       input.GetPrompt(),
-		State:        ctx.WebSessionID,
+		State:        state.Encode(),
 	}
 	redirectURI, err := ctx.OAuthProviderFactory.GetAuthorizationURL(alias, param)
 	if err != nil {

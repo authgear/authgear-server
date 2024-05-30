@@ -22,6 +22,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
+	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -100,7 +101,7 @@ func GetXStepFromQuery(r *http.Request) string {
 
 type AuthflowOAuthCallbackResponse struct {
 	Query string
-	State string
+	State *webappoauth.WebappOAuthState
 }
 
 type AuthflowController struct {
@@ -185,12 +186,7 @@ func (c *AuthflowController) HandleStartOfFlow(
 }
 
 func (c *AuthflowController) HandleOAuthCallback(w http.ResponseWriter, r *http.Request, callbackResponse AuthflowOAuthCallbackResponse) {
-	state, err := webapp.DecodeAuthflowOAuthState(callbackResponse.State)
-	if err != nil {
-		c.Logger.WithError(err).Errorf("failed to get screen")
-		c.renderError(w, r, err)
-		return
-	}
+	state := callbackResponse.State
 
 	s, err := c.Sessions.Get(state.WebSessionID)
 	if err != nil {

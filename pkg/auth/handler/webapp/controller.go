@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
+	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -298,7 +299,7 @@ func (c *Controller) InteractionPost(inputFn func() (interface{}, error)) (*weba
 	return c.Page.PostWithInput(s, inputFn)
 }
 
-func (c *Controller) InteractionOAuthCallback(oauthInput InputOAuthCallback, oauthState string) (*webapp.Result, error) {
+func (c *Controller) InteractionOAuthCallback(oauthInput InputOAuthCallback, oauthState *webappoauth.WebappOAuthState) (*webapp.Result, error) {
 	inputFn := func() (input interface{}, err error) {
 		input = &oauthInput
 		return
@@ -306,7 +307,7 @@ func (c *Controller) InteractionOAuthCallback(oauthInput InputOAuthCallback, oau
 	// OAuth callback could be triggered by form post from another site (e.g. google)
 	// Therefore cookies might not be sent in this case
 	// Use the state as web session id
-	s, err := c.Page.GetSession(oauthState)
+	s, err := c.Page.GetSession(oauthState.WebSessionID)
 	if err != nil {
 		return nil, err
 	}

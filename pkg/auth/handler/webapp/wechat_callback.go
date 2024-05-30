@@ -6,6 +6,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -58,13 +60,21 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	errorDescription := r.Form.Get("error_description")
 
 	updateWebSession := func() error {
-		if authflowOAuthState, err := webapp.DecodeAuthflowOAuthState(state); err == nil {
-			session, err := ctrl.GetSession(authflowOAuthState.WebSessionID)
+		outhState, err := webappoauth.DecodeWebappOAuthState(state)
+		if err != nil {
+			return err
+		}
+
+		switch outhState.UIImplementation.WithDefault() {
+		case config.UIImplementationAuthflow:
+			fallthrough
+		case config.UIImplementationAuthflowV2:
+			session, err := ctrl.GetSession(outhState.WebSessionID)
 			if err != nil {
 				return err
 			}
 
-			screen, ok := session.Authflow.AllScreens[authflowOAuthState.XStep]
+			screen, ok := session.Authflow.AllScreens[outhState.XStep]
 			if !ok {
 				return webapp.WebUIInvalidSession.New("x_step does not reference a valid screen")
 			}
@@ -82,28 +92,29 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 			}
 
 			return nil
+		case config.UIImplementationInteraction:
+			fallthrough
+		default:
+			webSessionID := outhState.WebSessionID
+			session, err := ctrl.GetSession(webSessionID)
+			if err != nil {
+				return err
+			}
+
+			step := session.CurrentStep()
+			step.FormData["x_action"] = WechatActionCallback
+			step.FormData["x_code"] = code
+			step.FormData["x_error"] = error_
+			step.FormData["x_error_description"] = errorDescription
+			session.Steps[len(session.Steps)-1] = step
+
+			err = ctrl.UpdateSession(session)
+			if err != nil {
+				return err
+			}
+
+			return nil
 		}
-
-		// interaction
-		webSessionID := state
-		session, err := ctrl.GetSession(webSessionID)
-		if err != nil {
-			return err
-		}
-
-		step := session.CurrentStep()
-		step.FormData["x_action"] = WechatActionCallback
-		step.FormData["x_code"] = code
-		step.FormData["x_error"] = error_
-		step.FormData["x_error_description"] = errorDescription
-		session.Steps[len(session.Steps)-1] = step
-
-		err = ctrl.UpdateSession(session)
-		if err != nil {
-			return err
-		}
-
-		return nil
 	}
 
 	handler := func() error {

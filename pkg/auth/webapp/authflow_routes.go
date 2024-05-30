@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
+	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 )
 
 const (
@@ -268,8 +269,9 @@ func (n *AuthflowNavigator) navigateStepIdentify(s *AuthflowScreenWithFlowRespon
 			authorizationURL, _ := url.Parse(data.OAuthAuthorizationURL)
 			q := authorizationURL.Query()
 
-			state := AuthflowOAuthState{
+			state := webappoauth.WebappOAuthState{
 				WebSessionID:     webSessionID,
+				UIImplementation: config.UIImplementationAuthflow,
 				XStep:            s.Screen.StateToken.XStep,
 				ErrorRedirectURI: expectedPath,
 			}
