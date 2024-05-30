@@ -1,0 +1,5 @@
+{
+  "vus": 10,
+  "duration": "10s",
+  "setupTimeout": "120s"
+}
