@@ -41,6 +41,10 @@ refresh_access_token:
 get_user_info:
 	./k6 run --vus $(VUS) --duration $(DURATION) ./get_user_info.js
 
+.PHONY: biometric_login
+biometric_login:
+	./k6 run --vus $(VUS) --duration $(DURATION) ./biometric_login.js
+
 .PHONY: healthz
 healthz:
 	./k6 run --vus $(VUS) --duration $(DURATION) ./healthz.js

@@ -110,3 +110,24 @@ export function getUserInfo({ endpoint, access_token }) {
   const json = response.json();
   return json;
 }
+
+export function getChallenge({ endpoint, purpose }) {
+  const url = new URL("/oauth2/challenge", endpoint);
+  const payload = JSON.stringify({
+    purpose,
+  });
+  const params = {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  };
+  const response = http.post(url.toString(), payload, params);
+  const checkResult = check(response, {
+    "challenge request is of status 200": (r) => r.status === 200,
+  });
+  if (!checkResult) {
+    fail("failed to get challenge");
+  }
+
+  return response.json().result.token;
+}
