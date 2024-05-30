@@ -158,6 +158,6 @@
   },
   "VerificationSMSTXT": {
     "Code": "{{ .Code }} is your {{ template \"app.name\" }} verification code.",
-    "Disclaimer": "Don't share it with anyone.."
+    "Disclaimer": "Don't share it with anyone."
   }
 }
