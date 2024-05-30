@@ -1,12 +1,6 @@
 name: Account linking login and link with identification email after it
 authgear.yaml:
   override: |
-    test_mode:
-      oob_otp:
-        enabled: true
-        rules:
-          - fixed_code: "aaaaaa"
-            regex: ".*"
     authentication:
       identities:
         - login_id

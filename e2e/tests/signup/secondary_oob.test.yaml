@@ -1,0 +1,197 @@
+name: Signup with secondary sms oob otp setup
+authgear.yaml:
+  override: |
+    authentication_flow:
+      signup_flows:
+        - name: f1
+          steps:
+          - name: identify_phone
+            type: identify
+            one_of:
+            - identification: phone
+              steps:
+              - name: authenticate_primary_password
+                type: create_authenticator
+                one_of:
+                - authentication: primary_password
+              - name: authenticate_secondary_oob
+                type: create_authenticator
+                one_of:
+                - authentication: secondary_oob_otp_sms
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "f1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+85265000001"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "new_password":   "12345678"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "secondary_oob_otp_sms",
+        "target":   "+85265000002",
+        "channel": "sms"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator",
+            "authentication": "secondary_oob_otp_sms",
+            "data": {
+              "type": "verify_oob_otp_data",
+              "channel": "sms",
+              "otp_form": "code"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "code": "111111"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+---
+
+name: Signup with secondary email oob otp setup
+authgear.yaml:
+  override: |
+    authenticator:
+      oob_otp:
+        email:
+          email_otp_mode: code
+    authentication_flow:
+      signup_flows:
+        - name: f1
+          steps:
+          - name: identify_email
+            type: identify
+            one_of:
+            - identification: email
+              steps:
+              - name: authenticate_primary_password
+                type: create_authenticator
+                one_of:
+                - authentication: primary_password
+              - name: authenticate_secondary_oob
+                type: create_authenticator
+                one_of:
+                - authentication: secondary_oob_otp_email
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "f1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "testoobotp@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "new_password":   "12345678"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "secondary_oob_otp_email",
+        "target":   "testoobotp2@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator",
+            "authentication": "secondary_oob_otp_email",
+            "data": {
+              "type": "verify_oob_otp_data",
+              "otp_form": "code"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "code": "111111"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }

@@ -136,7 +136,7 @@ func (n *IntentCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *aut
 	switch {
 	case !authenticatorSelected:
 		if targetStepName != "" {
-			oobOTPTarget, err := getCreateAuthenticatorOOBOTPTargetFromTargetStep(ctx, deps, flows, targetStepName)
+			oobOTPTarget, _, err := getCreateAuthenticatorOOBOTPTargetFromTargetStep(ctx, deps, flows, targetStepName)
 			if err != nil {
 				return nil, err
 			}

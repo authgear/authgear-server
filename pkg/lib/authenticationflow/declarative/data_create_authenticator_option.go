@@ -42,23 +42,20 @@ func makeCreateAuthenticatorTarget(
 	flows authflow.Flows,
 	oneOf *config.AuthenticationFlowSignupFlowOneOf,
 	userID string,
-) (*CreateAuthenticatorTarget, string, error) {
-	var target *CreateAuthenticatorTarget = nil
-	var claimValue string
-	var err error
+) (target *CreateAuthenticatorTarget, claimValue string, isSkipped bool, err error) {
 	targetStep := oneOf.TargetStep
 	if targetStep != "" {
-		claimValue, err = getCreateAuthenticatorOOBOTPTargetFromTargetStep(ctx, deps, flows, targetStep)
+		claimValue, isSkipped, err := getCreateAuthenticatorOOBOTPTargetFromTargetStep(ctx, deps, flows, targetStep)
 		if err != nil {
-			return nil, "", err
+			return nil, "", isSkipped, err
 		}
 		if claimValue == "" {
-			return nil, "", nil
+			return nil, "", isSkipped, nil
 		}
 		claimName := getOOBAuthenticatorType(oneOf.Authentication).ToClaimName()
 		verified, err := getCreateAuthenticatorOOBOTPTargetVerified(deps, userID, claimName, claimValue)
 		if err != nil {
-			return nil, "", err
+			return nil, "", isSkipped, err
 		}
 		masked := ""
 		switch claimName {
@@ -72,7 +69,7 @@ func makeCreateAuthenticatorTarget(
 			VerificationRequired: !verified && oneOf.IsVerificationRequired(),
 		}
 	}
-	return target, claimValue, nil
+	return target, claimValue, isSkipped, nil
 }
 
 func NewCreateAuthenticationOptions(
@@ -103,11 +100,11 @@ func NewCreateAuthenticationOptions(
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
-			target, unmaskedTarget, err := makeCreateAuthenticatorTarget(ctx, deps, flows, b, userID)
+			target, unmaskedTarget, isSkipped, err := makeCreateAuthenticatorTarget(ctx, deps, flows, b, userID)
 			if err != nil {
 				return nil, err
 			}
-			if target == nil {
+			if isSkipped {
 				// Skip this option, because the target step was skipped
 				continue
 			}
@@ -126,11 +123,11 @@ func NewCreateAuthenticationOptions(
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-			target, unmaskedTarget, err := makeCreateAuthenticatorTarget(ctx, deps, flows, b, userID)
+			target, unmaskedTarget, isSkipped, err := makeCreateAuthenticatorTarget(ctx, deps, flows, b, userID)
 			if err != nil {
 				return nil, err
 			}
-			if target == nil {
+			if isSkipped {
 				// Skip this option, because the target step was skipped
 				continue
 			}
