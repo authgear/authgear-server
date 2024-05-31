@@ -1,5 +1,5 @@
 # Stage 1: Build the Go binary
-FROM golang:1.21.10-bookworm as stage1
+FROM golang:1.22.3-bookworm as stage1
 
 # Install build time C dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
