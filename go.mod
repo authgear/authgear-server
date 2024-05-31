@@ -2,7 +2,7 @@ module github.com/authgear/authgear-server
 
 // go1.21 supports toolchain
 // See https://go.dev/doc/toolchain
-go 1.21.10
+go 1.22.3
 
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
@@ -36,7 +36,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/lithdew/quickjs v0.0.0-20200714182134-aaa42285c9d2
 	github.com/njern/gonexmo v2.0.0+incompatible
-	github.com/nyaruka/phonenumbers v1.3.5
+	github.com/nyaruka/phonenumbers v1.3.6
 	github.com/oschwald/geoip2-golang v1.9.0
 	github.com/pquerna/otp v1.4.0
 	github.com/rubenv/sql-migrate v1.5.2
