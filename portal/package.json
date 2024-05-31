@@ -78,7 +78,7 @@
     "deep-equal": "2.2.3",
     "history": "5.3.0",
     "immer": "10.0.3",
-    "intl-tel-input": "https://github.com/authgear/intl-tel-input/tarball/d8a0b82f22366b6caea0e9ffebc7e20e6b1dd145",
+    "intl-tel-input": "18.5.3",
     "js-yaml": "4.1.0",
     "luxon": "3.4.4",
     "monaco-editor": "0.44.0",

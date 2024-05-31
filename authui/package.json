@@ -64,7 +64,7 @@
     "cldr-localenames-full": "44.1.0",
     "cropperjs": "1.6.1",
     "ethers": "5.5.1",
-    "intl-tel-input": "https://github.com/authgear/intl-tel-input/tarball/d8a0b82f22366b6caea0e9ffebc7e20e6b1dd145",
+    "intl-tel-input": "18.5.3",
     "libphonenumber-js": "1.10.53",
     "luxon": "3.4.4",
     "siwe": "1.1.6",
