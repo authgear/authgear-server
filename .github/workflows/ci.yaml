@@ -115,6 +115,8 @@ jobs:
       if: ${{ !cancelled() }}
     - run: make govulncheck
       if: ${{ !cancelled() }}
+    - run: make ensure-important-modules-up-to-date
+      if: ${{ !cancelled() }}
     - run: make lint
       if: ${{ !cancelled() }}
     - run: make test
