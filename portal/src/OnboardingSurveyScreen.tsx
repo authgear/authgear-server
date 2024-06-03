@@ -1,9 +1,18 @@
-import React, { ComponentType, useContext, useState, useMemo, useCallback } from "react";
+import React, {
+  ComponentType,
+  useContext,
+  useState,
+  useMemo,
+  useCallback,
+} from "react";
 import { Routes, Navigate, Route, useNavigate } from "react-router-dom";
-import { useTheme } from "@fluentui/react";
+import { useTheme, Label } from "@fluentui/react";
 import PrimaryButton from "./PrimaryButton";
 import DefaultButton, { DefaultButtonProps } from "./DefaultButton";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import FormTextField from "./FormTextField";
+import PhoneTextField, { PhoneTextFieldValues } from "./PhoneTextField";
+import { FormProvider } from "./form";
 import SurveyLayout from "./OnboardingSurveyLayout";
 import styles from "./OnboardingSurveyScreen.module.css";
 
@@ -14,7 +23,7 @@ function ChoiceButton(props: DefaultButtonProps) {
     return {
       root: {
         border: "none",
-        "--tw-ring-color": theme.semanticColors.inputBorder,
+        "--tw-ring-color": theme.semanticColors.variantBorder,
       },
       rootChecked: {
         "--tw-ring-color": theme.palette.themePrimary,
@@ -62,10 +71,19 @@ interface ChoiceButtonGroupProps {
     selectedChoice: Readonly<string>
   ) => Record<string, boolean>;
   Button: ComponentType<DefaultButtonProps>;
+  isIndividualComponent: boolean;
 }
 
 function ChoiceButtonGroup(props: ChoiceButtonGroupProps) {
-  const { prefix, choices, state, setChoice, processChoice, Button } = props;
+  const {
+    prefix,
+    choices,
+    state,
+    setChoice,
+    processChoice,
+    Button,
+    isIndividualComponent,
+  } = props;
   const { renderToString } = useContext(Context);
   const buttons = useMemo(
     () =>
@@ -84,7 +102,22 @@ function ChoiceButtonGroup(props: ChoiceButtonGroupProps) {
       }),
     [state, Button, prefix, choices, processChoice, setChoice, renderToString]
   );
-  return <div className={styles.singleChoiceButtonGroup}>{buttons}</div>;
+  return (
+    <div>
+      {isIndividualComponent ? null : (
+        <Label>{renderToString(prefix + ".label")}</Label>
+      )}
+      <div
+        className={
+          isIndividualComponent
+            ? styles.individualSingleChoiceButtonGroup
+            : styles.singleChoiceButtonGroup
+        }
+      >
+        {buttons}
+      </div>
+    </div>
+  );
 }
 
 function processSingleChoice(
@@ -136,11 +169,14 @@ function Step1(_props: StepProps) {
   }, [roleChoicesState]);
   const { renderToString } = useContext(Context);
   const navigate = useNavigate();
-  const onClickNext = useCallback((e) => {
+  const onClickNext = useCallback(
+    (e) => {
       e.preventDefault();
       e.stopPropagation();
       navigate("./../2");
-  }, [navigate]);
+    },
+    [navigate]
+  );
   return (
     <SurveyLayout
       title={renderToString(prefix + ".title")}
@@ -153,13 +189,7 @@ function Step1(_props: StepProps) {
           disabled={empty}
         />
       }
-      secondaryButton={
-        <DefaultButton
-          onClick={() => {}}
-          text={<FormattedMessage id="back" />}
-          className={styles.backButton}
-        />
-      }
+      secondaryButton={<DefaultButton />}
     >
       <ChoiceButtonGroup
         prefix={[prefix, roleChoiceGroup].join(".")}
@@ -168,6 +198,7 @@ function Step1(_props: StepProps) {
         setChoice={setRoleChoicesState}
         processChoice={processSingleChoice}
         Button={ChoiceButton}
+        isIndividualComponent={true}
       />
     </SurveyLayout>
   );
@@ -176,10 +207,7 @@ function Step1(_props: StepProps) {
 function Step2(_props: StepProps) {
   const prefix = "OnboardingSurveyScreen.step2";
   const toriChoiceGroup = "teamOrIndividualChoiceGroup";
-  const toriChoices = [
-    "Team",
-    "Individual",
-  ] as const;
+  const toriChoices = ["Team", "Individual"] as const;
   const defaultToriChoices: Record<typeof toriChoices[number], boolean> =
     allFalse(toriChoices);
   const [toriChoicesState, setToriChoicesState] = useState(defaultToriChoices);
@@ -193,17 +221,32 @@ function Step2(_props: StepProps) {
   }, [toriChoicesState]);
   const { renderToString } = useContext(Context);
   const navigate = useNavigate();
-  const onClickNext = useCallback((e) => {
+  const onClickNext = useCallback(
+    (e) => {
       e.preventDefault();
       e.stopPropagation();
-      if (toriChoicesState["Team"]) navigate("./../3-team")
-      if (toriChoicesState["Individual"]) navigate("./../3-individual")
-  }, [navigate, toriChoicesState]);
-  const onClickBack = useCallback((e) => {
+      if (toriChoicesState["Team"]) navigate("./../3-team");
+      if (toriChoicesState["Individual"]) navigate("./../3-individual");
+    },
+    [navigate, toriChoicesState]
+  );
+  const onClickBack = useCallback(
+    (e) => {
       e.preventDefault();
       e.stopPropagation();
       navigate("./../1");
-  }, [navigate]);
+    },
+    [navigate]
+  );
+  const theme = useTheme();
+  const backButtonStyles = useMemo(() => {
+    return {
+      root: {
+        border: "none",
+        "background-color": theme.semanticColors.bodyStandoutBackground,
+      },
+    };
+  }, [theme]);
   return (
     <SurveyLayout
       title={renderToString(prefix + ".title")}
@@ -219,9 +262,9 @@ function Step2(_props: StepProps) {
       }
       secondaryButton={
         <DefaultButton
+          styles={backButtonStyles}
           onClick={onClickBack}
           text={<FormattedMessage id="back" />}
-          className={styles.backButton}
         />
       }
     >
@@ -232,11 +275,205 @@ function Step2(_props: StepProps) {
         setChoice={setToriChoicesState}
         processChoice={processSingleChoice}
         Button={ChoiceButton}
+        isIndividualComponent={true}
       />
     </SurveyLayout>
   );
 }
 
+function Step3Team(_props: StepProps) {
+  const prefix = "OnboardingSurveyScreen.step3-team";
+  const [companyName, setCompanyName] = useState("");
+  const defaultPhone: PhoneTextFieldValues = { rawInputValue: "" };
+  const [companyPhone, setCompanyPhone] = useState(defaultPhone);
+  const companySizeChoiceGroup = "companySizeChoiceGroup";
+  const companySizeChoices = [
+    "1-49",
+    "50-99",
+    "100-499",
+    "500-1999",
+    "2000+",
+  ] as const;
+  const defaultCompanySizeChoices: Record<
+    typeof companySizeChoices[number],
+    boolean
+  > = allFalse(companySizeChoices);
+  const [companySizeChoicesState, setCompanySizeChoicesState] = useState(
+    defaultCompanySizeChoices
+  );
+  const companySizeEmpty = useMemo(() => {
+    return (
+      Object.entries(companySizeChoicesState).reduce(
+        (acc, [_, v]) => acc + (v ? 1 : 0),
+        0
+      ) === 0
+    );
+  }, [companySizeChoicesState]);
+  const { renderToString } = useContext(Context);
+  const navigate = useNavigate();
+  const onClickNext = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      navigate("./../4");
+    },
+    [navigate]
+  );
+  const onClickBack = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      navigate("./../2");
+    },
+    [navigate]
+  );
+  const theme = useTheme();
+  const inputStyles = useMemo(() => {
+    return {
+      fieldGroup: {
+        "border-color": theme.semanticColors.variantBorder,
+      },
+    };
+  }, [theme]);
+  const backButtonStyles = useMemo(() => {
+    return {
+      root: {
+        border: "none",
+        "background-color": theme.semanticColors.bodyStandoutBackground,
+      },
+    };
+  }, [theme]);
+  return (
+    <SurveyLayout
+      title={renderToString(prefix + ".title")}
+      subtitle={renderToString(prefix + ".subtitle")}
+      backButtonDisabled={false}
+      primaryButton={
+        <PrimaryButton
+          onClick={onClickNext}
+          text={<FormattedMessage id="next" />}
+          className={styles.nextButton}
+          disabled={companySizeEmpty || companyName === ""}
+        />
+      }
+      secondaryButton={
+        <DefaultButton
+          styles={backButtonStyles}
+          onClick={onClickBack}
+          text={<FormattedMessage id="back" />}
+        />
+      }
+    >
+      <div className={styles.formBox}>
+        <FormProvider loading={false}>
+          <FormTextField
+            parentJSONPointer={""}
+            fieldName="companyName"
+            styles={inputStyles}
+            label={renderToString(prefix + ".companyName.label")}
+            value={companyName}
+            onChange={(_, v) => setCompanyName(v!)}
+          />
+          <ChoiceButtonGroup
+            prefix={[prefix, companySizeChoiceGroup].join(".")}
+            choices={companySizeChoices}
+            state={companySizeChoicesState}
+            setChoice={setCompanySizeChoicesState}
+            processChoice={processSingleChoice}
+            Button={ChoiceButton}
+            isIndividualComponent={false}
+          />
+          <PhoneTextField
+            label={renderToString(prefix + ".phone.label")}
+            inputValue={companyPhone.rawInputValue}
+            onChange={(v) => setCompanyPhone(v)}
+          />
+        </FormProvider>
+      </div>
+    </SurveyLayout>
+  );
+}
+
+function Step3Individual(_props: StepProps) {
+  const prefix = "OnboardingSurveyScreen.step3-individual";
+  const [individualWebsite, setIndividualWebsite] = useState("");
+  const defaultPhone: PhoneTextFieldValues = { rawInputValue: "" };
+  const [individualPhone, setIndividualPhone] = useState(defaultPhone);
+  const { renderToString } = useContext(Context);
+  const navigate = useNavigate();
+  const onClickNext = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      navigate("./../4");
+    },
+    [navigate]
+  );
+  const onClickBack = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      navigate("./../2");
+    },
+    [navigate]
+  );
+  const theme = useTheme();
+  const inputStyles = useMemo(() => {
+    return {
+      fieldGroup: {
+        "border-color": theme.semanticColors.variantBorder,
+      },
+    };
+  }, [theme]);
+  const backButtonStyles = useMemo(() => {
+    return {
+      root: {
+        border: "none",
+        "background-color": theme.semanticColors.bodyStandoutBackground,
+      },
+    };
+  }, [theme]);
+  return (
+    <SurveyLayout
+      title={renderToString(prefix + ".title")}
+      subtitle={renderToString(prefix + ".subtitle")}
+      backButtonDisabled={false}
+      primaryButton={
+        <PrimaryButton
+          onClick={onClickNext}
+          text={<FormattedMessage id="next" />}
+          className={styles.nextButton}
+          disabled={false}
+        />
+      }
+      secondaryButton={
+        <DefaultButton
+          styles={backButtonStyles}
+          onClick={onClickBack}
+          text={<FormattedMessage id="back" />}
+        />
+      }
+    >
+      <div className={styles.formBox}>
+        <FormProvider loading={false}>
+          <FormTextField
+            parentJSONPointer={""}
+            fieldName={"projectWebsite"}
+            styles={inputStyles}
+            label={renderToString(prefix + ".projectWebsite.label")}
+            value={individualWebsite}
+            onChange={(_, v) => setIndividualWebsite(v!)}
+          />
+          <PhoneTextField
+            label={renderToString(prefix + ".phone.label")}
+            inputValue={individualPhone.rawInputValue}
+            onChange={(v) => setIndividualPhone(v)}
+          />
+        </FormProvider>
+      </div>
+    </SurveyLayout>
+  );
+}
 
 export const OnboardingSurveyScreen: React.VFC =
   function OnboardingSurveyScreen() {
@@ -244,6 +481,8 @@ export const OnboardingSurveyScreen: React.VFC =
       <Routes>
         <Route path="/1" element={<Step1 />} />
         <Route path="/2" element={<Step2 />} />
+        <Route path="/3-team" element={<Step3Team />} />
+        <Route path="/3-individual" element={<Step3Individual />} />
         <Route path="*" element={<Navigate to="1" replace={true} />} />
       </Routes>
     );

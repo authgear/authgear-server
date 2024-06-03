@@ -3,12 +3,19 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 50px;
-  margin-bottom: 50px;
+  width: 100%;
+}
+.individualSingleChoiceButtonGroup {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
   justify-content: center;
   width: 100%;
 }
-.backButton {
-  border: none;
-  background-color: #faf9f8;
+.formBox {
+  width: 380px;
+  max-width: 380px;
+  display: grid;
+  gap: 20px;
 }

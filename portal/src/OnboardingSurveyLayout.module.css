@@ -1,11 +1,6 @@
-.root {
-  background-color: #faf9f8;
-  height: 100vh;
-}
 .logo {
   position: absolute;
-  height: 24px;
-  margin: 12px 10px;
+  height: 48px;
 }
 .center {
   position: relative;
@@ -24,17 +19,7 @@
   align-items: center;
   gap: 10px;
 }
-.title {
-  font-size: x-large;
-  font-weight: 600;
-  white-space: pre-line;
-  text-align: center;
-  margin-bottom: 20px;
-}
-.subtitle {
-  font-size: medium;
-  font-weight: 400;
-  white-space: pre-line;
-  text-align: center;
-  color: #605e5c;
+.content {
+  margin-top: 50px;
+  margin-bottom: 50px;
 }
