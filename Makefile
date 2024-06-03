@@ -20,6 +20,7 @@ vendor:
 	go install github.com/google/wire/cmd/wire
 	go install golang.org/x/vuln/cmd/govulncheck@latest
 	go install golang.org/x/tools/cmd/goimports@latest
+	go install go.k6.io/xk6/cmd/xk6@latest
 	npm --prefix ./scripts/npm ci
 	npm --prefix ./authui ci
 	npm --prefix ./portal ci
@@ -45,6 +46,7 @@ generate:
 
 .PHONY: test
 test:
+	$(MAKE) -C ./k6 go-test
 	go test ./pkg/... -timeout 1m30s
 
 .PHONY: lint

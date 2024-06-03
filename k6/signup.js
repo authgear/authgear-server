@@ -1,13 +1,11 @@
-import {
-  makeNationalPhoneNumberForSignup,
-  makePhoneAndEmail,
-} from "./fixture.js";
+import { makeNationalPhoneNumberForSignup, makeLoginIDs } from "./fixture.js";
 import { authflowRun } from "./authflow.js";
 
 export default function () {
   const nationalPhone = makeNationalPhoneNumberForSignup();
-  const { phone, email } = makePhoneAndEmail(nationalPhone);
+  const { username, phone, email } = makeLoginIDs(nationalPhone);
   authflowRun({
+    username,
     phone,
     email,
     type: "signup",

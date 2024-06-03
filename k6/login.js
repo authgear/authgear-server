@@ -1,8 +1,5 @@
 import exec from "k6/execution";
-import {
-  makeNationalPhoneNumberForLogin,
-  makePhoneAndEmail,
-} from "./fixture.js";
+import { makeNationalPhoneNumberForLogin, makeLoginIDs } from "./fixture.js";
 import { authflowRun } from "./authflow.js";
 
 export function setup() {
@@ -10,8 +7,9 @@ export function setup() {
   const vus = exec.test.options.scenarios.default.vus;
   for (let i = 1; i <= vus; ++i) {
     const nationalPhone = makeNationalPhoneNumberForLogin({ vu: i });
-    const { email, phone } = makePhoneAndEmail(nationalPhone);
+    const { username, email, phone } = makeLoginIDs(nationalPhone);
     authflowRun({
+      username,
       phone,
       email,
       type: "signup",
@@ -24,8 +22,9 @@ export default function () {
   const nationalPhone = makeNationalPhoneNumberForLogin({
     vu: exec.vu.idInTest,
   });
-  const { phone, email } = makePhoneAndEmail(nationalPhone);
+  const { username, phone, email } = makeLoginIDs(nationalPhone);
   authflowRun({
+    username,
     phone,
     email,
     type: "login",

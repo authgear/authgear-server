@@ -7,10 +7,12 @@ import {
   FIXTURE_PHONE_NUMBER_HIGH,
 } from "./env.js";
 
-export function makePhoneAndEmail(nationalPhone) {
-  const email = `user${nationalPhone}@${FIXTURE_EMAIL_DOMAIN}`;
+export function makeLoginIDs(nationalPhone) {
+  const username = `user${nationalPhone}`;
+  const email = `${username}@${FIXTURE_EMAIL_DOMAIN}`;
   const phone = `${FIXTURE_PHONE_NUMBER_COUNTRY_CALLING_CODE}${nationalPhone}`;
   return {
+    username,
     email,
     phone,
   };
