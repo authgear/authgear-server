@@ -203,6 +203,15 @@ cert-manager@v1.7.3 has transitive dependency problem.
 
 siwe has to be 1.1.6. siwe@2.x has runtime error on page load. siwe@1.1.6 requires ethers@5.5.1.
 
+When intl-tel-input is >= 21, it switched to use CSS variables. https://github.com/jackocnr/intl-tel-input/releases/tag/v21.0.0
+The problem is that it uses `--custom-var: url("../some-path");`, which is rejected by Parcel https://github.com/parcel-bundler/parcel/blob/v2.10.2/packages/transformers/css/src/CSSTransformer.js#L135
+
+When intl-tel-input is >= 20, the behavior of initialCountry. It no longer supports selecting the first country in its own sorted list of countries when we pass `initialCountry=""`.
+
+When intl-tel-input is >= 19, isPossibleNumber is removed. isValidNumber becomes isPossibleNumber. isValidNumberPrecise is the old isValidNumber.
+
+So the highest version of intl-tel-input is 18.
+
 ### Known issues on portal
 
 As `useBlocker` is removed since react-router-domv6.0.0-beta.7 and have no promise which version will
