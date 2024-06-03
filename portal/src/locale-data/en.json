@@ -1589,6 +1589,10 @@
   "OnboardingSurveyScreen.step1.roleChoiceGroup.Market": "Marketing",
   "OnboardingSurveyScreen.step1.roleChoiceGroup.Owner": "Business Owner",
   "OnboardingSurveyScreen.step1.roleChoiceGroup.Other": "Other",
+  "OnboardingSurveyScreen.step2.title": "Who will be using Authgear?",
+  "OnboardingSurveyScreen.step2.subtitle": "Are you creating this account for a company or personal project?",
+  "OnboardingSurveyScreen.step2.teamOrIndividualChoiceGroup.Team": "My Team/Company",
+  "OnboardingSurveyScreen.step2.teamOrIndividualChoiceGroup.Individual": "Just me",
 
   "GetStartedScreen.title": "Getting Started 🎉",
   "GetStartedScreen.description": "Here are a few steps to get you set up for success.",
