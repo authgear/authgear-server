@@ -1,14 +1,3 @@
-.choiceButton {
-  background-color: white;
-}
-.pressedChoiceButton {
-  color: #176df3;
-  border-color: #176df3;
-}
-.pressedChoiceButton :hover {
-  color: #176df3;
-  border-color: #176df3;
-}
 .singleChoiceButtonGroup {
   display: flex;
   align-items: center;
