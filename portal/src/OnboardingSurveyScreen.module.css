@@ -8,3 +8,7 @@
   justify-content: center;
   width: 100%;
 }
+.backButton {
+  border: none;
+  background-color: #faf9f8;
+}

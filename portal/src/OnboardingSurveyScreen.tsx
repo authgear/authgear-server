@@ -1,5 +1,5 @@
-import React, { ComponentType, useContext, useState, useMemo } from "react";
-import { Routes, Navigate, Route } from "react-router-dom";
+import React, { ComponentType, useContext, useState, useMemo, useCallback } from "react";
+import { Routes, Navigate, Route, useNavigate } from "react-router-dom";
 import { useTheme } from "@fluentui/react";
 import PrimaryButton from "./PrimaryButton";
 import DefaultButton, { DefaultButtonProps } from "./DefaultButton";
@@ -87,8 +87,6 @@ function ChoiceButtonGroup(props: ChoiceButtonGroupProps) {
   return <div className={styles.singleChoiceButtonGroup}>{buttons}</div>;
 }
 
-interface StepProps {}
-
 function processSingleChoice(
   oldChoices: Record<string, boolean>,
   choice: Readonly<string>
@@ -110,6 +108,8 @@ function allFalse(
   });
   return result;
 }
+
+interface StepProps {}
 
 function Step1(_props: StepProps) {
   const prefix = "OnboardingSurveyScreen.step1";
@@ -135,8 +135,12 @@ function Step1(_props: StepProps) {
     );
   }, [roleChoicesState]);
   const { renderToString } = useContext(Context);
-  const onClickNext = () => {};
-  const onClickPrev = () => {};
+  const navigate = useNavigate();
+  const onClickNext = useCallback((e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      navigate("./../2");
+  }, [navigate]);
   return (
     <SurveyLayout
       title={renderToString(prefix + ".title")}
@@ -146,15 +150,14 @@ function Step1(_props: StepProps) {
         <PrimaryButton
           onClick={onClickNext}
           text={<FormattedMessage id="next" />}
-          className={styles.nextButton}
           disabled={empty}
         />
       }
       secondaryButton={
         <DefaultButton
-          onClick={onClickPrev}
-          text={<FormattedMessage id="prev" />}
-          className={styles.prevButton}
+          onClick={() => {}}
+          text={<FormattedMessage id="back" />}
+          className={styles.backButton}
         />
       }
     >
@@ -170,11 +173,77 @@ function Step1(_props: StepProps) {
   );
 }
 
+function Step2(_props: StepProps) {
+  const prefix = "OnboardingSurveyScreen.step2";
+  const toriChoiceGroup = "teamOrIndividualChoiceGroup";
+  const toriChoices = [
+    "Team",
+    "Individual",
+  ] as const;
+  const defaultToriChoices: Record<typeof toriChoices[number], boolean> =
+    allFalse(toriChoices);
+  const [toriChoicesState, setToriChoicesState] = useState(defaultToriChoices);
+  const empty = useMemo(() => {
+    return (
+      Object.entries(toriChoicesState).reduce(
+        (acc, [_, v]) => acc + (v ? 1 : 0),
+        0
+      ) === 0
+    );
+  }, [toriChoicesState]);
+  const { renderToString } = useContext(Context);
+  const navigate = useNavigate();
+  const onClickNext = useCallback((e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (toriChoicesState["Team"]) navigate("./../3-team")
+      if (toriChoicesState["Individual"]) navigate("./../3-individual")
+  }, [navigate, toriChoicesState]);
+  const onClickBack = useCallback((e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      navigate("./../1");
+  }, [navigate]);
+  return (
+    <SurveyLayout
+      title={renderToString(prefix + ".title")}
+      subtitle={renderToString(prefix + ".subtitle")}
+      backButtonDisabled={false}
+      primaryButton={
+        <PrimaryButton
+          onClick={onClickNext}
+          text={<FormattedMessage id="next" />}
+          className={styles.nextButton}
+          disabled={empty}
+        />
+      }
+      secondaryButton={
+        <DefaultButton
+          onClick={onClickBack}
+          text={<FormattedMessage id="back" />}
+          className={styles.backButton}
+        />
+      }
+    >
+      <ChoiceButtonGroup
+        prefix={[prefix, toriChoiceGroup].join(".")}
+        choices={toriChoices}
+        state={toriChoicesState}
+        setChoice={setToriChoicesState}
+        processChoice={processSingleChoice}
+        Button={ChoiceButton}
+      />
+    </SurveyLayout>
+  );
+}
+
+
 export const OnboardingSurveyScreen: React.VFC =
   function OnboardingSurveyScreen() {
     return (
       <Routes>
         <Route path="/1" element={<Step1 />} />
+        <Route path="/2" element={<Step2 />} />
         <Route path="*" element={<Navigate to="1" replace={true} />} />
       </Routes>
     );
