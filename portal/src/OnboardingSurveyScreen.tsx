@@ -1,27 +1,37 @@
 import React, { ComponentType, useContext, useState, useMemo } from "react";
 import { Routes, Navigate, Route } from "react-router-dom";
+import { useTheme } from "@fluentui/react";
 import PrimaryButton from "./PrimaryButton";
-import DefaultButton from "./DefaultButton";
+import DefaultButton, { DefaultButtonProps } from "./DefaultButton";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import SurveyLayout from "./OnboardingSurveyLayout";
 import styles from "./OnboardingSurveyScreen.module.css";
 
-interface ButtonProps {
-  buttonKey: string;
-  pressed: boolean;
-  onClick: () => void;
-}
-
-function ChoiceButton(props: ButtonProps) {
-  const { buttonKey, pressed, onClick } = props;
-  const { renderToString } = useContext(Context);
+function ChoiceButton(props: DefaultButtonProps) {
+  const theme = useTheme();
+  const { checked } = props;
+  const styles = useMemo(() => {
+    return {
+      root: {
+        border: "none",
+        "--tw-ring-color": theme.semanticColors.inputBorder,
+      },
+      rootChecked: {
+        "--tw-ring-color": theme.palette.themePrimary,
+        color: theme.palette.themePrimary,
+        backgroundColor: theme.semanticColors.buttonBackground,
+      },
+      rootCheckedHovered: {
+        color: theme.palette.themePrimary,
+      },
+    };
+  }, [theme]);
   return (
     <DefaultButton
-      text={renderToString(buttonKey)}
+      {...props}
       toggle={true}
-      checked={pressed}
-      className={pressed ? styles.pressedChoiceButton : styles.choiceButton}
-      onClick={onClick}
+      styles={styles}
+      className={checked ? "ring-2" : "ring-1"}
     />
   );
 }
@@ -41,91 +51,88 @@ function CompoundChoiceButton (props: ButtonProps) {
   )
 }
 */
-type Statify<K extends Readonly<string[]>> = K extends [
-  infer F extends string,
-  ...infer R extends string[]
-]
-  ? Statify<R> & { [key in F]: boolean }
-  : object;
 
-interface ChoiceButtonGroupProps<Choices extends Readonly<string[]>> {
+interface ChoiceButtonGroupProps {
   prefix: string;
-  state: Statify<Choices>;
-  setChoice: (choice: Statify<Choices>) => void;
+  choices: readonly string[];
+  state: Record<string, boolean>;
+  setChoice: (choice: Record<string, boolean>) => void;
   processChoice: (
-    oldChoice: Statify<Choices>,
-    newChoice: Statify<Choices>,
-    selectedChoice: keyof Statify<Choices>
-  ) => Statify<Choices>;
-  Button: ComponentType<ButtonProps>;
+    oldChoice: Record<string, boolean>,
+    selectedChoice: Readonly<string>
+  ) => Record<string, boolean>;
+  Button: ComponentType<DefaultButtonProps>;
 }
 
-function ChoiceButtonGroup<Choices extends Readonly<string[]>>(
-  props: ChoiceButtonGroupProps<Choices>
-) {
-  const { prefix, state, setChoice, processChoice, Button } = props;
+function ChoiceButtonGroup(props: ChoiceButtonGroupProps) {
+  const { prefix, choices, state, setChoice, processChoice, Button } = props;
+  const { renderToString } = useContext(Context);
   const buttons = useMemo(
     () =>
-      (Object.keys(state) as (keyof Statify<Choices>)[]).map((choice) => {
+      choices.map((choice) => {
+        const key = [prefix, choice].join(".");
         return (
           <Button
-            buttonKey={[prefix, choice as string].join(".")}
-            key={prefix + (choice as string)}
-            pressed={state[choice] as boolean}
+            key={key}
+            text={renderToString(key)}
+            checked={state[choice]}
             onClick={() => {
-              const newState = state;
-              newState[choice] = !state[
-                choice
-              ] as Statify<Choices>[keyof Statify<Choices>];
-              setChoice(
-                structuredClone(processChoice(state, newState, choice))
-              );
+              setChoice(structuredClone(processChoice(state, choice)));
             }}
           />
         );
       }),
-    [state, Button, prefix, processChoice, setChoice]
+    [state, Button, prefix, choices, processChoice, setChoice, renderToString]
   );
   return <div className={styles.singleChoiceButtonGroup}>{buttons}</div>;
 }
 
 interface StepProps {}
 
-function processSingleChoice<K extends Readonly<string[]>>(
-  oldChoice: Statify<K>,
-  newChoice: Statify<K>,
-  choice: keyof Statify<K>
-): Statify<K> {
-  const keys = Object.keys(oldChoice) as (keyof Statify<K>)[];
-  let newCount = 0;
-  for (const key of keys) newCount += (newChoice[key] as boolean) ? 1 : 0;
-  if (newCount === 2)
-    for (const key of keys)
-      newChoice[key] = (key === choice) as Statify<K>[keyof Statify<K>];
-  return newChoice;
+function processSingleChoice(
+  oldChoices: Record<string, boolean>,
+  choice: Readonly<string>
+): Record<string, boolean> {
+  if (oldChoices[choice]) oldChoices[choice] = false;
+  else
+    Object.entries(oldChoices).forEach(([k, _]) => {
+      oldChoices[k] = k === choice;
+    });
+  return oldChoices;
+}
+
+function allFalse(
+  choices: readonly string[]
+): Record<typeof choices[number], boolean> {
+  const result = {} as Record<typeof choices[number], boolean>;
+  choices.forEach((c) => {
+    result[c] = false;
+  });
+  return result;
 }
 
 function Step1(_props: StepProps) {
   const prefix = "OnboardingSurveyScreen.step1";
   const roleChoiceGroup = "roleChoiceGroup";
-  type RoleChoices = ["Dev", "IT", "PM", "PD", "Market", "Owner", "Other"];
-  const defaultRoleChoices: Statify<RoleChoices> = {
-    Dev: false,
-    IT: false,
-    PM: false,
-    PD: false,
-    Market: false,
-    Owner: false,
-    Other: false,
-  };
+  const roleChoices = [
+    "Dev",
+    "IT",
+    "PM",
+    "PD",
+    "Market",
+    "Owner",
+    "Other",
+  ] as const;
+  const defaultRoleChoices: Record<typeof roleChoices[number], boolean> =
+    allFalse(roleChoices);
   const [roleChoicesState, setRoleChoicesState] = useState(defaultRoleChoices);
   const empty = useMemo(() => {
-    let newCount = 0;
-    for (const key of Object.keys(
-      roleChoicesState
-    ) as (keyof typeof roleChoicesState)[])
-      newCount += roleChoicesState[key] ? 1 : 0;
-    return newCount === 0;
+    return (
+      Object.entries(roleChoicesState).reduce(
+        (acc, [_, v]) => acc + (v ? 1 : 0),
+        0
+      ) === 0
+    );
   }, [roleChoicesState]);
   const { renderToString } = useContext(Context);
   const onClickNext = () => {};
@@ -151,11 +158,12 @@ function Step1(_props: StepProps) {
         />
       }
     >
-      <ChoiceButtonGroup<RoleChoices>
+      <ChoiceButtonGroup
         prefix={[prefix, roleChoiceGroup].join(".")}
+        choices={roleChoices}
         state={roleChoicesState}
         setChoice={setRoleChoicesState}
-        processChoice={processSingleChoice<RoleChoices>}
+        processChoice={processSingleChoice}
         Button={ChoiceButton}
       />
     </SurveyLayout>
