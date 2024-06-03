@@ -78,3 +78,42 @@ var _ = registerMutationField(
 		},
 	},
 )
+
+var createAuthenticatorInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "CreateAuthenticatorInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"userID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Target user ID.",
+		},
+		"definition": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(authenticatorDef),
+			Description: "Definition of the new identity.",
+		},
+	},
+})
+
+var createAuthenticatorPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "CreateAuthenticatorPayload",
+	Fields: graphql.Fields{
+		"authenticator": &graphql.Field{
+			Type: graphql.NewNonNull(nodeAuthenticator),
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"createAuthenticator",
+	&graphql.Field{
+		Description: "Create authenticator of user",
+		Type:        graphql.NewNonNull(deleteAuthenticatorPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(createAuthenticatorInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+
+		},
+	},
+)
