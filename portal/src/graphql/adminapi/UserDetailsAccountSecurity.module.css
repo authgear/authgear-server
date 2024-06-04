@@ -20,8 +20,16 @@
   margin-top: 16px;
 }
 
+.authenticatorTypeSection + .authenticatorTypeSection {
+  margin-top: 12px;
+}
+
+.authenticatorTypeSection--password {
+  margin-top: 12px;
+}
+
 .authenticatorTypeHeader {
-  margin: 12px 0;
+  margin-bottom: 12px;
 }
 
 .cell {
@@ -149,5 +157,4 @@
 
 .authenticatorEmpty {
   color: #888888;
-  @apply py-2;
 }

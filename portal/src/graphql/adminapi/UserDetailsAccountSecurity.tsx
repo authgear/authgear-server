@@ -1,7 +1,15 @@
 import React, { useMemo, useCallback, useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import cn from "classnames";
-import { Dialog, DialogFooter, Icon, List, Text } from "@fluentui/react";
+import {
+  Dialog,
+  DialogFooter,
+  IContextualMenuItem,
+  IContextualMenuProps,
+  Icon,
+  List,
+  Text,
+} from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 
 import { useDeleteAuthenticatorMutation } from "./mutations/deleteAuthenticatorMutation";
@@ -21,7 +29,7 @@ import {
 import { useProvideError } from "../../hook/error";
 import styles from "./UserDetailsAccountSecurity.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
-import { PortalAPIAppConfig } from "../../types";
+import { PortalAPIAppConfig, SecondaryAuthenticatorType } from "../../types";
 
 type OOBOTPVerificationMethod = "email" | "phone" | "unknown";
 
@@ -87,6 +95,10 @@ interface RemoveConfirmationDialogProps
   onDismiss: () => void;
   remove?: (id: string) => void;
   loading?: boolean;
+}
+
+interface Add2FAMenuItem extends IContextualMenuItem {
+  key: SecondaryAuthenticatorType;
 }
 
 const LABEL_PLACEHOLDER = "---";
@@ -597,7 +609,8 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
   // eslint-disable-next-line complexity
   function UserDetailsAccountSecurity(props: UserDetailsAccountSecurityProps) {
     const { authenticationConfig, identities, authenticators } = props;
-    const { locale } = useContext(Context);
+    const { locale, renderToString } = useContext(Context);
+    const navigate = useNavigate();
 
     const {
       deleteAuthenticator,
@@ -728,6 +741,42 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
       [deleteIdentity, dismissConfirmationDialog]
     );
 
+    const add2FAMenuProps: IContextualMenuProps = useMemo(() => {
+      const availableMenuItem: Add2FAMenuItem[] = [
+        {
+          key: "password",
+          text: renderToString("AuthenticatorType.secondary.password"),
+          iconProps: { iconName: "Accounts" },
+          onClick: () => navigate("./add-2fa-password"),
+        },
+        {
+          key: "oob_otp_email",
+          text: renderToString("AuthenticatorType.secondary.oob-otp-email"),
+          iconProps: { iconName: "Mail" },
+          onClick: () => navigate("./add-2fa-email"),
+        },
+        {
+          key: "oob_otp_sms",
+          text: renderToString("AuthenticatorType.secondary.oob-otp-phone"),
+          iconProps: { iconName: "CellPhone" },
+          onClick: () => navigate("./add-2fa-phone"),
+        },
+      ];
+      const enabledItems = availableMenuItem.filter((item) => {
+        return authenticationConfig?.secondary_authenticators?.includes(
+          item.key
+        );
+      });
+      return {
+        items: enabledItems,
+        directionalHintFixed: true,
+      };
+    }, [
+      renderToString,
+      navigate,
+      authenticationConfig?.secondary_authenticators,
+    ]);
+
     return (
       <div className={styles.root}>
         <RemoveConfirmationDialog
@@ -761,12 +810,16 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
             </Text>
             {primaryAuthenticatorLists.password.length > 0 ? (
               <List
+                className={cn(
+                  styles.authenticatorTypeSection,
+                  styles["authenticatorTypeSection--password"]
+                )}
                 items={primaryAuthenticatorLists.password}
                 onRenderCell={onRenderPasswordAuthenticatorDetailCell}
               />
             ) : null}
             {primaryAuthenticatorLists.passkey.length > 0 ? (
-              <div>
+              <div className={styles.authenticatorTypeSection}>
                 <Text
                   as="h3"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
@@ -780,7 +833,7 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
               </div>
             ) : null}
             {primaryAuthenticatorLists.oobOtpEmail.length > 0 ? (
-              <div>
+              <div className={styles.authenticatorTypeSection}>
                 <Text
                   as="h3"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
@@ -794,7 +847,7 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
               </div>
             ) : null}
             {primaryAuthenticatorLists.oobOtpSMS.length > 0 ? (
-              <div>
+              <div className={styles.authenticatorTypeSection}>
                 <Text
                   as="h3"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
@@ -802,7 +855,6 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
                   <FormattedMessage id="AuthenticatorType.primary.oob-otp-phone" />
                 </Text>
                 <List
-                  className={cn(styles.list, styles.oobOtpList)}
                   items={primaryAuthenticatorLists.oobOtpSMS}
                   onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
                 />
@@ -813,19 +865,35 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
         {secondaryAuthenticatorLists.hasVisibleList ||
         secondaryAuthenticatorLists.isAnySecondaryAuthenticatorEnabled ? (
           <div className={styles.authenticatorContainer}>
-            <Text
-              as="h2"
-              className={cn(styles.header, styles.authenticatorKindHeader)}
+            <div
+              className={cn(
+                "flex justify-between",
+                styles.authenticatorKindHeader
+              )}
             >
-              <FormattedMessage id="UserDetails.account-security.secondary" />
-            </Text>
+              <Text as="h2" className={cn(styles.header)}>
+                <FormattedMessage id="UserDetails.account-security.secondary" />
+              </Text>
+              <PrimaryButton
+                disabled={add2FAMenuProps.items.length === 0}
+                iconProps={{ iconName: "CirclePlus" }}
+                menuProps={add2FAMenuProps}
+                styles={{
+                  menuIcon: { paddingLeft: "3px" },
+                  icon: { paddingRight: "3px" },
+                }}
+                text={
+                  <FormattedMessage id="UserDetails.account-security.secondary.add" />
+                }
+              />
+            </div>
             {!secondaryAuthenticatorLists.hasVisibleList ? (
               <Text as="h3" className={cn(styles.authenticatorEmpty)}>
                 <FormattedMessage id="UserDetails.account-security.secondary.empty" />
               </Text>
             ) : null}
             {secondaryAuthenticatorLists.totp.length > 0 ? (
-              <div>
+              <div className={styles.authenticatorTypeSection}>
                 <Text
                   as="h3"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
@@ -839,7 +907,7 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
               </div>
             ) : null}
             {secondaryAuthenticatorLists.oobOtpEmail.length > 0 ? (
-              <div>
+              <div className={styles.authenticatorTypeSection}>
                 <Text
                   as="h3"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
@@ -853,7 +921,7 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
               </div>
             ) : null}
             {secondaryAuthenticatorLists.oobOtpSMS.length > 0 ? (
-              <div>
+              <div className={styles.authenticatorTypeSection}>
                 <Text
                   as="h3"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
@@ -861,7 +929,6 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
                   <FormattedMessage id="AuthenticatorType.secondary.oob-otp-phone" />
                 </Text>
                 <List
-                  className={cn(styles.list, styles.oobOtpList)}
                   items={secondaryAuthenticatorLists.oobOtpSMS}
                   onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
                 />
@@ -869,7 +936,10 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
             ) : null}
             {secondaryAuthenticatorLists.password.length > 0 ? (
               <List
-                className={cn(styles.list, styles.passwordList)}
+                className={cn(
+                  styles.authenticatorTypeSection,
+                  styles["authenticatorTypeSection--password"]
+                )}
                 items={secondaryAuthenticatorLists.password}
                 onRenderCell={onRenderPasswordAuthenticatorDetailCell}
               />

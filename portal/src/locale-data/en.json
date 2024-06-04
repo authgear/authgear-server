@@ -374,6 +374,7 @@
   "UserDetails.account-security.reset-password": "Reset Password",
   "UserDetails.account-security.primary": "Primary Authenticators",
   "UserDetails.account-security.secondary": "2-Factor Authenticators",
+  "UserDetails.account-security.secondary.add": "Add 2FA",
   "UserDetails.account-security.secondary.empty": "No 2-Factor Authenticator yet.",
   "UserDetails.account-security.remove-confirm-dialog.title": "Remove Authenticator",
   "UserDetails.account-security.remove-confirm-dialog.message": "Are you sure you want to remove authenticator {displayName}",
