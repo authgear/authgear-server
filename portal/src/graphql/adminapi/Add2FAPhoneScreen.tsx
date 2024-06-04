@@ -17,7 +17,7 @@ import { useUserQuery } from "./query/userQuery";
 import { PortalAPIAppConfig } from "../../types";
 import FormPhoneTextField from "../../FormPhoneTextField";
 
-import styles from "./PhoneScreen.module.css";
+import styles from "./Add2FAPhoneScreen.module.css";
 import FormContainer from "../../FormContainer";
 import ScreenContent from "../../ScreenContent";
 import { useSimpleForm } from "../../hook/useSimpleForm";
