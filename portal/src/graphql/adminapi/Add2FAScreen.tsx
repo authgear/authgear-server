@@ -28,6 +28,10 @@ import { useCreateAuthenticatorMutation } from "./mutations/createAuthenticatorM
 import { AuthenticatorKind } from "./globalTypes.generated";
 import FormTextField from "../../FormTextField";
 import PasswordField from "../../PasswordField";
+import {
+  ErrorParseRule,
+  makeInvariantViolatedErrorParseRule,
+} from "../../error/parse";
 
 interface FieldContextValue {
   effectiveAppConfig?: PortalAPIAppConfig;
@@ -59,6 +63,17 @@ function PhoneField(props: { onChange: (value: string) => void }) {
   useEffect(() => {
     setInputValue("");
   }, [resetToken]);
+
+  const errorRules: ErrorParseRule[] = useMemo(
+    () => [
+      makeInvariantViolatedErrorParseRule(
+        "DuplicatedAuthenticator",
+        "Add2FAScreen.error.duplicated-phone-number"
+      ),
+    ],
+    []
+  );
+
   return (
     <FormPhoneTextField
       parentJSONPointer=""
@@ -68,6 +83,7 @@ function PhoneField(props: { onChange: (value: string) => void }) {
       pinnedList={effectiveAppConfig?.ui?.phone_input?.pinned_list}
       inputValue={inputValue}
       onChange={onChangeValues}
+      errorRules={errorRules}
     />
   );
 }
@@ -83,6 +99,16 @@ function EmailField(props: {
     [onChange]
   );
 
+  const errorRules: ErrorParseRule[] = useMemo(
+    () => [
+      makeInvariantViolatedErrorParseRule(
+        "DuplicatedAuthenticator",
+        "Add2FAScreen.error.duplicated-email"
+      ),
+    ],
+    []
+  );
+
   return (
     <FormTextField
       className={styles.widget}
@@ -91,6 +117,7 @@ function EmailField(props: {
       label={renderToString("Add2FAScreen.email.label")}
       value={value}
       onChange={onEmailChange}
+      errorRules={errorRules}
     />
   );
 }

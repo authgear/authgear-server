@@ -384,6 +384,8 @@
   "Add2FAScreen.title.password": "Add 2FA Password",
   "Add2FAScreen.email.label": "Email",
   "Add2FAScreen.password.label": "Password",
+  "Add2FAScreen.error.duplicated-phone-number": "2FA phone number already exist",
+  "Add2FAScreen.error.duplicated-email": "2FA email already exist",
 
   "ResetPasswordScreen.title": "Reset Password",
   "ResetPasswordScreen.new-password": "New Password",
