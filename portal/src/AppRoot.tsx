@@ -44,6 +44,9 @@ const ResetPasswordScreen = lazy(
 const EditPictureScreen = lazy(
   async () => import("./graphql/adminapi/EditPictureScreen")
 );
+const Add2FAPhoneScreen = lazy(
+  async () => import("./graphql/adminapi/Add2FAPhoneScreen")
+);
 
 const AuditLogScreen = lazy(
   async () => import("./graphql/adminapi/AuditLogScreen")
@@ -382,6 +385,14 @@ const AppRoot: React.VFC = function AppRoot() {
                     element={
                       <Suspense fallback={<ShowLoading />}>
                         <EditPictureScreen />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="add-2fa-phone"
+                    element={
+                      <Suspense fallback={<ShowLoading />}>
+                        <Add2FAPhoneScreen />
                       </Suspense>
                     }
                   />

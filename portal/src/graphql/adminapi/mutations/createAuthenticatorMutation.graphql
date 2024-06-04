@@ -1,0 +1,10 @@
+mutation createAuthenticatorMutation(
+  $userID: ID!
+  $definition: AuthenticatorDefinition!
+) {
+  createAuthenticator(input: { userID: $userID, definition: $definition }) {
+    authenticator {
+      id
+    }
+  }
+}

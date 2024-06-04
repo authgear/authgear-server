@@ -379,6 +379,8 @@
   "UserDetails.account-security.remove-confirm-dialog.title": "Remove Authenticator",
   "UserDetails.account-security.remove-confirm-dialog.message": "Are you sure you want to remove authenticator {displayName}",
 
+  "Add2FAPhoneScreen.title": "Add 2FA Phone",
+
   "ResetPasswordScreen.title": "Reset Password",
   "ResetPasswordScreen.new-password": "New Password",
   "ResetPasswordScreen.confirm-password": "Confirm Password",
