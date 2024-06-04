@@ -203,14 +203,14 @@ const Add2FAScreen: React.VFC<Add2FAScreenProps> = function Add2FAScreen({
         case "oob_otp_sms":
           await createAuthenticator({
             type: "oob_otp_sms",
-            phone: state.value,
+            phone: state.value.trim(),
             kind: AuthenticatorKind.Secondary,
           });
           break;
         case "oob_otp_email":
           await createAuthenticator({
             type: "oob_otp_email",
-            email: state.value,
+            email: state.value.trim(),
             kind: AuthenticatorKind.Secondary,
           });
           break;
