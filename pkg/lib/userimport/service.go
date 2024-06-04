@@ -81,6 +81,7 @@ type RolesGroupsCommands interface {
 }
 
 type ElasticsearchService interface {
+	MarkUsersAsReindexRequired(userIDs []string) error
 	EnqueueReindexUserTask(userID string) error
 }
 
@@ -126,11 +127,24 @@ func (s *UserImportService) ImportRecords(ctx context.Context, request *Request)
 		}
 
 		var record Record
+		shouldReindexUser := false
 		err := s.AppDatabase.WithTx(func() error {
 			var err error
 			record, err = s.ImportRecordInTxn(ctx, &detail, options, rawMessage)
 			if err != nil {
 				return err
+			}
+			switch detail.Outcome {
+			case OutcomeInserted:
+				fallthrough
+			case OutcomeUpdated:
+				shouldReindexUser = true
+				err = s.Elasticsearch.MarkUsersAsReindexRequired([]string{detail.UserID})
+				if err != nil {
+					return err
+				}
+			default:
+				// Reindex is not required for other cases
 			}
 			return nil
 		})
@@ -149,15 +163,12 @@ func (s *UserImportService) ImportRecords(ctx context.Context, request *Request)
 		}
 
 		result.Details = append(result.Details, detail)
-		shouldReindexUser := false
 
 		switch detail.Outcome {
 		case OutcomeInserted:
 			result.Summary.Inserted += 1
-			shouldReindexUser = true
 		case OutcomeUpdated:
 			result.Summary.Updated += 1
-			shouldReindexUser = true
 		case OutcomeSkipped:
 			result.Summary.Skipped += 1
 		case OutcomeFailed:
