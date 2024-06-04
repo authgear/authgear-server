@@ -20,7 +20,7 @@ interface AuthenticatorDefinitionOOBOTPSMS {
 }
 
 interface AuthenticatorDefinitionPassword {
-  type: "oob_otp_password";
+  type: "password";
   kind: AuthenticatorKind;
   password: string;
 }
@@ -65,7 +65,7 @@ export function useCreateAuthenticatorMutation(userID: string): {
             phone: definitionParam.phone,
           };
           break;
-        case "oob_otp_password":
+        case "password":
           definition.password = {
             kind: definitionParam.kind,
             password: definitionParam.password,
