@@ -2,24 +2,40 @@
   position: absolute;
   height: 48px;
 }
-.center {
-  position: relative;
-  height: 80vh;
+.body {
+  min-height: 100vh;
+  flex-shrink: 0;
+}
+.centerDiv {
   margin: auto;
-  top: 100px;
+  padding-top: 100px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  @apply w-2/5 mobile:w-11/12;
+  max-width: 750px;
 }
-.navigation {
+.navigationDiv {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
   gap: 10px;
+  margin-bottom: 10px;
 }
-.content {
-  margin-top: 50px;
-  margin-bottom: 50px;
+.contentDiv {
+  margin: 50px 10px;
+  max-width: 100%;
+}
+.titlesDiv {
+  width: 420px;
+  max-width: 100%;
+}
+.SurveyTitle {
+  white-space: pre-line;
+  text-align: center;
+  margin-bottom: 20px;
+}
+.SurveySubtitle {
+  white-space: pre-line;
+  text-align: center;
 }

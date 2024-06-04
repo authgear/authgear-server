@@ -1,11 +1,4 @@
-.singleChoiceButtonGroup {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  width: 100%;
-}
-.individualSingleChoiceButtonGroup {
+.SingleChoiceButtonGroupVariantCentered {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -13,9 +6,35 @@
   justify-content: center;
   width: 100%;
 }
+.SingleChoiceButtonGroupVariantLabeled {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+}
+.MultiChoiceButtonGroup {
+  display: grid;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: auto;
+  @apply grid-cols-2;
+}
+.CompoundChoiceButton {
+  display: grid;
+  max-width: 368px;
+  min-height: 118px;
+  padding: 25px;
+}
 .formBox {
   width: 380px;
-  max-width: 380px;
+  max-width: 100%;
   display: grid;
   gap: 20px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+.otherReasonInput {
+  margin-top: 20px;
 }

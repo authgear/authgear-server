@@ -30,20 +30,20 @@ export interface SurveyTitleProps {
 
 export function SurveyTitle(props: SurveyTitleProps): React.ReactElement {
   const theme = useTheme();
-  const styles = useMemo(() => {
+  const overrideStyles = useMemo(() => {
     return {
       root: {
-        "font-size": "x-large",
-        "font-weight": 600,
-        "white-space": "pre-line",
-        "text-align": "center",
         color: theme.semanticColors.bodyText,
-        "margin-bottom": "20px",
       },
     };
   }, [theme]);
   return (
-    <Text styles={styles} variant="large" block={true}>
+    <Text
+      styles={overrideStyles}
+      className={styles.SurveyTitle}
+      variant="xxLarge"
+      block={true}
+    >
       {props.children}
     </Text>
   );
@@ -55,19 +55,20 @@ export interface SurveySubtitleProps {
 
 export function SurveySubtitle(props: SurveySubtitleProps): React.ReactElement {
   const theme = useTheme();
-  const styles = useMemo(() => {
+  const overrideStyles = useMemo(() => {
     return {
       root: {
-        "font-size": "medium",
-        "font-weight": 400,
-        "white-space": "pre-line",
-        "text-align": "center",
         color: theme.semanticColors.bodySubtext,
       },
     };
   }, [theme]);
   return (
-    <Text styles={styles} variant="small" block={true}>
+    <Text
+      styles={overrideStyles}
+      className={styles.SurveySubtitle}
+      variant="large"
+      block={true}
+    >
       {props.children}
     </Text>
   );
@@ -76,40 +77,33 @@ export function SurveySubtitle(props: SurveySubtitleProps): React.ReactElement {
 export interface SurveyLayoutProps {
   title: string;
   subtitle: string;
-  backButtonDisabled: boolean;
-  primaryButton: React.ReactNode;
-  secondaryButton: React.ReactNode;
+  nextButton: React.ReactNode;
+  backButton?: React.ReactNode;
   children?: React.ReactNode;
 }
 
 export default function SurveyLayout(
   props: SurveyLayoutProps
 ): React.ReactElement {
-  const {
-    title,
-    subtitle,
-    backButtonDisabled,
-    primaryButton,
-    secondaryButton,
-    children,
-  } = props;
+  const { title, subtitle, nextButton, backButton, children } = props;
   const theme = useTheme();
-  const bodyStyles = useMemo(() => {
+  const overrideBodyStyles = useMemo(() => {
     return {
       backgroundColor: theme.semanticColors.bodyStandoutBackground,
-      height: "100vh",
     };
   }, [theme]);
   return (
-    <div style={bodyStyles}>
+    <div style={overrideBodyStyles} className={styles.body}>
       <Logo />
-      <div className={styles.center}>
-        <SurveyTitle>{title}</SurveyTitle>
-        <SurveySubtitle>{subtitle}</SurveySubtitle>
-        <div className={styles.content}>{children}</div>
-        <div className={styles.navigation}>
-          {backButtonDisabled ? null : secondaryButton}
-          {primaryButton}
+      <div className={styles.centerDiv}>
+        <div className={styles.titlesDiv}>
+          <SurveyTitle>{title}</SurveyTitle>
+          <SurveySubtitle>{subtitle}</SurveySubtitle>
+        </div>
+        <div className={styles.contentDiv}>{children}</div>
+        <div className={styles.navigationDiv}>
+          {backButton}
+          {nextButton}
         </div>
       </div>
     </div>
