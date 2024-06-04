@@ -275,6 +275,37 @@ export type AuthenticatorConnection = {
   totalCount?: Maybe<Scalars['Int']['output']>;
 };
 
+/** Definition of an authenticator. This is a union object, exactly one of the available fields must be present. */
+export type AuthenticatorDefinition = {
+  /** OOB OTP Email authenticator definition. */
+  oobOtpEmail?: InputMaybe<AuthenticatorDefinitionOobotpEmail>;
+  /** OOB OTP SMS authenticator definition. */
+  oobOtpSMS?: InputMaybe<AuthenticatorDefinitionOobotpsms>;
+  /** Password authenticator definition. */
+  password?: InputMaybe<AuthenticatorDefinitionPassword>;
+};
+
+export type AuthenticatorDefinitionOobotpEmail = {
+  /** Email of the new oob otp sms authenticator. */
+  email: Scalars['String']['input'];
+  /** Kind of authenticator */
+  kind: AuthenticatorKind;
+};
+
+export type AuthenticatorDefinitionOobotpsms = {
+  /** Kind of authenticator */
+  kind: AuthenticatorKind;
+  /** Phone number of the new oob otp sms authenticator. */
+  phone: Scalars['String']['input'];
+};
+
+export type AuthenticatorDefinitionPassword = {
+  /** Kind of authenticator */
+  kind: AuthenticatorKind;
+  /** Password of the new authenticator. */
+  password: Scalars['String']['input'];
+};
+
 /** An edge in a connection */
 export type AuthenticatorEdge = {
   __typename?: 'AuthenticatorEdge';
@@ -333,6 +364,18 @@ export type Claim = {
   __typename?: 'Claim';
   name: Scalars['String']['output'];
   value: Scalars['String']['output'];
+};
+
+export type CreateAuthenticatorInput = {
+  /** Definition of the new identity. */
+  definition: AuthenticatorDefinition;
+  /** Target user ID. */
+  userID: Scalars['ID']['input'];
+};
+
+export type CreateAuthenticatorPayload = {
+  __typename?: 'CreateAuthenticatorPayload';
+  authenticator: Authenticator;
 };
 
 export type CreateGroupInput = {
@@ -618,6 +661,8 @@ export type Mutation = {
   addUserToRoles: AddUserToRolesPayload;
   /** Anonymize specified user */
   anonymizeUser: AnonymizeUserPayload;
+  /** Create authenticator of user */
+  createAuthenticator: CreateAuthenticatorPayload;
   /** Create a new group. */
   createGroup: CreateGroupPayload;
   /** Create new identity for user */
@@ -717,6 +762,11 @@ export type MutationAddUserToRolesArgs = {
 
 export type MutationAnonymizeUserArgs = {
   input: AnonymizeUserInput;
+};
+
+
+export type MutationCreateAuthenticatorArgs = {
+  input: CreateAuthenticatorInput;
 };
 
 
