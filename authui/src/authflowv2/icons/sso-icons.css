@@ -1,5 +1,5 @@
 .sso-icon {
-  @apply w-6 h-6 bg-no-repeat bg-center;
+  @apply w-6 h-6 bg-no-repeat bg-center bg-contain;
 }
 
 .sso-icon.google-icon {
@@ -28,6 +28,9 @@
 .sso-icon.wechat-icon {
   background-image: url("./icons/raw/icon-wechat.svg");
 }
+.sso-icon.iamsmart-icon {
+  background-image: url("./icons/raw/icon-iamsmart-light.png");
+}
 
 .dark .sso-icon.google-icon {
   background-image: url("./icons/raw/icon-google-dark.svg");
@@ -52,4 +55,7 @@
 }
 .dark .sso-icon.wechat-icon {
   background-image: url("./icons/raw/icon-wechat-dark.svg");
+}
+.dark .sso-icon.iamsmart-icon {
+  background-image: url("./icons/raw/icon-iamsmart-dark.png");
 }
