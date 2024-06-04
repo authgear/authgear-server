@@ -139,7 +139,10 @@ func (s *UserImportService) ImportRecords(ctx context.Context, request *Request)
 				fallthrough
 			case OutcomeUpdated:
 				shouldReindexUser = true
-				s.Elasticsearch.MarkUsersAsReindexRequired([]string{detail.UserID})
+				err = s.Elasticsearch.MarkUsersAsReindexRequired([]string{detail.UserID})
+				if err != nil {
+					return err
+				}
 			default:
 				// Reindex is not required for other cases
 			}
