@@ -132,6 +132,7 @@ export enum AuditLogActivityType {
   AdminApiMutationAddUserToGroupsExecuted = 'ADMIN_API_MUTATION_ADD_USER_TO_GROUPS_EXECUTED',
   AdminApiMutationAddUserToRolesExecuted = 'ADMIN_API_MUTATION_ADD_USER_TO_ROLES_EXECUTED',
   AdminApiMutationAnonymizeUserExecuted = 'ADMIN_API_MUTATION_ANONYMIZE_USER_EXECUTED',
+  AdminApiMutationCreateAuthenticatorExecuted = 'ADMIN_API_MUTATION_CREATE_AUTHENTICATOR_EXECUTED',
   AdminApiMutationCreateGroupExecuted = 'ADMIN_API_MUTATION_CREATE_GROUP_EXECUTED',
   AdminApiMutationCreateIdentityExecuted = 'ADMIN_API_MUTATION_CREATE_IDENTITY_EXECUTED',
   AdminApiMutationCreateRoleExecuted = 'ADMIN_API_MUTATION_CREATE_ROLE_EXECUTED',

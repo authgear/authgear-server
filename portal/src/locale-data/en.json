@@ -1221,6 +1221,7 @@
   "AuditLogActivityType.ADMIN_API_MUTATION_CREATE_IDENTITY_EXECUTED": "Admin API Mutation: Create identity",
   "AuditLogActivityType.ADMIN_API_MUTATION_CREATE_SESSION_EXECUTED": "Admin API Mutation: Create session",
   "AuditLogActivityType.ADMIN_API_MUTATION_CREATE_USER_EXECUTED": "Admin API Mutation: Create user",
+  "AuditLogActivityType.ADMIN_API_MUTATION_CREATE_AUTHENTICATOR_EXECUTED": "Admin API Mutation: Create authenticator",
   "AuditLogActivityType.ADMIN_API_MUTATION_DELETE_AUTHENTICATOR_EXECUTED": "Admin API Mutation: Delete authenticator",
   "AuditLogActivityType.ADMIN_API_MUTATION_DELETE_AUTHORIZATION_EXECUTED": "Admin API Mutation: Delete authorization",
   "AuditLogActivityType.ADMIN_API_MUTATION_DELETE_IDENTITY_EXECUTED": "Admin API Mutation: Delete identity",
