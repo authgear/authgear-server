@@ -86,6 +86,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/web"
+	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -1944,6 +1945,11 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -2006,6 +2012,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -4757,6 +4764,11 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -4819,6 +4831,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -5717,6 +5730,11 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -5779,6 +5797,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -6554,6 +6573,11 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -6616,6 +6640,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -7536,6 +7561,11 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -7597,6 +7627,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -8446,6 +8477,11 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -8507,6 +8543,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -9355,6 +9392,11 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -9416,6 +9458,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -10252,6 +10295,11 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -10313,6 +10361,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -11144,6 +11193,11 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -11205,6 +11259,7 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -12180,10 +12235,16 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -12228,6 +12289,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -12325,6 +12387,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AuthflowController: authflowController,
 		ControllerFactory:  controllerFactory,
 		UIConfig:           uiConfig,
+		OAuthStateStore:    webappoauthStore,
 	}
 	return ssoCallbackHandler
 }
@@ -13193,10 +13256,16 @@ func newWebAppAuthflowSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -13241,6 +13310,7 @@ func newWebAppAuthflowSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -13338,6 +13408,7 @@ func newWebAppAuthflowSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AuthflowController: authflowController,
 		ControllerFactory:  controllerFactory,
 		UIConfig:           uiConfig,
+		OAuthStateStore:    webappoauthStore,
 	}
 	return ssoCallbackHandler
 }
@@ -14206,10 +14277,16 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -14254,6 +14331,7 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -14351,6 +14429,7 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 		AuthflowController: authflowController,
 		ControllerFactory:  controllerFactory,
 		UIConfig:           uiConfig,
+		OAuthStateStore:    webappoauthStore,
 	}
 	return ssoCallbackHandler
 }
@@ -15075,6 +15154,11 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -15136,6 +15220,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -15957,6 +16042,11 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -16018,6 +16108,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -16119,6 +16210,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		JSON:              jsonResponseWriter,
+		OAuthStateStore:   webappoauthStore,
 	}
 	return wechatCallbackHandler
 }
@@ -16843,6 +16935,11 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -16904,6 +17001,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -17732,6 +17830,11 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -17793,6 +17896,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -18618,6 +18722,11 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -18679,6 +18788,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -19502,6 +19612,11 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -19563,6 +19678,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -20388,6 +20504,11 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -20449,6 +20570,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -21275,6 +21397,11 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -21336,6 +21463,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -22161,6 +22289,11 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -22222,6 +22355,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -23047,6 +23181,11 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -23108,6 +23247,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -23935,6 +24075,11 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -23996,6 +24141,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -24821,6 +24967,11 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -24882,6 +25033,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -25707,6 +25859,11 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -25768,6 +25925,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -26597,6 +26755,11 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -26658,6 +26821,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -27483,6 +27647,11 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -27544,6 +27713,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -28373,6 +28543,11 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -28434,6 +28609,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -29259,6 +29435,11 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -29320,6 +29501,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -30153,6 +30335,11 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -30214,6 +30401,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -31061,6 +31249,11 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -31122,6 +31315,7 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -31958,6 +32152,11 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -32019,6 +32218,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -32844,6 +33044,11 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -32905,6 +33110,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -33726,6 +33932,11 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -33787,6 +33998,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -34612,6 +34824,11 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -34673,6 +34890,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -35494,6 +35712,11 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -35555,6 +35778,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -36386,6 +36610,11 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -36447,6 +36676,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -37268,6 +37498,11 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -37329,6 +37564,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -38152,6 +38388,11 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -38213,6 +38454,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -39034,6 +39276,11 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -39095,6 +39342,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -39948,6 +40196,11 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -40009,6 +40262,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -40841,6 +41095,11 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -40902,6 +41161,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -41747,6 +42007,11 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -41808,6 +42073,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -42637,6 +42903,11 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -42698,6 +42969,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -43520,6 +43792,11 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -43581,6 +43858,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -44411,6 +44689,11 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -44472,6 +44755,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -45294,6 +45578,11 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -45355,6 +45644,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -46177,6 +46467,11 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -46238,6 +46533,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -47060,6 +47356,11 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -47121,6 +47422,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -47944,6 +48246,11 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -48005,6 +48312,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -48847,6 +49155,11 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -48908,6 +49221,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -49735,6 +50049,11 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -49796,6 +50115,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -50618,6 +50938,11 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -50679,6 +51004,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -51506,6 +51832,11 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -51567,6 +51898,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -52389,6 +52721,11 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -52450,6 +52787,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -53279,6 +53617,11 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -53340,6 +53683,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -54163,6 +54507,11 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -54224,6 +54573,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -55045,6 +55395,11 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -55106,6 +55461,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -55943,6 +56299,11 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -56004,6 +56365,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -56825,6 +57187,11 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -56886,6 +57253,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -57851,10 +58219,16 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -58631,6 +59005,11 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -58692,6 +59071,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -59513,6 +59893,11 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -59574,6 +59959,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -60413,6 +60799,11 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -60474,6 +60865,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -61257,6 +61649,11 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -61318,6 +61715,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -62100,6 +62498,11 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -62161,6 +62564,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -62992,6 +63396,11 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -63053,6 +63462,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -63875,6 +64285,11 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -63936,6 +64351,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -64757,6 +65173,11 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -64818,6 +65239,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -71820,10 +72242,16 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -72768,10 +73196,16 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -73728,10 +74162,16 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -74675,10 +75115,16 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -75626,10 +76072,16 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -76556,10 +77008,16 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -77486,10 +77944,16 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -78410,10 +78874,16 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -79334,10 +79804,16 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -80260,10 +80736,16 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -81186,10 +81668,16 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -82110,10 +82598,16 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -83034,10 +83528,16 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -83958,10 +84458,16 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -84882,10 +85388,16 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -85806,10 +86318,16 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -86730,10 +87248,16 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -87654,10 +88178,16 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -88578,10 +89108,16 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -89504,10 +90040,16 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -90430,10 +90972,16 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -91355,10 +91903,16 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -92284,10 +92838,16 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -93214,10 +93774,16 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -94138,10 +94704,16 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -95062,10 +95634,16 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -95986,10 +96564,16 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -96910,10 +97494,16 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -97834,10 +98424,16 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -98758,10 +99354,16 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -99682,10 +100284,16 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -100606,10 +101214,16 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -101530,10 +102144,16 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -102454,10 +103074,16 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -103378,10 +104004,16 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -103431,9 +104063,10 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 	}
 	authflowWechatHandler := &webapp.AuthflowWechatHandler{
-		Controller:    authflowController,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
+		Controller:      authflowController,
+		BaseViewModel:   baseViewModeler,
+		Renderer:        responseRenderer,
+		OAuthStateStore: webappoauthStore,
 	}
 	return authflowWechatHandler
 }
@@ -104302,10 +104935,16 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -105226,10 +105865,16 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -106150,10 +106795,16 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -107076,10 +107727,16 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -108002,10 +108659,16 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -108926,10 +109589,16 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -109707,6 +110376,11 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -109768,6 +110442,7 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
@@ -110731,10 +111406,16 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -111624,10 +112305,16 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -112517,10 +113204,16 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -113441,10 +114134,16 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -114365,10 +115064,16 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -115289,10 +115994,16 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -116510,10 +117221,16 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowNavigator := &webapp2.AuthflowNavigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -117434,10 +118151,16 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -118358,10 +119081,16 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -119382,10 +120111,16 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 		AppID:   appID,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
-		Endpoints:   endpointsEndpoints,
-		UIConfig:    uiConfig,
-		ErrorCookie: errorCookie,
+		Endpoints:       endpointsEndpoints,
+		UIConfig:        uiConfig,
+		ErrorCookie:     errorCookie,
+		OAuthStateStore: webappoauthStore,
 	}
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
@@ -119435,9 +120170,10 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 	}
 	authflowV2WechatHandler := &authflowv2.AuthflowV2WechatHandler{
-		Controller:    authflowController,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
+		Controller:      authflowController,
+		BaseViewModel:   baseViewModeler,
+		Renderer:        responseRenderer,
+		OAuthStateStore: webappoauthStore,
 	}
 	return authflowV2WechatHandler
 }
@@ -121182,6 +121918,11 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -121243,6 +121984,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,

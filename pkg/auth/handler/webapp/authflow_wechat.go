@@ -36,10 +36,15 @@ type AuthflowWechatViewModel struct {
 	WechatRedirectURI htmltemplate.URL
 }
 
+type AuthflowWechatHandlerOAuthStateStore interface {
+	GenerateState(state *webappoauth.WebappOAuthState) (stateToken string, err error)
+}
+
 type AuthflowWechatHandler struct {
-	Controller    *AuthflowController
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      Renderer
+	Controller      *AuthflowController
+	BaseViewModel   *viewmodels.BaseViewModeler
+	Renderer        Renderer
+	OAuthStateStore AuthflowWechatHandlerOAuthStateStore
 }
 
 func (h *AuthflowWechatHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
@@ -49,7 +54,7 @@ func (h *AuthflowWechatHandler) GetData(w http.ResponseWriter, r *http.Request, 
 	viewmodels.Embed(data, baseViewModel)
 
 	screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.OAuthData)
-	state := webappoauth.WebappOAuthState{
+	state := &webappoauth.WebappOAuthState{
 		WebSessionID:     s.ID,
 		UIImplementation: config.UIImplementationAuthflow,
 		XStep:            screen.Screen.StateToken.XStep,
@@ -58,12 +63,16 @@ func (h *AuthflowWechatHandler) GetData(w http.ResponseWriter, r *http.Request, 
 			RawQuery: r.URL.Query().Encode(),
 		}).String(),
 	}
+	stateToken, err := h.OAuthStateStore.GenerateState(state)
+	if err != nil {
+		return nil, err
+	}
 
 	authorizationURL, err := url.Parse(screenData.OAuthAuthorizationURL)
 	if err != nil {
 		return nil, err
 	}
-	authorizationURL = urlutil.WithQueryParamsAdded(authorizationURL, map[string]string{"state": state.Encode()})
+	authorizationURL = urlutil.WithQueryParamsAdded(authorizationURL, map[string]string{"state": stateToken})
 
 	img, err := CreateQRCodeImage(authorizationURL.String(), 512, 512, qr.M)
 	if err != nil {
@@ -85,7 +94,7 @@ func (h *AuthflowWechatHandler) GetData(w http.ResponseWriter, r *http.Request, 
 			return nil, err
 		}
 		q := u.Query()
-		q.Set("state", state.Encode())
+		q.Set("state", stateToken)
 		u.RawQuery = q.Encode()
 		// nolint: gosec
 		screenViewModel.WechatRedirectURI = htmltemplate.URL(u.String())

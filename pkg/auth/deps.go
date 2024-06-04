@@ -51,6 +51,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/web"
+	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -77,6 +78,8 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(webapp.CookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(webapp.OAuthClientResolver), new(*oauthclient.Resolver)),
 	wire.Bind(new(webapp.TutorialMiddlewareTutorialCookie), new(*httputil.TutorialCookie)),
+	wire.Bind(new(webapp.AuthflowNavigatorOAuthStateStore), new(*webappoauth.Store)),
+	wire.Bind(new(handlerwebappauthflowv2.AuthflowV2NavigatorOAuthStateStore), new(*webappoauth.Store)),
 	wire.Bind(new(handlerwebapp.CookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(handlerwebapp.AuthflowControllerCookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(handlerwebapp.AuthflowControllerOAuthSessionService), new(*oauthsession.StoreRedis)),
@@ -208,6 +211,10 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.TesterUserInfoProvider), new(*oidc.IDTokenIssuer)),
 	wire.Bind(new(handlerwebapp.TesterOfflineGrantStore), new(*oauthredis.Store)),
 	wire.Bind(new(handlerwebapp.AuthflowControllerAuthflowService), new(*authenticationflow.Service)),
+	wire.Bind(new(handlerwebapp.AuthflowWechatHandlerOAuthStateStore), new(*webappoauth.Store)),
+	wire.Bind(new(handlerwebapp.WechatCallbackHandlerOAuthStateStore), new(*webappoauth.Store)),
+	wire.Bind(new(handlerwebapp.SSOCallbackHandlerOAuthStateStore), new(*webappoauth.Store)),
+	wire.Bind(new(handlerwebappauthflowv2.AuthflowV2WechatHandlerOAuthStateStore), new(*webappoauth.Store)),
 
 	handlerwebappauthflowv2.DependencySet,
 

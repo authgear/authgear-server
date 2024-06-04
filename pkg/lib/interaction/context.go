@@ -29,6 +29,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
+	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -150,6 +151,11 @@ type OAuthRedirectURIBuilder interface {
 	WeChatCallbackEndpointURL() *url.URL
 }
 
+type OAuthStateStore interface {
+	GenerateState(state *webappoauth.WebappOAuthState) (stateToken string, err error)
+	PopAndRecoverState(stateToken string) (state *webappoauth.WebappOAuthState, err error)
+}
+
 type ForgotPasswordService interface {
 	SendCode(loginID string, options *forgotpassword.CodeOptions) error
 }
@@ -233,6 +239,7 @@ type Context struct {
 	OTPSender                       OTPSender
 	OAuthProviderFactory            OAuthProviderFactory
 	OAuthRedirectURIBuilder         OAuthRedirectURIBuilder
+	OAuthStateStore                 OAuthStateStore
 	MFA                             MFAService
 	ForgotPassword                  ForgotPasswordService
 	ResetPassword                   ResetPasswordService

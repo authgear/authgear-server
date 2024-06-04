@@ -69,10 +69,15 @@ type AuthflowNavigatorEndpointsProvider interface {
 	SelectAccountEndpointURL(uiImpl config.UIImplementation) *url.URL
 }
 
+type AuthflowNavigatorOAuthStateStore interface {
+	GenerateState(state *webappoauth.WebappOAuthState) (stateToken string, err error)
+}
+
 type AuthflowNavigator struct {
-	Endpoints   AuthflowNavigatorEndpointsProvider
-	UIConfig    *config.UIConfig
-	ErrorCookie *ErrorCookie
+	Endpoints       AuthflowNavigatorEndpointsProvider
+	OAuthStateStore AuthflowNavigatorOAuthStateStore
+	UIConfig        *config.UIConfig
+	ErrorCookie     *ErrorCookie
 }
 
 func (n *AuthflowNavigator) NavigateNonRecoverableError(r *http.Request, u *url.URL, e error) {
@@ -269,14 +274,19 @@ func (n *AuthflowNavigator) navigateStepIdentify(s *AuthflowScreenWithFlowRespon
 			authorizationURL, _ := url.Parse(data.OAuthAuthorizationURL)
 			q := authorizationURL.Query()
 
-			state := webappoauth.WebappOAuthState{
+			state := &webappoauth.WebappOAuthState{
 				WebSessionID:     webSessionID,
 				UIImplementation: config.UIImplementationAuthflow,
 				XStep:            s.Screen.StateToken.XStep,
 				ErrorRedirectURI: expectedPath,
 			}
 
-			q.Set("state", state.Encode())
+			stateToken, err := n.OAuthStateStore.GenerateState(state)
+			if err != nil {
+				panic(err)
+			}
+
+			q.Set("state", stateToken)
 			authorizationURL.RawQuery = q.Encode()
 
 			result.NavigationAction = "redirect"
