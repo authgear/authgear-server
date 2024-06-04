@@ -68,18 +68,22 @@ interface OOBOTPAuthenticatorData {
 }
 
 interface PasskeyIdentityCellProps extends PasskeyIdentityData {
+  withTopSpacing: boolean;
   showConfirmationDialog: (options: RemoveConfirmationDialogData) => void;
 }
 
 interface PasswordAuthenticatorCellProps extends PasswordAuthenticatorData {
+  withTopSpacing: boolean;
   showConfirmationDialog: (options: RemoveConfirmationDialogData) => void;
 }
 
 interface TOTPAuthenticatorCellProps extends TOTPAuthenticatorData {
+  withTopSpacing: boolean;
   showConfirmationDialog: (options: RemoveConfirmationDialogData) => void;
 }
 
 interface OOBOTPAuthenticatorCellProps extends OOBOTPAuthenticatorData {
+  withTopSpacing: boolean;
   showConfirmationDialog: (options: RemoveConfirmationDialogData) => void;
 }
 
@@ -438,7 +442,8 @@ const RemoveConfirmationDialog: React.VFC<RemoveConfirmationDialogProps> =
 
 const PasskeyIdentityCell: React.VFC<PasskeyIdentityCellProps> =
   function PasskeyIdentityCell(props: PasskeyIdentityCellProps) {
-    const { id, displayName, addedOn, showConfirmationDialog } = props;
+    const { id, displayName, addedOn, showConfirmationDialog, withTopSpacing } =
+      props;
     const { themes } = useSystemConfig();
     const onRemoveClicked = useCallback(() => {
       showConfirmationDialog({
@@ -448,7 +453,13 @@ const PasskeyIdentityCell: React.VFC<PasskeyIdentityCellProps> =
       });
     }, [id, displayName, showConfirmationDialog]);
     return (
-      <ListCellLayout className={cn(styles.cell, styles.passkeyCell)}>
+      <ListCellLayout
+        className={cn(
+          styles.cell,
+          styles.passkeyCell,
+          withTopSpacing ? styles["cell--not-first"] : ""
+        )}
+      >
         <i
           className={cn(
             styles.passkeyCellIcon,
@@ -476,7 +487,8 @@ const PasskeyIdentityCell: React.VFC<PasskeyIdentityCellProps> =
 
 const PasswordAuthenticatorCell: React.VFC<PasswordAuthenticatorCellProps> =
   function PasswordAuthenticatorCell(props: PasswordAuthenticatorCellProps) {
-    const { id, kind, lastUpdated, showConfirmationDialog } = props;
+    const { id, kind, lastUpdated, showConfirmationDialog, withTopSpacing } =
+      props;
     const navigate = useNavigate();
     const { renderToString } = useContext(Context);
     const { themes } = useSystemConfig();
@@ -499,7 +511,13 @@ const PasswordAuthenticatorCell: React.VFC<PasswordAuthenticatorCellProps> =
     }, [labelId, id, renderToString, showConfirmationDialog]);
 
     return (
-      <ListCellLayout className={cn(styles.cell, styles.passwordCell)}>
+      <ListCellLayout
+        className={cn(
+          styles.cell,
+          styles.passwordCell,
+          withTopSpacing ? styles["cell--not-first"] : ""
+        )}
+      >
         <Text className={cn(styles.cellLabel, styles.passwordCellLabel)}>
           <FormattedMessage id={labelId!} />
         </Text>
@@ -532,7 +550,8 @@ const PasswordAuthenticatorCell: React.VFC<PasswordAuthenticatorCellProps> =
 
 const TOTPAuthenticatorCell: React.VFC<TOTPAuthenticatorCellProps> =
   function TOTPAuthenticatorCell(props: TOTPAuthenticatorCellProps) {
-    const { id, kind, label, addedOn, showConfirmationDialog } = props;
+    const { id, kind, label, addedOn, showConfirmationDialog, withTopSpacing } =
+      props;
     const { themes } = useSystemConfig();
 
     const onRemoveClicked = useCallback(() => {
@@ -544,7 +563,13 @@ const TOTPAuthenticatorCell: React.VFC<TOTPAuthenticatorCellProps> =
     }, [id, label, showConfirmationDialog]);
 
     return (
-      <ListCellLayout className={cn(styles.cell, styles.totpCell)}>
+      <ListCellLayout
+        className={cn(
+          styles.cell,
+          styles.totpCell,
+          withTopSpacing ? styles["cell--not-first"] : ""
+        )}
+      >
         <Text className={cn(styles.cellLabel, styles.totpCellLabel)}>
           {label}
         </Text>
@@ -568,8 +593,15 @@ const TOTPAuthenticatorCell: React.VFC<TOTPAuthenticatorCellProps> =
 
 const OOBOTPAuthenticatorCell: React.VFC<OOBOTPAuthenticatorCellProps> =
   function (props: OOBOTPAuthenticatorCellProps) {
-    const { id, label, iconName, kind, addedOn, showConfirmationDialog } =
-      props;
+    const {
+      id,
+      label,
+      iconName,
+      kind,
+      addedOn,
+      showConfirmationDialog,
+      withTopSpacing,
+    } = props;
     const { themes } = useSystemConfig();
 
     const onRemoveClicked = useCallback(() => {
@@ -581,7 +613,13 @@ const OOBOTPAuthenticatorCell: React.VFC<OOBOTPAuthenticatorCellProps> =
     }, [id, label, showConfirmationDialog]);
 
     return (
-      <ListCellLayout className={cn(styles.cell, styles.oobOtpCell)}>
+      <ListCellLayout
+        className={cn(
+          styles.cell,
+          styles.oobOtpCell,
+          withTopSpacing ? styles["cell--not-first"] : ""
+        )}
+      >
         <Icon className={styles.oobOtpCellIcon} iconName={iconName} />
         <Text className={cn(styles.cellLabel, styles.oobOtpCellLabel)}>
           {label}
@@ -660,13 +698,14 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
     }, []);
 
     const onRenderPasskeyIdentityDetailCell = useCallback(
-      (item?: PasskeyIdentityData, _index?: number): React.ReactNode => {
+      (item?: PasskeyIdentityData, index?: number): React.ReactNode => {
         if (item == null) {
           return null;
         }
         return (
           <PasskeyIdentityCell
             {...item}
+            withTopSpacing={index !== 0}
             showConfirmationDialog={showConfirmationDialog}
           />
         );
@@ -675,13 +714,14 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
     );
 
     const onRenderPasswordAuthenticatorDetailCell = useCallback(
-      (item?: PasswordAuthenticatorData, _index?: number): React.ReactNode => {
+      (item?: PasswordAuthenticatorData, index?: number): React.ReactNode => {
         if (item == null) {
           return null;
         }
         return (
           <PasswordAuthenticatorCell
             {...item}
+            withTopSpacing={index !== 0}
             showConfirmationDialog={showConfirmationDialog}
           />
         );
@@ -690,13 +730,14 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
     );
 
     const onRenderOobOtpAuthenticatorDetailCell = useCallback(
-      (item?: OOBOTPAuthenticatorData, _index?: number): React.ReactNode => {
+      (item?: OOBOTPAuthenticatorData, index?: number): React.ReactNode => {
         if (item == null) {
           return null;
         }
         return (
           <OOBOTPAuthenticatorCell
             {...item}
+            withTopSpacing={index !== 0}
             showConfirmationDialog={showConfirmationDialog}
           />
         );
@@ -705,13 +746,14 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
     );
 
     const onRenderTotpAuthenticatorDetailCell = useCallback(
-      (item?: TOTPAuthenticatorData, _index?: number): React.ReactNode => {
+      (item?: TOTPAuthenticatorData, index?: number): React.ReactNode => {
         if (item == null) {
           return null;
         }
         return (
           <TOTPAuthenticatorCell
             {...item}
+            withTopSpacing={index !== 0}
             showConfirmationDialog={showConfirmationDialog}
           />
         );

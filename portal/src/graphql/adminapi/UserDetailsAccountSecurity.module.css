@@ -38,6 +38,10 @@
   grid-gap: 3px 0;
 }
 
+.cell--not-first {
+  @apply mt-2;
+}
+
 .cellLabel {
   font-size: 13px;
 }
