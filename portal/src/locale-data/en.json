@@ -382,6 +382,8 @@
   "Add2FAScreen.title.phone": "Add 2FA Phone",
   "Add2FAScreen.title.email": "Add 2FA Email",
   "Add2FAScreen.title.password": "Add 2FA Password",
+  "Add2FAScreen.email.label": "Email",
+  "Add2FAScreen.password.label": "Password",
 
   "ResetPasswordScreen.title": "Reset Password",
   "ResetPasswordScreen.new-password": "New Password",

@@ -88,7 +88,7 @@ function EmailField(props: {
       className={styles.widget}
       parentJSONPointer=""
       fieldName="email"
-      label={renderToString("EmailScreen.email.label")}
+      label={renderToString("Add2FAScreen.email.label")}
       value={value}
       onChange={onEmailChange}
     />
@@ -118,7 +118,7 @@ function PaswordField(props: {
     <PasswordField
       className={styles.widget}
       passwordPolicy={passwordPolicy}
-      label={renderToString("UsernameScreen.password.label")}
+      label={renderToString("Add2FAScreen.password.label")}
       value={value}
       onChange={onFieldChange}
       parentJSONPointer=""
