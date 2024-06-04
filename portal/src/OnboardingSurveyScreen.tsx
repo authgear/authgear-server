@@ -1,5 +1,17 @@
-import React, { useContext, useState, useMemo, useCallback } from "react";
-import { Routes, Navigate, Route, useNavigate } from "react-router-dom";
+import React, {
+  useContext,
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+} from "react";
+import {
+  Routes,
+  Navigate,
+  Route,
+  useNavigate,
+  NavigateFunction,
+} from "react-router-dom";
 import { useTheme, Label, CompoundButton, IButtonProps } from "@fluentui/react";
 import PrimaryButton from "./PrimaryButton";
 import DefaultButton, { DefaultButtonProps } from "./DefaultButton";
@@ -214,13 +226,68 @@ function MultiChoiceButtonGroup(props: ChoiceButtonGroupProps) {
   return <div className={styles.MultiChoiceButtonGroup}>{buttons}</div>;
 }
 
+interface LocallyStoredData {
+  roleChoices?: string;
+  toriChoices?: string;
+  companyName?: string;
+  companySize?: string;
+  companyPhone?: PhoneTextFieldValues;
+  individualWebsite?: string;
+  individualPhone?: PhoneTextFieldValues;
+  reasonChoices?: string[];
+  otherReason?: string;
+}
+
+function getFromLocalStorage(
+  prop: keyof LocallyStoredData
+): string | string[] | PhoneTextFieldValues | undefined {
+  const locallyStoredData = localStorage.getItem("authgear-onboarding-survey");
+  let localJson: LocallyStoredData = {};
+  if (locallyStoredData === null) return undefined;
+  localJson = JSON.parse(locallyStoredData);
+  return localJson[prop];
+}
+
+function setLocalStorage(prop: keyof LocallyStoredData, value: any): void {
+  const locallyStoredData = localStorage.getItem("authgear-onboarding-survey");
+  let localJson: LocallyStoredData = {};
+  if (locallyStoredData) localJson = JSON.parse(locallyStoredData);
+  localJson[prop] = value;
+  localStorage.setItem("authgear-onboarding-survey", JSON.stringify(localJson));
+}
+
+function goToFirstUnfilled(
+  currentStep: number,
+  navigate: NavigateFunction
+): void {
+  if (currentStep > 1 && getFromLocalStorage("roleChoices") === undefined) {
+    navigate("./../1");
+  }
+  if (currentStep > 2 && getFromLocalStorage("toriChoices") === undefined) {
+    navigate("./../2");
+  }
+  if (
+    currentStep > 3 &&
+    getFromLocalStorage("toriChoices") === "Team" &&
+    (getFromLocalStorage("companyName") === undefined ||
+      getFromLocalStorage("companySize") === undefined)
+  ) {
+    navigate("./../3");
+  }
+}
+
 interface StepProps {}
 
 function Step1(_props: StepProps) {
   const prefix = "OnboardingSurveyScreen.step1";
   const roleChoiceGroup = "roleChoiceGroup";
   const roleChoices = ["Dev", "IT", "PM", "PD", "Market", "Owner", "Other"];
-  const defaultRoleChoicesState: string[] = [];
+  const roleChoicesFromLocalStorage = getFromLocalStorage("roleChoices");
+  const defaultRoleChoicesState: string[] = (
+    roleChoicesFromLocalStorage === undefined
+      ? []
+      : [roleChoicesFromLocalStorage]
+  ) as string[];
   const [roleChoicesState, setRoleChoicesState] = useState(
     defaultRoleChoicesState
   );
@@ -233,9 +300,10 @@ function Step1(_props: StepProps) {
     (e) => {
       e.preventDefault();
       e.stopPropagation();
+      setLocalStorage("roleChoices", roleChoicesState[0]);
       navigate("./../2");
     },
-    [navigate]
+    [navigate, roleChoicesState]
   );
   return (
     <SurveyLayout
@@ -263,17 +331,24 @@ function Step2(_props: StepProps) {
   const prefix = "OnboardingSurveyScreen.step2";
   const toriChoiceGroup = "teamOrIndividualChoiceGroup";
   const toriChoices = ["Team", "Individual"];
-  const defaultToriChoices: string[] = [];
+  const toriChoicesFromLocalStorage = getFromLocalStorage("toriChoices");
+  const defaultToriChoices: string[] = (
+    toriChoicesFromLocalStorage === undefined
+      ? []
+      : [toriChoicesFromLocalStorage]
+  ) as string[];
   const [toriChoicesState, setToriChoicesState] = useState(defaultToriChoices);
   const empty = useMemo(() => {
     return toriChoicesState.length === 0;
   }, [toriChoicesState]);
   const { renderToString } = useContext(Context);
   const navigate = useNavigate();
+  useEffect(() => goToFirstUnfilled(2, navigate), [navigate]);
   const onClickNext = useCallback(
     (e) => {
       e.preventDefault();
       e.stopPropagation();
+      setLocalStorage("toriChoices", toriChoicesState[0]);
       if (toriChoicesState.includes("Team")) navigate("./../3-team");
       if (toriChoicesState.includes("Individual"))
         navigate("./../3-individual");
@@ -329,27 +404,50 @@ function Step2(_props: StepProps) {
 
 function Step3Team(_props: StepProps) {
   const prefix = "OnboardingSurveyScreen.step3-team";
-  const [companyName, setCompanyName] = useState("");
-  const defaultPhone: PhoneTextFieldValues = { rawInputValue: "" };
+  const companyNameFromLocalStorage = getFromLocalStorage("companyName");
+  const [companyName, setCompanyName] = useState(
+    companyNameFromLocalStorage === undefined
+      ? ""
+      : (companyNameFromLocalStorage as string)
+  );
+  const companyPhoneFromLocalStorage = getFromLocalStorage("companyPhone");
+  const defaultPhone: PhoneTextFieldValues = (
+    companyPhoneFromLocalStorage === undefined
+      ? { rawInputValue: "" }
+      : companyPhoneFromLocalStorage
+  ) as PhoneTextFieldValues;
   const [companyPhone, setCompanyPhone] = useState(defaultPhone);
   const companySizeChoiceGroup = "companySizeChoiceGroup";
   const companySizeChoices = ["1-49", "50-99", "100-499", "500-1999", "2000+"];
-  const defaultCompanySizeChoices: string[] = [];
-  const [companySizeChoicesState, setCompanySizeChoicesState] = useState(
-    defaultCompanySizeChoices
-  );
+  const defaultCompanySizeFromLocalStorage = getFromLocalStorage("companySize");
+  const defaultCompanySize: string[] = (
+    defaultCompanySizeFromLocalStorage === undefined
+      ? []
+      : [defaultCompanySizeFromLocalStorage]
+  ) as string[];
+  const [companySizeChoicesState, setCompanySizeChoicesState] =
+    useState(defaultCompanySize);
   const companySizeEmpty = useMemo(() => {
     return companySizeChoicesState.length === 0;
   }, [companySizeChoicesState]);
   const { renderToString } = useContext(Context);
   const navigate = useNavigate();
+  useEffect(() => {
+    goToFirstUnfilled(3, navigate);
+    if (getFromLocalStorage("toriChoices") === "Individual")
+      navigate("./../3-individual");
+  }, [navigate]);
   const onClickNext = useCallback(
     (e) => {
       e.preventDefault();
       e.stopPropagation();
+      setLocalStorage("companyName", companyName);
+      setLocalStorage("companySize", companySizeChoicesState[0]);
+      if (companyPhone.rawInputValue !== "")
+        setLocalStorage("companyPhone", companyPhone);
       navigate("./../4");
     },
-    [navigate]
+    [navigate, companyName, companySizeChoicesState, companyPhone]
   );
   const onClickBack = useCallback(
     (e) => {
@@ -427,19 +525,37 @@ function Step3Team(_props: StepProps) {
 }
 
 function Step3Individual(_props: StepProps) {
-  const prefix = "OnboardingSurveyScreen.step3-individual";
-  const [individualWebsite, setIndividualWebsite] = useState("");
-  const defaultPhone: PhoneTextFieldValues = { rawInputValue: "" };
+  const individualWebsiteFromLocalStorage =
+    getFromLocalStorage("individualWebsite");
+  const [individualWebsite, setIndividualWebsite] = useState(
+    individualWebsiteFromLocalStorage === undefined
+      ? ""
+      : (individualWebsiteFromLocalStorage as string)
+  );
+  const individualPhoneFromLocalStorage = getFromLocalStorage("companyPhone");
+  const defaultPhone: PhoneTextFieldValues = (
+    individualPhoneFromLocalStorage === undefined
+      ? { rawInputValue: "" }
+      : individualPhoneFromLocalStorage
+  ) as PhoneTextFieldValues;
   const [individualPhone, setIndividualPhone] = useState(defaultPhone);
   const { renderToString } = useContext(Context);
   const navigate = useNavigate();
+  useEffect(() => {
+    goToFirstUnfilled(3, navigate);
+    if (getFromLocalStorage("toriChoices") === "Team") navigate("./../3-team");
+  }, [navigate]);
   const onClickNext = useCallback(
     (e) => {
       e.preventDefault();
       e.stopPropagation();
+      if (individualWebsite !== "")
+        setLocalStorage("individualWebsite", individualWebsite);
+      if (individualPhone.rawInputValue !== "")
+        setLocalStorage("individualPhone", individualPhone);
       navigate("./../4");
     },
-    [navigate]
+    [navigate, individualWebsite, individualPhone]
   );
   const onClickBack = useCallback(
     (e) => {
@@ -516,29 +632,49 @@ function Step4(_props: StepProps) {
   const prefix = "OnboardingSurveyScreen.step4";
   const reasonChoiceGroup = "reasonChoiceGroup";
   const reasonChoices = ["Auth", "SSO", "Security", "Portal", "Other"];
-  const defaultReasonChoices: string[] = [];
+  const reasonChoicesFromLocalStorage = getFromLocalStorage("reasonChoices");
+  const defaultReasonChoices: string[] = (
+    reasonChoicesFromLocalStorage === undefined
+      ? []
+      : reasonChoicesFromLocalStorage
+  ) as string[];
   const [reasonChoicesState, setReasonChoicesState] =
     useState(defaultReasonChoices);
   const empty = useMemo(() => {
     return reasonChoicesState.length === 0;
   }, [reasonChoicesState]);
   const { renderToString } = useContext(Context);
-  const [otherReason, setOtherReason] = useState("");
+  const otherReasonFromLocalStorage = getFromLocalStorage("otherReason");
+  const [otherReason, setOtherReason] = useState(
+    otherReasonFromLocalStorage === undefined
+      ? ""
+      : (otherReasonFromLocalStorage as string)
+  );
   const navigate = useNavigate();
+  useEffect(() => goToFirstUnfilled(4, navigate), [navigate]);
   const onClickNext = useCallback(
     (e) => {
       e.preventDefault();
       e.stopPropagation();
+      setLocalStorage("reasonChoices", reasonChoicesState);
+      if (otherReason !== "") setLocalStorage("otherReason", otherReason);
+      //TODO: save to somewhere
+      //eslint-disable-next-line no-console
+      console.log(localStorage.getItem("authgear-onboarding-survey"));
+      //clear local storage?
       navigate("./../../projects/create");
     },
-    [navigate]
+    [navigate, reasonChoicesState, otherReason]
   );
   const onClickBack = useCallback(
     (e) => {
       e.preventDefault();
       e.stopPropagation();
-      //TODO: change to 3-team or 3-individual depending on localStorage
-      navigate("./../2");
+      navigate(
+        getFromLocalStorage("toriChoices") === "Team"
+          ? "./../3-team"
+          : "./../3-individual"
+      );
     },
     [navigate]
   );
