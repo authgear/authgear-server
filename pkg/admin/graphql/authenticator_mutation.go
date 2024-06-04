@@ -157,6 +157,18 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationCreateAuthenticatorExecutedEventPayload{
+				Authenticator: info.ToModel(),
+				UserRef: apimodel.UserRef{
+					Meta: apimodel.Meta{
+						ID: info.UserID,
+					},
+				},
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"authenticator": gqlCtx.Authenticators.Load(info.ID),
 			}).Value, nil
