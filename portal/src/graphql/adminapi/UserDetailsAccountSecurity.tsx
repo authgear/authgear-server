@@ -805,9 +805,26 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
         },
       ];
       const enabledItems = availableMenuItem.filter((item) => {
-        return authenticationConfig?.secondary_authenticators?.includes(
-          item.key
-        );
+        if (
+          !authenticationConfig?.secondary_authenticators?.includes(item.key)
+        ) {
+          return false;
+        }
+
+        if (item.key === "password") {
+          // Multiple additinal password is not allowed
+          if (
+            authenticators.findIndex(
+              (authn) =>
+                authn.kind === AuthenticatorKind.Secondary &&
+                authn.type === AuthenticatorType.Password
+            ) !== -1
+          ) {
+            return false;
+          }
+        }
+
+        return true;
       });
       return {
         items: enabledItems,
@@ -817,6 +834,7 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
       renderToString,
       navigate,
       authenticationConfig?.secondary_authenticators,
+      authenticators,
     ]);
 
     return (
