@@ -60,7 +60,7 @@ import UserDetailsScreenRoleListContainer from "../../components/roles-and-group
 interface UserDetailsProps {
   form: SimpleFormModel<FormState>;
   data: UserQueryNodeFragment;
-  appConfig: PortalAPIAppConfig | null;
+  appConfig: PortalAPIAppConfig;
 }
 
 const USER_PROFILE_KEY = "user-profile";
@@ -239,20 +239,19 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
   const { renderToString } = React.useContext(Context);
 
   const availableLoginIdIdentities = useMemo(() => {
-    const authenticationIdentities =
-      appConfig?.authentication?.identities ?? [];
+    const authenticationIdentities = appConfig.authentication?.identities ?? [];
     const loginIdIdentityEnabled =
       authenticationIdentities.includes("login_id");
     if (!loginIdIdentityEnabled) {
       return [];
     }
-    const rawLoginIdKeys = appConfig?.identity?.login_id?.keys ?? [];
+    const rawLoginIdKeys = appConfig.identity?.login_id?.keys ?? [];
     return rawLoginIdKeys.map((loginIdKey) => loginIdKey.type);
   }, [appConfig]);
 
   const standardAttributeAccessControl = useMemo(() => {
     const record: Record<string, AccessControlLevelString> = {};
-    for (const item of appConfig?.user_profile?.standard_attributes
+    for (const item of appConfig.user_profile?.standard_attributes
       ?.access_control ?? []) {
       record[item.pointer] = item.access_control.portal_ui;
     }
@@ -261,11 +260,11 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
 
   const customAttributesConfig: CustomAttributesAttributeConfig[] =
     useMemo(() => {
-      return appConfig?.user_profile?.custom_attributes?.attributes ?? [];
+      return appConfig.user_profile?.custom_attributes?.attributes ?? [];
     }, [appConfig]);
 
   const oauthClientConfig: OAuthClientConfig[] = useMemo(() => {
-    return appConfig?.oauth?.clients ?? [];
+    return appConfig.oauth?.clients ?? [];
   }, [appConfig]);
 
   const onChangeStandardAttributes = useCallback(
@@ -400,6 +399,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
             </MessageBar>
           ) : (
             <UserDetailsAccountSecurity
+              authenticationConfig={appConfig.authentication}
               identities={identities}
               authenticators={authenticators}
             />

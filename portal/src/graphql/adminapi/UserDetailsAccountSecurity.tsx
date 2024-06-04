@@ -21,10 +21,12 @@ import {
 import { useProvideError } from "../../hook/error";
 import styles from "./UserDetailsAccountSecurity.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import { PortalAPIAppConfig } from "../../types";
 
 type OOBOTPVerificationMethod = "email" | "phone" | "unknown";
 
 interface UserDetailsAccountSecurityProps {
+  authenticationConfig: PortalAPIAppConfig["authentication"];
   identities: Identity[];
   authenticators: Authenticator[];
 }
@@ -229,6 +231,7 @@ function constructOobOtpAuthenticatorData(
 }
 
 function constructSecondaryAuthenticatorList(
+  config: PortalAPIAppConfig["authentication"],
   authenticators: Authenticator[],
   locale: string
 ) {
@@ -236,6 +239,14 @@ function constructSecondaryAuthenticatorList(
   const oobOtpEmailAuthenticatorList: OOBOTPAuthenticatorData[] = [];
   const oobOtpSMSAuthenticatorList: OOBOTPAuthenticatorData[] = [];
   const totpAuthenticatorList: TOTPAuthenticatorData[] = [];
+  const isAnySecondaryAuthenticatorEnabled =
+    (config?.secondary_authenticators?.length ?? 0) >= 1;
+  const isSecondaryPasswordEnabled =
+    config?.secondary_authenticators?.includes("password") ?? false;
+  const isSecondaryOOBOTPEmailEnabled =
+    config?.secondary_authenticators?.includes("oob_otp_email") ?? false;
+  const isSecondaryOOBOTPSMSEnabled =
+    config?.secondary_authenticators?.includes("oob_otp_sms") ?? false;
 
   const filteredAuthenticators = authenticators.filter(
     (a) => a.kind === AuthenticatorKind.Secondary
@@ -279,6 +290,10 @@ function constructSecondaryAuthenticatorList(
       oobOtpSMSAuthenticatorList,
       totpAuthenticatorList,
     ].some((list) => list.length > 0),
+    isAnySecondaryAuthenticatorEnabled,
+    isSecondaryOOBOTPEmailEnabled,
+    isSecondaryOOBOTPSMSEnabled,
+    isSecondaryPasswordEnabled,
   };
 }
 
@@ -581,7 +596,7 @@ const OOBOTPAuthenticatorCell: React.VFC<OOBOTPAuthenticatorCellProps> =
 const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
   // eslint-disable-next-line complexity
   function UserDetailsAccountSecurity(props: UserDetailsAccountSecurityProps) {
-    const { identities, authenticators } = props;
+    const { authenticationConfig, identities, authenticators } = props;
     const { locale } = useContext(Context);
 
     const {
@@ -612,8 +627,12 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
     }, [locale, identities, authenticators]);
 
     const secondaryAuthenticatorLists = useMemo(() => {
-      return constructSecondaryAuthenticatorList(authenticators, locale);
-    }, [locale, authenticators]);
+      return constructSecondaryAuthenticatorList(
+        authenticationConfig,
+        authenticators,
+        locale
+      );
+    }, [authenticationConfig, authenticators, locale]);
 
     const showConfirmationDialog = useCallback(
       (options: RemoveConfirmationDialogData) => {
@@ -791,7 +810,8 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
             ) : null}
           </div>
         ) : null}
-        {secondaryAuthenticatorLists.hasVisibleList ? (
+        {secondaryAuthenticatorLists.hasVisibleList ||
+        secondaryAuthenticatorLists.isAnySecondaryAuthenticatorEnabled ? (
           <div className={styles.authenticatorContainer}>
             <Text
               as="h2"
@@ -799,6 +819,11 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
             >
               <FormattedMessage id="UserDetails.account-security.secondary" />
             </Text>
+            {!secondaryAuthenticatorLists.hasVisibleList ? (
+              <Text as="h3" className={cn(styles.authenticatorEmpty)}>
+                <FormattedMessage id="UserDetails.account-security.secondary.empty" />
+              </Text>
+            ) : null}
             {secondaryAuthenticatorLists.totp.length > 0 ? (
               <div>
                 <Text
