@@ -1,0 +1,100 @@
+name: Custom Build
+
+on:
+  push:
+    branches:
+    - '*'
+    - '!gh-pages'
+    tags:
+    - '*'
+  pull_request:
+    branches:
+    - '*'
+    - '!gh-pages'
+
+jobs:
+  authgear-image-custom:
+    runs-on: ubuntu-22.04
+    if: ${{ github.repository == 'authgear/authgear-server' }}
+    steps:
+    - uses: actions/checkout@v4
+    # https://aran.dev/posts/github-actions-go-private-modules/
+    - name: Set up SSH key
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        AUTHGEAR_PRIVATE_DEPLOY_KEY: ${{ secrets.AUTHGEAR_PRIVATE_DEPLOY_KEY }}
+      run: |
+        mkdir -p ~/.ssh
+        eval $(ssh-agent -a $SSH_AUTH_SOCK)
+        printf "$AUTHGEAR_PRIVATE_DEPLOY_KEY" | base64 --decode | ssh-add -
+        echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
+        echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> "$GITHUB_ENV"
+    - run: make -C custombuild build-image TARGET=authgearx IMAGE_NAME=authgear-server-custom
+    - name: Clean up SSH key
+      if: ${{ always() }}
+      run: |
+        ssh-add -D
+        ssh-agent -k
+        echo "SSH_AUTH_SOCK=" >> "$GITHUB_ENV"
+        echo "SSH_AGENT_PID=" >> "$GITHUB_ENV"
+    - name: Push to HK
+      env:
+        DOCKER_PASSWORD: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_SERVICE_ACCOUNT_KEY_HK }}
+        REPO: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_HK }}
+        REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX_HK }}
+      run: |
+        make -C custombuild tag-image IMAGE_NAME=authgear-server-custom REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-server"
+        printf "$DOCKER_PASSWORD" | docker login --username _json_key_base64 --password-stdin "$REPO"
+        make -C custombuild push-image REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-server" || docker logout "$REPO"
+    - name: Push to US
+      env:
+        DOCKER_PASSWORD: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_SERVICE_ACCOUNT_KEY_US }}
+        REPO: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_US }}
+        REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX_US }}
+      run: |
+        make -C custombuild tag-image IMAGE_NAME=authgear-server-custom REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-server"
+        printf "$DOCKER_PASSWORD" | docker login --username _json_key_base64 --password-stdin "$REPO"
+        make -C custombuild push-image REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-server" || docker logout "$REPO"
+
+  portal-image-custom:
+    runs-on: ubuntu-22.04
+    if: ${{ github.repository == 'authgear/authgear-server' }}
+    steps:
+    - uses: actions/checkout@v4
+    # https://aran.dev/posts/github-actions-go-private-modules/
+    - name: Set up SSH key
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        AUTHGEAR_PRIVATE_DEPLOY_KEY: ${{ secrets.AUTHGEAR_PRIVATE_DEPLOY_KEY }}
+      run: |
+        mkdir -p ~/.ssh
+        eval $(ssh-agent -a $SSH_AUTH_SOCK)
+        printf "$AUTHGEAR_PRIVATE_DEPLOY_KEY" | base64 --decode | ssh-add -
+        echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
+        echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> "$GITHUB_ENV"
+    - run: make -C custombuild build-image TARGET=portalx IMAGE_NAME=authgear-portal-custom
+    - name: Clean up SSH key
+      if: ${{ always() }}
+      run: |
+        ssh-add -D
+        ssh-agent -k
+        echo "SSH_AUTH_SOCK=" >> "$GITHUB_ENV"
+        echo "SSH_AGENT_PID=" >> "$GITHUB_ENV"
+    - name: Push to HK
+      env:
+        DOCKER_PASSWORD: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_SERVICE_ACCOUNT_KEY_HK }}
+        REPO: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_HK }}
+        REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX_HK }}
+      run: |
+        make -C custombuild tag-image IMAGE_NAME=authgear-portal-custom REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-portal"
+        printf "$DOCKER_PASSWORD" | docker login --username _json_key_base64 --password-stdin "$REPO"
+        make -C custombuild push-image REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-portal" || docker logout "$REPO"
+    - name: Push to US
+      env:
+        DOCKER_PASSWORD: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_SERVICE_ACCOUNT_KEY_US }}
+        REPO: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_US }}
+        REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX_US }}
+      run: |
+        make -C custombuild tag-image IMAGE_NAME=authgear-portal-custom REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-portal"
+        printf "$DOCKER_PASSWORD" | docker login --username _json_key_base64 --password-stdin "$REPO"
+        make -C custombuild push-image REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-portal" || docker logout "$REPO"
