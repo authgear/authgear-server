@@ -87,7 +87,6 @@ jobs:
       IMAGE_NAME: authgear-portal
     steps:
     - uses: actions/checkout@v3
-    - uses: ./.github/actions/libvips
     - run: make build-image TARGET=$TARGET IMAGE_NAME=$IMAGE_NAME
     - run: make tag-image IMAGE_NAME=$IMAGE_NAME
     - uses: docker/login-action@v2
@@ -169,7 +168,6 @@ jobs:
       IMAGE_NAME: authgear-server
     steps:
     - uses: actions/checkout@v3
-    - uses: ./.github/actions/libvips
     - run: make build-image TARGET=$TARGET IMAGE_NAME=$IMAGE_NAME
     - run: make tag-image IMAGE_NAME=$IMAGE_NAME
     - uses: docker/login-action@v2
