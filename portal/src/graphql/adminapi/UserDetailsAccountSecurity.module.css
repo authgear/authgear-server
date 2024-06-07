@@ -20,14 +20,26 @@
   margin-top: 16px;
 }
 
+.authenticatorTypeSection + .authenticatorTypeSection {
+  margin-top: 12px;
+}
+
+.authenticatorTypeSection--password {
+  margin-top: 12px;
+}
+
 .authenticatorTypeHeader {
-  margin: 12px 0;
+  margin-bottom: 12px;
 }
 
 .cell {
   padding-left: 1px;
   display: grid;
   grid-gap: 3px 0;
+}
+
+.cell--not-first {
+  @apply mt-2;
 }
 
 .cellLabel {
@@ -145,4 +157,8 @@
 
 .passkeyCellRemoveButton {
   grid-area: remove;
+}
+
+.authenticatorEmpty {
+  color: #888888;
 }
