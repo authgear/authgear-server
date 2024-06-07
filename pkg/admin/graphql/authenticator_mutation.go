@@ -124,32 +124,46 @@ var _ = registerMutationField(
 			}
 			userID := resolvedNodeID.ID
 
+			kind := definition["kind"].(string)
+			authnType := definition["type"].(string)
+
 			gqlCtx := GQLContext(p.Context)
 
 			spec := &authenticator.Spec{
 				UserID: userID,
+				Kind:   apimodel.AuthenticatorKind(kind),
 			}
 
-			if oobOtpEmail, ok := definition["oobOtpEmail"].(map[string]interface{}); ok && oobOtpEmail != nil {
+			switch authnType {
+			case string(apimodel.AuthenticatorTypeOOBEmail):
+				oobOtpEmail, ok := definition["oobOtpEmail"].(map[string]interface{})
+				if !ok {
+					return nil, apierrors.NewInvalid("definition/oobOtpEmail is required")
+				}
 				spec.Type = apimodel.AuthenticatorTypeOOBEmail
 				spec.OOBOTP = &authenticator.OOBOTPSpec{
 					Email: oobOtpEmail["email"].(string),
 				}
-				spec.Kind = apimodel.AuthenticatorKind(oobOtpEmail["kind"].(string))
-			} else if oobOtpSMS, ok := definition["oobOtpSMS"].(map[string]interface{}); ok && oobOtpSMS != nil {
+			case string(apimodel.AuthenticatorTypeOOBSMS):
+				oobOtpSMS, ok := definition["oobOtpSMS"].(map[string]interface{})
+				if !ok {
+					return nil, apierrors.NewInvalid("definition/oobOtpSMS is required")
+				}
 				spec.Type = apimodel.AuthenticatorTypeOOBSMS
 				spec.OOBOTP = &authenticator.OOBOTPSpec{
 					Phone: oobOtpSMS["phone"].(string),
 				}
-				spec.Kind = apimodel.AuthenticatorKind(oobOtpSMS["kind"].(string))
-			} else if password, ok := definition["password"].(map[string]interface{}); ok && password != nil {
+			case string(apimodel.AuthenticatorTypePassword):
+				password, ok := definition["password"].(map[string]interface{})
+				if !ok {
+					return nil, apierrors.NewInvalid("definition/password is required")
+				}
 				spec.Type = apimodel.AuthenticatorTypePassword
 				spec.Password = &authenticator.PasswordSpec{
 					PlainPassword: password["password"].(string),
 				}
-				spec.Kind = apimodel.AuthenticatorKind(password["kind"].(string))
-			} else {
-				panic("unsupported authenticator type")
+			default:
+				return nil, apierrors.NewInvalid("unsupported authenticator type")
 			}
 
 			info, err := gqlCtx.AuthenticatorFacade.CreateBySpec(spec)
