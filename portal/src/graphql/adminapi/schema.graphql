@@ -489,6 +489,47 @@ type AuthenticatorConnection {
   totalCount: Int
 }
 
+"""
+Definition of an authenticator. This is a union object, exactly one of the available fields must be present.
+"""
+input AuthenticatorDefinition {
+  """OOB OTP Email authenticator definition."""
+  oobOtpEmail: AuthenticatorDefinitionOOBOTPEmail
+
+  """OOB OTP SMS authenticator definition."""
+  oobOtpSMS: AuthenticatorDefinitionOOBOTPSMS
+
+  """Password authenticator definition."""
+  password: AuthenticatorDefinitionPassword
+}
+
+""""""
+input AuthenticatorDefinitionOOBOTPEmail {
+  """Email of the new oob otp sms authenticator."""
+  email: String!
+
+  """Kind of authenticator"""
+  kind: AuthenticatorKind!
+}
+
+""""""
+input AuthenticatorDefinitionOOBOTPSMS {
+  """Kind of authenticator"""
+  kind: AuthenticatorKind!
+
+  """Phone number of the new oob otp sms authenticator."""
+  phone: String!
+}
+
+""""""
+input AuthenticatorDefinitionPassword {
+  """Kind of authenticator"""
+  kind: AuthenticatorKind!
+
+  """Password of the new authenticator."""
+  password: String!
+}
+
 """An edge in a connection"""
 type AuthenticatorEdge {
   """ cursor for use in pagination"""
@@ -571,6 +612,21 @@ type Claim {
 
   """"""
   value: String!
+}
+
+""""""
+input CreateAuthenticatorInput {
+  """Definition of the new identity."""
+  definition: AuthenticatorDefinition!
+
+  """Target user ID."""
+  userID: ID!
+}
+
+""""""
+type CreateAuthenticatorPayload {
+  """"""
+  authenticator: Authenticator!
 }
 
 """"""
@@ -919,6 +975,9 @@ type Mutation {
 
   """Anonymize specified user"""
   anonymizeUser(input: AnonymizeUserInput!): AnonymizeUserPayload!
+
+  """Create authenticator of user"""
+  createAuthenticator(input: CreateAuthenticatorInput!): CreateAuthenticatorPayload!
 
   """Create a new group."""
   createGroup(input: CreateGroupInput!): CreateGroupPayload!
