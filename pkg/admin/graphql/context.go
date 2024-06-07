@@ -129,6 +129,7 @@ type AuthenticatorFacade interface {
 	Get(id string) (*authenticator.Info, error)
 	List(userID string, authenticatorType *apimodel.AuthenticatorType, authenticatorKind *authenticator.Kind) ([]*authenticator.Ref, error)
 	Remove(authenticatorInfo *authenticator.Info) error
+	CreateBySpec(spec *authenticator.Spec) (*authenticator.Info, error)
 }
 
 type VerificationFacade interface {

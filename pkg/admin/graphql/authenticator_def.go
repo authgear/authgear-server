@@ -7,8 +7,12 @@ import (
 var authenticatorDefOOBOTPEmail = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "AuthenticatorDefinitionOOBOTPEmail",
 	Fields: graphql.InputObjectConfigFieldMap{
+		"kind": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(authenticatorKind),
+			Description: "Kind of authenticator",
+		},
 		"email": &graphql.InputObjectFieldConfig{
-			Type:        graphql.String,
+			Type:        graphql.NewNonNull(graphql.String),
 			Description: "Email of the new oob otp sms authenticator.",
 		},
 	},
@@ -17,8 +21,12 @@ var authenticatorDefOOBOTPEmail = graphql.NewInputObject(graphql.InputObjectConf
 var authenticatorDefOOBOTPSMS = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "AuthenticatorDefinitionOOBOTPSMS",
 	Fields: graphql.InputObjectConfigFieldMap{
+		"kind": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(authenticatorKind),
+			Description: "Kind of authenticator",
+		},
 		"phone": &graphql.InputObjectFieldConfig{
-			Type:        graphql.String,
+			Type:        graphql.NewNonNull(graphql.String),
 			Description: "Phone number of the new oob otp sms authenticator.",
 		},
 	},
@@ -27,21 +35,21 @@ var authenticatorDefOOBOTPSMS = graphql.NewInputObject(graphql.InputObjectConfig
 var authenticatorDefOOBOTPPassword = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "AuthenticatorDefinitionPassword",
 	Fields: graphql.InputObjectConfigFieldMap{
+		"kind": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(authenticatorKind),
+			Description: "Kind of authenticator",
+		},
 		"password": &graphql.InputObjectFieldConfig{
-			Type:        graphql.String,
+			Type:        graphql.NewNonNull(graphql.String),
 			Description: "Password of the new authenticator.",
 		},
 	},
 })
 
 var authenticatorDef = graphql.NewInputObject(graphql.InputObjectConfig{
-	Name:        "IdentityDefinition",
-	Description: "Definition of an identity. This is a union object, exactly one of the available fields must be present.",
+	Name:        "AuthenticatorDefinition",
+	Description: "Definition of an authenticator. This is a union object, exactly one of the available fields must be present.",
 	Fields: graphql.InputObjectConfigFieldMap{
-		"kind": &graphql.InputObjectFieldConfig{
-			Type:        authenticatorKind,
-			Description: "Kind of authenticator",
-		},
 		"oobOtpEmail": &graphql.InputObjectFieldConfig{
 			Type:        authenticatorDefOOBOTPEmail,
 			Description: "OOB OTP Email authenticator definition.",

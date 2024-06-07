@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -106,14 +107,53 @@ var _ = registerMutationField(
 	"createAuthenticator",
 	&graphql.Field{
 		Description: "Create authenticator of user",
-		Type:        graphql.NewNonNull(deleteAuthenticatorPayload),
+		Type:        graphql.NewNonNull(createAuthenticatorPayload),
 		Args: graphql.FieldConfigArgument{
 			"input": &graphql.ArgumentConfig{
 				Type: graphql.NewNonNull(createAuthenticatorInput),
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			input := p.Args["input"].(map[string]interface{})
+			userID := input["userID"].(string)
+			definition := input["definition"].(map[string]interface{})
 
+			gqlCtx := GQLContext(p.Context)
+
+			spec := &authenticator.Spec{
+				UserID: userID,
+			}
+
+			if oobOtpEmail, ok := definition["oobOtpEmail"].(map[string]interface{}); ok && oobOtpEmail != nil {
+				spec.Type = apimodel.AuthenticatorTypeOOBEmail
+				spec.OOBOTP = &authenticator.OOBOTPSpec{
+					Email: oobOtpEmail["email"].(string),
+				}
+				spec.Kind = apimodel.AuthenticatorKind(oobOtpEmail["kind"].(string))
+			} else if oobOtpSMS, ok := definition["oobOtpSMS"].(map[string]interface{}); ok && oobOtpSMS != nil {
+				spec.Type = apimodel.AuthenticatorTypeOOBSMS
+				spec.OOBOTP = &authenticator.OOBOTPSpec{
+					Phone: oobOtpSMS["phone"].(string),
+				}
+				spec.Kind = apimodel.AuthenticatorKind(oobOtpSMS["kind"].(string))
+			} else if password, ok := definition["password"].(map[string]interface{}); ok && password != nil {
+				spec.Type = apimodel.AuthenticatorTypePassword
+				spec.Password = &authenticator.PasswordSpec{
+					PlainPassword: password["password"].(string),
+				}
+				spec.Kind = apimodel.AuthenticatorKind(password["kind"].(string))
+			} else {
+				panic("unsupported authenticator type")
+			}
+
+			info, err := gqlCtx.AuthenticatorFacade.CreateBySpec(spec)
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"authenticator": gqlCtx.Authenticators.Load(info.ID),
+			}).Value, nil
 		},
 	},
 )
