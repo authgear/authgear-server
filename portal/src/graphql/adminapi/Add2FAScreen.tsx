@@ -25,7 +25,7 @@ import FormContainer from "../../FormContainer";
 import ScreenContent from "../../ScreenContent";
 import { useSimpleForm } from "../../hook/useSimpleForm";
 import { useCreateAuthenticatorMutation } from "./mutations/createAuthenticatorMutation";
-import { AuthenticatorKind } from "./globalTypes.generated";
+import { AuthenticatorKind, AuthenticatorType } from "./globalTypes.generated";
 import FormTextField from "../../FormTextField";
 import PasswordField from "../../PasswordField";
 import {
@@ -229,21 +229,21 @@ const Add2FAScreen: React.VFC<Add2FAScreenProps> = function Add2FAScreen({
       switch (authenticatorType) {
         case "oob_otp_sms":
           await createAuthenticator({
-            type: "oob_otp_sms",
+            type: AuthenticatorType.OobOtpSms,
             phone: state.value.trim(),
             kind: AuthenticatorKind.Secondary,
           });
           break;
         case "oob_otp_email":
           await createAuthenticator({
-            type: "oob_otp_email",
+            type: AuthenticatorType.OobOtpEmail,
             email: state.value.trim(),
             kind: AuthenticatorKind.Secondary,
           });
           break;
         case "password":
           await createAuthenticator({
-            type: "password",
+            type: AuthenticatorType.Password,
             password: state.value,
             kind: AuthenticatorKind.Secondary,
           });

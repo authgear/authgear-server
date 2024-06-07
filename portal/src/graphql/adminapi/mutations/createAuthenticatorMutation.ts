@@ -5,22 +5,22 @@ import {
   CreateAuthenticatorMutationDocument,
   CreateAuthenticatorMutationMutationVariables,
 } from "./createAuthenticatorMutation.generated";
-import { AuthenticatorKind } from "../globalTypes.generated";
+import { AuthenticatorKind, AuthenticatorType } from "../globalTypes.generated";
 
 interface AuthenticatorDefinitionOOBOTPEmail {
-  type: "oob_otp_email";
+  type: AuthenticatorType.OobOtpEmail;
   kind: AuthenticatorKind;
   email: string;
 }
 
 interface AuthenticatorDefinitionOOBOTPSMS {
-  type: "oob_otp_sms";
+  type: AuthenticatorType.OobOtpSms;
   kind: AuthenticatorKind;
   phone: string;
 }
 
 interface AuthenticatorDefinitionPassword {
-  type: "password";
+  type: AuthenticatorType.Password;
   kind: AuthenticatorKind;
   password: string;
 }
@@ -51,23 +51,23 @@ export function useCreateAuthenticatorMutation(userID: string): {
   const createAuthenticator = useCallback(
     async (definitionParam: AuthenticatorDefinition) => {
       const definition: CreateAuthenticatorMutationMutationVariables["definition"] =
-        {};
+        {
+          kind: definitionParam.kind,
+          type: definitionParam.type,
+        };
       switch (definitionParam.type) {
-        case "oob_otp_email":
+        case AuthenticatorType.OobOtpEmail:
           definition.oobOtpEmail = {
-            kind: definitionParam.kind,
             email: definitionParam.email,
           };
           break;
-        case "oob_otp_sms":
+        case AuthenticatorType.OobOtpSms:
           definition.oobOtpSMS = {
-            kind: definitionParam.kind,
             phone: definitionParam.phone,
           };
           break;
-        case "password":
+        case AuthenticatorType.Password:
           definition.password = {
-            kind: definitionParam.kind,
             password: definitionParam.password,
           };
           break;
