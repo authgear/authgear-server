@@ -151,6 +151,9 @@ enum AuditLogActivityType {
   ADMIN_API_MUTATION_ANONYMIZE_USER_EXECUTED
 
   """"""
+  ADMIN_API_MUTATION_CREATE_AUTHENTICATOR_EXECUTED
+
+  """"""
   ADMIN_API_MUTATION_CREATE_GROUP_EXECUTED
 
   """"""
@@ -489,6 +492,50 @@ type AuthenticatorConnection {
   totalCount: Int
 }
 
+"""
+Definition of an authenticator. This is a union object, exactly one of the available fields must be present.
+"""
+input AuthenticatorDefinition {
+  """Kind of authenticator."""
+  kind: AuthenticatorKind!
+
+  """
+  OOB OTP Email authenticator definition. Must be provided when type is OOB_OTP_EMAIL.
+  """
+  oobOtpEmail: AuthenticatorDefinitionOOBOTPEmail
+
+  """
+  OOB OTP SMS authenticator definition. Must be provided when type is OOB_OTP_SMS.
+  """
+  oobOtpSMS: AuthenticatorDefinitionOOBOTPSMS
+
+  """
+  Password authenticator definition. Must be provided when type is PASSWORD.
+  """
+  password: AuthenticatorDefinitionPassword
+
+  """Type of authenticator."""
+  type: AuthenticatorType!
+}
+
+""""""
+input AuthenticatorDefinitionOOBOTPEmail {
+  """Email of the new oob otp sms authenticator."""
+  email: String!
+}
+
+""""""
+input AuthenticatorDefinitionOOBOTPSMS {
+  """Phone number of the new oob otp sms authenticator."""
+  phone: String!
+}
+
+""""""
+input AuthenticatorDefinitionPassword {
+  """Password of the new authenticator."""
+  password: String!
+}
+
 """An edge in a connection"""
 type AuthenticatorEdge {
   """ cursor for use in pagination"""
@@ -571,6 +618,21 @@ type Claim {
 
   """"""
   value: String!
+}
+
+""""""
+input CreateAuthenticatorInput {
+  """Definition of the new authenticator."""
+  definition: AuthenticatorDefinition!
+
+  """Target user ID."""
+  userID: ID!
+}
+
+""""""
+type CreateAuthenticatorPayload {
+  """"""
+  authenticator: Authenticator!
 }
 
 """"""
@@ -919,6 +981,9 @@ type Mutation {
 
   """Anonymize specified user"""
   anonymizeUser(input: AnonymizeUserInput!): AnonymizeUserPayload!
+
+  """Create authenticator of user"""
+  createAuthenticator(input: CreateAuthenticatorInput!): CreateAuthenticatorPayload!
 
   """Create a new group."""
   createGroup(input: CreateGroupInput!): CreateGroupPayload!

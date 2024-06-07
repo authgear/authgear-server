@@ -161,6 +161,9 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		"ADMIN_API_MUTATION_CREATE_USER_EXECUTED": &graphql.EnumValueConfig{
 			Value: "admin_api.mutation.create_user.executed",
 		},
+		"ADMIN_API_MUTATION_CREATE_AUTHENTICATOR_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.create_authenticator.executed",
+		},
 		"ADMIN_API_MUTATION_DELETE_AUTHENTICATOR_EXECUTED": &graphql.EnumValueConfig{
 			Value: "admin_api.mutation.delete_authenticator.executed",
 		},

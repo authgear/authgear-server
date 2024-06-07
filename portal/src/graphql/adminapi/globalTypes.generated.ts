@@ -132,6 +132,7 @@ export enum AuditLogActivityType {
   AdminApiMutationAddUserToGroupsExecuted = 'ADMIN_API_MUTATION_ADD_USER_TO_GROUPS_EXECUTED',
   AdminApiMutationAddUserToRolesExecuted = 'ADMIN_API_MUTATION_ADD_USER_TO_ROLES_EXECUTED',
   AdminApiMutationAnonymizeUserExecuted = 'ADMIN_API_MUTATION_ANONYMIZE_USER_EXECUTED',
+  AdminApiMutationCreateAuthenticatorExecuted = 'ADMIN_API_MUTATION_CREATE_AUTHENTICATOR_EXECUTED',
   AdminApiMutationCreateGroupExecuted = 'ADMIN_API_MUTATION_CREATE_GROUP_EXECUTED',
   AdminApiMutationCreateIdentityExecuted = 'ADMIN_API_MUTATION_CREATE_IDENTITY_EXECUTED',
   AdminApiMutationCreateRoleExecuted = 'ADMIN_API_MUTATION_CREATE_ROLE_EXECUTED',
@@ -275,6 +276,35 @@ export type AuthenticatorConnection = {
   totalCount?: Maybe<Scalars['Int']['output']>;
 };
 
+/** Definition of an authenticator. This is a union object, exactly one of the available fields must be present. */
+export type AuthenticatorDefinition = {
+  /** Kind of authenticator. */
+  kind: AuthenticatorKind;
+  /** OOB OTP Email authenticator definition. Must be provided when type is OOB_OTP_EMAIL. */
+  oobOtpEmail?: InputMaybe<AuthenticatorDefinitionOobotpEmail>;
+  /** OOB OTP SMS authenticator definition. Must be provided when type is OOB_OTP_SMS. */
+  oobOtpSMS?: InputMaybe<AuthenticatorDefinitionOobotpsms>;
+  /** Password authenticator definition. Must be provided when type is PASSWORD. */
+  password?: InputMaybe<AuthenticatorDefinitionPassword>;
+  /** Type of authenticator. */
+  type: AuthenticatorType;
+};
+
+export type AuthenticatorDefinitionOobotpEmail = {
+  /** Email of the new oob otp sms authenticator. */
+  email: Scalars['String']['input'];
+};
+
+export type AuthenticatorDefinitionOobotpsms = {
+  /** Phone number of the new oob otp sms authenticator. */
+  phone: Scalars['String']['input'];
+};
+
+export type AuthenticatorDefinitionPassword = {
+  /** Password of the new authenticator. */
+  password: Scalars['String']['input'];
+};
+
 /** An edge in a connection */
 export type AuthenticatorEdge = {
   __typename?: 'AuthenticatorEdge';
@@ -333,6 +363,18 @@ export type Claim = {
   __typename?: 'Claim';
   name: Scalars['String']['output'];
   value: Scalars['String']['output'];
+};
+
+export type CreateAuthenticatorInput = {
+  /** Definition of the new authenticator. */
+  definition: AuthenticatorDefinition;
+  /** Target user ID. */
+  userID: Scalars['ID']['input'];
+};
+
+export type CreateAuthenticatorPayload = {
+  __typename?: 'CreateAuthenticatorPayload';
+  authenticator: Authenticator;
 };
 
 export type CreateGroupInput = {
@@ -618,6 +660,8 @@ export type Mutation = {
   addUserToRoles: AddUserToRolesPayload;
   /** Anonymize specified user */
   anonymizeUser: AnonymizeUserPayload;
+  /** Create authenticator of user */
+  createAuthenticator: CreateAuthenticatorPayload;
   /** Create a new group. */
   createGroup: CreateGroupPayload;
   /** Create new identity for user */
@@ -717,6 +761,11 @@ export type MutationAddUserToRolesArgs = {
 
 export type MutationAnonymizeUserArgs = {
   input: AnonymizeUserInput;
+};
+
+
+export type MutationCreateAuthenticatorArgs = {
+  input: CreateAuthenticatorInput;
 };
 
 

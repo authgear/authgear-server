@@ -9,6 +9,8 @@ import (
 )
 
 type AuthenticatorService interface {
+	New(spec *authenticator.Spec) (*authenticator.Info, error)
+	Create(info *authenticator.Info) error
 	Get(id string) (*authenticator.Info, error)
 	Count(userID string) (uint64, error)
 	ListRefsByUsers(userIDs []string, authenticatorType *apimodel.AuthenticatorType, authenticatorKind *authenticator.Kind) ([]*authenticator.Ref, error)
@@ -49,4 +51,17 @@ func (f *AuthenticatorFacade) Remove(authenticatorInfo *authenticator.Info) erro
 	}
 
 	return nil
+}
+
+func (f *AuthenticatorFacade) CreateBySpec(spec *authenticator.Spec) (*authenticator.Info, error) {
+	info, err := f.Authenticators.New(spec)
+	if err != nil {
+		return nil, err
+	}
+	err = f.Authenticators.Create(info)
+
+	if err != nil {
+		return nil, err
+	}
+	return info, err
 }
