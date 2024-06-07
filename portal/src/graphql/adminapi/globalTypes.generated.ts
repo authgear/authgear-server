@@ -278,31 +278,29 @@ export type AuthenticatorConnection = {
 
 /** Definition of an authenticator. This is a union object, exactly one of the available fields must be present. */
 export type AuthenticatorDefinition = {
-  /** OOB OTP Email authenticator definition. */
+  /** Kind of authenticator. */
+  kind: AuthenticatorKind;
+  /** OOB OTP Email authenticator definition. Must be provided when type is OOB_OTP_EMAIL. */
   oobOtpEmail?: InputMaybe<AuthenticatorDefinitionOobotpEmail>;
-  /** OOB OTP SMS authenticator definition. */
+  /** OOB OTP SMS authenticator definition. Must be provided when type is OOB_OTP_SMS. */
   oobOtpSMS?: InputMaybe<AuthenticatorDefinitionOobotpsms>;
-  /** Password authenticator definition. */
+  /** Password authenticator definition. Must be provided when type is PASSWORD. */
   password?: InputMaybe<AuthenticatorDefinitionPassword>;
+  /** Type of authenticator. */
+  type: AuthenticatorType;
 };
 
 export type AuthenticatorDefinitionOobotpEmail = {
   /** Email of the new oob otp sms authenticator. */
   email: Scalars['String']['input'];
-  /** Kind of authenticator */
-  kind: AuthenticatorKind;
 };
 
 export type AuthenticatorDefinitionOobotpsms = {
-  /** Kind of authenticator */
-  kind: AuthenticatorKind;
   /** Phone number of the new oob otp sms authenticator. */
   phone: Scalars['String']['input'];
 };
 
 export type AuthenticatorDefinitionPassword = {
-  /** Kind of authenticator */
-  kind: AuthenticatorKind;
   /** Password of the new authenticator. */
   password: Scalars['String']['input'];
 };
@@ -368,7 +366,7 @@ export type Claim = {
 };
 
 export type CreateAuthenticatorInput = {
-  /** Definition of the new identity. */
+  /** Definition of the new authenticator. */
   definition: AuthenticatorDefinition;
   /** Target user ID. */
   userID: Scalars['ID']['input'];

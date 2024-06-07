@@ -496,39 +496,42 @@ type AuthenticatorConnection {
 Definition of an authenticator. This is a union object, exactly one of the available fields must be present.
 """
 input AuthenticatorDefinition {
-  """OOB OTP Email authenticator definition."""
+  """Kind of authenticator."""
+  kind: AuthenticatorKind!
+
+  """
+  OOB OTP Email authenticator definition. Must be provided when type is OOB_OTP_EMAIL.
+  """
   oobOtpEmail: AuthenticatorDefinitionOOBOTPEmail
 
-  """OOB OTP SMS authenticator definition."""
+  """
+  OOB OTP SMS authenticator definition. Must be provided when type is OOB_OTP_SMS.
+  """
   oobOtpSMS: AuthenticatorDefinitionOOBOTPSMS
 
-  """Password authenticator definition."""
+  """
+  Password authenticator definition. Must be provided when type is PASSWORD.
+  """
   password: AuthenticatorDefinitionPassword
+
+  """Type of authenticator."""
+  type: AuthenticatorType!
 }
 
 """"""
 input AuthenticatorDefinitionOOBOTPEmail {
   """Email of the new oob otp sms authenticator."""
   email: String!
-
-  """Kind of authenticator"""
-  kind: AuthenticatorKind!
 }
 
 """"""
 input AuthenticatorDefinitionOOBOTPSMS {
-  """Kind of authenticator"""
-  kind: AuthenticatorKind!
-
   """Phone number of the new oob otp sms authenticator."""
   phone: String!
 }
 
 """"""
 input AuthenticatorDefinitionPassword {
-  """Kind of authenticator"""
-  kind: AuthenticatorKind!
-
   """Password of the new authenticator."""
   password: String!
 }
@@ -619,7 +622,7 @@ type Claim {
 
 """"""
 input CreateAuthenticatorInput {
-  """Definition of the new identity."""
+  """Definition of the new authenticator."""
   definition: AuthenticatorDefinition!
 
   """Target user ID."""
