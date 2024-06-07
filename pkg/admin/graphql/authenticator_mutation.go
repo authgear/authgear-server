@@ -89,7 +89,7 @@ var createAuthenticatorInput = graphql.NewInputObject(graphql.InputObjectConfig{
 		},
 		"definition": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewNonNull(authenticatorDef),
-			Description: "Definition of the new identity.",
+			Description: "Definition of the new authenticator.",
 		},
 	},
 })
