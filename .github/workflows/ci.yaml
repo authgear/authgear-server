@@ -16,8 +16,8 @@ jobs:
   authui-test:
     runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-node@v3
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
       with:
         node-version-file: "./.tool-versions"
     - run: npm ci
@@ -44,9 +44,9 @@ jobs:
   portal-test:
     runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: ./.github/actions/libvips
-    - uses: actions/setup-node@v3
+    - uses: actions/setup-node@v4
       with:
         node-version-file: "./.tool-versions"
     - run: npm ci
@@ -86,7 +86,7 @@ jobs:
       TARGET: portal
       IMAGE_NAME: authgear-portal
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - run: make build-image TARGET=$TARGET IMAGE_NAME=$IMAGE_NAME
     - run: make tag-image IMAGE_NAME=$IMAGE_NAME
     - name: docker login
@@ -106,12 +106,12 @@ jobs:
   authgear-test:
     runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: ./.github/actions/libvips
     - uses: actions/setup-go@v4
       with:
         go-version-file: "./go.mod"
-    - uses: actions/setup-node@v3
+    - uses: actions/setup-node@v4
       with:
         node-version-file: "./.tool-versions"
     - run: make vendor
@@ -133,7 +133,7 @@ jobs:
   authgear-e2e:
     runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: ./.github/actions/libvips
 
     - uses: actions/setup-go@v4
@@ -172,7 +172,7 @@ jobs:
       TARGET: authgear
       IMAGE_NAME: authgear-server
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - run: make build-image TARGET=$TARGET IMAGE_NAME=$IMAGE_NAME
     - run: make tag-image IMAGE_NAME=$IMAGE_NAME
     - name: docker login
@@ -194,12 +194,12 @@ jobs:
     needs: ["portal-test", "authgear-test"]
     if: startsWith(github.ref, 'refs/tags/') && !startsWith(github.ref, 'refs/tags/staging-')
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: ./.github/actions/libvips
     - uses: actions/setup-go@v4
       with:
         go-version-file: "./go.mod"
-    - uses: actions/setup-node@v3
+    - uses: actions/setup-node@v4
       with:
         node-version-file: "./.tool-versions"
     - run: make vendor
