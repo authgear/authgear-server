@@ -204,7 +204,7 @@ jobs:
         node-version-file: "./.tool-versions"
     - run: make vendor
     - run: make binary
-    - uses: softprops/action-gh-release@v1
+    - uses: oursky/action-gh-release@v2
       with:
         draft: true
         files: |
