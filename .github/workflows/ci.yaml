@@ -192,7 +192,6 @@ jobs:
   release:
     runs-on: ubuntu-22.04
     needs: ["portal-test", "authgear-test"]
-    if: startsWith(github.ref, 'refs/tags/') && !startsWith(github.ref, 'refs/tags/staging-')
     steps:
     - uses: actions/checkout@v4
     - uses: ./.github/actions/libvips
@@ -205,6 +204,7 @@ jobs:
     - run: make vendor
     - run: make binary
     - uses: oursky/action-gh-release@v2
+      if: ${{ github.repository == 'authgear/authgear-server' && startsWith(github.ref, 'refs/tags/') && !startsWith(github.ref, 'refs/tags/staging-') }}
       with:
         draft: true
         files: |
