@@ -1,0 +1,72 @@
+name: Custom Build in oursky/authgear-server
+
+on:
+  push:
+    branches:
+    - '*'
+    - '!gh-pages'
+    tags:
+    - '*'
+
+jobs:
+  authgear-image-custom:
+    if: ${{ github.repository == 'oursky/authgear-server' }}
+    runs-on: [self-hosted, linux, x64, v1]
+    steps:
+    - uses: actions/checkout@v4
+    # https://aran.dev/posts/github-actions-go-private-modules/
+    - name: Set up SSH key
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        AUTHGEAR_PRIVATE_DEPLOY_KEY: ${{ secrets.AUTHGEAR_PRIVATE_DEPLOY_KEY }}
+      run: |
+        mkdir -p ~/.ssh
+        eval $(ssh-agent -a $SSH_AUTH_SOCK)
+        printf "$AUTHGEAR_PRIVATE_DEPLOY_KEY" | base64 --decode | ssh-add -
+        echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
+        echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> "$GITHUB_ENV"
+    - run: make -C custombuild build-image TARGET=authgearx IMAGE_NAME=authgear-server-custom
+    - name: Clean up SSH key
+      if: ${{ always() }}
+      run: |
+        ssh-add -D
+        ssh-agent -k
+        echo "SSH_AUTH_SOCK=" >> "$GITHUB_ENV"
+        echo "SSH_AGENT_PID=" >> "$GITHUB_ENV"
+    - name: Push
+      env:
+        REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX }}
+      run: |
+        make -C custombuild tag-image IMAGE_NAME=authgear-server-custom REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-server"
+        make -C custombuild push-image REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-server"
+
+  portal-image-custom:
+    if: ${{ github.repository == 'oursky/authgear-server' }}
+    runs-on: [self-hosted, linux, x64, v1]
+    steps:
+    - uses: actions/checkout@v4
+    # https://aran.dev/posts/github-actions-go-private-modules/
+    - name: Set up SSH key
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        AUTHGEAR_PRIVATE_DEPLOY_KEY: ${{ secrets.AUTHGEAR_PRIVATE_DEPLOY_KEY }}
+      run: |
+        mkdir -p ~/.ssh
+        eval $(ssh-agent -a $SSH_AUTH_SOCK)
+        printf "$AUTHGEAR_PRIVATE_DEPLOY_KEY" | base64 --decode | ssh-add -
+        echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
+        echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> "$GITHUB_ENV"
+    - run: make -C custombuild build-image TARGET=portalx IMAGE_NAME=authgear-portal-custom
+    - name: Clean up SSH key
+      if: ${{ always() }}
+      run: |
+        ssh-add -D
+        ssh-agent -k
+        echo "SSH_AUTH_SOCK=" >> "$GITHUB_ENV"
+        echo "SSH_AGENT_PID=" >> "$GITHUB_ENV"
+    - name: Push
+      env:
+        REPO_PREFIX: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_PREFIX }}
+      run: |
+        make -C custombuild tag-image IMAGE_NAME=authgear-portal-custom REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-portal"
+        make -C custombuild push-image REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-portal"
