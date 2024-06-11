@@ -25,11 +25,23 @@ export type AuthgearGTMEventTypeV2 =
   | "getStarted.clicked-done"
   | "getStarted.clicked-forum"
   | "getStarted.clicked-contact_us"
+  | "onboardingSurvey.set-role"
+  | "onboardingSurvey.set-team_or_personal_account"
+  | "onboardingSurvey.set-company_details"
+  | "onboardingSurvey.set-project_details"
+  | "onboardingSurvey.set-use_cases"
+  | "onboardingSurvey.set-completed-survey"
+  | "onboardingSurvey.set-clicked-back"
   | "enteredProject"
   | "header.clicked-contact_us"
   | "header.clicked-docs";
 
-export type AuthgearGTMEventDataValueV2 = string | number | boolean | undefined;
+export type AuthgearGTMEventDataValueV2 =
+  | string
+  | number
+  | boolean
+  | object
+  | undefined;
 export type AuthgearGTMEventDataV2 = Record<
   string,
   AuthgearGTMEventDataValueV2
