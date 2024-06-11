@@ -204,7 +204,7 @@ As the first project `accounts` is created by the script instead of by user, we 
 
       6. Save the data
 
-   6. Now you can navigate to your project in the portal
+   6. Now you can navigate to your project in the [portal](http://portal.localhost:8000)
 
 ## Known issues
 
