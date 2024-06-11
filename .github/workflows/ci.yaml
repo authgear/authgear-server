@@ -115,6 +115,11 @@ jobs:
       if: ${{ !cancelled() }}
     - run: make govulncheck
       if: ${{ !cancelled() }}
+    # We cannot enable this until we move to mjml@5
+    # https://github.com/mjmlio/mjml/issues/2589
+    #- run: npm audit
+    #  working-directory: ./scripts/npm
+    #  if: ${{ !cancelled() }}
     - run: make ensure-important-modules-up-to-date
       if: ${{ !cancelled() }}
     - run: make lint
