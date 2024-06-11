@@ -19,12 +19,14 @@
   flex-wrap: wrap;
   gap: 10px;
   margin: auto;
-  @apply grid-cols-2;
+  grid-auto-rows: 1fr;
+  @apply grid-cols-2 mobile:grid-cols-1;
 }
 .CompoundChoiceButton {
   display: grid;
   max-width: 368px;
   min-height: 118px;
+  height: 100%;
   padding: 25px;
 }
 .formBox {
