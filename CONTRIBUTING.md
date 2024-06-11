@@ -26,6 +26,9 @@ This project uses asdf, and there is a .tool-versions file at the project root.
 2. Run the following to install all dependencies in .tool-versions
 
    ```sh
+   asdf plugin add golang https://github.com/asdf-community/asdf-golang.git
+   asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
+   asdf plugin add python
    asdf install
    ```
 3. Install icu4c
