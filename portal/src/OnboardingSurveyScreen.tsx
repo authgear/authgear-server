@@ -22,6 +22,56 @@ import { FormProvider } from "./form";
 import SurveyLayout from "./OnboardingSurveyLayout";
 import styles from "./OnboardingSurveyScreen.module.css";
 
+const buttonTranslationKeys = {
+  step1_roleChoiceGroup_Dev: "OnboardingSurveyScreen.step1.roleChoiceGroup.Dev",
+  step1_roleChoiceGroup_IT: "OnboardingSurveyScreen.step1.roleChoiceGroup.IT",
+  step1_roleChoiceGroup_PM: "OnboardingSurveyScreen.step1.roleChoiceGroup.PM",
+  step1_roleChoiceGroup_PD: "OnboardingSurveyScreen.step1.roleChoiceGroup.PD",
+  step1_roleChoiceGroup_Market:
+    "OnboardingSurveyScreen.step1.roleChoiceGroup.Market",
+  step1_roleChoiceGroup_Owner:
+    "OnboardingSurveyScreen.step1.roleChoiceGroup.Owner",
+  step1_roleChoiceGroup_Other:
+    "OnboardingSurveyScreen.step1.roleChoiceGroup.Other",
+  step2_teamOrIndividualChoiceGroup_Team:
+    "OnboardingSurveyScreen.step2.teamOrIndividualChoiceGroup.Team",
+  step2_teamOrIndividualChoiceGroup_Individual:
+    "OnboardingSurveyScreen.step2.teamOrIndividualChoiceGroup.Individual",
+  step3team_companySizeChoiceGroup_label:
+    "OnboardingSurveyScreen.step3-team.companySizeChoiceGroup.label",
+  step3team_companySizeChoiceGroup_1to49:
+    "OnboardingSurveyScreen.step3-team.companySizeChoiceGroup.1-49",
+  step3team_companySizeChoiceGroup_50to99:
+    "OnboardingSurveyScreen.step3-team.companySizeChoiceGroup.50-99",
+  step3team_companySizeChoiceGroup_100to499:
+    "OnboardingSurveyScreen.step3-team.companySizeChoiceGroup.100-499",
+  step3team_companySizeChoiceGroup_500to1999:
+    "OnboardingSurveyScreen.step3-team.companySizeChoiceGroup.500-1999",
+  step3team_companySizeChoiceGroup_2000to:
+    "OnboardingSurveyScreen.step3-team.companySizeChoiceGroup.2000+",
+  step4_reasonChoiceGroup_Auth_title:
+    "OnboardingSurveyScreen.step4.reasonChoiceGroup.Auth.title",
+  step4_reasonChoiceGroup_Auth_subtitle:
+    "OnboardingSurveyScreen.step4.reasonChoiceGroup.Auth.subtitle",
+  step4_reasonChoiceGroup_SSO_title:
+    "OnboardingSurveyScreen.step4.reasonChoiceGroup.SSO.title",
+  step4_reasonChoiceGroup_SSO_subtitle:
+    "OnboardingSurveyScreen.step4.reasonChoiceGroup.SSO.subtitle",
+  step4_reasonChoiceGroup_Security_title:
+    "OnboardingSurveyScreen.step4.reasonChoiceGroup.Security.title",
+  step4_reasonChoiceGroup_Security_subtitle:
+    "OnboardingSurveyScreen.step4.reasonChoiceGroup.Security.subtitle",
+  step4_reasonChoiceGroup_Portal_title:
+    "OnboardingSurveyScreen.step4.reasonChoiceGroup.Portal.title",
+  step4_reasonChoiceGroup_Portal_subtitle:
+    "OnboardingSurveyScreen.step4.reasonChoiceGroup.Portal.subtitle",
+  step4_reasonChoiceGroup_Other_title:
+    "OnboardingSurveyScreen.step4.reasonChoiceGroup.Other.title",
+  step4_reasonChoiceGroup_Other_subtitle:
+    "OnboardingSurveyScreen.step4.reasonChoiceGroup.Other.subtitle",
+};
+const localStorageKey = "authgear-onboarding-survey";
+
 function ChoiceButton(props: DefaultButtonProps) {
   const theme = useTheme();
   const { checked } = props;
@@ -139,11 +189,13 @@ function SingleChoiceButtonGroupVariantCentered(props: ChoiceButtonGroupProps) {
   const buttons = useMemo(
     () =>
       availableChoices.map((choice) => {
-        const key = [prefix, choice].join(".");
+        const key = (prefix +
+          "_" +
+          choice) as keyof typeof buttonTranslationKeys;
         return (
           <ChoiceButton
             key={key}
-            text={renderToString(key)}
+            text={renderToString(buttonTranslationKeys[key])}
             checked={selectedChoices.includes(choice)}
             onClick={() => {
               setChoice(
@@ -170,11 +222,13 @@ function SingleChoiceButtonGroupVariantLabeled(props: ChoiceButtonGroupProps) {
   const buttons = useMemo(
     () =>
       availableChoices.map((choice) => {
-        const key = [prefix, choice].join(".");
+        const key = (prefix +
+          "_" +
+          choice) as keyof typeof buttonTranslationKeys;
         return (
           <ChoiceButton
             key={key}
-            text={renderToString(key)}
+            text={renderToString(buttonTranslationKeys[key])}
             checked={selectedChoices.includes(choice)}
             onClick={() => {
               setChoice(
@@ -188,9 +242,10 @@ function SingleChoiceButtonGroupVariantLabeled(props: ChoiceButtonGroupProps) {
       }),
     [prefix, availableChoices, selectedChoices, setChoice, renderToString]
   );
+  const labelKey = (prefix + "_label") as keyof typeof buttonTranslationKeys;
   return (
     <div>
-      <Label>{renderToString(prefix + ".label")}</Label>
+      <Label>{renderToString(buttonTranslationKeys[labelKey])}</Label>
       <div className={styles.SingleChoiceButtonGroupVariantLabeled}>
         {buttons}
       </div>
@@ -204,12 +259,19 @@ function MultiChoiceButtonGroup(props: ChoiceButtonGroupProps) {
   const buttons = useMemo(
     () =>
       availableChoices.map((choice) => {
-        const key = [prefix, choice].join(".");
+        const titleKey = (prefix +
+          "_" +
+          choice +
+          "_title") as keyof typeof buttonTranslationKeys;
+        const subtitleKey = (prefix +
+          "_" +
+          choice +
+          "_subtitle") as keyof typeof buttonTranslationKeys;
         return (
           <CompoundChoiceButton
-            key={key}
-            text={renderToString(key + ".title")}
-            secondaryText={renderToString(key + ".subtitle")}
+            key={titleKey}
+            text={renderToString(buttonTranslationKeys[titleKey])}
+            secondaryText={renderToString(buttonTranslationKeys[subtitleKey])}
             checked={selectedChoices.includes(choice)}
             onClick={() => {
               setChoice(
@@ -241,7 +303,7 @@ interface LocallyStoredData {
 function getFromLocalStorage(
   prop: keyof LocallyStoredData
 ): string | string[] | PhoneTextFieldValues | undefined {
-  const locallyStoredData = localStorage.getItem("authgear-onboarding-survey");
+  const locallyStoredData = localStorage.getItem(localStorageKey);
   let localJson: LocallyStoredData = {};
   if (locallyStoredData === null) return undefined;
   localJson = JSON.parse(locallyStoredData);
@@ -249,11 +311,11 @@ function getFromLocalStorage(
 }
 
 function setLocalStorage(prop: keyof LocallyStoredData, value: any): void {
-  const locallyStoredData = localStorage.getItem("authgear-onboarding-survey");
+  const locallyStoredData = localStorage.getItem(localStorageKey);
   let localJson: LocallyStoredData = {};
   if (locallyStoredData) localJson = JSON.parse(locallyStoredData);
   localJson[prop] = value;
-  localStorage.setItem("authgear-onboarding-survey", JSON.stringify(localJson));
+  localStorage.setItem(localStorageKey, JSON.stringify(localJson));
 }
 
 function goToFirstUnfilled(
@@ -279,7 +341,7 @@ function goToFirstUnfilled(
 interface StepProps {}
 
 function Step1(_props: StepProps) {
-  const prefix = "OnboardingSurveyScreen.step1";
+  const prefix = "step1";
   const roleChoiceGroup = "roleChoiceGroup";
   const roleChoices = ["Dev", "IT", "PM", "PD", "Market", "Owner", "Other"];
   const roleChoicesFromLocalStorage = getFromLocalStorage("roleChoices");
@@ -318,7 +380,7 @@ function Step1(_props: StepProps) {
       }
     >
       <SingleChoiceButtonGroupVariantCentered
-        prefix={[prefix, roleChoiceGroup].join(".")}
+        prefix={[prefix, roleChoiceGroup].join("_")}
         availableChoices={roleChoices}
         selectedChoices={roleChoicesState}
         setChoice={setRoleChoicesState}
@@ -328,7 +390,7 @@ function Step1(_props: StepProps) {
 }
 
 function Step2(_props: StepProps) {
-  const prefix = "OnboardingSurveyScreen.step2";
+  const prefix = "step2";
   const toriChoiceGroup = "teamOrIndividualChoiceGroup";
   const toriChoices = ["Team", "Individual"];
   const toriChoicesFromLocalStorage = getFromLocalStorage("toriChoices");
@@ -393,7 +455,7 @@ function Step2(_props: StepProps) {
       }
     >
       <SingleChoiceButtonGroupVariantCentered
-        prefix={[prefix, toriChoiceGroup].join(".")}
+        prefix={[prefix, toriChoiceGroup].join("_")}
         availableChoices={toriChoices}
         selectedChoices={toriChoicesState}
         setChoice={setToriChoicesState}
@@ -403,7 +465,7 @@ function Step2(_props: StepProps) {
 }
 
 function Step3Team(_props: StepProps) {
-  const prefix = "OnboardingSurveyScreen.step3-team";
+  const prefix = "step3_team";
   const companyNameFromLocalStorage = getFromLocalStorage("companyName");
   const [companyName, setCompanyName] = useState(
     companyNameFromLocalStorage === undefined
@@ -506,7 +568,7 @@ function Step3Team(_props: StepProps) {
             onChange={(_, v) => setCompanyName(v!)}
           />
           <SingleChoiceButtonGroupVariantLabeled
-            prefix={[prefix, companySizeChoiceGroup].join(".")}
+            prefix={[prefix, companySizeChoiceGroup].join("_")}
             availableChoices={companySizeChoices}
             selectedChoices={companySizeChoicesState}
             setChoice={setCompanySizeChoicesState}
@@ -629,7 +691,7 @@ function Step3Individual(_props: StepProps) {
 }
 
 function Step4(_props: StepProps) {
-  const prefix = "OnboardingSurveyScreen.step4";
+  const prefix = "step4";
   const reasonChoiceGroup = "reasonChoiceGroup";
   const reasonChoices = ["Auth", "SSO", "Security", "Portal", "Other"];
   const reasonChoicesFromLocalStorage = getFromLocalStorage("reasonChoices");
@@ -660,8 +722,8 @@ function Step4(_props: StepProps) {
       if (otherReason !== "") setLocalStorage("otherReason", otherReason);
       //TODO: save to somewhere
       //eslint-disable-next-line no-console
-      console.log(localStorage.getItem("authgear-onboarding-survey"));
-      //clear local storage?
+      console.log(localStorage.getItem(localStorageKey), "Sdfsf");
+      localStorage.removeItem(localStorageKey);
       navigate("./../../projects/create");
     },
     [navigate, reasonChoicesState, otherReason]
@@ -715,7 +777,7 @@ function Step4(_props: StepProps) {
       }
     >
       <MultiChoiceButtonGroup
-        prefix={[prefix, reasonChoiceGroup].join(".")}
+        prefix={[prefix, reasonChoiceGroup].join("_")}
         availableChoices={reasonChoices}
         selectedChoices={reasonChoicesState}
         setChoice={setReasonChoicesState}
