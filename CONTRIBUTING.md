@@ -26,9 +26,18 @@ This project uses asdf, and there is a .tool-versions file at the project root.
 2. Run the following to install all dependencies in .tool-versions
 
    ```sh
+   asdf plugin add golang https://github.com/asdf-community/asdf-golang.git
+   asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
+   asdf plugin add python
    asdf install
    ```
-3. Install icu4c
+3. Install pkg-config
+
+   ```sh
+   brew install pkg-config
+   ```
+
+4. Install icu4c
 
    ```sh
    brew install icu4c
@@ -42,7 +51,7 @@ This project uses asdf, and there is a .tool-versions file at the project root.
 
    To avoid doing the above every time you open a new shell, you may want to add it to your shell initialization script such as `~/.profile`, `~/.bash_profile`, etc.
 
-4. Install libvips
+5. Install libvips
 
    ```sh
    brew install vips
@@ -55,7 +64,7 @@ This project uses asdf, and there is a .tool-versions file at the project root.
    export CGO_CFLAGS_ALLOW="-Xpreprocessor"
    ```
 
-5. Install libmagic
+6. Install libmagic
 
    ```sh
    brew install libmagic
@@ -69,7 +78,7 @@ This project uses asdf, and there is a .tool-versions file at the project root.
    export CGO_LDFLAGS="-L$(brew --prefix)/lib"
    ```
 
-6. Run `make vendor`.
+7. Run `make vendor`.
 
 ## Set up environment
 
@@ -195,7 +204,7 @@ As the first project `accounts` is created by the script instead of by user, we 
 
       6. Save the data
 
-   6. Now you can navigate to your project in the portal
+   6. Now you can navigate to your project in the [portal](http://portal.localhost:8000)
 
 ## Known issues
 
