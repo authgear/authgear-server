@@ -9,11 +9,11 @@
     "import-v2-translations": "node import-v2-translations.mjs"
   },
   "devDependencies": {
-    "cldr-localenames-modern": "44.0.1",
-    "csv": "6.3.6",
+    "cldr-localenames-modern": "45.0.0",
+    "csv": "6.3.9",
     "graphql": "16.8.1",
     "luxon": "3.4.4",
-    "mjml": "4.14.1",
+    "mjml": "4.15.3",
     "tzdata": "1.0.40"
   }
 }
