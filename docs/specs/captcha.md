@@ -1,27 +1,32 @@
 # Captcha
 
-- [Configurations](#configurations)
-  - [authgear.yaml](#authgearyaml)
-  - [authgear.secrets.yaml](#authgearsecretsyaml)
-- [Supported Workflows](#supported-workflows)
+- [Captcha](#captcha)
+  * [Old configuration](#old-configuration)
+    + [authgear.yaml](#authgearyaml)
+    + [authgear.secrets.yaml](#authgearsecretsyaml)
+  * [New Configuration](#new-configuration)
+    + [authgear.yaml](#authgearyaml-1)
+      - [`type: cloudflare`](#type-cloudflare)
+    + [authgear.secrets.yaml](#authgearsecretsyaml-1)
+      - [`type: cloudflare`](#type-cloudflare-1)
 
-## Configurations
+## Old configuration
+
+This section documents the old configuration.
+
+> The old configuration **IS NOT** used by Authentication Flow.
+> To configure Captcha providers for an Authentication Flow, the new configuration must be used.
 
 ### authgear.yaml
 
-Before using any workflow with captcha enabled, the captcha provider must be configured in `authgear.yaml`:
-
-```yaml
+```
 captcha:
   provider: cloudflare
 ```
 
-- `provider`
-  - The captcha provider. Currently, only `cloudflare` is supported.
+- `captcha.provider`: The only possible value is `cloudflare`. The default is null.
 
 ### authgear.secrets.yaml
-
-When the captcha provider is configured, the corresponding secret must exist in `authgear.secrets.yaml`.
 
 ```yaml
 - data:
@@ -29,13 +34,47 @@ When the captcha provider is configured, the corresponding secret must exist in 
   key: captcha.cloudflare
 ```
 
-- Provider: `cloudflare`
-  - `key`: `captcha.cloudflare`
-  - `data.secret`: The turnstile secret key
+## New Configuration
 
-## Supported Workflows
+The section documents the new configuration.
 
-The following intents supports captcha.
+### authgear.yaml
 
-- latte.IntentVerifyIdentity
-- latte.IntentAuthenticateOOBOTPPhone
+```yaml
+captcha:
+  enabled: true
+  providers:
+  - type: cloudflare
+    alias: cloudflare
+```
+
+- `captcha.enabled`: Boolean. If it is true, the new configuration is used.
+- `captcha.providers`: An array of Captcha provider configuration. The actual shape depends on the `type` property.
+- `captcha.providers.type`: Required. The type of the Captcha provider. Valid values are `cloudflare` and `recaptchav2`.
+- `captcha.providers.alias`: Required. The unique identifier to the Captcha provider. It is used in other parts of the configuration to refer to this particular Captcha provider. For example, the project can configured a number of Captcha providers, but only uses one of them in a particular Authentication Flow.
+
+Other fields are specific to `type`.
+
+#### `type: cloudflare`
+
+There is no specific fields.
+
+### authgear.secrets.yaml
+
+```yaml
+- data:
+    items:
+    - type: cloudflare
+      alias: cloudflare
+      secret: TURNSTILE_SECRET_KEY
+  key: captcha.providers
+```
+
+- `items.type`: Required. It is the same as `captcha.providers.type`.
+- `items.alias`: Required. It is the same as `captcha.providers.alias`.
+
+Other fields are specific to `type`.
+
+#### `type: cloudflare`
+
+- `secret_key`: Required. The Cloudflare Turnstile secret key.
