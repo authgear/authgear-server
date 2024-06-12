@@ -11,6 +11,13 @@
   * [Listen for change with Websocket](#listen-for-change-with-websocket)
 - [Reference on input and output](#reference-on-input-and-output)
   * [type: signup; action.type: identify](#type-signup-actiontype-identify)
+    + [captcha](#captcha)
+      - [captcha provider: cloudflare](#captcha-provider-cloudflare)
+      - [captcha provider: recaptchav2](#captcha-provider-recaptchav2)
+      - [captcha input](#captcha-input)
+      - [captcha input; type: cloudflare](#captcha-input-type-cloudflare)
+      - [captcha input; type: recaptchav2](#captcha-input-type-recaptchav2)
+      - [captcha error](#captcha-error)
     + [identification: email](#identification-email)
     + [identification: phone](#identification-phone)
     + [identification: username](#identification-username)
@@ -18,6 +25,7 @@
     + [type: signup; action.type: identify; data.type: account_linking_identification_data](#type-signup-actiontype-identify-datatype-account_linking_identification_data)
   * [type: signup; action.type: verify](#type-signup-actiontype-verify)
   * [type: signup; action.type: create_authenticator](#type-signup-actiontype-create_authenticator)
+    + [captcha](#captcha-1)
     + [authentication: primary_password](#authentication-primary_password)
     + [authentication: primary_oob_otp_email](#authentication-primary_oob_otp_email)
     + [authentication: primary_oob_otp_sms](#authentication-primary_oob_otp_sms)
@@ -29,6 +37,7 @@
   * [type: signup; action.type: prompt_create_passkey](#type-signup-actiontype-prompt_create_passkey)
   * [type: login; action.type: identify](#type-login-actiontype-identify)
   * [type: login; action.type: authenticate](#type-login-actiontype-authenticate)
+    + [captcha](#captcha-2)
     + [authentication: primary_password](#authentication-primary_password-1)
     + [authentication: primary_oob_otp_email](#authentication-primary_oob_otp_email-1)
     + [authentication: primary_oob_otp_sms](#authentication-primary_oob_otp_sms-1)
@@ -41,6 +50,7 @@
   * [type: login; action.type: prompt_create_passkey](#type-login-actiontype-prompt_create_passkey)
   * [type: signup_login; action.type: identify](#type-signup_login-actiontype-identify)
   * [type: account_recovery; action.type: identify](#type-account_recovery-actiontype-identify)
+    + [captcha](#captcha-3)
     + [identification: email](#identification-email-1)
     + [identification: phone](#identification-phone-1)
   * [type: account_recovery; action.type: select_destination](#type-account_recovery-actiontype-select_destination)
@@ -235,7 +245,16 @@ When you are in this step of this flow, you will see a response like the followi
             "identification": "email"
           },
           {
-            "identification": "phone"
+            "identification": "phone",
+            "captcha": {
+              "providers": [
+                {
+                  "type": "cloudflare",
+                  "alias": "cloudflare",
+                  "site_key": "SITE_KEY"
+                }
+              ]
+            }
           },
           {
             "identification": "oauth",
@@ -251,6 +270,65 @@ When you are in this step of this flow, you will see a response like the followi
         ]
       }
     }
+  }
+}
+```
+
+### captcha
+
+Each option may contain the key `captcha`.
+If this key is present, that means selecting the option requires captcha.
+
+The `providers` key contain a list of captcha provider you can use.
+In each provider, necessary information is included for you to perform captcha in the frontend.
+
+#### captcha provider: cloudflare
+
+- `site_key`: The site key you use to initialize the Turnstile client-side library.
+
+#### captcha provider: recaptchav2
+
+- `site_key`: The site key you use to initialize the reCAPTCHA v2 client-side library.
+
+#### captcha input
+
+To pass captcha input, use the following input shape
+
+```json
+{
+  "captcha": {
+    "alias": "cloudflare",
+    "type": "cloudflare",
+    "response": { ... }
+  }
+}
+```
+
+- `captcha.alias`: The alias of the captcha provider.
+- `captcha.type`: The type of the captcha provider.
+
+Other fields are provider-specific.
+
+#### captcha input; type: cloudflare
+
+- `captcha.response`: The response provided by the Turnstile client-side library.
+
+#### captcha input; type: recaptchav2
+
+- `captcha.response`: The response provided by the reCAPTCHA v2 client-side library.
+
+#### captcha error
+
+When you submit an input without verifying captcha, you will receive the following error.
+
+```json
+{
+  "error": {
+    "name": "Forbidden",
+    "reason": "CaptchaRequired",
+    "message': "captcha required",
+    "code": 403,
+    "info": {}
   }
 }
 ```
@@ -678,6 +756,13 @@ Or this response if you are setting up 2FA.
   }
 }
 ```
+
+### captcha
+
+Each option may contain the key `captcha`.
+If this key is present, that means selecting the option requires captcha.
+
+See [captcha](#captcha) for details.
 
 ### authentication: primary_password
 
@@ -1263,6 +1348,13 @@ Or this response if you are performing secondary authentication.
 }
 ```
 
+### captcha
+
+Each option may contain the key `captcha`.
+If this key is present, that means selecting the option requires captcha.
+
+See [captcha](#captcha) for details.
+
 ### authentication: primary_password
 
 The presence of this means you can sign in with primary password.
@@ -1690,6 +1782,13 @@ When you are in this step of this flow, you will see a response like the followi
   }
 }
 ```
+
+### captcha
+
+Each option may contain the key `captcha`.
+If this key is present, that means selecting the option requires captcha.
+
+See [captcha](#captcha) for details.
 
 ### identification: email
 
