@@ -2,12 +2,10 @@
 
 - [Captcha](#captcha)
   * [Old configuration](#old-configuration)
-    + [authgear.yaml](#authgearyaml)
-    + [authgear.secrets.yaml](#authgearsecretsyaml)
   * [New Configuration](#new-configuration)
-    + [authgear.yaml](#authgearyaml-1)
+    + [authgear.yaml](#authgearyaml)
       - [`type: cloudflare`](#type-cloudflare)
-    + [authgear.secrets.yaml](#authgearsecretsyaml-1)
+    + [authgear.secrets.yaml](#authgearsecretsyaml)
       - [`type: cloudflare`](#type-cloudflare-1)
   * [Authentication Flow](#authentication-flow)
     + [Captcha in Authentication Flow configuration](#captcha-in-authentication-flow-configuration)
@@ -33,27 +31,10 @@
 
 ## Old configuration
 
-This section documents the old configuration.
-
 > The old configuration **IS NOT** used by Authentication Flow.
 > To configure Captcha providers for an Authentication Flow, the new configuration must be used.
 
-### authgear.yaml
-
-```
-captcha:
-  provider: cloudflare
-```
-
-- `captcha.provider`: The only possible value is `cloudflare`. The default is null.
-
-### authgear.secrets.yaml
-
-```yaml
-- data:
-    secret: YOUR_TURNSTILE_SECRET_KEY
-  key: captcha.cloudflare
-```
+See [here](./captcha_legacy.md#configuration) for the documentation of the old configuration.
 
 ## New Configuration
 
