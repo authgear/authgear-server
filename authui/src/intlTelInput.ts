@@ -136,7 +136,7 @@ export class IntlTelInputController extends Controller {
       autoPlaceholder: "aggressive",
       onlyCountries,
       preferredCountries,
-      initialCountry,
+      initialCountry: initialCountry.toLowerCase(),
       customContainer,
       useFullscreenPopup: false,
     });
