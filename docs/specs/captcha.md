@@ -9,6 +9,7 @@
       - [`type: cloudflare`](#type-cloudflare)
     + [authgear.secrets.yaml](#authgearsecretsyaml-1)
       - [`type: cloudflare`](#type-cloudflare-1)
+  * [Audit log](#audit-log)
   * [Study on Captcha providers](#study-on-captcha-providers)
     + [Geetest v4](#geetest-v4)
     + [Geetest v3](#geetest-v3)
@@ -88,6 +89,10 @@ Other fields are specific to `type`.
 #### `type: cloudflare`
 
 - `secret_key`: Required. The Cloudflare Turnstile secret key.
+
+## Audit log
+
+When a verification failure is detected, the event [captcha.failed](./event.md#captchafailed) is logged.
 
 ## Study on Captcha providers
 
