@@ -1,10 +1,14 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
+import cn from "classnames";
 import { PortalAPIAppConfig } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 import { useAppConfigForm } from "../../hook/useAppConfigForm";
 import FormContainer from "../../FormContainer";
+import ScreenContent from "../../ScreenContent";
+import ScreenTitle from "../../ScreenTitle";
+import { FormattedMessage } from "@oursky/react-messageformat";
 
 interface ConfigFormState {
   supportedLanguages: string[];
@@ -42,7 +46,15 @@ const LanguagesConfigurationScreen: React.VFC =
       constructFormState,
       constructConfig,
     });
-    return <FormContainer form={appConfigForm} canSave={true}></FormContainer>;
+    return (
+      <FormContainer form={appConfigForm} canSave={true}>
+        <ScreenContent>
+          <ScreenTitle className={cn("col-span-8", "tablet:col-span-full")}>
+            <FormattedMessage id="LanguagesConfigurationScreen.title" />
+          </ScreenTitle>
+        </ScreenContent>
+      </FormContainer>
+    );
   };
 
 export default LanguagesConfigurationScreen;

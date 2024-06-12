@@ -912,6 +912,8 @@
   "LocalizationConfigurationScreen.passwordless-via-email.title": "Passwordless via Email",
   "LocalizationConfigurationScreen.passwordless-via-sms.title": "Passwordless via SMS",
 
+  "LanguagesConfigurationScreen.title": "Languages",
+
   "ReplaceLanguagesConfirmationDialog.title": "Confirm language changes",
   "ReplaceLanguagesConfirmationDialog.message": "All changes in the templates will be discarded.",
 
