@@ -9,6 +9,16 @@
       - [`type: cloudflare`](#type-cloudflare)
     + [authgear.secrets.yaml](#authgearsecretsyaml-1)
       - [`type: cloudflare`](#type-cloudflare-1)
+  * [Authentication Flow](#authentication-flow)
+    + [Captcha in Authentication Flow configuration](#captcha-in-authentication-flow-configuration)
+    + [Default behavior](#default-behavior)
+    + [Captcha in Authentication Flow API](#captcha-in-authentication-flow-api)
+    + [Advanced use case: Require Captcha at a specific branch, instead of right after flow creation](#advanced-use-case-require-captcha-at-a-specific-branch-instead-of-right-after-flow-creation)
+    + [Future use cases](#future-use-cases)
+      - [Future use case: Use different Captcha providers in different flows](#future-use-case-use-different-captcha-providers-in-different-flows)
+      - [Future use case: Allow fallback in providers](#future-use-case-allow-fallback-in-providers)
+      - [Future use case: Fail-open instead of Fail-close](#future-use-case-fail-open-instead-of-fail-close)
+      - [Future use case: Use risk assessment to determine whether captcha is required](#future-use-case-use-risk-assessment-to-determine-whether-captcha-is-required)
   * [Audit log](#audit-log)
   * [Study on Captcha providers](#study-on-captcha-providers)
     + [Geetest v4](#geetest-v4)
@@ -89,6 +99,167 @@ Other fields are specific to `type`.
 #### `type: cloudflare`
 
 - `secret_key`: Required. The Cloudflare Turnstile secret key.
+
+## Authentication Flow
+
+This section specifies how Captcha works in a Authentication Flow.
+
+### Captcha in Authentication Flow configuration
+
+Captcha is supported in the following flow types:
+
+- `signup`
+- `promote`
+- `login`
+- `signup_login`
+- `reauth`
+- `account_recovery`
+
+Captcha is supported only in the following step types:
+
+- `identify` in `signup`, `promote`, `login`, `signup_login`, and `account_recovery`.
+- `create_authenticator` in `signup` and `promote`.
+- `authenticate` in `login` and `reauth`.
+
+We can see that all supported step types have branches.
+To specify Captcha is required, add `captcha.required=true` to the branch.
+
+For example,
+
+```
+authentication_flow:
+  signup_flows:
+  - name: default
+    steps:
+    - type: identify
+      one_of:
+      - identification: email
+        # Identify with email requires captcha.
+        captcha:
+          required: true
+    - type: authenticate
+      one_of:
+      - authentication: primary_password
+      - authentication: primary_oob_otp_email
+```
+
+### Default behavior
+
+When Captcha is enabled and there is at least one configured provider,
+all the branches of the first step (that is, the `identify` step) of the generated flows will have `captcha.required=true`.
+
+This means whether Captcha is enabled, every flow requires captcha at the beginning of the flow.
+
+### Captcha in Authentication Flow API
+
+Please refer to [captcha](./authentication-flow-api-reference.md#captcha).
+
+### Advanced use case: Require Captcha at a specific branch, instead of right after flow creation
+
+Suppose Project A configures email login with password or OTP. The developer may only want to require captcha if OTP is used, to reduce friction.
+
+This can be achieved by customizing the flow.
+
+```
+authentication_flow:
+  signup_flows:
+  - name: default
+    steps:
+    - type: identify
+      one_of:
+      - identification: email
+    - type: authenticate
+      one_of:
+      - authentication: primary_password
+      # Captcha is required BEFORE selecting this branch.
+      # That is, before the OTP is sent.
+      - authentication: primary_oob_otp_email
+        captcha:
+          required: true
+```
+
+### Future use cases
+
+This section documents future use cases and their imaginary configuration.
+
+#### Future use case: Use different Captcha providers in different flows
+
+Given that different Captcha providers have different support for platforms, the developer may want to use different Captcha providers in different flows.
+
+For example, reCAPTCHA v3 is only available in web, while hCaptcha supports mobile platforms.
+The developer may want to use reCAPTCHA v3 in web, and use hCaptcha in mobile.
+
+The [new configuration](#new-configuration) supports configuring multiple Captcha providers already, even multiple providers of the same type.
+
+What is missing is a way to specify which providers can be used in a flow.
+This could be specified in the following imaginary configuration.
+
+```
+authentication_flow:
+  signup_flows:
+  - name: web
+    captcha:
+      providers:
+      - alias: recaptchav3
+  - name: mobile
+    captcha:
+      providers:
+      - alias: hcaptcha
+```
+
+#### Future use case: Allow fallback in providers
+
+reCAPTCHA v3 is a score-based provider. The developer may want to
+
+1. Configure the minimum score.
+2. Fallback to another provider in case the score is less than the minimum.
+
+This could be specified in the following imaginary configuration.
+
+```
+authentication_flow:
+  signup_flows:
+  - name: default
+    captcha:
+      providers:
+      - alias: recaptchav3
+        # The score be must >= 0.5 in order to be considered as passed.
+        minimum_score_inclusive: 0.5
+      - alias: recaptchav2
+```
+
+In this configuration, reCAPTCHA v2 can actually be used before reCAPTCHA v3. It is up to the UI to implement the fallback mechanism.
+
+#### Future use case: Fail-open instead of Fail-close
+
+By default, when captcha verification fails, the end-user cannot proceed.
+The developer may want the end-user to proceed instead.
+
+This could be specified in the following imaginary configuration.
+
+```
+authentication_flow:
+  signup_flows:
+  - name: default
+    captcha:
+      providers:
+      # fail_open is false by default.
+      - alias: recaptchav3
+        minimum_score_inclusive: 0.5
+      - alias: recaptchav2
+        fail_open: true
+```
+
+With the above configuration, reCAPTCHA v3 is not fail-open. If the score of reCAPTCHA v3 is low than the minimum, reCAPTCHA v2 can be tried.
+If that fails too, it is opened, the flow can proceed.
+
+#### Future use case: Use risk assessment to determine whether captcha is required
+
+This use case is very advanced, and potentially related to adaptive MFA.
+They both depend on another feature, namely risk assessment, to determine the risk level, and
+finally decide which protective measures, like captcha, MFA, are required.
+
+This is out-of-scope in this document.
 
 ## Audit log
 
