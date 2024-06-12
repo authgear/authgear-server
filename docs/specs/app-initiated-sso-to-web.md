@@ -47,7 +47,6 @@ This section profiles the OAuth2 Token Exchange [RFC8693] spec and describes the
 
 This profile also defines the following token type identifiers.
 
-
 ```
 urn:x-oath:params:oauth:token-type:device-secret
 ```
@@ -59,7 +58,6 @@ urn:authgear:params:oauth:token-type:device-browser-session-token
 ```
 
 This token type identifier refers to the device browser session token mentioned in this spec. It can be used as the `requested_token_type` parameter in token exchange request.
-
 
 ### Token Exchange Request
 
@@ -115,17 +113,16 @@ A web browser can open the /authorize endpoint to exchange for a valid browser s
 - `client_id`: Required. The client_id of the obtained session.
 - `id_token_hint`: Required. The id_token obtained by the mobile app.
 - `x_device_browser_session_token`: Required. The device browser session token obtained from token exchange response.
+- `scope`: Optional. Scope of the session of the browser session cookie. If not provided, it will be same as the scope of the session which generates this browser session cookie (i.e. The offline grant of the mobile app).
 - `prompt`: Optional. If provided, must be `none`.
 - `response_type`: Required. Must be one of the following values:
-    - `session`: A long lived token will be set in the cookie, which shares the same lifetime of the refresh_token. However, it will not live longer than an IDP session.
-    - `token`: A short lived token will be set in the cookie, which shares the same lifetime of an access_token.
+  - `session`: A long lived token will be set in the cookie, which shares the same lifetime of the refresh_token. However, it will not live longer than an IDP session.
+  - `token`: A short lived token will be set in the cookie, which shares the same lifetime of an access_token.
 - `response_mode`: Required. Must be `cookie`.
 - `redirect_uri`: Required. The uri to redirect to on the operation completed. It must be whitelisted by the client specified in `client_id`.
 - `state`: Optional. If provided, will be provided to the redirect_uri as a `state` query parameter.
 
-
 In the response, the authorize endpoint will redirect the user to `redirect_uri`, and set a browser cookie.
-
 
 ## Changes In SDKs
 
@@ -136,3 +133,24 @@ In the response, the authorize endpoint will redirect the user to `redirect_uri`
     - `state: string`: Similar to oauth `state`. Will be passed to `redirectURI` as a query parameter on complete.
   - Return:
     - The url which can then be opened in a browser.
+  - Error will be thrown if the current session does not support sso to web. i.e. x_device_browser_sso does not exist in scope.
+
+## Usecases
+
+1. We have a native mobile consumer app, and a cookie based web marketing site. We want the user to be authenticated when opening the marketing site from the mobile consumer app.
+
+- Steps:
+
+  1. In the mobile app, call `authenticate()` with `isSSOToWebEnabled=true`. The mobile app is in authenticated state after user completed the login flow.
+  2. In the mobile app, call `constructAuthenticatedURL()` with `redirect_uri=https://marketing-site.example.com`. An URL is returned from the method.
+  3. Open the system browser with the URL obtained in step 2. The user finally arrived `https://marketing-site.example.com` with authenticated state.
+
+2. We have a native mobile app which is able to start web SPAs inside the mobile app. We want the user to be considered authenticated as the same user of the native mobile appin inside the web SPAs. The web SPAs are refresh token based.
+
+- Steps:
+
+  1. In the mobile app, call `authenticate()` with `isSSOToWebEnabled=true,isSSOEnabled=true`. The mobile app is in authenticated state after user completed the login flow.
+  2. In the mobile app, call `constructAuthenticatedURL()` with `redirect_uri=https://spa.example.com`. An URL is returned from the method.
+  3. Open the system browser with the URL obtained in step 2. The user finally arrived `https://spa.example.com`.
+  4. The SPA hosted in `https://spa.example.com` should call the `authenticate()` method of the SDK with `isSSOEnabled=true`.
+  5. The user will see the continue screen of the auth ui. Press continue result in authenticated as the same user of the mobile app session.
