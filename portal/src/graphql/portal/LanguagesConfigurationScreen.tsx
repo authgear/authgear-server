@@ -248,6 +248,20 @@ const BuiltInTranslationSection: React.VFC<BuiltInTranslationSectionProps> =
     );
   };
 
+const CustomTranslationSection: React.VFC =
+  function CustomTranslationSection() {
+    return (
+      <Section>
+        <WidgetSubtitle>
+          <FormattedMessage id="LanguagesConfigurationScreen.customTranslation.title" />
+        </WidgetSubtitle>
+        <WidgetDescription>
+          <FormattedMessage id="LanguagesConfigurationScreen.customTranslation.description" />
+        </WidgetDescription>
+      </Section>
+    );
+  };
+
 interface SupportedLanguagesSectionProps {
   className?: string;
   builtinLanguages: LanguageTag[];
@@ -272,6 +286,7 @@ const SupportedLanguagesSection: React.VFC<SupportedLanguagesSectionProps> =
           supportedLanguages={supportedLanguages}
           onToggleSupportedLanguage={onToggleSupportedLanguage}
         />
+        <CustomTranslationSection />
       </Section>
     );
   };

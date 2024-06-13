@@ -919,6 +919,8 @@
   "LanguagesConfigurationScreen.supportedLanguages.title": "Supported languages",
   "LanguagesConfigurationScreen.builtInTranslation.title": "Built-in Translation",
   "LanguagesConfigurationScreen.builtInTranslation.description": "Translation for these languages are provided out of the box. You can use them directly by enabling them. To change the text, go to Custom Text and Email/SMS Template.",
+  "LanguagesConfigurationScreen.customTranslation.title": "Custom Translation",
+  "LanguagesConfigurationScreen.customTranslation.description": "You need to provide your own translation sheet for these languages. Enable them and customize the translation in Custom Text and Email/SMS Template.",
 
   "ReplaceLanguagesConfirmationDialog.title": "Confirm language changes",
   "ReplaceLanguagesConfirmationDialog.message": "All changes in the templates will be discarded.",
