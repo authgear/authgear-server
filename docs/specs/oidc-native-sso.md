@@ -79,10 +79,11 @@ This document specifies the implementation of [OIDC Native SSO](https://openid.n
 
 ### `grant_type=urn:authgear:params:oauth:grant-type:app2app`
 
-- Support a new parameter `scope`.
-- Allow `scope=device_sso` if the client has `x_device_sso_enabled=true`.
-- If `scope=device_sso` and `device_secret` is present and it is valid, a new `refresh_token` is added to Native SSO offline grant.
-- If `scope=device_sso` and `device_secret` is absent or it is invalid, a new Native SSO offline grant is created.
+- If `isDeviceSSOEnabled` is enabled in the SDK, the SDK includes `scope=device_sso` in the authorization URL to App B.
+- Support a new parameter `scope` in this token endpoint.
+- Allow `scope=device_sso` if the client of App A has `x_device_sso_enabled=true`.
+- It does not matter if the offline grant of App B has `scope=device_sso` or not. App B is unrelated in the Native SSO of App A. App A and App B do not share the same device secret. This is the reason why they are performing app2app in the first place.
+- An authorization code is issued. That authorization code can then be used by App A to exchange a `device_secret`, and other tokens.
 
 ### `grant_type=urn:ietf:params:oauth:grant-type:token-exchange`
 
