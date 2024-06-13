@@ -6,7 +6,7 @@ import React, {
   useState,
 } from "react";
 import { useParams } from "react-router-dom";
-import { IDropdownOption, Label } from "@fluentui/react";
+import { Checkbox, IDropdownOption, Label, Text } from "@fluentui/react";
 import { produce } from "immer";
 import cn from "classnames";
 import {
@@ -140,8 +140,28 @@ const SelectPrimaryLanguageSection: React.VFC<SelectPrimaryLanguageWidgetProps> 
     );
   };
 
-const BuiltInTranslationSection: React.VFC =
-  function BuiltInTranslationSection() {
+interface SupportedLanguageOption {
+  key: LanguageTag;
+  text: string;
+  selected: boolean;
+}
+
+interface BuiltInTranslationSectionProps {
+  builtinLanguages: LanguageTag[];
+}
+const BuiltInTranslationSection: React.VFC<BuiltInTranslationSectionProps> =
+  function BuiltInTranslationSection(props) {
+    const { builtinLanguages } = props;
+    const { getLanguageDisplayText } = useContext(PageContext);
+
+    const options = useMemo<SupportedLanguageOption[]>(() => {
+      return builtinLanguages.map((lang) => ({
+        key: lang,
+        text: getLanguageDisplayText(lang),
+        selected: false, // TODO(1380)
+      }));
+    }, [builtinLanguages, getLanguageDisplayText]);
+
     return (
       <Section>
         <WidgetSubtitle>
@@ -150,22 +170,31 @@ const BuiltInTranslationSection: React.VFC =
         <WidgetDescription>
           <FormattedMessage id="LanguagesConfigurationScreen.builtInTranslation.description" />
         </WidgetDescription>
+        <ul className={cn("block", "list-none", "space-y-4", "pt-2")}>
+          {options.map((option) => (
+            <li key={option.key} className={cn("flex", "items-center")}>
+              <Checkbox checked={option.selected} />
+              <Text className={cn("ml-1")}>{option.text}</Text>
+            </li>
+          ))}
+        </ul>
       </Section>
     );
   };
 
 interface SupportedLanguagesSectionProps {
   className?: string;
+  builtinLanguages: LanguageTag[];
 }
 const SupportedLanguagesSection: React.VFC<SupportedLanguagesSectionProps> =
   function SupportedLanguagesSection(props) {
-    const { className } = props;
+    const { className, builtinLanguages } = props;
     return (
       <Section className={cn("space-y-8", className)}>
         <WidgetTitle>
           <FormattedMessage id="LanguagesConfigurationScreen.supportedLanguages.title" />
         </WidgetTitle>
-        <BuiltInTranslationSection />
+        <BuiltInTranslationSection builtinLanguages={builtinLanguages} />
       </Section>
     );
   };
@@ -174,7 +203,7 @@ const LanguagesConfigurationScreen: React.VFC =
   function LanguagesConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
     const { renderToString } = useContext(MFContext);
-    const { availableLanguages } = useSystemConfig();
+    const { availableLanguages, builtinLanguages } = useSystemConfig();
 
     const appConfigForm = useAppConfigForm({
       appID,
@@ -217,7 +246,10 @@ const LanguagesConfigurationScreen: React.VFC =
               onChangePrimaryLanguage={onChangePrimaryLanguage}
             />
             <HorizontalDivider className={cn(styles.pageSection, "my-8")} />
-            <SupportedLanguagesSection className={styles.pageSection} />
+            <SupportedLanguagesSection
+              className={styles.pageSection}
+              builtinLanguages={builtinLanguages}
+            />
           </ScreenContent>
         </FormContainer>
       </PageContext.Provider>
