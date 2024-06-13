@@ -12,6 +12,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -39,9 +40,8 @@ func NewClient(ctx context.Context, mainListenAddr string, httpHost httputil.HTT
 	var httpClient = &http.Client{}
 	var oauthClient = &http.Client{}
 
-	// Use go test -timeout instead of setting timeout here.
-	httpClient.Timeout = 0
-	oauthClient.Timeout = 0
+	httpClient.Timeout = 60 * time.Second
+	oauthClient.Timeout = 60 * time.Second
 
 	// Intercept HTTP requests to the OAuth server.
 	caCertPool, err := x509.SystemCertPool()
