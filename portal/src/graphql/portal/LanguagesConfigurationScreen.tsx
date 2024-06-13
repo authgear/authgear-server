@@ -182,17 +182,18 @@ const SelectPrimaryLanguageSection: React.VFC<SelectPrimaryLanguageWidgetProps> 
 interface SupportedLanguageOption {
   key: LanguageTag;
   selected: boolean;
+  disabled: boolean;
 }
 
-// TODO(1380) Disable deslection on if selected as primary language
 interface SupportedLanguageCheckboxProps {
   language: LanguageTag;
   selected: boolean;
+  disabled: boolean;
   onToggleSupportedLanguage: (lang: LanguageTag, checked: boolean) => void;
 }
 const SupportedLanguageCheckbox: React.VFC<SupportedLanguageCheckboxProps> =
   function SupportedLanguageCheckbox(props) {
-    const { language, selected, onToggleSupportedLanguage } = props;
+    const { language, disabled, selected, onToggleSupportedLanguage } = props;
     const { getLanguageDisplayText } = useContext(PageContext);
     const onChange = useCallback(
       (_e: unknown, checked?: boolean) => {
@@ -202,28 +203,34 @@ const SupportedLanguageCheckbox: React.VFC<SupportedLanguageCheckboxProps> =
     );
     return (
       <div className={cn("flex", "items-center")}>
-        <Checkbox checked={selected} onChange={onChange} />
+        <Checkbox disabled={disabled} checked={selected} onChange={onChange} />
         <Text className={cn("ml-1")}>{getLanguageDisplayText(language)}</Text>
       </div>
     );
   };
 
 interface BuiltInTranslationSectionProps {
+  primaryLanguage: LanguageTag;
   builtinLanguages: LanguageTag[];
   supportedLanguages: LanguageTag[];
   onToggleSupportedLanguage: (lang: LanguageTag, selected: boolean) => void;
 }
 const BuiltInTranslationSection: React.VFC<BuiltInTranslationSectionProps> =
   function BuiltInTranslationSection(props) {
-    const { builtinLanguages, supportedLanguages, onToggleSupportedLanguage } =
-      props;
+    const {
+      primaryLanguage,
+      builtinLanguages,
+      supportedLanguages,
+      onToggleSupportedLanguage,
+    } = props;
     const options = useMemo<SupportedLanguageOption[]>(() => {
       const supportedLanguageSet = new Set(supportedLanguages);
       return builtinLanguages.map((lang) => ({
         key: lang,
         selected: supportedLanguageSet.has(lang),
+        disabled: lang === primaryLanguage,
       }));
-    }, [builtinLanguages, supportedLanguages]);
+    }, [primaryLanguage, builtinLanguages, supportedLanguages]);
 
     return (
       <Section>
@@ -238,6 +245,7 @@ const BuiltInTranslationSection: React.VFC<BuiltInTranslationSectionProps> =
             <li key={option.key} className={cn("flex", "items-center")}>
               <SupportedLanguageCheckbox
                 language={option.key}
+                disabled={option.disabled}
                 selected={option.selected}
                 onToggleSupportedLanguage={onToggleSupportedLanguage}
               />
@@ -249,6 +257,7 @@ const BuiltInTranslationSection: React.VFC<BuiltInTranslationSectionProps> =
   };
 
 interface CustomTranslationSectionProps {
+  primaryLanguage: LanguageTag;
   builtinLanguages: LanguageTag[];
   availableLanguages: LanguageTag[];
   supportedLanguages: LanguageTag[];
@@ -257,6 +266,7 @@ interface CustomTranslationSectionProps {
 const CustomTranslationSection: React.VFC<CustomTranslationSectionProps> =
   function CustomTranslationSection(props) {
     const {
+      primaryLanguage,
       builtinLanguages,
       availableLanguages,
       supportedLanguages,
@@ -271,8 +281,14 @@ const CustomTranslationSection: React.VFC<CustomTranslationSectionProps> =
         .map((lang) => ({
           key: lang,
           selected: supportedLanguageSet.has(lang),
+          disabled: lang === primaryLanguage,
         }));
-    }, [builtinLanguages, availableLanguages, supportedLanguages]);
+    }, [
+      primaryLanguage,
+      builtinLanguages,
+      availableLanguages,
+      supportedLanguages,
+    ]);
 
     const renderListItem = useCallback(
       (option?: SupportedLanguageOption) => {
@@ -282,6 +298,7 @@ const CustomTranslationSection: React.VFC<CustomTranslationSectionProps> =
         return (
           <SupportedLanguageCheckbox
             language={option.key}
+            disabled={option.disabled}
             selected={option.selected}
             onToggleSupportedLanguage={onToggleSupportedLanguage}
           />
@@ -307,6 +324,7 @@ const CustomTranslationSection: React.VFC<CustomTranslationSectionProps> =
 
 interface SupportedLanguagesSectionProps {
   className?: string;
+  primaryLanguage: LanguageTag;
   builtinLanguages: LanguageTag[];
   availableLanguages: LanguageTag[];
   supportedLanguages: LanguageTag[];
@@ -316,6 +334,7 @@ const SupportedLanguagesSection: React.VFC<SupportedLanguagesSectionProps> =
   function SupportedLanguagesSection(props) {
     const {
       className,
+      primaryLanguage,
       builtinLanguages,
       availableLanguages,
       supportedLanguages,
@@ -327,11 +346,13 @@ const SupportedLanguagesSection: React.VFC<SupportedLanguagesSectionProps> =
           <FormattedMessage id="LanguagesConfigurationScreen.supportedLanguages.title" />
         </WidgetTitle>
         <BuiltInTranslationSection
+          primaryLanguage={primaryLanguage}
           builtinLanguages={builtinLanguages}
           supportedLanguages={supportedLanguages}
           onToggleSupportedLanguage={onToggleSupportedLanguage}
         />
         <CustomTranslationSection
+          primaryLanguage={primaryLanguage}
           builtinLanguages={builtinLanguages}
           availableLanguages={availableLanguages}
           supportedLanguages={supportedLanguages}
@@ -394,6 +415,7 @@ const LanguagesConfigurationScreen: React.VFC =
             <HorizontalDivider className={cn(styles.pageSection, "my-8")} />
             <SupportedLanguagesSection
               className={styles.pageSection}
+              primaryLanguage={appConfigForm.state.fallbackLanguage}
               builtinLanguages={builtinLanguages}
               availableLanguages={availableLanguages}
               supportedLanguages={appConfigForm.state.supportedLanguages}
