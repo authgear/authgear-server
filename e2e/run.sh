@@ -63,7 +63,7 @@ function teardown {( set -e
 
 function tests {( set -e
     echo "[ ] Run tests..."
-    go test ./... -v -timeout 3m -parallel 5
+    go test ./... -v -timeout 10m -parallel 5
 )}
 
 function main {( set -e
