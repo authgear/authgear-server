@@ -62,7 +62,6 @@ import WidgetDescription from "../../WidgetDescription";
 import Toggle from "../../Toggle";
 import { ErrorParseRule, ErrorParseRuleResult } from "../../error/parse";
 import { APIError } from "../../error/error";
-import { useDelayedSave } from "../../hook/useDelayedSave";
 
 const ImageMaxSizeInKB = 100;
 
@@ -208,55 +207,6 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
         setState((s) => ({ ...s, selectedLanguage }));
       },
       [setState]
-    );
-
-    const onChangeLanguages = useCallback(
-      (supportedLanguages: LanguageTag[], fallbackLanguage: LanguageTag) => {
-        setState((prev) => {
-          // Reset selected language to fallback language if it was removed.
-          let { selectedLanguage, resources } = prev;
-          resources = { ...resources };
-          if (!supportedLanguages.includes(selectedLanguage)) {
-            selectedLanguage = fallbackLanguage;
-          }
-
-          // Remove resources of removed languges
-          const removedLanguages = prev.supportedLanguages.filter(
-            (l) => !supportedLanguages.includes(l)
-          );
-          for (const [id, resource] of Object.entries(resources)) {
-            const language = resource?.specifier.locale;
-            if (
-              resource != null &&
-              language != null &&
-              removedLanguages.includes(language)
-            ) {
-              resources[id] = { ...resource, nullableValue: "" };
-            }
-          }
-
-          return {
-            ...prev,
-            selectedLanguage,
-            supportedLanguages,
-            fallbackLanguage,
-            resources,
-          };
-        });
-      },
-      [setState]
-    );
-
-    const enqueueSave = useDelayedSave(props.form);
-    const onChangeAndSaveLanguages = useCallback(
-      async (
-        supportedLanguages: LanguageTag[],
-        fallbackLanguage: LanguageTag
-      ) => {
-        onChangeLanguages(supportedLanguages, fallbackLanguage);
-        enqueueSave();
-      },
-      [enqueueSave, onChangeLanguages]
     );
 
     const getValueIgnoreEmptyString = useCallback(
@@ -684,8 +634,6 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             selectedLanguage={state.selectedLanguage}
             fallbackLanguage={state.fallbackLanguage}
             onChangeSelectedLanguage={setSelectedLanguage}
-            onChangeLanguages={onChangeLanguages}
-            onChangeAndSaveLanguages={onChangeAndSaveLanguages}
           />
         </div>
         <ScreenDescription className={styles.widget}>
@@ -911,9 +859,8 @@ const UISettingsScreen: React.VFC = function UISettingsScreen() {
       state,
       setState: (fn) => {
         const newState = fn(state);
-        config.setState(() => ({
-          supportedLanguages: newState.supportedLanguages,
-          fallbackLanguage: newState.fallbackLanguage,
+        config.setState((configState) => ({
+          ...configState,
           darkThemeDisabled: newState.darkThemeDisabled,
           watermarkDisabled: newState.watermarkDisabled,
           default_client_uri: newState.default_client_uri,
