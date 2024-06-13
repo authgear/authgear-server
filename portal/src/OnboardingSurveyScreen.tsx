@@ -37,17 +37,17 @@ const buttonTranslationKeys = {
     "OnboardingSurveyScreen.step2.teamOrIndividualChoiceGroup.Team",
   step2_teamOrIndividualChoiceGroup_Individual:
     "OnboardingSurveyScreen.step2.teamOrIndividualChoiceGroup.Individual",
-  step3team_companySizeChoiceGroup_label:
+  step3_team_companySizeChoiceGroup_label:
     "OnboardingSurveyScreen.step3-team.companySizeChoiceGroup.label",
-  step3team_companySizeChoiceGroup_1to49:
+  ["step3_team_companySizeChoiceGroup_1-49"]:
     "OnboardingSurveyScreen.step3-team.companySizeChoiceGroup.1-49",
-  step3team_companySizeChoiceGroup_50to99:
+  ["step3_team_companySizeChoiceGroup_50-99"]:
     "OnboardingSurveyScreen.step3-team.companySizeChoiceGroup.50-99",
-  step3team_companySizeChoiceGroup_100to499:
+  ["step3_team_companySizeChoiceGroup_100-499"]:
     "OnboardingSurveyScreen.step3-team.companySizeChoiceGroup.100-499",
-  step3team_companySizeChoiceGroup_500to1999:
+  ["step3_team_companySizeChoiceGroup_500-1999"]:
     "OnboardingSurveyScreen.step3-team.companySizeChoiceGroup.500-1999",
-  step3team_companySizeChoiceGroup_2000to:
+  ["step3_team_companySizeChoiceGroup_2000+"]:
     "OnboardingSurveyScreen.step3-team.companySizeChoiceGroup.2000+",
   step4_reasonChoiceGroup_Auth_title:
     "OnboardingSurveyScreen.step4.reasonChoiceGroup.Auth.title",
