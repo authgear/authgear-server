@@ -1,5 +1,16 @@
 # App Initiated SSO to Web
 
+- [Abstract](#abstract)
+- [The Flow](#the-flow)
+- [Native App Authorization Extensions](#native-app-authorization-extensions)
+- [Token Exchange Profile for App Initiated SSO to Web](#token-exchange-profile-for-app-initiated-sso-to-web)
+  - [Defined token type identifiers](#defined-token-type-identifiers)
+  - [Token Exchange Request](#token-exchange-request)
+  - [Token Exchange Response](#token-exchange-response)
+- [Exchanging for browser cookie of a session with the authorization endpoint](#exchanging-for-browser-cookie-of-a-session-with-the-authorization-endpoint)
+- [Changes In SDKs](#changes-in-sdks)
+- [Usecases](#usecases)
+
 ## Abstract
 
 This document describes a mechanism that allows a cookie based web app to share the authentication obtained by a mobile app.
