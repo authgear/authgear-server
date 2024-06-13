@@ -114,7 +114,11 @@ Captcha is supported only in the following step types:
 - `authenticate` in `login` and `reauth`.
 
 We can see that all supported step types have branches.
-To specify Captcha is required, add `captcha.required=true` to the branch.
+
+To specify Captcha is required,
+
+1. Add `captcha.enabled=true` to the root of the flow configuration.
+2. Add `captcha.required=true` to the branches you want.
 
 For example,
 
@@ -122,6 +126,8 @@ For example,
 authentication_flow:
   signup_flows:
   - name: default
+    captcha:
+      enabled: true
     steps:
     - type: identify
       one_of:
@@ -135,12 +141,15 @@ authentication_flow:
       - authentication: primary_oob_otp_email
 ```
 
-### Default behavior
+### Behavior of generated flows
 
-When Captcha is enabled and there is at least one configured provider,
-all the branches of the first step (that is, the `identify` step) of the generated flows will have `captcha.required=true`.
+Given `captcha.enabled=true` and `captcha.providers` is non-empty,
 
-This means whether Captcha is enabled, every flow requires captcha at the beginning of the flow.
+1. The generated flow has `captcha.enabled=true` in its root configuration.
+2. All the branches of the first step (that is, the `identify` step) has `captcha.required=true`.
+3. The first provider in `captcha.providers` is used as the provider.
+
+In terms of UX, when Captcha is enabled and configured, every generated flow requires captcha at the beginning of the flow.
 
 ### Captcha in Authentication Flow API
 
@@ -156,6 +165,8 @@ This can be achieved by customizing the flow.
 authentication_flow:
   signup_flows:
   - name: default
+    captcha:
+      enabled: true
     steps:
     - type: identify
       one_of:
@@ -191,10 +202,12 @@ authentication_flow:
   signup_flows:
   - name: web
     captcha:
+      enabled: true
       providers:
       - alias: recaptchav3
   - name: mobile
     captcha:
+      enabled: true
       providers:
       - alias: hcaptcha
 ```
@@ -213,6 +226,7 @@ authentication_flow:
   signup_flows:
   - name: default
     captcha:
+      enabled: true
       providers:
       - alias: recaptchav3
         # The score be must >= 0.5 in order to be considered as passed.
@@ -234,6 +248,7 @@ authentication_flow:
   signup_flows:
   - name: default
     captcha:
+      enabled: true
       providers:
       # fail_open is false by default.
       - alias: recaptchav3
