@@ -94,8 +94,12 @@ const SelectPrimaryLanguageSection: React.VFC<SelectPrimaryLanguageWidgetProps> 
 
     const [searchValue, setSearchValue] = useState("");
     const dropdownOptions: IDropdownOption[] = useMemo(() => {
-      const filteredLanguages = availableLanguages.filter((lang) =>
-        lang.toLowerCase().includes(searchValue.toLowerCase())
+      const filteredLanguages = availableLanguages.filter(
+        (lang) =>
+          lang.toLowerCase().includes(searchValue.toLowerCase()) ||
+          getLanguageDisplayText(lang)
+            .toLowerCase()
+            .includes(searchValue.toLowerCase())
       );
       return filteredLanguages.map((lang) => ({
         key: lang,
