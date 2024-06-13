@@ -5,8 +5,10 @@
   * [New Configuration](#new-configuration)
     + [authgear.yaml](#authgearyaml)
       - [`type: cloudflare`](#type-cloudflare)
+      - [`type: recaptchav2`](#type-recaptchav2)
     + [authgear.secrets.yaml](#authgearsecretsyaml)
       - [`type: cloudflare`](#type-cloudflare-1)
+      - [`type: recaptchav2`](#type-recaptchav2-1)
   * [Authentication Flow](#authentication-flow)
     + [Captcha in Authentication Flow configuration](#captcha-in-authentication-flow-configuration)
     + [Default behavior](#default-behavior)
@@ -48,6 +50,7 @@ captcha:
   providers:
   - type: cloudflare
     alias: cloudflare
+    site_key: "SITE_KEY"
 ```
 
 - `captcha.enabled`: Boolean. If it is true, the new configuration is used.
@@ -59,7 +62,11 @@ Other fields are specific to `type`.
 
 #### `type: cloudflare`
 
-There is no specific fields.
+- `site_key`: The site key of Cloudflare Turnstile.
+
+#### `type: recaptchav2`
+
+- `site_key`: The site key of reCAPTCHA v2.
 
 ### authgear.secrets.yaml
 
@@ -79,7 +86,11 @@ Other fields are specific to `type`.
 
 #### `type: cloudflare`
 
-- `secret_key`: Required. The Cloudflare Turnstile secret key.
+- `secret_key`: Required. The secret key of Cloudflare Turnstile.
+
+#### `type: recaptchav2`
+
+- `secret_key`: Required. The secret key of reCAPTCHA v2.
 
 ## Authentication Flow
 
