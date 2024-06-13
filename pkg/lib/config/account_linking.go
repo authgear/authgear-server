@@ -10,6 +10,10 @@ var _ = Schema.Add("AccountLinkingConfig", `
 		"oauth": {
 			"type": "array",
 			"items": { "$ref": "#/$defs/AccountLinkingOAuthItem" }
+		},
+		"login_id": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/AccountLinkingLoginIDItem" }
 		}
 	}
 }
@@ -23,6 +27,19 @@ var _ = Schema.Add("AccountLinkingOAuthItem", `
 		"name": { "type": "string" },
 		"alias": { "type": "string" },
 		"oauth_claim": { "$ref": "#/$defs/AccountLinkingJSONPointer" },
+		"user_profile": { "$ref": "#/$defs/AccountLinkingJSONPointer" },
+		"action": { "$ref": "#/$defs/AccountLinkingAction" }
+	}
+}
+`)
+
+var _ = Schema.Add("AccountLinkingLoginIDItem", `
+{
+	"type": "object",
+	"required": ["key", "user_profile", "action"],
+	"properties": {
+		"name": { "type": "string" },
+		"key": { "type": "string" },
 		"user_profile": { "$ref": "#/$defs/AccountLinkingJSONPointer" },
 		"action": { "$ref": "#/$defs/AccountLinkingAction" }
 	}
@@ -59,7 +76,15 @@ var _ = Schema.Add("AccountLinkingJSONPointer", `
 `)
 
 type AccountLinkingConfig struct {
-	OAuth []*AccountLinkingOAuthItem `json:"oauth,omitempty"`
+	OAuth   []*AccountLinkingOAuthItem   `json:"oauth,omitempty"`
+	LoginID []*AccountLinkingLoginIDItem `json:"login_id,omitempty"`
+}
+
+type AccountLinkingLoginIDItem struct {
+	Name        string                     `json:"name,omitempty"`
+	Key         string                     `json:"key,omitempty"`
+	UserProfile *AccountLinkingJSONPointer `json:"user_profile,omitempty"`
+	Action      AccountLinkingAction       `json:"action,omitempty"`
 }
 
 type AccountLinkingOAuthItem struct {

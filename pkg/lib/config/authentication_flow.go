@@ -644,12 +644,28 @@ var _ = Schema.Add("AuthenticationFlowAccountLinking", `
 		"oauth": {
 			"type": "array",
 			"items": { "$ref": "#/$defs/AuthenticationFlowAccountLinkingOAuthItem" }
+		},
+		"login_id": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/AuthenticationFlowAccountLinkingLoginIDItem" }
 		}
 	}
 }
 `)
 
 var _ = Schema.Add("AuthenticationFlowAccountLinkingOAuthItem", `
+{
+	"type": "object",
+	"required": ["name"],
+	"properties": {
+		"name": { "type": "string" },
+		"action": { "$ref": "#/$defs/AccountLinkingAction" },
+		"login_flow": { "type": "string" }
+	}
+}
+`)
+
+var _ = Schema.Add("AuthenticationFlowAccountLinkingLoginIDItem", `
 {
 	"type": "object",
 	"required": ["name"],
@@ -1393,10 +1409,17 @@ const (
 )
 
 type AuthenticationFlowAccountLinking struct {
-	OAuth []*AuthenticationFlowAccountLinkingOAuthItem `json:"oauth,omitempty"`
+	OAuth   []*AuthenticationFlowAccountLinkingOAuthItem   `json:"oauth,omitempty"`
+	LoginID []*AuthenticationFlowAccountLinkingLoginIDItem `json:"login_id,omitempty"`
 }
 
 type AuthenticationFlowAccountLinkingOAuthItem struct {
+	Name      string               `json:"name,omitempty"`
+	Action    AccountLinkingAction `json:"action,omitempty"`
+	LoginFlow string               `json:"login_flow,omitempty"`
+}
+
+type AuthenticationFlowAccountLinkingLoginIDItem struct {
 	Name      string               `json:"name,omitempty"`
 	Action    AccountLinkingAction `json:"action,omitempty"`
 	LoginFlow string               `json:"login_flow,omitempty"`

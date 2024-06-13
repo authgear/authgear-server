@@ -21,12 +21,33 @@ value:
         pointer: "/phone_number"
       user_profile:
         pointer: "/phone_number"
+  login_id:
+    - key: email
+      action: "error"
+      user_profile:
+        pointer: "/email"
+    - key: username
+      action: "error"
+      user_profile:
+        pointer: "/preferred_username"
+    - key: phone
+      action: "error"
+      user_profile:
+        pointer: "/phone_number"
 
 ---
 part: AccountLinkingConfig
 name: invalid
 error: |-
   invalid value:
+  /login_id/0: required
+    map[actual:[action] expected:[action key user_profile] missing:[key user_profile]]
+  /login_id/1: required
+    map[actual:[key] expected:[action key user_profile] missing:[action user_profile]]
+  /login_id/2/user_profile: required
+    map[actual:<nil> expected:[pointer] missing:[pointer]]
+  /login_id/3/user_profile/pointer: enum
+    map[actual:/xemail expected:[/email /phone_number /preferred_username]]
   /oauth/0/action: enum
     map[actual:not_implemented_action expected:[error login_and_link]]
   /oauth/0/oauth_claim: required
@@ -50,3 +71,13 @@ value:
         pointer: "/phone_number"
       user_profile:
         pointer: "/phone_number"
+  login_id:
+    - action: "error"
+    - key: "email"
+    - key: "email"
+      action: "error"
+      user_profile: {}
+    - key: "email"
+      action: "error"
+      user_profile:
+        pointer: "/xemail"
