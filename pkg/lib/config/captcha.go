@@ -5,24 +5,24 @@ var _ = Schema.Add("CaptchaConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"provider": { "$ref": "#/$defs/CaptchaProvider" }
+		"provider": { "$ref": "#/$defs/LegacyCaptchaProvider" }
 	}
 }
 `)
 
 type CaptchaConfig struct {
-	Provider *CaptchaProvider `json:"provider,omitempty"`
+	LegacyProvider *LegacyCaptchaProvider `json:"provider,omitempty"`
 }
 
-var _ = Schema.Add("CaptchaProvider", `
+var _ = Schema.Add("LegacyCaptchaProvider", `
 {
 	"type": "string",
 	"enum": ["cloudflare"]
 }
 `)
 
-type CaptchaProvider string
+type LegacyCaptchaProvider string
 
 const (
-	CaptchaProviderCloudflare CaptchaProvider = "cloudflare"
+	LegacyCaptchaProviderCloudflare LegacyCaptchaProvider = "cloudflare"
 )

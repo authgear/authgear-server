@@ -1,3 +1,4 @@
+// Legacy cloudfare captcha
 package captcha
 
 import (
