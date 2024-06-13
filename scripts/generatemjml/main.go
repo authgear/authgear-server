@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/authgear/authgear-server/pkg/util/intl"
 )
 
 type Locale struct {
@@ -70,6 +72,11 @@ func renderLocalizedTemplate(
 		panic(err)
 	}
 	context := make(map[string]any)
+	// mjml > 4.14.1 <= 4.15.2 has a bug that always outputs lang="und" and dir="auto"
+	// So we tell mjml the lang and the dir.
+	// See https://github.com/mjmlio/mjml/issues/2865
+	context["lang"] = locale.Name
+	context["dir"] = intl.HTMLDir(locale.Name)
 	context["T"] = translationJson
 	renderTemplate(template, templatesDirectory, defaultTemplatesDirectory, context)
 }

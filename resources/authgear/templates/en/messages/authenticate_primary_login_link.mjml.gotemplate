@@ -1,4 +1,4 @@
-<mjml>
+<mjml lang="[[ .lang ]]" dir="[[ .dir ]]">
 <mj-head>
   <mj-attributes>
     <mj-text align="left" font-family="Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji" />
