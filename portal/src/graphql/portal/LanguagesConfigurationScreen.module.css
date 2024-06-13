@@ -1,3 +1,15 @@
 .pageSection {
   @apply col-span-8 tablet:col-span-full;
 }
+
+.customTranslationListContainer {
+  @apply h-98 p-6;
+  @apply overflow-auto;
+  @apply rounded border border-solid;
+  border-color: #8a8886;
+}
+
+.customTranslationListContainer :global(.ms-List-surface),
+.customTranslationListContainer :global(.ms-List-page) {
+  @apply flex flex-col gap-y-4;
+}
