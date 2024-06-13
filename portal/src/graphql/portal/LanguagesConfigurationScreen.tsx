@@ -1,4 +1,9 @@
-import React, { PropsWithChildren, useMemo, useState } from "react";
+import React, {
+  PropsWithChildren,
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
 import { useParams } from "react-router-dom";
 import { IDropdownOption, Label } from "@fluentui/react";
 import { produce } from "immer";
@@ -63,10 +68,17 @@ const Section: React.VFC<PropsWithChildren<SectionProps>> = function Section(
 interface SelectPrimaryLanguageWidgetProps {
   className?: string;
   availableLanguages: string[];
+  primaryLanguage: string;
+  onChangePrimaryLanguage: (language: string) => void;
 }
 const SelectPrimaryLanguageSection: React.VFC<SelectPrimaryLanguageWidgetProps> =
   function SelectPrimaryLanguageSection(props) {
-    const { className, availableLanguages } = props;
+    const {
+      className,
+      availableLanguages,
+      primaryLanguage,
+      onChangePrimaryLanguage,
+    } = props;
 
     const [searchValue, setSearchValue] = useState("");
     const dropdownOptions: IDropdownOption[] = useMemo(() => {
@@ -78,6 +90,20 @@ const SelectPrimaryLanguageSection: React.VFC<SelectPrimaryLanguageWidgetProps> 
         text: lang,
       }));
     }, [availableLanguages, searchValue]);
+
+    const selectedOption = useMemo(() => {
+      return dropdownOptions.find((option) => option.key === primaryLanguage);
+    }, [dropdownOptions, primaryLanguage]);
+
+    const onChange = useCallback(
+      (_e: unknown, option?: IDropdownOption) => {
+        const key = option?.key as string | null;
+        if (key) {
+          onChangePrimaryLanguage(key);
+        }
+      },
+      [onChangePrimaryLanguage]
+    );
 
     return (
       <Section className={className}>
@@ -92,6 +118,8 @@ const SelectPrimaryLanguageSection: React.VFC<SelectPrimaryLanguageWidgetProps> 
           <SearchableDropdown
             className={cn("mt-1")}
             options={dropdownOptions}
+            onChange={onChange}
+            selectedItem={selectedOption}
             searchValue={searchValue}
             onSearchValueChange={setSearchValue}
           />
@@ -110,6 +138,21 @@ const LanguagesConfigurationScreen: React.VFC =
       constructFormState,
       constructConfig,
     });
+
+    // TODO(1380)
+    // Add fallback language to supported language
+    const onChangePrimaryLanguage = useCallback(
+      (primaryLanguage: string) => {
+        appConfigForm.setState((state) => {
+          return {
+            ...state,
+            fallbackLanguage: primaryLanguage,
+          };
+        });
+      },
+      [appConfigForm]
+    );
+
     return (
       <FormContainer form={appConfigForm} canSave={true}>
         <ScreenContent>
@@ -119,6 +162,8 @@ const LanguagesConfigurationScreen: React.VFC =
           <SelectPrimaryLanguageSection
             className={styles.pageSection}
             availableLanguages={availableLanguages}
+            primaryLanguage={appConfigForm.state.fallbackLanguage}
+            onChangePrimaryLanguage={onChangePrimaryLanguage}
           />
         </ScreenContent>
       </FormContainer>
