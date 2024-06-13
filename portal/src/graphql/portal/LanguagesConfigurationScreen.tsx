@@ -65,6 +65,41 @@ function constructConfig(
   });
 }
 
+function toggleSupportedLanguage(
+  availableLanguages: LanguageTag[],
+  language: LanguageTag,
+  checked: boolean
+): (s: ConfigFormState) => ConfigFormState {
+  return (state) => {
+    const supportedLanguageSet = new Set(state.supportedLanguages);
+    if (checked) {
+      supportedLanguageSet.add(language);
+    } else {
+      supportedLanguageSet.delete(language);
+    }
+    const supportedLanguages = availableLanguages.filter((lang) =>
+      supportedLanguageSet.has(lang)
+    );
+    return {
+      ...state,
+      supportedLanguages,
+    };
+  };
+}
+
+function updatePrimaryLanguage(
+  availableLanguages: LanguageTag[],
+  primaryLanguage: LanguageTag
+): (s: ConfigFormState) => ConfigFormState {
+  return (state) => {
+    return toggleSupportedLanguage(
+      availableLanguages,
+      primaryLanguage,
+      true
+    )({ ...state, fallbackLanguage: primaryLanguage });
+  };
+}
+
 interface SectionProps {
   className?: string;
 }
@@ -146,25 +181,49 @@ const SelectPrimaryLanguageSection: React.VFC<SelectPrimaryLanguageWidgetProps> 
 
 interface SupportedLanguageOption {
   key: LanguageTag;
-  text: string;
   selected: boolean;
 }
 
+// TODO(1380) Disable deslection on if selected as primary language
+interface SupportedLanguageCheckboxProps {
+  language: LanguageTag;
+  selected: boolean;
+  onToggleSupportedLanguage: (lang: LanguageTag, checked: boolean) => void;
+}
+const SupportedLanguageCheckbox: React.VFC<SupportedLanguageCheckboxProps> =
+  function SupportedLanguageCheckbox(props) {
+    const { language, selected, onToggleSupportedLanguage } = props;
+    const { getLanguageDisplayText } = useContext(PageContext);
+    const onChange = useCallback(
+      (_e: unknown, checked?: boolean) => {
+        onToggleSupportedLanguage(language, checked === true);
+      },
+      [language, onToggleSupportedLanguage]
+    );
+    return (
+      <div className={cn("flex", "items-center")}>
+        <Checkbox checked={selected} onChange={onChange} />
+        <Text className={cn("ml-1")}>{getLanguageDisplayText(language)}</Text>
+      </div>
+    );
+  };
+
 interface BuiltInTranslationSectionProps {
   builtinLanguages: LanguageTag[];
+  supportedLanguages: LanguageTag[];
+  onToggleSupportedLanguage: (lang: LanguageTag, selected: boolean) => void;
 }
 const BuiltInTranslationSection: React.VFC<BuiltInTranslationSectionProps> =
   function BuiltInTranslationSection(props) {
-    const { builtinLanguages } = props;
-    const { getLanguageDisplayText } = useContext(PageContext);
-
+    const { builtinLanguages, supportedLanguages, onToggleSupportedLanguage } =
+      props;
     const options = useMemo<SupportedLanguageOption[]>(() => {
+      const supportedLanguageSet = new Set(supportedLanguages);
       return builtinLanguages.map((lang) => ({
         key: lang,
-        text: getLanguageDisplayText(lang),
-        selected: false, // TODO(1380)
+        selected: supportedLanguageSet.has(lang),
       }));
-    }, [builtinLanguages, getLanguageDisplayText]);
+    }, [builtinLanguages, supportedLanguages]);
 
     return (
       <Section>
@@ -177,8 +236,11 @@ const BuiltInTranslationSection: React.VFC<BuiltInTranslationSectionProps> =
         <ul className={cn("block", "list-none", "space-y-4", "pt-2")}>
           {options.map((option) => (
             <li key={option.key} className={cn("flex", "items-center")}>
-              <Checkbox checked={option.selected} />
-              <Text className={cn("ml-1")}>{option.text}</Text>
+              <SupportedLanguageCheckbox
+                language={option.key}
+                selected={option.selected}
+                onToggleSupportedLanguage={onToggleSupportedLanguage}
+              />
             </li>
           ))}
         </ul>
@@ -189,16 +251,27 @@ const BuiltInTranslationSection: React.VFC<BuiltInTranslationSectionProps> =
 interface SupportedLanguagesSectionProps {
   className?: string;
   builtinLanguages: LanguageTag[];
+  supportedLanguages: LanguageTag[];
+  onToggleSupportedLanguage: (lang: LanguageTag, selected: boolean) => void;
 }
 const SupportedLanguagesSection: React.VFC<SupportedLanguagesSectionProps> =
   function SupportedLanguagesSection(props) {
-    const { className, builtinLanguages } = props;
+    const {
+      className,
+      builtinLanguages,
+      supportedLanguages,
+      onToggleSupportedLanguage,
+    } = props;
     return (
       <Section className={cn("space-y-8", className)}>
         <WidgetTitle>
           <FormattedMessage id="LanguagesConfigurationScreen.supportedLanguages.title" />
         </WidgetTitle>
-        <BuiltInTranslationSection builtinLanguages={builtinLanguages} />
+        <BuiltInTranslationSection
+          builtinLanguages={builtinLanguages}
+          supportedLanguages={supportedLanguages}
+          onToggleSupportedLanguage={onToggleSupportedLanguage}
+        />
       </Section>
     );
   };
@@ -215,18 +288,22 @@ const LanguagesConfigurationScreen: React.VFC =
       constructConfig,
     });
 
-    // TODO(1380)
-    // Add fallback language to supported language
     const onChangePrimaryLanguage = useCallback(
       (primaryLanguage: string) => {
-        appConfigForm.setState((state) => {
-          return {
-            ...state,
-            fallbackLanguage: primaryLanguage,
-          };
-        });
+        appConfigForm.setState(
+          updatePrimaryLanguage(availableLanguages, primaryLanguage)
+        );
       },
-      [appConfigForm]
+      [appConfigForm, availableLanguages]
+    );
+
+    const onToggleSupportedLanguage = useCallback(
+      (language: LanguageTag, checked: boolean) => {
+        appConfigForm.setState(
+          toggleSupportedLanguage(availableLanguages, language, checked)
+        );
+      },
+      [appConfigForm, availableLanguages]
     );
 
     const pageContextValue = useMemo<PageContextValue>(() => {
@@ -253,6 +330,8 @@ const LanguagesConfigurationScreen: React.VFC =
             <SupportedLanguagesSection
               className={styles.pageSection}
               builtinLanguages={builtinLanguages}
+              supportedLanguages={appConfigForm.state.supportedLanguages}
+              onToggleSupportedLanguage={onToggleSupportedLanguage}
             />
           </ScreenContent>
         </FormContainer>
