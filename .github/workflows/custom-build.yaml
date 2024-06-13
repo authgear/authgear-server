@@ -7,10 +7,6 @@ on:
     - '!gh-pages'
     tags:
     - '*'
-  pull_request:
-    branches:
-    - '*'
-    - '!gh-pages'
 
 jobs:
   authgear-image-custom:
