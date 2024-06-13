@@ -6,4 +6,4 @@ import (
 
 var CaptchaFailed = apierrors.Invalid.WithReason("CaptchaFailed")
 
-var ErrVerfificationFailed = CaptchaFailed.NewWithCause("verification failed", apierrors.StringCause("VerificationFailed"))
+var ErrVerificationFailed = CaptchaFailed.NewWithCause("verification failed", apierrors.StringCause("VerificationFailed"))

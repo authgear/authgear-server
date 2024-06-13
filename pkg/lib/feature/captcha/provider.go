@@ -42,7 +42,7 @@ func (p *Provider) verifyTokenByCloudflare(token string) error {
 		return err
 	}
 	if !result.Success {
-		return ErrVerfificationFailed
+		return ErrVerificationFailed
 	}
 	return nil
 }
