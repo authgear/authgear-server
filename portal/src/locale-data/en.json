@@ -916,6 +916,9 @@
   "LanguagesConfigurationScreen.selectPrimaryLanguageWidget.title": "Primary language",
   "LanguagesConfigurationScreen.selectPrimaryLanguageWidget.description": "Choose the language will be displayed if the user's locale does not match any other supported languages.",
   "LanguagesConfigurationScreen.selectPrimaryLanguageWidget.dropdown.label": "Language",
+  "LanguagesConfigurationScreen.supportedLanguages.title": "Supported languages",
+  "LanguagesConfigurationScreen.builtInTranslation.title": "Built-in Translation",
+  "LanguagesConfigurationScreen.builtInTranslation.description": "Translation for these languages are provided out of the box. You can use them directly by enabling them. To change the text, go to Custom Text and Email/SMS Template.",
 
   "ReplaceLanguagesConfirmationDialog.title": "Confirm language changes",
   "ReplaceLanguagesConfirmationDialog.message": "All changes in the templates will be discarded.",

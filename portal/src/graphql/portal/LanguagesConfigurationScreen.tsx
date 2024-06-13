@@ -30,6 +30,7 @@ import { useSystemConfig } from "../../context/SystemConfigContext";
 import { LanguageTag } from "../../util/resource";
 
 import styles from "./LanguagesConfigurationScreen.module.css";
+import WidgetSubtitle from "../../WidgetSubtitle";
 
 interface PageContextValue {
   getLanguageDisplayText: (lang: LanguageTag) => string;
@@ -139,6 +140,36 @@ const SelectPrimaryLanguageSection: React.VFC<SelectPrimaryLanguageWidgetProps> 
     );
   };
 
+const BuiltInTranslationSection: React.VFC =
+  function BuiltInTranslationSection() {
+    return (
+      <Section>
+        <WidgetSubtitle>
+          <FormattedMessage id="LanguagesConfigurationScreen.builtInTranslation.title" />
+        </WidgetSubtitle>
+        <WidgetDescription>
+          <FormattedMessage id="LanguagesConfigurationScreen.builtInTranslation.description" />
+        </WidgetDescription>
+      </Section>
+    );
+  };
+
+interface SupportedLanguagesSectionProps {
+  className?: string;
+}
+const SupportedLanguagesSection: React.VFC<SupportedLanguagesSectionProps> =
+  function SupportedLanguagesSection(props) {
+    const { className } = props;
+    return (
+      <Section className={cn("space-y-8", className)}>
+        <WidgetTitle>
+          <FormattedMessage id="LanguagesConfigurationScreen.supportedLanguages.title" />
+        </WidgetTitle>
+        <BuiltInTranslationSection />
+      </Section>
+    );
+  };
+
 const LanguagesConfigurationScreen: React.VFC =
   function LanguagesConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
@@ -185,6 +216,8 @@ const LanguagesConfigurationScreen: React.VFC =
               primaryLanguage={appConfigForm.state.fallbackLanguage}
               onChangePrimaryLanguage={onChangePrimaryLanguage}
             />
+            <HorizontalDivider className={cn(styles.pageSection, "my-8")} />
+            <SupportedLanguagesSection className={styles.pageSection} />
           </ScreenContent>
         </FormContainer>
       </PageContext.Provider>
