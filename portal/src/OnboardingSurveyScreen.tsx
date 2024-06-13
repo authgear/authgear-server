@@ -720,9 +720,6 @@ function Step4(_props: StepProps) {
       e.stopPropagation();
       setLocalStorage("reasonChoices", reasonChoicesState);
       if (otherReason !== "") setLocalStorage("otherReason", otherReason);
-      //TODO: save to somewhere
-      //eslint-disable-next-line no-console
-      console.log(localStorage.getItem(localStorageKey), "Sdfsf");
       localStorage.removeItem(localStorageKey);
       navigate("./../../projects/create");
     },
