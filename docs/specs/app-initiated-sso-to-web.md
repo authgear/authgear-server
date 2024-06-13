@@ -8,6 +8,8 @@
   - [Token Exchange Request](#token-exchange-request)
   - [Token Exchange Response](#token-exchange-response)
 - [Exchanging for browser cookie of a session with the authorization endpoint](#exchanging-for-browser-cookie-of-a-session-with-the-authorization-endpoint)
+- [Security Considerations](#security-considerations)
+  - [Binding Tokens To Device](#binding-tokens-to-device)
 - [Changes In SDKs](#changes-in-sdks)
 - [Usecases](#usecases)
 
@@ -134,6 +136,16 @@ A web browser can open the /authorize endpoint to exchange for a valid browser s
 - `state`: Optional. If provided, will be provided to the redirect_uri as a `state` query parameter.
 
 In the response, the authorize endpoint will redirect the user to `redirect_uri`, and set a browser cookie.
+
+## Security Considerations
+
+### Binding Tokens To Device
+
+device_secret and x_device_browser_session_token should always be bound to a device.
+
+[OAuth 2.0 Demonstrating Proof of Possession](https://datatracker.ietf.org/doc/html/rfc9449) is implemented for such binding.
+
+The DPoP Proof MAY be provided when making requests to the /token endpoint. If DPoP Proof is provided, device_secret and x_device_browser_session_token returned in the response will be bound to the public key provided in the DPoP Proof.
 
 ## Changes In SDKs
 
