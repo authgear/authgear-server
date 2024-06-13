@@ -12,8 +12,6 @@
 - [Reference on input and output](#reference-on-input-and-output)
   * [type: signup; action.type: identify](#type-signup-actiontype-identify)
     + [captcha](#captcha)
-      - [captcha provider: cloudflare](#captcha-provider-cloudflare)
-      - [captcha provider: recaptchav2](#captcha-provider-recaptchav2)
       - [captcha input](#captcha-input)
       - [captcha input; type: cloudflare](#captcha-input-type-cloudflare)
       - [captcha input; type: recaptchav2](#captcha-input-type-recaptchav2)
@@ -101,6 +99,14 @@ Authentication Flow API always returns a JSON response of the same shape.
     "state_token": "authflowstate_blahblahblah",
     "type": "login",
     "name": "default",
+    "captcha": {
+      "providers": [
+        {
+          "type": "cloudflare",
+          "alias": "cloudflare"
+        }
+      ]
+    },
     "action": {
       "type": "authenticate",
       "authentication": "primary_oob_otp_email",
@@ -118,6 +124,9 @@ Authentication Flow API always returns a JSON response of the same shape.
   - `signup_login`: This flow will either become `signup` or `login` depending on the input. If the end-user enters an existing login ID, then the flow will becomes `login`, otherwise, it is `signup`.
   - `account_recovery`: The flow to recover an account. Currently it can request a reset password link / reset password code to reset primary password.
 - `name`: The name of the authentication flow. See [Create an authentication flow](#create-an-authentication-flow)
+- `captcha`: If Captcha is enabled in the flow, this key is present.
+  - `captcha.providers.type`: The type of the provider. You use this information to implement Captcha. For example, if you see `cloudflare`, then you probably should use the Cloudflare Turnstile client-side library to implement Captcha.
+  - `captcha.providers.alias`: The alias of the provider. You use this information to choose which set of configuration to use. For example, if you configure two Cloudflare Turnstile, namely `cloudflare1` and `cloudflare2`, and you see `cloudflare2`, then you should use the site key of `cloudflare2` to implement captcha.
 - `action`: An object containing information about the current action.
   - `action.type`: The type of step. See [Reference on input and output](#reference-on-input-and-output)
   - `action.authentication`: The taken authentication branch.
@@ -236,6 +245,14 @@ When you are in this step of this flow, you will see a response like the followi
     "state_token": "authflowstate_5R6NM7HGGKV64538R0QEGY9RQBDM4PZD",
     "type": "signup",
     "name": "default",
+    "captcha": {
+      "providers": [
+        {
+          "type": "cloudflare",
+          "alias": "cloudflare"
+        }
+      ]
+    },
     "action": {
       "type": "identify",
       "data": {
@@ -247,13 +264,7 @@ When you are in this step of this flow, you will see a response like the followi
           {
             "identification": "phone",
             "captcha": {
-              "providers": [
-                {
-                  "type": "cloudflare",
-                  "alias": "cloudflare",
-                  "site_key": "SITE_KEY"
-                }
-              ]
+              "required": true
             }
           },
           {
@@ -277,18 +288,9 @@ When you are in this step of this flow, you will see a response like the followi
 ### captcha
 
 Each option may contain the key `captcha`.
-If this key is present, that means selecting the option requires captcha.
+If this key is present and `captcha.required=true`, that means selecting the option requires captcha.
 
-The `providers` key contain a list of captcha provider you can use.
-In each provider, necessary information is included for you to perform captcha in the frontend.
-
-#### captcha provider: cloudflare
-
-- `site_key`: The site key you use to initialize the Turnstile client-side library.
-
-#### captcha provider: recaptchav2
-
-- `site_key`: The site key you use to initialize the reCAPTCHA v2 client-side library.
+You refer to the top-level `captcha.providers` key to see a list of captcha provider you should use.
 
 #### captcha input
 
