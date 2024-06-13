@@ -559,6 +559,30 @@
     background-color: var(--color-wechat-shaded-2);
   }
 
+  .sso-btn.iamsmart {
+    @apply border border-solid;
+    border-color: var(--color-separator);
+  }
+  .iamsmart {
+    color: var(--color-black-unshaded);
+    background-color: var(--color-white-unshaded);
+  }
+  .iamsmart:focus {
+    background-color: var(--color-white-unshaded);
+  }
+  .iamsmart:hover {
+    background-color: var(--color-white-shaded-4);
+  }
+  .iamsmart:active {
+    background-color: var(--color-white-shaded-7);
+  }
+  .iamsmart:disabled {
+    background-color: var(--color-white-shaded-2);
+  }
+  .sso-btn-icon.iamsmart-icon {
+    background-image: url("./img/icon-iamsmart-light.png");
+  }
+
   .wallet-btn.metamask {
     @apply border border-solid;
     border-color: var(--color-separator);

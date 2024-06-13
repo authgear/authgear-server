@@ -76,6 +76,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/web"
+	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -882,6 +883,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
 	}
+	webappoauthStore := &webappoauth.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
 	}
@@ -940,6 +946,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		OAuthRedirectURIBuilder:         endpointsEndpoints,
+		OAuthStateStore:                 webappoauthStore,
 		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,

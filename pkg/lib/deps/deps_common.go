@@ -73,6 +73,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/userimport"
 	"github.com/authgear/authgear-server/pkg/lib/web"
+	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -527,5 +528,10 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		redisqueue.ProducerDependencySet,
 		wire.Bind(new(libes.UserReindexCreateProducer), new(*redisqueue.UserReindexProducer)),
+	),
+
+	wire.NewSet(
+		webappoauth.DependencySet,
+		wire.Bind(new(interaction.OAuthStateStore), new(*webappoauth.Store)),
 	),
 )

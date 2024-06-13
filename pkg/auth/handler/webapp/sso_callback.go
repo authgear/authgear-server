@@ -14,10 +14,15 @@ func ConfigureSSOCallbackRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/sso/oauth2/callback/:alias")
 }
 
+type SSOCallbackHandlerOAuthStateStore interface {
+	PopAndRecoverState(stateToken string) (state *webappoauth.WebappOAuthState, err error)
+}
+
 type SSOCallbackHandler struct {
 	AuthflowController *AuthflowController
 	ControllerFactory  ControllerFactory
 	UIConfig           *config.UIConfig
+	OAuthStateStore    SSOCallbackHandlerOAuthStateStore
 }
 
 func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -26,8 +31,8 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stateStr := r.FormValue("state")
-	state, err := webappoauth.DecodeWebappOAuthState(stateStr)
+	stateToken := r.FormValue("state")
+	state, err := h.OAuthStateStore.PopAndRecoverState(stateToken)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

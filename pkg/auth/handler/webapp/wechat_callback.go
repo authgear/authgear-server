@@ -23,6 +23,10 @@ func ConfigureWechatCallbackRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/sso/wechat/callback")
 }
 
+type WechatCallbackHandlerOAuthStateStore interface {
+	PopAndRecoverState(stateToken string) (state *webappoauth.WebappOAuthState, err error)
+}
+
 // WechatCallbackHandler receives WeChat authorization result (code or error)
 // and set it into the web session.
 // Refreshing original auth ui WeChat auth page (/sso/wechat/auth/:alias) will
@@ -44,6 +48,7 @@ type WechatCallbackHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	JSON              JSONResponseWriter
+	OAuthStateStore   WechatCallbackHandlerOAuthStateStore
 }
 
 func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -54,33 +59,33 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	}
 	defer ctrl.Serve()
 
-	state := r.Form.Get("state")
+	stateToken := r.Form.Get("state")
 	code := r.Form.Get("code")
 	error_ := r.Form.Get("error")
 	errorDescription := r.Form.Get("error_description")
 
 	updateWebSession := func() error {
-		outhState, err := webappoauth.DecodeWebappOAuthState(state)
+		state, err := h.OAuthStateStore.PopAndRecoverState(stateToken)
 		if err != nil {
 			return err
 		}
 
-		switch outhState.UIImplementation.WithDefault() {
+		switch state.UIImplementation.WithDefault() {
 		case config.UIImplementationAuthflow:
 			fallthrough
 		case config.UIImplementationAuthflowV2:
-			session, err := ctrl.GetSession(outhState.WebSessionID)
+			session, err := ctrl.GetSession(state.WebSessionID)
 			if err != nil {
 				return err
 			}
 
-			screen, ok := session.Authflow.AllScreens[outhState.XStep]
+			screen, ok := session.Authflow.AllScreens[state.XStep]
 			if !ok {
 				return webapp.WebUIInvalidSession.New("x_step does not reference a valid screen")
 			}
 
 			screen.WechatCallbackData = &webapp.AuthflowWechatCallbackData{
-				State:            state,
+				State:            stateToken,
 				Code:             code,
 				Error:            error_,
 				ErrorDescription: errorDescription,
@@ -95,7 +100,7 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		case config.UIImplementationInteraction:
 			fallthrough
 		default:
-			webSessionID := outhState.WebSessionID
+			webSessionID := state.WebSessionID
 			session, err := ctrl.GetSession(webSessionID)
 			if err != nil {
 				return err

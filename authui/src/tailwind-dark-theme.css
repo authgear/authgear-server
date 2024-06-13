@@ -42,6 +42,16 @@
     --color-google-shaded-7: #3266ba;
     --color-google-shaded-8: #254b89;
 
+    --color-iamsmart-unshaded: #2b7366;
+    --color-iamsmart-shaded-1: #f3f9f8;
+    --color-iamsmart-shaded-2: #d1e9e4;
+    --color-iamsmart-shaded-3: #add5ce;
+    --color-iamsmart-shaded-4: #6aab9f;
+    --color-iamsmart-shaded-5: #3b8476;
+    --color-iamsmart-shaded-6: #26675b;
+    --color-iamsmart-shaded-7: #20574d;
+    --color-iamsmart-shaded-8: #184039;
+
     --color-pane-background: #353535;
     --color-pane-border: #3e3e3e;
 
@@ -234,6 +244,29 @@
   }
   .dark .wechat:disabled {
     background-color: var(--color-wechat-shaded-2);
+  }
+
+  .dark .sso-btn.iamsmart {
+    @apply border-0;
+  }
+  .dark .iamsmart {
+    color: var(--color-white-unshaded);
+    background-color: var(--color-iamsmart-unshaded);
+  }
+  .dark .iamsmart:focus {
+    background-color: var(--color-iamsmart-unshaded);
+  }
+  .dark .iamsmart:hover {
+    background-color: var(--color-iamsmart-shaded-4);
+  }
+  .dark .iamsmart:active {
+    background-color: var(--color-iamsmart-shaded-7);
+  }
+  .dark .iamsmart:disabled {
+    background-color: var(--color-iamsmart-shaded-2);
+  }
+  .dark .sso-btn-icon.iamsmart-icon {
+    background-image: url("./img/icon-iamsmart-dark.png");
   }
 
   .dark ::-webkit-calendar-picker-indicator {

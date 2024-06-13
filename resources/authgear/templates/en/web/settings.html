@@ -89,6 +89,8 @@
       {{ $ti = "ti ti-brand-windows" }}
     {{ else if eq .provider_type "wechat" }}
       {{ $ti = "ti ti-message-circle" }}
+    {{ else if eq .provider_type "iamsmart" }}
+      {{ $ti = "ti ti-circle-letter-i" }}
     {{ else }}
       {{ $ti = printf "ti ti-brand-%s" .provider_type }}
     {{ end }}

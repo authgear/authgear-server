@@ -3,12 +3,14 @@
 **/vendor
 **/dist
 **/node_modules
+**/.DS_Store
 **/.parcel-cache
 **/parcel-bundle-reports
 **/__pycache__
 **/venv
 **/var
 **/resources/**/generated
+**/resources/portal/static/*
 **/__generated_asset.html
 pkg/lib/webparcel/parcel_gen.go
 .env
@@ -16,3 +18,5 @@ e2e
 k6
 hack
 authgear
+tls-cert.pem
+tls-key.pem

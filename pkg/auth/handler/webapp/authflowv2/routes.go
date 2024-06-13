@@ -75,10 +75,15 @@ type AuthflowV2NavigatorEndpointsProvider interface {
 	SelectAccountEndpointURL(uiImpl config.UIImplementation) *url.URL
 }
 
+type AuthflowV2NavigatorOAuthStateStore interface {
+	GenerateState(state *webappoauth.WebappOAuthState) (stateToken string, err error)
+}
+
 type AuthflowV2Navigator struct {
-	Endpoints   AuthflowV2NavigatorEndpointsProvider
-	UIConfig    *config.UIConfig
-	ErrorCookie *webapp.ErrorCookie
+	Endpoints       AuthflowV2NavigatorEndpointsProvider
+	UIConfig        *config.UIConfig
+	ErrorCookie     *webapp.ErrorCookie
+	OAuthStateStore AuthflowV2NavigatorOAuthStateStore
 }
 
 var _ handlerwebapp.AuthflowNavigator = &AuthflowV2Navigator{}
@@ -292,14 +297,18 @@ func (n *AuthflowV2Navigator) navigateStepIdentify(s *webapp.AuthflowScreenWithF
 			// Back to the current screen if error
 			errorRedirectURI := url.URL{Path: r.URL.Path, RawQuery: r.URL.Query().Encode()}
 
-			state := webappoauth.WebappOAuthState{
+			state := &webappoauth.WebappOAuthState{
 				WebSessionID:     webSessionID,
 				UIImplementation: config.UIImplementationAuthflowV2,
 				XStep:            s.Screen.StateToken.XStep,
 				ErrorRedirectURI: errorRedirectURI.String(),
 			}
+			stateToken, err := n.OAuthStateStore.GenerateState(state)
+			if err != nil {
+				panic(err)
+			}
 
-			q.Set("state", state.Encode())
+			q.Set("state", stateToken)
 			authorizationURL.RawQuery = q.Encode()
 
 			result.NavigationAction = "redirect"

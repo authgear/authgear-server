@@ -1,0 +1,33 @@
+name: Mirror
+
+on: [push, delete]
+
+jobs:
+  mirror:
+    if: ${{ github.repository == 'authgear/authgear-server' }}
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        # Set fetch-depth: 0 to fetch all history for all branches and tags.
+        # https://github.com/actions/checkout#:~:text=Set%20fetch%2Ddepth%3A%200%20to%20fetch%20all%20history%20for%20all%20branches%20and%20tags.
+        fetch-depth: 0
+    - name: Import GitHub Deploy Key of the mirror repository
+      env:
+        MIRROR_GITHUB_DEPLOY_KEY: ${{ secrets.MIRROR_GITHUB_DEPLOY_KEY_OURSKY }}
+      run: |
+        mkdir -p ~/.ssh
+        printf "$MIRROR_GITHUB_DEPLOY_KEY" | base64 --decode > ~/.ssh/id_ed25519
+        chmod 600 ~/.ssh/id_ed25519
+        if [ -e ~/.ssh/known_hosts ]; then ssh-keygen -R github.com; fi
+        ssh-keyscan github.com >> ~/.ssh/known_hosts
+    - name: Mirror
+      run: |
+        export GIT_SSH_COMMAND="ssh -v -i ~/.ssh/id_ed25519"
+        git remote add mirror git@github.com:oursky/authgear-server.git
+        git push --tags --force --prune mirror "refs/remotes/origin/*:refs/heads/*"
+    - name: Clean up
+      if: ${{ always() }}
+      run: |
+        rm -f ~/.ssh/id_ed25519
+        git remote remove mirror
