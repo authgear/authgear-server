@@ -21,6 +21,19 @@ module.exports = {
           grey: "#605E5C",
         },
       },
+      height: (theme) => theme("spacing"),
+      width: (theme) => theme("spacing"),
+      minHeight: (theme) => theme("spacing"),
+      maxHeight: (theme) => theme("spacing"),
+      minWidth: (theme) => theme("spacing"),
+      maxWidth: (theme) => theme("spacing"),
+      spacing: () => {
+        const spacing = {};
+        for (let i = 0; i <= 300; i += 0.5) {
+          spacing[i] = `${i * 0.25}rem`;
+        }
+        return spacing;
+      },
     },
   },
   plugins: [require("@savvywombat/tailwindcss-grid-areas")],
