@@ -1,0 +1,3 @@
+.pageSection {
+  @apply col-span-8 tablet:col-span-full;
+}

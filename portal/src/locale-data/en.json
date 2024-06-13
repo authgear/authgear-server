@@ -913,6 +913,9 @@
   "LocalizationConfigurationScreen.passwordless-via-sms.title": "Passwordless via SMS",
 
   "LanguagesConfigurationScreen.title": "Languages",
+  "LanguagesConfigurationScreen.selectPrimaryLanguageWidget.title": "Primary language",
+  "LanguagesConfigurationScreen.selectPrimaryLanguageWidget.description": "Choose the language will be displayed if the user's locale does not match any other supported languages.",
+  "LanguagesConfigurationScreen.selectPrimaryLanguageWidget.dropdown.label": "Language",
 
   "ReplaceLanguagesConfirmationDialog.title": "Confirm language changes",
   "ReplaceLanguagesConfirmationDialog.message": "All changes in the templates will be discarded.",
