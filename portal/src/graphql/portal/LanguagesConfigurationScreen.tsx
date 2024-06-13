@@ -1,6 +1,7 @@
 import React, {
   PropsWithChildren,
   useCallback,
+  useContext,
   useMemo,
   useState,
 } from "react";
@@ -8,20 +9,32 @@ import { useParams } from "react-router-dom";
 import { IDropdownOption, Label } from "@fluentui/react";
 import { produce } from "immer";
 import cn from "classnames";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import {
+  Context as MFContext,
+  FormattedMessage,
+} from "@oursky/react-messageformat";
+
+import FormContainer from "../../FormContainer";
+import HorizontalDivider from "../../HorizontalDivider";
+import ScreenContent from "../../ScreenContent";
+import ScreenTitle from "../../ScreenTitle";
+import { SearchableDropdown } from "../../components/common/SearchableDropdown";
+import WidgetTitle from "../../WidgetTitle";
+import WidgetDescription from "../../WidgetDescription";
 
 import { PortalAPIAppConfig } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 import { useAppConfigForm } from "../../hook/useAppConfigForm";
-import FormContainer from "../../FormContainer";
-import ScreenContent from "../../ScreenContent";
-import ScreenTitle from "../../ScreenTitle";
 import { useSystemConfig } from "../../context/SystemConfigContext";
-import WidgetTitle from "../../WidgetTitle";
-import WidgetDescription from "../../WidgetDescription";
-import { SearchableDropdown } from "../../components/common/SearchableDropdown";
+
+import { LanguageTag } from "../../util/resource";
 
 import styles from "./LanguagesConfigurationScreen.module.css";
+
+interface PageContextValue {
+  getLanguageDisplayText: (lang: LanguageTag) => string;
+}
+const PageContext = React.createContext<PageContextValue>(null as any);
 
 interface ConfigFormState {
   supportedLanguages: string[];
@@ -58,18 +71,14 @@ const Section: React.VFC<PropsWithChildren<SectionProps>> = function Section(
   props
 ) {
   const { className, children } = props;
-  return (
-    <div className={cn("flex", "flex-col", "gap-y-4", className)}>
-      {children}
-    </div>
-  );
+  return <div className={cn("space-y-4", className)}>{children}</div>;
 };
 
 interface SelectPrimaryLanguageWidgetProps {
   className?: string;
-  availableLanguages: string[];
-  primaryLanguage: string;
-  onChangePrimaryLanguage: (language: string) => void;
+  availableLanguages: LanguageTag[];
+  primaryLanguage: LanguageTag;
+  onChangePrimaryLanguage: (language: LanguageTag) => void;
 }
 const SelectPrimaryLanguageSection: React.VFC<SelectPrimaryLanguageWidgetProps> =
   function SelectPrimaryLanguageSection(props) {
@@ -80,6 +89,8 @@ const SelectPrimaryLanguageSection: React.VFC<SelectPrimaryLanguageWidgetProps> 
       onChangePrimaryLanguage,
     } = props;
 
+    const { getLanguageDisplayText } = useContext(PageContext);
+
     const [searchValue, setSearchValue] = useState("");
     const dropdownOptions: IDropdownOption[] = useMemo(() => {
       const filteredLanguages = availableLanguages.filter((lang) =>
@@ -87,9 +98,9 @@ const SelectPrimaryLanguageSection: React.VFC<SelectPrimaryLanguageWidgetProps> 
       );
       return filteredLanguages.map((lang) => ({
         key: lang,
-        text: lang,
+        text: getLanguageDisplayText(lang),
       }));
-    }, [availableLanguages, searchValue]);
+    }, [availableLanguages, searchValue, getLanguageDisplayText]);
 
     const selectedOption = useMemo(() => {
       return dropdownOptions.find((option) => option.key === primaryLanguage);
@@ -131,6 +142,7 @@ const SelectPrimaryLanguageSection: React.VFC<SelectPrimaryLanguageWidgetProps> 
 const LanguagesConfigurationScreen: React.VFC =
   function LanguagesConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
+    const { renderToString } = useContext(MFContext);
     const { availableLanguages } = useSystemConfig();
 
     const appConfigForm = useAppConfigForm({
@@ -153,20 +165,29 @@ const LanguagesConfigurationScreen: React.VFC =
       [appConfigForm]
     );
 
+    const pageContextValue = useMemo<PageContextValue>(() => {
+      return {
+        getLanguageDisplayText: (lang: LanguageTag) =>
+          renderToString(`Locales.${lang}`),
+      };
+    }, [renderToString]);
+
     return (
-      <FormContainer form={appConfigForm} canSave={true}>
-        <ScreenContent>
-          <ScreenTitle className={cn("col-span-8", "tablet:col-span-full")}>
-            <FormattedMessage id="LanguagesConfigurationScreen.title" />
-          </ScreenTitle>
-          <SelectPrimaryLanguageSection
-            className={styles.pageSection}
-            availableLanguages={availableLanguages}
-            primaryLanguage={appConfigForm.state.fallbackLanguage}
-            onChangePrimaryLanguage={onChangePrimaryLanguage}
-          />
-        </ScreenContent>
-      </FormContainer>
+      <PageContext.Provider value={pageContextValue}>
+        <FormContainer form={appConfigForm} canSave={true}>
+          <ScreenContent>
+            <ScreenTitle className={cn("col-span-8", "tablet:col-span-full")}>
+              <FormattedMessage id="LanguagesConfigurationScreen.title" />
+            </ScreenTitle>
+            <SelectPrimaryLanguageSection
+              className={styles.pageSection}
+              availableLanguages={availableLanguages}
+              primaryLanguage={appConfigForm.state.fallbackLanguage}
+              onChangePrimaryLanguage={onChangePrimaryLanguage}
+            />
+          </ScreenContent>
+        </FormContainer>
+      </PageContext.Provider>
     );
   };
 
