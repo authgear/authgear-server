@@ -9,8 +9,11 @@
 **/__pycache__
 **/venv
 **/var
-**/resources/**/generated
-**/resources/portal/static/*
+
+resources/**/generated
+resources/portal/static/*
+!resources/portal/static/img/*
+
 **/__generated_asset.html
 pkg/lib/webparcel/parcel_gen.go
 .env
