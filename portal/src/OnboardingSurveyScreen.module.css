@@ -1,42 +1,55 @@
 .SingleChoiceButtonGroupVariantCentered {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-  width: 100%;
+  @apply my-[72px];
+  @apply flex flex-row flex-wrap items-center justify-center;
+  @apply gap-4;
 }
+
 .SingleChoiceButtonGroupVariantLabeled {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  width: 100%;
+  @apply flex flex-row flex-wrap items-center;
+  @apply gap-4;
+  @apply w-full;
 }
+
+.formBox {
+  @apply mt-[48px] mb-[72px];
+  @apply grid;
+  @apply gap-8;
+}
+
+.step1Content {
+  @apply max-w-[600px];
+}
+
+.step2Content {
+  @apply max-w-[420px];
+}
+
+.step3Content {
+  @apply max-w-[420px];
+}
+
+.step4Content {
+  @apply max-w-[760px];
+}
+
+.step4 {
+  @apply mt-[48px] mb-[72px];
+}
+
 .MultiChoiceButtonGroup {
-  display: grid;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: auto;
-  grid-auto-rows: 1fr;
+  @apply grid;
+  @apply gap-6 mobile:gap-3;
   @apply grid-cols-2 mobile:grid-cols-1;
+  grid-auto-rows: 1fr;
 }
+
 .CompoundChoiceButton {
-  display: grid;
   max-width: 368px;
   min-height: 118px;
   height: 100%;
   padding: 25px;
 }
-.formBox {
-  width: 380px;
-  max-width: 100%;
-  display: grid;
-  gap: 20px;
-  padding-left: 10px;
-  padding-right: 10px;
-}
+
 .otherReasonInput {
-  margin-top: 20px;
+  @apply mt-8;
 }

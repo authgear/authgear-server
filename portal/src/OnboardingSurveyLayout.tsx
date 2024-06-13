@@ -1,3 +1,4 @@
+import cn from "classnames";
 import React, { useContext, useMemo } from "react";
 import { useTheme, Text } from "@fluentui/react";
 import { Context } from "@oursky/react-messageformat";
@@ -80,12 +81,20 @@ export interface SurveyLayoutProps {
   nextButton: React.ReactNode;
   backButton?: React.ReactNode;
   children?: React.ReactNode;
+  contentClassName?: string;
 }
 
 export default function SurveyLayout(
   props: SurveyLayoutProps
 ): React.ReactElement {
-  const { title, subtitle, nextButton, backButton, children } = props;
+  const {
+    title,
+    subtitle,
+    nextButton,
+    backButton,
+    children,
+    contentClassName,
+  } = props;
   const theme = useTheme();
   const overrideBodyStyles = useMemo(() => {
     return {
@@ -95,12 +104,10 @@ export default function SurveyLayout(
   return (
     <div style={overrideBodyStyles} className={styles.body}>
       <Logo />
-      <div className={styles.centerDiv}>
-        <div className={styles.titlesDiv}>
-          <SurveyTitle>{title}</SurveyTitle>
-          <SurveySubtitle>{subtitle}</SurveySubtitle>
-        </div>
-        <div className={styles.contentDiv}>{children}</div>
+      <div className={cn(styles.content, contentClassName)}>
+        <SurveyTitle>{title}</SurveyTitle>
+        <SurveySubtitle>{subtitle}</SurveySubtitle>
+        {children}
         <div className={styles.navigationDiv}>
           {backButton}
           {nextButton}

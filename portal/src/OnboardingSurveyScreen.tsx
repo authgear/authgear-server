@@ -1,3 +1,4 @@
+import cn from "classnames";
 import React, {
   useContext,
   useState,
@@ -140,9 +141,7 @@ function CompoundChoiceButton(props: DefaultCompoundButtonProps) {
       {...props}
       toggle={true}
       styles={overrideStyles}
-      className={
-        (checked ? "ring-2" : "ring-1") + " " + styles.CompoundChoiceButton
-      }
+      className={cn(checked ? "ring-2" : "ring-1", styles.CompoundChoiceButton)}
     />
   );
 }
@@ -369,6 +368,7 @@ function Step1(_props: StepProps) {
   );
   return (
     <SurveyLayout
+      contentClassName={styles.step1Content}
       title={renderToString("OnboardingSurveyScreen.step1.title")}
       subtitle={renderToString("OnboardingSurveyScreen.step1.subtitle")}
       nextButton={
@@ -436,6 +436,7 @@ function Step2(_props: StepProps) {
   }, [theme]);
   return (
     <SurveyLayout
+      contentClassName={styles.step2Content}
       title={renderToString("OnboardingSurveyScreen.step2.title")}
       subtitle={renderToString("OnboardingSurveyScreen.step2.subtitle")}
       nextButton={
@@ -537,6 +538,7 @@ function Step3Team(_props: StepProps) {
   }, [theme]);
   return (
     <SurveyLayout
+      contentClassName={styles.step3Content}
       title={renderToString("OnboardingSurveyScreen.step3-team.title")}
       subtitle={renderToString("OnboardingSurveyScreen.step3-team.subtitle")}
       nextButton={
@@ -645,6 +647,7 @@ function Step3Individual(_props: StepProps) {
   }, [theme]);
   return (
     <SurveyLayout
+      contentClassName={styles.step3Content}
       title={renderToString("OnboardingSurveyScreen.step3-individual.title")}
       subtitle={renderToString(
         "OnboardingSurveyScreen.step3-individual.subtitle"
@@ -755,6 +758,7 @@ function Step4(_props: StepProps) {
   }, [theme]);
   return (
     <SurveyLayout
+      contentClassName={styles.step4Content}
       title={renderToString("OnboardingSurveyScreen.step4.title")}
       subtitle={renderToString("OnboardingSurveyScreen.step4.subtitle")}
       nextButton={
@@ -773,27 +777,29 @@ function Step4(_props: StepProps) {
         />
       }
     >
-      <MultiChoiceButtonGroup
-        prefix={[prefix, reasonChoiceGroup].join("_")}
-        availableChoices={reasonChoices}
-        selectedChoices={reasonChoicesState}
-        setChoice={setReasonChoicesState}
-      />
-      {reasonChoicesState.includes("Other") ? (
-        <FormProvider loading={false}>
-          <FormTextField
-            parentJSONPointer={""}
-            fieldName={"otherReason"}
-            styles={inputStyles}
-            className={styles.otherReasonInput}
-            label={renderToString(
-              "OnboardingSurveyScreen.step4.otherReason.label"
-            )}
-            value={otherReason}
-            onChange={(_, v) => setOtherReason(v!)}
-          />
-        </FormProvider>
-      ) : null}
+      <div className={styles.step4}>
+        <MultiChoiceButtonGroup
+          prefix={[prefix, reasonChoiceGroup].join("_")}
+          availableChoices={reasonChoices}
+          selectedChoices={reasonChoicesState}
+          setChoice={setReasonChoicesState}
+        />
+        {reasonChoicesState.includes("Other") ? (
+          <FormProvider loading={false}>
+            <FormTextField
+              parentJSONPointer={""}
+              fieldName={"otherReason"}
+              styles={inputStyles}
+              className={styles.otherReasonInput}
+              label={renderToString(
+                "OnboardingSurveyScreen.step4.otherReason.label"
+              )}
+              value={otherReason}
+              onChange={(_, v) => setOtherReason(v!)}
+            />
+          </FormProvider>
+        ) : null}
+      </div>
     </SurveyLayout>
   );
 }
