@@ -1,0 +1,34 @@
+.body {
+  @apply min-h-screen;
+  @apply shrink-0;
+  @apply flex flex-col;
+  @apply relative;
+}
+
+.logo {
+  @apply absolute;
+  @apply h-12;
+}
+
+.content {
+  @apply self-center;
+  @apply flex flex-col;
+  @apply mt-[100px] mx-4 mb-4;
+}
+
+.navigationDiv {
+  @apply self-center;
+  @apply flex flex-row justify-between items-center;
+  @apply gap-2.5;
+}
+
+.SurveyTitle {
+  @apply whitespace-pre-line;
+  @apply text-center;
+  @apply mb-6;
+}
+
+.SurveySubtitle {
+  @apply whitespace-pre-line;
+  @apply text-center;
+}
