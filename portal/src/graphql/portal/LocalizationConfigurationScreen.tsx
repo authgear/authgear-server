@@ -2,7 +2,6 @@ import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Pivot, PivotItem } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { produce } from "immer";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
@@ -14,7 +13,7 @@ import ManageLanguageWidget from "./ManageLanguageWidget";
 import EditTemplatesWidget, {
   EditTemplatesWidgetSection,
 } from "./EditTemplatesWidget";
-import { AuthenticatorEmailOTPMode, PortalAPIAppConfig } from "../../types";
+import { AuthenticatorEmailOTPMode } from "../../types";
 import {
   ALL_LANGUAGES_TEMPLATES,
   DEFAULT_TEMPLATE_LOCALE,
@@ -54,41 +53,11 @@ import {
   specifierId,
   expandSpecifier,
 } from "../../util/resource";
-import { useAppConfigForm } from "../../hook/useAppConfigForm";
-import { clearEmptyObject } from "../../util/misc";
 import { useResourceForm } from "../../hook/useResourceForm";
 import FormContainer from "../../FormContainer";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import styles from "./LocalizationConfigurationScreen.module.css";
-import { useDelayedSave } from "../../hook/useDelayedSave";
-
-interface ConfigFormState {
-  supportedLanguages: string[];
-  fallbackLanguage: string;
-}
-
-function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
-  const fallbackLanguage = config.localization?.fallback_language ?? "en";
-  return {
-    fallbackLanguage,
-    supportedLanguages: config.localization?.supported_languages ?? [
-      fallbackLanguage,
-    ],
-  };
-}
-
-function constructConfig(
-  config: PortalAPIAppConfig,
-  _initialState: ConfigFormState,
-  currentState: ConfigFormState
-): PortalAPIAppConfig {
-  return produce(config, (config) => {
-    config.localization = config.localization ?? {};
-    config.localization.fallback_language = currentState.fallbackLanguage;
-    config.localization.supported_languages = currentState.supportedLanguages;
-    clearEmptyObject(config);
-  });
-}
+import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 
 interface ResourcesFormState {
   resources: Partial<Record<string, Resource>>;
@@ -114,7 +83,9 @@ function constructResources(state: ResourcesFormState): Resource[] {
   return Object.values(state.resources).filter(Boolean) as Resource[];
 }
 
-interface FormState extends ConfigFormState, ResourcesFormState {
+interface FormState extends ResourcesFormState {
+  supportedLanguages: string[];
+  fallbackLanguage: string;
   selectedLanguage: string;
 }
 
@@ -177,55 +148,6 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
         setState((s) => ({ ...s, selectedLanguage }));
       },
       [setState]
-    );
-
-    const onChangeLanguages = useCallback(
-      (supportedLanguages: LanguageTag[], fallbackLanguage: LanguageTag) => {
-        setState((prev) => {
-          // Reset selected language to fallback language if it was removed.
-          let { selectedLanguage, resources } = prev;
-          resources = { ...resources };
-          if (!supportedLanguages.includes(selectedLanguage)) {
-            selectedLanguage = fallbackLanguage;
-          }
-
-          // Remove resources of removed languges
-          const removedLanguages = prev.supportedLanguages.filter(
-            (l) => !supportedLanguages.includes(l)
-          );
-          for (const [id, resource] of Object.entries(resources)) {
-            const language = resource?.specifier.locale;
-            if (
-              resource != null &&
-              language != null &&
-              removedLanguages.includes(language)
-            ) {
-              resources[id] = { ...resource, nullableValue: "" };
-            }
-          }
-
-          return {
-            ...prev,
-            selectedLanguage,
-            supportedLanguages,
-            fallbackLanguage,
-            resources,
-          };
-        });
-      },
-      [setState]
-    );
-
-    const enqueueSave = useDelayedSave(props.form);
-    const onChangeAndSaveLanguages = useCallback(
-      async (
-        supportedLanguages: LanguageTag[],
-        fallbackLanguage: LanguageTag
-      ) => {
-        onChangeLanguages(supportedLanguages, fallbackLanguage);
-        enqueueSave();
-      },
-      [enqueueSave, onChangeLanguages]
     );
 
     const [selectedKey, setSelectedKey] = useState<string>(PIVOT_KEY_DEFAULT);
@@ -816,8 +738,6 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             selectedLanguage={state.selectedLanguage}
             fallbackLanguage={state.fallbackLanguage}
             onChangeSelectedLanguage={setSelectedLanguage}
-            onChangeLanguages={onChangeLanguages}
-            onChangeAndSaveLanguages={onChangeAndSaveLanguages}
           />
         </div>
         <ScreenDescription className={styles.widget}>
@@ -900,22 +820,18 @@ const LocalizationConfigurationScreen: React.VFC =
     const [selectedLanguage, setSelectedLanguage] =
       useState<LanguageTag | null>(null);
 
-    const config = useAppConfigForm({
-      appID,
-      constructFormState,
-      constructConfig,
-    });
+    const config = useAppAndSecretConfigQuery(appID);
 
     const initialSupportedLanguages = useMemo(() => {
       return (
-        config.effectiveConfig.localization?.supported_languages ?? [
-          config.effectiveConfig.localization?.fallback_language ?? "en",
+        config.effectiveAppConfig?.localization?.supported_languages ?? [
+          config.effectiveAppConfig?.localization?.fallback_language ?? "en",
         ]
       );
-    }, [config.effectiveConfig.localization]);
+    }, [config.effectiveAppConfig?.localization]);
 
     const verificationEnabled = useMemo(() => {
-      const verificationConfig = config.effectiveConfig.verification;
+      const verificationConfig = config.effectiveAppConfig?.verification;
       return Boolean(
         (verificationConfig?.claims?.email?.enabled ?? true) ||
           (verificationConfig?.claims?.phone_number?.enabled ?? true)
@@ -924,23 +840,23 @@ const LocalizationConfigurationScreen: React.VFC =
 
     const passwordlessViaEmailEnabled = useMemo(() => {
       return (
-        config.effectiveConfig.authentication?.primary_authenticators?.indexOf(
+        config.effectiveAppConfig?.authentication?.primary_authenticators?.indexOf(
           "oob_otp_email"
         ) !== -1
       );
-    }, [config.effectiveConfig]);
+    }, [config.effectiveAppConfig]);
 
     const passwordlessViaSMSEnabled = useMemo(() => {
       return (
-        config.effectiveConfig.authentication?.primary_authenticators?.indexOf(
+        config.effectiveAppConfig?.authentication?.primary_authenticators?.indexOf(
           "oob_otp_sms"
         ) !== -1
       );
-    }, [config.effectiveConfig]);
+    }, [config.effectiveAppConfig]);
 
     const passwordlessViaEmailOTPMode =
-      config.effectiveConfig.authenticator?.oob_otp?.email?.email_otp_mode ??
-      "code";
+      config.effectiveAppConfig?.authenticator?.oob_otp?.email
+        ?.email_otp_mode ?? "code";
 
     const specifiers = useMemo<ResourceSpecifier[]>(() => {
       const specifiers = [];
@@ -969,49 +885,49 @@ const LocalizationConfigurationScreen: React.VFC =
       constructResources
     );
 
-    const state = useMemo<FormState>(
-      () => ({
-        supportedLanguages: config.state.supportedLanguages,
-        fallbackLanguage: config.state.fallbackLanguage,
+    const state = useMemo<FormState>(() => {
+      const fallbackLanguage =
+        config.effectiveAppConfig?.localization?.fallback_language ?? "en";
+      return {
+        supportedLanguages: config.effectiveAppConfig?.localization
+          ?.supported_languages ?? [fallbackLanguage],
+        fallbackLanguage,
         resources: resources.state.resources,
-        selectedLanguage: selectedLanguage ?? config.state.fallbackLanguage,
-      }),
-      [
-        config.state.supportedLanguages,
-        config.state.fallbackLanguage,
-        resources.state.resources,
-        selectedLanguage,
-      ]
-    );
+        selectedLanguage: selectedLanguage ?? fallbackLanguage,
+      };
+    }, [
+      config.effectiveAppConfig?.localization,
+      resources.state.resources,
+      selectedLanguage,
+    ]);
 
     const form: FormModel = useMemo(
       () => ({
-        isLoading: config.isLoading || resources.isLoading,
-        isUpdating: config.isUpdating || resources.isUpdating,
-        isDirty: config.isDirty || resources.isDirty,
-        loadError: config.loadError ?? resources.loadError,
-        updateError: config.updateError ?? resources.updateError,
+        isLoading: config.loading || resources.isLoading,
+        isUpdating: resources.isUpdating,
+        isDirty: resources.isDirty,
+        loadError: config.error ?? resources.loadError,
+        updateError: resources.updateError,
         state,
         setState: (fn) => {
           const newState = fn(state);
-          config.setState(() => ({
-            supportedLanguages: newState.supportedLanguages,
-            fallbackLanguage: newState.fallbackLanguage,
-          }));
           resources.setState(() => ({ resources: newState.resources }));
           setSelectedLanguage(newState.selectedLanguage);
         },
         reload: () => {
-          config.reload();
+          // Previously is also a floating promise, so just log the error out
+          // to make linter happy
+          config.refetch().catch((err) => {
+            console.error("Reload config error", err);
+            throw err;
+          });
           resources.reload();
         },
         reset: () => {
-          config.reset();
           resources.reset();
-          setSelectedLanguage(config.state.fallbackLanguage);
+          setSelectedLanguage(state.fallbackLanguage);
         },
         save: async (ignoreConflict: boolean = false) => {
-          await config.save(ignoreConflict);
           await resources.save(ignoreConflict);
         },
       }),

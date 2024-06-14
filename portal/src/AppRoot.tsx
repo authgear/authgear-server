@@ -91,6 +91,9 @@ const UISettingsScreen = lazy(
 const LocalizationConfigurationScreen = lazy(
   async () => import("./graphql/portal/LocalizationConfigurationScreen")
 );
+const LanguagesConfigurationScreen = lazy(
+  async () => import("./graphql/portal/LanguagesConfigurationScreen")
+);
 const InviteAdminScreen = lazy(
   async () => import("./graphql/portal/InviteAdminScreen")
 );
@@ -562,6 +565,14 @@ const AppRoot: React.VFC = function AppRoot() {
               element={
                 <Suspense fallback={<ShowLoading />}>
                   <LocalizationConfigurationScreen />
+                </Suspense>
+              }
+            />
+            <Route
+              path="languages"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <LanguagesConfigurationScreen />
                 </Suspense>
               }
             />

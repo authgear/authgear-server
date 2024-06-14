@@ -271,6 +271,11 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         url: `/project/${appID}/configuration/localization`,
       },
       {
+        type: "link" as const,
+        textKey: "ScreenNav.languages",
+        url: `/project/${appID}/configuration/languages`,
+      },
+      {
         type: "group" as const,
         textKey: "ScreenNav.user-profile",
         urlPrefix: `/project/${appID}/configuration/user-profile`,
