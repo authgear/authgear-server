@@ -129,7 +129,7 @@ func (n *NodePromoteIdentityOAuth) checkConflictByAccountLinkings(
 	spec *identity.Spec) (conflicts []*AccountLinkingConflict, err error) {
 	switch spec.Type {
 	case model.IdentityTypeOAuth:
-		return linkByOAuthIncomingOAuthSpec(ctx, deps, flows, &CreateIdentityRequestOAuth{
+		return linkByIncomingOAuthSpec(ctx, deps, flows, &CreateIdentityRequestOAuth{
 			Alias: n.Alias,
 			Spec:  spec,
 		}, n.JSONPointer)

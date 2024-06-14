@@ -68,7 +68,7 @@ func (i *IntentCheckConflictAndCreateIdenity) checkConflictByAccountLinkings(
 	flows authflow.Flows) (conflicts []*AccountLinkingConflict, err error) {
 	switch i.Request.Type {
 	case model.IdentityTypeOAuth:
-		return linkByOAuthIncomingOAuthSpec(ctx, deps, flows, i.Request.OAuth, i.JSONPointer)
+		return linkByIncomingOAuthSpec(ctx, deps, flows, i.Request.OAuth, i.JSONPointer)
 	default:
 		// Linking of other types are not supported at the moment
 		return nil, nil

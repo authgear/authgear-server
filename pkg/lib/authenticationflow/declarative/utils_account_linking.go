@@ -71,7 +71,7 @@ func newAccountLinkingOAuthConflict(identity *identity.Info, cfg *config.Account
 	return conflict
 }
 
-func linkByOAuthIncomingOAuthSpec(
+func linkByIncomingOAuthSpec(
 	ctx context.Context,
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
