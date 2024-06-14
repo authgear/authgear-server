@@ -146,7 +146,7 @@ func (n *NodePromoteIdentityLoginID) checkConflictByAccountLinkings(
 	spec *identity.Spec) (action config.AccountLinkingAction, conflicts []*identity.Info, err error) {
 	switch spec.Type {
 	case model.IdentityTypeLoginID:
-		// account linking of login id is not implemented at the moment
+		// FIXME(account-linking): Support login ID account linking in promote flow.
 		return "", []*identity.Info{}, nil
 	default:
 		panic("unexpected spec type")

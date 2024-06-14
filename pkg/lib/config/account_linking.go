@@ -115,3 +115,18 @@ var DefaultAccountLinkingOAuthItem = &AccountLinkingOAuthItem{
 	UserProfile: &AccountLinkingJSONPointer{Pointer: "/email"},
 	Action:      AccountLinkingActionError,
 }
+
+var DefaultAccountLinkingLoginIDEmailItem = &AccountLinkingLoginIDItem{
+	UserProfile: &AccountLinkingJSONPointer{Pointer: "/email"},
+	Action:      AccountLinkingActionError,
+}
+
+var DefaultAccountLinkingLoginIDPhoneItem = &AccountLinkingLoginIDItem{
+	UserProfile: &AccountLinkingJSONPointer{Pointer: "/phone_number"},
+	Action:      AccountLinkingActionError,
+}
+
+var DefaultAccountLinkingLoginIDUsernameItem = &AccountLinkingLoginIDItem{
+	UserProfile: &AccountLinkingJSONPointer{Pointer: "/preferred_username"},
+	Action:      AccountLinkingActionError,
+}

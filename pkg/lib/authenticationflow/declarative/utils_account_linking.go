@@ -2,6 +2,7 @@ package declarative
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
@@ -16,10 +17,11 @@ func resolveAccountLinkingConfigsOAuth(
 	ctx context.Context,
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
-	request *CreateIdentityRequestOAuth) ([]*config.AccountLinkingOAuthItem, error) {
+	request *CreateIdentityRequestOAuth,
+) ([]*config.AccountLinkingOAuthItem, error) {
 	cfg := deps.Config.AccountLinking
 
-	var matches []*config.AccountLinkingOAuthItem = []*config.AccountLinkingOAuthItem{}
+	matches := []*config.AccountLinkingOAuthItem{}
 
 	for _, oauthConfig := range cfg.OAuth {
 		oauthConfig := oauthConfig
@@ -31,6 +33,40 @@ func resolveAccountLinkingConfigsOAuth(
 	if len(matches) == 0 {
 		// By default, always error on email conflict
 		matches = append(matches, config.DefaultAccountLinkingOAuthItem)
+	}
+
+	return matches, nil
+}
+
+func resolveAccountLinkingConfigsLoginID(
+	ctx context.Context,
+	deps *authflow.Dependencies,
+	flows authflow.Flows,
+	request *CreateIdentityRequestLoginID,
+) ([]*config.AccountLinkingLoginIDItem, error) {
+	cfg := deps.Config.AccountLinking
+
+	matches := []*config.AccountLinkingLoginIDItem{}
+
+	for _, loginIDConfig := range cfg.LoginID {
+		loginIDConfig := loginIDConfig
+		if loginIDConfig.Key == request.Spec.LoginID.Key {
+			matches = append(matches, loginIDConfig)
+		}
+	}
+
+	if len(matches) == 0 {
+		// Otherwise, use the default based on the login ID type.
+		switch request.Spec.LoginID.Type {
+		case model.LoginIDKeyTypeEmail:
+			matches = append(matches, config.DefaultAccountLinkingLoginIDEmailItem)
+		case model.LoginIDKeyTypePhone:
+			matches = append(matches, config.DefaultAccountLinkingLoginIDPhoneItem)
+		case model.LoginIDKeyTypeUsername:
+			matches = append(matches, config.DefaultAccountLinkingLoginIDUsernameItem)
+		default:
+			panic(fmt.Errorf("unexpected login ID type: %v", request.Spec.LoginID.Type))
+		}
 	}
 
 	return matches, nil
@@ -71,13 +107,42 @@ func newAccountLinkingOAuthConflict(identity *identity.Info, cfg *config.Account
 	return conflict
 }
 
+func newAccountLinkingLoginIDConflict(iden *identity.Info, cfg *config.AccountLinkingLoginIDItem, overrides *config.AuthenticationFlowAccountLinking) *AccountLinkingConflict {
+	conflict := &AccountLinkingConflict{
+		Identity:  iden,
+		Action:    cfg.Action,
+		LoginFlow: "",
+	}
+
+	if overrides != nil && cfg.Name != "" {
+		var overrideItem *config.AuthenticationFlowAccountLinkingLoginIDItem
+		for _, item := range overrides.LoginID {
+			item := item
+			if item.Name != cfg.Name {
+				continue
+			}
+			overrideItem = item
+		}
+		if overrideItem != nil {
+			if overrideItem.Action != "" {
+				conflict.Action = overrideItem.Action
+			}
+			if overrideItem.LoginFlow != "" {
+				conflict.LoginFlow = overrideItem.LoginFlow
+			}
+		}
+	}
+
+	return conflict
+}
+
 func linkByIncomingOAuthSpec(
 	ctx context.Context,
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
 	request *CreateIdentityRequestOAuth,
-	identificationJSONPointer jsonpointer.T) (conflicts []*AccountLinkingConflict, err error) {
-
+	identificationJSONPointer jsonpointer.T,
+) (conflicts []*AccountLinkingConflict, err error) {
 	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
 	if err != nil {
 		return nil, err
@@ -137,7 +202,7 @@ func linkByIncomingOAuthSpec(
 		}
 	}
 
-	// check for identitical identities
+	// check for identical identities
 	for _, conflict := range conflicts {
 		conflict := conflict
 		if conflict.Identity.Type != model.IdentityTypeOAuth {
@@ -150,6 +215,89 @@ func linkByIncomingOAuthSpec(
 		}
 		if conflict.Identity.OAuth.ProviderSubjectID == request.Spec.OAuth.SubjectID {
 			// The identity is identical, throw error directly
+			spec := request.Spec
+			otherSpec := conflict.Identity.ToSpec()
+			return nil, identityFillDetails(api.ErrDuplicatedIdentity, spec, &otherSpec)
+		}
+	}
+
+	return conflicts, nil
+}
+
+func linkByIncomingLoginIDSpec(
+	ctx context.Context,
+	deps *authflow.Dependencies,
+	flows authflow.Flows,
+	request *CreateIdentityRequestLoginID,
+	identificationJSONPointer jsonpointer.T,
+) (conflicts []*AccountLinkingConflict, err error) {
+	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+	if err != nil {
+		return nil, err
+	}
+
+	current, err := authflow.FlowObject(flowRootObject, identificationJSONPointer)
+	if err != nil {
+		return nil, err
+	}
+
+	var configOverride *config.AuthenticationFlowAccountLinking
+	configOverrider, ok := current.(config.AuthenticationFlowObjectAccountLinkingConfigProvider)
+	if ok {
+		configOverride = configOverrider.GetAccountLinkingConfig()
+	}
+
+	loginIDConfigs, err := resolveAccountLinkingConfigsLoginID(ctx, deps, flows, request)
+	if err != nil {
+		return nil, err
+	}
+
+	unsafeValue := request.Spec.LoginID.Value
+	// FIXME(account-linking): Normalize login ID by type before use.
+	normalizedValue := unsafeValue
+
+	// For deduplication
+	conflictedIdentityIDs := map[string]interface{}{}
+
+	for _, loginIDConfig := range loginIDConfigs {
+
+		idenConflicts, err := deps.Identities.ListByClaimJSONPointer(
+			loginIDConfig.UserProfile.GetJSONPointer(),
+			normalizedValue,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, iden := range idenConflicts {
+			iden := iden
+			// Exclude duplicates
+			if _, exist := conflictedIdentityIDs[iden.ID]; exist {
+				continue
+			}
+			conflictedIdentityIDs[iden.ID] = iden.ID
+			conflict := newAccountLinkingLoginIDConflict(iden, loginIDConfig, configOverride)
+			conflicts = append(conflicts, conflict)
+		}
+	}
+
+	// check for identical identities
+	for _, conflict := range conflicts {
+		conflict := conflict
+		if conflict.Identity.Type != model.IdentityTypeLoginID {
+			// Not the same type, so must be not identical
+			continue
+		}
+		if conflict.Identity.LoginID.LoginIDType != request.Spec.LoginID.Type {
+			// Not of the same login ID type.
+			continue
+		}
+		if conflict.Identity.LoginID.LoginIDKey != request.Spec.LoginID.Key {
+			// Not of the same login ID key.
+			continue
+		}
+		if conflict.Identity.LoginID.LoginID == normalizedValue {
+			// The identity is identical, throw error directly.
 			spec := request.Spec
 			otherSpec := conflict.Identity.ToSpec()
 			return nil, identityFillDetails(api.ErrDuplicatedIdentity, spec, &otherSpec)
