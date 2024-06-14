@@ -15,6 +15,7 @@ import styles from "./ManageLanguageWidget.module.css";
 
 interface ManageLanguageWidgetProps {
   className?: string;
+  showLabel?: boolean;
 
   // The supported languages.
   existingLanguages: LanguageTag[];
@@ -41,6 +42,7 @@ const ManageLanguageWidget: React.VFC<ManageLanguageWidgetProps> =
       selectedLanguage,
       onChangeSelectedLanguage,
       fallbackLanguage,
+      showLabel = true,
     } = props;
 
     const { renderToString } = useContext(Context);
@@ -150,9 +152,11 @@ const ManageLanguageWidget: React.VFC<ManageLanguageWidgetProps> =
       <>
         <div className={cn(className, styles.root)}>
           <div className={styles.container}>
-            <Label className={styles.titleLabel}>
-              <FormattedMessage id="ManageLanguageWidget.title" />
-            </Label>
+            {showLabel ? (
+              <Label className={styles.titleLabel}>
+                <FormattedMessage id="ManageLanguageWidget.title" />
+              </Label>
+            ) : null}
             <div className={styles.control}>
               <Dropdown
                 id="language-widget"
