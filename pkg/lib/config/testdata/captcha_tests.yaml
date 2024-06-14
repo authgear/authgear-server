@@ -37,3 +37,29 @@ value:
   providers:
   - type: hcaptcha # not supported yet
     alias: hcaptcha
+---
+part: CaptchaConfig
+name: missing-site-key-for-cloudflare
+error: |-
+  invalid value:
+  /providers/0: required
+    map[actual:[alias type] expected:[site_key] missing:[site_key]]
+value:
+  enabled: true
+  providers:
+  - type: cloudflare
+    alias: cloudflare
+    # "site_key" is not set
+---
+part: CaptchaConfig
+name: missing-site-key-for-recaptcha-v2
+error: |-
+  invalid value:
+  /providers/0: required
+    map[actual:[alias type] expected:[site_key] missing:[site_key]]
+value:
+  enabled: true
+  providers:
+  - type: recaptchav2
+    alias: recaptchav2
+    # "site_key" is not set

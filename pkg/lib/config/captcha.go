@@ -24,7 +24,22 @@ var _ = Schema.Add("CaptchaProvider", `
 		"type": { "type": "string", "enum": ["cloudflare", "recaptchav2"] },
 		"alias": { "type": "string" },
 		"site_key": { "type": "string" }
-	}
+	},
+	"allOf": [
+		{
+			"if": {
+				"properties": {
+					"type": {
+						"enum": ["cloudflare", "recaptchav2"]
+					}
+				},
+				"required": ["type"]
+			},
+			"then": {
+				"required": ["site_key"]
+			}
+		}
+	]
 }
 `)
 
