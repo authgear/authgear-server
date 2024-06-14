@@ -122,7 +122,7 @@ const VerifyDomain: React.VFC<VerifyDomainProps> = function VerifyDomain(
   const navBreadcrumbItems = useMemo(() => {
     return [
       {
-        to: `/project/${appID}/custom-domains`,
+        to: `/project/${appID}/branding/custom-domains`,
         label: <FormattedMessage id="CustomDomainListScreen.title" />,
       },
       { to: ".", label: <FormattedMessage id="VerifyDomainScreen.title" /> },

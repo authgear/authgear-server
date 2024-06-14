@@ -420,31 +420,6 @@ const AppRoot: React.VFC = function AppRoot() {
             </Route>
           </Route>
 
-          <Route path="custom-domains">
-            <Route
-              index={true}
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <CustomDomainListScreen />
-                </Suspense>
-              }
-            />
-            <Route path=":domainID">
-              <Route
-                index={true}
-                element={<Navigate to="verify" replace={true} />}
-              />
-              <Route
-                path="verify"
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <VerifyDomainScreen />
-                  </Suspense>
-                }
-              />
-            </Route>
-          </Route>
-
           <Route path="branding">
             <Route
               index={true}
@@ -466,6 +441,30 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
+            <Route path="custom-domains">
+              <Route
+                index={true}
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <CustomDomainListScreen />
+                  </Suspense>
+                }
+              />
+              <Route path=":domainID">
+                <Route
+                  index={true}
+                  element={<Navigate to="verify" replace={true} />}
+                />
+                <Route
+                  path="verify"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <VerifyDomainScreen />
+                    </Suspense>
+                  }
+                />
+              </Route>
+            </Route>
           </Route>
 
           <Route path="configuration">
