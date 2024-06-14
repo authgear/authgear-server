@@ -17,9 +17,12 @@ import (
 
 	"github.com/authgear/authgear-server/e2e/cmd/proxy/mockoidc"
 	"github.com/authgear/authgear-server/e2e/cmd/proxy/modifier"
+	"github.com/authgear/authgear-server/pkg/util/debug"
 )
 
 func main() {
+	debug.TrapSIGQUIT()
+
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
