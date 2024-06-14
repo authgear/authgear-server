@@ -91,6 +91,9 @@ const UISettingsScreen = lazy(
 const LocalizationConfigurationScreen = lazy(
   async () => import("./graphql/portal/LocalizationConfigurationScreen")
 );
+const CustomTextConfigurationScreen = lazy(
+  async () => import("./graphql/portal/CustomTextConfigurationScreen")
+);
 const LanguagesConfigurationScreen = lazy(
   async () => import("./graphql/portal/LanguagesConfigurationScreen")
 );
@@ -465,6 +468,14 @@ const AppRoot: React.VFC = function AppRoot() {
                 />
               </Route>
             </Route>
+            <Route
+              path="custom-text"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <CustomTextConfigurationScreen />
+                </Suspense>
+              }
+            />
           </Route>
 
           <Route path="configuration">

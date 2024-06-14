@@ -270,6 +270,11 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             textKey: "CustomDomainListScreen.title",
             url: `/project/${appID}/branding/custom-domains`,
           },
+          {
+            type: "link" as const,
+            textKey: "ScreenNav.customText",
+            url: `/project/${appID}/branding/custom-text`,
+          },
         ],
       },
       {
