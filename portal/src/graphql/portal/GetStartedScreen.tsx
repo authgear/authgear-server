@@ -104,7 +104,7 @@ function useCardSpecs(options: MakeCardSpecsOptions): CardSpec[] {
     () => ({
       key: "customize_ui",
       iconSrc: iconCustomize,
-      internalHref: "~/configuration/ui-settings",
+      internalHref: "~/branding/ui-settings",
       onClick: (_e) => {
         capture("getStarted.clicked-customize");
       },

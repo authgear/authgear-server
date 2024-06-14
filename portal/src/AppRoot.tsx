@@ -445,6 +445,21 @@ const AppRoot: React.VFC = function AppRoot() {
             </Route>
           </Route>
 
+          <Route path="branding">
+            <Route
+              index={true}
+              element={<Navigate to="ui-settings" replace={true} />}
+            />
+            <Route
+              path="ui-settings"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <UISettingsScreen />
+                </Suspense>
+              }
+            />
+          </Route>
+
           <Route path="configuration">
             <Route
               index={true}
@@ -544,14 +559,6 @@ const AppRoot: React.VFC = function AppRoot() {
                 />
               </Route>
             </Route>
-            <Route
-              path="ui-settings"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <UISettingsScreen />
-                </Suspense>
-              }
-            />
             <Route
               path="localization"
               element={

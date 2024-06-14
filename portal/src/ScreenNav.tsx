@@ -257,11 +257,6 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
       },
       {
         type: "link" as const,
-        textKey: "ScreenNav.ui-settings",
-        url: `/project/${appID}/configuration/ui-settings`,
-      },
-      {
-        type: "link" as const,
         textKey: "ScreenNav.localization",
         url: `/project/${appID}/configuration/localization`,
       },
@@ -269,7 +264,13 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         type: "group" as const,
         textKey: "ScreenNav.branding",
         urlPrefix: `/project/${appID}/branding`,
-        children: [],
+        children: [
+          {
+            type: "link" as const,
+            textKey: "ScreenNav.ui-settings",
+            url: `/project/${appID}/branding/ui-settings`,
+          },
+        ],
       },
       {
         type: "link" as const,
