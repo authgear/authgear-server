@@ -1,6 +1,6 @@
 package config
 
-var _ = SecretConfigSchema.Add("CaptchaCloudflareCredentials", `
+var _ = SecretConfigSchema.Add("LegacyCaptchaCloudflareCredentials", `
 {
 	"type": "object",
 	"additionalProperties": false,
@@ -11,11 +11,11 @@ var _ = SecretConfigSchema.Add("CaptchaCloudflareCredentials", `
 }
 `)
 
-type CaptchaCloudflareCredentials struct {
+type LegacyCaptchaCloudflareCredentials struct {
 	Secret string `json:"secret,omitempty"`
 }
 
-func (c *CaptchaCloudflareCredentials) SensitiveStrings() []string {
+func (c *LegacyCaptchaCloudflareCredentials) SensitiveStrings() []string {
 	return []string{
 		c.Secret,
 	}
