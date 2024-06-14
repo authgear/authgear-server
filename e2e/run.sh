@@ -63,7 +63,8 @@ function teardown {( set -e
 
 function tests {( set -e
     echo "[ ] Run tests..."
-    go test ./... -v -timeout 10m -parallel 5
+    # Use -count 1 to disable cache. We want to run the tests without caching.
+    go test ./... -count 1 -v -timeout 10m -parallel 5
 )}
 
 function main {( set -e
