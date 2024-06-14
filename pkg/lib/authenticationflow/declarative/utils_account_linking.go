@@ -78,7 +78,7 @@ type AccountLinkingConflict struct {
 	LoginFlow string                      `json:"login_flow"`
 }
 
-func newAccountLinkingOAuthConflict(identity *identity.Info, cfg *config.AccountLinkingOAuthItem, overrides *config.AuthenticationFlowAccountLinking) *AccountLinkingConflict {
+func newAccountLinkingConflictWithIncomingOAuth(identity *identity.Info, cfg *config.AccountLinkingOAuthItem, overrides *config.AuthenticationFlowAccountLinking) *AccountLinkingConflict {
 	conflict := &AccountLinkingConflict{
 		Identity:  identity,
 		Action:    cfg.Action,
@@ -107,7 +107,7 @@ func newAccountLinkingOAuthConflict(identity *identity.Info, cfg *config.Account
 	return conflict
 }
 
-func newAccountLinkingLoginIDConflict(iden *identity.Info, cfg *config.AccountLinkingLoginIDItem, overrides *config.AuthenticationFlowAccountLinking) *AccountLinkingConflict {
+func newAccountLinkingConflictWithIncomingLoginID(iden *identity.Info, cfg *config.AccountLinkingLoginIDItem, overrides *config.AuthenticationFlowAccountLinking) *AccountLinkingConflict {
 	conflict := &AccountLinkingConflict{
 		Identity:  iden,
 		Action:    cfg.Action,
@@ -197,7 +197,7 @@ func linkByIncomingOAuthSpec(
 				continue
 			}
 			conflictedIdentityIDs[iden.ID] = iden.ID
-			conflict := newAccountLinkingOAuthConflict(iden, oauthConfig, configOverride)
+			conflict := newAccountLinkingConflictWithIncomingOAuth(iden, oauthConfig, configOverride)
 			conflicts = append(conflicts, conflict)
 		}
 	}
@@ -277,7 +277,7 @@ func linkByIncomingLoginIDSpec(
 				continue
 			}
 			conflictedIdentityIDs[iden.ID] = iden.ID
-			conflict := newAccountLinkingLoginIDConflict(iden, loginIDConfig, configOverride)
+			conflict := newAccountLinkingConflictWithIncomingLoginID(iden, loginIDConfig, configOverride)
 			conflicts = append(conflicts, conflict)
 		}
 	}
