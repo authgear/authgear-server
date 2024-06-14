@@ -257,11 +257,6 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
       },
       {
         type: "link" as const,
-        textKey: "ScreenNav.smtp",
-        url: `/project/${appID}/configuration/smtp`,
-      },
-      {
-        type: "link" as const,
         textKey: "ScreenNav.ui-settings",
         url: `/project/${appID}/configuration/ui-settings`,
       },
@@ -335,6 +330,11 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             type: "link" as const,
             textKey: "ScreenNav.session",
             url: `/project/${appID}/advanced/session`,
+          },
+          {
+            type: "link" as const,
+            textKey: "ScreenNav.smtp",
+            url: `/project/${appID}/advanced/smtp`,
           },
         ],
       },

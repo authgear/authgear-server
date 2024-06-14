@@ -545,14 +545,6 @@ const AppRoot: React.VFC = function AppRoot() {
               </Route>
             </Route>
             <Route
-              path="smtp"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <SMTPConfigurationScreen />
-                </Suspense>
-              }
-            />
-            <Route
               path="ui-settings"
               element={
                 <Suspense fallback={<ShowLoading />}>
@@ -707,6 +699,14 @@ const AppRoot: React.VFC = function AppRoot() {
               element={
                 <Suspense fallback={<ShowLoading />}>
                   <CookieLifetimeConfigurationScreen />
+                </Suspense>
+              }
+            />
+            <Route
+              path="smtp"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <SMTPConfigurationScreen />
                 </Suspense>
               }
             />
