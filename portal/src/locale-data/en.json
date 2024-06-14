@@ -157,7 +157,7 @@
   "ScreenNav.login-methods": "Login Methods",
   "ScreenNav.client-applications": "Applications",
   "ScreenNav.ui-settings": "UI Settings",
-  "ScreenNav.localization": "Localization",
+  "ScreenNav.localization": "Email/SMS Templates",
   "ScreenNav.branding": "Branding",
   "ScreenNav.customText": "Custom Text",
   "ScreenNav.languages": "Languages",
@@ -900,7 +900,7 @@
   "UISettingsScreen.branding.title": "Authgear branding",
   "UISettingsScreen.branding.disable-authgear-logo.label": "Display Authgear logo in Login and Signup page",
 
-  "LocalizationConfigurationScreen.title": "Localization",
+  "LocalizationConfigurationScreen.title": "Email/SMS Templates",
   "LocalizationConfigurationScreen.description": "Update template contents and localizations.",
   "LocalizationConfigurationScreen.template-content-title": "Update Template Contents",
   "LocalizationConfigurationScreen.forgot-password-link.title": "Reset Password by Link",
