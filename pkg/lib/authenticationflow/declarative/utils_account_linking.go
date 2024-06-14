@@ -252,9 +252,10 @@ func linkByIncomingLoginIDSpec(
 		return nil, err
 	}
 
-	unsafeValue := request.Spec.LoginID.Value
-	// FIXME(account-linking): Normalize login ID by type before use.
-	normalizedValue := unsafeValue
+	normalizedValue, _, err := deps.LoginIDs.Normalize(request.Spec.LoginID.Type, request.Spec.LoginID.Value)
+	if err != nil {
+		return nil, err
+	}
 
 	// For deduplication
 	conflictedIdentityIDs := map[string]interface{}{}
