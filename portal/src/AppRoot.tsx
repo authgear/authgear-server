@@ -450,7 +450,7 @@ const AppRoot: React.VFC = function AppRoot() {
             <Route path="authentication">
               <Route
                 index={true}
-                element={<Navigate to="login-id" replace={true} />}
+                element={<Navigate to="login-methods" replace={true} />}
               />
               <Route
                 path="login-methods"
