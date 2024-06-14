@@ -53,35 +53,14 @@ import {
   specifierId,
   expandSpecifier,
 } from "../../util/resource";
-import { useResourceForm } from "../../hook/useResourceForm";
+import {
+  ResourcesFormState,
+  useResourceForm,
+} from "../../hook/useResourceForm";
 import FormContainer from "../../FormContainer";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import styles from "./LocalizationConfigurationScreen.module.css";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
-
-interface ResourcesFormState {
-  resources: Partial<Record<string, Resource>>;
-}
-
-function constructResourcesFormState(
-  resources: Resource[]
-): ResourcesFormState {
-  const resourceMap: Partial<Record<string, Resource>> = {};
-  for (const r of resources) {
-    const id = specifierId(r.specifier);
-    // Multiple resources may use same specifier ID (images),
-    // use the first resource with non-empty values.
-    if ((resourceMap[id]?.nullableValue ?? "") === "") {
-      resourceMap[specifierId(r.specifier)] = r;
-    }
-  }
-
-  return { resources: resourceMap };
-}
-
-function constructResources(state: ResourcesFormState): Resource[] {
-  return Object.values(state.resources).filter(Boolean) as Resource[];
-}
 
 interface FormState extends ResourcesFormState {
   supportedLanguages: string[];
@@ -878,12 +857,7 @@ const LocalizationConfigurationScreen: React.VFC =
       return specifiers;
     }, [initialSupportedLanguages]);
 
-    const resources = useResourceForm(
-      appID,
-      specifiers,
-      constructResourcesFormState,
-      constructResources
-    );
+    const resources = useResourceForm(appID, specifiers);
 
     const state = useMemo<FormState>(() => {
       const fallbackLanguage =
