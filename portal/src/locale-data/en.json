@@ -903,7 +903,6 @@
   "LocalizationConfigurationScreen.title": "Localization",
   "LocalizationConfigurationScreen.description": "Update template contents and localizations.",
   "LocalizationConfigurationScreen.template-content-title": "Update Template Contents",
-  "LocalizationConfigurationScreen.translationjson.title": "Other Translations",
   "LocalizationConfigurationScreen.forgot-password-link.title": "Reset Password by Link",
   "LocalizationConfigurationScreen.forgot-password-code.title": "Reset Password by OTP",
   "LocalizationConfigurationScreen.verification.title": "Verification",

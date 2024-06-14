@@ -58,7 +58,6 @@ import {
   useResourceForm,
 } from "../../hook/useResourceForm";
 import FormContainer from "../../FormContainer";
-import { useSystemConfig } from "../../context/SystemConfigContext";
 import styles from "./LocalizationConfigurationScreen.module.css";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 
@@ -95,7 +94,6 @@ const PIVOT_KEY_FORGOT_PASSWORD_CODE = "forgot_password_code";
 const PIVOT_KEY_VERIFICATION = "verification";
 const PIVOT_KEY_PASSWORDLESS_VIA_EMAIL = "passwordless_via_email";
 const PIVOT_KEY_PASSWORDLESS_VIA_SMS = "passwordless_via_sms";
-const PIVOT_KEY_TRANSLATION_JSON = "translation.json";
 
 const PIVOT_KEY_DEFAULT = PIVOT_KEY_FORGOT_PASSWORD_LINK;
 
@@ -105,7 +103,6 @@ const ALL_PIVOT_KEYS = [
   PIVOT_KEY_VERIFICATION,
   PIVOT_KEY_PASSWORDLESS_VIA_EMAIL,
   PIVOT_KEY_PASSWORDLESS_VIA_SMS,
-  PIVOT_KEY_TRANSLATION_JSON,
 ];
 
 const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProps> =
@@ -120,7 +117,6 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
     } = props;
     const { supportedLanguages } = state;
     const { renderToString } = useContext(Context);
-    const { gitCommitHash } = useSystemConfig();
 
     const setSelectedLanguage = useCallback(
       (selectedLanguage: LanguageTag) => {
@@ -375,32 +371,6 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
       },
       [setState, getValueFromState, state.selectedLanguage]
     );
-
-    const sectionsTranslationJSON: EditTemplatesWidgetSection[] = [
-      {
-        key: "translation.json",
-        title: (
-          <FormattedMessage id="EditTemplatesWidget.translationjson.title" />
-        ),
-        items: [
-          {
-            key: "translation.json",
-            title: (
-              <FormattedMessage
-                id="EditTemplatesWidget.translationjson.subtitle"
-                values={{
-                  COMMIT: gitCommitHash,
-                }}
-              />
-            ),
-            language: "json",
-            value: getValue(RESOURCE_TRANSLATION_JSON),
-            onChange: getOnChange(RESOURCE_TRANSLATION_JSON),
-            editor: "code",
-          },
-        ],
-      },
-    ];
 
     const sectionsForgotPasswordLink: EditTemplatesWidgetSection[] = [
       {
@@ -779,14 +749,6 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
                 <EditTemplatesWidget sections={sectionsPasswordlessViaSMS} />
               </PivotItem>
             ) : null}
-            <PivotItem
-              headerText={renderToString(
-                "LocalizationConfigurationScreen.translationjson.title"
-              )}
-              itemKey={PIVOT_KEY_TRANSLATION_JSON}
-            >
-              <EditTemplatesWidget sections={sectionsTranslationJSON} />
-            </PivotItem>
           </Pivot>
         </Widget>
       </ScreenContent>
