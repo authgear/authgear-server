@@ -21,7 +21,7 @@ var _ = Schema.Add("CaptchaProvider", `
 	"additionalProperties": false,
 	"required": ["type", "alias"],
 	"properties": {
-		"type": { "type": "string" },
+		"type": { "type": "string", "enum": ["cloudflare", "recaptchav2"] },
 		"alias": { "type": "string" },
 		"site_key": { "type": "string" }
 	}
@@ -35,10 +35,17 @@ type CaptchaConfig struct {
 }
 
 type CaptchaProvider struct {
-	Type    string `json:"type,omitempty"`
-	Alias   string `json:"alias,omitempty"`
-	SiteKey string `json:"site_key,omitempty"` // only for some providers
+	Type    CaptchaProviderType `json:"type,omitempty"`
+	Alias   string              `json:"alias,omitempty"`
+	SiteKey string              `json:"site_key,omitempty"` // only for some providers
 }
+
+type CaptchaProviderType string
+
+const (
+	CaptchaProviderTypeCloudflare  CaptchaProviderType = "cloudflare"
+	CaptchaProviderTypeRecaptchaV2 CaptchaProviderType = "recaptchav2"
+)
 
 // legacy code below
 
