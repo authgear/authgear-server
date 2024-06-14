@@ -1,6 +1,7 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Pivot, PivotItem } from "@fluentui/react";
+import cn from "classnames";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
@@ -677,11 +678,15 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
 
     return (
       <ScreenContent>
-        <div className={styles.titleContainer}>
-          <ScreenTitle>
-            <FormattedMessage id="LocalizationConfigurationScreen.title" />
-          </ScreenTitle>
+        <ScreenTitle className={cn("col-span-8", "tablet:col-span-full")}>
+          <FormattedMessage id="LocalizationConfigurationScreen.title" />
+        </ScreenTitle>
+        <div className={styles.descriptionContainer}>
+          <ScreenDescription className={styles.widget}>
+            <FormattedMessage id="LocalizationConfigurationScreen.description" />
+          </ScreenDescription>
           <ManageLanguageWidget
+            showLabel={false}
             existingLanguages={initialSupportedLanguages}
             supportedLanguages={supportedLanguages}
             selectedLanguage={state.selectedLanguage}
@@ -689,9 +694,6 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             onChangeSelectedLanguage={setSelectedLanguage}
           />
         </div>
-        <ScreenDescription className={styles.widget}>
-          <FormattedMessage id="LocalizationConfigurationScreen.description" />
-        </ScreenDescription>
         {/* Code editors might incorrectly fire change events when changing language
             Set key to selectedLanguage to ensure code editors always remount */}
         <Widget className={styles.widget} key={state.selectedLanguage}>
