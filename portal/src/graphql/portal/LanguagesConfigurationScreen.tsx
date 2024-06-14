@@ -173,6 +173,7 @@ const SelectPrimaryLanguageSection: React.VFC<SelectPrimaryLanguageWidgetProps> 
             selectedItem={selectedOption}
             searchValue={searchValue}
             onSearchValueChange={setSearchValue}
+            onRenderCaretDown={undefined} // we want to use the default arrow down icon
           />
         </Label>
       </Section>
