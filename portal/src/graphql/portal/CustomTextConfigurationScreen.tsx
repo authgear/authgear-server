@@ -1,5 +1,8 @@
 import React, { useMemo } from "react";
 import { useParams } from "react-router-dom";
+import { FormattedMessage } from "@oursky/react-messageformat";
+import cn from "classnames";
+
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import { ResourceSpecifier } from "../../util/resource";
 import {
@@ -8,6 +11,8 @@ import {
 } from "../../resources";
 import { useResourceForm } from "../../hook/useResourceForm";
 import FormContainer from "../../FormContainer";
+import ScreenContent from "../../ScreenContent";
+import ScreenTitle from "../../ScreenTitle";
 
 const CustomTextConfigurationScreen: React.VFC =
   function CustomTextConfigurationScreen() {
@@ -43,7 +48,15 @@ const CustomTextConfigurationScreen: React.VFC =
 
     const resourceForm = useResourceForm(appID, specifiers);
 
-    return <FormContainer form={resourceForm} canSave={true}></FormContainer>;
+    return (
+      <FormContainer form={resourceForm} canSave={true}>
+        <ScreenContent>
+          <ScreenTitle className={cn("col-span-8", "tablet:col-span-full")}>
+            <FormattedMessage id="CustomTextConfigurationScreen.title" />
+          </ScreenTitle>
+        </ScreenContent>
+      </FormContainer>
+    );
   };
 
 export default CustomTextConfigurationScreen;

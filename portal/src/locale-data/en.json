@@ -910,6 +910,8 @@
   "LocalizationConfigurationScreen.passwordless-via-email.title": "Passwordless via Email",
   "LocalizationConfigurationScreen.passwordless-via-sms.title": "Passwordless via SMS",
 
+  "CustomTextConfigurationScreen.title": "Custom Text",
+
   "LanguagesConfigurationScreen.title": "Languages",
   "LanguagesConfigurationScreen.selectPrimaryLanguageWidget.title": "Primary language",
   "LanguagesConfigurationScreen.selectPrimaryLanguageWidget.description": "Choose the language will be displayed if the user's locale does not match any other supported languages.",
