@@ -10,3 +10,10 @@ value:
   - type: recaptchav2
     alias: recaptchav2
     site_key: blahblahblah
+---
+part: CaptchaConfig
+name: legacy-provider-only
+error: null
+value:
+  provider: cloudflare
+  # Note "enabled" and "providers" are not set, only legacy field "provider" is set
