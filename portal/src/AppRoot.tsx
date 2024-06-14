@@ -458,6 +458,14 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
+            <Route
+              path="localization"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <LocalizationConfigurationScreen />
+                </Suspense>
+              }
+            />
           </Route>
 
           <Route path="configuration">
@@ -559,14 +567,6 @@ const AppRoot: React.VFC = function AppRoot() {
                 />
               </Route>
             </Route>
-            <Route
-              path="localization"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <LocalizationConfigurationScreen />
-                </Suspense>
-              }
-            />
             <Route
               path="languages"
               element={
