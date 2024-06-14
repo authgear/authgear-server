@@ -1,0 +1,12 @@
+part: CaptchaConfig
+name: valid
+error: null
+value:
+  enabled: true
+  providers:
+  - type: cloudflare
+    alias: cloudflare
+    site_key: asdkjhfjaksdhjkfsdhadsk
+  - type: recaptchav2
+    alias: recaptchav2
+    site_key: blahblahblah
