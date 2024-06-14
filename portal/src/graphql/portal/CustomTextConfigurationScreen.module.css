@@ -1,0 +1,7 @@
+.widget {
+  @apply col-span-8 tablet:col-span-full;
+}
+
+.translationEditorWidget {
+  margin-top: 0;
+}
