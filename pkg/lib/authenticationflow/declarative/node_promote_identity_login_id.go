@@ -73,14 +73,14 @@ func (n *NodePromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authflow
 			if apierrors.IsKind(err, api.UserNotFound) {
 				spec := n.makeLoginIDSpec(loginID)
 
-				_, conflicts, err := n.checkConflictByAccountLinkings(ctx, deps, flows, spec)
+				conflicts, err := n.checkConflictByAccountLinkings(ctx, deps, flows, spec)
 				if err != nil {
 					return nil, err
 				}
 				if len(conflicts) > 0 {
 					// In promote flow, always error if any conflicts occurs
-					conflictSpecs := slice.Map(conflicts, func(i *identity.Info) *identity.Spec {
-						s := i.ToSpec()
+					conflictSpecs := slice.Map(conflicts, func(c *AccountLinkingConflict) *identity.Spec {
+						s := c.Identity.ToSpec()
 						return &s
 					})
 					return nil, identityFillDetailsMany(api.ErrDuplicatedIdentity, spec, conflictSpecs)
@@ -143,11 +143,10 @@ func (n *NodePromoteIdentityLoginID) checkConflictByAccountLinkings(
 	ctx context.Context,
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
-	spec *identity.Spec) (action config.AccountLinkingAction, conflicts []*identity.Info, err error) {
+	spec *identity.Spec) (conflicts []*AccountLinkingConflict, err error) {
 	switch spec.Type {
 	case model.IdentityTypeLoginID:
-		// FIXME(account-linking): Support login ID account linking in promote flow.
-		return "", []*identity.Info{}, nil
+		return linkByIncomingLoginIDSpec(ctx, deps, flows, NewCreateLoginIDIdentityRequest(spec).LoginID, n.JSONPointer)
 	default:
 		panic("unexpected spec type")
 	}
