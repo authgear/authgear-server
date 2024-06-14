@@ -17,3 +17,11 @@ error: null
 value:
   provider: cloudflare
   # Note "enabled" and "providers" are not set, only legacy field "provider" is set
+---
+part: CaptchaConfig
+name: missing-enabled-and-providers
+error: |-
+  invalid value:
+  /some_invalid_key: 
+value:
+  some_invalid_key: blahblah
