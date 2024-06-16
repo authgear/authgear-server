@@ -230,6 +230,9 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 	if len(appConfig.Hook.BlockingHandlers) > 0 || len(appConfig.Hook.NonBlockingHandlers) > 0 {
 		c.validateRequire(ctx, WebhookKeyMaterialsKey, "web-hook signing key materials")
 	}
+	if appConfig.Captcha.Enabled || len(appConfig.Captcha.Providers) > 0 {
+		c.validateRequire(ctx, CaptchaProvidersCredentialsKey, "captcha key materials")
+	}
 
 	return ctx.Error("invalid secrets")
 }
