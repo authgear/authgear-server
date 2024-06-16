@@ -266,6 +266,7 @@ const (
 	OAuthClientCredentialsKey SecretKey = "oauth.client_secrets"
 	// nolint: gosec
 	LegacyCaptchaCloudflareCredentialsKey SecretKey = "captcha.cloudflare"
+	CaptchaProvidersCredentialsKey        SecretKey = "captcha.providers"
 	WhatsappOnPremisesCredentialsKey      SecretKey = "whatsapp.on-premises"
 )
 
@@ -307,6 +308,7 @@ var secretItemKeys = map[SecretKey]secretKeyDef{
 	OAuthClientCredentialsKey:             {"OAuthClientCredentials", func() SecretItemData { return &OAuthClientCredentials{} }},
 	CustomSMSProviderConfigKey:            {"CustomSMSProviderConfig", func() SecretItemData { return &CustomSMSProviderConfig{} }},
 	LegacyCaptchaCloudflareCredentialsKey: {"LegeacyCaptchaCloudflareCredentials", func() SecretItemData { return &LegacyCaptchaCloudflareCredentials{} }},
+	CaptchaProvidersCredentialsKey:        {"CaptchaProvidersCredentials", func() SecretItemData { return &CaptchaProvidersCredentials{} }},
 	WhatsappOnPremisesCredentialsKey:      {"WhatsappOnPremisesCredentials", func() SecretItemData { return &WhatsappOnPremisesCredentials{} }},
 }
 
