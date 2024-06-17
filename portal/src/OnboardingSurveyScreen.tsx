@@ -723,8 +723,13 @@ function Step4(_props: StepProps) {
       e.stopPropagation();
       setLocalStorage("reasonChoices", reasonChoicesState);
       if (otherReason !== "") setLocalStorage("otherReason", otherReason);
+      const companyName = getFromLocalStorage("companyName");
       localStorage.removeItem(localStorageKey);
-      navigate("./../../projects/create");
+      if (companyName !== undefined)
+        navigate("./../../projects/create", {
+          state: { company_name: companyName },
+        });
+      else navigate("./../../projects/create");
     },
     [navigate, reasonChoicesState, otherReason]
   );

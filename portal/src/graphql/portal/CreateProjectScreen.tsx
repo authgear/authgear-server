@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import WizardScreenLayout from "../../WizardScreenLayout";
 import WizardContentLayout, { WizardTitle } from "../../WizardContentLayout";
@@ -61,6 +61,22 @@ interface CreateProjectScreenContentProps {
   numberOfApps: number;
 }
 
+interface LocationState {
+  company_name: string;
+}
+
+function processCompanyName(company_name: string): string {
+  return company_name
+    .trim()
+    .split("")
+    .filter((char) => /[a-zA-Z\s]/.exec(char))
+    .join("")
+    .split(" ")
+    .filter((word) => word !== "")
+    .join("-")
+    .toLowerCase();
+}
+
 function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
   const { numberOfApps } = props;
   const navigate = useNavigate();
@@ -68,6 +84,8 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
   const { createApp } = useCreateAppMutation();
   const { renderToString } = useContext(Context);
   const { viewer } = useViewerQuery();
+  const { state } = useLocation();
+  const typedState: LocationState | null = state as LocationState | null;
 
   const isFirstProject = numberOfApps === 0;
 
@@ -78,10 +96,14 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
     [createApp]
   );
 
+  const defaultState = makeDefaultState();
+  if (typedState)
+    defaultState.appID = processCompanyName(typedState.company_name);
+
   const form = useSimpleForm({
     stateMode:
       "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
-    defaultState: makeDefaultState(),
+    defaultState: defaultState,
     submit,
   });
 
