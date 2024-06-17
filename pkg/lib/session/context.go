@@ -10,7 +10,7 @@ var contextKey = contextKeyType{}
 
 type contextValue struct {
 	IsInvalid bool
-	Session   ListableSession
+	Session   Session
 }
 
 func WithInvalidSession(ctx context.Context) context.Context {
@@ -20,7 +20,7 @@ func WithInvalidSession(ctx context.Context) context.Context {
 	return context.WithValue(ctx, contextKey, actx)
 }
 
-func WithSession(ctx context.Context, s ListableSession) context.Context {
+func WithSession(ctx context.Context, s Session) context.Context {
 	actx := &contextValue{
 		Session: s,
 	}
@@ -40,7 +40,7 @@ func HasValidSession(ctx context.Context) bool {
 	return !actx.IsInvalid
 }
 
-func GetSession(ctx context.Context) ListableSession {
+func GetSession(ctx context.Context) Session {
 	actx := getContext(ctx)
 	if actx == nil || actx.Session == nil {
 		return nil

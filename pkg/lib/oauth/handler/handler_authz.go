@@ -444,8 +444,9 @@ func (h *AuthorizationHandler) doHandle(
 		return resp, nil
 	}
 
+	// TODO(DEV-1403): Handle offlinegrant
 	// Handle prompt=none
-	var idpSession session.ListableSession
+	var idpSession session.Session
 	if s := session.GetSession(h.Context); s != nil && s.SessionType() == session.TypeIdentityProvider {
 		idpSession = s
 	}
@@ -554,6 +555,7 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 	}
 	idTokenHintSID := uiInfoByProduct.IDTokenHintSID
 
+	// TODO(DEV-1403): Handle offlinegrant
 	var idpSessionID string
 	if s := session.GetSession(h.Context); s != nil && s.SessionType() == session.TypeIdentityProvider {
 		idpSessionID = s.SessionID()

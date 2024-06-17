@@ -111,7 +111,7 @@ type IDPSessionService interface {
 }
 
 type SessionService interface {
-	RevokeWithoutEvent(session.ListableSession) error
+	RevokeWithoutEvent(session.Session) error
 }
 
 type StdAttrsService interface {

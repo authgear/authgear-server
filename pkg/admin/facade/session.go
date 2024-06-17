@@ -9,8 +9,8 @@ import (
 type SessionManager interface {
 	List(userID string) ([]session.ListableSession, error)
 	Get(id string) (session.ListableSession, error)
-	RevokeWithEvent(session session.ListableSession, isTermination bool, isAdminAPI bool) error
-	TerminateAllExcept(userID string, currentSession session.ListableSession, isAdminAPI bool) error
+	RevokeWithEvent(session session.Session, isTermination bool, isAdminAPI bool) error
+	TerminateAllExcept(userID string, currentSession session.Session, isAdminAPI bool) error
 }
 
 type SessionFacade struct {

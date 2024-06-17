@@ -26,6 +26,9 @@ type IDPSession struct {
 	TokenHash string `json:"token_hash"`
 }
 
+var _ session.Session = &IDPSession{}
+var _ session.ListableSession = &IDPSession{}
+
 func (s *IDPSession) SessionID() string         { return s.ID }
 func (s *IDPSession) SessionType() session.Type { return session.TypeIdentityProvider }
 
@@ -84,8 +87,8 @@ func (s *IDPSession) SSOGroupIDPSessionID() string {
 // IsSameSSOGroup returns true when the session argument
 // - is the same idp session
 // - is sso enabled offline grant that in the same sso group
-func (s *IDPSession) IsSameSSOGroup(ss session.ListableSession) bool {
-	if s.Equal(ss) {
+func (s *IDPSession) IsSameSSOGroup(ss session.Session) bool {
+	if s.EqualSession(ss) {
 		return true
 	}
 	if s.SSOGroupIDPSessionID() == "" {
@@ -94,6 +97,6 @@ func (s *IDPSession) IsSameSSOGroup(ss session.ListableSession) bool {
 	return s.SSOGroupIDPSessionID() == ss.SSOGroupIDPSessionID()
 }
 
-func (s *IDPSession) Equal(ss session.ListableSession) bool {
+func (s *IDPSession) EqualSession(ss session.Session) bool {
 	return s.SessionID() == ss.SessionID() && s.SessionType() == ss.SessionType()
 }

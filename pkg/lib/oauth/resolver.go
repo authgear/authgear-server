@@ -40,7 +40,7 @@ type Resolver struct {
 	OfflineGrantService OfflineGrantService
 }
 
-func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.ListableSession, error) {
+func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Session, error) {
 	// The resolve function has the following outcomes:
 	// - (nil, nil) which means no session was found and no error.
 	// - (nil, err) in which err is ErrInvalidSession, which means the session was found but was invalid.
@@ -48,7 +48,7 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Li
 	// - (s, nil)  which means a session was resolved successfully.
 	//
 	// Here we want to try the next resolve function iff the outcome is (nil, nil).
-	funcs := []func(*http.Request) (session.ListableSession, error){
+	funcs := []func(*http.Request) (session.Session, error){
 		re.resolveHeader,
 		re.resolveCookie,
 	}
@@ -66,7 +66,7 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Li
 	return nil, nil
 }
 
-func (re *Resolver) resolveHeader(r *http.Request) (session.ListableSession, error) {
+func (re *Resolver) resolveHeader(r *http.Request) (session.Session, error) {
 	token := parseAuthorizationHeader(r)
 	if token == "" {
 		// No bearer token in Authorization header. Simply proceed.
@@ -100,7 +100,7 @@ func (re *Resolver) resolveHeader(r *http.Request) (session.ListableSession, err
 		return nil, err
 	}
 
-	var authSession session.ListableSession
+	var authSession session.Session
 	event := access.NewEvent(re.Clock.NowUTC(), re.RemoteIP, re.UserAgentString)
 
 	switch grant.SessionKind {
@@ -114,6 +114,7 @@ func (re *Resolver) resolveHeader(r *http.Request) (session.ListableSession, err
 		authSession = s
 
 	case GrantSessionKindOffline:
+		// TODO(DEV-1403): Use token hash to find the correct session
 		g, err := re.OfflineGrants.GetOfflineGrant(grant.SessionID)
 		if errors.Is(err, ErrGrantNotFound) {
 			return nil, session.ErrInvalidSession
@@ -134,7 +135,7 @@ func (re *Resolver) resolveHeader(r *http.Request) (session.ListableSession, err
 	return authSession, nil
 }
 
-func (re *Resolver) resolveCookie(r *http.Request) (session.ListableSession, error) {
+func (re *Resolver) resolveCookie(r *http.Request) (session.Session, error) {
 	cookie, err := re.Cookies.GetCookie(r, session.AppSessionTokenCookieDef)
 	if err != nil {
 		// No session cookie. Simply proceed.
@@ -148,6 +149,7 @@ func (re *Resolver) resolveCookie(r *http.Request) (session.ListableSession, err
 		return nil, err
 	}
 
+	// TODO(DEV-1403): Use token hash to find the correct session
 	offlineGrant, err := re.OfflineGrants.GetOfflineGrant(aSession.OfflineGrantID)
 	if errors.Is(err, ErrGrantNotFound) {
 		return nil, session.ErrInvalidSession
