@@ -29,6 +29,9 @@ type IDPSession struct {
 var _ session.Session = &IDPSession{}
 var _ session.ListableSession = &IDPSession{}
 
+func (s *IDPSession) Session()         {}
+func (s *IDPSession) ListableSession() {}
+
 func (s *IDPSession) SessionID() string         { return s.ID }
 func (s *IDPSession) SessionType() session.Type { return session.TypeIdentityProvider }
 
@@ -87,7 +90,7 @@ func (s *IDPSession) SSOGroupIDPSessionID() string {
 // IsSameSSOGroup returns true when the session argument
 // - is the same idp session
 // - is sso enabled offline grant that in the same sso group
-func (s *IDPSession) IsSameSSOGroup(ss session.Session) bool {
+func (s *IDPSession) IsSameSSOGroup(ss session.SessionBase) bool {
 	if s.EqualSession(ss) {
 		return true
 	}
@@ -97,6 +100,6 @@ func (s *IDPSession) IsSameSSOGroup(ss session.Session) bool {
 	return s.SSOGroupIDPSessionID() == ss.SSOGroupIDPSessionID()
 }
 
-func (s *IDPSession) EqualSession(ss session.Session) bool {
+func (s *IDPSession) EqualSession(ss session.SessionBase) bool {
 	return s.SessionID() == ss.SessionID() && s.SessionType() == ss.SessionType()
 }

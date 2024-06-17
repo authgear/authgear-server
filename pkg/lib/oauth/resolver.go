@@ -114,7 +114,6 @@ func (re *Resolver) resolveHeader(r *http.Request) (session.Session, error) {
 		authSession = s
 
 	case GrantSessionKindOffline:
-		// TODO(DEV-1403): Use token hash to find the correct session
 		g, err := re.OfflineGrants.GetOfflineGrant(grant.SessionID)
 		if errors.Is(err, ErrGrantNotFound) {
 			return nil, session.ErrInvalidSession
@@ -127,7 +126,8 @@ func (re *Resolver) resolveHeader(r *http.Request) (session.Session, error) {
 			return nil, err
 		}
 
-		authSession = g
+		// TODO(DEV-1403): Use token hash to find the correct session
+		authSession = g.ToSession("")
 	default:
 		panic("oauth: resolving unknown grant session kind")
 	}
@@ -149,7 +149,6 @@ func (re *Resolver) resolveCookie(r *http.Request) (session.Session, error) {
 		return nil, err
 	}
 
-	// TODO(DEV-1403): Use token hash to find the correct session
 	offlineGrant, err := re.OfflineGrants.GetOfflineGrant(aSession.OfflineGrantID)
 	if errors.Is(err, ErrGrantNotFound) {
 		return nil, session.ErrInvalidSession
@@ -174,7 +173,8 @@ func (re *Resolver) resolveCookie(r *http.Request) (session.Session, error) {
 		return nil, err
 	}
 
-	return offlineGrant, nil
+	// TODO(DEV-1403): Use token hash to find the correct session
+	return offlineGrant.ToSession(""), nil
 }
 
 func (re *Resolver) accessOfflineGrant(offlineGrant *OfflineGrant, accessEvent access.Event) (*OfflineGrant, error) {

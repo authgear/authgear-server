@@ -9,7 +9,7 @@ import (
 type SessionManager interface {
 	List(userID string) ([]session.ListableSession, error)
 	Get(id string) (session.ListableSession, error)
-	RevokeWithEvent(session session.Session, isTermination bool, isAdminAPI bool) error
+	RevokeWithEvent(session session.SessionBase, isTermination bool, isAdminAPI bool) error
 	TerminateAllExcept(userID string, currentSession session.Session, isAdminAPI bool) error
 }
 
