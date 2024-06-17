@@ -21,8 +21,6 @@ part: AuthenticationFlowReauthFlow
 name: invalid
 error: |-
   invalid value:
-  /captcha: required
-    map[actual:[foobar] expected:[enabled] missing:[enabled]]
   /captcha/foobar: 
   /steps/0/type: enum
     map[actual:foobar expected:[identify authenticate]]
@@ -30,8 +28,6 @@ error: |-
     map[actual:foobar expected:[id_token]]
   /steps/2/one_of/0/authentication: enum
     map[actual:foobar expected:[primary_password primary_passkey primary_oob_otp_email primary_oob_otp_sms secondary_password secondary_totp secondary_oob_otp_email secondary_oob_otp_sms]]
-  /steps/2/one_of/0/captcha: required
-    map[actual:[foobar] expected:[required] missing:[required]]
   /steps/2/one_of/0/captcha/foobar: 
 value:
   name: id

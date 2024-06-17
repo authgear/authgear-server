@@ -29,11 +29,7 @@ part: AuthenticationFlowSignupFlow
 name: invalid
 error: |-
   invalid value:
-  /captcha: required
-    map[actual:[foobar] expected:[enabled] missing:[enabled]]
   /captcha/foobar: 
-  /steps/0/one_of/0/captcha: required
-    map[actual:[foobar] expected:[required] missing:[required]]
   /steps/0/one_of/0/captcha/foobar: 
   /steps/0/one_of/0/identification: enum
     map[actual:foobar expected:[email phone username oauth passkey]]

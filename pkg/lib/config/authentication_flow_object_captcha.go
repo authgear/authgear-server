@@ -4,7 +4,6 @@ var _ = Schema.Add("AuthenticationFlowObjectCaptchaConfig", `
 {
 	"type": "object",
 	"additionalProperties": false,
-	"required": ["enabled"],
 	"properties": {
 		"enabled": { "type": "boolean" }
 	}
@@ -19,7 +18,6 @@ var _ = Schema.Add("AuthenticationFlowCaptcha", `
 {
 	"type": "object",
 	"additionalProperties": false,
-	"required": ["required"],
 	"properties": {
 		"required": { "type": "boolean" }
 	}
