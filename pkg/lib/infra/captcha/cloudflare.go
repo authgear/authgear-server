@@ -1,3 +1,4 @@
+// Legacy cloudfare captcha
 package captcha
 
 import (
@@ -18,10 +19,10 @@ type CloudflareVerificationResponse struct {
 
 type CloudflareClient struct {
 	HTTPClient  *http.Client
-	Credentials *config.CaptchaCloudflareCredentials
+	Credentials *config.Deprecated_CaptchaCloudflareCredentials
 }
 
-func NewCloudflareClient(c *config.CaptchaCloudflareCredentials) *CloudflareClient {
+func NewCloudflareClient(c *config.Deprecated_CaptchaCloudflareCredentials) *CloudflareClient {
 	if c == nil {
 		return nil
 	}

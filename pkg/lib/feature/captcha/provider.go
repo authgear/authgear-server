@@ -23,11 +23,11 @@ type Provider struct {
 }
 
 func (p *Provider) VerifyToken(token string) error {
-	if p.Config.Provider == nil {
+	if p.Config.Deprecated_Provider == nil {
 		return fmt.Errorf("captcha provider not configured")
 	}
-	switch *p.Config.Provider {
-	case config.CaptchaProviderCloudflare:
+	switch *p.Config.Deprecated_Provider {
+	case config.Deprecated_CaptchaProviderCloudflare:
 		return p.verifyTokenByCloudflare(token)
 	}
 	return fmt.Errorf("unknown captcha provider")
