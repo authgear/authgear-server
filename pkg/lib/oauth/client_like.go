@@ -30,7 +30,7 @@ func SessionClientLike(s session.Session, clientResolver OAuthClientResolver) *C
 			PIIAllowedInIDToken: false,
 			Scopes:              scopes,
 		}
-	case *OfflineGrant:
+	case *OfflineGrantSession:
 		client := clientResolver.ResolveClient(s.ClientID)
 		if client == nil {
 			return ClientLikeNotFound

@@ -15,6 +15,7 @@ type OfflineGrantRefreshToken struct {
 	TokenHash string    `json:"token_hash"`
 	ClientID  string    `json:"client_id"`
 	CreatedAt time.Time `json:"created_at"`
+	Scopes    []string  `json:"created_at"`
 }
 
 type OfflineGrant struct {
@@ -55,6 +56,7 @@ type OfflineGrantSession struct {
 	Scopes       []string
 }
 
+func (o *OfflineGrantSession) Session() {}
 func (o *OfflineGrantSession) SessionID() string {
 	return o.OfflineGrant.ID
 }
@@ -76,6 +78,7 @@ func (o *OfflineGrantSession) SSOGroupIDPSessionID() string {
 
 var _ session.Session = &OfflineGrantSession{}
 
+func (g *OfflineGrant) ListableSession()          {}
 func (g *OfflineGrant) SessionID() string         { return g.ID }
 func (g *OfflineGrant) SessionType() session.Type { return session.TypeOfflineGrant }
 
@@ -149,7 +152,7 @@ func (g *OfflineGrant) SSOGroupIDPSessionID() string {
 // - is the same offline grant
 // - is idp session in the same sso group (current offline grant needs to be sso enabled)
 // - is offline grant in the same sso group (current offline grant needs to be sso enabled)
-func (g *OfflineGrant) IsSameSSOGroup(ss session.Session) bool {
+func (g *OfflineGrant) IsSameSSOGroup(ss session.SessionBase) bool {
 	if g.EqualSession(ss) {
 		return true
 	}
@@ -164,6 +167,33 @@ func (g *OfflineGrant) IsSameSSOGroup(ss session.Session) bool {
 	return false
 }
 
-func (g *OfflineGrant) EqualSession(ss session.Session) bool {
+func (g *OfflineGrant) EqualSession(ss session.SessionBase) bool {
 	return g.SessionID() == ss.SessionID() && g.SessionType() == ss.SessionType()
+}
+
+// TODO(DEV-1403): Use token hash to find the correct session
+func (g *OfflineGrant) ToSession(refreshTokenHash string) session.Session {
+	if refreshTokenHash == "" || refreshTokenHash == g.TokenHash {
+		return &OfflineGrantSession{
+			OfflineGrant: g,
+			CreatedAt:    g.CreatedAt,
+			TokenHash:    g.TokenHash,
+			ClientID:     g.ClientID,
+			Scopes:       g.Scopes,
+		}
+	}
+
+	for _, token := range g.RefreshTokens {
+		if token.TokenHash == refreshTokenHash {
+			return &OfflineGrantSession{
+				OfflineGrant: g,
+				CreatedAt:    token.CreatedAt,
+				TokenHash:    token.TokenHash,
+				ClientID:     token.ClientID,
+				Scopes:       token.Scopes,
+			}
+		}
+	}
+
+	panic("offline grant: cannot find a token with the provided token hash")
 }

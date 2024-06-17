@@ -10,8 +10,8 @@ import (
 )
 
 type SessionManager interface {
-	RevokeWithEvent(session session.Session, isTermination bool, isAdminAPI bool) error
-	RevokeWithoutEvent(session session.Session) error
+	RevokeWithEvent(session session.SessionBase, isTermination bool, isAdminAPI bool) error
+	RevokeWithoutEvent(session session.SessionBase) error
 }
 
 type RevokeHandler struct {

@@ -57,7 +57,7 @@ func (m *Manager) resolveManagementProvider(session ListableSession) ManagementS
 	}
 }
 
-func (m *Manager) invalidate(session Session, option *revokeEventOption) (ManagementService, error) {
+func (m *Manager) invalidate(session SessionBase, option *revokeEventOption) (ManagementService, error) {
 	sessions, err := m.List(session.GetAuthenticationInfo().UserID)
 	if err != nil {
 		return nil, err
@@ -150,7 +150,7 @@ func (m *Manager) Logout(session Session, rw http.ResponseWriter) error {
 	return nil
 }
 
-func (m *Manager) RevokeWithEvent(session Session, isTermination bool, isAdminAPI bool) error {
+func (m *Manager) RevokeWithEvent(session SessionBase, isTermination bool, isAdminAPI bool) error {
 	_, err := m.invalidate(session, &revokeEventOption{
 		IsAdminAPI:    isAdminAPI,
 		IsTermination: isTermination,
@@ -162,7 +162,7 @@ func (m *Manager) RevokeWithEvent(session Session, isTermination bool, isAdminAP
 	return nil
 }
 
-func (m *Manager) RevokeWithoutEvent(session Session) error {
+func (m *Manager) RevokeWithoutEvent(session SessionBase) error {
 	_, err := m.invalidate(session, nil)
 	if err != nil {
 		return err
