@@ -1,0 +1,124 @@
+name: Account linking - Incoming Login ID - simple
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+        - login_id
+        - oauth
+    identity:
+      login_id:
+        keys:
+        - type: email
+        - type: username
+      oauth:
+        providers:
+          - alias: google
+            client_id: "google"
+            type: google
+    account_linking:
+      login_id:
+        - key: email
+          action: login_and_link
+          user_profile:
+            pointer: "/email"
+
+    authentication_flow:
+      signup_flows:
+        - name: f1
+          steps:
+            - type: identify
+              one_of:
+              - identification: email
+              - identification: oauth
+      login_flows:
+        - name: f1
+          steps:
+          - name: identify
+            type: identify
+            one_of:
+            - identification: oauth
+            - identification: email
+              steps:
+              - type: authenticate
+                one_of:
+                - authentication: primary_password
+before:
+  - type: user_import
+    user_import: google_user.json
+  - type: custom_sql
+    custom_sql:
+      path: google_user.sql
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "f1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "mock@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "identification": "email",
+            "data": {
+              "type": "account_linking_identification_data"
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "index": 0,
+        "redirect_uri": "http://mock"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "identification": "oauth",
+            "data": {
+              "type": "oauth_data",
+              "alias": "google",
+              "oauth_provider_type": "google",
+              "oauth_authorization_url": "[[string]]"
+            }
+          }
+        }
+
+  - action: oauth_redirect
+    to: "{{ .prev.result.action.data.oauth_authorization_url }}"
+    redirect_uri: http://mock
+    output:
+      result: |
+        {
+          "query": "[[string]]"
+        }
+
+  - action: input
+    input: |
+      {
+        "query": "{{ .prev.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }

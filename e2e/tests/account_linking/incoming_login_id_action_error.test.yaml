@@ -1,0 +1,69 @@
+name: Account linking - Incoming Login ID - action=error
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+        - login_id
+        - oauth
+    identity:
+      login_id:
+        keys:
+        - type: email
+        - type: username
+      oauth:
+        providers:
+          - alias: google
+            client_id: "google"
+            type: google
+    account_linking:
+      login_id:
+        - key: email
+          action: error
+          user_profile:
+            pointer: "/email"
+
+    authentication_flow:
+      signup_flows:
+        - name: f1
+          steps:
+            - type: identify
+              one_of:
+              - identification: email
+              - identification: oauth
+before:
+  - type: user_import
+    user_import: google_user.json
+  - type: custom_sql
+    custom_sql:
+      path: google_user.sql
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "f1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "mock@example.com"
+      }
+    output:
+      error: |
+        {
+          "reason": "InvariantViolated",
+          "info": {
+            "cause": {
+              "kind": "DuplicatedIdentity"
+            }
+          }
+        }
