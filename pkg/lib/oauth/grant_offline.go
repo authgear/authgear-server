@@ -11,6 +11,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/geoip"
 )
 
+type OfflineGrantRefreshToken struct {
+	TokenHash string    `json:"token_hash"`
+	ClientID  string    `json:"client_id"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 type OfflineGrant struct {
 	AppID           string `json:"app_id"`
 	ID              string `json:"id"`
@@ -35,7 +41,40 @@ type OfflineGrant struct {
 	SSOEnabled bool `json:"sso_enabled,omitempty"`
 
 	App2AppDeviceKeyJWKJSON string `json:"app2app_device_key_jwk_json"`
+
+	RefreshTokens []OfflineGrantRefreshToken `json:"refresh_tokens,omitempty"`
 }
+
+var _ session.ListableSession = &OfflineGrant{}
+
+type OfflineGrantSession struct {
+	OfflineGrant *OfflineGrant
+	CreatedAt    time.Time
+	TokenHash    string
+	ClientID     string
+	Scopes       []string
+}
+
+func (o *OfflineGrantSession) SessionID() string {
+	return o.OfflineGrant.ID
+}
+func (o *OfflineGrantSession) SessionType() session.Type {
+	return o.OfflineGrant.SessionType()
+}
+func (o *OfflineGrantSession) GetCreatedAt() time.Time {
+	return o.CreatedAt
+}
+func (o *OfflineGrantSession) GetAuthenticationInfo() authenticationinfo.T {
+	return o.OfflineGrant.GetAuthenticationInfo()
+}
+func (o *OfflineGrantSession) GetAccessInfo() *access.Info {
+	return &o.OfflineGrant.AccessInfo
+}
+func (o *OfflineGrantSession) SSOGroupIDPSessionID() string {
+	return o.OfflineGrant.SSOGroupIDPSessionID()
+}
+
+var _ session.Session = &OfflineGrantSession{}
 
 func (g *OfflineGrant) SessionID() string         { return g.ID }
 func (g *OfflineGrant) SessionType() session.Type { return session.TypeOfflineGrant }
@@ -110,8 +149,8 @@ func (g *OfflineGrant) SSOGroupIDPSessionID() string {
 // - is the same offline grant
 // - is idp session in the same sso group (current offline grant needs to be sso enabled)
 // - is offline grant in the same sso group (current offline grant needs to be sso enabled)
-func (g *OfflineGrant) IsSameSSOGroup(ss session.ListableSession) bool {
-	if g.Equal(ss) {
+func (g *OfflineGrant) IsSameSSOGroup(ss session.Session) bool {
+	if g.EqualSession(ss) {
 		return true
 	}
 
@@ -125,6 +164,6 @@ func (g *OfflineGrant) IsSameSSOGroup(ss session.ListableSession) bool {
 	return false
 }
 
-func (g *OfflineGrant) Equal(ss session.ListableSession) bool {
+func (g *OfflineGrant) EqualSession(ss session.Session) bool {
 	return g.SessionID() == ss.SessionID() && g.SessionType() == ss.SessionType()
 }

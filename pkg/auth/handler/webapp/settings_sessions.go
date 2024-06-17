@@ -52,7 +52,7 @@ type SettingsSessionsHandler struct {
 	SessionListing    SettingsSessionListingService
 }
 
-func (h *SettingsSessionsHandler) GetData(r *http.Request, rw http.ResponseWriter, s session.ListableSession) (map[string]interface{}, error) {
+func (h *SettingsSessionsHandler) GetData(r *http.Request, rw http.ResponseWriter, s session.Session) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
