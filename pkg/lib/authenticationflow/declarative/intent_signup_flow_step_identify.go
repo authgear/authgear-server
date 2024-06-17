@@ -292,7 +292,10 @@ func (*IntentSignupFlowStepIdentify) checkIdentificationMethod(deps *authflow.De
 }
 
 func (*IntentSignupFlowStepIdentify) identificationMethod(w *authflow.Flow) config.AuthenticationFlowIdentification {
-	m, ok := authflow.FindMilestone[MilestoneIdentificationMethod](w)
+	// A bug is found by this test tests/account_linking/incoming_login_id_create_authenticator_before.test.yaml
+	// Previously, FindMilestone is used instead of FindMilestoneInCurrentFlow.
+	// But we should find the identification selected in THIS flow.
+	m, ok := authflow.FindMilestoneInCurrentFlow[MilestoneIdentificationMethod](w)
 	if !ok {
 		panic(fmt.Errorf("identification method not yet selected"))
 	}
