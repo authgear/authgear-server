@@ -166,7 +166,7 @@ type OAuthFacade interface {
 }
 
 type SessionListingService interface {
-	FilterForDisplay(sessions []session.ListableSession, currentSession session.ListableSession) ([]*sessionlisting.Session, error)
+	FilterForDisplay(sessions []session.ListableSession, currentSession session.Session) ([]*sessionlisting.Session, error)
 }
 
 type OTPCodeService interface {

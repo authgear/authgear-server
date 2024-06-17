@@ -25,7 +25,7 @@ func ConfigureLogoutRoute(route httproute.Route) httproute.Route {
 }
 
 type LogoutSessionManager interface {
-	Logout(session.ListableSession, http.ResponseWriter) error
+	Logout(session.Session, http.ResponseWriter) error
 }
 
 type LogoutHandler struct {
