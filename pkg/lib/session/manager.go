@@ -30,7 +30,7 @@ type ManagementService interface {
 	Get(id string) (ListableSession, error)
 	Delete(ListableSession) error
 	List(userID string) ([]ListableSession, error)
-	TerminateAllExcept(userID string, currentSession ListableSession) ([]ListableSession, error)
+	TerminateAllExcept(userID string, currentSession Session) ([]ListableSession, error)
 }
 
 type IDPSessionManager ManagementService
@@ -57,7 +57,7 @@ func (m *Manager) resolveManagementProvider(session ListableSession) ManagementS
 	}
 }
 
-func (m *Manager) invalidate(session ListableSession, option *revokeEventOption) (ManagementService, error) {
+func (m *Manager) invalidate(session Session, option *revokeEventOption) (ManagementService, error) {
 	sessions, err := m.List(session.GetAuthenticationInfo().UserID)
 	if err != nil {
 		return nil, err
@@ -88,7 +88,7 @@ func (m *Manager) invalidate(session ListableSession, option *revokeEventOption)
 			if err != nil {
 				return nil, err
 			}
-			if s.Equal(session) {
+			if s.EqualSession(session) {
 				provider = p
 			}
 		}
@@ -137,7 +137,7 @@ func (m *Manager) invalidateSession(session ListableSession) (ManagementService,
 	return provider, nil
 }
 
-func (m *Manager) Logout(session ListableSession, rw http.ResponseWriter) error {
+func (m *Manager) Logout(session Session, rw http.ResponseWriter) error {
 	provider, err := m.invalidate(session, &revokeEventOption{IsAdminAPI: false, IsTermination: false})
 	if err != nil {
 		return err
@@ -150,7 +150,7 @@ func (m *Manager) Logout(session ListableSession, rw http.ResponseWriter) error 
 	return nil
 }
 
-func (m *Manager) RevokeWithEvent(session ListableSession, isTermination bool, isAdminAPI bool) error {
+func (m *Manager) RevokeWithEvent(session Session, isTermination bool, isAdminAPI bool) error {
 	_, err := m.invalidate(session, &revokeEventOption{
 		IsAdminAPI:    isAdminAPI,
 		IsTermination: isTermination,
@@ -162,7 +162,7 @@ func (m *Manager) RevokeWithEvent(session ListableSession, isTermination bool, i
 	return nil
 }
 
-func (m *Manager) RevokeWithoutEvent(session ListableSession) error {
+func (m *Manager) RevokeWithoutEvent(session Session) error {
 	_, err := m.invalidate(session, nil)
 	if err != nil {
 		return err
@@ -171,7 +171,7 @@ func (m *Manager) RevokeWithoutEvent(session ListableSession) error {
 	return nil
 }
 
-func (m *Manager) TerminateAllExcept(userID string, currentSession ListableSession, isAdminAPI bool) error {
+func (m *Manager) TerminateAllExcept(userID string, currentSession Session, isAdminAPI bool) error {
 	idpSessions, err := m.IDPSessions.TerminateAllExcept(userID, currentSession)
 	if err != nil {
 		return err

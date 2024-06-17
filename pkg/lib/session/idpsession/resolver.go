@@ -29,7 +29,7 @@ type Resolver struct {
 	Clock           clock.Clock
 }
 
-func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.ListableSession, error) {
+func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Session, error) {
 	cookie, err := re.Cookies.GetCookie(r, re.CookieDef.Def)
 	if err != nil {
 		// No cookie. Simply proceed.

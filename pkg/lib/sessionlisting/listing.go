@@ -41,7 +41,7 @@ type SessionListingService struct {
 	OfflineGrants OfflineGrantService
 }
 
-func (s *SessionListingService) FilterForDisplay(sessions []session.ListableSession, currentSession session.ListableSession) ([]*Session, error) {
+func (s *SessionListingService) FilterForDisplay(sessions []session.ListableSession, currentSession session.Session) ([]*Session, error) {
 	sess := make([]session.ListableSession, len(sessions))
 	copy(sess, sessions)
 	sortSessions(sess)
