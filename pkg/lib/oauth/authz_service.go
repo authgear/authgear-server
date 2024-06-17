@@ -10,8 +10,8 @@ import (
 )
 
 type OfflineGrantSessionManager interface {
-	List(userID string) ([]session.Session, error)
-	Delete(session session.Session) error
+	List(userID string) ([]session.ListableSession, error)
+	Delete(session session.ListableSession) error
 }
 
 type AuthorizationService struct {

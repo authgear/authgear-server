@@ -49,7 +49,7 @@ type OAuthFacade struct {
 	OAuthClientResolver OAuthClientResolver
 }
 
-func (f *OAuthFacade) CreateSession(clientID string, userID string) (session.Session, protocol.TokenResponse, error) {
+func (f *OAuthFacade) CreateSession(clientID string, userID string) (session.ListableSession, protocol.TokenResponse, error) {
 	scopes := []string{
 		"openid",
 		"offline_access",

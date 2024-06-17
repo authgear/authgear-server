@@ -14,7 +14,7 @@ import (
 var ErrInvalidSession = errors.New("provided session is invalid")
 
 type Resolver interface {
-	Resolve(rw http.ResponseWriter, r *http.Request) (Session, error)
+	Resolve(rw http.ResponseWriter, r *http.Request) (ListableSession, error)
 }
 
 type IDPSessionResolver Resolver
@@ -66,7 +66,7 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 	})
 }
 
-func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (s Session, err error) {
+func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (s ListableSession, err error) {
 	err = m.Database.ReadOnly(func() (err error) {
 		s, err = m.resolveSession(rw, r)
 		if err != nil {
@@ -106,7 +106,7 @@ func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (s Session
 	return
 }
 
-func (m *Middleware) resolveSession(rw http.ResponseWriter, r *http.Request) (Session, error) {
+func (m *Middleware) resolveSession(rw http.ResponseWriter, r *http.Request) (ListableSession, error) {
 	isInvalid := false
 
 	var resolvers []Resolver

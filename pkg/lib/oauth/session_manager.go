@@ -19,7 +19,7 @@ func (m *SessionManager) ClearCookie() []*http.Cookie {
 	return []*http.Cookie{}
 }
 
-func (m *SessionManager) Get(id string) (session.Session, error) {
+func (m *SessionManager) Get(id string) (session.ListableSession, error) {
 	grant, err := m.Store.GetOfflineGrant(id)
 	if errors.Is(err, ErrGrantNotFound) {
 		return nil, session.ErrSessionNotFound
@@ -29,7 +29,7 @@ func (m *SessionManager) Get(id string) (session.Session, error) {
 	return grant, nil
 }
 
-func (m *SessionManager) Delete(session session.Session) error {
+func (m *SessionManager) Delete(session session.ListableSession) error {
 	err := m.Store.DeleteOfflineGrant(session.(*OfflineGrant))
 	if err != nil {
 		return err
@@ -37,20 +37,20 @@ func (m *SessionManager) Delete(session session.Session) error {
 	return nil
 }
 
-func (m *SessionManager) List(userID string) ([]session.Session, error) {
+func (m *SessionManager) List(userID string) ([]session.ListableSession, error) {
 	grants, err := m.Store.ListOfflineGrants(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	var sessions []session.Session
+	var sessions []session.ListableSession
 	for _, session := range grants {
 		sessions = append(sessions, session)
 	}
 	return sessions, nil
 }
 
-func (m *SessionManager) TerminateAllExcept(userID string, currentSession session.Session) ([]session.Session, error) {
+func (m *SessionManager) TerminateAllExcept(userID string, currentSession session.ListableSession) ([]session.ListableSession, error) {
 	sessions, err := m.Store.ListOfflineGrants(userID)
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func (m *SessionManager) TerminateAllExcept(userID string, currentSession sessio
 		}
 	}
 
-	deletedSessions := []session.Session{}
+	deletedSessions := []session.ListableSession{}
 	for _, ss := range sessions {
 		// skip third party client app refresh token
 		// third party refresh token should be deleted through deleting authorization

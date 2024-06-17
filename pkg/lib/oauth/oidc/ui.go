@@ -69,16 +69,16 @@ func (i *UIInfo) ToUIParam() uiparam.T {
 
 type UIInfoByProduct struct {
 	IDToken        jwt.Token
-	SIDSession     session.Session
+	SIDSession     session.ListableSession
 	IDTokenHintSID string
 }
 
 type UIInfoResolverPromptResolver interface {
-	ResolvePrompt(r protocol.AuthorizationRequest, sidSession session.Session) (prompt []string)
+	ResolvePrompt(r protocol.AuthorizationRequest, sidSession session.ListableSession) (prompt []string)
 }
 
 type UIInfoResolverIDTokenHintResolver interface {
-	ResolveIDTokenHint(client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (idToken jwt.Token, sidSession session.Session, err error)
+	ResolveIDTokenHint(client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (idToken jwt.Token, sidSession session.ListableSession, err error)
 }
 
 type UIInfoResolverCookieManager interface {

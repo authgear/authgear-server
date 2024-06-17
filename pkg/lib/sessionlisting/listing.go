@@ -41,8 +41,8 @@ type SessionListingService struct {
 	OfflineGrants OfflineGrantService
 }
 
-func (s *SessionListingService) FilterForDisplay(sessions []session.Session, currentSession session.Session) ([]*Session, error) {
-	sess := make([]session.Session, len(sessions))
+func (s *SessionListingService) FilterForDisplay(sessions []session.ListableSession, currentSession session.ListableSession) ([]*Session, error) {
+	sess := make([]session.ListableSession, len(sessions))
 	copy(sess, sessions)
 	sortSessions(sess)
 
@@ -126,7 +126,7 @@ func (s *SessionListingService) FilterForDisplay(sessions []session.Session, cur
 	return result, nil
 }
 
-func sortSessions(sessions []session.Session) {
+func sortSessions(sessions []session.ListableSession) {
 	sort.Slice(sessions, func(i, j int) bool {
 		a := time.Time{}
 		if accessInfo := sessions[i].GetAccessInfo(); accessInfo != nil {
