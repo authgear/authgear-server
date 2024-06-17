@@ -1,15 +1,15 @@
 # syntax=docker/dockerfile:1
 
 # Stage 1: Build the Go binary
-FROM golang:1.22.4-bookworm as stage1
+FROM quay.io/theauthgear/golang:1.22.4-noble as stage1
 
 # Install build time C dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    pkg-config \
-    libicu-dev \
-    libvips-dev \
-    libmagic-dev \
-    && rm -rf /var/lib/apt/lists/*
+  pkg-config \
+  libicu-dev \
+  libvips-dev \
+  libmagic-dev \
+  && rm -rf /var/lib/apt/lists/*
 
 # In order to build a Go program that uses private modules in Docker,
 # we need the following
@@ -60,21 +60,21 @@ COPY ./portal .
 RUN npm run build
 
 # Stage 4: Prepare the actual fs we use to run the program
-FROM debian:bookworm-slim
+FROM ubuntu:noble
 ARG GIT_HASH
 WORKDIR /app
-# /etc/mime.types (mime-support)
+# /etc/mime.types (media-types)
 # /usr/share/ca-certificates/*/* (ca-certificates)
 # /usr/share/zoneinfo/ (tzdata)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libicu-dev \
-    libvips-dev \
-    libmagic-dev \
-    libmagic-mgc \
-    ca-certificates \
-    mime-support \
-    tzdata \
-    && rm -rf /var/lib/apt/lists/*
+  libicu-dev \
+  libvips-dev \
+  libmagic-dev \
+  libmagic-mgc \
+  ca-certificates \
+  media-types \
+  tzdata \
+  && rm -rf /var/lib/apt/lists/*
 RUN update-ca-certificates
 COPY ./GeoLite2-Country.mmdb ./GeoLite2-Country.mmdb
 COPY ./migrations ./migrations
