@@ -12109,8 +12109,8 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -13130,8 +13130,8 @@ func newWebAppAuthflowSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -14151,8 +14151,8 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -58093,8 +58093,8 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -66160,8 +66160,8 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -66983,8 +66983,8 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -67799,8 +67799,8 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -68650,8 +68650,8 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -69484,8 +69484,8 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -70352,8 +70352,8 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -71213,8 +71213,8 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -72116,8 +72116,8 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -73070,8 +73070,8 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -74036,8 +74036,8 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -74989,8 +74989,8 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -75946,8 +75946,8 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -76882,8 +76882,8 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -77818,8 +77818,8 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -78748,8 +78748,8 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -79678,8 +79678,8 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -80610,8 +80610,8 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -81542,8 +81542,8 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -82472,8 +82472,8 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -83402,8 +83402,8 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -84332,8 +84332,8 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -85262,8 +85262,8 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -86192,8 +86192,8 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -87122,8 +87122,8 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -88052,8 +88052,8 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -88982,8 +88982,8 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -89914,8 +89914,8 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -90846,8 +90846,8 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -91777,8 +91777,8 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -92712,8 +92712,8 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -93648,8 +93648,8 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -94578,8 +94578,8 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -95508,8 +95508,8 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -96438,8 +96438,8 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -97368,8 +97368,8 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -98298,8 +98298,8 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -99228,8 +99228,8 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -100158,8 +100158,8 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -101088,8 +101088,8 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -102018,8 +102018,8 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -102948,8 +102948,8 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -103878,8 +103878,8 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -104809,8 +104809,8 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -105739,8 +105739,8 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -106669,8 +106669,8 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -107601,8 +107601,8 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -108533,8 +108533,8 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -109463,8 +109463,8 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -111280,8 +111280,8 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -112179,8 +112179,8 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -113078,8 +113078,8 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -114008,8 +114008,8 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -114938,8 +114938,8 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -115868,8 +115868,8 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -117095,8 +117095,8 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -118025,8 +118025,8 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -118955,8 +118955,8 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
@@ -119985,8 +119985,8 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
-	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
-	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
