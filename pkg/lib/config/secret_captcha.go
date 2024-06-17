@@ -1,5 +1,9 @@
 package config
 
+import (
+	"github.com/authgear/authgear-server/pkg/util/slice"
+)
+
 var _ = SecretConfigSchema.Add("CaptchaProvidersCredentials", `
 {
 	"type": "object",
@@ -57,12 +61,11 @@ const (
 	CaptchaProvidersCredentialsItemTypeRecaptchaV2 CaptchaProvidersCredentialsItemType = "recaptchav2"
 )
 
-func (c *CaptchaProvidersCredentials) SensitiveStrings() []string {
-	sensitiveStrings := make([]string, len(c.Items))
-	for i, cred := range c.Items {
-		sensitiveStrings[i] = cred.SecretKey
-	}
-	return sensitiveStrings
+func (c *CaptchaProvidersCredentials) SensitiveStrings() (sensitiveStrings []string) {
+	sensitiveStrings = slice.Map(c.Items, func(item CaptchaProvidersCredentialsItem) string {
+		return item.SecretKey
+	})
+	return
 }
 
 // legacy code below
