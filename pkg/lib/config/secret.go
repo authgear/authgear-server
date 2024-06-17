@@ -310,7 +310,7 @@ var secretItemKeys = map[SecretKey]secretKeyDef{
 	WATICredentialsKey:                         {"WATICredentials", func() SecretItemData { return &WATICredentials{} }},
 	OAuthClientCredentialsKey:                  {"OAuthClientCredentials", func() SecretItemData { return &OAuthClientCredentials{} }},
 	CustomSMSProviderConfigKey:                 {"CustomSMSProviderConfig", func() SecretItemData { return &CustomSMSProviderConfig{} }},
-	Deprecated_CaptchaCloudflareCredentialsKey: {"LegeacyCaptchaCloudflareCredentials", func() SecretItemData { return &Deprecated_CaptchaCloudflareCredentials{} }},
+	Deprecated_CaptchaCloudflareCredentialsKey: {"Deprecated_CaptchaCloudflareCredentials", func() SecretItemData { return &Deprecated_CaptchaCloudflareCredentials{} }},
 	CaptchaProvidersCredentialsKey:             {"CaptchaProvidersCredentials", func() SecretItemData { return &CaptchaProvidersCredentials{} }},
 	WhatsappOnPremisesCredentialsKey:           {"WhatsappOnPremisesCredentials", func() SecretItemData { return &WhatsappOnPremisesCredentials{} }},
 }
