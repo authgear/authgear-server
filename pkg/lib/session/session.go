@@ -15,36 +15,35 @@ const (
 	TypeOfflineGrant     Type = "offline_grant"
 )
 
-type Session interface {
+type SessionBase interface {
 	SessionID() string
 	SessionType() Type
-	GetCreatedAt() time.Time
 	GetAuthenticationInfo() authenticationinfo.T
-	GetAccessInfo() *access.Info
 	// SSOGroupIDPSessionID returns the IDP session id of the SSO group
 	// if the session is not SSO enabled, SSOGroupIDPSessionID will be empty
 	SSOGroupIDPSessionID() string
 }
 
-type ListableSession interface {
-	SessionID() string
-	SessionType() Type
+type Session interface {
+	SessionBase
+	Session()
+	GetCreatedAt() time.Time
+	GetAccessInfo() *access.Info
+}
 
+type ListableSession interface {
+	SessionBase
+	ListableSession()
 	GetClientID() string
 	GetCreatedAt() time.Time
 	GetAccessInfo() *access.Info
 	GetDeviceInfo() (map[string]interface{}, bool)
 
-	GetAuthenticationInfo() authenticationinfo.T
-
 	ToAPIModel() *model.Session
 
-	// SSOGroupIDPSessionID returns the IDP session id of the SSO group
-	// if the session is not SSO enabled, SSOGroupIDPSessionID will be empty
-	SSOGroupIDPSessionID() string
 	// IsSameSSOGroup indicates whether the session is in the same SSO group
-	IsSameSSOGroup(s Session) bool
-	EqualSession(s Session) bool
+	IsSameSSOGroup(s SessionBase) bool
+	EqualSession(s SessionBase) bool
 }
 
 type CreateReason string

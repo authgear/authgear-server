@@ -52,7 +52,7 @@ type SettingsVerificationService interface {
 type SettingsSessionManager interface {
 	List(userID string) ([]session.ListableSession, error)
 	Get(id string) (session.ListableSession, error)
-	RevokeWithEvent(s session.Session, isTermination bool, isAdminAPI bool) error
+	RevokeWithEvent(s session.SessionBase, isTermination bool, isAdminAPI bool) error
 	TerminateAllExcept(userID string, currentSession session.Session, isAdminAPI bool) error
 }
 
