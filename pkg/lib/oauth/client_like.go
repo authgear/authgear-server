@@ -21,7 +21,7 @@ type OAuthClientResolver interface {
 	ResolveClient(clientID string) *config.OAuthClientConfig
 }
 
-func SessionClientLike(s session.Session, clientResolver OAuthClientResolver) *ClientLike {
+func SessionClientLike(s session.ListableSession, clientResolver OAuthClientResolver) *ClientLike {
 	scopes := SessionScopes(s)
 	switch s := s.(type) {
 	case *idpsession.IDPSession:
