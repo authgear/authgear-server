@@ -1,4 +1,4 @@
-name: Account linking login and link with identification email after it
+name: Account linking - Incoming OAuth - create_authenticator before it
 authgear.yaml:
   override: |
     authentication:
@@ -23,16 +23,12 @@ authgear.yaml:
       signup_flows:
         - name: f1
           steps:
+            - type: create_authenticator
+              one_of:
+              - authentication: primary_password
             - type: identify
               one_of:
               - identification: oauth
-                steps:
-                  - type: identify
-                    name: identify_email
-                    one_of:
-                      - identification: email
-                  - type: verify
-                    target_step: identify_email
       login_flows:
         - name: f1
           steps:
@@ -54,6 +50,20 @@ steps:
       {
         "type": "signup",
         "name": "f1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "new_password": "12341234a"
       }
     output:
       result: |
@@ -136,3 +146,5 @@ steps:
             "type": "finished"
           }
         }
+
+  # TODO(tung): We want to assert that no duplicate password was added

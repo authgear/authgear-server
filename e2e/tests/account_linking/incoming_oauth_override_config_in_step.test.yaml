@@ -1,4 +1,4 @@
-name: Account linking error
+name: Account linking - Incoming OAuth - override config in step
 authgear.yaml:
   override: |
     authentication:
@@ -13,7 +13,8 @@ authgear.yaml:
             type: google
     account_linking:
       oauth:
-        - alias: google
+        - name: google_linking
+          alias: google
           action: error
           oauth_claim:
             pointer: "/email"
@@ -27,6 +28,23 @@ authgear.yaml:
               one_of:
               - identification: email
               - identification: oauth
+                account_linking:
+                  oauth:
+                    - name: google_linking
+                      action: login_and_link
+                      login_flow: f2
+      login_flows:
+        - name: f2
+          steps:
+          - name: identify
+            type: identify
+            one_of:
+            - identification: oauth
+            - identification: email
+              steps:
+              - type: authenticate
+                one_of:
+                - authentication: primary_password
 before:
   - type: user_import
     user_import: email_users.json
@@ -78,12 +96,43 @@ steps:
         "query": "{{ .prev.result.query }}"
       }
     output:
-      error: |
+      result: |
         {
-          "reason": "InvariantViolated",
-          "info": {
-            "cause": {
-              "kind": "DuplicatedIdentity"
+          "action": {
+            "type": "identify",
+            "identification": "oauth",
+            "data": {
+              "type": "account_linking_identification_data"
             }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "index": 0
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "type": "authentication_data"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "12341234"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
           }
         }

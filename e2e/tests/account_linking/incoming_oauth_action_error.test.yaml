@@ -1,4 +1,4 @@
-name: Account linking simple login and link
+name: Account linking - Incoming OAuth - action=error
 authgear.yaml:
   override: |
     authentication:
@@ -14,7 +14,7 @@ authgear.yaml:
     account_linking:
       oauth:
         - alias: google
-          action: login_and_link
+          action: error
           oauth_claim:
             pointer: "/email"
           user_profile:
@@ -27,18 +27,6 @@ authgear.yaml:
               one_of:
               - identification: email
               - identification: oauth
-      login_flows:
-        - name: f1
-          steps:
-          - name: identify
-            type: identify
-            one_of:
-            - identification: oauth
-            - identification: email
-              steps:
-              - type: authenticate
-                one_of:
-                - authentication: primary_password
 before:
   - type: user_import
     user_import: email_users.json
@@ -90,43 +78,12 @@ steps:
         "query": "{{ .prev.result.query }}"
       }
     output:
-      result: |
+      error: |
         {
-          "action": {
-            "type": "identify",
-            "identification": "oauth",
-            "data": {
-              "type": "account_linking_identification_data"
+          "reason": "InvariantViolated",
+          "info": {
+            "cause": {
+              "kind": "DuplicatedIdentity"
             }
-          }
-        }
-
-  - action: input
-    input: |
-      {
-        "index": 0
-      }
-    output:
-      result: |
-        {
-          "action": {
-            "type": "authenticate",
-            "data": {
-              "type": "authentication_data"
-            }
-          }
-        }
-
-  - action: input
-    input: |
-      {
-        "authentication": "primary_password",
-        "password": "12341234"
-      }
-    output:
-      result: |
-        {
-          "action": {
-            "type": "finished"
           }
         }

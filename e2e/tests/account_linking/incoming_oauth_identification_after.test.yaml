@@ -1,4 +1,4 @@
-name: Account linking login and link with nested step
+name: Account linking - Incoming OAuth - identification=email after it
 authgear.yaml:
   override: |
     authentication:
@@ -25,21 +25,14 @@ authgear.yaml:
           steps:
             - type: identify
               one_of:
-              - identification: email
               - identification: oauth
                 steps:
                   - type: identify
+                    name: identify_email
                     one_of:
-                      - identification: username
-                  # This step should be skipped because user already have primary password
-                  - type: create_authenticator
-                    one_of:
-                    - authentication: primary_password
-                    - authentication: primary_oob_otp_email
-                  # This step should not be skipped
-                  - type: create_authenticator
-                    one_of:
-                    - authentication: secondary_password
+                      - identification: email
+                  - type: verify
+                    target_step: identify_email
       login_flows:
         - name: f1
           steps:
@@ -135,37 +128,6 @@ steps:
       {
         "authentication": "primary_password",
         "password": "12341234"
-      }
-    output:
-      result: |
-        {
-          "action": {
-            "type": "identify",
-            "data": {
-              "type": "identification_data"
-            }
-          }
-        }
-
-  - action: input
-    input: |
-      {
-        "identification": "username",
-        "login_id": "test1"
-      }
-    output:
-      result: |
-        {
-          "action": {
-            "type": "create_authenticator"
-          }
-        }
-
-  - action: input
-    input: |
-      {
-        "authentication": "secondary_password",
-        "new_password": "12341234a"
       }
     output:
       result: |

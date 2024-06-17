@@ -1,4 +1,4 @@
-name: Account linking override config in flow steps
+name: Account linking - Incoming OAuth - nested steps
 authgear.yaml:
   override: |
     authentication:
@@ -13,9 +13,8 @@ authgear.yaml:
             type: google
     account_linking:
       oauth:
-        - name: google_linking
-          alias: google
-          action: error
+        - alias: google
+          action: login_and_link
           oauth_claim:
             pointer: "/email"
           user_profile:
@@ -28,13 +27,21 @@ authgear.yaml:
               one_of:
               - identification: email
               - identification: oauth
-                account_linking:
-                  oauth:
-                    - name: google_linking
-                      action: login_and_link
-                      login_flow: f2
+                steps:
+                  - type: identify
+                    one_of:
+                      - identification: username
+                  # This step should be skipped because user already have primary password
+                  - type: create_authenticator
+                    one_of:
+                    - authentication: primary_password
+                    - authentication: primary_oob_otp_email
+                  # This step should not be skipped
+                  - type: create_authenticator
+                    one_of:
+                    - authentication: secondary_password
       login_flows:
-        - name: f2
+        - name: f1
           steps:
           - name: identify
             type: identify
@@ -128,6 +135,37 @@ steps:
       {
         "authentication": "primary_password",
         "password": "12341234"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "type": "identification_data"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "test1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "secondary_password",
+        "new_password": "12341234a"
       }
     output:
       result: |
