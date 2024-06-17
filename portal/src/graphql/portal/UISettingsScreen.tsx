@@ -55,7 +55,10 @@ import {
 import styles from "./UISettingsScreen.module.css";
 import { useAppConfigForm } from "../../hook/useAppConfigForm";
 import { clearEmptyObject } from "../../util/misc";
-import { useResourceForm } from "../../hook/useResourceForm";
+import {
+  ResourcesFormState,
+  useResourceForm,
+} from "../../hook/useResourceForm";
 import FormContainer from "../../FormContainer";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import WidgetDescription from "../../WidgetDescription";
@@ -143,30 +146,6 @@ function constructConfig(
 
     clearEmptyObject(config);
   });
-}
-
-interface ResourcesFormState {
-  resources: Partial<Record<string, Resource>>;
-}
-
-function constructResourcesFormState(
-  resources: Resource[]
-): ResourcesFormState {
-  const resourceMap: Partial<Record<string, Resource>> = {};
-  for (const r of resources) {
-    const id = specifierId(r.specifier);
-    // Multiple resources may use same specifier ID (images),
-    // use the first resource with non-empty values.
-    if ((resourceMap[id]?.nullableValue ?? "") === "") {
-      resourceMap[specifierId(r.specifier)] = r;
-    }
-  }
-
-  return { resources: resourceMap };
-}
-
-function constructResources(state: ResourcesFormState): Resource[] {
-  return Object.values(state.resources).filter(Boolean) as Resource[];
 }
 
 interface FormState
@@ -811,12 +790,7 @@ const UISettingsScreen: React.VFC = function UISettingsScreen() {
     return specifiers;
   }, [initialSupportedLanguages]);
 
-  const resources = useResourceForm(
-    appID,
-    specifiers,
-    constructResourcesFormState,
-    constructResources
-  );
+  const resources = useResourceForm(appID, specifiers);
 
   const state = useMemo<FormState>(
     () => ({

@@ -96,7 +96,10 @@ import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
 import BlueMessageBar from "../../BlueMessageBar";
 import { useTagPickerWithNewTags } from "../../hook/useInput";
 import { fixTagPickerStyles } from "../../bugs";
-import { useResourceForm } from "../../hook/useResourceForm";
+import {
+  ResourcesFormState,
+  useResourceForm,
+} from "../../hook/useResourceForm";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import {
   makeValidationErrorMatchUnknownKindParseRule,
@@ -193,30 +196,6 @@ const specifiers: ResourceSpecifier[] = [
   emailDomainAllowlistSpecifier,
   usernameExcludeKeywordsTXTSpecifier,
 ];
-
-interface ResourcesFormState {
-  resources: Partial<Record<string, Resource>>;
-}
-
-function constructResourcesFormState(
-  resources: Resource[]
-): ResourcesFormState {
-  const resourceMap: Partial<Record<string, Resource>> = {};
-  for (const r of resources) {
-    const id = specifierId(r.specifier);
-    // Multiple resources may use same specifier ID (images),
-    // use the first resource with non-empty values.
-    if ((resourceMap[id]?.nullableValue ?? "") === "") {
-      resourceMap[specifierId(r.specifier)] = r;
-    }
-  }
-
-  return { resources: resourceMap };
-}
-
-function constructResources(state: ResourcesFormState): Resource[] {
-  return Object.values(state.resources).filter(Boolean) as Resource[];
-}
 
 type LoginMethodPasswordlessLoginID = "email" | "phone" | "phone-email";
 type LoginMethodPasswordLoginID =
@@ -3535,12 +3514,7 @@ const LoginMethodConfigurationScreen: React.VFC =
       validate: validateFormState,
     });
 
-    const resourceForm = useResourceForm(
-      appID,
-      specifiers,
-      constructResourcesFormState,
-      constructResources
-    );
+    const resourceForm = useResourceForm(appID, specifiers);
 
     const state = useMemo<FormState>(() => {
       return {

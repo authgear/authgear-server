@@ -4,6 +4,7 @@ import {
   ResourceSpecifier,
   ResourcesDiffResult,
   diffResourceUpdates,
+  specifierId,
 } from "../util/resource";
 import { useAppTemplatesQuery } from "../graphql/portal/query/appTemplatesQuery";
 import { useUpdateAppTemplatesMutation } from "../graphql/portal/mutations/updateAppTemplatesMutation";
@@ -25,11 +26,46 @@ export interface ResourceFormModel<State> {
 export type StateConstructor<State> = (resources: Resource[]) => State;
 export type ResourcesConstructor<State> = (state: State) => Resource[];
 
+export interface ResourcesFormState {
+  resources: Partial<Record<string, Resource>>;
+}
+
+function constructResourcesFormStateFromResources(
+  resources: Resource[]
+): ResourcesFormState {
+  const resourceMap: Partial<Record<string, Resource>> = {};
+  for (const r of resources) {
+    const id = specifierId(r.specifier);
+    // Multiple resources may use same specifier ID (images),
+    // use the first resource with non-empty values.
+    if ((resourceMap[id]?.nullableValue ?? "") === "") {
+      resourceMap[specifierId(r.specifier)] = r;
+    }
+  }
+
+  return { resources: resourceMap };
+}
+
+function constructResourcesFromResourcesFormState(
+  state: ResourcesFormState
+): Resource[] {
+  return Object.values(state.resources).filter(Boolean) as Resource[];
+}
+export function useResourceForm(
+  appID: string,
+  specifiers: ResourceSpecifier[]
+): ResourceFormModel<ResourcesFormState>;
 export function useResourceForm<State>(
   appID: string,
   specifiers: ResourceSpecifier[],
   constructState: StateConstructor<State>,
   constructResources: ResourcesConstructor<State>
+): ResourceFormModel<State>;
+export function useResourceForm<State>(
+  appID: string,
+  specifiers: ResourceSpecifier[],
+  constructState: StateConstructor<any> = constructResourcesFormStateFromResources,
+  constructResources: ResourcesConstructor<any> = constructResourcesFromResourcesFormState
 ): ResourceFormModel<State> {
   const {
     resources,

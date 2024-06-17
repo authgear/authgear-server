@@ -251,24 +251,31 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         url: `/project/${appID}/configuration/apps`,
       },
       {
-        type: "link" as const,
-        textKey: "CustomDomainListScreen.title",
-        url: `/project/${appID}/custom-domains`,
-      },
-      {
-        type: "link" as const,
-        textKey: "ScreenNav.smtp",
-        url: `/project/${appID}/configuration/smtp`,
-      },
-      {
-        type: "link" as const,
-        textKey: "ScreenNav.ui-settings",
-        url: `/project/${appID}/configuration/ui-settings`,
-      },
-      {
-        type: "link" as const,
-        textKey: "ScreenNav.localization",
-        url: `/project/${appID}/configuration/localization`,
+        type: "group" as const,
+        textKey: "ScreenNav.branding",
+        urlPrefix: `/project/${appID}/branding`,
+        children: [
+          {
+            type: "link" as const,
+            textKey: "ScreenNav.ui-settings",
+            url: `/project/${appID}/branding/ui-settings`,
+          },
+          {
+            type: "link" as const,
+            textKey: "ScreenNav.localization",
+            url: `/project/${appID}/branding/localization`,
+          },
+          {
+            type: "link" as const,
+            textKey: "CustomDomainListScreen.title",
+            url: `/project/${appID}/branding/custom-domains`,
+          },
+          {
+            type: "link" as const,
+            textKey: "ScreenNav.customText",
+            url: `/project/${appID}/branding/custom-text`,
+          },
+        ],
       },
       {
         type: "link" as const,
@@ -335,6 +342,11 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             type: "link" as const,
             textKey: "ScreenNav.session",
             url: `/project/${appID}/advanced/session`,
+          },
+          {
+            type: "link" as const,
+            textKey: "ScreenNav.smtp",
+            url: `/project/${appID}/advanced/smtp`,
           },
         ],
       },

@@ -1,6 +1,7 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Pivot, PivotItem } from "@fluentui/react";
+import cn from "classnames";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
@@ -53,35 +54,13 @@ import {
   specifierId,
   expandSpecifier,
 } from "../../util/resource";
-import { useResourceForm } from "../../hook/useResourceForm";
+import {
+  ResourcesFormState,
+  useResourceForm,
+} from "../../hook/useResourceForm";
 import FormContainer from "../../FormContainer";
-import { useSystemConfig } from "../../context/SystemConfigContext";
 import styles from "./LocalizationConfigurationScreen.module.css";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
-
-interface ResourcesFormState {
-  resources: Partial<Record<string, Resource>>;
-}
-
-function constructResourcesFormState(
-  resources: Resource[]
-): ResourcesFormState {
-  const resourceMap: Partial<Record<string, Resource>> = {};
-  for (const r of resources) {
-    const id = specifierId(r.specifier);
-    // Multiple resources may use same specifier ID (images),
-    // use the first resource with non-empty values.
-    if ((resourceMap[id]?.nullableValue ?? "") === "") {
-      resourceMap[specifierId(r.specifier)] = r;
-    }
-  }
-
-  return { resources: resourceMap };
-}
-
-function constructResources(state: ResourcesFormState): Resource[] {
-  return Object.values(state.resources).filter(Boolean) as Resource[];
-}
 
 interface FormState extends ResourcesFormState {
   supportedLanguages: string[];
@@ -116,7 +95,6 @@ const PIVOT_KEY_FORGOT_PASSWORD_CODE = "forgot_password_code";
 const PIVOT_KEY_VERIFICATION = "verification";
 const PIVOT_KEY_PASSWORDLESS_VIA_EMAIL = "passwordless_via_email";
 const PIVOT_KEY_PASSWORDLESS_VIA_SMS = "passwordless_via_sms";
-const PIVOT_KEY_TRANSLATION_JSON = "translation.json";
 
 const PIVOT_KEY_DEFAULT = PIVOT_KEY_FORGOT_PASSWORD_LINK;
 
@@ -126,7 +104,6 @@ const ALL_PIVOT_KEYS = [
   PIVOT_KEY_VERIFICATION,
   PIVOT_KEY_PASSWORDLESS_VIA_EMAIL,
   PIVOT_KEY_PASSWORDLESS_VIA_SMS,
-  PIVOT_KEY_TRANSLATION_JSON,
 ];
 
 const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProps> =
@@ -141,7 +118,6 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
     } = props;
     const { supportedLanguages } = state;
     const { renderToString } = useContext(Context);
-    const { gitCommitHash } = useSystemConfig();
 
     const setSelectedLanguage = useCallback(
       (selectedLanguage: LanguageTag) => {
@@ -396,32 +372,6 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
       },
       [setState, getValueFromState, state.selectedLanguage]
     );
-
-    const sectionsTranslationJSON: EditTemplatesWidgetSection[] = [
-      {
-        key: "translation.json",
-        title: (
-          <FormattedMessage id="EditTemplatesWidget.translationjson.title" />
-        ),
-        items: [
-          {
-            key: "translation.json",
-            title: (
-              <FormattedMessage
-                id="EditTemplatesWidget.translationjson.subtitle"
-                values={{
-                  COMMIT: gitCommitHash,
-                }}
-              />
-            ),
-            language: "json",
-            value: getValue(RESOURCE_TRANSLATION_JSON),
-            onChange: getOnChange(RESOURCE_TRANSLATION_JSON),
-            editor: "code",
-          },
-        ],
-      },
-    ];
 
     const sectionsForgotPasswordLink: EditTemplatesWidgetSection[] = [
       {
@@ -728,11 +678,15 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
 
     return (
       <ScreenContent>
-        <div className={styles.titleContainer}>
-          <ScreenTitle>
-            <FormattedMessage id="LocalizationConfigurationScreen.title" />
-          </ScreenTitle>
+        <ScreenTitle className={cn("col-span-8", "tablet:col-span-full")}>
+          <FormattedMessage id="LocalizationConfigurationScreen.title" />
+        </ScreenTitle>
+        <div className={styles.descriptionContainer}>
+          <ScreenDescription className={styles.widget}>
+            <FormattedMessage id="LocalizationConfigurationScreen.description" />
+          </ScreenDescription>
           <ManageLanguageWidget
+            showLabel={false}
             existingLanguages={initialSupportedLanguages}
             supportedLanguages={supportedLanguages}
             selectedLanguage={state.selectedLanguage}
@@ -740,9 +694,6 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             onChangeSelectedLanguage={setSelectedLanguage}
           />
         </div>
-        <ScreenDescription className={styles.widget}>
-          <FormattedMessage id="LocalizationConfigurationScreen.description" />
-        </ScreenDescription>
         {/* Code editors might incorrectly fire change events when changing language
             Set key to selectedLanguage to ensure code editors always remount */}
         <Widget className={styles.widget} key={state.selectedLanguage}>
@@ -800,14 +751,6 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
                 <EditTemplatesWidget sections={sectionsPasswordlessViaSMS} />
               </PivotItem>
             ) : null}
-            <PivotItem
-              headerText={renderToString(
-                "LocalizationConfigurationScreen.translationjson.title"
-              )}
-              itemKey={PIVOT_KEY_TRANSLATION_JSON}
-            >
-              <EditTemplatesWidget sections={sectionsTranslationJSON} />
-            </PivotItem>
           </Pivot>
         </Widget>
       </ScreenContent>
@@ -878,12 +821,7 @@ const LocalizationConfigurationScreen: React.VFC =
       return specifiers;
     }, [initialSupportedLanguages]);
 
-    const resources = useResourceForm(
-      appID,
-      specifiers,
-      constructResourcesFormState,
-      constructResources
-    );
+    const resources = useResourceForm(appID, specifiers);
 
     const state = useMemo<FormState>(() => {
       const fallbackLanguage =

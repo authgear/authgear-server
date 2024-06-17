@@ -91,6 +91,9 @@ const UISettingsScreen = lazy(
 const LocalizationConfigurationScreen = lazy(
   async () => import("./graphql/portal/LocalizationConfigurationScreen")
 );
+const CustomTextConfigurationScreen = lazy(
+  async () => import("./graphql/portal/CustomTextConfigurationScreen")
+);
 const LanguagesConfigurationScreen = lazy(
   async () => import("./graphql/portal/LanguagesConfigurationScreen")
 );
@@ -420,29 +423,59 @@ const AppRoot: React.VFC = function AppRoot() {
             </Route>
           </Route>
 
-          <Route path="custom-domains">
+          <Route path="branding">
             <Route
               index={true}
+              element={<Navigate to="ui-settings" replace={true} />}
+            />
+            <Route
+              path="ui-settings"
               element={
                 <Suspense fallback={<ShowLoading />}>
-                  <CustomDomainListScreen />
+                  <UISettingsScreen />
                 </Suspense>
               }
             />
-            <Route path=":domainID">
+            <Route
+              path="localization"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <LocalizationConfigurationScreen />
+                </Suspense>
+              }
+            />
+            <Route path="custom-domains">
               <Route
                 index={true}
-                element={<Navigate to="verify" replace={true} />}
-              />
-              <Route
-                path="verify"
                 element={
                   <Suspense fallback={<ShowLoading />}>
-                    <VerifyDomainScreen />
+                    <CustomDomainListScreen />
                   </Suspense>
                 }
               />
+              <Route path=":domainID">
+                <Route
+                  index={true}
+                  element={<Navigate to="verify" replace={true} />}
+                />
+                <Route
+                  path="verify"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <VerifyDomainScreen />
+                    </Suspense>
+                  }
+                />
+              </Route>
             </Route>
+            <Route
+              path="custom-text"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <CustomTextConfigurationScreen />
+                </Suspense>
+              }
+            />
           </Route>
 
           <Route path="configuration">
@@ -544,30 +577,6 @@ const AppRoot: React.VFC = function AppRoot() {
                 />
               </Route>
             </Route>
-            <Route
-              path="smtp"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <SMTPConfigurationScreen />
-                </Suspense>
-              }
-            />
-            <Route
-              path="ui-settings"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <UISettingsScreen />
-                </Suspense>
-              }
-            />
-            <Route
-              path="localization"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <LocalizationConfigurationScreen />
-                </Suspense>
-              }
-            />
             <Route
               path="languages"
               element={
@@ -707,6 +716,14 @@ const AppRoot: React.VFC = function AppRoot() {
               element={
                 <Suspense fallback={<ShowLoading />}>
                   <CookieLifetimeConfigurationScreen />
+                </Suspense>
+              }
+            />
+            <Route
+              path="smtp"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <SMTPConfigurationScreen />
                 </Suspense>
               }
             />
