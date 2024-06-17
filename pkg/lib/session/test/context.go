@@ -27,6 +27,8 @@ func NewMockSession() *MockSession {
 	}
 }
 
+func (m MockSession) Session() {}
+
 func (m MockSession) SessionID() string { return m.ID }
 
 func (m MockSession) SessionType() session.Type { return m.Type }
