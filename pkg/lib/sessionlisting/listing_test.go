@@ -218,7 +218,7 @@ func TestSessionListingService(t *testing.T) {
 					offlineGrant,
 					idpSession2,
 					offlineGrant3,
-				}, offlineGrant2)
+				}, offlineGrant2.ToSession(""))
 				So(err, ShouldBeNil)
 				So(session, ShouldResemble, []*sessionlisting.Session{
 					{Session: updatedIDPSessionModel, IsDevice: true, IsCurrent: true},
@@ -234,7 +234,7 @@ func TestSessionListingService(t *testing.T) {
 					offlineGrant,
 					idpSession2,
 					offlineGrant3,
-				}, offlineGrant)
+				}, offlineGrant.ToSession(""))
 				So(err, ShouldBeNil)
 				So(session, ShouldResemble, []*sessionlisting.Session{
 					{Session: updatedIDPSessionModel, IsDevice: true},
