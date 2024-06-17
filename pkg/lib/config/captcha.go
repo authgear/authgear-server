@@ -10,7 +10,7 @@ var _ = Schema.Add("CaptchaConfig", `
 			"type": "array",
 			"items": { "$ref": "#/$defs/CaptchaProvider" }
 		},
-		"provider": { "$ref": "#/$defs/LegacyCaptchaProvider" }
+		"provider": { "$ref": "#/$defs/Deprecated_CaptchaProvider" }
 	}
 }
 `)
@@ -44,9 +44,9 @@ var _ = Schema.Add("CaptchaProvider", `
 `)
 
 type CaptchaConfig struct {
-	LegacyProvider *LegacyCaptchaProvider `json:"provider,omitempty"`
-	Enabled        bool                   `json:"enabled,omitempty"`
-	Providers      []*CaptchaProvider     `json:"providers,omitempty"`
+	Deprecated_Provider *Deprecated_CaptchaProvider `json:"provider,omitempty"`
+	Enabled             bool                        `json:"enabled,omitempty"`
+	Providers           []*CaptchaProvider          `json:"providers,omitempty"`
 }
 
 type CaptchaProvider struct {
@@ -64,15 +64,15 @@ const (
 
 // legacy code below
 
-var _ = Schema.Add("LegacyCaptchaProvider", `
+var _ = Schema.Add("Deprecated_CaptchaProvider", `
 {
 	"type": "string",
 	"enum": ["cloudflare"]
 }
 `)
 
-type LegacyCaptchaProvider string
+type Deprecated_CaptchaProvider string
 
 const (
-	LegacyCaptchaProviderCloudflare LegacyCaptchaProvider = "cloudflare"
+	Deprecated_CaptchaProviderCloudflare Deprecated_CaptchaProvider = "cloudflare"
 )

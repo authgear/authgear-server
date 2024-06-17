@@ -66,7 +66,7 @@ func (c *CaptchaProvidersCredentials) SensitiveStrings() []string {
 }
 
 // legacy code below
-var _ = SecretConfigSchema.Add("LegacyCaptchaCloudflareCredentials", `
+var _ = SecretConfigSchema.Add("Deprecated_CaptchaCloudflareCredentials", `
 {
 	"type": "object",
 	"additionalProperties": false,
@@ -77,11 +77,11 @@ var _ = SecretConfigSchema.Add("LegacyCaptchaCloudflareCredentials", `
 }
 `)
 
-type LegacyCaptchaCloudflareCredentials struct {
+type Deprecated_CaptchaCloudflareCredentials struct {
 	Secret string `json:"secret,omitempty"`
 }
 
-func (c *LegacyCaptchaCloudflareCredentials) SensitiveStrings() []string {
+func (c *Deprecated_CaptchaCloudflareCredentials) SensitiveStrings() []string {
 	return []string{
 		c.Secret,
 	}

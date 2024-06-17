@@ -206,8 +206,8 @@ func ProvideOAuthClientCredentials(c *config.SecretConfig) *config.OAuthClientCr
 	return s
 }
 
-func ProvideCaptchaCloudflareCredentials(c *config.SecretConfig) *config.LegacyCaptchaCloudflareCredentials {
-	s, _ := c.LookupData(config.LegacyCaptchaCloudflareCredentialsKey).(*config.LegacyCaptchaCloudflareCredentials)
+func ProvideCaptchaCloudflareCredentials(c *config.SecretConfig) *config.Deprecated_CaptchaCloudflareCredentials {
+	s, _ := c.LookupData(config.Deprecated_CaptchaCloudflareCredentialsKey).(*config.Deprecated_CaptchaCloudflareCredentials)
 	return s
 }
 

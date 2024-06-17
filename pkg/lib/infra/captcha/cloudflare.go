@@ -19,10 +19,10 @@ type CloudflareVerificationResponse struct {
 
 type CloudflareClient struct {
 	HTTPClient  *http.Client
-	Credentials *config.LegacyCaptchaCloudflareCredentials
+	Credentials *config.Deprecated_CaptchaCloudflareCredentials
 }
 
-func NewCloudflareClient(c *config.LegacyCaptchaCloudflareCredentials) *CloudflareClient {
+func NewCloudflareClient(c *config.Deprecated_CaptchaCloudflareCredentials) *CloudflareClient {
 	if c == nil {
 		return nil
 	}
