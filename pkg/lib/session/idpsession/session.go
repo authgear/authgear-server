@@ -84,7 +84,7 @@ func (s *IDPSession) SSOGroupIDPSessionID() string {
 // IsSameSSOGroup returns true when the session argument
 // - is the same idp session
 // - is sso enabled offline grant that in the same sso group
-func (s *IDPSession) IsSameSSOGroup(ss session.Session) bool {
+func (s *IDPSession) IsSameSSOGroup(ss session.ListableSession) bool {
 	if s.Equal(ss) {
 		return true
 	}
@@ -94,6 +94,6 @@ func (s *IDPSession) IsSameSSOGroup(ss session.Session) bool {
 	return s.SSOGroupIDPSessionID() == ss.SSOGroupIDPSessionID()
 }
 
-func (s *IDPSession) Equal(ss session.Session) bool {
+func (s *IDPSession) Equal(ss session.ListableSession) bool {
 	return s.SessionID() == ss.SessionID() && s.SessionType() == ss.SessionType()
 }

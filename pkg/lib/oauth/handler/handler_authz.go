@@ -446,7 +446,7 @@ func (h *AuthorizationHandler) doHandle(
 	}
 
 	// Handle prompt=none
-	var idpSession session.Session
+	var idpSession session.ListableSession
 	if s := session.GetSession(h.Context); s != nil && s.SessionType() == session.TypeIdentityProvider {
 		idpSession = s
 	}

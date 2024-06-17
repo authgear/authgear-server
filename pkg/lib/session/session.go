@@ -15,7 +15,7 @@ const (
 	TypeOfflineGrant     Type = "offline_grant"
 )
 
-type Session interface {
+type ListableSession interface {
 	SessionID() string
 	SessionType() Type
 
@@ -32,8 +32,8 @@ type Session interface {
 	// if the session is not SSO enabled, SSOGroupIDPSessionID will be empty
 	SSOGroupIDPSessionID() string
 	// IsSameSSOGroup indicates whether the session is in the same SSO group
-	IsSameSSOGroup(s Session) bool
-	Equal(s Session) bool
+	IsSameSSOGroup(s ListableSession) bool
+	Equal(s ListableSession) bool
 }
 
 type CreateReason string
