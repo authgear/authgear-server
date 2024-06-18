@@ -51,7 +51,7 @@ func (i *IntentPromoteFlow) CanReactTo(ctx context.Context, deps *authflow.Depen
 	// 1 IntentPromoteFlowSteps
 	// 1 NodeDoCreateSession
 	// So if MilestoneDoCreateSession is found, this flow has finished.
-	_, ok := authflow.FindMilestone[MilestoneDoCreateSession](flows.Nearest)
+	_, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateSession](flows)
 	if ok {
 		return nil, authflow.ErrEOF
 	}

@@ -61,7 +61,7 @@ func (i *IntentSignupFlow) CanReactTo(ctx context.Context, deps *authflow.Depend
 	// 1 IntentSignupFlowSteps
 	// 1 NodeDoCreateSession
 	// So if MarkerDoCreateSession is found, this flow has finished.
-	_, ok := authflow.FindMilestone[MilestoneDoCreateSession](flows.Nearest)
+	_, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateSession](flows)
 	if ok {
 		return nil, authflow.ErrEOF
 	}
