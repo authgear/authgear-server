@@ -126,7 +126,10 @@ func (re *Resolver) resolveHeader(r *http.Request) (session.Session, error) {
 			return nil, err
 		}
 
-		authSession = g.ToSession(grant.RefreshTokenHash)
+		as, ok := g.ToSession(grant.RefreshTokenHash)
+		if ok {
+			authSession = as
+		}
 	default:
 		panic("oauth: resolving unknown grant session kind")
 	}
@@ -155,7 +158,10 @@ func (re *Resolver) resolveCookie(r *http.Request) (session.Session, error) {
 		return nil, err
 	}
 
-	offlineGrantSession := offlineGrant.ToSession(aSession.RefreshTokenHash)
+	offlineGrantSession, ok := offlineGrant.ToSession(aSession.RefreshTokenHash)
+	if !ok {
+		return nil, session.ErrInvalidSession
+	}
 
 	authz, err := re.Authorizations.GetByID(offlineGrantSession.AuthorizationID)
 	if errors.Is(err, ErrAuthorizationNotFound) {
@@ -173,7 +179,11 @@ func (re *Resolver) resolveCookie(r *http.Request) (session.Session, error) {
 	if err != nil {
 		return nil, err
 	}
-	offlineGrantSession = offlineGrant.ToSession(aSession.RefreshTokenHash)
+	offlineGrantSession, ok = offlineGrant.ToSession(aSession.RefreshTokenHash)
+	if !ok {
+		// This should never fail as it was a success above, so it is a panic
+		panic("unexpected: invalid refresh token hash")
+	}
 
 	return offlineGrantSession, nil
 }
