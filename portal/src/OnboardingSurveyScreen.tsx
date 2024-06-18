@@ -396,20 +396,22 @@ function Step1(_props: StepProps) {
 
 function Step2(_props: StepProps) {
   const prefix = "step2";
-  const TorPChoiceGroup = "teamOrPersonalChoiceGroup";
-  const TorPChoices = ["team", "personal"];
-  const TorPChoicesFromLocalStorage = getFromLocalStorage(
+  const teamOrPersonalChoiceGroup = "teamOrPersonalChoiceGroup";
+  const teamOrPersonalChoices = ["team", "personal"];
+  const teamOrPersonalChoicesFromLocalStorage = getFromLocalStorage(
     "team_or_personal_account"
   );
-  const defaultTorPChoices: string[] = (
-    TorPChoicesFromLocalStorage === undefined
+  const defaultteamOrPersonalChoices: string[] = (
+    teamOrPersonalChoicesFromLocalStorage === undefined
       ? []
-      : [TorPChoicesFromLocalStorage]
+      : [teamOrPersonalChoicesFromLocalStorage]
   ) as string[];
-  const [TorPChoicesState, setTorPChoicesState] = useState(defaultTorPChoices);
+  const [teamOrPersonalChoicesState, setteamOrPersonalChoicesState] = useState(
+    defaultteamOrPersonalChoices
+  );
   const empty = useMemo(() => {
-    return TorPChoicesState.length === 0;
-  }, [TorPChoicesState]);
+    return teamOrPersonalChoicesState.length === 0;
+  }, [teamOrPersonalChoicesState]);
   const { renderToString } = useContext(Context);
   const navigate = useNavigate();
   const capture = useCapture();
@@ -418,12 +420,16 @@ function Step2(_props: StepProps) {
     (e) => {
       e.preventDefault();
       e.stopPropagation();
-      setLocalStorage("team_or_personal_account", TorPChoicesState[0]);
+      setLocalStorage(
+        "team_or_personal_account",
+        teamOrPersonalChoicesState[0]
+      );
       capture("onboardingSurvey.set-team_or_personal_account");
-      if (TorPChoicesState.includes("team")) navigate("./../3-team");
-      if (TorPChoicesState.includes("personal")) navigate("./../3-personal");
+      if (teamOrPersonalChoicesState.includes("team")) navigate("./../3-team");
+      if (teamOrPersonalChoicesState.includes("personal"))
+        navigate("./../3-personal");
     },
-    [navigate, capture, TorPChoicesState]
+    [navigate, capture, teamOrPersonalChoicesState]
   );
   const onClickBack = useCallback(
     (e) => {
@@ -465,10 +471,10 @@ function Step2(_props: StepProps) {
       }
     >
       <SingleChoiceButtonGroupVariantCentered
-        prefix={[prefix, TorPChoiceGroup].join("_")}
-        availableChoices={TorPChoices}
-        selectedChoices={TorPChoicesState}
-        setChoice={setTorPChoicesState}
+        prefix={[prefix, teamOrPersonalChoiceGroup].join("_")}
+        availableChoices={teamOrPersonalChoices}
+        selectedChoices={teamOrPersonalChoicesState}
+        setChoice={setteamOrPersonalChoicesState}
       />
     </SurveyLayout>
   );
@@ -714,6 +720,13 @@ function Step4(_props: StepProps) {
   const prefix = "step4";
   const reasonChoiceGroup = "reasonChoiceGroup";
   const reasonChoices = ["Auth", "SSO", "Security", "Portal", "Other"];
+  enum reasonChoicesEnum {
+    Auth = "Auth",
+    SSO = "SSO",
+    Security = "Security",
+    Portal = "Portal",
+    Other = "Other",
+  }
   const reasonChoicesFromLocalStorage = getFromLocalStorage("use_cases") as
     | UseCase[]
     | undefined;
@@ -744,21 +757,20 @@ function Step4(_props: StepProps) {
       e.stopPropagation();
       const companyName = getFromLocalStorage("company_name");
       const constructUseCases = reasonChoicesState as UseCase[];
-      if (constructUseCases.includes("Other")) {
-        const i = constructUseCases.indexOf("Other", 0);
+      if (constructUseCases.includes(reasonChoicesEnum.Other)) {
+        const i = constructUseCases.indexOf(reasonChoicesEnum.Other, 0);
         constructUseCases[i] = { other_reason: otherReason };
       }
       setLocalStorage("use_cases", reasonChoicesState);
       capture("onboardingSurvey.set-use_cases");
-      const final_posthog_survey_json_obj = JSON.parse(
+      const final_survey_obj = JSON.parse(
         localStorage.getItem(localStorageKey)!
       );
-      if ("phone_number" in final_posthog_survey_json_obj)
-        final_posthog_survey_json_obj.phone_number =
-          final_posthog_survey_json_obj.phone_number.e164;
+      if ("phone_number" in final_survey_obj)
+        final_survey_obj.phone_number = final_survey_obj.phone_number.e164;
       capture("onboardingSurvey.set-completed-survey", {
         $set: {
-          survey_json: final_posthog_survey_json_obj,
+          survey_json: final_survey_obj,
         },
       });
       localStorage.removeItem(localStorageKey);
@@ -768,7 +780,13 @@ function Step4(_props: StepProps) {
         });
       else navigate("./../../projects/create");
     },
-    [navigate, capture, reasonChoicesState, otherReason]
+    [
+      navigate,
+      capture,
+      reasonChoicesState,
+      otherReason,
+      reasonChoicesEnum.Other,
+    ]
   );
   const onClickBack = useCallback(
     (e) => {

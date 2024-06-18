@@ -40,7 +40,7 @@ export type AuthgearGTMEventDataValueV2 =
   | string
   | number
   | boolean
-  | object
+  | Record<string, string>
   | undefined;
 export type AuthgearGTMEventDataV2 = Record<
   string,
