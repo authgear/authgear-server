@@ -32,11 +32,11 @@ var _ authflow.Milestone = &IntentSignupFlowStepIdentify{}
 var _ MilestoneSwitchToExistingUser = &IntentSignupFlowStepIdentify{}
 
 func (*IntentSignupFlowStepIdentify) Milestone() {}
-func (i *IntentSignupFlowStepIdentify) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
+func (i *IntentSignupFlowStepIdentify) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
 	i.IsUpdatingExistingUser = true
 	i.UserID = newUserID
 
-	milestoneDoCreateIdentity, ok := authflow.FindFirstMilestone[MilestoneDoCreateIdentity](flow)
+	milestoneDoCreateIdentity, ok := authflow.FindFirstMilestone[MilestoneDoCreateIdentity](flows.Nearest)
 	if ok {
 		iden := milestoneDoCreateIdentity.MilestoneDoCreateIdentity()
 		idenSpec := iden.ToSpec()
@@ -51,7 +51,7 @@ func (i *IntentSignupFlowStepIdentify) MilestoneSwitchToExistingUser(deps *authf
 			milestoneDoCreateIdentity.MilestoneDoCreateIdentityUpdate(iden.UpdateUserID(newUserID))
 		}
 	}
-	milestoneDoPopulateStandardAttributes, ok := authflow.FindFirstMilestone[MilestoneDoPopulateStandardAttributes](flow)
+	milestoneDoPopulateStandardAttributes, ok := authflow.FindFirstMilestone[MilestoneDoPopulateStandardAttributes](flows.Nearest)
 	if ok {
 		// Always skip population
 		milestoneDoPopulateStandardAttributes.MilestoneDoPopulateStandardAttributesSkip()

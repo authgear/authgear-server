@@ -244,7 +244,7 @@ type MilestoneDidReauthenticate interface {
 
 type MilestoneSwitchToExistingUser interface {
 	authflow.Milestone
-	MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error
+	MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error
 }
 
 type MilestoneDoReplaceRecoveryCode interface {

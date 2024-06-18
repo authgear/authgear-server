@@ -47,8 +47,8 @@ func (i *IntentSignupFlow) FlowRootObject(deps *authflow.Dependencies) (config.A
 }
 
 func (*IntentSignupFlow) Milestone() {}
-func (i *IntentSignupFlow) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
-	milestone, ok := authflow.FindFirstMilestone[MilestoneDoCreateUser](flow)
+func (i *IntentSignupFlow) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
+	milestone, ok := authflow.FindFirstMilestone[MilestoneDoCreateUser](flows.Nearest)
 	if ok {
 		milestone.MilestoneDoCreateUserUseExisting(newUserID)
 	}

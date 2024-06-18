@@ -30,20 +30,15 @@ func (*IntentSignupFlowStepPromptCreatePasskey) Kind() string {
 }
 
 func (i *IntentSignupFlowStepPromptCreatePasskey) Milestone() {}
-func (i *IntentSignupFlowStepPromptCreatePasskey) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
+func (i *IntentSignupFlowStepPromptCreatePasskey) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
 	i.UserID = newUserID
 
-	milestoneDoCreateIdentity, ok := authflow.FindFirstMilestone[MilestoneDoCreateIdentity](flow)
+	milestoneDoCreateIdentity, ok := authflow.FindFirstMilestone[MilestoneDoCreateIdentity](flows.Nearest)
 	if ok {
 		iden := milestoneDoCreateIdentity.MilestoneDoCreateIdentity()
 		milestoneDoCreateIdentity.MilestoneDoCreateIdentityUpdate(iden.UpdateUserID(newUserID))
 	}
 
-	// FIXME(authflow): Change MilestoneSwitchToExistingUser to take flows.
-	flows := authflow.Flows{
-		Root:    flow,
-		Nearest: flow,
-	}
 	milestoneDoCreateAuthenticator, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateAuthenticator](flows)
 	if ok {
 		authn := milestoneDoCreateAuthenticator.MilestoneDoCreateAuthenticator()

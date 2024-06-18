@@ -60,15 +60,10 @@ var _ authflow.Milestone = &IntentSignupFlowStepCreateAuthenticator{}
 var _ MilestoneSwitchToExistingUser = &IntentSignupFlowStepCreateAuthenticator{}
 
 func (*IntentSignupFlowStepCreateAuthenticator) Milestone() {}
-func (i *IntentSignupFlowStepCreateAuthenticator) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
+func (i *IntentSignupFlowStepCreateAuthenticator) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
 	i.UserID = newUserID
 	i.IsUpdatingExistingUser = true
 
-	// FIXME(authflow): Change MilestoneSwitchToExistingUser to take flows.
-	flows := authflow.Flows{
-		Root:    flow,
-		Nearest: flow,
-	}
 	m1, m1Flows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateAuthenticator](flows)
 	if ok {
 		milestone, _, ok := m1.MilestoneFlowCreateAuthenticator(m1Flows)

@@ -38,12 +38,12 @@ func (*IntentSignupFlowStepVerify) Kind() string {
 }
 
 func (i *IntentSignupFlowStepVerify) Milestone() {}
-func (i *IntentSignupFlowStepVerify) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
+func (i *IntentSignupFlowStepVerify) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
 	i.UserID = newUserID
 
-	milestoneVerifyClaim, ok := authflow.FindFirstMilestone[MilestoneVerifyClaim](flow)
+	milestoneVerifyClaim, ok := authflow.FindFirstMilestone[MilestoneVerifyClaim](flows.Nearest)
 	if ok {
-		return milestoneVerifyClaim.MilestoneVerifyClaimUpdateUserID(deps, flow, newUserID)
+		return milestoneVerifyClaim.MilestoneVerifyClaimUpdateUserID(deps, flows.Nearest, newUserID)
 	}
 
 	return nil

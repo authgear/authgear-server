@@ -153,7 +153,7 @@ func (i *IntentAccountLinking) rewriteFlowIntoUserIDOfConflictedIdentity(
 		NodeSimple: func(nodeSimple authflow.NodeSimple, w *authflow.Flow) error {
 			milestone, ok := nodeSimple.(MilestoneSwitchToExistingUser)
 			if ok {
-				err := milestone.MilestoneSwitchToExistingUser(deps, w, conflictedUserID)
+				err := milestone.MilestoneSwitchToExistingUser(deps, flows.Replace(w), conflictedUserID)
 				if err != nil {
 					return err
 				}
@@ -163,7 +163,7 @@ func (i *IntentAccountLinking) rewriteFlowIntoUserIDOfConflictedIdentity(
 		Intent: func(intent authflow.Intent, w *authflow.Flow) error {
 			milestone, ok := intent.(MilestoneSwitchToExistingUser)
 			if ok {
-				err := milestone.MilestoneSwitchToExistingUser(deps, w, conflictedUserID)
+				err := milestone.MilestoneSwitchToExistingUser(deps, flows.Replace(w), conflictedUserID)
 				if err != nil {
 					return err
 				}

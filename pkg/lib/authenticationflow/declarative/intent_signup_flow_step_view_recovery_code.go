@@ -46,11 +46,11 @@ var _ authflow.Milestone = &IntentSignupFlowStepViewRecoveryCode{}
 var _ MilestoneSwitchToExistingUser = &IntentSignupFlowStepViewRecoveryCode{}
 
 func (*IntentSignupFlowStepViewRecoveryCode) Milestone() {}
-func (i *IntentSignupFlowStepViewRecoveryCode) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
+func (i *IntentSignupFlowStepViewRecoveryCode) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
 	i.UserID = newUserID
 	i.IsUpdatingExistingUser = true
 
-	milestone, ok := authflow.FindFirstMilestone[MilestoneDoReplaceRecoveryCode](flow)
+	milestone, ok := authflow.FindFirstMilestone[MilestoneDoReplaceRecoveryCode](flows.Nearest)
 	if ok {
 		milestone.MilestoneDoReplaceRecoveryCodeUpdateUserID(newUserID)
 	}
