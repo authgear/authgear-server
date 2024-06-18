@@ -78,6 +78,17 @@ func (h *AuthflowV2LoginHandler) GetData(w http.ResponseWriter, r *http.Request,
 	return data, nil
 }
 
+func (h *AuthflowV2LoginHandler) GetPreviewInlineData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
+	viewmodels.Embed(data, baseViewModel)
+	authflowViewModel := h.AuthflowViewModel.NewWithConfig()
+	viewmodels.Embed(data, authflowViewModel)
+	viewmodels.Embed(data, v2viewmodels.NewOAuthErrorViewModel(baseViewModel.RawError))
+	viewmodels.Embed(data, NewAuthflowLoginViewModel(false))
+	return data, nil
+}
+
 func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if h.UIConfig.SignupLoginFlowEnabled && !h.AuthenticationConfig.PublicSignupDisabled {
 		// Login will be same as signup
@@ -86,6 +97,20 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 			CanSwitchToLogin: false,
 			UIVariant:        AuthflowV2SignupUIVariantSignupLogin,
 		})
+		return
+	}
+
+	if r.URL.Query().Get(webapp.PreviewQueryKey) == webapp.PreviewModeInline {
+		var previewHandler handlerwebapp.PreviewHandler
+		previewHandler.Preview(func() error {
+			data, err := h.GetPreviewInlineData(w, r)
+			if err != nil {
+				return err
+			}
+			h.Renderer.RenderHTML(w, r, TemplateWebAuthflowLoginHTML, data)
+			return nil
+		})
+		previewHandler.ServeHTTP(w, r)
 		return
 	}
 
