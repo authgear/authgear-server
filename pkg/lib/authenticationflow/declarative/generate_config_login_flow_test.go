@@ -49,7 +49,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: login_identify
   type: identify
   one_of:
   - identification: email
@@ -86,7 +86,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: login_identify
   type: identify
   one_of:
   - identification: email
@@ -95,7 +95,7 @@ steps:
       type: authenticate
       one_of:
       - authentication: primary_oob_otp_email
-        target_step: identify
+        target_step: login_identify
         steps:
         - name: authenticate_secondary_email
           type: authenticate
@@ -122,7 +122,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: login_identify
   type: identify
   one_of:
   - identification: phone
@@ -131,7 +131,7 @@ steps:
       type: authenticate
       one_of:
       - authentication: primary_oob_otp_sms
-        target_step: identify
+        target_step: login_identify
         steps:
         - name: authenticate_secondary_phone
           type: authenticate
@@ -158,7 +158,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: login_identify
   type: identify
   one_of:
   - identification: username
@@ -198,7 +198,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: login_identify
   type: identify
   one_of:
   - identification: email
@@ -218,7 +218,7 @@ steps:
         - type: change_password
           target_step: authenticate_primary_email
       - authentication: primary_oob_otp_email
-        target_step: identify
+        target_step: login_identify
         steps:
         - name: authenticate_secondary_email
           type: authenticate
@@ -244,7 +244,7 @@ steps:
         - type: change_password
           target_step: authenticate_primary_phone
       - authentication: primary_oob_otp_sms
-        target_step: identify
+        target_step: login_identify
         steps:
         - name: authenticate_secondary_phone
           type: authenticate
@@ -274,7 +274,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: login_identify
   type: identify
   one_of:
   - identification: email
@@ -314,7 +314,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: login_identify
   type: identify
   one_of:
   - identification: email
@@ -352,7 +352,7 @@ authenticator:
 `, `
 name: default
 steps:
-- name: identify
+- name: login_identify
   type: identify
   one_of:
   - identification: email
@@ -388,7 +388,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: login_identify
   type: identify
   one_of:
   - identification: oauth
@@ -422,7 +422,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: login_identify
   type: identify
   one_of:
   - identification: email
@@ -459,7 +459,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: login_identify
   type: identify
   one_of:
   - identification: email
@@ -513,7 +513,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: login_identify
   type: identify
   one_of:
   - identification: email
@@ -558,7 +558,7 @@ name: default
 captcha:
   enabled: true
 steps:
-- name: identify
+- name: login_identify
   type: identify
   one_of:
   - identification: email
@@ -606,7 +606,7 @@ name: default
 captcha:
   enabled: true
 steps:
-- name: identify
+- name: login_identify
   type: identify
   one_of:
   - identification: email

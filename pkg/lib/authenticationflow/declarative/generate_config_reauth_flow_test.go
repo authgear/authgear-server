@@ -50,7 +50,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: reauth_identify
   type: identify
   one_of:
   - identification: id_token
@@ -75,7 +75,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: reauth_identify
   type: identify
   one_of:
   - identification: id_token
@@ -100,7 +100,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: reauth_identify
   type: identify
   one_of:
   - identification: id_token
@@ -125,7 +125,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: reauth_identify
   type: identify
   one_of:
   - identification: id_token
@@ -153,7 +153,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: reauth_identify
   type: identify
   one_of:
   - identification: id_token
@@ -182,7 +182,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: reauth_identify
   type: identify
   one_of:
   - identification: id_token
@@ -208,7 +208,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: reauth_identify
   type: identify
   one_of:
   - identification: id_token
@@ -233,7 +233,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: reauth_identify
   type: identify
   one_of:
   - identification: id_token
@@ -272,7 +272,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: reauth_identify
   type: identify
   one_of:
   - identification: id_token
@@ -306,7 +306,7 @@ name: default
 captcha:
   enabled: true
 steps:
-- name: identify
+- name: reauth_identify
   type: identify
   one_of:
   - identification: id_token
@@ -343,7 +343,7 @@ name: default
 captcha:
   enabled: true
 steps:
-- name: identify
+- name: reauth_identify
   type: identify
   one_of:
   - identification: id_token

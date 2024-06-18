@@ -25,7 +25,7 @@ func GenerateSignupFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowS
 
 func generateSignupFlowStepIdentify(cfg *config.AppConfig) *config.AuthenticationFlowSignupFlowStep {
 	step := &config.AuthenticationFlowSignupFlowStep{
-		Name: nameStepIdentify,
+		Name: nameStepIdentify(config.AuthenticationFlowTypeSignup),
 		Type: config.AuthenticationFlowSignupFlowStepTypeIdentify,
 	}
 
@@ -197,7 +197,7 @@ func generateSignupFlowStepCreateAuthenticatorPrimary(cfg *config.AppConfig, ide
 			if _, ok := allowedMap[am]; ok {
 				oneOf := &config.AuthenticationFlowSignupFlowOneOf{
 					Authentication: am,
-					TargetStep:     nameStepIdentify,
+					TargetStep:     nameStepIdentify(config.AuthenticationFlowTypeSignup),
 				}
 				step.OneOf = append(step.OneOf, oneOf)
 			}
@@ -207,7 +207,7 @@ func generateSignupFlowStepCreateAuthenticatorPrimary(cfg *config.AppConfig, ide
 			if _, ok := allowedMap[am]; ok {
 				oneOf := &config.AuthenticationFlowSignupFlowOneOf{
 					Authentication: am,
-					TargetStep:     nameStepIdentify,
+					TargetStep:     nameStepIdentify(config.AuthenticationFlowTypeSignup),
 				}
 				step.OneOf = append(step.OneOf, oneOf)
 			}

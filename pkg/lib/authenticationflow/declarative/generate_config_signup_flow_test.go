@@ -49,12 +49,12 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: signup_identify
   type: identify
   one_of:
   - identification: email
     steps:
-    - target_step: identify
+    - target_step: signup_identify
       type: verify
     - name: authenticate_primary_email
       type: create_authenticator
@@ -76,18 +76,18 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: signup_identify
   type: identify
   one_of:
   - identification: email
     steps:
-    - target_step: identify
+    - target_step: signup_identify
       type: verify
     - name: authenticate_primary_email
       type: create_authenticator
       one_of:
       - authentication: primary_oob_otp_email
-        target_step: identify
+        target_step: signup_identify
 `)
 
 		// phone, otp
@@ -104,18 +104,18 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: signup_identify
   type: identify
   one_of:
   - identification: phone
     steps:
-    - target_step: identify
+    - target_step: signup_identify
       type: verify
     - name: authenticate_primary_phone
       type: create_authenticator
       one_of:
       - authentication: primary_oob_otp_sms
-        target_step: identify
+        target_step: signup_identify
 `)
 
 		// username, password
@@ -132,7 +132,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: signup_identify
   type: identify
   one_of:
   - identification: username
@@ -160,29 +160,29 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: signup_identify
   type: identify
   one_of:
   - identification: email
     steps:
-    - target_step: identify
+    - target_step: signup_identify
       type: verify
     - name: authenticate_primary_email
       type: create_authenticator
       one_of:
       - authentication: primary_password
       - authentication: primary_oob_otp_email
-        target_step: identify
+        target_step: signup_identify
   - identification: phone
     steps:
-    - target_step: identify
+    - target_step: signup_identify
       type: verify
     - name: authenticate_primary_phone
       type: create_authenticator
       one_of:
       - authentication: primary_password
       - authentication: primary_oob_otp_sms
-        target_step: identify
+        target_step: signup_identify
 `)
 
 		// email,password, totp,recovery_code
@@ -202,12 +202,12 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: signup_identify
   type: identify
   one_of:
   - identification: email
     steps:
-    - target_step: identify
+    - target_step: signup_identify
       type: verify
     - name: authenticate_primary_email
       type: create_authenticator
@@ -240,12 +240,12 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: signup_identify
   type: identify
   one_of:
   - identification: email
     steps:
-    - target_step: identify
+    - target_step: signup_identify
       type: verify
     - name: authenticate_primary_email
       type: create_authenticator
@@ -270,7 +270,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: signup_identify
   type: identify
   one_of:
   - identification: oauth
@@ -302,12 +302,12 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: signup_identify
   type: identify
   one_of:
   - identification: email
     steps:
-    - target_step: identify
+    - target_step: signup_identify
       type: verify
     - name: authenticate_primary_email
       type: create_authenticator
@@ -341,14 +341,14 @@ name: default
 captcha:
   enabled: true
 steps:
-- name: identify
+- name: signup_identify
   type: identify
   one_of:
   - identification: email
     captcha:
       required: true
     steps:
-    - target_step: identify
+    - target_step: signup_identify
       type: verify
     - name: authenticate_primary_email
       type: create_authenticator
@@ -379,14 +379,14 @@ name: default
 captcha:
   enabled: true
 steps:
-- name: identify
+- name: signup_identify
   type: identify
   one_of:
   - identification: email
     captcha:
       required: true
     steps:
-    - target_step: identify
+    - target_step: signup_identify
       type: verify
     - name: authenticate_primary_email
       type: create_authenticator
@@ -396,7 +396,7 @@ steps:
     captcha:
       required: true
     steps:
-    - target_step: identify
+    - target_step: signup_identify
       type: verify
     - name: authenticate_primary_phone
       type: create_authenticator

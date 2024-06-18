@@ -33,7 +33,7 @@ func GenerateLoginFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowLo
 
 func generateLoginFlowStepIdentify(cfg *config.AppConfig) *config.AuthenticationFlowLoginFlowStep {
 	step := &config.AuthenticationFlowLoginFlowStep{
-		Name: nameStepIdentify,
+		Name: nameStepIdentify(config.AuthenticationFlowTypeLogin),
 		Type: config.AuthenticationFlowLoginFlowStepTypeIdentify,
 	}
 
@@ -228,7 +228,7 @@ func generateLoginFlowStepAuthenticatePrimaryOOBEmail(
 ) *config.AuthenticationFlowLoginFlowOneOf {
 	oneOf := &config.AuthenticationFlowLoginFlowOneOf{
 		Authentication: config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
-		TargetStep:     nameStepIdentify,
+		TargetStep:     nameStepIdentify(config.AuthenticationFlowTypeLogin),
 	}
 
 	// Add authenticate step secondary if necessary
@@ -245,7 +245,7 @@ func generateLoginFlowStepAuthenticatePrimaryOOBSMS(
 	am := config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS
 	oneOf := &config.AuthenticationFlowLoginFlowOneOf{
 		Authentication: am,
-		TargetStep:     nameStepIdentify,
+		TargetStep:     nameStepIdentify(config.AuthenticationFlowTypeLogin),
 	}
 
 	// Add authenticate step secondary if necessary
