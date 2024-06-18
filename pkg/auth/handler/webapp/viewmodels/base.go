@@ -80,6 +80,8 @@ type BaseViewModel struct {
 	// websocket is used in interaction only, we disable it in authflow
 	WebsocketDisabled bool
 
+	InlinePreview bool
+
 	ShouldFocusInput bool
 	LogUnknownError  func(err map[string]interface{}) string
 }
@@ -162,6 +164,12 @@ type BaseViewModeler struct {
 func (m *BaseViewModeler) ViewModelForAuthFlow(r *http.Request, rw http.ResponseWriter) BaseViewModel {
 	vm := m.ViewModel(r, rw)
 	vm.WebsocketDisabled = true
+	return vm
+}
+
+func (m *BaseViewModeler) ViewModelForInlinePreviewAuthFlow(r *http.Request, rw http.ResponseWriter) BaseViewModel {
+	vm := m.ViewModelForAuthFlow(r, rw)
+	vm.InlinePreview = true
 	return vm
 }
 

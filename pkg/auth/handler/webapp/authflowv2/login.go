@@ -78,9 +78,9 @@ func (h *AuthflowV2LoginHandler) GetData(w http.ResponseWriter, r *http.Request,
 	return data, nil
 }
 
-func (h *AuthflowV2LoginHandler) GetPreviewInlineData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
+func (h *AuthflowV2LoginHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
-	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
+	baseViewModel := h.BaseViewModel.ViewModelForInlinePreviewAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 	authflowViewModel := h.AuthflowViewModel.NewWithConfig()
 	viewmodels.Embed(data, authflowViewModel)
@@ -103,7 +103,7 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	if r.URL.Query().Get(webapp.PreviewQueryKey) == webapp.PreviewModeInline {
 		var previewHandler handlerwebapp.PreviewHandler
 		previewHandler.Preview(func() error {
-			data, err := h.GetPreviewInlineData(w, r)
+			data, err := h.GetInlinePreviewData(w, r)
 			if err != nil {
 				return err
 			}
