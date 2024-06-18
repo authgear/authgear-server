@@ -15,6 +15,17 @@ func init() {
 	authflow.RegisterIntent(&IntentLoginFlowStepIdentify{})
 }
 
+// IntentLoginFlowStepIdentify
+//   NodeUseIdentityLoginID (MilestoneIdentificationMethod, MilestoneFlowUseIdentity)
+//   NodeDoUseIdentity (MilestoneDoUseIdentity)
+//
+//   IntentOAuth (MilestoneIdentificationMethod, MilestoneFlowUseIdentity)
+//     NodeOAuth
+//     NodeDoUseIdentity (MilestoneDoUseIdentity)
+//
+//   NodeUseIdentityPasskey (MilestoneIdentificationMethod, MilestoneFlowUseIdentity)
+//   NodeDoUseIdentityPasskey (MilestoneDoUseIdentity)
+
 type IntentLoginFlowStepIdentify struct {
 	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
 	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
@@ -35,12 +46,17 @@ func (i *IntentLoginFlowStepIdentify) GetJSONPointer() jsonpointer.T {
 var _ IntentLoginFlowStepAuthenticateTarget = &IntentLoginFlowStepIdentify{}
 
 func (*IntentLoginFlowStepIdentify) GetIdentity(_ context.Context, _ *authflow.Dependencies, flows authflow.Flows) *identity.Info {
-	m, ok := authflow.FindMilestone[MilestoneDoUseIdentity](flows.Nearest)
+	m1, m1Flows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowUseIdentity](flows)
+	if !ok {
+		panic(fmt.Errorf("MilestoneFlowUseIdentity is absent in IntentLoginFlowStepIdentify"))
+	}
+
+	m2, _, ok := m1.MilestoneFlowUseIdentity(m1Flows)
 	if !ok {
 		panic(fmt.Errorf("MilestoneDoUseIdentity is absent in IntentLoginFlowStepIdentify"))
 	}
 
-	info := m.MilestoneDoUseIdentity()
+	info := m2.MilestoneDoUseIdentity()
 	return info
 }
 
@@ -102,7 +118,7 @@ func (i *IntentLoginFlowStepIdentify) CanReactTo(ctx context.Context, deps *auth
 		}, nil
 	}
 
-	_, identityUsed := authflow.FindMilestone[MilestoneDoUseIdentity](flows.Nearest)
+	_, _, identityUsed := authflow.FindMilestoneInCurrentFlow[MilestoneFlowUseIdentity](flows)
 	_, _, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
 	switch {
@@ -155,7 +171,7 @@ func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *authflo
 		return nil, authflow.ErrIncompatibleInput
 	}
 
-	_, identityUsed := authflow.FindMilestone[MilestoneDoUseIdentity](flows.Nearest)
+	_, _, identityUsed := authflow.FindMilestoneInCurrentFlow[MilestoneFlowUseIdentity](flows)
 	_, _, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
 	switch {

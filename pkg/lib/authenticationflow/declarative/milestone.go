@@ -174,6 +174,11 @@ type MilestoneDoUseUser interface {
 	MilestoneDoUseUser() string
 }
 
+type MilestoneFlowUseIdentity interface {
+	authflow.Milestone
+	MilestoneFlowUseIdentity(flows authflow.Flows) (MilestoneDoUseIdentity, authflow.Flows, bool)
+}
+
 type MilestoneDoUseIdentity interface {
 	authflow.Milestone
 	MilestoneDoUseIdentity() *identity.Info

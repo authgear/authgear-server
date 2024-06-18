@@ -27,6 +27,7 @@ type NodeUseIdentityPasskey struct {
 var _ authflow.NodeSimple = &NodeUseIdentityPasskey{}
 var _ authflow.Milestone = &NodeUseIdentityPasskey{}
 var _ MilestoneIdentificationMethod = &NodeUseIdentityPasskey{}
+var _ MilestoneFlowUseIdentity = &NodeUseIdentityPasskey{}
 var _ authflow.InputReactor = &NodeUseIdentityPasskey{}
 
 func (*NodeUseIdentityPasskey) Kind() string {
@@ -36,6 +37,10 @@ func (*NodeUseIdentityPasskey) Kind() string {
 func (*NodeUseIdentityPasskey) Milestone() {}
 func (n *NodeUseIdentityPasskey) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
 	return n.Identification
+}
+
+func (*NodeUseIdentityPasskey) MilestoneFlowUseIdentity(flows authflow.Flows) (MilestoneDoUseIdentity, authflow.Flows, bool) {
+	return authflow.FindMilestoneInCurrentFlow[MilestoneDoUseIdentity](flows)
 }
 
 func (n *NodeUseIdentityPasskey) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
