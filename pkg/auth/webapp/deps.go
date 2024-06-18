@@ -13,7 +13,9 @@ var DependencySet = wire.NewSet(
 	NewSignedUpCookieDef,
 	wire.Struct(new(ErrorCookie), "*"),
 
+	NewCSRFMiddlewareLogger,
 	wire.Struct(new(CSRFMiddleware), "*"),
+	wire.Struct(new(CSRFDebugMiddleware), "*"),
 	wire.Struct(new(SessionMiddleware), "*"),
 	wire.Bind(new(SessionMiddlewareStore), new(*SessionStoreRedis)),
 	wire.Bind(new(SessionMiddlewareSessionService), new(*Service2)),
