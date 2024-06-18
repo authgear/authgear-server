@@ -155,8 +155,9 @@ func (re *Resolver) resolveCookie(r *http.Request) (session.Session, error) {
 		return nil, err
 	}
 
-	// TODO(DEV-1403): Use the correct authorization id
-	authz, err := re.Authorizations.GetByID(offlineGrant.AuthorizationID)
+	offlineGrantSession := offlineGrant.ToSession(aSession.RefreshTokenHash)
+
+	authz, err := re.Authorizations.GetByID(offlineGrantSession.AuthorizationID)
 	if errors.Is(err, ErrAuthorizationNotFound) {
 		// Authorization does not exists (e.g. revoked)
 		return nil, session.ErrInvalidSession
@@ -172,8 +173,9 @@ func (re *Resolver) resolveCookie(r *http.Request) (session.Session, error) {
 	if err != nil {
 		return nil, err
 	}
+	offlineGrantSession = offlineGrant.ToSession(aSession.RefreshTokenHash)
 
-	return offlineGrant.ToSession(aSession.RefreshTokenHash), nil
+	return offlineGrantSession, nil
 }
 
 func (re *Resolver) accessOfflineGrant(offlineGrant *OfflineGrant, accessEvent access.Event) (*OfflineGrant, error) {

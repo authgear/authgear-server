@@ -226,7 +226,7 @@ func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
 					canUseIntentReauthenticate = true
 				case session.TypeOfflineGrant:
 					if offlineGrant, ok := sidSession.(*oauth.OfflineGrant); ok {
-						// TODO(DEV-1403): Find the correct scopes of the used token
+						// Use the "root" scopes, because we don't know the tokenHash here
 						if slice.ContainsString(offlineGrant.Scopes, oauth.FullAccessScope) {
 							canUseIntentReauthenticate = true
 						}

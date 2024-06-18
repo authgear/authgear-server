@@ -68,9 +68,19 @@ func (s *SessionListingService) FilterForDisplay(sessions []session.ListableSess
 	idpSessionToDisplayNameMap := map[string]string{}
 
 	for _, offlineGrant := range offlineGrants {
-		// remove third-party app refresh token
-		// TODO(DEV-1403): Check all client id?
-		if _, ok := thirdPartyClientIDSet[offlineGrant.ClientID]; ok {
+		// remove the offline grant if it is only used in third-party app
+		var isUsedInFirstPartyApp = false
+		if _, ok := thirdPartyClientIDSet[offlineGrant.ClientID]; !ok {
+			isUsedInFirstPartyApp = true
+		}
+
+		for _, token := range offlineGrant.RefreshTokens {
+			if _, ok := thirdPartyClientIDSet[token.ClientID]; !ok {
+				isUsedInFirstPartyApp = true
+			}
+		}
+
+		if !isUsedInFirstPartyApp {
 			continue
 		}
 
