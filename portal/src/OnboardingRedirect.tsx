@@ -20,7 +20,7 @@ const OnboardingRedirect: React.VFC = function OnboardingRedirect() {
     if (apps && apps.length > 0) {
       navigate("/");
     } else {
-      navigate("/projects/create");
+      navigate("/onboarding-survey");
     }
   }, [navigate, error, apps, loading]);
 
