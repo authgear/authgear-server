@@ -229,3 +229,7 @@ func (m *AuthflowViewModeler) NewWithAuthflow(f *authflow.FlowResponse, r *http.
 		LoginIDContextualType:    loginIDContextualType,
 	}
 }
+
+func (m *AuthflowViewModeler) NewWithConfig() AuthflowViewModel {
+	return AuthflowViewModel{}
+}
