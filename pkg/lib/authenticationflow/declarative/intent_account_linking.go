@@ -82,7 +82,7 @@ func (i *IntentAccountLinking) ReactTo(ctx context.Context, deps *authflow.Depen
 		return nil, authflow.ErrIncompatibleInput
 	}
 
-	milestone, ok := authflow.FindMilestoneInCurrentFlow[MilestoneUseAccountLinkingIdentification](flows.Nearest)
+	milestone, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneUseAccountLinkingIdentification](flows)
 	if !ok {
 		panic(fmt.Errorf("expected milestone MilestoneUseAccountLinkingIdentification not found"))
 	}

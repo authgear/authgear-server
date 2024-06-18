@@ -103,7 +103,7 @@ func (i *IntentLoginFlowStepIdentify) CanReactTo(ctx context.Context, deps *auth
 	}
 
 	_, identityUsed := authflow.FindMilestone[MilestoneDoUseIdentity](flows.Nearest)
-	_, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows.Nearest)
+	_, _, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
 	switch {
 	case identityUsed && !nestedStepsHandled:
@@ -156,11 +156,11 @@ func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *authflo
 	}
 
 	_, identityUsed := authflow.FindMilestone[MilestoneDoUseIdentity](flows.Nearest)
-	_, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows.Nearest)
+	_, _, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
 	switch {
 	case identityUsed && !nestedStepsHandled:
-		identification := i.identificationMethod(flows.Nearest)
+		identification := i.identificationMethod(flows)
 		return authflow.NewSubFlow(&IntentLoginFlowSteps{
 			FlowReference: i.FlowReference,
 			JSONPointer:   i.jsonPointer(step, identification),
@@ -215,8 +215,8 @@ func (*IntentLoginFlowStepIdentify) checkIdentificationMethod(deps *authflow.Dep
 	return
 }
 
-func (*IntentLoginFlowStepIdentify) identificationMethod(w *authflow.Flow) config.AuthenticationFlowIdentification {
-	m, ok := authflow.FindMilestoneInCurrentFlow[MilestoneIdentificationMethod](w)
+func (*IntentLoginFlowStepIdentify) identificationMethod(flows authflow.Flows) config.AuthenticationFlowIdentification {
+	m, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneIdentificationMethod](flows)
 	if !ok {
 		panic(fmt.Errorf("identification method not yet selected"))
 	}

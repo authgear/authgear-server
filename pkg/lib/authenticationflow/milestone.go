@@ -17,9 +17,13 @@ func FindMilestone[T Milestone](w *Flow) (T, bool) {
 	return findMilestone[T](w, false)
 }
 
-// This function only find milestones in the provided flow,
-// and will not nest into subflows
-func FindMilestoneInCurrentFlow[T Milestone](w *Flow) (T, bool) {
+// FindMilestoneInCurrentFlow find the last milestone in the flow.
+// It does not recur into sub flows.
+// If the found milestone is a node, then the returned flows is the same as flows.
+// If the found milestone is a intent, then the returned flows is Nearest=intent.
+func FindMilestoneInCurrentFlow[T Milestone](flows Flows) (T, Flows, bool) {
+	newFlows := flows
+	w := flows.Nearest
 	var t T
 	found := false
 	for _, node := range w.Nodes {
@@ -28,18 +32,20 @@ func FindMilestoneInCurrentFlow[T Milestone](w *Flow) (T, bool) {
 		case NodeTypeSimple:
 			if m, ok := n.Simple.(T); ok {
 				t = m
+				newFlows = flows.Replace(w)
 				found = true
 			}
 		case NodeTypeSubFlow:
 			if m, ok := n.SubFlow.Intent.(T); ok {
 				t = m
+				newFlows = flows.Replace(n.SubFlow)
 				found = true
 			}
 		default:
 			panic(errors.New("unreachable"))
 		}
 	}
-	return t, found
+	return t, newFlows, found
 }
 
 func findMilestone[T Milestone](w *Flow, stopOnFirst bool) (T, bool) {

@@ -169,7 +169,7 @@ func (i *IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *aut
 
 	_, identityCreated := authflow.FindMilestone[MilestoneDoCreateIdentity](flows.Nearest)
 	_, standardAttributesPopulated := authflow.FindMilestone[MilestoneDoPopulateStandardAttributes](flows.Nearest)
-	_, nestedStepHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows.Nearest)
+	_, _, nestedStepHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
 	switch {
 	case identityCreated && !standardAttributesPopulated && !nestedStepHandled:
@@ -236,7 +236,7 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 
 	_, identityCreated := authflow.FindMilestone[MilestoneDoCreateIdentity](flows.Nearest)
 	_, standardAttributesPopulated := authflow.FindMilestone[MilestoneDoPopulateStandardAttributes](flows.Nearest)
-	_, nestedStepHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows.Nearest)
+	_, _, nestedStepHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
 	switch {
 	case identityCreated && !standardAttributesPopulated && !nestedStepHandled:
@@ -246,7 +246,7 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 			SkipUpdate: i.IsUpdatingExistingUser,
 		}), nil
 	case identityCreated && standardAttributesPopulated && !nestedStepHandled:
-		identification := i.identificationMethod(flows.Nearest)
+		identification := i.identificationMethod(flows)
 		return authflow.NewSubFlow(&IntentSignupFlowSteps{
 			FlowReference:          i.FlowReference,
 			JSONPointer:            i.jsonPointer(step, identification),
@@ -291,11 +291,11 @@ func (*IntentSignupFlowStepIdentify) checkIdentificationMethod(deps *authflow.De
 	return
 }
 
-func (*IntentSignupFlowStepIdentify) identificationMethod(w *authflow.Flow) config.AuthenticationFlowIdentification {
+func (*IntentSignupFlowStepIdentify) identificationMethod(flows authflow.Flows) config.AuthenticationFlowIdentification {
 	// A bug is found by this test tests/account_linking/incoming_login_id_create_authenticator_before.test.yaml
 	// Previously, FindMilestone is used instead of FindMilestoneInCurrentFlow.
 	// But we should find the identification selected in THIS flow.
-	m, ok := authflow.FindMilestoneInCurrentFlow[MilestoneIdentificationMethod](w)
+	m, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneIdentificationMethod](flows)
 	if !ok {
 		panic(fmt.Errorf("identification method not yet selected"))
 	}
@@ -374,7 +374,7 @@ func (i *IntentSignupFlowStepIdentify) reactToExistingIdentity(ctx context.Conte
 	}
 
 	_, identityCreated := authflow.FindMilestone[MilestoneDoCreateIdentity](flows.Nearest)
-	_, nestedStepHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows.Nearest)
+	_, _, nestedStepHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
 	current, err := i.currentFlowObject(deps)
 	if err != nil {
@@ -384,7 +384,7 @@ func (i *IntentSignupFlowStepIdentify) reactToExistingIdentity(ctx context.Conte
 
 	switch {
 	case identityCreated && !nestedStepHandled:
-		identification := i.identificationMethod(flows.Nearest)
+		identification := i.identificationMethod(flows)
 		return authflow.NewSubFlow(&IntentSignupFlowSteps{
 			FlowReference:          i.FlowReference,
 			JSONPointer:            i.jsonPointer(step, identification),
