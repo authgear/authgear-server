@@ -385,6 +385,32 @@ func (s *Store) UpdateOfflineGrantApp2AppDeviceKey(grantID string, newKey string
 	return grant, nil
 }
 
+func (s *Store) UpdateOfflineGrantRefreshTokens(grantID string, refreshTokens []oauth.OfflineGrantRefreshToken, expireAt time.Time) (*oauth.OfflineGrant, error) {
+	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
+	mutex := s.Redis.NewMutex(mutexName)
+	err := mutex.LockContext(s.Context)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_, _ = mutex.UnlockContext(s.Context)
+	}()
+
+	grant, err := s.GetOfflineGrant(grantID)
+	if err != nil {
+		return nil, err
+	}
+
+	grant.RefreshTokens = refreshTokens
+
+	err = s.updateOfflineGrant(grant, expireAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return grant, nil
+}
+
 func (s *Store) updateOfflineGrant(grant *oauth.OfflineGrant, expireAt time.Time) error {
 	ctx := context.Background()
 	expiry, err := expireAt.MarshalText()
@@ -484,11 +510,16 @@ func (s *Store) ListClientOfflineGrants(clientID string, userID string) ([]*oaut
 	}
 	result := []*oauth.OfflineGrant{}
 	for _, offlineGrant := range offlineGrants {
-		// TODO(DEV-1403): Find all client id?
-		if offlineGrant.ClientID != clientID {
-			continue
+		if offlineGrant.ClientID == clientID {
+			result = append(result, offlineGrant)
+		} else {
+			for _, token := range offlineGrant.RefreshTokens {
+				if token.ClientID == clientID {
+					result = append(result, offlineGrant)
+					break
+				}
+			}
 		}
-		result = append(result, offlineGrant)
 	}
 	return result, nil
 }

@@ -51,11 +51,12 @@ type OfflineGrant struct {
 var _ session.ListableSession = &OfflineGrant{}
 
 type OfflineGrantSession struct {
-	OfflineGrant *OfflineGrant
-	CreatedAt    time.Time
-	TokenHash    string
-	ClientID     string
-	Scopes       []string
+	OfflineGrant    *OfflineGrant
+	CreatedAt       time.Time
+	TokenHash       string
+	ClientID        string
+	Scopes          []string
+	AuthorizationID string
 }
 
 func (o *OfflineGrantSession) Session() {}
@@ -173,27 +174,29 @@ func (g *OfflineGrant) EqualSession(ss session.SessionBase) bool {
 	return g.SessionID() == ss.SessionID() && g.SessionType() == ss.SessionType()
 }
 
-func (g *OfflineGrant) ToSession(refreshTokenHash string) session.Session {
+func (g *OfflineGrant) ToSession(refreshTokenHash string) *OfflineGrantSession {
 	// Note(tung): For backward compatibility,
 	// if refreshTokenHash is empty, the "root" offline grant should be used
 	if refreshTokenHash == "" || refreshTokenHash == g.TokenHash {
 		return &OfflineGrantSession{
-			OfflineGrant: g,
-			CreatedAt:    g.CreatedAt,
-			TokenHash:    g.TokenHash,
-			ClientID:     g.ClientID,
-			Scopes:       g.Scopes,
+			OfflineGrant:    g,
+			CreatedAt:       g.CreatedAt,
+			TokenHash:       g.TokenHash,
+			ClientID:        g.ClientID,
+			Scopes:          g.Scopes,
+			AuthorizationID: g.AuthorizationID,
 		}
 	}
 
 	for _, token := range g.RefreshTokens {
 		if token.TokenHash == refreshTokenHash {
 			return &OfflineGrantSession{
-				OfflineGrant: g,
-				CreatedAt:    token.CreatedAt,
-				TokenHash:    token.TokenHash,
-				ClientID:     token.ClientID,
-				Scopes:       token.Scopes,
+				OfflineGrant:    g,
+				CreatedAt:       token.CreatedAt,
+				TokenHash:       token.TokenHash,
+				ClientID:        token.ClientID,
+				Scopes:          token.Scopes,
+				AuthorizationID: token.AuthorizationID,
 			}
 		}
 	}

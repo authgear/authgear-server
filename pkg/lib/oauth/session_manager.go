@@ -67,8 +67,30 @@ func (m *SessionManager) TerminateAllExcept(userID string, currentSession sessio
 	for _, ss := range sessions {
 		// skip third party client app refresh token
 		// third party refresh token should be deleted through deleting authorization
-		// TODO(DEV-1403): Check all client id?
 		if _, ok := thirdPartyClientIDSet[ss.ClientID]; ok {
+			// If this is a thrid party offline grant,
+			// revoke any tokens of this offline grant which are used by first party app
+			newTokens := ss.RefreshTokens
+			isTokenChanged := false
+			for _, token := range ss.RefreshTokens {
+				token := token
+				if _, ok := thirdPartyClientIDSet[token.ClientID]; ok {
+					newTokens = append(newTokens, token)
+				} else {
+					isTokenChanged = true
+				}
+			}
+			if isTokenChanged {
+				expiry, err := m.Service.ComputeOfflineGrantExpiry(ss)
+				if err != nil {
+					return nil, err
+				}
+				_, err = m.Store.UpdateOfflineGrantRefreshTokens(ss.ID, newTokens, expiry)
+				if err != nil {
+					return nil, err
+				}
+			}
+
 			continue
 		}
 
