@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -31,6 +32,7 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		secure := httputil.GetProto(r, bool(m.TrustProxy)) == "https"
 		options := []csrf.Option{
+			csrf.MaxAge(int(duration.UserInteraction.Seconds())),
 			csrf.FieldName(CSRFFieldName),
 			csrf.CookieName(m.CookieDef.Name),
 			csrf.Path("/"),
