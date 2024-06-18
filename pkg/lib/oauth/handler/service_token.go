@@ -44,18 +44,22 @@ func (s *TokenService) IssueOfflineGrant(
 	now := s.Clock.NowUTC()
 	accessEvent := access.NewEvent(now, s.RemoteIP, s.UserAgentString)
 
-	offlineGrant = &oauth.OfflineGrant{
-		AppID:           string(s.AppID),
-		ID:              uuid.New(),
-		AuthorizationID: opts.AuthorizationID,
+	refreshToken := &oauth.OfflineGrantRefreshToken{
+		TokenHash:       tokenHash,
 		ClientID:        client.ClientID,
-		IDPSessionID:    opts.IDPSessionID,
-		IdentityID:      opts.IdentityID,
+		CreatedAt:       now,
+		Scopes:          opts.Scopes,
+		AuthorizationID: opts.AuthorizationID,
+	}
+
+	offlineGrant = &oauth.OfflineGrant{
+		AppID:        string(s.AppID),
+		ID:           uuid.New(),
+		IDPSessionID: opts.IDPSessionID,
+		IdentityID:   opts.IdentityID,
 
 		CreatedAt:       now,
 		AuthenticatedAt: opts.AuthenticationInfo.AuthenticatedAt,
-		Scopes:          opts.Scopes,
-		TokenHash:       tokenHash,
 
 		Attrs: *session.NewAttrsFromAuthenticationInfo(opts.AuthenticationInfo),
 		AccessInfo: access.Info{
@@ -66,6 +70,8 @@ func (s *TokenService) IssueOfflineGrant(
 		DeviceInfo:              opts.DeviceInfo,
 		SSOEnabled:              opts.SSOEnabled,
 		App2AppDeviceKeyJWKJSON: "",
+
+		RefreshTokens: []oauth.OfflineGrantRefreshToken{*refreshToken},
 	}
 	if opts.App2AppDeviceKey != nil {
 		keyStr, err := json.Marshal(opts.App2AppDeviceKey)
@@ -164,6 +170,7 @@ func (s *TokenService) ParseRefreshToken(token string) (
 		return nil, nil, "", ErrInvalidRefreshToken
 	}
 
+	// TODO(DEV-1403): Use the correct authorization id
 	authz, err = s.Authorizations.GetByID(offlineGrant.AuthorizationID)
 	if errors.Is(err, oauth.ErrAuthorizationNotFound) {
 		return nil, nil, "", ErrInvalidRefreshToken

@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"crypto/subtle"
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -37,7 +36,7 @@ func (h *RevokeHandler) revokeOfflineGrant(token, grantID string) error {
 	}
 
 	tokenHash := oauth.HashToken(token)
-	if subtle.ConstantTimeCompare([]byte(tokenHash), []byte(offlineGrant.TokenHash)) != 1 {
+	if !offlineGrant.MatchHash(tokenHash) {
 		return nil
 	}
 
