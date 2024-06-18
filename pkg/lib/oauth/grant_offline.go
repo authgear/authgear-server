@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"crypto/subtle"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -15,7 +16,7 @@ type OfflineGrantRefreshToken struct {
 	TokenHash string    `json:"token_hash"`
 	ClientID  string    `json:"client_id"`
 	CreatedAt time.Time `json:"created_at"`
-	Scopes    []string  `json:"created_at"`
+	Scopes    []string  `json:"scopes"`
 }
 
 type OfflineGrant struct {
@@ -171,8 +172,9 @@ func (g *OfflineGrant) EqualSession(ss session.SessionBase) bool {
 	return g.SessionID() == ss.SessionID() && g.SessionType() == ss.SessionType()
 }
 
-// TODO(DEV-1403): Use token hash to find the correct session
 func (g *OfflineGrant) ToSession(refreshTokenHash string) session.Session {
+	// Note(tung): For backward compatibility,
+	// if refreshTokenHash is empty, the "root" offline grant should be used
 	if refreshTokenHash == "" || refreshTokenHash == g.TokenHash {
 		return &OfflineGrantSession{
 			OfflineGrant: g,
@@ -196,4 +198,19 @@ func (g *OfflineGrant) ToSession(refreshTokenHash string) session.Session {
 	}
 
 	panic("offline grant: cannot find a token with the provided token hash")
+}
+
+func (g *OfflineGrant) MatchHash(refreshTokenHash string) bool {
+	// TODO(tung): Implement this function so that it has constant execution time?
+	if subtle.ConstantTimeCompare([]byte(refreshTokenHash), []byte(g.TokenHash)) == 1 {
+		return true
+	}
+
+	for _, token := range g.RefreshTokens {
+		if subtle.ConstantTimeCompare([]byte(refreshTokenHash), []byte(token.TokenHash)) == 1 {
+			return true
+		}
+	}
+
+	return false
 }
