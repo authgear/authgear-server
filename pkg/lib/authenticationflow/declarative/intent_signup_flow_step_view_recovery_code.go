@@ -50,7 +50,7 @@ func (i *IntentSignupFlowStepViewRecoveryCode) MilestoneSwitchToExistingUser(dep
 	i.UserID = newUserID
 	i.IsUpdatingExistingUser = true
 
-	milestone, ok := authflow.FindFirstMilestone[MilestoneDoReplaceRecoveryCode](flows.Nearest)
+	milestone, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneDoReplaceRecoveryCode](flows)
 	if ok {
 		milestone.MilestoneDoReplaceRecoveryCodeUpdateUserID(newUserID)
 	}
