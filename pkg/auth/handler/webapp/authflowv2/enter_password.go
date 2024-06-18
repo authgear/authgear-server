@@ -82,6 +82,15 @@ func NewAuthflowEnterPasswordViewModel(s *webapp.Session, screen *webapp.Authflo
 	}
 }
 
+func NewInlinePreviewAuthflowEnterPasswordViewModel() AuthflowEnterPasswordViewModel {
+	return AuthflowEnterPasswordViewModel{
+		AuthenticationStage:     string(authn.AuthenticationStagePrimary),
+		PasswordManagerUsername: "",
+		ForgotPasswordInputType: "",
+		ForgotPasswordLoginID:   "",
+	}
+}
+
 func (h *AuthflowV2EnterPasswordHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
@@ -100,7 +109,39 @@ func (h *AuthflowV2EnterPasswordHandler) GetData(w http.ResponseWriter, r *http.
 	return data, nil
 }
 
+func (h *AuthflowV2EnterPasswordHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+
+	baseViewModel := h.BaseViewModel.ViewModelForInlinePreviewAuthFlow(r, w)
+	viewmodels.Embed(data, baseViewModel)
+
+	screenViewModel := NewInlinePreviewAuthflowEnterPasswordViewModel()
+	viewmodels.Embed(data, screenViewModel)
+
+	branchViewModel := viewmodels.NewInlinePreviewAuthflowBranchViewModel()
+	viewmodels.Embed(data, branchViewModel)
+
+	passwordInputErrorViewModel := authflowv2viewmodels.NewPasswordInputErrorViewModel(baseViewModel.RawError)
+	viewmodels.Embed(data, passwordInputErrorViewModel)
+
+	return data, nil
+}
+
 func (h *AuthflowV2EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Query().Get(webapp.PreviewQueryKey) == webapp.PreviewModeInline {
+		var previewHandler handlerwebapp.PreviewHandler
+		previewHandler.Preview(func() error {
+			data, err := h.GetInlinePreviewData(w, r)
+			if err != nil {
+				return err
+			}
+			h.Renderer.RenderHTML(w, r, TemplateWebAuthflowEnterPasswordHTML, data)
+			return nil
+		})
+		previewHandler.ServeHTTP(w, r)
+		return
+	}
+
 	var handlers handlerwebapp.AuthflowControllerHandlers
 	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data, err := h.GetData(w, r, s, screen)

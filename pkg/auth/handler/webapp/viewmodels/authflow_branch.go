@@ -67,6 +67,15 @@ func NewAuthflowBranchViewModel(
 	}
 }
 
+func NewInlinePreviewAuthflowBranchViewModel() AuthflowBranchViewModel {
+	return AuthflowBranchViewModel{
+		FlowType:           authflow.FlowTypeLogin,
+		ActionType:         authflow.FlowActionTypeFinished,
+		DeviceTokenEnabled: false,
+		Branches:           []AuthflowBranch{},
+	}
+}
+
 func reorderBranches(branches []AuthflowBranch) []AuthflowBranch {
 	// Put passkey branches at the end
 	result := []AuthflowBranch{}
