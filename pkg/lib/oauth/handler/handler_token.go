@@ -443,6 +443,7 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, err
 	}
 
+	// TODO(DEV-1403): Ensure the client id is correct
 	if client.ClientID != offlineGrant.ClientID {
 		return nil, protocol.NewError("invalid_request", "client id doesn't match the refresh token")
 	}
@@ -862,7 +863,10 @@ func (h *TokenHandler) handleApp2AppRequest(
 		return nil, err
 	}
 	// FIXME(DEV-1430): The new scopes should be validated against the new client
+	// TODO(DEV-1403): Find the correct scopes of the used token
 	scopes := originalOfflineGrant.Scopes
+
+	// TODO(DEV-1403): Ensure the client id is correct
 	originalClient := h.ClientResolver.ResolveClient(originalOfflineGrant.ClientID)
 	if originalClient == nil {
 		return nil, protocol.NewError("server_error", "cannot find original client for app2app")
@@ -1200,6 +1204,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 	authz *oauth.Authorization,
 ) (protocol.TokenResponse, error) {
 	issueIDToken := false
+	// TODO(DEV-1403): Find the correct scopes of the used token
 	for _, scope := range offlineGrant.Scopes {
 		if scope == "openid" {
 			issueIDToken = true
@@ -1222,6 +1227,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 		resp.IDToken(idToken)
 	}
 
+	// TODO(DEV-1403): Find the correct scopes of the used token
 	err := h.TokenService.IssueAccessGrant(client, offlineGrant.Scopes,
 		authz.ID, authz.UserID, offlineGrant.ID, oauth.GrantSessionKindOffline, refreshTokenHash, resp)
 	if err != nil {

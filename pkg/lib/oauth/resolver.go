@@ -155,6 +155,7 @@ func (re *Resolver) resolveCookie(r *http.Request) (session.Session, error) {
 		return nil, err
 	}
 
+	// TODO(DEV-1403): Use the correct authorization id
 	authz, err := re.Authorizations.GetByID(offlineGrant.AuthorizationID)
 	if errors.Is(err, ErrAuthorizationNotFound) {
 		// Authorization does not exists (e.g. revoked)
