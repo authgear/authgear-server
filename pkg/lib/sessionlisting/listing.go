@@ -69,6 +69,7 @@ func (s *SessionListingService) FilterForDisplay(sessions []session.ListableSess
 
 	for _, offlineGrant := range offlineGrants {
 		// remove third-party app refresh token
+		// TODO(DEV-1403): Check all client id?
 		if _, ok := thirdPartyClientIDSet[offlineGrant.ClientID]; ok {
 			continue
 		}

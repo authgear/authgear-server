@@ -483,6 +483,7 @@ func (s *Store) ListClientOfflineGrants(clientID string, userID string) ([]*oaut
 	}
 	result := []*oauth.OfflineGrant{}
 	for _, offlineGrant := range offlineGrants {
+		// TODO(DEV-1403): Find all client id?
 		if offlineGrant.ClientID != clientID {
 			continue
 		}
