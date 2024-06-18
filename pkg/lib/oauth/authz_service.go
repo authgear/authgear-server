@@ -19,6 +19,8 @@ type AuthorizationService struct {
 	Store               AuthorizationStore
 	Clock               clock.Clock
 	OAuthSessionManager OfflineGrantSessionManager
+	OfflineGrantService *OfflineGrantService
+	OfflineGrantStore   OfflineGrantStore
 }
 
 func (s *AuthorizationService) GetByID(id string) (*Authorization, error) {
@@ -57,9 +59,29 @@ func (s *AuthorizationService) Delete(a *Authorization) error {
 	// delete the offline grants that belong to the authorization
 	for _, sess := range sessions {
 		if offlineGrant, ok := sess.(*OfflineGrant); ok {
-			// TODO(DEV-1403): Check all authorization ids?
 			if offlineGrant.AuthorizationID == a.ID {
 				err := s.OAuthSessionManager.Delete(sess)
+				if err != nil {
+					return err
+				}
+			}
+			newTokens := []OfflineGrantRefreshToken{}
+			isTokenChanged := false
+			// Revoke any sub-tokens using this authorization
+			for _, token := range offlineGrant.RefreshTokens {
+				token := token
+				if token.AuthorizationID == a.ID {
+					isTokenChanged = true
+				} else {
+					newTokens = append(newTokens, token)
+				}
+			}
+			if isTokenChanged {
+				expiry, err := s.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
+				if err != nil {
+					return err
+				}
+				_, err = s.OfflineGrantStore.UpdateOfflineGrantRefreshTokens(offlineGrant.ID, newTokens, expiry)
 				if err != nil {
 					return err
 				}

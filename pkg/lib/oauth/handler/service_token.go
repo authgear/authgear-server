@@ -58,6 +58,14 @@ func (s *TokenService) IssueOfflineGrant(
 		IDPSessionID: opts.IDPSessionID,
 		IdentityID:   opts.IdentityID,
 
+		// These fields exist in OfflineGrantRefreshToken too
+		// They need to be provided to handled cases that we refer to an offline grant without token hash
+		// Such as using an id_token
+		ClientID:        client.ClientID,
+		Scopes:          opts.Scopes,
+		AuthorizationID: opts.AuthorizationID,
+		TokenHash:       tokenHash,
+
 		CreatedAt:       now,
 		AuthenticatedAt: opts.AuthenticationInfo.AuthenticatedAt,
 
@@ -170,8 +178,9 @@ func (s *TokenService) ParseRefreshToken(token string) (
 		return nil, nil, "", ErrInvalidRefreshToken
 	}
 
-	// TODO(DEV-1403): Use the correct authorization id
-	authz, err = s.Authorizations.GetByID(offlineGrant.AuthorizationID)
+	offlineGrantSession := offlineGrant.ToSession(tokenHash)
+
+	authz, err = s.Authorizations.GetByID(offlineGrantSession.AuthorizationID)
 	if errors.Is(err, oauth.ErrAuthorizationNotFound) {
 		return nil, nil, "", ErrInvalidRefreshToken
 	} else if err != nil {
