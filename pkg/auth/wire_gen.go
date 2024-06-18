@@ -82663,9 +82663,11 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		TemplateEngine: engine,
 	}
 	authflowV2CreatePasswordHandler := &authflowv2.AuthflowV2CreatePasswordHandler{
-		Controller:    authflowController,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
+		Controller:          authflowController,
+		BaseViewModel:       baseViewModeler,
+		Renderer:            responseRenderer,
+		FeatureConfig:       featureConfig,
+		AuthenticatorConfig: authenticatorConfig,
 	}
 	return authflowV2CreatePasswordHandler
 }
