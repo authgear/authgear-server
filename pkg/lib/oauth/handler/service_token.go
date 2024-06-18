@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"crypto/subtle"
 	"encoding/json"
 	"errors"
 
@@ -39,12 +38,13 @@ func (s *TokenService) IssueOfflineGrant(
 	client *config.OAuthClientConfig,
 	opts IssueOfflineGrantOptions,
 	resp protocol.TokenResponse,
-) (*oauth.OfflineGrant, error) {
+) (offlineGrant *oauth.OfflineGrant, tokenHash string, err error) {
 	token := s.GenerateToken()
+	tokenHash = oauth.HashToken(token)
 	now := s.Clock.NowUTC()
 	accessEvent := access.NewEvent(now, s.RemoteIP, s.UserAgentString)
 
-	offlineGrant := &oauth.OfflineGrant{
+	offlineGrant = &oauth.OfflineGrant{
 		AppID:           string(s.AppID),
 		ID:              uuid.New(),
 		AuthorizationID: opts.AuthorizationID,
@@ -55,7 +55,7 @@ func (s *TokenService) IssueOfflineGrant(
 		CreatedAt:       now,
 		AuthenticatedAt: opts.AuthenticationInfo.AuthenticatedAt,
 		Scopes:          opts.Scopes,
-		TokenHash:       oauth.HashToken(token),
+		TokenHash:       tokenHash,
 
 		Attrs: *session.NewAttrsFromAuthenticationInfo(opts.AuthenticationInfo),
 		AccessInfo: access.Info{
@@ -70,30 +70,30 @@ func (s *TokenService) IssueOfflineGrant(
 	if opts.App2AppDeviceKey != nil {
 		keyStr, err := json.Marshal(opts.App2AppDeviceKey)
 		if err != nil {
-			return nil, err
+			return nil, "", err
 		}
 		offlineGrant.App2AppDeviceKeyJWKJSON = string(keyStr)
 	}
 
 	expiry, err := s.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	err = s.OfflineGrants.CreateOfflineGrant(offlineGrant, expiry)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	err = s.AccessEvents.InitStream(offlineGrant.ID, &offlineGrant.AccessInfo.InitialAccess)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	if resp != nil {
 		resp.RefreshToken(oauth.EncodeRefreshToken(token, offlineGrant.ID))
 	}
-	return offlineGrant, nil
+	return offlineGrant, tokenHash, nil
 }
 
 func (s *TokenService) IssueAccessGrant(
@@ -103,20 +103,22 @@ func (s *TokenService) IssueAccessGrant(
 	userID string,
 	sessionID string,
 	sessionKind oauth.GrantSessionKind,
+	refreshTokenHash string,
 	resp protocol.TokenResponse,
 ) error {
 	token := s.GenerateToken()
 	now := s.Clock.NowUTC()
 
 	accessGrant := &oauth.AccessGrant{
-		AppID:           string(s.AppID),
-		AuthorizationID: authzID,
-		SessionID:       sessionID,
-		SessionKind:     sessionKind,
-		CreatedAt:       now,
-		ExpireAt:        now.Add(client.AccessTokenLifetime.Duration()),
-		Scopes:          scopes,
-		TokenHash:       oauth.HashToken(token),
+		AppID:            string(s.AppID),
+		AuthorizationID:  authzID,
+		SessionID:        sessionID,
+		SessionKind:      sessionKind,
+		CreatedAt:        now,
+		ExpireAt:         now.Add(client.AccessTokenLifetime.Duration()),
+		Scopes:           scopes,
+		TokenHash:        oauth.HashToken(token),
+		RefreshTokenHash: refreshTokenHash,
 	}
 	err := s.AccessGrants.CreateAccessGrant(accessGrant)
 	if err != nil {
@@ -134,52 +136,53 @@ func (s *TokenService) IssueAccessGrant(
 	return nil
 }
 
-func (s *TokenService) ParseRefreshToken(token string) (*oauth.Authorization, *oauth.OfflineGrant, error) {
+func (s *TokenService) ParseRefreshToken(token string) (
+	authz *oauth.Authorization, offlineGrant *oauth.OfflineGrant, tokenHash string, err error) {
 	token, grantID, err := oauth.DecodeRefreshToken(token)
 	if err != nil {
-		return nil, nil, ErrInvalidRefreshToken
+		return nil, nil, "", ErrInvalidRefreshToken
 	}
 
-	offlineGrant, err := s.OfflineGrants.GetOfflineGrant(grantID)
+	offlineGrant, err = s.OfflineGrants.GetOfflineGrant(grantID)
 	if errors.Is(err, oauth.ErrGrantNotFound) {
-		return nil, nil, ErrInvalidRefreshToken
+		return nil, nil, "", ErrInvalidRefreshToken
 	} else if err != nil {
-		return nil, nil, err
+		return nil, nil, "", err
 	}
 
 	isValid, _, err := s.OfflineGrantService.IsValid(offlineGrant)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, "", err
 	}
 
 	if !isValid {
-		return nil, nil, ErrInvalidRefreshToken
+		return nil, nil, "", ErrInvalidRefreshToken
 	}
 
-	tokenHash := oauth.HashToken(token)
-	if subtle.ConstantTimeCompare([]byte(tokenHash), []byte(offlineGrant.TokenHash)) != 1 {
-		return nil, nil, ErrInvalidRefreshToken
+	tokenHash = oauth.HashToken(token)
+	if !offlineGrant.MatchHash(tokenHash) {
+		return nil, nil, "", ErrInvalidRefreshToken
 	}
 
-	authz, err := s.Authorizations.GetByID(offlineGrant.AuthorizationID)
+	authz, err = s.Authorizations.GetByID(offlineGrant.AuthorizationID)
 	if errors.Is(err, oauth.ErrAuthorizationNotFound) {
-		return nil, nil, ErrInvalidRefreshToken
+		return nil, nil, "", ErrInvalidRefreshToken
 	} else if err != nil {
-		return nil, nil, err
+		return nil, nil, "", err
 	}
 
 	// Standard session checking consider ErrUserNotFound and disabled as invalid.
 	u, err := s.Users.GetRaw(offlineGrant.Attrs.UserID)
 	if err != nil {
 		if errors.Is(err, user.ErrUserNotFound) {
-			return nil, nil, ErrInvalidRefreshToken
+			return nil, nil, "", ErrInvalidRefreshToken
 		}
-		return nil, nil, err
+		return nil, nil, "", err
 	}
 	err = u.AccountStatus().Check()
 	if err != nil {
-		return nil, nil, ErrInvalidRefreshToken
+		return nil, nil, "", ErrInvalidRefreshToken
 	}
 
-	return authz, offlineGrant, nil
+	return authz, offlineGrant, tokenHash, nil
 }

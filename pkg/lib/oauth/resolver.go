@@ -126,8 +126,7 @@ func (re *Resolver) resolveHeader(r *http.Request) (session.Session, error) {
 			return nil, err
 		}
 
-		// TODO(DEV-1403): Use token hash to find the correct session
-		authSession = g.ToSession("")
+		authSession = g.ToSession(grant.RefreshTokenHash)
 	default:
 		panic("oauth: resolving unknown grant session kind")
 	}
@@ -173,8 +172,7 @@ func (re *Resolver) resolveCookie(r *http.Request) (session.Session, error) {
 		return nil, err
 	}
 
-	// TODO(DEV-1403): Use token hash to find the correct session
-	return offlineGrant.ToSession(""), nil
+	return offlineGrant.ToSession(aSession.RefreshTokenHash), nil
 }
 
 func (re *Resolver) accessOfflineGrant(offlineGrant *OfflineGrant, accessEvent access.Event) (*OfflineGrant, error) {
