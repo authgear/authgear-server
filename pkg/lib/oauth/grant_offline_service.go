@@ -53,6 +53,7 @@ func (s *OfflineGrantService) IsValid(session *OfflineGrant) (bool, time.Time, e
 	return true, expiry, nil
 }
 
+// TODO(DEV-1403): Ensure the client id is correct
 func (s *OfflineGrantService) ComputeOfflineGrantExpiry(session *OfflineGrant) (expiry time.Time, err error) {
 	clientConfig := s.ClientResolver.ResolveClient(session.ClientID)
 

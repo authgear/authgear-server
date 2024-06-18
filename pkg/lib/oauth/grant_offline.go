@@ -13,10 +13,11 @@ import (
 )
 
 type OfflineGrantRefreshToken struct {
-	TokenHash string    `json:"token_hash"`
-	ClientID  string    `json:"client_id"`
-	CreatedAt time.Time `json:"created_at"`
-	Scopes    []string  `json:"scopes"`
+	TokenHash       string    `json:"token_hash"`
+	ClientID        string    `json:"client_id"`
+	CreatedAt       time.Time `json:"created_at"`
+	Scopes          []string  `json:"scopes"`
+	AuthorizationID string    `json:"authz_id"`
 }
 
 type OfflineGrant struct {
