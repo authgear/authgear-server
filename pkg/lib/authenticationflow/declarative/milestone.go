@@ -118,6 +118,11 @@ type MilestoneAuthenticationMethod interface {
 	MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication
 }
 
+type MilestoneFlowAuthenticate interface {
+	authflow.Milestone
+	MilestoneFlowAuthenticate(flows authflow.Flows) (MilestoneDidAuthenticate, authflow.Flows, bool)
+}
+
 type MilestoneDidAuthenticate interface {
 	authflow.Milestone
 	MilestoneDidAuthenticate() (amr []string)

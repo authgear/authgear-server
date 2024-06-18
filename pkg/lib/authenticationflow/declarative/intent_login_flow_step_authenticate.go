@@ -21,6 +21,23 @@ func init() {
 	authflow.RegisterIntent(&IntentLoginFlowStepAuthenticate{})
 }
 
+// IntentLoginFlowStepAuthenticate
+//
+//   NodeUseAuthenticatorPassword (MilestoneFlowAuthenticate)
+//   NodeDoUseAuthenticatorPassword (MilestoneDidAuthenticate)
+//
+//   NodeUseAuthenticatorPasskey (MilestoneFlowAuthenticate)
+//   NodeDoUseAuthenticatorPasskey (MilestoneDidAuthenticate)
+//
+//   IntentUseAuthenticatorOOBOTP (MilestoneFlowAuthenticate)
+//     NodeDoUseAuthenticatorSimple (MilestoneDidAuthenticate)
+//
+//   NodeUseAuthenticatorTOTP (MilestoneFlowAuthenticate)
+//   NodeDoUseAuthenticatorSimple (MilestoneDidAuthenticate)
+//
+//   NodeUseRecoveryCode (MilestoneFlowAuthenticate)
+//   NodeDoConsumeRecoveryCode (MilestoneDidAuthenticate)
+
 type IntentLoginFlowStepAuthenticate struct {
 	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
 	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
@@ -104,7 +121,11 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 
 	_, _, authenticationMethodSelected := authflow.FindMilestoneInCurrentFlow[MilestoneAuthenticationMethod](flows)
 
-	_, authenticated := authflow.FindMilestone[MilestoneDidAuthenticate](flows.Nearest)
+	authenticated := false
+	mFlowAuthenticate, mFlowAuthenticateFlows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowAuthenticate](flows)
+	if ok {
+		_, _, authenticated = mFlowAuthenticate.MilestoneFlowAuthenticate(mFlowAuthenticateFlows)
+	}
 
 	_, _, deviceTokenCreatedIfRequested := authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateDeviceTokenIfRequested](flows)
 
@@ -163,7 +184,11 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 
 	_, _, authenticationMethodSelected := authflow.FindMilestoneInCurrentFlow[MilestoneAuthenticationMethod](flows)
 
-	_, authenticated := authflow.FindMilestone[MilestoneDidAuthenticate](flows.Nearest)
+	authenticated := false
+	mFlowAuthenticate, mFlowAuthenticateFlows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowAuthenticate](flows)
+	if ok {
+		_, _, authenticated = mFlowAuthenticate.MilestoneFlowAuthenticate(mFlowAuthenticateFlows)
+	}
 
 	_, _, deviceTokenCreatedIfRequested := authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateDeviceTokenIfRequested](flows)
 

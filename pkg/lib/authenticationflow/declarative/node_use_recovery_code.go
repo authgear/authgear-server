@@ -22,6 +22,7 @@ type NodeUseRecoveryCode struct {
 var _ authflow.NodeSimple = &NodeUseRecoveryCode{}
 var _ authflow.Milestone = &NodeUseRecoveryCode{}
 var _ MilestoneAuthenticationMethod = &NodeUseRecoveryCode{}
+var _ MilestoneFlowAuthenticate = &NodeUseRecoveryCode{}
 var _ authflow.InputReactor = &NodeUseRecoveryCode{}
 
 func (*NodeUseRecoveryCode) Kind() string {
@@ -31,6 +32,10 @@ func (*NodeUseRecoveryCode) Kind() string {
 func (*NodeUseRecoveryCode) Milestone() {}
 func (n *NodeUseRecoveryCode) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
 	return n.Authentication
+}
+
+func (*NodeUseRecoveryCode) MilestoneFlowAuthenticate(flows authflow.Flows) (MilestoneDidAuthenticate, authflow.Flows, bool) {
+	return authflow.FindMilestoneInCurrentFlow[MilestoneDidAuthenticate](flows)
 }
 
 func (n *NodeUseRecoveryCode) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {

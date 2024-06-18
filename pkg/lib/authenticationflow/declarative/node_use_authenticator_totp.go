@@ -26,6 +26,7 @@ type NodeUseAuthenticatorTOTP struct {
 var _ authflow.NodeSimple = &NodeUseAuthenticatorTOTP{}
 var _ authflow.Milestone = &NodeUseAuthenticatorTOTP{}
 var _ MilestoneAuthenticationMethod = &NodeUseAuthenticatorTOTP{}
+var _ MilestoneFlowAuthenticate = &NodeUseAuthenticatorTOTP{}
 var _ authflow.InputReactor = &NodeUseAuthenticatorTOTP{}
 
 func (*NodeUseAuthenticatorTOTP) Kind() string {
@@ -35,6 +36,10 @@ func (*NodeUseAuthenticatorTOTP) Kind() string {
 func (*NodeUseAuthenticatorTOTP) Milestone() {}
 func (n *NodeUseAuthenticatorTOTP) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
 	return n.Authentication
+}
+
+func (*NodeUseAuthenticatorTOTP) MilestoneFlowAuthenticate(flows authflow.Flows) (MilestoneDidAuthenticate, authflow.Flows, bool) {
+	return authflow.FindMilestoneInCurrentFlow[MilestoneDidAuthenticate](flows)
 }
 
 func (n *NodeUseAuthenticatorTOTP) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {

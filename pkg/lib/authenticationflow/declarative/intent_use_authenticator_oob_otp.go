@@ -28,6 +28,7 @@ type IntentUseAuthenticatorOOBOTP struct {
 var _ authflow.Intent = &IntentUseAuthenticatorOOBOTP{}
 var _ authflow.Milestone = &IntentUseAuthenticatorOOBOTP{}
 var _ MilestoneAuthenticationMethod = &IntentUseAuthenticatorOOBOTP{}
+var _ MilestoneFlowAuthenticate = &IntentUseAuthenticatorOOBOTP{}
 
 func (*IntentUseAuthenticatorOOBOTP) Kind() string {
 	return "IntentUseAuthenticatorOOBOTP"
@@ -38,10 +39,14 @@ func (n *IntentUseAuthenticatorOOBOTP) MilestoneAuthenticationMethod() config.Au
 	return n.Authentication
 }
 
+func (*IntentUseAuthenticatorOOBOTP) MilestoneFlowAuthenticate(flows authflow.Flows) (MilestoneDidAuthenticate, authflow.Flows, bool) {
+	return authflow.FindMilestoneInCurrentFlow[MilestoneDidAuthenticate](flows)
+}
+
 func (n *IntentUseAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	_, _, authenticatorSelected := authflow.FindMilestoneInCurrentFlow[MilestoneDidSelectAuthenticator](flows)
 	_, _, claimVerified := authflow.FindMilestoneInCurrentFlow[MilestoneDoMarkClaimVerified](flows)
-	_, authenticated := authflow.FindMilestone[MilestoneDidAuthenticate](flows.Nearest)
+	_, _, authenticated := authflow.FindMilestoneInCurrentFlow[MilestoneDidAuthenticate](flows)
 
 	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
 	if err != nil {
@@ -69,7 +74,7 @@ func (n *IntentUseAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *aut
 func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	m, _, authenticatorSelected := authflow.FindMilestoneInCurrentFlow[MilestoneDidSelectAuthenticator](flows)
 	_, _, claimVerified := authflow.FindMilestoneInCurrentFlow[MilestoneDoMarkClaimVerified](flows)
-	_, authenticated := authflow.FindMilestone[MilestoneDidAuthenticate](flows.Nearest)
+	_, _, authenticated := authflow.FindMilestoneInCurrentFlow[MilestoneDidAuthenticate](flows)
 
 	switch {
 	case !authenticatorSelected:
