@@ -536,5 +536,136 @@ steps:
 - type: terminate_other_sessions
 - type: prompt_create_passkey
 `)
+		// captcha, 1 branch
+		test(`
+authentication:
+  identities:
+  - login_id
+  primary_authenticators:
+  - password
+identity:
+  login_id:
+    keys:
+    - type: email
+captcha:
+  enabled: true
+  providers:
+  - type: recaptchav2
+    alias: recaptchav2-a
+    site_key: some-site-key
+`, `
+name: default
+captcha:
+  enabled: true
+steps:
+- name: identify
+  type: identify
+  one_of:
+  - identification: email
+    captcha:
+      required: true
+    steps:
+    - name: authenticate_primary_email
+      type: authenticate
+      one_of:
+      - authentication: primary_password
+        steps:
+        - name: authenticate_secondary_email
+          type: authenticate
+          optional: true
+          one_of:
+          - authentication: secondary_totp
+          - authentication: recovery_code
+          - authentication: device_token
+        - type: change_password
+          target_step: authenticate_primary_email
+- type: check_account_status
+- type: terminate_other_sessions
+`)
+		// captcha, 3 branches
+		test(`
+authentication:
+  identities:
+  - login_id
+  primary_authenticators:
+  - password
+identity:
+  login_id:
+    keys:
+    - type: email
+    - type: phone
+    - type: username
+captcha:
+  enabled: true
+  providers:
+  - type: recaptchav2
+    alias: recaptchav2-a
+    site_key: some-site-key
+`, `
+name: default
+captcha:
+  enabled: true
+steps:
+- name: identify
+  type: identify
+  one_of:
+  - identification: email
+    captcha:
+      required: true
+    steps:
+    - name: authenticate_primary_email
+      one_of:
+      - authentication: primary_password
+        steps:
+        - name: authenticate_secondary_email
+          one_of:
+          - authentication: secondary_totp
+          - authentication: recovery_code
+          - authentication: device_token
+          optional: true
+          type: authenticate
+        - target_step: authenticate_primary_email
+          type: change_password
+      type: authenticate
+  - identification: phone
+    captcha:
+      required: true
+    steps:
+    - name: authenticate_primary_phone
+      one_of:
+      - authentication: primary_password
+        steps:
+        - name: authenticate_secondary_phone
+          one_of:
+          - authentication: secondary_totp
+          - authentication: recovery_code
+          - authentication: device_token
+          optional: true
+          type: authenticate
+        - target_step: authenticate_primary_phone
+          type: change_password
+      type: authenticate
+  - identification: username
+    captcha:
+      required: true
+    steps:
+    - name: authenticate_primary_username
+      one_of:
+      - authentication: primary_password
+        steps:
+        - name: authenticate_secondary_username
+          one_of:
+          - authentication: secondary_totp
+          - authentication: recovery_code
+          - authentication: device_token
+          optional: true
+          type: authenticate
+        - target_step: authenticate_primary_username
+          type: change_password
+      type: authenticate
+  type: identify
+- type: check_account_status
+- type: terminate_other_sessions
+`)
 	})
 }

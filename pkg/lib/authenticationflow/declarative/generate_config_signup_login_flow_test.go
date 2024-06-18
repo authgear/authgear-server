@@ -224,5 +224,102 @@ steps:
   - identification: passkey
     login_flow: default
 `)
+		// captcha, 1 branch
+		test(`
+authentication:
+  identities:
+  - login_id
+  primary_authenticators:
+  - password
+identity:
+  login_id:
+    keys:
+    - type: email
+captcha:
+  enabled: true
+  providers:
+  - type: recaptchav2
+    alias: recaptchav2
+    site_key: some-site-key
+`, `
+name: default
+captcha:
+  enabled: true
+steps:
+- name: identify
+  type: identify
+  one_of:
+  - identification: email
+    captcha:
+      required: true
+    signup_flow: default
+    login_flow: default
+`)
+		// captcha, all branches
+		test(`
+authentication:
+  identities:
+  - login_id
+  - oauth
+  - passkey
+  primary_authenticators:
+  - password
+  - passkey
+  secondary_authenticators:
+  - totp
+  secondary_authentication_mode: required
+  device_token:
+    disabled: true
+  recovery_code:
+    disabled: true
+identity:
+  login_id:
+    keys:
+    - type: email
+    - type: phone
+    - type: username
+  oauth:
+    providers:
+    - alias: google
+      type: google
+captcha:
+  enabled: true
+  providers:
+  - type: recaptchav2
+    alias: recaptchav2
+    site_key: some-site-key
+`, `
+name: default
+captcha:
+  enabled: true
+steps:
+- name: identify
+  type: identify
+  one_of:
+  - identification: email
+    captcha:
+      required: true
+    signup_flow: default
+    login_flow: default
+  - identification: phone
+    captcha:
+      required: true
+    signup_flow: default
+    login_flow: default
+  - identification: username
+    captcha:
+      required: true
+    signup_flow: default
+    login_flow: default
+  - identification: oauth
+    captcha:
+      required: true
+    signup_flow: default
+    login_flow: default
+  - identification: passkey
+    captcha:
+      required: true
+    login_flow: default
+`)
 	})
 }

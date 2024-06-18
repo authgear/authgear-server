@@ -7,7 +7,8 @@ import (
 
 func GenerateSignupLoginFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowSignupLoginFlow {
 	flow := &config.AuthenticationFlowSignupLoginFlow{
-		Name: nameGeneratedFlow,
+		Name:    nameGeneratedFlow,
+		Captcha: generateFlowCaptcha(cfg),
 		Steps: []*config.AuthenticationFlowSignupLoginFlowStep{
 			generateSignupLoginFlowStepIdentify(cfg),
 		},
@@ -33,6 +34,15 @@ func generateSignupLoginFlowStepIdentify(cfg *config.AppConfig) *config.Authenti
 		case model.IdentityTypePasskey:
 			oneOf := generateSignupLoginFlowStepIdentifyPasskey(cfg)
 			step.OneOf = append(step.OneOf, oneOf...)
+		}
+	}
+
+	// Add captcha if enabled
+	if hasCaptcha(cfg) {
+		for _, oneOf := range step.OneOf {
+			oneOf.Captcha = &config.AuthenticationFlowCaptcha{
+				Required: getBoolPtr(true),
+			}
 		}
 	}
 
