@@ -178,7 +178,10 @@ func (s *TokenService) ParseRefreshToken(token string) (
 		return nil, nil, "", ErrInvalidRefreshToken
 	}
 
-	offlineGrantSession := offlineGrant.ToSession(tokenHash)
+	offlineGrantSession, ok := offlineGrant.ToSession(tokenHash)
+	if !ok {
+		return nil, nil, "", ErrInvalidRefreshToken
+	}
 
 	authz, err = s.Authorizations.GetByID(offlineGrantSession.AuthorizationID)
 	if errors.Is(err, oauth.ErrAuthorizationNotFound) {

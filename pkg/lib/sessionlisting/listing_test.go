@@ -212,13 +212,14 @@ func TestSessionListingService(t *testing.T) {
 			})
 
 			Convey("should show session IsCurrent for offline grant in same sso group", func() {
+				offlineGrantSession, _ := offlineGrant2.ToSession("")
 				session, err := svc.FilterForDisplay([]session.ListableSession{
 					offlineGrant2,
 					idpSession,
 					offlineGrant,
 					idpSession2,
 					offlineGrant3,
-				}, offlineGrant2.ToSession(""))
+				}, offlineGrantSession)
 				So(err, ShouldBeNil)
 				So(session, ShouldResemble, []*sessionlisting.Session{
 					{Session: updatedIDPSessionModel, IsDevice: true, IsCurrent: true},
@@ -228,13 +229,14 @@ func TestSessionListingService(t *testing.T) {
 			})
 
 			Convey("should show session IsCurrent for sso disabled offline grant", func() {
+				offlineGrantSession, _ := offlineGrant.ToSession("")
 				session, err := svc.FilterForDisplay([]session.ListableSession{
 					offlineGrant2,
 					idpSession,
 					offlineGrant,
 					idpSession2,
 					offlineGrant3,
-				}, offlineGrant.ToSession(""))
+				}, offlineGrantSession)
 				So(err, ShouldBeNil)
 				So(session, ShouldResemble, []*sessionlisting.Session{
 					{Session: updatedIDPSessionModel, IsDevice: true},
