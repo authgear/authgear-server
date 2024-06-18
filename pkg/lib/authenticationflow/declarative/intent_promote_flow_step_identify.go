@@ -240,7 +240,7 @@ func (*IntentPromoteFlowStepIdentify) checkIdentificationMethod(deps *authflow.D
 }
 
 func (*IntentPromoteFlowStepIdentify) identificationMethod(w *authflow.Flow) config.AuthenticationFlowIdentification {
-	m, ok := authflow.FindMilestone[MilestoneIdentificationMethod](w)
+	m, ok := authflow.FindMilestoneInCurrentFlow[MilestoneIdentificationMethod](w)
 	if !ok {
 		panic(fmt.Errorf("identification method not yet selected"))
 	}
