@@ -82,11 +82,19 @@ func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Requ
 	strictCookie, err := m.Cookies.GetCookie(r, CSRFDebugCookieSameSiteStrictDef)
 	hasStrictCookie := (err == nil && strictCookie.Value == "exists")
 
+	csrfCookie, _ := r.Cookie(m.CookieDef.Name)
+	csrfCookieSizeInBytes := 0
+	if csrfCookie != nil {
+		// do not return value but length only for debug.
+		csrfCookieSizeInBytes = len([]byte(csrfCookie.Value))
+	}
+
 	m.Logger.WithFields(logrus.Fields{
-		"hasOmitCookie":   hasOmitCookie,
-		"hasNoneCookie":   hasNoneCookie,
-		"hasLaxCookie":    hasLaxCookie,
-		"hasStrictCookie": hasStrictCookie,
+		"hasOmitCookie":         hasOmitCookie,
+		"hasNoneCookie":         hasNoneCookie,
+		"hasLaxCookie":          hasLaxCookie,
+		"hasStrictCookie":       hasStrictCookie,
+		"csrfCookieSizeInBytes": csrfCookieSizeInBytes,
 	}).Errorf("CSRF Forbidden: %s", csrf.FailureReason(r))
 
 	// TODO: beautify error page ui
