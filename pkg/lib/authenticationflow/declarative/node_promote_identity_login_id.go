@@ -29,6 +29,7 @@ type NodePromoteIdentityLoginID struct {
 var _ authflow.NodeSimple = &NodePromoteIdentityLoginID{}
 var _ authflow.Milestone = &NodePromoteIdentityLoginID{}
 var _ MilestoneIdentificationMethod = &NodePromoteIdentityLoginID{}
+var _ MilestoneFlowCreateIdentity = &NodePromoteIdentityLoginID{}
 var _ authflow.InputReactor = &NodePromoteIdentityLoginID{}
 
 func (*NodePromoteIdentityLoginID) Kind() string {
@@ -38,6 +39,9 @@ func (*NodePromoteIdentityLoginID) Kind() string {
 func (*NodePromoteIdentityLoginID) Milestone() {}
 func (n *NodePromoteIdentityLoginID) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
 	return n.Identification
+}
+func (n *NodePromoteIdentityLoginID) MilestoneFlowCreateIdentity(flows authflow.Flows) (MilestoneDoCreateIdentity, authflow.Flows, bool) {
+	return authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateIdentity](flows)
 }
 
 func (n *NodePromoteIdentityLoginID) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {

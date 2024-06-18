@@ -17,6 +17,14 @@ func init() {
 	authflow.RegisterIntent(&IntentPromoteFlowStepIdentify{})
 }
 
+// IntentPromoteFlowStepIdentify
+//   NodePromoteIdentityLoginID (MilestoneIdentificationMethod, MilestoneFlowCreateIdentity)
+//   NodeDoCreateIdentity (MilestoneDoCreateIdentity)
+//
+//   IntentPromoteIdentityOAuth (MilestoneIdentificationMethod, MilestoneFlowCreateIdentity)
+//     NodePromoteIdentityOAuth
+//     NodeDoCreateIdentity (MilestoneDoCreateIdentity)
+
 type IntentPromoteFlowStepIdentify struct {
 	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
 	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
@@ -38,11 +46,17 @@ func (i *IntentPromoteFlowStepIdentify) GetJSONPointer() jsonpointer.T {
 var _ IntentSignupFlowStepVerifyTarget = &IntentPromoteFlowStepIdentify{}
 
 func (*IntentPromoteFlowStepIdentify) GetVerifiableClaims(_ context.Context, _ *authflow.Dependencies, flows authflow.Flows) (map[model.ClaimName]string, error) {
-	m, ok := authflow.FindMilestone[MilestoneDoCreateIdentity](flows.Nearest)
+	m1, m1Flows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
+	if !ok {
+		return nil, fmt.Errorf("MilestoneFlowCreateIdentity cannot be found in IntentPromoteFlowStepIdentify")
+	}
+
+	m2, _, ok := m1.MilestoneFlowCreateIdentity(m1Flows)
 	if !ok {
 		return nil, fmt.Errorf("MilestoneDoCreateIdentity cannot be found in IntentPromoteFlowStepIdentify")
 	}
-	info := m.MilestoneDoCreateIdentity()
+
+	info := m2.MilestoneDoCreateIdentity()
 
 	return info.IdentityAwareStandardClaims(), nil
 }
@@ -120,7 +134,7 @@ func (i *IntentPromoteFlowStepIdentify) CanReactTo(ctx context.Context, deps *au
 		}, nil
 	}
 
-	_, identityCreated := authflow.FindMilestone[MilestoneDoCreateIdentity](flows.Nearest)
+	_, _, identityCreated := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
 	_, standardAttributesPopulated := authflow.FindMilestone[MilestoneDoPopulateStandardAttributes](flows.Nearest)
 	_, _, nestedStepHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
@@ -184,13 +198,13 @@ func (i *IntentPromoteFlowStepIdentify) ReactTo(ctx context.Context, deps *authf
 		}
 	}
 
-	_, identityCreated := authflow.FindMilestone[MilestoneDoCreateIdentity](flows.Nearest)
+	_, _, identityCreated := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
 	_, standardAttributesPopulated := authflow.FindMilestone[MilestoneDoPopulateStandardAttributes](flows.Nearest)
 	_, _, nestedStepHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
 	switch {
 	case identityCreated && !standardAttributesPopulated && !nestedStepHandled:
-		iden := i.identityInfo(flows.Nearest)
+		iden := i.identityInfo(flows)
 		return authflow.NewNodeSimple(&NodeDoPopulateStandardAttributesInSignup{
 			Identity: iden,
 		}), nil
@@ -261,12 +275,18 @@ func (i *IntentPromoteFlowStepIdentify) jsonPointer(step *config.AuthenticationF
 	panic(fmt.Errorf("selected identification method is not allowed"))
 }
 
-func (*IntentPromoteFlowStepIdentify) identityInfo(w *authflow.Flow) *identity.Info {
-	m, ok := authflow.FindMilestone[MilestoneDoCreateIdentity](w)
+func (*IntentPromoteFlowStepIdentify) identityInfo(flows authflow.Flows) *identity.Info {
+	m1, m1Flows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
+	if !ok {
+		panic(fmt.Errorf("MilestoneFlowCreateIdentity cannot be found in IntentPromoteFlowStepIdentify"))
+	}
+
+	m2, _, ok := m1.MilestoneFlowCreateIdentity(m1Flows)
 	if !ok {
 		panic(fmt.Errorf("MilestoneDoCreateIdentity cannot be found in IntentPromoteFlowStepIdentify"))
 	}
-	info := m.MilestoneDoCreateIdentity()
+
+	info := m2.MilestoneDoCreateIdentity()
 	return info
 }
 

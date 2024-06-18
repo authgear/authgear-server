@@ -23,6 +23,7 @@ type IntentPromoteIdentityOAuth struct {
 var _ authflow.Intent = &IntentPromoteIdentityOAuth{}
 var _ authflow.Milestone = &IntentPromoteIdentityOAuth{}
 var _ MilestoneIdentificationMethod = &IntentPromoteIdentityOAuth{}
+var _ MilestoneFlowCreateIdentity = &IntentPromoteIdentityOAuth{}
 
 func (*IntentPromoteIdentityOAuth) Kind() string {
 	return "IntentPromoteIdentityOAuth"
@@ -31,6 +32,9 @@ func (*IntentPromoteIdentityOAuth) Kind() string {
 func (*IntentPromoteIdentityOAuth) Milestone() {}
 func (i *IntentPromoteIdentityOAuth) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
 	return i.Identification
+}
+func (*IntentPromoteIdentityOAuth) MilestoneFlowCreateIdentity(flows authflow.Flows) (MilestoneDoCreateIdentity, authflow.Flows, bool) {
+	return authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateIdentity](flows)
 }
 
 func (i *IntentPromoteIdentityOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
