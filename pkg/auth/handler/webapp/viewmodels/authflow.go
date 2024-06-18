@@ -47,6 +47,7 @@ type AuthflowViewModel struct {
 type AuthflowViewModeler struct {
 	Authentication *config.AuthenticationConfig
 	LoginID        *config.LoginIDConfig
+	Identity       *config.IdentityConfig
 }
 
 // nolint: gocognit

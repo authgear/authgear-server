@@ -72300,6 +72300,7 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 	authflowViewModeler := &viewmodels.AuthflowViewModeler{
 		Authentication: authenticationConfig,
 		LoginID:        loginIDConfig,
+		Identity:       identityConfig,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -73254,6 +73255,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 	authflowViewModeler := &viewmodels.AuthflowViewModeler{
 		Authentication: authenticationConfig,
 		LoginID:        loginIDConfig,
+		Identity:       identityConfig,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -74220,6 +74222,7 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 	authflowViewModeler := &viewmodels.AuthflowViewModeler{
 		Authentication: authenticationConfig,
 		LoginID:        loginIDConfig,
+		Identity:       identityConfig,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -75173,6 +75176,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 	authflowViewModeler := &viewmodels.AuthflowViewModeler{
 		Authentication: authenticationConfig,
 		LoginID:        loginIDConfig,
+		Identity:       identityConfig,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -76130,6 +76134,7 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 	authflowViewModeler := &viewmodels.AuthflowViewModeler{
 		Authentication: authenticationConfig,
 		LoginID:        loginIDConfig,
+		Identity:       identityConfig,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -77066,6 +77071,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 	authflowViewModeler := &viewmodels.AuthflowViewModeler{
 		Authentication: authenticationConfig,
 		LoginID:        loginIDConfig,
+		Identity:       identityConfig,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
