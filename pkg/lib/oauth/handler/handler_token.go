@@ -438,7 +438,10 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, err
 	}
 
-	offlineGrantSession := offlineGrant.ToSession(refreshTokenHash)
+	offlineGrantSession, ok := offlineGrant.ToSession(refreshTokenHash)
+	if !ok {
+		return nil, ErrInvalidRefreshToken
+	}
 
 	resp, err := h.issueTokensForRefreshToken(client, offlineGrantSession, authz)
 	if err != nil {
@@ -864,7 +867,10 @@ func (h *TokenHandler) handleApp2AppRequest(
 		return nil, err
 	}
 
-	offlineGrantSession := originalOfflineGrant.ToSession(refreshTokenHash)
+	offlineGrantSession, ok := originalOfflineGrant.ToSession(refreshTokenHash)
+	if !ok {
+		return nil, ErrInvalidRefreshToken
+	}
 
 	// FIXME(DEV-1430): The new scopes should be validated against the new client
 	scopes := offlineGrantSession.Scopes

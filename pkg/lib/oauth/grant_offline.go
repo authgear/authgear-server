@@ -174,7 +174,7 @@ func (g *OfflineGrant) EqualSession(ss session.SessionBase) bool {
 	return g.SessionID() == ss.SessionID() && g.SessionType() == ss.SessionType()
 }
 
-func (g *OfflineGrant) ToSession(refreshTokenHash string) *OfflineGrantSession {
+func (g *OfflineGrant) ToSession(refreshTokenHash string) (*OfflineGrantSession, bool) {
 	// Note(tung): For backward compatibility,
 	// if refreshTokenHash is empty, the "root" offline grant should be used
 	if refreshTokenHash == "" || refreshTokenHash == g.TokenHash {
@@ -185,7 +185,7 @@ func (g *OfflineGrant) ToSession(refreshTokenHash string) *OfflineGrantSession {
 			ClientID:        g.ClientID,
 			Scopes:          g.Scopes,
 			AuthorizationID: g.AuthorizationID,
-		}
+		}, true
 	}
 
 	for _, token := range g.RefreshTokens {
@@ -197,11 +197,11 @@ func (g *OfflineGrant) ToSession(refreshTokenHash string) *OfflineGrantSession {
 				ClientID:        token.ClientID,
 				Scopes:          token.Scopes,
 				AuthorizationID: token.AuthorizationID,
-			}
+			}, true
 		}
 	}
 
-	panic("offline grant: cannot find a token with the provided token hash")
+	return nil, false
 }
 
 func (g *OfflineGrant) MatchHash(refreshTokenHash string) bool {
