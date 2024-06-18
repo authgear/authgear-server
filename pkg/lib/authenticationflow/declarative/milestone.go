@@ -134,6 +134,17 @@ type MilestoneDoCreateUser interface {
 	MilestoneDoCreateUserUseExisting(userID string)
 }
 
+type MilestoneFlowCreateIdentity interface {
+	authflow.Milestone
+	MilestoneFlowCreateIdentity(flows authflow.Flows) (created MilestoneDoCreateIdentity, newFlows authflow.Flows, ok bool)
+}
+
+type MilestoneFlowAccountLinking interface {
+	authflow.Milestone
+	MilestoneFlowCreateIdentity
+	MilestoneFlowAccountLinking()
+}
+
 type MilestoneDoCreateIdentity interface {
 	authflow.Milestone
 	MilestoneDoCreateIdentity() *identity.Info

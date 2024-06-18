@@ -28,6 +28,15 @@ type IntentAccountLinking struct {
 
 var _ authflow.Intent = &IntentAccountLinking{}
 var _ authflow.DataOutputer = &IntentAccountLinking{}
+var _ authflow.Milestone = &IntentAccountLinking{}
+var _ MilestoneFlowAccountLinking = &IntentAccountLinking{}
+var _ MilestoneFlowCreateIdentity = &IntentAccountLinking{}
+
+func (*IntentAccountLinking) Milestone()                   {}
+func (*IntentAccountLinking) MilestoneFlowAccountLinking() {}
+func (*IntentAccountLinking) MilestoneFlowCreateIdentity(flows authflow.Flows) (MilestoneDoCreateIdentity, authflow.Flows, bool) {
+	return authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateIdentity](flows)
+}
 
 func (*IntentAccountLinking) Kind() string {
 	return "IntentAccountLinking"

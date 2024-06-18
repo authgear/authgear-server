@@ -17,6 +17,24 @@ func init() {
 	authflow.RegisterIntent(&IntentSignupFlowStepIdentify{})
 }
 
+// IntentSignupFlowStepIdentify
+//   NodeSkipCreationByExistingIdentity (MilestoneIdentificationMethod, MilestoneFlowCreateIdentity)
+//   NodeDoCreateIdentity (MilestoneDoCreateIdentity)
+//
+//   NodeCreateIdentityLoginID (MilestoneIdentificationMethod)
+//   IntentCheckConflictAndCreateIdenity (MilestoneFlowCreateIdentity)
+//     NodeDoCreateIdentity (MilestoneDoCreateIdentity)
+//     IntentAccountLing (MilestoneFlowCreateIdentity)
+//       NodeDoCreateIdentity (MilestoneDoCreateIdentity)
+//
+//   IntentOAuth (MilestoneIdentificationMethod, MilestoneFlowCreateIdentity)
+//     NodeOAuth
+//     IntentCheckConflictAndCreateIdenity (MilestoneFlowCreateIdentity)
+//       NodeDoCreateIdentity (MilestoneDoCreateIdentity)
+//       IntentAccountLing (MilestoneFlowCreateIdentity)
+//         NodeDoCreateIdentity (MilestoneDoCreateIdentity)
+//     NodeDoUseIdentity
+
 type IntentSignupFlowStepIdentify struct {
 	FlowReference          authflow.FlowReference `json:"flow_reference,omitempty"`
 	JSONPointer            jsonpointer.T          `json:"json_pointer,omitempty"`
@@ -36,21 +54,25 @@ func (i *IntentSignupFlowStepIdentify) MilestoneSwitchToExistingUser(deps *authf
 	i.IsUpdatingExistingUser = true
 	i.UserID = newUserID
 
-	milestoneDoCreateIdentity, ok := authflow.FindFirstMilestone[MilestoneDoCreateIdentity](flows.Nearest)
+	m1, m1Flows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
 	if ok {
-		iden := milestoneDoCreateIdentity.MilestoneDoCreateIdentity()
-		idenSpec := iden.ToSpec()
-		idenWithSameType, err := i.findIdentityOfSameType(deps, &idenSpec)
-		if err != nil {
-			return err
-		}
-		if idenWithSameType != nil {
-			milestoneDoCreateIdentity.MilestoneDoCreateIdentitySkipCreate()
-			i.IsCreateSkipped = true
-		} else {
-			milestoneDoCreateIdentity.MilestoneDoCreateIdentityUpdate(iden.UpdateUserID(newUserID))
+		milestoneDoCreateIdentity, _, ok := m1.MilestoneFlowCreateIdentity(m1Flows)
+		if ok {
+			iden := milestoneDoCreateIdentity.MilestoneDoCreateIdentity()
+			idenSpec := iden.ToSpec()
+			idenWithSameType, err := i.findIdentityOfSameType(deps, &idenSpec)
+			if err != nil {
+				return err
+			}
+			if idenWithSameType != nil {
+				milestoneDoCreateIdentity.MilestoneDoCreateIdentitySkipCreate()
+				i.IsCreateSkipped = true
+			} else {
+				milestoneDoCreateIdentity.MilestoneDoCreateIdentityUpdate(iden.UpdateUserID(newUserID))
+			}
 		}
 	}
+
 	milestoneDoPopulateStandardAttributes, ok := authflow.FindFirstMilestone[MilestoneDoPopulateStandardAttributes](flows.Nearest)
 	if ok {
 		// Always skip population
@@ -74,11 +96,17 @@ func (i *IntentSignupFlowStepIdentify) GetVerifiableClaims(_ context.Context, _ 
 		return nil, nil
 	}
 
-	m, ok := authflow.FindFirstMilestone[MilestoneDoCreateIdentity](flows.Nearest)
+	m1, m1Flows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
+	if !ok {
+		return nil, fmt.Errorf("MilestoneFlowCreateIdentity cannot be found in IntentSignupFlowStepIdentify")
+	}
+
+	m2, _, ok := m1.MilestoneFlowCreateIdentity(m1Flows)
 	if !ok {
 		return nil, fmt.Errorf("MilestoneDoCreateIdentity cannot be found in IntentSignupFlowStepIdentify")
 	}
-	info := m.MilestoneDoCreateIdentity()
+
+	info := m2.MilestoneDoCreateIdentity()
 
 	return info.IdentityAwareStandardClaims(), nil
 }
@@ -167,7 +195,7 @@ func (i *IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *aut
 		}, nil
 	}
 
-	_, identityCreated := authflow.FindMilestone[MilestoneDoCreateIdentity](flows.Nearest)
+	_, _, identityCreated := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
 	_, standardAttributesPopulated := authflow.FindMilestone[MilestoneDoPopulateStandardAttributes](flows.Nearest)
 	_, _, nestedStepHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
@@ -234,13 +262,13 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 		return nil, authflow.ErrIncompatibleInput
 	}
 
-	_, identityCreated := authflow.FindMilestone[MilestoneDoCreateIdentity](flows.Nearest)
+	_, _, identityCreated := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
 	_, standardAttributesPopulated := authflow.FindMilestone[MilestoneDoPopulateStandardAttributes](flows.Nearest)
 	_, _, nestedStepHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
 	switch {
 	case identityCreated && !standardAttributesPopulated && !nestedStepHandled:
-		iden := i.identityInfo(flows.Nearest)
+		iden := i.identityInfo(flows)
 		return authflow.NewNodeSimple(&NodeDoPopulateStandardAttributesInSignup{
 			Identity:   iden,
 			SkipUpdate: i.IsUpdatingExistingUser,
@@ -316,12 +344,18 @@ func (i *IntentSignupFlowStepIdentify) jsonPointer(step *config.AuthenticationFl
 	panic(fmt.Errorf("selected identification method is not allowed"))
 }
 
-func (*IntentSignupFlowStepIdentify) identityInfo(w *authflow.Flow) *identity.Info {
-	m, ok := authflow.FindMilestone[MilestoneDoCreateIdentity](w)
+func (*IntentSignupFlowStepIdentify) identityInfo(flows authflow.Flows) *identity.Info {
+	m1, m1Flows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
+	if !ok {
+		panic(fmt.Errorf("MilestoneFlowCreateIdentity cannot be found in IntentSignupFlowStepIdentify"))
+	}
+
+	m2, _, ok := m1.MilestoneFlowCreateIdentity(m1Flows)
 	if !ok {
 		panic(fmt.Errorf("MilestoneDoCreateIdentity cannot be found in IntentSignupFlowStepIdentify"))
 	}
-	info := m.MilestoneDoCreateIdentity()
+
+	info := m2.MilestoneDoCreateIdentity()
 	return info
 }
 
@@ -373,7 +407,7 @@ func (i *IntentSignupFlowStepIdentify) reactToExistingIdentity(ctx context.Conte
 		}), nil
 	}
 
-	_, identityCreated := authflow.FindMilestone[MilestoneDoCreateIdentity](flows.Nearest)
+	_, _, identityCreated := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
 	_, _, nestedStepHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
 	current, err := i.currentFlowObject(deps)
