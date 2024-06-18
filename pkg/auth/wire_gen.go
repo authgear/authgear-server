@@ -120507,6 +120507,23 @@ func newCSRFMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	return csrfMiddleware
 }
 
+func newCSRFDebugMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	request := p.Request
+	appProvider := p.AppProvider
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	appContext := appProvider.AppContext
+	config := appContext.Config
+	appConfig := config.AppConfig
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	csrfDebugMiddleware := &webapp2.CSRFDebugMiddleware{
+		Cookies: cookieManager,
+	}
+	return csrfDebugMiddleware
+}
+
 func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
