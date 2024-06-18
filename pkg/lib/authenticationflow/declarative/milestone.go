@@ -229,7 +229,7 @@ type MilestoneDoPopulateStandardAttributes interface {
 type MilestoneVerifyClaim interface {
 	authflow.Milestone
 	MilestoneVerifyClaim()
-	MilestoneVerifyClaimUpdateUserID(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error
+	MilestoneVerifyClaimUpdateUserID(deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error
 }
 
 type MilestoneDoMarkClaimVerified interface {
