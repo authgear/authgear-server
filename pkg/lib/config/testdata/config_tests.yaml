@@ -1144,3 +1144,21 @@ config:
           name: custom_login_1
         - type: login
           name: default
+---
+name: dupe-captcha-provider-alias
+error: |-
+  invalid configuration:
+  /captcha/providers/1/alias: duplicated Captcha provider alias
+config:
+  id: test
+  http:
+    public_origin: http://test
+  captcha:
+    enabled: true
+    providers:
+    - alias: cloudflare
+      type: cloudflare
+      site_key: site_key_a
+    - alias: cloudflare
+      type: cloudflare
+      site_key: site_key_b
