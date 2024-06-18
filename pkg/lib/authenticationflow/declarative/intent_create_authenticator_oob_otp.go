@@ -25,12 +25,16 @@ type IntentCreateAuthenticatorOOBOTP struct {
 var _ authflow.Intent = &IntentCreateAuthenticatorOOBOTP{}
 var _ authflow.Milestone = &IntentCreateAuthenticatorOOBOTP{}
 var _ MilestoneAuthenticationMethod = &IntentCreateAuthenticatorOOBOTP{}
+var _ MilestoneFlowCreateAuthenticator = &IntentCreateAuthenticatorOOBOTP{}
 
 func (*IntentCreateAuthenticatorOOBOTP) Kind() string {
 	return "IntentCreateAuthenticatorOOBOTP"
 }
 
 func (*IntentCreateAuthenticatorOOBOTP) Milestone() {}
+func (*IntentCreateAuthenticatorOOBOTP) MilestoneFlowCreateAuthenticator(flows authflow.Flows) (MilestoneDoCreateAuthenticator, authflow.Flows, bool) {
+	return authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateAuthenticator](flows)
+}
 func (n *IntentCreateAuthenticatorOOBOTP) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
 	return n.Authentication
 }
@@ -66,7 +70,7 @@ func (n *IntentCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *
 	m, authenticatorSelected := authflow.FindMilestone[MilestoneDidSelectAuthenticator](flows.Nearest)
 	claimVerifiedAlready := false
 	_, claimVerifiedInThisFlow := authflow.FindMilestone[MilestoneDoMarkClaimVerified](flows.Nearest)
-	_, created := authflow.FindMilestone[MilestoneDoCreateAuthenticator](flows.Nearest)
+	_, _, created := authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateAuthenticator](flows)
 
 	if authenticatorSelected {
 		info := m.MilestoneDidSelectAuthenticator()
@@ -119,7 +123,7 @@ func (n *IntentCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *aut
 	m, authenticatorSelected := authflow.FindMilestone[MilestoneDidSelectAuthenticator](flows.Nearest)
 	claimVerifiedAlready := false
 	_, claimVerifiedInThisFlow := authflow.FindMilestone[MilestoneDoMarkClaimVerified](flows.Nearest)
-	_, created := authflow.FindMilestone[MilestoneDoCreateAuthenticator](flows.Nearest)
+	_, _, created := authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateAuthenticator](flows)
 
 	if authenticatorSelected {
 		info := m.MilestoneDidSelectAuthenticator()

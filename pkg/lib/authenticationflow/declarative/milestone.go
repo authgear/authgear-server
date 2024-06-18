@@ -141,6 +141,11 @@ type MilestoneDoCreateIdentity interface {
 	MilestoneDoCreateIdentityUpdate(newInfo *identity.Info)
 }
 
+type MilestoneFlowCreateAuthenticator interface {
+	authflow.Milestone
+	MilestoneFlowCreateAuthenticator(flows authflow.Flows) (created MilestoneDoCreateAuthenticator, newFlow authflow.Flows, ok bool)
+}
+
 type MilestoneDoCreateAuthenticator interface {
 	authflow.Milestone
 	MilestoneDoCreateAuthenticator() *authenticator.Info
