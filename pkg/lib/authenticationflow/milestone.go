@@ -13,10 +13,6 @@ func FindFirstMilestone[T Milestone](w *Flow) (T, bool) {
 	return findMilestone[T](w, true)
 }
 
-func FindMilestone[T Milestone](w *Flow) (T, bool) {
-	return findMilestone[T](w, false)
-}
-
 // FindMilestoneInCurrentFlow find the last milestone in the flow.
 // It does not recur into sub flows.
 // If the found milestone is a node, then the returned flows is the same as flows.
