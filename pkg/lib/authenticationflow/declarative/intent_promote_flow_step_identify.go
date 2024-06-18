@@ -122,7 +122,7 @@ func (i *IntentPromoteFlowStepIdentify) CanReactTo(ctx context.Context, deps *au
 
 	_, identityCreated := authflow.FindMilestone[MilestoneDoCreateIdentity](flows.Nearest)
 	_, standardAttributesPopulated := authflow.FindMilestone[MilestoneDoPopulateStandardAttributes](flows.Nearest)
-	_, nestedStepHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
+	_, nestedStepHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows.Nearest)
 
 	switch {
 	case identityCreated && !standardAttributesPopulated && !nestedStepHandled:
@@ -186,7 +186,7 @@ func (i *IntentPromoteFlowStepIdentify) ReactTo(ctx context.Context, deps *authf
 
 	_, identityCreated := authflow.FindMilestone[MilestoneDoCreateIdentity](flows.Nearest)
 	_, standardAttributesPopulated := authflow.FindMilestone[MilestoneDoPopulateStandardAttributes](flows.Nearest)
-	_, nestedStepHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
+	_, nestedStepHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows.Nearest)
 
 	switch {
 	case identityCreated && !standardAttributesPopulated && !nestedStepHandled:

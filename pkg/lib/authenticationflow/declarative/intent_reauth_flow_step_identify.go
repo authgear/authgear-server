@@ -50,7 +50,7 @@ func (*IntentReauthFlowStepIdentify) Kind() string {
 
 func (i *IntentReauthFlowStepIdentify) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	_, userIdentified := authflow.FindMilestone[MilestoneDoUseUser](flows.Nearest)
-	_, nestedStepsHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
+	_, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows.Nearest)
 
 	switch {
 	case len(flows.Nearest.Nodes) == 0 && authflow.GetIDToken(ctx) != "":
@@ -83,7 +83,7 @@ func (i *IntentReauthFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 	step := i.step(current)
 
 	_, userIdentified := authflow.FindMilestone[MilestoneDoUseUser](flows.Nearest)
-	_, nestedStepsHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
+	_, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows.Nearest)
 
 	switch {
 	case len(flows.Nearest.Nodes) == 0 && authflow.GetIDToken(ctx) != "":

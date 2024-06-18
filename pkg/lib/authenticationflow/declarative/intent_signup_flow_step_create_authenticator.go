@@ -337,7 +337,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) reactToExistingAuthenticator(c
 	}
 
 	_, authenticatorCreated := authflow.FindMilestone[MilestoneDoCreateAuthenticator](flows.Nearest)
-	_, nestedStepsHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
+	_, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows.Nearest)
 
 	current, err := i.currentFlowObject(deps)
 	if err != nil {

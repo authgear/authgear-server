@@ -374,7 +374,7 @@ func (i *IntentSignupFlowStepIdentify) reactToExistingIdentity(ctx context.Conte
 	}
 
 	_, identityCreated := authflow.FindMilestone[MilestoneDoCreateIdentity](flows.Nearest)
-	_, nestedStepHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
+	_, nestedStepHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows.Nearest)
 
 	current, err := i.currentFlowObject(deps)
 	if err != nil {

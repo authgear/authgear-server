@@ -49,7 +49,7 @@ func (*IntentReauthFlowStepAuthenticate) Kind() string {
 func (i *IntentReauthFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	_, authenticationMethodSelected := authflow.FindMilestone[MilestoneAuthenticationMethod](flows.Nearest)
 	_, authenticated := authflow.FindMilestone[MilestoneDidAuthenticate](flows.Nearest)
-	_, nestedStepsHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
+	_, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows.Nearest)
 
 	switch {
 	case !authenticationMethodSelected:
@@ -93,7 +93,7 @@ func (i *IntentReauthFlowStepAuthenticate) ReactTo(ctx context.Context, deps *au
 
 	_, authenticated := authflow.FindMilestone[MilestoneDidAuthenticate](flows.Nearest)
 
-	_, nestedStepsHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
+	_, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows.Nearest)
 
 	switch {
 	case !authenticationMethodSelected:

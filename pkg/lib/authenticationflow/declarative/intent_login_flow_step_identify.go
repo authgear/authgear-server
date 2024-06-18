@@ -103,7 +103,7 @@ func (i *IntentLoginFlowStepIdentify) CanReactTo(ctx context.Context, deps *auth
 	}
 
 	_, identityUsed := authflow.FindMilestone[MilestoneDoUseIdentity](flows.Nearest)
-	_, nestedStepsHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
+	_, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows.Nearest)
 
 	switch {
 	case identityUsed && !nestedStepsHandled:
@@ -156,7 +156,7 @@ func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *authflo
 	}
 
 	_, identityUsed := authflow.FindMilestone[MilestoneDoUseIdentity](flows.Nearest)
-	_, nestedStepsHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
+	_, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows.Nearest)
 
 	switch {
 	case identityUsed && !nestedStepsHandled:

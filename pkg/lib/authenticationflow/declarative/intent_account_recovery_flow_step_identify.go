@@ -96,7 +96,7 @@ func (i *IntentAccountRecoveryFlowStepIdentify) CanReactTo(ctx context.Context, 
 	}
 
 	_, identityUsed := authflow.FindMilestone[MilestoneDoUseAccountRecoveryIdentificationMethod](flows.Nearest)
-	_, nestedStepsHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
+	_, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows.Nearest)
 
 	switch {
 	case (identityUsed || isSelectedIdenRestored) && !nestedStepsHandled:
@@ -143,7 +143,7 @@ func (i *IntentAccountRecoveryFlowStepIdentify) ReactTo(ctx context.Context, dep
 	}
 
 	_, identityUsed := authflow.FindMilestone[MilestoneDoUseAccountRecoveryIdentificationMethod](flows.Nearest)
-	_, nestedStepsHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
+	_, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows.Nearest)
 	restoredIdenJsonPointer, isSelectedIdenRestored := i.restoredIdentificationJsonPointer()
 
 	switch {
