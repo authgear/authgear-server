@@ -1,0 +1,9 @@
+{
+  "identifier": "preferred_username",
+  "records": [
+    {
+      "preferred_username": "mock",
+      "phone_number": "+85298765432"
+    }
+  ]
+}
