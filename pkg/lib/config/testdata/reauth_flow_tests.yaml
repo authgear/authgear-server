@@ -40,3 +40,22 @@ value:
     - authentication: foobar
       captcha:
         foobar: true
+---
+part: AuthenticationFlowReauthFlow
+name: captcha-mode-always-but-missing-provider
+error: |-
+  invalid value:
+  /steps/0/one_of/0/captcha: required
+    map[actual:[mode] expected:[provider] missing:[provider]]
+value:
+  name: id
+  steps:
+  - type: authenticate
+    one_of:
+    - authentication: primary_password
+      captcha:
+        mode: always
+      steps:
+      - type: authenticate
+        one_of:
+        - authentication: secondary_totp

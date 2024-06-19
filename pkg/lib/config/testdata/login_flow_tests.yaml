@@ -74,3 +74,28 @@ value:
         one_of:
         - authentication: foobar
   - type: foobar
+---
+part: AuthenticationFlowLoginFlow
+name: captcha-mode-always-but-missing-provider
+error: |-
+  invalid value:
+  /steps/0/one_of/0/captcha: required
+    map[actual:[mode] expected:[provider] missing:[provider]]
+value:
+  name: id
+  steps:
+  - type: identify
+    name: my_step
+    one_of:
+    - identification: email
+      captcha:
+        mode: always
+      steps:
+      - type: authenticate
+        one_of:
+        - authentication: primary_oob_otp_email
+          target_step: my_step
+      - type: authenticate
+        optional: true
+        one_of:
+        - authentication: secondary_totp
