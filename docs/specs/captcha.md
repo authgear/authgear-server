@@ -115,9 +115,19 @@ Captcha is supported only in the following step types:
 
 We can see that all supported step types have branches.
 
-To specify Captcha is required,
+To specify Captcha is enabled in a branch, add `captcha` to the branch.
 
-1. Add `captcha.required=true` to the branches you want.
+The configuration is as follows:
+
+```
+captcha:
+  enabled: true
+  provider:
+    alias: cloudflare
+```
+
+- `captcha.enabled`: If it is true, then Captcha is enabled in this branch.
+- `captcha.provider.alias`: If `captcha.enabled=true`, then it is required. Specify the Captcha provider to be used in this branch.
 
 For example,
 
@@ -131,7 +141,9 @@ authentication_flow:
       - identification: email
         # Identify with email requires captcha.
         captcha:
-          required: true
+          enabled: true
+          provider:
+            alias: cloudflare
     - type: authenticate
       one_of:
       - authentication: primary_password
@@ -142,8 +154,8 @@ authentication_flow:
 
 Given `captcha.enabled=true` and `captcha.providers` is non-empty,
 
-1. All the branches of the first step (that is, the `identify` step) has `captcha.required=true`.
-2. The first provider in `captcha.providers` is used as the provider.
+1. All the branches of the first step (that is, the `identify` step, or the `authenticate` step in reauth flow) has `captcha.enabled=true`.
+2. The first provider in `captcha.providers` is used as `captcha.provider.alias`
 
 In terms of UX, when Captcha is enabled and configured, every generated flow requires captcha at the beginning of the flow.
 
@@ -151,9 +163,9 @@ In terms of UX, when Captcha is enabled and configured, every generated flow req
 
 Please refer to [captcha](./authentication-flow-api-reference.md#captcha).
 
-### Advanced use case: Require Captcha at a specific branch, instead of right after flow creation
+### Advanced use case: Enable Captcha at a specific branch, instead of right after flow creation
 
-Suppose Project A configures email login with password or OTP. The developer may only want to require captcha if OTP is used, to reduce friction.
+Suppose Project A configures email login with password or OTP. The developer may only want to enable captcha if OTP is used, to reduce friction.
 
 This can be achieved by customizing the flow.
 
@@ -168,11 +180,13 @@ authentication_flow:
     - type: authenticate
       one_of:
       - authentication: primary_password
-      # Captcha is required BEFORE selecting this branch.
+      # Must pass Captcha BEFORE selecting this branch.
       # That is, before the OTP is sent.
       - authentication: primary_oob_otp_email
         captcha:
-          required: true
+          enabled: true
+          provider:
+            alias: cloudflare
 ```
 
 ### Future use cases
