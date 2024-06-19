@@ -25,6 +25,7 @@ var _ = Schema.Add("AuthenticationFlowCaptcha", `
 					"provider": {
 						"type": "object",
 						"additionalProperties": false,
+						"required": ["alias"],
 						"properties": {
 							"alias": { "type": "string" }
 						}
