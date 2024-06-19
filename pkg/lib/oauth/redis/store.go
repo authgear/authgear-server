@@ -425,6 +425,7 @@ func (s *Store) RemoveOfflineGrantRefreshTokens(grantID string, tokenHashes []st
 		if err != nil {
 			return nil, err
 		}
+		return nil, nil
 	}
 
 	return grant, nil
