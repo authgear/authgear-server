@@ -24,7 +24,7 @@ type SessionBase interface {
 	SSOGroupIDPSessionID() string
 }
 
-type Session interface {
+type ResolvedSession interface {
 	SessionBase
 	Session()
 	GetCreatedAt() time.Time

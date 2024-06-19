@@ -13,7 +13,7 @@ import (
 const FullAccessScope = "https://authgear.com/scopes/full-access"
 const FullUserInfoScope = "https://authgear.com/scopes/full-userinfo"
 
-func SessionScopes(s session.Session) []string {
+func SessionScopes(s session.ResolvedSession) []string {
 	switch s := s.(type) {
 	case *idpsession.IDPSession:
 		return []string{FullAccessScope}
@@ -53,7 +53,7 @@ func RequireScope(scopes ...string) func(http.Handler) http.Handler {
 	}
 }
 
-func checkAuthz(session session.Session, requiredScopes map[string]struct{}, scope string) (int, protocol.ErrorResponse) {
+func checkAuthz(session session.ResolvedSession, requiredScopes map[string]struct{}, scope string) (int, protocol.ErrorResponse) {
 	if session == nil {
 		return http.StatusUnauthorized, protocol.NewErrorResponse("invalid_grant", "invalid session")
 	}
