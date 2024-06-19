@@ -46,9 +46,10 @@ func NewAuthflowV2UsePasskeyViewModel(s *webapp.Session, screen *webapp.Authflow
 }
 
 type AuthflowV2UsePasskeyHandler struct {
-	Controller    *handlerwebapp.AuthflowController
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      handlerwebapp.Renderer
+	Controller                             *handlerwebapp.AuthflowController
+	BaseViewModel                          *viewmodels.BaseViewModeler
+	InlinePreviewAuthflowBranchViewModeler *viewmodels.InlinePreviewAuthflowBranchViewModeler
+	Renderer                               handlerwebapp.Renderer
 }
 
 func (h *AuthflowV2UsePasskeyHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
@@ -81,7 +82,7 @@ func (h *AuthflowV2UsePasskeyHandler) GetInlinePreviewData(w http.ResponseWriter
 	}
 	viewmodels.Embed(data, screenViewModel)
 
-	branchViewModel := viewmodels.NewInlinePreviewAuthflowBranchViewModel()
+	branchViewModel := h.InlinePreviewAuthflowBranchViewModeler.NewAuthflowBranchViewModelForInlinePreviewUsePasskey()
 	viewmodels.Embed(data, branchViewModel)
 
 	return data, nil

@@ -9,15 +9,16 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
+const (
+	defaultLoginIDKeyType = model.LoginIDKeyTypeEmail // We fake login id key type to be email if no login id is set
+)
+
 type InlinePreviewAuthflowBranchViewModeler struct {
 	AppConfig *config.AppConfig
 }
 
 func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForInlinePreviewEnterPassword() AuthflowBranchViewModel {
-	loginIDKeyType := model.LoginIDKeyTypeEmail
-	if len(m.AppConfig.Identity.LoginID.Keys) > 0 {
-		loginIDKeyType = m.AppConfig.Identity.LoginID.Keys[0].Type
-	}
+	loginIDKeyType := m.getFirstLoginIDKeyType()
 	branches := m.generateAuthflowBranchesIdentityLoginID(loginIDKeyType)
 	branches = slice.Filter[AuthflowBranch](branches, func(b AuthflowBranch) bool {
 		return b.Authentication != config.AuthenticationFlowAuthenticationPrimaryPassword
@@ -31,12 +32,9 @@ func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForIn
 }
 
 func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForInlinePreviewEnterOOBOTP() AuthflowBranchViewModel {
-	loginIDKeyType := model.LoginIDKeyTypeEmail
-	if len(m.AppConfig.Identity.LoginID.Keys) > 0 {
-		firstLoginIDKeyType := m.AppConfig.Identity.LoginID.Keys[0].Type
-		if firstLoginIDKeyType != model.LoginIDKeyTypeUsername {
-			loginIDKeyType = firstLoginIDKeyType
-		}
+	loginIDKeyType := m.getFirstLoginIDKeyType()
+	if loginIDKeyType == model.LoginIDKeyTypeUsername {
+		loginIDKeyType = model.LoginIDKeyTypeEmail
 	}
 	branches := m.generateAuthflowBranchesIdentityLoginID(loginIDKeyType)
 	branches = slice.Filter[AuthflowBranch](branches, func(b AuthflowBranch) bool {
@@ -51,6 +49,28 @@ func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForIn
 		DeviceTokenEnabled: false,
 		Branches:           branches,
 	}
+}
+
+func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForInlinePreviewUsePasskey() AuthflowBranchViewModel {
+	loginIDKeyType := m.getFirstLoginIDKeyType()
+	branches := m.generateAuthflowBranchesIdentityLoginID(loginIDKeyType)
+	branches = slice.Filter[AuthflowBranch](branches, func(b AuthflowBranch) bool {
+		return b.Authentication != config.AuthenticationFlowAuthenticationPrimaryPasskey
+	})
+	return AuthflowBranchViewModel{
+		FlowType:           authflow.FlowTypeLogin,
+		ActionType:         authflow.FlowActionType(config.AuthenticationFlowStepTypeAuthenticate),
+		DeviceTokenEnabled: false,
+		Branches:           branches,
+	}
+}
+
+func (m *InlinePreviewAuthflowBranchViewModeler) getFirstLoginIDKeyType() model.LoginIDKeyType {
+	loginIDKeyType := defaultLoginIDKeyType
+	if len(m.AppConfig.Identity.LoginID.Keys) > 0 {
+		loginIDKeyType = m.AppConfig.Identity.LoginID.Keys[0].Type
+	}
+	return loginIDKeyType
 }
 
 func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesIdentityLoginID(keyType model.LoginIDKeyType) []AuthflowBranch {
