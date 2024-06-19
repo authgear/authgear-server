@@ -28,6 +28,9 @@ func ValidateScopes(client *config.OAuthClientConfig, scopes []string) error {
 		if s == "openid" {
 			hasOIDC = true
 		}
+		if s == oauth.AppInitiatedSSOToWebScope && !client.AppInitiatedSSOToWebEnabled {
+			return protocol.NewError("invalid_scope", "app-initiated-sso-to-web is not allowed for this client")
+		}
 	}
 	if !hasOIDC {
 		return protocol.NewError("invalid_scope", "must request 'openid' scope")
@@ -40,6 +43,7 @@ var AllowedScopes = []string{
 	"offline_access",
 	oauth.FullAccessScope,
 	oauth.FullUserInfoScope,
+	oauth.AppInitiatedSSOToWebScope,
 }
 
 func IsScopeAllowed(scope string) bool {
