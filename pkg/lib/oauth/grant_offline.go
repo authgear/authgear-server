@@ -24,7 +24,6 @@ type OfflineGrant struct {
 	AppID           string `json:"app_id"`
 	ID              string `json:"id"`
 	InitialClientID string `json:"client_id"`
-	AuthorizationID string `json:"authz_id"`
 	// IDPSessionID refers to the IDP session.
 	IDPSessionID string `json:"idp_session_id,omitempty"`
 	// IdentityID refers to the identity.
@@ -33,8 +32,6 @@ type OfflineGrant struct {
 
 	CreatedAt       time.Time `json:"created_at"`
 	AuthenticatedAt time.Time `json:"authenticated_at"`
-	Scopes          []string  `json:"scopes"`
-	TokenHash       string    `json:"token_hash"`
 
 	Attrs      session.Attrs `json:"attrs"`
 	AccessInfo access.Info   `json:"access_info"`
@@ -46,6 +43,12 @@ type OfflineGrant struct {
 	App2AppDeviceKeyJWKJSON string `json:"app2app_device_key_jwk_json"`
 
 	RefreshTokens []OfflineGrantRefreshToken `json:"refresh_tokens,omitempty"`
+
+	// Readonly fields for backward compatibility.
+	// Write these fields in OfflineGrantRefreshToken
+	Deprecated_AuthorizationID string   `json:"authz_id"`
+	Deprecated_Scopes          []string `json:"scopes"`
+	Deprecated_TokenHash       string   `json:"token_hash"`
 }
 
 var _ session.ListableSession = &OfflineGrant{}
@@ -177,16 +180,16 @@ func (g *OfflineGrant) ToSession(refreshTokenHash string) (*OfflineGrantSession,
 	// Note(tung): For backward compatibility,
 	// if refreshTokenHash is empty, the "root" offline grant should be used
 	isEmpty := subtle.ConstantTimeCompare([]byte(refreshTokenHash), []byte("")) == 1
-	isEqualRoot := subtle.ConstantTimeCompare([]byte(refreshTokenHash), []byte(g.TokenHash)) == 1
+	isEqualRoot := subtle.ConstantTimeCompare([]byte(refreshTokenHash), []byte(g.Deprecated_TokenHash)) == 1
 	var result *OfflineGrantSession = nil
 	if isEmpty || isEqualRoot {
 		result = &OfflineGrantSession{
 			OfflineGrant:    g,
 			CreatedAt:       g.CreatedAt,
-			TokenHash:       g.TokenHash,
+			TokenHash:       g.Deprecated_TokenHash,
 			ClientID:        g.InitialClientID,
-			Scopes:          g.Scopes,
-			AuthorizationID: g.AuthorizationID,
+			Scopes:          g.Deprecated_Scopes,
+			AuthorizationID: g.Deprecated_AuthorizationID,
 		}
 	}
 
@@ -213,7 +216,7 @@ func (g *OfflineGrant) ToSession(refreshTokenHash string) (*OfflineGrantSession,
 
 func (g *OfflineGrant) MatchHash(refreshTokenHash string) bool {
 	var result bool = false
-	if subtle.ConstantTimeCompare([]byte(refreshTokenHash), []byte(g.TokenHash)) == 1 {
+	if subtle.ConstantTimeCompare([]byte(refreshTokenHash), []byte(g.Deprecated_TokenHash)) == 1 {
 		result = true
 	}
 
