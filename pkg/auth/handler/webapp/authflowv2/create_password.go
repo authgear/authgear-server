@@ -130,7 +130,7 @@ func (h *AuthflowV2CreatePasswordHandler) GetInlinePreviewData(w http.ResponseWr
 }
 
 func (h *AuthflowV2CreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Query().Get(webapp.PreviewQueryKey) == webapp.PreviewModeInline {
+	if webapp.IsPreviewModeInline(r) {
 		var previewHandler handlerwebapp.PreviewHandler
 		previewHandler.Preview(func() error {
 			data, err := h.GetInlinePreviewData(w, r)

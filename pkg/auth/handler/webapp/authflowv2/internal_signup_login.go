@@ -98,7 +98,7 @@ func (h *InternalAuthflowV2SignupLoginHandler) GetInlinePreviewData(w http.Respo
 }
 
 func (h *InternalAuthflowV2SignupLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request, options AuthflowV2SignupServeOptions) {
-	if r.URL.Query().Get(webapp.PreviewQueryKey) == webapp.PreviewModeInline {
+	if webapp.IsPreviewModeInline(r) {
 		var previewHandler handlerwebapp.PreviewHandler
 		previewHandler.Preview(func() error {
 			data, err := h.GetInlinePreviewData(w, r, options)

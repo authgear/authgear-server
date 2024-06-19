@@ -100,7 +100,7 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if r.URL.Query().Get(webapp.PreviewQueryKey) == webapp.PreviewModeInline {
+	if webapp.IsPreviewModeInline(r) {
 		var previewHandler handlerwebapp.PreviewHandler
 		previewHandler.Preview(func() error {
 			data, err := h.GetInlinePreviewData(w, r)
