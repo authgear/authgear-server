@@ -319,6 +319,97 @@ steps:
       - authentication: secondary_totp
   - identification: oauth
 `)
-
+		// captcha, 1 branch
+		test(`
+authentication:
+  identities:
+  - login_id
+  primary_authenticators:
+  - password
+identity:
+  login_id:
+    keys:
+    - type: email
+captcha:
+  enabled: true
+  providers:
+  - type: recaptchav2
+    alias: recaptchav2-1
+    site_key: recaptchav2-site-key
+`, `
+name: default
+captcha:
+  enabled: true
+steps:
+- name: identify
+  type: identify
+  one_of:
+  - identification: email
+    captcha:
+      required: true
+    steps:
+    - target_step: identify
+      type: verify
+    - name: authenticate_primary_email
+      type: create_authenticator
+      one_of:
+      - authentication: primary_password  
+`)
+		// captcha, 3 branches
+		test(`
+authentication:
+  identities:
+  - login_id
+  primary_authenticators:
+  - password
+identity:
+  login_id:
+    keys:
+    - type: email
+    - type: phone
+    - type: username
+captcha:
+  enabled: true
+  providers:
+  - type: recaptchav2
+    alias: recaptchav2-1
+    site_key: recaptchav2-site-key
+`, `
+name: default
+captcha:
+  enabled: true
+steps:
+- name: identify
+  type: identify
+  one_of:
+  - identification: email
+    captcha:
+      required: true
+    steps:
+    - target_step: identify
+      type: verify
+    - name: authenticate_primary_email
+      type: create_authenticator
+      one_of:
+      - authentication: primary_password
+  - identification: phone
+    captcha:
+      required: true
+    steps:
+    - target_step: identify
+      type: verify
+    - name: authenticate_primary_phone
+      type: create_authenticator
+      one_of:
+      - authentication: primary_password
+  - identification: username
+    captcha:
+      required: true
+    steps:
+    - name: authenticate_primary_username
+      type: create_authenticator
+      one_of:
+      - authentication: primary_password
+`)
 	})
 }

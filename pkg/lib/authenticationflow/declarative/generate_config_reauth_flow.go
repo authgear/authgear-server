@@ -7,7 +7,8 @@ import (
 
 func GenerateReauthFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowReauthFlow {
 	flow := &config.AuthenticationFlowReauthFlow{
-		Name: nameGeneratedFlow,
+		Name:    nameGeneratedFlow,
+		Captcha: generateFlowCaptcha(cfg),
 		Steps: []*config.AuthenticationFlowReauthFlowStep{
 			generateReauthFlowStepIdentify(cfg),
 			generateReauthFlowStepAuthenticate(cfg),
@@ -37,9 +38,15 @@ func generateReauthFlowStepAuthenticate(cfg *config.AppConfig) *config.Authentic
 	}
 
 	addOneOf := func(authentication config.AuthenticationFlowAuthentication) {
-		step.OneOf = append(step.OneOf, &config.AuthenticationFlowReauthFlowOneOf{
+		oneOf := &config.AuthenticationFlowReauthFlowOneOf{
 			Authentication: authentication,
-		})
+		}
+		if hasCaptcha(cfg) {
+			oneOf.Captcha = &config.AuthenticationFlowCaptcha{
+				Required: getBoolPtr(true),
+			}
+		}
+		step.OneOf = append(step.OneOf, oneOf)
 	}
 
 	for _, authenticatorType := range *cfg.Authentication.PrimaryAuthenticators {

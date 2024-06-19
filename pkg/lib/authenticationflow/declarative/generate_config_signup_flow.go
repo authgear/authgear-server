@@ -9,7 +9,8 @@ import (
 
 func GenerateSignupFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowSignupFlow {
 	flow := &config.AuthenticationFlowSignupFlow{
-		Name: nameGeneratedFlow,
+		Name:    nameGeneratedFlow,
+		Captcha: generateFlowCaptcha(cfg),
 		Steps: []*config.AuthenticationFlowSignupFlowStep{
 			generateSignupFlowStepIdentify(cfg),
 		},
@@ -39,6 +40,15 @@ func generateSignupFlowStepIdentify(cfg *config.AppConfig) *config.Authenticatio
 		case model.IdentityTypePasskey:
 			// Cannot create paskey in this step.
 			break
+		}
+	}
+
+	// Add captcha if enabled
+	if hasCaptcha(cfg) {
+		for _, oneOf := range step.OneOf {
+			oneOf.Captcha = &config.AuthenticationFlowCaptcha{
+				Required: getBoolPtr(true),
+			}
 		}
 	}
 

@@ -3,11 +3,15 @@ name: valid
 error: null
 value:
   name: id
+  captcha: 
+    enabled: true
   steps:
   - type: identify
     name: my_step
     one_of:
     - identification: email
+      captcha:
+        required: true
       steps:
       - type: authenticate
         one_of:
@@ -40,6 +44,8 @@ part: AuthenticationFlowLoginFlow
 name: invalid
 error: |-
   invalid value:
+  /captcha/foobar: 
+  /steps/0/one_of/0/captcha/foobar: 
   /steps/0/one_of/0/steps/0/one_of/0/authentication: enum
     map[actual:foobar expected:[primary_password primary_passkey primary_oob_otp_email primary_oob_otp_sms secondary_password secondary_totp secondary_oob_otp_email secondary_oob_otp_sms recovery_code device_token]]
   /steps/0/one_of/0/steps/0/one_of/0/target_step: type
@@ -52,11 +58,15 @@ error: |-
     map[actual:foobar expected:[identify authenticate check_account_status terminate_other_sessions change_password prompt_create_passkey]]
 value:
   name: id
+  captcha:
+    foobar: true
   steps:
   - type: identify
     name: my_step
     one_of:
     - identification: email
+      captcha:
+        foobar: true
       steps:
       - type: authenticate
         one_of:

@@ -283,5 +283,82 @@ steps:
   - authentication: primary_passkey
   - authentication: secondary_totp
 `)
+		// captcha, 1 branch
+		test(`
+authentication:
+  identities:
+  - login_id
+  primary_authenticators:
+  - password
+  secondary_authenticators: []
+identity:
+  login_id:
+    keys:
+    - type: email
+captcha:
+  enabled: true
+  providers:
+  - type: recaptchav2
+    alias: recaptchav2-a
+    site_key: some-site-key
+`, `
+name: default
+captcha:
+  enabled: true
+steps:
+- name: identify
+  type: identify
+  one_of:
+  - identification: id_token
+- name: reauthenticate
+  type: authenticate
+  one_of:
+  - authentication: primary_password
+    captcha:
+      required: true
+`)
+		// captcha, 3 branches
+		test(`
+authentication:
+  identities:
+  - login_id
+  primary_authenticators:
+  - password
+  - oob_otp_email
+  - oob_otp_sms
+  secondary_authenticators: []
+identity:
+  login_id:
+    keys:
+    - type: email
+    - type: phone
+captcha:
+  enabled: true
+  providers:
+  - type: recaptchav2
+    alias: recaptchav2-a
+    site_key: some-site-key
+`, `
+name: default
+captcha:
+  enabled: true
+steps:
+- name: identify
+  type: identify
+  one_of:
+  - identification: id_token
+- name: reauthenticate
+  type: authenticate
+  one_of:
+  - authentication: primary_password
+    captcha:
+      required: true
+  - authentication: primary_oob_otp_email
+    captcha:
+      required: true
+  - authentication: primary_oob_otp_sms
+    captcha:
+      required: true
+`)
 	})
 }
