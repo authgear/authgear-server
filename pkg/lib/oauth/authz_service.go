@@ -59,29 +59,18 @@ func (s *AuthorizationService) Delete(a *Authorization) error {
 	// delete the offline grants that belong to the authorization
 	for _, sess := range sessions {
 		if offlineGrant, ok := sess.(*OfflineGrant); ok {
-			if offlineGrant.Deprecated_AuthorizationID == a.ID {
+			tokenHashes, shouldRemoveOfflineGrant := offlineGrant.GetRemovableTokenHashesByAuthorizationID(a.ID)
+			if shouldRemoveOfflineGrant {
 				err := s.OAuthSessionManager.Delete(sess)
 				if err != nil {
 					return err
 				}
-			}
-			newTokens := []OfflineGrantRefreshToken{}
-			isTokenChanged := false
-			// Revoke any sub-tokens using this authorization
-			for _, token := range offlineGrant.RefreshTokens {
-				token := token
-				if token.AuthorizationID == a.ID {
-					isTokenChanged = true
-				} else {
-					newTokens = append(newTokens, token)
-				}
-			}
-			if isTokenChanged {
+			} else if len(tokenHashes) > 0 {
 				expiry, err := s.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
 				if err != nil {
 					return err
 				}
-				_, err = s.OfflineGrantStore.UpdateOfflineGrantRefreshTokens(offlineGrant.ID, newTokens, expiry)
+				_, err = s.OfflineGrantStore.RemoveOfflineGrantRefreshTokens(offlineGrant.ID, tokenHashes, expiry)
 				if err != nil {
 					return err
 				}

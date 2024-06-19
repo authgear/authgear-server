@@ -384,7 +384,7 @@ func (s *Store) UpdateOfflineGrantApp2AppDeviceKey(grantID string, newKey string
 	return grant, nil
 }
 
-func (s *Store) UpdateOfflineGrantRefreshTokens(grantID string, refreshTokens []oauth.OfflineGrantRefreshToken, expireAt time.Time) (*oauth.OfflineGrant, error) {
+func (s *Store) RemoveOfflineGrantRefreshTokens(grantID string, tokenHashes []string, expireAt time.Time) (*oauth.OfflineGrant, error) {
 	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
 	mutex := s.Redis.NewMutex(mutexName)
 	err := mutex.LockContext(s.Context)
@@ -395,16 +395,36 @@ func (s *Store) UpdateOfflineGrantRefreshTokens(grantID string, refreshTokens []
 		_, _ = mutex.UnlockContext(s.Context)
 	}()
 
+	tokenHashesSet := map[string]interface{}{}
+	for _, hash := range tokenHashes {
+		tokenHashesSet[hash] = hash
+	}
+
 	grant, err := s.GetOfflineGrant(grantID)
 	if err != nil {
 		return nil, err
 	}
 
-	grant.RefreshTokens = refreshTokens
+	newRefreshTokens := []oauth.OfflineGrantRefreshToken{}
+	for _, token := range grant.RefreshTokens {
+		token := token
+		if _, exist := tokenHashesSet[token.TokenHash]; !exist {
+			newRefreshTokens = append(newRefreshTokens, token)
+		}
+	}
 
-	err = s.updateOfflineGrant(grant, expireAt)
-	if err != nil {
-		return nil, err
+	grant.RefreshTokens = newRefreshTokens
+	if grant.HasValidTokens() {
+		err = s.updateOfflineGrant(grant, expireAt)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		// Remove the offline grant if it has no valid tokens
+		err = s.DeleteOfflineGrant(grant)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return grant, nil
