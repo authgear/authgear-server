@@ -78938,10 +78938,14 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
+	inlinePreviewAuthflowBranchViewModeler := &viewmodels.InlinePreviewAuthflowBranchViewModeler{
+		AppConfig: appConfig,
+	}
 	authflowV2EnterPasswordHandler := &authflowv2.AuthflowV2EnterPasswordHandler{
-		Controller:    authflowController,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
+		Controller:                             authflowController,
+		BaseViewModel:                          baseViewModeler,
+		Renderer:                               responseRenderer,
+		InlinePreviewAuthflowBranchViewModeler: inlinePreviewAuthflowBranchViewModeler,
 	}
 	return authflowV2EnterPasswordHandler
 }

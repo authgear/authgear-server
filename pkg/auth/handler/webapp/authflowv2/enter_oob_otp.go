@@ -6,7 +6,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
-	v2viewmodels "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
@@ -104,14 +103,14 @@ func NewInlinePreviewAuthflowEnterOOBOTPViewModel(
 	switch firstLoginIDTypeForPreview {
 	case model.LoginIDKeyTypeEmail:
 		channelForPreview = model.AuthenticatorOOBChannelEmail
-		maskedClaimValue = mail.MaskAddress(v2viewmodels.PreviewDummyEmail)
+		maskedClaimValue = mail.MaskAddress(viewmodels.PreviewDummyEmail)
 	case model.LoginIDKeyTypePhone:
 		if authenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
 			channelForPreview = model.AuthenticatorOOBChannelWhatsapp
 		} else {
 			channelForPreview = model.AuthenticatorOOBChannelSMS
 		}
-		maskedClaimValue = phone.Mask(v2viewmodels.PreviewDummyPhoneNumber)
+		maskedClaimValue = phone.Mask(viewmodels.PreviewDummyPhoneNumber)
 	}
 
 	return AuthflowEnterOOBOTPViewModel{

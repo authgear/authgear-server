@@ -11,4 +11,5 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(AuthenticationViewModeler), "*"),
 	wire.Struct(new(ChangePasswordViewModeler), "*"),
 	wire.Struct(new(AuthflowViewModeler), "*"),
+	wire.Struct(new(InlinePreviewAuthflowBranchViewModeler), "*"),
 )

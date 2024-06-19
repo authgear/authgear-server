@@ -6,7 +6,6 @@ import (
 	"time"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
-	v2viewmodels "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
@@ -70,7 +69,7 @@ func NewAuthflowOOBOTPLinkViewModel(s *webapp.Session, screen *webapp.AuthflowSc
 }
 
 func NewInlinePreviewAuthflowOOBOTPLinkViewModel() AuthflowOOBOTPLinkViewModel {
-	maskedClaimValue := mail.MaskAddress(v2viewmodels.PreviewDummyEmail)
+	maskedClaimValue := mail.MaskAddress(viewmodels.PreviewDummyEmail)
 	return AuthflowOOBOTPLinkViewModel{
 		WebsocketURL:     "",
 		StateToken:       "",

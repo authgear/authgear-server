@@ -43,9 +43,10 @@ type AuthflowEnterPasswordViewModel struct {
 }
 
 type AuthflowV2EnterPasswordHandler struct {
-	Controller    *handlerwebapp.AuthflowController
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      handlerwebapp.Renderer
+	Controller                             *handlerwebapp.AuthflowController
+	BaseViewModel                          *viewmodels.BaseViewModeler
+	Renderer                               handlerwebapp.Renderer
+	InlinePreviewAuthflowBranchViewModeler *viewmodels.InlinePreviewAuthflowBranchViewModeler
 }
 
 func NewAuthflowEnterPasswordViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) AuthflowEnterPasswordViewModel {
@@ -118,7 +119,7 @@ func (h *AuthflowV2EnterPasswordHandler) GetInlinePreviewData(w http.ResponseWri
 	screenViewModel := NewInlinePreviewAuthflowEnterPasswordViewModel()
 	viewmodels.Embed(data, screenViewModel)
 
-	branchViewModel := viewmodels.NewInlinePreviewAuthflowBranchViewModel()
+	branchViewModel := h.InlinePreviewAuthflowBranchViewModeler.NewAuthflowBranchViewModelForInlinePreviewEnterPassword()
 	viewmodels.Embed(data, branchViewModel)
 
 	passwordInputErrorViewModel := authflowv2viewmodels.NewPasswordInputErrorViewModel(baseViewModel.RawError)
