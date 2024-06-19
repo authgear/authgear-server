@@ -201,6 +201,29 @@ func (c *SecretConfig) validateConfidentialClients(ctx *validation.Context, conf
 	}
 }
 
+func (c *SecretConfig) validateCaptchaSecrets(ctx *validation.Context, captchaProviders []*CaptchaProvider) {
+	c.validateRequire(ctx, CaptchaProvidersCredentialsKey, "captcha provider credentials")
+	_, data, _ := c.LookupDataWithIndex(CaptchaProvidersCredentialsKey)
+	captcha, ok := data.(*CaptchaProvidersCredentials)
+	if ok {
+		for _, p := range captchaProviders {
+			matched := false
+			for index := range captcha.Items {
+				item := captcha.Items[index]
+				if p.Alias == item.Alias && string(p.Type) == string(item.Type) {
+					matched = true
+					break
+				}
+			}
+			if !matched {
+				ctx.EmitErrorMessage(fmt.Sprintf("captcha provider credentials (type='%s',alias='%s') is required", p.Type, p.Alias))
+			} else {
+				// keys are validated by the jsonschema
+			}
+		}
+	}
+}
+
 func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 	ctx := &validation.Context{}
 
@@ -232,6 +255,7 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 	}
 	if appConfig.Captcha.Enabled || len(appConfig.Captcha.Providers) > 0 {
 		c.validateRequire(ctx, CaptchaProvidersCredentialsKey, "captcha key materials")
+		c.validateCaptchaSecrets(ctx, appConfig.Captcha.Providers)
 	}
 
 	return ctx.Error("invalid secrets")
@@ -310,7 +334,7 @@ var secretItemKeys = map[SecretKey]secretKeyDef{
 	WATICredentialsKey:                         {"WATICredentials", func() SecretItemData { return &WATICredentials{} }},
 	OAuthClientCredentialsKey:                  {"OAuthClientCredentials", func() SecretItemData { return &OAuthClientCredentials{} }},
 	CustomSMSProviderConfigKey:                 {"CustomSMSProviderConfig", func() SecretItemData { return &CustomSMSProviderConfig{} }},
-	Deprecated_CaptchaCloudflareCredentialsKey: {"LegeacyCaptchaCloudflareCredentials", func() SecretItemData { return &Deprecated_CaptchaCloudflareCredentials{} }},
+	Deprecated_CaptchaCloudflareCredentialsKey: {"Deprecated_CaptchaCloudflareCredentials", func() SecretItemData { return &Deprecated_CaptchaCloudflareCredentials{} }},
 	CaptchaProvidersCredentialsKey:             {"CaptchaProvidersCredentials", func() SecretItemData { return &CaptchaProvidersCredentials{} }},
 	WhatsappOnPremisesCredentialsKey:           {"WhatsappOnPremisesCredentials", func() SecretItemData { return &WhatsappOnPremisesCredentials{} }},
 }

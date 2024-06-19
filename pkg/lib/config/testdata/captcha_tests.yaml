@@ -63,3 +63,16 @@ value:
   - type: recaptchav2
     alias: recaptchav2
     # "site_key" is not set
+---
+part: CaptchaConfig
+name: both-new-and-legacy-providers
+error: null
+value:
+  # legacy provider
+  provider: cloudflare
+  # new provider
+  enabled: true
+  providers:
+  - type: recaptchav2
+    alias: recaptchav2
+    site_key: some_site_key

@@ -124,6 +124,9 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 
 	// Validation 9: validate authentication flow
 	c.validateAuthenticationFlow(ctx)
+
+	// Validation 10: validate captcha
+	c.validateCaptchaProviders(ctx)
 }
 
 func (c *AppConfig) validateTokenLifetime(ctx *validation.Context) {
@@ -338,6 +341,20 @@ func (c *AppConfig) validateAuthenticationFlow(ctx *validation.Context) {
 
 		// Ensure client's flow allowlist is valid
 		validateFlowAllowlist(ctx, client.AuthenticationFlowAllowlist.Flows, definedFlows, i)
+	}
+}
+
+func (c *AppConfig) validateCaptchaProviders(ctx *validation.Context) {
+	captchaProviderAliases := map[string]struct{}{}
+	for i, providerConfig := range c.Captcha.Providers {
+		alias := providerConfig.Alias
+		childCtx := ctx.Child("captcha", "providers", strconv.Itoa(i), "alias")
+
+		if _, ok := captchaProviderAliases[alias]; ok {
+			childCtx.EmitErrorMessage("duplicated Captcha provider alias")
+			continue
+		}
+		captchaProviderAliases[alias] = struct{}{}
 	}
 }
 
