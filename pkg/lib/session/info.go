@@ -4,7 +4,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
-func NewInfo(s Session, isAnonymous bool, isVerified bool, userCanReauthenticate bool, effectiveRoles []string) *model.SessionInfo {
+func NewInfo(s ResolvedSession, isAnonymous bool, isVerified bool, userCanReauthenticate bool, effectiveRoles []string) *model.SessionInfo {
 	info := s.GetAuthenticationInfo()
 	return &model.SessionInfo{
 		IsValid:               true,

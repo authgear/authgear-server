@@ -30,7 +30,7 @@ type ManagementService interface {
 	Get(id string) (ListableSession, error)
 	Delete(ListableSession) error
 	List(userID string) ([]ListableSession, error)
-	TerminateAllExcept(userID string, currentSession Session) ([]ListableSession, error)
+	TerminateAllExcept(userID string, currentSession ResolvedSession) ([]ListableSession, error)
 }
 
 type IDPSessionManager ManagementService
@@ -137,7 +137,7 @@ func (m *Manager) invalidateSession(session ListableSession) (ManagementService,
 	return provider, nil
 }
 
-func (m *Manager) Logout(session Session, rw http.ResponseWriter) error {
+func (m *Manager) Logout(session ResolvedSession, rw http.ResponseWriter) error {
 	provider, err := m.invalidate(session, &revokeEventOption{IsAdminAPI: false, IsTermination: false})
 	if err != nil {
 		return err
@@ -171,7 +171,7 @@ func (m *Manager) RevokeWithoutEvent(session SessionBase) error {
 	return nil
 }
 
-func (m *Manager) TerminateAllExcept(userID string, currentSession Session, isAdminAPI bool) error {
+func (m *Manager) TerminateAllExcept(userID string, currentSession ResolvedSession, isAdminAPI bool) error {
 	idpSessions, err := m.IDPSessions.TerminateAllExcept(userID, currentSession)
 	if err != nil {
 		return err
