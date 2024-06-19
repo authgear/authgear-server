@@ -58,10 +58,7 @@ func (s *TokenService) IssueOfflineGrant(
 		IDPSessionID: opts.IDPSessionID,
 		IdentityID:   opts.IdentityID,
 
-		// These fields exist in OfflineGrantRefreshToken too
-		// They need to be provided to handled cases that we refer to an offline grant without token hash
-		// Such as using an id_token
-		ClientID:        client.ClientID,
+		InitialClientID: client.ClientID,
 		Scopes:          opts.Scopes,
 		AuthorizationID: opts.AuthorizationID,
 		TokenHash:       tokenHash,

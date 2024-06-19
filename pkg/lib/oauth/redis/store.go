@@ -509,7 +509,7 @@ func (s *Store) ListClientOfflineGrants(clientID string, userID string) ([]*oaut
 	}
 	result := []*oauth.OfflineGrant{}
 	for _, offlineGrant := range offlineGrants {
-		if offlineGrant.ClientID == clientID {
+		if offlineGrant.HasClientID(clientID) {
 			result = append(result, offlineGrant)
 		} else {
 			for _, token := range offlineGrant.RefreshTokens {
