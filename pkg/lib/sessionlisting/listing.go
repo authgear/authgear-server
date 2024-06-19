@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
-	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
 
 //go:generate mockgen -source=listing.go -destination=listing_mock_test.go -package sessionlisting_test
@@ -56,11 +55,10 @@ func (s *SessionListingService) FilterForDisplay(sessions []session.ListableSess
 		}
 	}
 
-	// construct third-party app client id set
-	thirdPartyClientIDSet := make(setutil.Set[string])
+	thirdPartyClientIDs := []string{}
 	for _, c := range s.OAuthConfig.Clients {
 		if c.IsThirdParty() {
-			thirdPartyClientIDSet[c.ClientID] = struct{}{}
+			thirdPartyClientIDs = append(thirdPartyClientIDs, c.ClientID)
 		}
 	}
 
@@ -68,19 +66,7 @@ func (s *SessionListingService) FilterForDisplay(sessions []session.ListableSess
 	idpSessionToDisplayNameMap := map[string]string{}
 
 	for _, offlineGrant := range offlineGrants {
-		// remove the offline grant if it is only used in third-party app
-		var isUsedInFirstPartyApp = false
-		if _, ok := thirdPartyClientIDSet[offlineGrant.InitialClientID]; !ok {
-			isUsedInFirstPartyApp = true
-		}
-
-		for _, token := range offlineGrant.RefreshTokens {
-			if _, ok := thirdPartyClientIDSet[token.ClientID]; !ok {
-				isUsedInFirstPartyApp = true
-			}
-		}
-
-		if !isUsedInFirstPartyApp {
+		if offlineGrant.IsOnlyUsedInClientIDs(thirdPartyClientIDs) {
 			continue
 		}
 

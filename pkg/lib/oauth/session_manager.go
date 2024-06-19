@@ -6,7 +6,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
-	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
 
 type SessionManager struct {
@@ -56,53 +55,41 @@ func (m *SessionManager) TerminateAllExcept(userID string, currentSession sessio
 		return nil, err
 	}
 
-	thirdPartyClientIDSet := make(setutil.Set[string])
+	thirdPartyClientIDs := []string{}
 	for _, c := range m.Config.Clients {
 		if c.IsThirdParty() {
-			thirdPartyClientIDSet[c.ClientID] = struct{}{}
+			thirdPartyClientIDs = append(thirdPartyClientIDs, c.ClientID)
 		}
 	}
 
 	deletedSessions := []session.ListableSession{}
 	for _, ss := range sessions {
-		// skip third party client app refresh token
-		// third party refresh token should be deleted through deleting authorization
-		if _, ok := thirdPartyClientIDSet[ss.InitialClientID]; ok {
-			// If this is a thrid party offline grant,
-			// revoke any tokens of this offline grant which are used by first party app
-			newTokens := ss.RefreshTokens
-			isTokenChanged := false
-			for _, token := range ss.RefreshTokens {
-				token := token
-				if _, ok := thirdPartyClientIDSet[token.ClientID]; ok {
-					newTokens = append(newTokens, token)
-				} else {
-					isTokenChanged = true
-				}
-			}
-			if isTokenChanged {
-				expiry, err := m.Service.ComputeOfflineGrantExpiry(ss)
-				if err != nil {
-					return nil, err
-				}
-				_, err = m.Store.UpdateOfflineGrantRefreshTokens(ss.ID, newTokens, expiry)
-				if err != nil {
-					return nil, err
-				}
-			}
-
-			continue
-		}
-
 		// skip the sessions that are in the same sso group
 		if currentSession != nil && ss.IsSameSSOGroup(currentSession) {
 			continue
 		}
 
-		if err := m.Delete(ss); err != nil {
-			return nil, err
+		// skip third party client app refresh token
+		// third party refresh token should be deleted through deleting authorization
+		tokenHashes, shouldRemoveOfflineGrant := ss.GetAllRemovableTokenHashesExcludeClientIDs(thirdPartyClientIDs)
+		if shouldRemoveOfflineGrant {
+			if err := m.Delete(ss); err != nil {
+				return nil, err
+			}
+			deletedSessions = append(deletedSessions, ss)
+			continue
 		}
-		deletedSessions = append(deletedSessions, ss)
+		if len(tokenHashes) > 0 {
+			expiry, err := m.Service.ComputeOfflineGrantExpiry(ss)
+			if err != nil {
+				return nil, err
+			}
+			_, err = m.Store.RemoveOfflineGrantRefreshTokens(ss.ID, tokenHashes, expiry)
+			if err != nil {
+				return nil, err
+			}
+		}
+
 	}
 
 	return deletedSessions, nil
