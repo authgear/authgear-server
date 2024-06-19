@@ -128,20 +128,6 @@ func (h *AuthflowV2EnterPasswordHandler) GetInlinePreviewData(w http.ResponseWri
 }
 
 func (h *AuthflowV2EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if webapp.IsPreviewModeInline(r) {
-		var previewHandler handlerwebapp.PreviewHandler
-		previewHandler.Preview(func() error {
-			data, err := h.GetInlinePreviewData(w, r)
-			if err != nil {
-				return err
-			}
-			h.Renderer.RenderHTML(w, r, TemplateWebAuthflowEnterPasswordHTML, data)
-			return nil
-		})
-		previewHandler.ServeHTTP(w, r)
-		return
-	}
-
 	var handlers handlerwebapp.AuthflowControllerHandlers
 	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data, err := h.GetData(w, r, s, screen)
@@ -180,6 +166,18 @@ func (h *AuthflowV2EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		result.WriteResponse(w, r)
 		return nil
 	})
+	handlers.InlinePreview(func(w http.ResponseWriter, r *http.Request) error {
+		data, err := h.GetInlinePreviewData(w, r)
+		if err != nil {
+			return err
+		}
+		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowEnterPasswordHTML, data)
+		return nil
+	})
 
+	if webapp.IsPreviewModeInline(r) {
+		h.Controller.HandleInlinePreview(w, r, &handlers)
+		return
+	}
 	h.Controller.HandleStep(w, r, &handlers)
 }

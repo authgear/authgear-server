@@ -33,10 +33,12 @@ import (
 
 type AuthflowControllerHandler func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error
 type AuthflowControllerErrorHandler func(w http.ResponseWriter, r *http.Request, err error) error
+type AuthflowControllerInlinePreviewHandler func(w http.ResponseWriter, r *http.Request) error
 
 type AuthflowControllerHandlers struct {
-	GetHandler   AuthflowControllerHandler
-	PostHandlers map[string]AuthflowControllerHandler
+	GetHandler           AuthflowControllerHandler
+	PostHandlers         map[string]AuthflowControllerHandler
+	InlinePreviewHandler AuthflowControllerInlinePreviewHandler
 }
 
 func (h *AuthflowControllerHandlers) Get(f AuthflowControllerHandler) {
@@ -48,6 +50,10 @@ func (h *AuthflowControllerHandlers) PostAction(action string, f AuthflowControl
 		h.PostHandlers = make(map[string]AuthflowControllerHandler)
 	}
 	h.PostHandlers[action] = f
+}
+
+func (h *AuthflowControllerHandlers) InlinePreview(f AuthflowControllerInlinePreviewHandler) {
+	h.InlinePreviewHandler = f
 }
 
 type AuthflowControllerCookieManager interface {
@@ -324,6 +330,13 @@ func (c *AuthflowController) HandleWithoutFlow(w http.ResponseWriter, r *http.Re
 
 	handler := c.makeHTTPHandler(session, nil, handlers)
 	handler.ServeHTTP(w, r)
+}
+
+func (c *AuthflowController) HandleInlinePreview(w http.ResponseWriter, r *http.Request, handlers *AuthflowControllerHandlers) {
+	if err := handlers.InlinePreviewHandler(w, r); err != nil {
+		c.Logger.WithError(err).Errorf("failed to handle inline preview")
+		c.renderError(w, r, err)
+	}
 }
 
 func (c *AuthflowController) getWebSession(r *http.Request) (*webapp.Session, error) {

@@ -98,20 +98,6 @@ func (h *InternalAuthflowV2SignupLoginHandler) GetInlinePreviewData(w http.Respo
 }
 
 func (h *InternalAuthflowV2SignupLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request, options AuthflowV2SignupServeOptions) {
-	if webapp.IsPreviewModeInline(r) {
-		var previewHandler handlerwebapp.PreviewHandler
-		previewHandler.Preview(func() error {
-			data, err := h.GetInlinePreviewData(w, r, options)
-			if err != nil {
-				return err
-			}
-			h.Renderer.RenderHTML(w, r, TemplateWebAuthflowV2SignupHTML, data)
-			return nil
-		})
-		previewHandler.ServeHTTP(w, r)
-		return
-	}
-
 	opts := webapp.SessionOptions{
 		RedirectURI: h.Controller.RedirectURI(r),
 	}
@@ -202,5 +188,18 @@ func (h *InternalAuthflowV2SignupLoginHandler) ServeHTTP(w http.ResponseWriter, 
 		return nil
 	})
 
+	handlers.InlinePreview(func(w http.ResponseWriter, r *http.Request) error {
+		data, err := h.GetInlinePreviewData(w, r, options)
+		if err != nil {
+			return err
+		}
+		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowV2SignupHTML, data)
+		return nil
+	})
+
+	if webapp.IsPreviewModeInline(r) {
+		h.Controller.HandleInlinePreview(w, r, &handlers)
+		return
+	}
 	h.Controller.HandleStartOfFlow(w, r, opts, options.FlowType, &handlers, nil)
 }
