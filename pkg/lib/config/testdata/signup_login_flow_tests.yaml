@@ -3,8 +3,6 @@ name: valid
 error: null
 value:
   name: id
-  captcha:
-    enabled: true
   steps:
   - type: identify
     one_of:
@@ -19,7 +17,6 @@ part: AuthenticationFlowSignupLoginFlow
 name: invalid
 error: |-
   invalid value:
-  /captcha/foobar: 
   /steps/0/type: enum
     map[actual:foobar expected:[identify]]
   /steps/1/one_of/0: required
@@ -29,8 +26,6 @@ error: |-
     map[actual:foobar expected:[email phone username oauth passkey]]
 value:
   name: id
-  captcha:
-    foobar: true
   steps:
   - type: foobar
     one_of:

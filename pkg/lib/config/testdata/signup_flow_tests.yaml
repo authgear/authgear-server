@@ -3,8 +3,6 @@ name: valid
 error: null
 value:
   name: id
-  captcha:
-    enabled: true
   steps:
   - type: identify
     name: my_step
@@ -29,7 +27,6 @@ part: AuthenticationFlowSignupFlow
 name: invalid
 error: |-
   invalid value:
-  /captcha/foobar: 
   /steps/0/one_of/0/captcha/foobar: 
   /steps/0/one_of/0/identification: enum
     map[actual:foobar expected:[email phone username oauth passkey]]
@@ -45,8 +42,6 @@ error: |-
     map[actual:foobar expected:[identify create_authenticator verify fill_in_user_profile view_recovery_code prompt_create_passkey]]
 value:
   name: id
-  captcha:
-    foobar: true # should be enabled
   steps:
   - type: identify
     name: my_step

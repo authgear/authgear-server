@@ -72,7 +72,6 @@ var _ = Schema.Add("AuthenticationFlowSignupFlow", `
 	"required": ["name", "steps"],
 	"properties": {
 		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
-		"captcha": { "$ref": "#/$defs/AuthenticationFlowObjectCaptchaConfig" },
 		"steps": {
 			"type": "array",
 			"minItems": 1,
@@ -233,7 +232,6 @@ var _ = Schema.Add("AuthenticationFlowLoginFlow", `
 	"required": ["name", "steps"],
 	"properties": {
 		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
-		"captcha": { "$ref": "#/$defs/AuthenticationFlowObjectCaptchaConfig" },
 		"steps": {
 			"type": "array",
 			"minItems": 1,
@@ -366,7 +364,6 @@ var _ = Schema.Add("AuthenticationFlowSignupLoginFlow", `
 	"required": ["name", "steps"],
 	"properties": {
 		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
-		"captcha": { "$ref": "#/$defs/AuthenticationFlowObjectCaptchaConfig" },
 		"steps": {
 			"type": "array",
 			"minItems": 1,
@@ -428,7 +425,6 @@ var _ = Schema.Add("AuthenticationFlowReauthFlow", `
 	"required": ["name", "steps"],
 	"properties": {
 		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
-		"captcha": { "$ref": "#/$defs/AuthenticationFlowObjectCaptchaConfig" },
 		"steps": {
 			"type": "array",
 			"minItems": 1,
@@ -543,7 +539,6 @@ var _ = Schema.Add("AuthenticationFlowAccountRecoveryFlow", `
 	"required": ["name", "steps"],
 	"properties": {
 		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
-		"captcha": { "$ref": "#/$defs/AuthenticationFlowObjectCaptchaConfig" },
 		"steps": {
 			"type": "array",
 			"minItems": 1,
@@ -855,9 +850,8 @@ type AuthenticationFlowConfig struct {
 }
 
 type AuthenticationFlowSignupFlow struct {
-	Name    string                                 `json:"name,omitempty"`
-	Captcha *AuthenticationFlowObjectCaptchaConfig `json:"captcha,omitempty"`
-	Steps   []*AuthenticationFlowSignupFlowStep    `json:"steps,omitempty"`
+	Name  string                              `json:"name,omitempty"`
+	Steps []*AuthenticationFlowSignupFlowStep `json:"steps,omitempty"`
 }
 
 var _ AuthenticationFlowObjectFlowRoot = &AuthenticationFlowSignupFlow{}
@@ -975,9 +969,8 @@ type AuthenticationFlowSignupFlowUserProfile struct {
 }
 
 type AuthenticationFlowLoginFlow struct {
-	Name    string                                 `json:"name,omitempty"`
-	Captcha *AuthenticationFlowObjectCaptchaConfig `json:"captcha,omitempty"`
-	Steps   []*AuthenticationFlowLoginFlowStep     `json:"steps,omitempty"`
+	Name  string                             `json:"name,omitempty"`
+	Steps []*AuthenticationFlowLoginFlowStep `json:"steps,omitempty"`
 }
 
 var _ AuthenticationFlowObjectFlowRoot = &AuthenticationFlowLoginFlow{}
@@ -1090,9 +1083,8 @@ func (f *AuthenticationFlowLoginFlowOneOf) GetBranchInfo() AuthenticationFlowObj
 }
 
 type AuthenticationFlowSignupLoginFlow struct {
-	Name    string                                   `json:"name,omitempty"`
-	Captcha *AuthenticationFlowObjectCaptchaConfig   `json:"captcha,omitempty"`
-	Steps   []*AuthenticationFlowSignupLoginFlowStep `json:"steps,omitempty"`
+	Name  string                                   `json:"name,omitempty"`
+	Steps []*AuthenticationFlowSignupLoginFlowStep `json:"steps,omitempty"`
 }
 
 var _ AuthenticationFlowObjectFlowRoot = &AuthenticationFlowSignupLoginFlow{}
@@ -1165,9 +1157,8 @@ func (s *AuthenticationFlowSignupLoginFlowOneOf) GetBranchInfo() AuthenticationF
 }
 
 type AuthenticationFlowReauthFlow struct {
-	Name    string                                 `json:"name,omitempty"`
-	Captcha *AuthenticationFlowObjectCaptchaConfig `json:"captcha,omitempty"`
-	Steps   []*AuthenticationFlowReauthFlowStep    `json:"steps,omitempty"`
+	Name  string                              `json:"name,omitempty"`
+	Steps []*AuthenticationFlowReauthFlowStep `json:"steps,omitempty"`
 }
 
 var _ AuthenticationFlowObjectFlowRoot = &AuthenticationFlowReauthFlow{}
@@ -1258,9 +1249,8 @@ func (f *AuthenticationFlowReauthFlowOneOf) GetBranchInfo() AuthenticationFlowOb
 }
 
 type AuthenticationFlowAccountRecoveryFlow struct {
-	Name    string                                       `json:"name,omitempty"`
-	Captcha *AuthenticationFlowObjectCaptchaConfig       `json:"captcha,omitempty"`
-	Steps   []*AuthenticationFlowAccountRecoveryFlowStep `json:"steps,omitempty"`
+	Name  string                                       `json:"name,omitempty"`
+	Steps []*AuthenticationFlowAccountRecoveryFlowStep `json:"steps,omitempty"`
 }
 
 var _ AuthenticationFlowObjectFlowRoot = &AuthenticationFlowAccountRecoveryFlow{}

@@ -338,8 +338,6 @@ captcha:
     site_key: recaptchav2-site-key
 `, `
 name: default
-captcha:
-  enabled: true
 steps:
 - name: signup_identify
   type: identify
@@ -376,8 +374,6 @@ captcha:
     site_key: recaptchav2-site-key
 `, `
 name: default
-captcha:
-  enabled: true
 steps:
 - name: signup_identify
   type: identify

@@ -54,8 +54,7 @@ func GenerateAccountRecoveryFlowConfig(cfg *config.AppConfig) *config.Authentica
 		}
 	}
 	return &config.AuthenticationFlowAccountRecoveryFlow{
-		Name:    nameGeneratedFlow,
-		Captcha: generateFlowCaptcha(cfg),
+		Name: nameGeneratedFlow,
 		Steps: []*config.AuthenticationFlowAccountRecoveryFlowStep{
 			{
 				Type:  config.AuthenticationFlowAccountRecoveryFlowTypeIdentify,

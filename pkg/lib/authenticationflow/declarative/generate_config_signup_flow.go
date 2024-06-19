@@ -9,8 +9,7 @@ import (
 
 func GenerateSignupFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowSignupFlow {
 	flow := &config.AuthenticationFlowSignupFlow{
-		Name:    nameGeneratedFlow,
-		Captcha: generateFlowCaptcha(cfg),
+		Name: nameGeneratedFlow,
 		Steps: []*config.AuthenticationFlowSignupFlowStep{
 			generateSignupFlowStepIdentify(cfg),
 		},

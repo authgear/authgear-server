@@ -555,8 +555,6 @@ captcha:
     site_key: some-site-key
 `, `
 name: default
-captcha:
-  enabled: true
 steps:
 - name: login_identify
   type: identify
@@ -603,8 +601,6 @@ captcha:
     site_key: some-site-key
 `, `
 name: default
-captcha:
-  enabled: true
 steps:
 - name: login_identify
   type: identify

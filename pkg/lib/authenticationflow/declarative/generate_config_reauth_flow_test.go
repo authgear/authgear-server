@@ -303,8 +303,6 @@ captcha:
     site_key: some-site-key
 `, `
 name: default
-captcha:
-  enabled: true
 steps:
 - name: reauth_identify
   type: identify
@@ -340,8 +338,6 @@ captcha:
     site_key: some-site-key
 `, `
 name: default
-captcha:
-  enabled: true
 steps:
 - name: reauth_identify
   type: identify

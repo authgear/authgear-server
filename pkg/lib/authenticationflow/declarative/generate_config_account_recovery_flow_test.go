@@ -166,8 +166,6 @@ captcha:
 `,
 			`
 name: default
-captcha:
-  enabled: true
 steps:
 - type: identify
   one_of:
@@ -200,8 +198,6 @@ captcha:
 `,
 			`
 name: default
-captcha:
-  enabled: true
 steps:
 - type: identify
   one_of:

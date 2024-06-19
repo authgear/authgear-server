@@ -7,8 +7,7 @@ import (
 
 func GenerateReauthFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowReauthFlow {
 	flow := &config.AuthenticationFlowReauthFlow{
-		Name:    nameGeneratedFlow,
-		Captcha: generateFlowCaptcha(cfg),
+		Name: nameGeneratedFlow,
 		Steps: []*config.AuthenticationFlowReauthFlowStep{
 			generateReauthFlowStepIdentify(cfg),
 			generateReauthFlowStepAuthenticate(cfg),
