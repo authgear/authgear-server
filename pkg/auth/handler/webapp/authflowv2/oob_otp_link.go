@@ -80,10 +80,11 @@ func NewInlinePreviewAuthflowOOBOTPLinkViewModel() AuthflowOOBOTPLinkViewModel {
 }
 
 type AuthflowV2OOBOTPLinkHandler struct {
-	Controller    *handlerwebapp.AuthflowController
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      handlerwebapp.Renderer
-	Clock         clock.Clock
+	Controller                             *handlerwebapp.AuthflowController
+	BaseViewModel                          *viewmodels.BaseViewModeler
+	InlinePreviewAuthflowBranchViewModeler *viewmodels.InlinePreviewAuthflowBranchViewModeler
+	Renderer                               handlerwebapp.Renderer
+	Clock                                  clock.Clock
 }
 
 func (h *AuthflowV2OOBOTPLinkHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
@@ -111,7 +112,7 @@ func (h *AuthflowV2OOBOTPLinkHandler) GetInlinePreviewData(w http.ResponseWriter
 	screenViewModel := NewInlinePreviewAuthflowOOBOTPLinkViewModel()
 	viewmodels.Embed(data, screenViewModel)
 
-	branchViewModel := viewmodels.NewInlinePreviewAuthflowBranchViewModel()
+	branchViewModel := h.InlinePreviewAuthflowBranchViewModeler.NewAuthflowBranchViewModelForInlinePreviewOOBOTPLink()
 	viewmodels.Embed(data, branchViewModel)
 
 	return data, nil

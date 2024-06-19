@@ -80,6 +80,19 @@ func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForIn
 	}
 }
 
+func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForInlinePreviewOOBOTPLink() AuthflowBranchViewModel {
+	branches := m.generateAuthflowBranchesIdentityLoginID(model.LoginIDKeyTypeEmail)
+	branches = slice.Filter[AuthflowBranch](branches, func(b AuthflowBranch) bool {
+		return b.Authentication != config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail
+	})
+	return AuthflowBranchViewModel{
+		FlowType:           authflow.FlowTypeLogin,
+		ActionType:         authflow.FlowActionType(config.AuthenticationFlowStepTypeAuthenticate),
+		DeviceTokenEnabled: false,
+		Branches:           branches,
+	}
+}
+
 func (m *InlinePreviewAuthflowBranchViewModeler) getFirstLoginIDKeyType() model.LoginIDKeyType {
 	loginIDKeyType := defaultLoginIDKeyType
 	if len(m.AppConfig.Identity.LoginID.Keys) > 0 {

@@ -91053,14 +91053,18 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		OAuthClientResolver:   oauthclientResolver,
 		Logger:                baseLogger,
 	}
+	inlinePreviewAuthflowBranchViewModeler := &viewmodels.InlinePreviewAuthflowBranchViewModeler{
+		AppConfig: appConfig,
+	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowV2OOBOTPLinkHandler := &authflowv2.AuthflowV2OOBOTPLinkHandler{
-		Controller:    authflowController,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Clock:         clockClock,
+		Controller:                             authflowController,
+		BaseViewModel:                          baseViewModeler,
+		InlinePreviewAuthflowBranchViewModeler: inlinePreviewAuthflowBranchViewModeler,
+		Renderer:                               responseRenderer,
+		Clock:                                  clockClock,
 	}
 	return authflowV2OOBOTPLinkHandler
 }
