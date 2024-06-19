@@ -124,13 +124,14 @@ func NewInlinePreviewAuthflowEnterOOBOTPViewModel(
 }
 
 type AuthflowV2EnterOOBOTPHandler struct {
-	Controller          *handlerwebapp.AuthflowController
-	BaseViewModel       *viewmodels.BaseViewModeler
-	Renderer            handlerwebapp.Renderer
-	FlashMessage        handlerwebapp.FlashMessage
-	Clock               clock.Clock
-	AuthenticatorConfig *config.AuthenticatorConfig
-	IdentityConfig      *config.IdentityConfig
+	Controller                             *handlerwebapp.AuthflowController
+	BaseViewModel                          *viewmodels.BaseViewModeler
+	InlinePreviewAuthflowBranchViewModeler *viewmodels.InlinePreviewAuthflowBranchViewModeler
+	Renderer                               handlerwebapp.Renderer
+	FlashMessage                           handlerwebapp.FlashMessage
+	Clock                                  clock.Clock
+	AuthenticatorConfig                    *config.AuthenticatorConfig
+	IdentityConfig                         *config.IdentityConfig
 }
 
 func (h *AuthflowV2EnterOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
@@ -161,7 +162,7 @@ func (h *AuthflowV2EnterOOBOTPHandler) GetInlinePreviewData(w http.ResponseWrite
 	)
 	viewmodels.Embed(data, screenViewModel)
 
-	branchViewModel := viewmodels.NewInlinePreviewAuthflowBranchViewModel()
+	branchViewModel := h.InlinePreviewAuthflowBranchViewModeler.NewAuthflowBranchViewModelForInlinePreviewEnterOOBOTP()
 	viewmodels.Embed(data, branchViewModel)
 	return data, nil
 }

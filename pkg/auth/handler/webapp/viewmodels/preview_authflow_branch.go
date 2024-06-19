@@ -30,6 +30,29 @@ func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForIn
 	}
 }
 
+func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForInlinePreviewEnterOOBOTP() AuthflowBranchViewModel {
+	loginIDKeyType := model.LoginIDKeyTypeEmail
+	if len(m.AppConfig.Identity.LoginID.Keys) > 0 {
+		firstLoginIDKeyType := m.AppConfig.Identity.LoginID.Keys[0].Type
+		if firstLoginIDKeyType != model.LoginIDKeyTypeUsername {
+			loginIDKeyType = firstLoginIDKeyType
+		}
+	}
+	branches := m.generateAuthflowBranchesIdentityLoginID(loginIDKeyType)
+	branches = slice.Filter[AuthflowBranch](branches, func(b AuthflowBranch) bool {
+		if loginIDKeyType == model.LoginIDKeyTypeEmail {
+			return b.Authentication != config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail
+		}
+		return b.Authentication != config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS
+	})
+	return AuthflowBranchViewModel{
+		FlowType:           authflow.FlowTypeLogin,
+		ActionType:         authflow.FlowActionType(config.AuthenticationFlowStepTypeAuthenticate),
+		DeviceTokenEnabled: false,
+		Branches:           branches,
+	}
+}
+
 func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesIdentityLoginID(keyType model.LoginIDKeyType) []AuthflowBranch {
 	var output []AuthflowBranch
 
