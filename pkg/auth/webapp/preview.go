@@ -11,5 +11,5 @@ const (
 )
 
 func IsPreviewModeInline(r *http.Request) bool {
-	return r.URL.Query().Get(PreviewQueryKey) == PreviewModeInline
+	return r.Method == http.MethodGet && r.URL.Query().Get(PreviewQueryKey) == PreviewModeInline
 }
