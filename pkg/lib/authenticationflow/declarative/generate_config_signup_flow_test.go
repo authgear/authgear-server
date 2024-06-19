@@ -344,7 +344,9 @@ steps:
   one_of:
   - identification: email
     captcha:
-      mode: never
+      mode: always
+      provider: 
+        alias: recaptchav2-1
     steps:
     - target_step: signup_identify
       type: verify
@@ -380,7 +382,9 @@ steps:
   one_of:
   - identification: email
     captcha:
-      mode: never
+      mode: always
+      provider: 
+        alias: recaptchav2-1
     steps:
     - target_step: signup_identify
       type: verify
@@ -390,7 +394,9 @@ steps:
       - authentication: primary_password
   - identification: phone
     captcha:
-      mode: never
+      mode: always
+      provider: 
+        alias: recaptchav2-1
     steps:
     - target_step: signup_identify
       type: verify
@@ -400,7 +406,9 @@ steps:
       - authentication: primary_password
   - identification: username
     captcha:
-      mode: never
+      mode: always
+      provider: 
+        alias: recaptchav2-1
     steps:
     - name: authenticate_primary_username
       type: create_authenticator

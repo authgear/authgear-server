@@ -171,7 +171,9 @@ steps:
   one_of:
   - identification: phone
     captcha:
-      mode: never
+      mode: always
+      provider: 
+        alias: recaptchav2-a
     on_failure: ignore
     steps:
       - type: select_destination
@@ -203,7 +205,9 @@ steps:
   one_of:
   - identification: email
     captcha:
-      mode: never
+      mode: always
+      provider: 
+        alias: recaptchav2-a
     on_failure: ignore
     steps:
       - type: select_destination
@@ -212,7 +216,9 @@ steps:
             otp_form: link
   - identification: phone
     captcha:
-      mode: never
+      mode: always
+      provider: 
+        alias: recaptchav2-a
     on_failure: ignore
     steps:
       - type: select_destination

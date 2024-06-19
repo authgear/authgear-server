@@ -249,7 +249,9 @@ steps:
   one_of:
   - identification: email
     captcha:
-      mode: never
+      mode: always
+      provider: 
+        alias: recaptchav2
     signup_flow: default
     login_flow: default
 `)
@@ -294,27 +296,37 @@ steps:
   one_of:
   - identification: email
     captcha:
-      mode: never
+      mode: always
+      provider: 
+        alias: recaptchav2
     signup_flow: default
     login_flow: default
   - identification: phone
     captcha:
-      mode: never
+      mode: always
+      provider: 
+        alias: recaptchav2
     signup_flow: default
     login_flow: default
   - identification: username
     captcha:
-      mode: never
+      mode: always
+      provider: 
+        alias: recaptchav2
     signup_flow: default
     login_flow: default
   - identification: oauth
     captcha:
-      mode: never
+      mode: always
+      provider: 
+        alias: recaptchav2
     signup_flow: default
     login_flow: default
   - identification: passkey
     captcha:
-      mode: never
+      mode: always
+      provider: 
+        alias: recaptchav2
     login_flow: default
 `)
 	})

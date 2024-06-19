@@ -561,7 +561,9 @@ steps:
   one_of:
   - identification: email
     captcha:
-      mode: never
+      mode: always
+      provider: 
+        alias: recaptchav2-a
     steps:
     - name: authenticate_primary_email
       type: authenticate
@@ -607,7 +609,9 @@ steps:
   one_of:
   - identification: email
     captcha:
-      mode: never
+      mode: always
+      provider: 
+        alias: recaptchav2-a
     steps:
     - name: authenticate_primary_email
       one_of:
@@ -625,7 +629,9 @@ steps:
       type: authenticate
   - identification: phone
     captcha:
-      mode: never
+      mode: always
+      provider: 
+        alias: recaptchav2-a
     steps:
     - name: authenticate_primary_phone
       one_of:
@@ -643,7 +649,9 @@ steps:
       type: authenticate
   - identification: username
     captcha:
-      mode: never
+      mode: always
+      provider: 
+        alias: recaptchav2-a
     steps:
     - name: authenticate_primary_username
       one_of:

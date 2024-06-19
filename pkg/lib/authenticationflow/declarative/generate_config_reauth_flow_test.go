@@ -313,7 +313,9 @@ steps:
   one_of:
   - authentication: primary_password
     captcha:
-      mode: never
+      mode: always
+      provider: 
+        alias: recaptchav2-a
 `)
 		// captcha, 3 branches
 		test(`
@@ -348,13 +350,19 @@ steps:
   one_of:
   - authentication: primary_password
     captcha:
-      mode: never
+      mode: always
+      provider: 
+        alias: recaptchav2-a
   - authentication: primary_oob_otp_email
     captcha:
-      mode: never
+      mode: always
+      provider: 
+        alias: recaptchav2-a
   - authentication: primary_oob_otp_sms
     captcha:
-      mode: never
+      mode: always
+      provider: 
+        alias: recaptchav2-a
 `)
 	})
 }
