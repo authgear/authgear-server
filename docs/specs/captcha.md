@@ -209,7 +209,7 @@ In terms of UX, when Captcha is enabled and configured, every generated flow req
 
 Please refer to [captcha](./authentication-flow-api-reference.md#captcha).
 
-### Advanced use case: Enable Captcha at a specific branch, instead of right after flow creation
+### Advanced use case: Require Captcha at a specific branch only
 
 Suppose Project A configures email login with password or OTP. The developer may only want to enable captcha if OTP is used, to reduce friction.
 
