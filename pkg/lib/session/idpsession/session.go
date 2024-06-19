@@ -26,7 +26,7 @@ type IDPSession struct {
 	TokenHash string `json:"token_hash"`
 }
 
-var _ session.Session = &IDPSession{}
+var _ session.ResolvedSession = &IDPSession{}
 var _ session.ListableSession = &IDPSession{}
 
 func (s *IDPSession) Session()         {}

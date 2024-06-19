@@ -50,7 +50,7 @@ func (m *SessionManager) List(userID string) ([]session.ListableSession, error) 
 	return sessions, nil
 }
 
-func (m *SessionManager) TerminateAllExcept(userID string, currentSession session.Session) ([]session.ListableSession, error) {
+func (m *SessionManager) TerminateAllExcept(userID string, currentSession session.ResolvedSession) ([]session.ListableSession, error) {
 	sessions, err := m.Store.ListOfflineGrants(userID)
 	if err != nil {
 		return nil, err

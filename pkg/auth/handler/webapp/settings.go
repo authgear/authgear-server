@@ -53,7 +53,7 @@ type SettingsSessionManager interface {
 	List(userID string) ([]session.ListableSession, error)
 	Get(id string) (session.ListableSession, error)
 	RevokeWithEvent(s session.SessionBase, isTermination bool, isAdminAPI bool) error
-	TerminateAllExcept(userID string, currentSession session.Session, isAdminAPI bool) error
+	TerminateAllExcept(userID string, currentSession session.ResolvedSession, isAdminAPI bool) error
 }
 
 type SettingsAuthorizationService interface {
@@ -63,7 +63,7 @@ type SettingsAuthorizationService interface {
 }
 
 type SettingsSessionListingService interface {
-	FilterForDisplay(sessions []session.ListableSession, currentSession session.Session) ([]*sessionlisting.Session, error)
+	FilterForDisplay(sessions []session.ListableSession, currentSession session.ResolvedSession) ([]*sessionlisting.Session, error)
 }
 
 type SettingsHandler struct {

@@ -59,7 +59,7 @@ func (m *Manager) List(userID string) ([]session.ListableSession, error) {
 	return sessions, nil
 }
 
-func (m *Manager) TerminateAllExcept(userID string, currentSession session.Session) ([]session.ListableSession, error) {
+func (m *Manager) TerminateAllExcept(userID string, currentSession session.ResolvedSession) ([]session.ListableSession, error) {
 	sessions, err := m.Store.List(userID)
 	if err != nil {
 		return nil, err
