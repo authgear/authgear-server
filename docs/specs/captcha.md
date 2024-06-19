@@ -133,7 +133,7 @@ For example,
 
 ```
 authentication_flow:
-  signup_flows:
+  login_flows:
   - name: default
     steps:
     - type: identify
@@ -171,7 +171,7 @@ This can be achieved by customizing the flow.
 
 ```
 authentication_flow:
-  signup_flows:
+  login_flows:
   - name: default
     steps:
     - type: identify
@@ -189,34 +189,35 @@ authentication_flow:
             alias: cloudflare
 ```
 
-### Future use cases
+### Advanced use case: Use different Captcha providers in different branches
 
-This section documents future use cases and their imaginary configuration.
-
-#### Future use case: Use different Captcha providers in different flows
-
-Given that different Captcha providers have different support for platforms, the developer may want to use different Captcha providers in different flows.
-
-For example, reCAPTCHA v3 is only available in web, while hCaptcha supports mobile platforms.
-The developer may want to use reCAPTCHA v3 in web, and use hCaptcha in mobile.
-
-The [new configuration](#new-configuration) supports configuring multiple Captcha providers already, even multiple providers of the same type.
-
-What is missing is a way to specify which providers can be used in a flow.
-This could be specified in the following imaginary configuration.
+The developer can specify different Captcha provider to be used in different branches.
 
 ```
 authentication_flow:
-  signup_flows:
-  - name: web
-    captcha:
-      providers:
-      - alias: recaptchav3
-  - name: mobile
-    captcha:
-      providers:
-      - alias: hcaptcha
+  login_flows:
+  - name: default
+    steps:
+    - type: identify
+      one_of:
+      - identification: email
+    - type: authenticate
+      one_of:
+      - authentication: primary_password
+        captcha:
+          enabled: true
+          provider:
+            alias: recaptchav2
+      - authentication: primary_oob_otp_email
+        captcha:
+          enabled: true
+          provider:
+            alias: cloudflare
 ```
+
+### Future use cases
+
+This section documents future use cases and their imaginary configuration.
 
 #### Future use case: Allow fallback in providers
 
