@@ -58,10 +58,7 @@ func (s *TokenService) IssueOfflineGrant(
 		IDPSessionID: opts.IDPSessionID,
 		IdentityID:   opts.IdentityID,
 
-		InitialClientID:            client.ClientID,
-		Deprecated_Scopes:          opts.Scopes,
-		Deprecated_AuthorizationID: opts.AuthorizationID,
-		Deprecated_TokenHash:       tokenHash,
+		InitialClientID: client.ClientID,
 
 		CreatedAt:       now,
 		AuthenticatedAt: opts.AuthenticationInfo.AuthenticatedAt,

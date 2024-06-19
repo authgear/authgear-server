@@ -18,7 +18,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 const queryNameOAuthSessionID = "x_ref"
@@ -226,8 +225,7 @@ func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
 					canUseIntentReauthenticate = true
 				case session.TypeOfflineGrant:
 					if offlineGrant, ok := sidSession.(*oauth.OfflineGrant); ok {
-						// Use the "root" scopes, because we don't know the tokenHash here
-						if slice.ContainsString(offlineGrant.Deprecated_Scopes, oauth.FullAccessScope) {
+						if offlineGrant.HasAllScope(req.ClientID(), []string{oauth.FullAccessScope}) {
 							canUseIntentReauthenticate = true
 						}
 					}
