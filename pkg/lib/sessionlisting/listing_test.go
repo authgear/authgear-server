@@ -30,10 +30,10 @@ func makeDeviceInfo(deviceName string, deviceModel string) map[string]interface{
 
 func makeOfflineGrant(id string, lastAccessAt time.Time, deviceInfo map[string]interface{}, idpSessionID string, clientID string, ssoEnabled bool) *oauth.OfflineGrant {
 	return &oauth.OfflineGrant{
-		ID:           id,
-		ClientID:     clientID,
-		CreatedAt:    lastAccessAt,
-		IDPSessionID: idpSessionID,
+		ID:              id,
+		InitialClientID: clientID,
+		CreatedAt:       lastAccessAt,
+		IDPSessionID:    idpSessionID,
 		AccessInfo: access.Info{
 			InitialAccess: access.Event{
 				Timestamp: lastAccessAt,

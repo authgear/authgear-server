@@ -23,7 +23,7 @@ type OfflineGrantRefreshToken struct {
 type OfflineGrant struct {
 	AppID           string `json:"app_id"`
 	ID              string `json:"id"`
-	ClientID        string `json:"client_id"`
+	InitialClientID string `json:"client_id"`
 	AuthorizationID string `json:"authz_id"`
 	// IDPSessionID refers to the IDP session.
 	IDPSessionID string `json:"idp_session_id,omitempty"`
@@ -87,7 +87,6 @@ func (g *OfflineGrant) SessionType() session.Type { return session.TypeOfflineGr
 
 func (g *OfflineGrant) GetCreatedAt() time.Time                       { return g.CreatedAt }
 func (g *OfflineGrant) GetAuthenticatedAt() time.Time                 { return g.AuthenticatedAt }
-func (g *OfflineGrant) GetClientID() string                           { return g.ClientID }
 func (g *OfflineGrant) GetAccessInfo() *access.Info                   { return &g.AccessInfo }
 func (g *OfflineGrant) GetDeviceInfo() (map[string]interface{}, bool) { return g.DeviceInfo, true }
 func (g *OfflineGrant) GetUserID() string                             { return g.Attrs.UserID }
@@ -115,7 +114,7 @@ func (g *OfflineGrant) ToAPIModel() *model.Session {
 		Type: model.SessionTypeOfflineGrant,
 
 		AMR:      amr,
-		ClientID: &g.ClientID,
+		ClientID: &g.InitialClientID,
 
 		LastAccessedAt:   g.AccessInfo.LastAccess.Timestamp,
 		CreatedByIP:      g.AccessInfo.InitialAccess.RemoteIP,
@@ -185,7 +184,7 @@ func (g *OfflineGrant) ToSession(refreshTokenHash string) (*OfflineGrantSession,
 			OfflineGrant:    g,
 			CreatedAt:       g.CreatedAt,
 			TokenHash:       g.TokenHash,
-			ClientID:        g.ClientID,
+			ClientID:        g.InitialClientID,
 			Scopes:          g.Scopes,
 			AuthorizationID: g.AuthorizationID,
 		}
@@ -225,4 +224,17 @@ func (g *OfflineGrant) MatchHash(refreshTokenHash string) bool {
 	}
 
 	return result
+}
+
+func (g *OfflineGrant) HasClientID(clientID string) bool {
+	if g.InitialClientID == clientID {
+		return true
+	}
+	for _, token := range g.RefreshTokens {
+		if token.ClientID == clientID {
+			return true
+		}
+	}
+
+	return false
 }

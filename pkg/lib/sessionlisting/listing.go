@@ -70,7 +70,7 @@ func (s *SessionListingService) FilterForDisplay(sessions []session.ListableSess
 	for _, offlineGrant := range offlineGrants {
 		// remove the offline grant if it is only used in third-party app
 		var isUsedInFirstPartyApp = false
-		if _, ok := thirdPartyClientIDSet[offlineGrant.ClientID]; !ok {
+		if _, ok := thirdPartyClientIDSet[offlineGrant.InitialClientID]; !ok {
 			isUsedInFirstPartyApp = true
 		}
 
