@@ -80801,11 +80801,13 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		TemplateEngine: engine,
 	}
 	authflowV2EnterOOBOTPHandler := &authflowv2.AuthflowV2EnterOOBOTPHandler{
-		Controller:    authflowController,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		FlashMessage:  flashMessage,
-		Clock:         clockClock,
+		Controller:          authflowController,
+		BaseViewModel:       baseViewModeler,
+		Renderer:            responseRenderer,
+		FlashMessage:        flashMessage,
+		Clock:               clockClock,
+		AuthenticatorConfig: authenticatorConfig,
+		IdentityConfig:      identityConfig,
 	}
 	return authflowV2EnterOOBOTPHandler
 }
