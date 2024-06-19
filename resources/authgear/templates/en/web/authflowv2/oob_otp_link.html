@@ -70,7 +70,9 @@
 </header>
 
 <footer class="flex flex-col gap-y-8">
+  {{- if $.WebsocketURL }}
   <div class="hidden" data-controller="authflow-websocket authflow-polling" data-authflow-websocket-url-value="{{ $.WebsocketURL }}" data-authflow-polling-statetoken-value="{{ $.StateToken }}"></div>
+  {{- end }}
   <form method="post" novalidate>
     {{ $.CSRFField }}
     <button
