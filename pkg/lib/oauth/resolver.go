@@ -40,7 +40,7 @@ type Resolver struct {
 	OfflineGrantService OfflineGrantService
 }
 
-func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Session, error) {
+func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.ResolvedSession, error) {
 	// The resolve function has the following outcomes:
 	// - (nil, nil) which means no session was found and no error.
 	// - (nil, err) in which err is ErrInvalidSession, which means the session was found but was invalid.
@@ -48,7 +48,7 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Se
 	// - (s, nil)  which means a session was resolved successfully.
 	//
 	// Here we want to try the next resolve function iff the outcome is (nil, nil).
-	funcs := []func(*http.Request) (session.Session, error){
+	funcs := []func(*http.Request) (session.ResolvedSession, error){
 		re.resolveHeader,
 		re.resolveCookie,
 	}
@@ -66,7 +66,7 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Se
 	return nil, nil
 }
 
-func (re *Resolver) resolveHeader(r *http.Request) (session.Session, error) {
+func (re *Resolver) resolveHeader(r *http.Request) (session.ResolvedSession, error) {
 	token := parseAuthorizationHeader(r)
 	if token == "" {
 		// No bearer token in Authorization header. Simply proceed.
@@ -100,7 +100,7 @@ func (re *Resolver) resolveHeader(r *http.Request) (session.Session, error) {
 		return nil, err
 	}
 
-	var authSession session.Session
+	var authSession session.ResolvedSession
 	event := access.NewEvent(re.Clock.NowUTC(), re.RemoteIP, re.UserAgentString)
 
 	switch grant.SessionKind {
@@ -137,7 +137,7 @@ func (re *Resolver) resolveHeader(r *http.Request) (session.Session, error) {
 	return authSession, nil
 }
 
-func (re *Resolver) resolveCookie(r *http.Request) (session.Session, error) {
+func (re *Resolver) resolveCookie(r *http.Request) (session.ResolvedSession, error) {
 	cookie, err := re.Cookies.GetCookie(r, session.AppSessionTokenCookieDef)
 	if err != nil {
 		// No session cookie. Simply proceed.

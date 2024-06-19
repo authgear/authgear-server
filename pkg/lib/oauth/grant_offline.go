@@ -79,7 +79,7 @@ func (o *OfflineGrantSession) SSOGroupIDPSessionID() string {
 	return o.OfflineGrant.SSOGroupIDPSessionID()
 }
 
-var _ session.Session = &OfflineGrantSession{}
+var _ session.ResolvedSession = &OfflineGrantSession{}
 
 func (g *OfflineGrant) ListableSession()          {}
 func (g *OfflineGrant) SessionID() string         { return g.ID }

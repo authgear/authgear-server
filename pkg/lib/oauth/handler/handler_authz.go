@@ -446,7 +446,7 @@ func (h *AuthorizationHandler) doHandle(
 
 	// TODO(DEV-1402): Handle offlinegrant
 	// Handle prompt=none
-	var idpSession session.Session
+	var idpSession session.ResolvedSession
 	if s := session.GetSession(h.Context); s != nil && s.SessionType() == session.TypeIdentityProvider {
 		idpSession = s
 	}
