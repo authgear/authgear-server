@@ -241,3 +241,97 @@ func (g *OfflineGrant) HasClientID(clientID string) bool {
 
 	return false
 }
+
+func (g *OfflineGrant) GetRemovableTokenHashesByAuthorizationID(
+	authorizationID string) (tokenHashes []string, shouldRemoveOfflinegrant bool) {
+	shouldRemoveOfflinegrant = false
+	tokenHashes = []string{}
+
+	if g.Deprecated_AuthorizationID == authorizationID {
+		shouldRemoveOfflinegrant = true
+		tokenHashes = append(tokenHashes, g.Deprecated_TokenHash)
+	}
+	for _, token := range g.RefreshTokens {
+		if token.AuthorizationID == authorizationID {
+			tokenHashes = append(tokenHashes, token.TokenHash)
+		}
+	}
+
+	return tokenHashes, shouldRemoveOfflinegrant
+}
+
+func (g *OfflineGrant) GetAllRemovableTokenHashesExcludeClientIDs(
+	clientIDs []string) (tokenHashes []string, shouldRemoveOfflinegrant bool) {
+	shouldRemoveOfflinegrant = false
+	tokenHashes = []string{}
+	clientIDsSet := map[string]interface{}{}
+	for _, clientID := range clientIDs {
+		clientIDsSet[clientID] = clientID
+	}
+
+	if _, exist := clientIDsSet[g.Deprecated_AuthorizationID]; !exist {
+		shouldRemoveOfflinegrant = true
+		tokenHashes = append(tokenHashes, g.Deprecated_TokenHash)
+	}
+	for _, token := range g.RefreshTokens {
+		if _, exist := clientIDsSet[token.AuthorizationID]; !exist {
+			tokenHashes = append(tokenHashes, token.TokenHash)
+		}
+	}
+
+	return tokenHashes, shouldRemoveOfflinegrant
+}
+
+func (g *OfflineGrant) HasValidTokens() bool {
+	if g.Deprecated_TokenHash != "" {
+		return true
+	}
+
+	return len(g.RefreshTokens) > 0
+}
+
+func (g *OfflineGrant) HasAllScope(clientID string, requiredScopes []string) bool {
+	clientScopes := map[string]interface{}{}
+
+	if g.InitialClientID == clientID {
+		for _, scope := range g.Deprecated_Scopes {
+			clientScopes[scope] = scope
+		}
+	}
+
+	for _, token := range g.RefreshTokens {
+		if token.ClientID == clientID {
+			for _, scope := range token.Scopes {
+				clientScopes[scope] = scope
+			}
+		}
+	}
+
+	hasAll := true
+
+	for _, scope := range requiredScopes {
+		if _, exist := clientScopes[scope]; !exist {
+			hasAll = false
+		}
+	}
+
+	return hasAll
+}
+
+func (g *OfflineGrant) IsOnlyUsedInClientIDs(clientIDs []string) bool {
+	result := true
+	clientIDSet := map[string]interface{}{}
+	for _, clientID := range clientIDs {
+		clientIDSet[clientID] = clientID
+	}
+
+	if _, exist := clientIDSet[g.InitialClientID]; !exist {
+		result = false
+	}
+	for _, token := range g.RefreshTokens {
+		if _, exist := clientIDSet[token.ClientID]; !exist {
+			result = false
+		}
+	}
+	return result
+}
