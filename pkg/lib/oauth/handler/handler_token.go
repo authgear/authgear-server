@@ -543,6 +543,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 	}
 
 	// TODO(oauth): allow specifying scopes
+	// Note(tung): Do we allow anonymous user to use device_sso and x_app_initiated_sso_to_web?
 	scopes := []string{"openid", oauth.FullAccessScope}
 
 	authz, err := h.Authorizations.CheckAndGrant(
@@ -556,6 +557,8 @@ func (h *TokenHandler) handleAnonymousRequest(
 
 	resp := protocol.TokenResponse{}
 
+	issueDeviceToken := h.shouldIssueDeviceSecret(scopes)
+
 	// SSOEnabled is false for refresh tokens that are granted by anonymous login
 	opts := IssueOfflineGrantOptions{
 		Scopes:             scopes,
@@ -563,6 +566,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 		AuthenticationInfo: info,
 		DeviceInfo:         deviceInfo,
 		SSOEnabled:         false,
+		IssueDeviceSecret:  issueDeviceToken,
 	}
 	offlineGrant, tokenHash, err := h.issueOfflineGrant(
 		client,
@@ -750,7 +754,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		return nil, err
 	}
 
-	// TODO(oauth): allow specifying scopes
+	// TODO(DEV-1404): allow specifying scopes
 	scopes := []string{"openid", oauth.FullAccessScope}
 
 	authz, err := h.Authorizations.CheckAndGrant(
@@ -778,6 +782,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 
 	resp := protocol.TokenResponse{}
 
+	issueDeviceToken := h.shouldIssueDeviceSecret(scopes)
 	// SSOEnabled is false for refresh tokens that are granted by biometric login
 	opts := IssueOfflineGrantOptions{
 		Scopes:             scopes,
@@ -786,6 +791,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		DeviceInfo:         deviceInfo,
 		IdentityID:         biometricIdentity.ID,
 		SSOEnabled:         false,
+		IssueDeviceSecret:  issueDeviceToken,
 	}
 	offlineGrant, tokenHash, err := h.issueOfflineGrant(
 		client,
@@ -1027,6 +1033,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 ) (protocol.TokenResponse, error) {
 	issueRefreshToken := false
 	issueIDToken := false
+	issueDeviceToken := h.shouldIssueDeviceSecret(code.AuthorizationRequest.Scope())
 	for _, scope := range code.AuthorizationRequest.Scope() {
 		switch scope {
 		case "offline_access":
@@ -1062,6 +1069,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	}
 
 	// Update auth_time of the offline grant if possible.
+	// TODO(DEV-1404): Rotate device secret if needed
 	if sid := code.IDTokenHintSID; sid != "" {
 		if typ, sessionID, ok := oidc.DecodeSID(sid); ok && typ == session.TypeOfflineGrant {
 			offlineGrant, err := h.OfflineGrants.GetOfflineGrant(sessionID)
@@ -1105,6 +1113,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		DeviceInfo:         deviceInfo,
 		SSOEnabled:         code.AuthorizationRequest.SSOEnabled(),
 		App2AppDeviceKey:   app2appDevicePublicKey,
+		IssueDeviceSecret:  issueDeviceToken,
 	}
 	if issueRefreshToken {
 		offlineGrant, tokenHash, err := h.issueOfflineGrant(
@@ -1253,6 +1262,7 @@ type IssueOfflineGrantOptions struct {
 	IdentityID         string
 	SSOEnabled         bool
 	App2AppDeviceKey   jwk.Key
+	IssueDeviceSecret  bool
 }
 
 func (h *TokenHandler) IssueAppSessionToken(refreshToken string) (string, *oauth.AppSessionToken, error) {
@@ -1293,6 +1303,17 @@ func (h *TokenHandler) translateAccessTokenError(err error) error {
 	}
 
 	return err
+}
+
+func (h *TokenHandler) shouldIssueDeviceSecret(scopes []string) bool {
+	issueDeviceToken := false
+	for _, scope := range scopes {
+		switch scope {
+		case oauth.AppInitiatedSSOToWebScope:
+			issueDeviceToken = true
+		}
+	}
+	return issueDeviceToken
 }
 
 func (h *TokenHandler) handleSettingsActionCode(
