@@ -130,9 +130,9 @@ Type specific fields:
 
 This section specifies how risk assessment and Captcha works in a Authentication Flow.
 
-### Captcha in Authentication Flow configuration
+### Risk assessment and Captcha in Authentication Flow configuration
 
-Captcha is supported in the following flow types:
+Risk assessment and Captcha are supported in the following flow types:
 
 - `signup`
 - `promote`
@@ -141,7 +141,7 @@ Captcha is supported in the following flow types:
 - `reauth`
 - `account_recovery`
 
-Captcha is supported only in the following step types:
+Risk assessment and Captcha are supported only in the following step types:
 
 - `identify` in `signup`, `promote`, `login`, `signup_login`, and `account_recovery`.
 - `create_authenticator` in `signup` and `promote`.
@@ -149,21 +149,31 @@ Captcha is supported only in the following step types:
 
 We can see that all supported step types have branches.
 
-To specify Captcha is enabled in a branch, add `captcha` to the branch.
+To enable risk assessment and Captcha in a branch, add `risk_assessment` and `captcha` to the branch.
 
 The configuration is as follows:
 
 ```
-captcha:
+risk_assessment:
   enabled: true
+  provider:
+    alias: recaptchav3
+
+captcha:
+  mode: "always" # "never" | "always" | "risk_level_low" | "risk_level_medium" | "risk_level_high"
   fail_open: true
   provider:
     alias: cloudflare
 ```
 
-- `captcha.enabled`: If it is true, then Captcha is enabled in this branch.
+- `captcha.mode`: When Captcha is required.
+  - `never`: Captcha is never required. It is the default.
+  - `always`: Captcha is always required. Risk level is ignored.
+  - `risk_level_low`: Captcha is required when the risk level obtained by risk assessment is low. If risk assessment is not enabled, then it means `always`. If risk assessment is service unavailable, then it means `always`.
+  - `risk_level_medium`: Captcha is required when the risk level obtained by risk assessment is medium. If risk assessment is not enabled, then it means `always`. If risk assessment is service unavailable, then it means `always`.
+  - `risk_level_high`: Captcha is required when the risk level obtained by risk assessment is high. If risk assessment is not enabled, then it means `always`. If risk assessment is service unavailable, then it means `always`.
 - `captcha.fail_open`: If it is true, then if the Captcha provider is service unavailable, access is granted. It is false by default.
-- `captcha.provider.alias`: If `captcha.enabled=true`, then it is required. Specify the Captcha provider to be used in this branch.
+- `captcha.provider.alias`: If `mode` is not `never`, then it is required. Specify the Captcha provider to be used in this branch.
 
 For example,
 
@@ -177,7 +187,7 @@ authentication_flow:
       - identification: email
         # Identify with email requires captcha.
         captcha:
-          enabled: true
+          mode: "always"
           provider:
             alias: cloudflare
     - type: authenticate
@@ -190,7 +200,7 @@ authentication_flow:
 
 Given `captcha.enabled=true` and `captcha.providers` is non-empty,
 
-1. All the branches of the first step (that is, the `identify` step, or the `authenticate` step in reauth flow) has `captcha.enabled=true`.
+1. All the branches of the first step (that is, the `identify` step, or the `authenticate` step in reauth flow) has `captcha.mode=always`.
 2. The first provider in `captcha.providers` is used as `captcha.provider.alias`
 
 In terms of UX, when Captcha is enabled and configured, every generated flow requires captcha at the beginning of the flow.
@@ -220,7 +230,7 @@ authentication_flow:
       # That is, before the OTP is sent.
       - authentication: primary_oob_otp_email
         captcha:
-          enabled: true
+          mode: "always"
           provider:
             alias: cloudflare
 ```
@@ -241,12 +251,12 @@ authentication_flow:
       one_of:
       - authentication: primary_password
         captcha:
-          enabled: true
+          mode: "always"
           provider:
             alias: recaptchav2
       - authentication: primary_oob_otp_email
         captcha:
-          enabled: true
+          mode: "always"
           provider:
             alias: cloudflare
 ```
@@ -271,7 +281,7 @@ authentication_flow:
       one_of:
       - authentication: primary_password
         captcha:
-          enabled: true
+          mode: "always"
           fail_open: true
           provider:
             alias: cloudflare
@@ -305,47 +315,61 @@ authentication_flow:
       one_of:
       - authentication: primary_password
         captcha:
-          enabled: true
+          mode: "always"
           provider:
             alias: cloudflare
 ```
 
 If the incoming request has an IP address of `10.0.0.1`, it is granted access automatically.
 
-### Future use cases
+### Advanced use case: Require Captcha only when risk level is high
 
-This section documents future use cases and their imaginary configuration.
+To minimize friction in UX, it is common to require Captcha only when the risk level is high.
 
-#### Future use case: Allow fallback in providers
-
-reCAPTCHA v3 is a score-based provider. The developer may want to
-
-1. Configure the minimum score.
-2. Fallback to another provider in case the score is less than the minimum.
-
-This could be specified in the following imaginary configuration.
+Here is an example configuration:
 
 ```
+risk_assessment:
+  enabled: true
+  providers:
+  - type: recaptchav3
+    alias: recaptchav3
+    site_key: "SITE_KEY"
+    risk_score:
+      low: 0.2
+      medium: 0.5
+      high: 0.7
+
+captcha:
+  enabled: true
+  providers:
+  - type: cloudflare
+    alias: cloudflare
+    site_key: "SITE_KEY"
+
 authentication_flow:
-  signup_flows:
+  login_flows:
   - name: default
-    captcha:
-      providers:
-      - alias: recaptchav3
-        # The score be must >= 0.5 in order to be considered as passed.
-        minimum_score_inclusive: 0.5
-      - alias: recaptchav2
+    steps:
+    - type: identify
+      one_of:
+      - identification: email
+    - type: authenticate
+      one_of:
+      - authentication: primary_password
+        risk_assessment:
+          enabled: true
+          provider:
+            alias: recaptchav3
+        captcha:
+          mode: "risk_level_high"
+          provider:
+            alias: cloudflare
 ```
 
-In this configuration, reCAPTCHA v2 can actually be used before reCAPTCHA v3. It is up to the UI to implement the fallback mechanism.
-
-#### Future use case: Use risk assessment to determine whether captcha is required
-
-This use case is very advanced, and potentially related to adaptive MFA.
-They both depend on another feature, namely risk assessment, to determine the risk level, and
-finally decide which protective measures, like captcha, MFA, are required.
-
-This is out-of-scope in this document.
+When authenticating with password, a risk assessment has to be done first.
+If the risk level is low or medium, access is granted.
+Otherwise, Captcha is required.
 
 ## Audit log
 
