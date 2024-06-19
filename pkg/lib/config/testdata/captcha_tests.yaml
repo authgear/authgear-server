@@ -76,3 +76,9 @@ value:
   - type: recaptchav2
     alias: recaptchav2
     site_key: some_site_key
+---
+part: CaptchaConfig
+name: enabled-false
+error: null
+value:
+  enabled: false
