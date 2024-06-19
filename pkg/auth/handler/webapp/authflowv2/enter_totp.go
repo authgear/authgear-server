@@ -51,6 +51,18 @@ func (h *AuthflowV2EnterTOTPHandler) GetData(w http.ResponseWriter, r *http.Requ
 	return data, nil
 }
 
+func (h *AuthflowV2EnterTOTPHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+
+	baseViewModel := h.BaseViewModel.ViewModelForInlinePreviewAuthFlow(r, w)
+	viewmodels.Embed(data, baseViewModel)
+
+	branchViewModel := viewmodels.NewInlinePreviewAuthflowBranchViewModel()
+	viewmodels.Embed(data, branchViewModel)
+
+	return data, nil
+}
+
 func (h *AuthflowV2EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers handlerwebapp.AuthflowControllerHandlers
 	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
@@ -85,5 +97,18 @@ func (h *AuthflowV2EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		result.WriteResponse(w, r)
 		return nil
 	})
+	handlers.InlinePreview(func(w http.ResponseWriter, r *http.Request) error {
+		data, err := h.GetInlinePreviewData(w, r)
+		if err != nil {
+			return err
+		}
+		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowEnterTOTPHTML, data)
+		return nil
+	})
+
+	if webapp.IsPreviewModeInline(r) {
+		h.Controller.HandleInlinePreview(w, r, &handlers)
+		return
+	}
 	h.Controller.HandleStep(w, r, &handlers)
 }
