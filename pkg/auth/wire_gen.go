@@ -84535,13 +84535,17 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OAuthClientResolver:   oauthclientResolver,
 		Logger:                baseLogger,
 	}
+	inlinePreviewAuthflowBranchViewModeler := &viewmodels.InlinePreviewAuthflowBranchViewModeler{
+		AppConfig: appConfig,
+	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowV2EnterTOTPHandler := &authflowv2.AuthflowV2EnterTOTPHandler{
-		Controller:    authflowController,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
+		Controller:                             authflowController,
+		BaseViewModel:                          baseViewModeler,
+		InlinePreviewAuthflowBranchViewModeler: inlinePreviewAuthflowBranchViewModeler,
+		Renderer:                               responseRenderer,
 	}
 	return authflowV2EnterTOTPHandler
 }
@@ -95711,13 +95715,17 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		OAuthClientResolver:   oauthclientResolver,
 		Logger:                baseLogger,
 	}
+	inlinePreviewAuthflowBranchViewModeler := &viewmodels.InlinePreviewAuthflowBranchViewModeler{
+		AppConfig: appConfig,
+	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowV2UsePasskeyHandler := &authflowv2.AuthflowV2UsePasskeyHandler{
-		Controller:    authflowController,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
+		Controller:                             authflowController,
+		BaseViewModel:                          baseViewModeler,
+		InlinePreviewAuthflowBranchViewModeler: inlinePreviewAuthflowBranchViewModeler,
+		Renderer:                               responseRenderer,
 	}
 	return authflowV2UsePasskeyHandler
 }

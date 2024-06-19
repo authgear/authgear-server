@@ -34,9 +34,10 @@ func ConfigureAuthflowV2EnterTOTPRoute(route httproute.Route) httproute.Route {
 }
 
 type AuthflowV2EnterTOTPHandler struct {
-	Controller    *handlerwebapp.AuthflowController
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      handlerwebapp.Renderer
+	Controller                             *handlerwebapp.AuthflowController
+	BaseViewModel                          *viewmodels.BaseViewModeler
+	InlinePreviewAuthflowBranchViewModeler *viewmodels.InlinePreviewAuthflowBranchViewModeler
+	Renderer                               handlerwebapp.Renderer
 }
 
 func (h *AuthflowV2EnterTOTPHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
@@ -57,7 +58,7 @@ func (h *AuthflowV2EnterTOTPHandler) GetInlinePreviewData(w http.ResponseWriter,
 	baseViewModel := h.BaseViewModel.ViewModelForInlinePreviewAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	branchViewModel := viewmodels.NewInlinePreviewAuthflowBranchViewModel()
+	branchViewModel := h.InlinePreviewAuthflowBranchViewModeler.NewAuthflowBranchViewModelForInlinePreviewEnterTOTP()
 	viewmodels.Embed(data, branchViewModel)
 
 	return data, nil
