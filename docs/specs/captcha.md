@@ -122,11 +122,13 @@ The configuration is as follows:
 ```
 captcha:
   enabled: true
+  fail_open: true
   provider:
     alias: cloudflare
 ```
 
 - `captcha.enabled`: If it is true, then Captcha is enabled in this branch.
+- `captcha.fail_open`: If it is true, then if the Captcha provider is service unavailable, access is granted. It is false by default.
 - `captcha.provider.alias`: If `captcha.enabled=true`, then it is required. Specify the Captcha provider to be used in this branch.
 
 For example,
@@ -215,6 +217,32 @@ authentication_flow:
             alias: cloudflare
 ```
 
+### Advanced use case: Use fail-open instead of fail-close
+
+By default, Captcha is fail-close, meaning that Captcha must be passed in order to gain access.
+If Captcha is fail-open, then the Captcha provider service unavailable grants access.
+Note that access is still denied if the Captcha provider returns a failed verification result.
+
+Here is an example configuration:
+
+```
+authentication_flow:
+  login_flows:
+  - name: default
+    steps:
+    - type: identify
+      one_of:
+      - identification: email
+    - type: authenticate
+      one_of:
+      - authentication: primary_password
+        captcha:
+          enabled: true
+          fail_open: true
+          provider:
+            alias: cloudflare
+```
+
 ### Future use cases
 
 This section documents future use cases and their imaginary configuration.
@@ -241,29 +269,6 @@ authentication_flow:
 ```
 
 In this configuration, reCAPTCHA v2 can actually be used before reCAPTCHA v3. It is up to the UI to implement the fallback mechanism.
-
-#### Future use case: Fail-open instead of Fail-close
-
-By default, when captcha verification fails, the end-user cannot proceed.
-The developer may want the end-user to proceed instead.
-
-This could be specified in the following imaginary configuration.
-
-```
-authentication_flow:
-  signup_flows:
-  - name: default
-    captcha:
-      providers:
-      # fail_open is false by default.
-      - alias: recaptchav3
-        minimum_score_inclusive: 0.5
-      - alias: recaptchav2
-        fail_open: true
-```
-
-With the above configuration, reCAPTCHA v3 is not fail-open. If the score of reCAPTCHA v3 is low than the minimum, reCAPTCHA v2 can be tried.
-If that fails too, it is opened, the flow can proceed.
 
 #### Future use case: Use risk assessment to determine whether captcha is required
 
