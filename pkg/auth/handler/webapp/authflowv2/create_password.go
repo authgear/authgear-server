@@ -46,11 +46,12 @@ type AuthflowCreatePasswordViewModel struct {
 }
 
 type AuthflowV2CreatePasswordHandler struct {
-	Controller          *handlerwebapp.AuthflowController
-	BaseViewModel       *viewmodels.BaseViewModeler
-	Renderer            handlerwebapp.Renderer
-	FeatureConfig       *config.FeatureConfig
-	AuthenticatorConfig *config.AuthenticatorConfig
+	Controller                             *handlerwebapp.AuthflowController
+	BaseViewModel                          *viewmodels.BaseViewModeler
+	InlinePreviewAuthflowBranchViewModeler *viewmodels.InlinePreviewAuthflowBranchViewModeler
+	Renderer                               handlerwebapp.Renderer
+	FeatureConfig                          *config.FeatureConfig
+	AuthenticatorConfig                    *config.AuthenticatorConfig
 }
 
 func (h *AuthflowV2CreatePasswordHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
@@ -123,7 +124,7 @@ func (h *AuthflowV2CreatePasswordHandler) GetInlinePreviewData(w http.ResponseWr
 	viewmodels.Embed(data, passwordPolicyViewModel)
 	viewmodels.Embed(data, passwordInputErrorViewModel)
 
-	branchViewModel := viewmodels.NewInlinePreviewAuthflowBranchViewModel()
+	branchViewModel := h.InlinePreviewAuthflowBranchViewModeler.NewAuthflowBranchViewModelForInlinePreviewCreatePassword()
 	viewmodels.Embed(data, branchViewModel)
 
 	return data, nil
