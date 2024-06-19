@@ -54,6 +54,20 @@ func (h *AuthflowV2PromptCreatePasskeyHandler) GetData(w http.ResponseWriter, r 
 	return data, nil
 }
 
+func (h *AuthflowV2PromptCreatePasskeyHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+
+	baseViewModel := h.BaseViewModel.ViewModelForInlinePreviewAuthFlow(r, w)
+	viewmodels.Embed(data, baseViewModel)
+
+	screenViewModel := AuthflowV2PromptCreatePasskeyViewModel{
+		CreationOptionsJSON: "{}",
+	}
+	viewmodels.Embed(data, screenViewModel)
+
+	return data, nil
+}
+
 func (h *AuthflowV2PromptCreatePasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers handlerwebapp.AuthflowControllerHandlers
 	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
@@ -99,5 +113,18 @@ func (h *AuthflowV2PromptCreatePasskeyHandler) ServeHTTP(w http.ResponseWriter, 
 		result.WriteResponse(w, r)
 		return nil
 	})
+	handlers.InlinePreview(func(w http.ResponseWriter, r *http.Request) error {
+		data, err := h.GetInlinePreviewData(w, r)
+		if err != nil {
+			return err
+		}
+		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowPromptCreatePasskeyHTML, data)
+		return nil
+	})
+
+	if webapp.IsPreviewModeInline(r) {
+		h.Controller.HandleInlinePreview(w, r, &handlers)
+		return
+	}
 	h.Controller.HandleStep(w, r, &handlers)
 }
