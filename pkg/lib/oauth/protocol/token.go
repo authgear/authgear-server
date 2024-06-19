@@ -26,6 +26,7 @@ func (r TokenResponse) AccessToken(v string)  { r["access_token"] = v }
 func (r TokenResponse) TokenType(v string)    { r["token_type"] = v }
 func (r TokenResponse) ExpiresIn(v int)       { r["expires_in"] = v }
 func (r TokenResponse) RefreshToken(v string) { r["refresh_token"] = v }
+func (r TokenResponse) DeviceSecret(v string) { r["device_secret"] = v }
 func (r TokenResponse) Scope(v string)        { r["scope"] = v }
 
 // OIDC extension
