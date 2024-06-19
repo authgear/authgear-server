@@ -59,7 +59,7 @@ func (s *AuthorizationService) Delete(a *Authorization) error {
 	// delete the offline grants that belong to the authorization
 	for _, sess := range sessions {
 		if offlineGrant, ok := sess.(*OfflineGrant); ok {
-			if offlineGrant.AuthorizationID == a.ID {
+			if offlineGrant.Deprecated_AuthorizationID == a.ID {
 				err := s.OAuthSessionManager.Delete(sess)
 				if err != nil {
 					return err

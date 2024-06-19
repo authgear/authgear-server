@@ -145,8 +145,8 @@ func TestSID(t *testing.T) {
 		scopes := []string{"openid", "email"}
 
 		offlineGrant := &oauth.OfflineGrant{
-			ID:     "offline-grant-id",
-			Scopes: scopes,
+			ID:                "offline-grant-id",
+			Deprecated_Scopes: scopes,
 			Attrs: session.Attrs{
 				UserID: "user-id",
 			},
