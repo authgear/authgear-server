@@ -177,44 +177,52 @@ func (g *OfflineGrant) EqualSession(ss session.SessionBase) bool {
 func (g *OfflineGrant) ToSession(refreshTokenHash string) (*OfflineGrantSession, bool) {
 	// Note(tung): For backward compatibility,
 	// if refreshTokenHash is empty, the "root" offline grant should be used
-	if refreshTokenHash == "" || refreshTokenHash == g.TokenHash {
-		return &OfflineGrantSession{
+	isEmpty := subtle.ConstantTimeCompare([]byte(refreshTokenHash), []byte("")) == 1
+	isEqualRoot := subtle.ConstantTimeCompare([]byte(refreshTokenHash), []byte(g.TokenHash)) == 1
+	var result *OfflineGrantSession = nil
+	if isEmpty || isEqualRoot {
+		result = &OfflineGrantSession{
 			OfflineGrant:    g,
 			CreatedAt:       g.CreatedAt,
 			TokenHash:       g.TokenHash,
 			ClientID:        g.ClientID,
 			Scopes:          g.Scopes,
 			AuthorizationID: g.AuthorizationID,
-		}, true
+		}
 	}
 
 	for _, token := range g.RefreshTokens {
-		if token.TokenHash == refreshTokenHash {
-			return &OfflineGrantSession{
+		isHashEqual := subtle.ConstantTimeCompare([]byte(refreshTokenHash), []byte(token.TokenHash)) == 1
+		if isHashEqual && result == nil {
+			result = &OfflineGrantSession{
 				OfflineGrant:    g,
 				CreatedAt:       token.CreatedAt,
 				TokenHash:       token.TokenHash,
 				ClientID:        token.ClientID,
 				Scopes:          token.Scopes,
 				AuthorizationID: token.AuthorizationID,
-			}, true
+			}
 		}
 	}
 
-	return nil, false
+	if result == nil {
+		return nil, false
+	}
+
+	return result, true
 }
 
 func (g *OfflineGrant) MatchHash(refreshTokenHash string) bool {
-	// TODO(tung): Implement this function so that it has constant execution time?
+	var result bool = false
 	if subtle.ConstantTimeCompare([]byte(refreshTokenHash), []byte(g.TokenHash)) == 1 {
-		return true
+		result = true
 	}
 
 	for _, token := range g.RefreshTokens {
 		if subtle.ConstantTimeCompare([]byte(refreshTokenHash), []byte(token.TokenHash)) == 1 {
-			return true
+			result = true
 		}
 	}
 
-	return false
+	return result
 }
