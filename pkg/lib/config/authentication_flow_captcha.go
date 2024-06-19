@@ -4,12 +4,60 @@ var _ = Schema.Add("AuthenticationFlowCaptcha", `
 {
 	"type": "object",
 	"additionalProperties": false,
+	"required": ["mode"],
 	"properties": {
-		"required": { "type": "boolean" }
+		"mode": { "type": "string", "enum": ["never", "always"] },
+		"fail_open": { "type": "boolean" }
+	},
+	"allOf": [
+		{
+			"if": {
+				"required": ["mode"],
+				"properties": {
+					"mode": {
+						"enum": ["always"]
+					}
+				}
+			},
+			"then": {
+				"required": ["provider"],
+				"properties": {
+					"provider": {
+						"type": "object",
+						"additionalProperties": false,
+						"properties": {
+							"alias": { "type": "string" }
+						}
+					}
+				}
+			}
+		}
+	]
+}
+`)
+
+var _ = Schema.Add("AuthenticationFlowCaptchaProvider", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"alias": { "type": "string" }
 	}
 }
 `)
 
-type AuthenticationFlowCaptcha struct {
-	Required *bool `json:"required,omitempty"`
+type AuthenticationFlowCaptchaProvider struct {
+	Alias string `json:"alias,omitempty"`
 }
+type AuthenticationFlowCaptcha struct {
+	Mode     AuthenticationFlowCaptchaMode      `json:"mode,omitempty"`
+	FailOpen *bool                              `json:"fail_open,omitempty"`
+	Provider *AuthenticationFlowCaptchaProvider `json:"provider,omitempty"`
+}
+
+type AuthenticationFlowCaptchaMode string
+
+const (
+	AuthenticationFlowCaptchaModeNever  AuthenticationFlowCaptchaMode = "never"
+	AuthenticationFlowCaptchaModeAlways AuthenticationFlowCaptchaMode = "always"
+)

@@ -54,7 +54,7 @@ func generateLoginFlowStepIdentify(cfg *config.AppConfig) *config.Authentication
 	if hasCaptcha(cfg) {
 		for _, oneOf := range step.OneOf {
 			oneOf.Captcha = &config.AuthenticationFlowCaptcha{
-				Required: getBoolPtr(true),
+				Mode: config.AuthenticationFlowCaptchaModeNever,
 			}
 		}
 	}

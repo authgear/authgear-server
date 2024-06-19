@@ -344,7 +344,7 @@ steps:
   one_of:
   - identification: email
     captcha:
-      required: true
+      mode: never
     steps:
     - target_step: signup_identify
       type: verify
@@ -380,7 +380,7 @@ steps:
   one_of:
   - identification: email
     captcha:
-      required: true
+      mode: never
     steps:
     - target_step: signup_identify
       type: verify
@@ -390,7 +390,7 @@ steps:
       - authentication: primary_password
   - identification: phone
     captcha:
-      required: true
+      mode: never
     steps:
     - target_step: signup_identify
       type: verify
@@ -400,7 +400,7 @@ steps:
       - authentication: primary_password
   - identification: username
     captcha:
-      required: true
+      mode: never
     steps:
     - name: authenticate_primary_username
       type: create_authenticator

@@ -171,7 +171,7 @@ steps:
   one_of:
   - identification: phone
     captcha:
-      required: true
+      mode: never
     on_failure: ignore
     steps:
       - type: select_destination
@@ -203,7 +203,7 @@ steps:
   one_of:
   - identification: email
     captcha:
-      required: true
+      mode: never
     on_failure: ignore
     steps:
       - type: select_destination
@@ -212,7 +212,7 @@ steps:
             otp_form: link
   - identification: phone
     captcha:
-      required: true
+      mode: never
     on_failure: ignore
     steps:
       - type: select_destination

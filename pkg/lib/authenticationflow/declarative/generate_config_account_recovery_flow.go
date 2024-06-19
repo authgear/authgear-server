@@ -49,7 +49,7 @@ func GenerateAccountRecoveryFlowConfig(cfg *config.AppConfig) *config.Authentica
 	if hasCaptcha(cfg) {
 		for _, oneOf := range oneOfs {
 			oneOf.Captcha = &config.AuthenticationFlowCaptcha{
-				Required: getBoolPtr(true),
+				Mode: config.AuthenticationFlowCaptchaModeNever,
 			}
 		}
 	}

@@ -561,7 +561,7 @@ steps:
   one_of:
   - identification: email
     captcha:
-      required: true
+      mode: never
     steps:
     - name: authenticate_primary_email
       type: authenticate
@@ -607,7 +607,7 @@ steps:
   one_of:
   - identification: email
     captcha:
-      required: true
+      mode: never
     steps:
     - name: authenticate_primary_email
       one_of:
@@ -625,7 +625,7 @@ steps:
       type: authenticate
   - identification: phone
     captcha:
-      required: true
+      mode: never
     steps:
     - name: authenticate_primary_phone
       one_of:
@@ -643,7 +643,7 @@ steps:
       type: authenticate
   - identification: username
     captcha:
-      required: true
+      mode: never
     steps:
     - name: authenticate_primary_username
       one_of:

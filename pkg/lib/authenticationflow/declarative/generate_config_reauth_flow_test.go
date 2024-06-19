@@ -313,7 +313,7 @@ steps:
   one_of:
   - authentication: primary_password
     captcha:
-      required: true
+      mode: never
 `)
 		// captcha, 3 branches
 		test(`
@@ -348,13 +348,13 @@ steps:
   one_of:
   - authentication: primary_password
     captcha:
-      required: true
+      mode: never
   - authentication: primary_oob_otp_email
     captcha:
-      required: true
+      mode: never
   - authentication: primary_oob_otp_sms
     captcha:
-      required: true
+      mode: never
 `)
 	})
 }

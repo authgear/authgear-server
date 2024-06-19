@@ -42,7 +42,7 @@ func generateReauthFlowStepAuthenticate(cfg *config.AppConfig) *config.Authentic
 		}
 		if hasCaptcha(cfg) {
 			oneOf.Captcha = &config.AuthenticationFlowCaptcha{
-				Required: getBoolPtr(true),
+				Mode: config.AuthenticationFlowCaptchaModeNever,
 			}
 		}
 		step.OneOf = append(step.OneOf, oneOf)

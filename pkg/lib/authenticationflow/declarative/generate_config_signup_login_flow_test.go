@@ -249,7 +249,7 @@ steps:
   one_of:
   - identification: email
     captcha:
-      required: true
+      mode: never
     signup_flow: default
     login_flow: default
 `)
@@ -294,27 +294,27 @@ steps:
   one_of:
   - identification: email
     captcha:
-      required: true
+      mode: never
     signup_flow: default
     login_flow: default
   - identification: phone
     captcha:
-      required: true
+      mode: never
     signup_flow: default
     login_flow: default
   - identification: username
     captcha:
-      required: true
+      mode: never
     signup_flow: default
     login_flow: default
   - identification: oauth
     captcha:
-      required: true
+      mode: never
     signup_flow: default
     login_flow: default
   - identification: passkey
     captcha:
-      required: true
+      mode: never
     login_flow: default
 `)
 	})
