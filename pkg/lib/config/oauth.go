@@ -139,7 +139,8 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"x_custom_ui_uri": { "type": "string", "format": "uri" },
 		"x_app2app_enabled": { "type": "boolean" },
 		"x_app2app_insecure_device_key_binding_enabled": { "type": "boolean" },
-		"x_authentication_flow_allowlist": { "$ref": "#/$defs/AuthenticationFlowAllowlist" }
+		"x_authentication_flow_allowlist": { "$ref": "#/$defs/AuthenticationFlowAllowlist" },
+		"x_app_initiated_sso_to_web_enabled": { "type": "boolean" }
 	},
 	"required": ["name", "client_id", "redirect_uris"],
 	"allOf": [
@@ -198,6 +199,7 @@ type OAuthClientConfig struct {
 	App2appEnabled                         bool                         `json:"x_app2app_enabled,omitempty"`
 	App2appInsecureDeviceKeyBindingEnabled bool                         `json:"x_app2app_insecure_device_key_binding_enabled,omitempty"`
 	AuthenticationFlowAllowlist            *AuthenticationFlowAllowlist `json:"x_authentication_flow_allowlist,omitempty"`
+	AppInitiatedSSOToWebEnabled            bool                         `json:"x_app_initiated_sso_to_web_enabled,omitempty"`
 }
 
 var _ = Schema.Add("AuthenticationFlowAllowlist", `
