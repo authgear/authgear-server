@@ -1,4 +1,4 @@
-# Captcha
+# Risk assessment and Captcha
 
 - [Captcha](#captcha)
   * [Old configuration](#old-configuration)
@@ -45,6 +45,17 @@ The section documents the new configuration.
 ### authgear.yaml
 
 ```yaml
+risk_assessment:
+  enabled: true
+  providers:
+  - type: recaptchav3
+    alias: recaptchav3
+    site_key: "SITE_KEY"
+    risk_level:
+      low: 0.2
+      medium: 0.5
+      high: 0.7
+
 captcha:
   enabled: true
   ip_allowlist:
@@ -56,49 +67,68 @@ captcha:
     site_key: "SITE_KEY"
 ```
 
-- `captcha.enabled`: Boolean. If it is true, the new configuration is used.
+- `risk_assessment.enabled`: If it is true, then risk assessment is enabled.
+- `risk_assessment.providers`: A list of risk assessment provider configuration. The actual shape depends on the `type` property.
+- `risk_assessment.providers.type`: Required. The type of the risk assessment provider. Valid values are `recaptchav3`.
+- `risk_assessment.providers.alias`. Required. The unique identifier of the risk assessment provider. It is used in other parts of the configuration to refer to this particular risk assessment provider. For example, the project can configured a number of risk assessment providers, but only uses one of them in a particular Authentication Flow.
+
+Type specific fields:
+
+- `risk_assessment.providers.type=recaptchav3.site_key`: The site key of reCAPTCHA v3.
+- `risk_assessment.providers.type=recaptchav3.risk_level`: The mapping of reCAPTCHA v3 score to Low, Medium, and High.
+
+---
+
+- `captcha.enabled`: If it is true, the new configuration is used.
 - `captcha.ip_allowlist`: A list of IPv4 CIDR notations or IPv4 addresses. If the incoming request matches any entry in the allowlist, the request bypasses Captcha.
-- `captcha.providers`: An array of Captcha provider configuration. The actual shape depends on the `type` property.
+- `captcha.providers`: A list of Captcha provider configuration. The actual shape depends on the `type` property.
 - `captcha.providers.type`: Required. The type of the Captcha provider. Valid values are `cloudflare` and `recaptchav2`.
-- `captcha.providers.alias`: Required. The unique identifier to the Captcha provider. It is used in other parts of the configuration to refer to this particular Captcha provider. For example, the project can configured a number of Captcha providers, but only uses one of them in a particular Authentication Flow.
+- `captcha.providers.alias`: Required. The unique identifier of the Captcha provider. It is used in other parts of the configuration to refer to this particular Captcha provider. For example, the project can configured a number of Captcha providers, but only uses one of them in a particular Authentication Flow.
 
-Other fields are specific to `type`.
 
-#### `type: cloudflare`
+Type specific fields:
 
-- `site_key`: The site key of Cloudflare Turnstile.
-
-#### `type: recaptchav2`
-
-- `site_key`: The site key of reCAPTCHA v2.
+- `captcha.providers.type=cloudflare.site_key`: The site key of Cloudflare Turnstile.
+- `captcha.providers.type=recaptchav2.site_key`: The site key of reCAPTCHA v2.
 
 ### authgear.secrets.yaml
 
 ```yaml
 - data:
     items:
+    - type: recaptchav3
+      alias: recaptchav3
+      secret_key: RECAPTCHAV3_SECRET_KEY
+  key: risk_assessment.providers
+
+- data:
+    items:
     - type: cloudflare
       alias: cloudflare
-      secret: TURNSTILE_SECRET_KEY
+      secret_key: TURNSTILE_SECRET_KEY
   key: captcha.providers
 ```
 
-- `items.type`: Required. It is the same as `captcha.providers.type`.
-- `items.alias`: Required. It is the same as `captcha.providers.alias`.
+- `key=risk_assessment.providers.items.type`: Required. It is the same as `risk_assessment.providers.type`.
+- `key=risk_assessment.providers.items.alias`: Required. It is the same as `risk_assessment.providers.alias`.
 
-Other fields are specific to `type`.
+Type specific fields:
 
-#### `type: cloudflare`
+- `key=risk_assessment.providers.items.type=recaptchav3.secret_key`: Required. The secret key of reCAPTCHA v3.
 
-- `secret_key`: Required. The secret key of Cloudflare Turnstile.
+---
 
-#### `type: recaptchav2`
+- `key=captcha.providers.items.type`: Required. It is the same as `captcha.providers.type`.
+- `key=captcha.providers.items.alias`: Required. It is the same as `captcha.providers.alias`.
 
-- `secret_key`: Required. The secret key of reCAPTCHA v2.
+Type specific fields:
+
+- `key=captcha.providers.items.type=cloudflare.secret_key`: Required. The secret key of Cloudflare Turnstile.
+- `key=captcha.providers.items.type=recaptchav2.secret_key`: Required. The secret key of reCAPTCHA v2.
 
 ## Authentication Flow
 
-This section specifies how Captcha works in a Authentication Flow.
+This section specifies how risk assessment and Captcha works in a Authentication Flow.
 
 ### Captcha in Authentication Flow configuration
 
