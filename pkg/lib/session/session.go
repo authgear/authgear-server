@@ -34,7 +34,6 @@ type ResolvedSession interface {
 type ListableSession interface {
 	SessionBase
 	ListableSession()
-	GetClientID() string
 	GetCreatedAt() time.Time
 	GetAccessInfo() *access.Info
 	GetDeviceInfo() (map[string]interface{}, bool)
