@@ -127,9 +127,10 @@ func (re *Resolver) resolveHeader(r *http.Request) (session.ResolvedSession, err
 		}
 
 		as, ok := g.ToSession(grant.RefreshTokenHash)
-		if ok {
-			authSession = as
+		if !ok {
+			return nil, session.ErrInvalidSession
 		}
+		authSession = as
 	default:
 		panic("oauth: resolving unknown grant session kind")
 	}
