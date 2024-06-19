@@ -47,6 +47,9 @@ The section documents the new configuration.
 ```yaml
 captcha:
   enabled: true
+  ip_allowlist:
+  - "192.168.0.0/24"
+  - "127.0.0.1"
   providers:
   - type: cloudflare
     alias: cloudflare
@@ -54,6 +57,7 @@ captcha:
 ```
 
 - `captcha.enabled`: Boolean. If it is true, the new configuration is used.
+- `captcha.ip_allowlist`: A list of IPv4 CIDR notations or IPv4 addresses. If the incoming request matches any entry in the allowlist, the request bypasses Captcha.
 - `captcha.providers`: An array of Captcha provider configuration. The actual shape depends on the `type` property.
 - `captcha.providers.type`: Required. The type of the Captcha provider. Valid values are `cloudflare` and `recaptchav2`.
 - `captcha.providers.alias`: Required. The unique identifier to the Captcha provider. It is used in other parts of the configuration to refer to this particular Captcha provider. For example, the project can configured a number of Captcha providers, but only uses one of them in a particular Authentication Flow.
@@ -242,6 +246,41 @@ authentication_flow:
           provider:
             alias: cloudflare
 ```
+
+### Advanced use case: Allow internal staff to bypass Captcha
+
+If internal staff is connected to a private network, thus having an IP address in a specific range,
+they can bypass Captcha. This is generally for convenience.
+
+Here is an example configuration:
+
+```
+captcha:
+  enabled: true
+  ip_allowlist:
+  - "10.0.0.0/16"
+  providers:
+  - type: cloudflare
+    alias: cloudflare
+    site_key: "SITE_KEY"
+
+authentication_flow:
+  login_flows:
+  - name: default
+    steps:
+    - type: identify
+      one_of:
+      - identification: email
+    - type: authenticate
+      one_of:
+      - authentication: primary_password
+        captcha:
+          enabled: true
+          provider:
+            alias: cloudflare
+```
+
+If the incoming request has an IP address of `10.0.0.1`, it is granted access automatically.
 
 ### Future use cases
 
