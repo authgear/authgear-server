@@ -11,11 +11,14 @@
   * [Listen for change with Websocket](#listen-for-change-with-websocket)
 - [Reference on input and output](#reference-on-input-and-output)
   * [type: signup; action.type: identify](#type-signup-actiontype-identify)
-    + [captcha](#captcha)
-      - [captcha input](#captcha-input)
-      - [captcha input; type: cloudflare](#captcha-input-type-cloudflare)
-      - [captcha input; type: recaptchav2](#captcha-input-type-recaptchav2)
-      - [captcha error](#captcha-error)
+    + [Risk assessment and Captcha](#risk-assessment-and-captcha)
+      - [Risk assessment input](#risk-assessment-input)
+      - [risk_assessment input; type: recaptchav3](#risk_assessment-input-type-recaptchav3)
+      - [Risk assessment error](#risk-assessment-error)
+      - [Captcha input](#captcha-input)
+      - [Captcha input; type: cloudflare](#captcha-input-type-cloudflare)
+      - [Captcha input; type: recaptchav2](#captcha-input-type-recaptchav2)
+      - [Captcha error](#captcha-error)
     + [identification: email](#identification-email)
     + [identification: phone](#identification-phone)
     + [identification: username](#identification-username)
@@ -23,7 +26,7 @@
     + [type: signup; action.type: identify; data.type: account_linking_identification_data](#type-signup-actiontype-identify-datatype-account_linking_identification_data)
   * [type: signup; action.type: verify](#type-signup-actiontype-verify)
   * [type: signup; action.type: create_authenticator](#type-signup-actiontype-create_authenticator)
-    + [captcha](#captcha-1)
+    + [Risk assessment and Captcha](#risk-assessment-and-captcha-1)
     + [authentication: primary_password](#authentication-primary_password)
     + [authentication: primary_oob_otp_email](#authentication-primary_oob_otp_email)
     + [authentication: primary_oob_otp_sms](#authentication-primary_oob_otp_sms)
@@ -35,7 +38,7 @@
   * [type: signup; action.type: prompt_create_passkey](#type-signup-actiontype-prompt_create_passkey)
   * [type: login; action.type: identify](#type-login-actiontype-identify)
   * [type: login; action.type: authenticate](#type-login-actiontype-authenticate)
-    + [captcha](#captcha-2)
+    + [Risk assessment and Captcha](#risk-assessment-and-captcha-2)
     + [authentication: primary_password](#authentication-primary_password-1)
     + [authentication: primary_oob_otp_email](#authentication-primary_oob_otp_email-1)
     + [authentication: primary_oob_otp_sms](#authentication-primary_oob_otp_sms-1)
@@ -48,7 +51,7 @@
   * [type: login; action.type: prompt_create_passkey](#type-login-actiontype-prompt_create_passkey)
   * [type: signup_login; action.type: identify](#type-signup_login-actiontype-identify)
   * [type: account_recovery; action.type: identify](#type-account_recovery-actiontype-identify)
-    + [captcha](#captcha-3)
+    + [Risk assessment and Captcha](#risk-assessment-and-captcha-3)
     + [identification: email](#identification-email-1)
     + [identification: phone](#identification-phone-1)
   * [type: account_recovery; action.type: select_destination](#type-account_recovery-actiontype-select_destination)
@@ -99,14 +102,6 @@ Authentication Flow API always returns a JSON response of the same shape.
     "state_token": "authflowstate_blahblahblah",
     "type": "login",
     "name": "default",
-    "captcha": {
-      "providers": [
-        {
-          "type": "cloudflare",
-          "alias": "cloudflare"
-        }
-      ]
-    },
     "action": {
       "type": "authenticate",
       "authentication": "primary_oob_otp_email",
@@ -124,9 +119,6 @@ Authentication Flow API always returns a JSON response of the same shape.
   - `signup_login`: This flow will either become `signup` or `login` depending on the input. If the end-user enters an existing login ID, then the flow will becomes `login`, otherwise, it is `signup`.
   - `account_recovery`: The flow to recover an account. Currently it can request a reset password link / reset password code to reset primary password.
 - `name`: The name of the authentication flow. See [Create an authentication flow](#create-an-authentication-flow)
-- `captcha`: If Captcha is enabled in the flow, this key is present.
-  - `captcha.providers.type`: The type of the provider. You use this information to implement Captcha. For example, if you see `cloudflare`, then you probably should use the Cloudflare Turnstile client-side library to implement Captcha.
-  - `captcha.providers.alias`: The alias of the provider. You use this information to choose which set of configuration to use. For example, if you configure two Cloudflare Turnstile, namely `cloudflare1` and `cloudflare2`, and you see `cloudflare2`, then you should use the site key of `cloudflare2` to implement captcha.
 - `action`: An object containing information about the current action.
   - `action.type`: The type of step. See [Reference on input and output](#reference-on-input-and-output)
   - `action.authentication`: The taken authentication branch.
@@ -245,14 +237,6 @@ When you are in this step of this flow, you will see a response like the followi
     "state_token": "authflowstate_5R6NM7HGGKV64538R0QEGY9RQBDM4PZD",
     "type": "signup",
     "name": "default",
-    "captcha": {
-      "providers": [
-        {
-          "type": "cloudflare",
-          "alias": "cloudflare"
-        }
-      ]
-    },
     "action": {
       "type": "identify",
       "data": {
@@ -263,8 +247,19 @@ When you are in this step of this flow, you will see a response like the followi
           },
           {
             "identification": "phone",
+            "risk_assessment": {
+              "required": true,
+              "provider": {
+                "type": "recaptchav3",
+                "alias": "recaptchav3"
+              }
+            }
             "captcha": {
-              "required": true
+              "required": true,
+              "provider": {
+                "type": "cloudflare",
+                "alias": "cloudflare"
+              }
             }
           },
           {
@@ -285,16 +280,94 @@ When you are in this step of this flow, you will see a response like the followi
 }
 ```
 
-### captcha
+### Risk assessment and Captcha
 
-Each option may contain the key `captcha`.
-If this key is present and `captcha.required=true`, that means selecting the option requires captcha.
+Each option may contain the key `risk_assessment` and the key `captcha`.
 
-You refer to the top-level `captcha.providers` key to see a list of captcha provider you should use.
+The shape of `risk_assessment`:
 
-#### captcha input
+```
+{
+  "required": true,
+  "provider": {
+    "type": "recaptchav3",
+    "alias": "recaptchav3"
+  }
+}
+```
 
-To pass captcha input, use the following input shape
+If `risk_assessment.required` is true, then selecting this option requires performing risk assessment first.
+
+You use `provider.type` to determine which client side library to use.
+
+You use `provider.alias` to determine which client side credentials to use.
+
+---
+
+The shape of `captcha`:
+
+```
+{
+  "required": true,
+  "provider": {
+    "type": "recaptchav3",
+    "alias": "recaptchav3"
+  }
+}
+```
+
+If `captcha.required` is true, then selecting this option requires performing captcha challenge first.
+
+You use `provider.type` to determine which client side library to use.
+
+You use `provider.alias` to determine which client side credentials to use.
+
+---
+
+If both are present, you must perform risk assessment first.
+
+#### Risk assessment input
+
+To perform risk assessment, pass an input of the following shape:
+
+```json
+{
+  "risk_assessment": {
+    "alias": "recaptchav3",
+    "type": "recaptchav3",
+    "response": { ... }
+  }
+}
+```
+
+- `risk_assessment.alias`: The alias of the risk assessment provider.
+- `risk_assessment.type`: The type of the risk assessment provider.
+
+Other fields are provider-specific.
+
+#### risk_assessment input; type: recaptchav3
+
+- `risk_assessment.response`: The response provided by the reCAPTCHA v3 client-side library.
+
+#### Risk assessment error
+
+When you submit an input without performing risk assessment, you will receive the following error.
+
+```json
+{
+  "error": {
+    "name": "Forbidden",
+    "reason": "RiskAssessmentRequired",
+    "message': "risk assessment required",
+    "code": 403,
+    "info": {}
+  }
+}
+```
+
+#### Captcha input
+
+To pass a Captcha input, pass an input of the following shape:
 
 ```json
 {
@@ -311,15 +384,15 @@ To pass captcha input, use the following input shape
 
 Other fields are provider-specific.
 
-#### captcha input; type: cloudflare
+#### Captcha input; type: cloudflare
 
 - `captcha.response`: The response provided by the Turnstile client-side library.
 
-#### captcha input; type: recaptchav2
+#### Captcha input; type: recaptchav2
 
 - `captcha.response`: The response provided by the reCAPTCHA v2 client-side library.
 
-#### captcha error
+#### Captcha error
 
 When you submit an input without verifying captcha, you will receive the following error.
 
@@ -759,12 +832,13 @@ Or this response if you are setting up 2FA.
 }
 ```
 
-### captcha
+### Risk assessment and Captcha
 
-Each option may contain the key `captcha`.
-If this key is present, that means selecting the option requires captcha.
+Each option may contain the key `risk_assessment` and the key `captcha`.
 
-See [captcha](#captcha) for details.
+If either key is present, that means risk assessment or Captcha is required.
+
+See [Risk assessment and Captcha](#risk-assessment-and-captcha) for details.
 
 ### authentication: primary_password
 
@@ -1350,12 +1424,13 @@ Or this response if you are performing secondary authentication.
 }
 ```
 
-### captcha
+### Risk assessment and Captcha
 
-Each option may contain the key `captcha`.
-If this key is present, that means selecting the option requires captcha.
+Each option may contain the key `risk_assessment` and the key `captcha`.
 
-See [captcha](#captcha) for details.
+If either key is present, that means risk assessment or Captcha is required.
+
+See [Risk assessment and Captcha](#risk-assessment-and-captcha) for details.
 
 ### authentication: primary_password
 
@@ -1785,12 +1860,13 @@ When you are in this step of this flow, you will see a response like the followi
 }
 ```
 
-### captcha
+### Risk assessment and Captcha
 
-Each option may contain the key `captcha`.
-If this key is present, that means selecting the option requires captcha.
+Each option may contain the key `risk_assessment` and the key `captcha`.
 
-See [captcha](#captcha) for details.
+If either key is present, that means risk assessment or Captcha is required.
+
+See [Risk assessment and Captcha](#risk-assessment-and-captcha) for details.
 
 ### identification: email
 
