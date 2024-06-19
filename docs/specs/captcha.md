@@ -8,7 +8,7 @@
   * [Authentication Flow](#authentication-flow)
     + [Risk assessment and Captcha in Authentication Flow configuration](#risk-assessment-and-captcha-in-authentication-flow-configuration)
     + [Behavior of generated flows](#behavior-of-generated-flows)
-    + [Captcha in Authentication Flow API](#captcha-in-authentication-flow-api)
+    + [Risk assessment and Captcha in Authentication Flow API](#risk-assessment-and-captcha-in-authentication-flow-api)
     + [Advanced use case: Require Captcha at a specific branch only](#advanced-use-case-require-captcha-at-a-specific-branch-only)
     + [Advanced use case: Use different Captcha providers in different branches](#advanced-use-case-use-different-captcha-providers-in-different-branches)
     + [Advanced use case: Use fail-open instead of fail-close](#advanced-use-case-use-fail-open-instead-of-fail-close)
@@ -200,9 +200,9 @@ Given `captcha.enabled=true` and `captcha.providers` is non-empty,
 
 In terms of UX, when Captcha is enabled and configured, every generated flow requires captcha at the beginning of the flow.
 
-### Captcha in Authentication Flow API
+### Risk assessment and Captcha in Authentication Flow API
 
-Please refer to [captcha](./authentication-flow-api-reference.md#captcha).
+Please refer to [Risk assessment and Captcha](./authentication-flow-api-reference.md#risk-assessment-and-captcha).
 
 ### Advanced use case: Require Captcha at a specific branch only
 
