@@ -231,6 +231,7 @@ func (m *AuthflowViewModeler) NewWithAuthflow(f *authflow.FlowResponse, r *http.
 	}
 }
 
+// nolint: gocognit
 func (m *AuthflowViewModeler) NewWithConfig() AuthflowViewModel {
 	var firstLoginIDIdentification config.AuthenticationFlowIdentification
 	var firstNonPhoneLoginIDIdentification config.AuthenticationFlowIdentification
