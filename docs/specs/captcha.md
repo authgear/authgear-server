@@ -148,7 +148,7 @@ To enable risk assessment and Captcha in a branch, add `risk_assessment` and `ca
 
 The configuration is as follows:
 
-```
+```yaml
 risk_assessment:
   enabled: true
   provider:
@@ -172,7 +172,7 @@ captcha:
 
 For example,
 
-```
+```yaml
 authentication_flow:
   login_flows:
   - name: default
@@ -210,7 +210,7 @@ Suppose Project A configures email login with password or OTP. The developer may
 
 This can be achieved by customizing the flow.
 
-```
+```yaml
 authentication_flow:
   login_flows:
   - name: default
@@ -234,7 +234,7 @@ authentication_flow:
 
 The developer can specify different Captcha provider to be used in different branches.
 
-```
+```yaml
 authentication_flow:
   login_flows:
   - name: default
@@ -264,7 +264,7 @@ Note that access is still denied if the Captcha provider returns a failed verifi
 
 Here is an example configuration:
 
-```
+```yaml
 authentication_flow:
   login_flows:
   - name: default
@@ -289,7 +289,7 @@ they can bypass Captcha. This is generally for convenience.
 
 Here is an example configuration:
 
-```
+```yaml
 captcha:
   enabled: true
   ip_allowlist:
@@ -323,7 +323,7 @@ To minimize friction in UX, it is common to require Captcha only when the risk l
 
 Here is an example configuration:
 
-```
+```yaml
 risk_assessment:
   enabled: true
   providers:

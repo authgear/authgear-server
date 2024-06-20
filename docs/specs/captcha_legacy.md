@@ -6,7 +6,7 @@ This document specifies Captcha support in the abandoned [Workflow](./workflow.m
 
 ### authgear.yaml
 
-```
+```yaml
 captcha:
   provider: cloudflare
 ```
