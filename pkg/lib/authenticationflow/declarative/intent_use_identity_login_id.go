@@ -12,33 +12,33 @@ import (
 )
 
 func init() {
-	authflow.RegisterNode(&NodeUseIdentityLoginID{})
+	authflow.RegisterIntent(&IntentUseIdentityLoginID{})
 }
 
-type NodeUseIdentityLoginID struct {
+type IntentUseIdentityLoginID struct {
 	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
 	Identification config.AuthenticationFlowIdentification `json:"identification,omitempty"`
 }
 
-var _ authflow.NodeSimple = &NodeUseIdentityLoginID{}
-var _ authflow.Milestone = &NodeUseIdentityLoginID{}
-var _ MilestoneIdentificationMethod = &NodeUseIdentityLoginID{}
-var _ MilestoneFlowUseIdentity = &NodeUseIdentityLoginID{}
-var _ authflow.InputReactor = &NodeUseIdentityLoginID{}
+var _ authflow.Intent = &IntentUseIdentityLoginID{}
+var _ authflow.Milestone = &IntentUseIdentityLoginID{}
+var _ MilestoneIdentificationMethod = &IntentUseIdentityLoginID{}
+var _ MilestoneFlowUseIdentity = &IntentUseIdentityLoginID{}
+var _ authflow.InputReactor = &IntentUseIdentityLoginID{}
 
-func (*NodeUseIdentityLoginID) Kind() string {
-	return "NodeUseIdentityLoginID"
+func (*IntentUseIdentityLoginID) Kind() string {
+	return "IntentUseIdentityLoginID"
 }
 
-func (*NodeUseIdentityLoginID) Milestone() {}
-func (n *NodeUseIdentityLoginID) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
+func (*IntentUseIdentityLoginID) Milestone() {}
+func (n *IntentUseIdentityLoginID) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
 	return n.Identification
 }
-func (*NodeUseIdentityLoginID) MilestoneFlowUseIdentity(flows authflow.Flows) (MilestoneDoUseIdentity, authflow.Flows, bool) {
+func (*IntentUseIdentityLoginID) MilestoneFlowUseIdentity(flows authflow.Flows) (MilestoneDoUseIdentity, authflow.Flows, bool) {
 	return authflow.FindMilestoneInCurrentFlow[MilestoneDoUseIdentity](flows)
 }
 
-func (n *NodeUseIdentityLoginID) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+func (n *IntentUseIdentityLoginID) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
 	if err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ func (n *NodeUseIdentityLoginID) CanReactTo(ctx context.Context, deps *authflow.
 	}, nil
 }
 
-func (n *NodeUseIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (n *IntentUseIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	var inputTakeLoginID inputTakeLoginID
 	if authflow.AsInput(input, &inputTakeLoginID) {
 		loginID := inputTakeLoginID.GetLoginID()
