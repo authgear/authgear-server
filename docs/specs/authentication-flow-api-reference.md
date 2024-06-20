@@ -250,15 +250,13 @@ When you are in this step of this flow, you will see a response like the followi
             "risk_assessment": {
               "required": true,
               "provider": {
-                "type": "recaptchav3",
-                "alias": "recaptchav3"
+                "type": "recaptchav3"
               }
             }
             "captcha": {
               "required": true,
               "provider": {
-                "type": "cloudflare",
-                "alias": "cloudflare"
+                "type": "cloudflare"
               }
             }
           },
@@ -290,17 +288,14 @@ The shape of `risk_assessment`:
 {
   "required": true,
   "provider": {
-    "type": "recaptchav3",
-    "alias": "recaptchav3"
+    "type": "recaptchav3"
   }
 }
 ```
 
 If `risk_assessment.required` is true, then selecting this option requires performing risk assessment first.
 
-You use `provider.type` to determine which client side library to use.
-
-You use `provider.alias` to determine which client side credentials to use.
+You use `provider.type` to determine which client side library and which client side credentials to use.
 
 ---
 
@@ -310,17 +305,14 @@ The shape of `captcha`:
 {
   "required": true,
   "provider": {
-    "type": "recaptchav3",
-    "alias": "recaptchav3"
+    "type": "recaptchav3"
   }
 }
 ```
 
 If `captcha.required` is true, then selecting this option requires performing captcha challenge first.
 
-You use `provider.type` to determine which client side library to use.
-
-You use `provider.alias` to determine which client side credentials to use.
+You use `provider.type` to determine which client side library and which client side credentials to use.
 
 ---
 
@@ -333,14 +325,12 @@ To perform risk assessment, pass an input of the following shape:
 ```json
 {
   "risk_assessment": {
-    "alias": "recaptchav3",
     "type": "recaptchav3",
     "response": { ... }
   }
 }
 ```
 
-- `risk_assessment.alias`: The alias of the risk assessment provider.
 - `risk_assessment.type`: The type of the risk assessment provider.
 
 Other fields are provider-specific.
@@ -372,14 +362,12 @@ To pass a Captcha input, pass an input of the following shape:
 ```json
 {
   "captcha": {
-    "alias": "cloudflare",
     "type": "cloudflare",
     "response": { ... }
   }
 }
 ```
 
-- `captcha.alias`: The alias of the captcha provider.
 - `captcha.type`: The type of the captcha provider.
 
 Other fields are provider-specific.

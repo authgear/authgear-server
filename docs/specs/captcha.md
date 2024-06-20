@@ -44,7 +44,6 @@ risk_assessment:
   enabled: true
   providers:
   - type: recaptchav3
-    alias: recaptchav3
     site_key: "SITE_KEY"
     risk_level:
       high_if_gte: 0.7
@@ -57,14 +56,12 @@ captcha:
   - "127.0.0.1"
   providers:
   - type: cloudflare
-    alias: cloudflare
     site_key: "SITE_KEY"
 ```
 
 - `risk_assessment.enabled`: If it is true, then risk assessment is enabled.
 - `risk_assessment.providers`: A list of risk assessment provider configuration. The actual shape depends on the `type` property.
 - `risk_assessment.providers.type`: Required. The type of the risk assessment provider. Valid values are `recaptchav3`.
-- `risk_assessment.providers.alias`. Required. The unique identifier of the risk assessment provider. It is used in other parts of the configuration to refer to this particular risk assessment provider. For example, the project can configured a number of risk assessment providers, but only uses one of them in a particular Authentication Flow.
 - `risk_assessment.providers.risk_level.high_if_gte`: Required. A floating number. If the provider-specific score is greater than or equal to this number, then the risk level is high. Otherwise, it is medium or low.
 - `risk_assessment.providers.risk_level.medium_if_gte`: Required. A floating number. If the provider-specific score is greater than or equal to this number, then the risk level is medium. Otherwise, it is low.
 
@@ -78,7 +75,6 @@ Type specific fields:
 - `captcha.ip_allowlist`: A list of IPv4 CIDR notations or IPv4 addresses. If the incoming request matches any entry in the allowlist, the request bypasses Captcha.
 - `captcha.providers`: A list of Captcha provider configuration. The actual shape depends on the `type` property.
 - `captcha.providers.type`: Required. The type of the Captcha provider. Valid values are `cloudflare` and `recaptchav2`.
-- `captcha.providers.alias`: Required. The unique identifier of the Captcha provider. It is used in other parts of the configuration to refer to this particular Captcha provider. For example, the project can configured a number of Captcha providers, but only uses one of them in a particular Authentication Flow.
 
 
 Type specific fields:
@@ -92,20 +88,17 @@ Type specific fields:
 - data:
     items:
     - type: recaptchav3
-      alias: recaptchav3
       secret_key: RECAPTCHAV3_SECRET_KEY
   key: risk_assessment.providers
 
 - data:
     items:
     - type: cloudflare
-      alias: cloudflare
       secret_key: TURNSTILE_SECRET_KEY
   key: captcha.providers
 ```
 
 - `key=risk_assessment.providers.items.type`: Required. It is the same as `risk_assessment.providers.type`.
-- `key=risk_assessment.providers.items.alias`: Required. It is the same as `risk_assessment.providers.alias`.
 
 Type specific fields:
 
@@ -114,7 +107,6 @@ Type specific fields:
 ---
 
 - `key=captcha.providers.items.type`: Required. It is the same as `captcha.providers.type`.
-- `key=captcha.providers.items.alias`: Required. It is the same as `captcha.providers.alias`.
 
 Type specific fields:
 
@@ -152,17 +144,17 @@ The configuration is as follows:
 risk_assessment:
   enabled: true
   provider:
-    alias: recaptchav3
+    type: recaptchav3
 
 captcha:
   mode: "always" # "never" | "always" | "risk_level_low" | "risk_level_medium" | "risk_level_high"
   fail_open: true
   provider:
-    alias: cloudflare
+    type: cloudflare
 ```
 
 - `risk_assessment.enabled`: Whether risk assessment is enabled.
-- `risk_assessment.provider.alias`: It `enabled` is true, then it is required. Specify the risk assessment provider to be used in this branch.
+- `risk_assessment.provider.type`: It `enabled` is true, then it is required. Specify the risk assessment provider to be used in this branch.
 
 - `captcha.mode`: When Captcha is required.
   - `never`: Captcha is never required. It is the default.
@@ -171,7 +163,7 @@ captcha:
   - `risk_level_medium`: Captcha is required when the risk level obtained by risk assessment is medium. If risk assessment is not enabled, then it means `always`. If risk assessment is service unavailable, then it means `always`.
   - `risk_level_high`: Captcha is required when the risk level obtained by risk assessment is high. If risk assessment is not enabled, then it means `always`. If risk assessment is service unavailable, then it means `always`.
 - `captcha.fail_open`: If it is true, then if the Captcha provider is service unavailable, access is granted. It is false by default.
-- `captcha.provider.alias`: If `mode` is not `never`, then it is required. Specify the Captcha provider to be used in this branch.
+- `captcha.provider.type`: If `mode` is not `never`, then it is required. Specify the Captcha provider to be used in this branch.
 
 For example,
 
@@ -187,7 +179,7 @@ authentication_flow:
         captcha:
           mode: "always"
           provider:
-            alias: cloudflare
+            type: cloudflare
     - type: authenticate
       one_of:
       - authentication: primary_password
@@ -199,12 +191,12 @@ authentication_flow:
 Given `risk_assessment.enabled=true` and `risk_assessment.providers` is non-empty,
 
 1. All the branches of the first step (that is, the `identify` step, or the `authenticate` step in reauth flow) has `risk_assessment.enabled=true`.
-2. The first provider in `risk_assessment.providers` is used as `risk_assessment.provider.alias`
+2. The first provider in `risk_assessment.providers` is used as `risk_assessment.provider.type`
 
 Given `captcha.enabled=true` and `captcha.providers` is non-empty,
 
 1. All the branches of the first step (that is, the `identify` step, or the `authenticate` step in reauth flow) has `captcha.mode=always`.
-2. The first provider in `captcha.providers` is used as `captcha.provider.alias`
+2. The first provider in `captcha.providers` is used as `captcha.provider.type`
 
 In terms of UX, when Captcha is enabled and configured, every generated flow requires captcha at the beginning of the flow.
 
@@ -235,7 +227,7 @@ authentication_flow:
         captcha:
           mode: "always"
           provider:
-            alias: cloudflare
+            type: cloudflare
 ```
 
 ### Advanced use case: Use different Captcha providers in different branches
@@ -256,12 +248,12 @@ authentication_flow:
         captcha:
           mode: "always"
           provider:
-            alias: recaptchav2
+            type: recaptchav2
       - authentication: primary_oob_otp_email
         captcha:
           mode: "always"
           provider:
-            alias: cloudflare
+            type: cloudflare
 ```
 
 ### Advanced use case: Use fail-open instead of fail-close
@@ -287,7 +279,7 @@ authentication_flow:
           mode: "always"
           fail_open: true
           provider:
-            alias: cloudflare
+            type: cloudflare
 ```
 
 ### Advanced use case: Allow internal staff to bypass Captcha
@@ -304,7 +296,6 @@ captcha:
   - "10.0.0.0/16"
   providers:
   - type: cloudflare
-    alias: cloudflare
     site_key: "SITE_KEY"
 
 authentication_flow:
@@ -320,7 +311,7 @@ authentication_flow:
         captcha:
           mode: "always"
           provider:
-            alias: cloudflare
+            type: cloudflare
 ```
 
 If the incoming request has an IP address of `10.0.0.1`, it is granted access automatically.
@@ -336,7 +327,6 @@ risk_assessment:
   enabled: true
   providers:
   - type: recaptchav3
-    alias: recaptchav3
     site_key: "SITE_KEY"
     risk_score:
       low: 0.2
@@ -347,7 +337,6 @@ captcha:
   enabled: true
   providers:
   - type: cloudflare
-    alias: cloudflare
     site_key: "SITE_KEY"
 
 authentication_flow:
@@ -363,11 +352,11 @@ authentication_flow:
         risk_assessment:
           enabled: true
           provider:
-            alias: recaptchav3
+            type: recaptchav3
         captcha:
           mode: "risk_level_high"
           provider:
-            alias: cloudflare
+            type: cloudflare
 ```
 
 When authenticating with password, a risk assessment has to be done first.
