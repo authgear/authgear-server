@@ -1,4 +1,4 @@
-import { Declaration, Root } from "postcss";
+import { Declaration, Root, Rule } from "postcss";
 import {
   CssDeclarationNodeWrapper,
   CssNodeVisitor,
@@ -6,6 +6,10 @@ import {
   CssRootNodeWrapper,
   CssRuleNodeWrapper,
 } from "../util/cssVisitor";
+
+export const enum ThemeTargetSelector {
+  Light = ":root",
+}
 
 type Color = string;
 
@@ -76,11 +80,12 @@ export const DEFAULT_LIGHT_THEME: CustomisableTheme = {
 
 abstract class AbstractStyle<T> {
   abstract acceptDeclaration(declaration: Declaration): boolean;
+  abstract acceptCssAstVisitor(visitor: CssAstVisitor): void;
   abstract getValue(): T;
 }
 
 abstract class StyleProperty<T> extends AbstractStyle<T> {
-  private readonly propertyName: string;
+  readonly propertyName: string;
   value: T;
 
   constructor(propertyName: string, defaultValue: T) {
@@ -89,29 +94,39 @@ abstract class StyleProperty<T> extends AbstractStyle<T> {
     this.value = defaultValue;
   }
 
-  abstract setValue(rawValue: string): void;
+  protected abstract setWithRawValue(rawValue: string): void;
 
   acceptDeclaration(declaration: Declaration): boolean {
     if (declaration.prop !== this.propertyName) {
       return false;
     }
-    this.setValue(declaration.value);
+    this.setWithRawValue(declaration.value);
     return true;
   }
 
   getValue(): T {
     return this.value;
   }
+
+  abstract getCSSValue(): string | number;
 }
 
 class ColorStyleProperty extends StyleProperty<string> {
-  setValue(rawValue: string): void {
+  protected setWithRawValue(rawValue: string): void {
     this.value = rawValue;
+  }
+
+  acceptCssAstVisitor(visitor: CssAstVisitor): void {
+    visitor.visitColorStyleProperty(this);
+  }
+
+  getCSSValue(): string {
+    return this.value;
   }
 }
 
 class AlignItemsStyleProperty extends StyleProperty<Alignment> {
-  setValue(rawValue: string): void {
+  protected setWithRawValue(rawValue: string): void {
     switch (rawValue) {
       case "flex-start":
         this.value = "start";
@@ -124,12 +139,31 @@ class AlignItemsStyleProperty extends StyleProperty<Alignment> {
         break;
     }
   }
+
+  acceptCssAstVisitor(visitor: CssAstVisitor): void {
+    visitor.visitAlignItemsStyleProperty(this);
+  }
+
+  getCSSValue(): string {
+    switch (this.value) {
+      case "start":
+        return "flex-start";
+      case "end":
+        return "flex-end";
+      case "center":
+        return "center";
+      default:
+        return "";
+    }
+  }
 }
 
 class BorderRadiusStyleProperty extends StyleProperty<BorderRadiusStyle> {
-  setValue(rawValue: string): void {
+  static FULL_ROUNDED_CSS_VALUE = "9999px";
+
+  protected setWithRawValue(rawValue: string): void {
     switch (rawValue) {
-      case "9999px":
+      case BorderRadiusStyleProperty.FULL_ROUNDED_CSS_VALUE:
         this.value = {
           type: "rounded-full",
         };
@@ -147,13 +181,31 @@ class BorderRadiusStyleProperty extends StyleProperty<BorderRadiusStyle> {
         break;
     }
   }
+
+  acceptCssAstVisitor(visitor: CssAstVisitor): void {
+    visitor.visitBorderRadiusStyleProperty(this);
+  }
+
+  getCSSValue(): string {
+    switch (this.value.type) {
+      case "rounded":
+        return this.value.radius;
+      case "rounded-full":
+        return BorderRadiusStyleProperty.FULL_ROUNDED_CSS_VALUE;
+      case "none":
+        return "0";
+      default:
+        return "";
+    }
+  }
 }
 
 type StyleProperties<T> = {
   [K in keyof T]: AbstractStyle<T[K] | null>;
 };
 class StyleGroup<T> extends AbstractStyle<T> {
-  private styles: StyleProperties<T>;
+  styles: StyleProperties<T>;
+
   constructor(styles: StyleProperties<T>) {
     super();
     this.styles = styles;
@@ -169,6 +221,10 @@ class StyleGroup<T> extends AbstractStyle<T> {
     return false;
   }
 
+  acceptCssAstVisitor(visitor: CssAstVisitor): void {
+    visitor.visitStyleGroup(this);
+  }
+
   getValue(): T {
     const value: Record<string, unknown> = {};
     for (const [name, style] of Object.entries(this.styles)) {
@@ -180,50 +236,50 @@ class StyleGroup<T> extends AbstractStyle<T> {
 }
 
 export class CustomisableThemeStyleGroup extends StyleGroup<CustomisableTheme> {
-  constructor() {
+  constructor(value: CustomisableTheme = DEFAULT_LIGHT_THEME) {
     super({
       cardAlignment: new AlignItemsStyleProperty(
         "--layout-flex-align-items",
-        DEFAULT_LIGHT_THEME.cardAlignment
+        value.cardAlignment
       ),
       backgroundColor: new ColorStyleProperty(
         "-—widget__bg-color",
-        DEFAULT_LIGHT_THEME.backgroundColor
+        value.backgroundColor
       ),
 
       primaryButton: new StyleGroup({
         backgroundColor: new ColorStyleProperty(
           "-—primary-btn__bg-color",
-          DEFAULT_LIGHT_THEME.primaryButton.backgroundColor
+          value.primaryButton.backgroundColor
         ),
         labelColor: new ColorStyleProperty(
           "—-primary-btn__text-color",
-          DEFAULT_LIGHT_THEME.primaryButton.labelColor
+          value.primaryButton.labelColor
         ),
         borderRadius: new BorderRadiusStyleProperty(
           "—-primary-btn__border-radius",
-          DEFAULT_LIGHT_THEME.primaryButton.borderRadius
+          value.primaryButton.borderRadius
         ),
       }),
 
       inputField: new StyleGroup({
         borderRadius: new BorderRadiusStyleProperty(
           "--input__border-radius",
-          DEFAULT_LIGHT_THEME.inputField.borderRadius
+          value.inputField.borderRadius
         ),
       }),
 
       link: new StyleGroup({
         color: new ColorStyleProperty(
           "--body-text__link-color",
-          DEFAULT_LIGHT_THEME.link.color
+          value.link.color
         ),
       }),
     });
   }
 }
 
-export class StyleCSSVisitor<T> extends CssNodeVisitor {
+export class StyleCssVisitor<T> extends CssNodeVisitor {
   private ruleSelector: string;
 
   private styleGroup: StyleGroup<T>;
@@ -262,5 +318,52 @@ export class StyleCSSVisitor<T> extends CssNodeVisitor {
     const wrapper = new CssRootNodeWrapper(root);
     wrapper.accept(this);
     return this.styleGroup.getValue();
+  }
+}
+
+export class CssAstVisitor {
+  private root: Root;
+  private rule: Rule;
+
+  constructor(ruleSelector: string) {
+    this.root = new Root();
+    this.rule = new Rule({
+      selector: ruleSelector,
+    });
+    this.root.append(this.rule);
+  }
+
+  visitStyleGroup<T>(styleGroup: StyleGroup<T>): void {
+    for (const style of Object.values(styleGroup.styles)) {
+      const s = style as AbstractStyle<T>;
+      s.acceptCssAstVisitor(this);
+    }
+  }
+
+  visitAlignItemsStyleProperty(styleProperty: AlignItemsStyleProperty): void {
+    this.visitorStyleProperty(styleProperty);
+  }
+
+  visitBorderRadiusStyleProperty(
+    styleProperty: BorderRadiusStyleProperty
+  ): void {
+    this.visitorStyleProperty(styleProperty);
+  }
+
+  visitColorStyleProperty(styleProperty: ColorStyleProperty): void {
+    this.visitorStyleProperty(styleProperty);
+  }
+
+  visitorStyleProperty<T>(styleProperty: StyleProperty<T>): void {
+    this.rule.append(
+      new Declaration({
+        prop: styleProperty.propertyName,
+        value: String(styleProperty.getCSSValue()),
+      })
+    );
+  }
+
+  getCSS(): Root {
+    return this.root;
   }
 }
