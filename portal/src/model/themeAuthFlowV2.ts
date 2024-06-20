@@ -8,7 +8,7 @@ export type BorderRadiusStyle =
     }
   | {
       type: "rounded";
-      radius: number;
+      radius: string;
     }
   | {
       type: "rounded-full";
@@ -24,6 +24,10 @@ export interface InputFieldStyle {
   borderRadius: BorderRadiusStyle;
 }
 
+export interface LinkStyle {
+  color: Color;
+}
+
 export interface CustomisableTheme {
   cardAlignment: "left" | "center" | "right";
   backgroundColor: Color;
@@ -31,5 +35,30 @@ export interface CustomisableTheme {
   primaryButton: ButtonStyle;
   inputField: InputFieldStyle;
 
-  linkColor: Color;
+  link: LinkStyle;
 }
+
+export const DEFAULT_LIGHT_THEME: CustomisableTheme = {
+  cardAlignment: "center",
+  backgroundColor: "#ffffff",
+
+  primaryButton: {
+    backgroundColor: "#176df3",
+    labelColor: "#ffffff",
+    borderRadius: {
+      type: "rounded",
+      radius: "0.875em",
+    },
+  },
+
+  inputField: {
+    borderRadius: {
+      type: "rounded",
+      radius: "0.875em",
+    },
+  },
+
+  link: {
+    color: "#176df3",
+  },
+};
