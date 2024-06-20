@@ -167,6 +167,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	newWebappPageChain := func(idpSessionOnly bool) httproute.Middleware {
 		return httproute.Chain(
 			newWebappChain(idpSessionOnly),
+			p.Middleware(newCSRFDebugMiddleware),
 			p.Middleware(newCSRFMiddleware),
 			// Turbo no longer requires us to tell the redirected location.
 			// It can now determine redirection from the response.
@@ -178,6 +179,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	webappPageChain := newWebappPageChain(false)
 	webappSIWEChain := httproute.Chain(
 		webappChain,
+		p.Middleware(newCSRFDebugMiddleware),
 		p.Middleware(newCSRFMiddleware),
 		p.Middleware(newUnsafeDynamicCSPMiddleware),
 	)
@@ -207,6 +209,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	// consent page only accepts idp session
 	webappConsentPageChain := httproute.Chain(
 		newWebappChain(true),
+		p.Middleware(newCSRFDebugMiddleware),
 		p.Middleware(newCSRFMiddleware),
 		p.Middleware(newConsentPageDynamicCSPMiddleware),
 	)
