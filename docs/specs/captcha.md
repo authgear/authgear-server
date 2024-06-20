@@ -161,6 +161,9 @@ captcha:
     alias: cloudflare
 ```
 
+- `risk_assessment.enabled`: Whether risk assessment is enabled.
+- `risk_assessment.provider.alias`: It `enabled` is true, then it is required. Specify the risk assessment provider to be used in this branch.
+
 - `captcha.mode`: When Captcha is required.
   - `never`: Captcha is never required. It is the default.
   - `always`: Captcha is always required. Risk level is ignored.
@@ -192,6 +195,11 @@ authentication_flow:
 ```
 
 ### Behavior of generated flows
+
+Given `risk_assessment.enabled=true` and `risk_assessment.providers` is non-empty,
+
+1. All the branches of the first step (that is, the `identify` step, or the `authenticate` step in reauth flow) has `risk_assessment.enabled=true`.
+2. The first provider in `risk_assessment.providers` is used as `risk_assessment.provider.alias`
 
 Given `captcha.enabled=true` and `captcha.providers` is non-empty,
 
