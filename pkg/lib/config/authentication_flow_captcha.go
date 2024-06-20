@@ -51,7 +51,11 @@ type AuthenticationFlowCaptchaProvider struct {
 }
 type AuthenticationFlowCaptcha struct {
 	Mode     AuthenticationFlowCaptchaMode      `json:"mode,omitempty"`
-	Provider *AuthenticationFlowCaptchaProvider `json:"provider,omitempty"`
+	Provider *AuthenticationFlowCaptchaProvider `json:"provider,omitempty" nullable:"true"`
+}
+
+func (c *AuthenticationFlowCaptcha) SetDefaults() {
+	c.Mode = AuthenticationFlowCaptchaModeNever
 }
 
 type AuthenticationFlowCaptchaMode string
