@@ -6,8 +6,7 @@ var _ = Schema.Add("AuthenticationFlowCaptcha", `
 	"additionalProperties": false,
 	"required": ["mode"],
 	"properties": {
-		"mode": { "type": "string", "enum": ["never", "always"] },
-		"fail_open": { "type": "boolean" }
+		"mode": { "type": "string", "enum": ["never", "always"] }
 	},
 	"allOf": [
 		{
@@ -52,7 +51,6 @@ type AuthenticationFlowCaptchaProvider struct {
 }
 type AuthenticationFlowCaptcha struct {
 	Mode     AuthenticationFlowCaptchaMode      `json:"mode,omitempty"`
-	FailOpen *bool                              `json:"fail_open,omitempty"`
 	Provider *AuthenticationFlowCaptchaProvider `json:"provider,omitempty"`
 }
 
