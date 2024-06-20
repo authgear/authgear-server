@@ -1,4 +1,15 @@
+import { Declaration, Root } from "postcss";
+import {
+  CssDeclarationNodeWrapper,
+  CssNodeVisitor,
+  CssOtherNodeWrapper,
+  CssRootNodeWrapper,
+  CssRuleNodeWrapper,
+} from "../util/cssVisitor";
+
 type Color = string;
+
+export type Alignment = "start" | "center" | "end";
 
 export type BorderRadiusStyleType = "none" | "rounded" | "rounded-full";
 
@@ -29,7 +40,7 @@ export interface LinkStyle {
 }
 
 export interface CustomisableTheme {
-  cardAlignment: "left" | "center" | "right";
+  cardAlignment: Alignment;
   backgroundColor: Color;
 
   primaryButton: ButtonStyle;
@@ -64,7 +75,7 @@ export const DEFAULT_LIGHT_THEME: CustomisableTheme = {
 };
 
 abstract class AbstractStyle<T> {
-  abstract accept(declaration: Declaration): boolean;
+  abstract acceptDeclaration(declaration: Declaration): boolean;
   abstract getValue(): T;
 }
 
@@ -80,7 +91,7 @@ abstract class StyleProperty<T> extends AbstractStyle<T> {
 
   abstract setValue(rawValue: string): void;
 
-  accept(declaration: Declaration): boolean {
+  acceptDeclaration(declaration: Declaration): boolean {
     if (declaration.prop !== this.propertyName) {
       return false;
     }
@@ -148,10 +159,10 @@ class StyleGroup<T> extends AbstractStyle<T> {
     this.styles = styles;
   }
 
-  accept(declaration: Declaration): boolean {
+  acceptDeclaration(declaration: Declaration): boolean {
     for (const style of Object.values(this.styles)) {
       const s = style as AbstractStyle<T>;
-      if (s.accept(declaration)) {
+      if (s.acceptDeclaration(declaration)) {
         return true;
       }
     }
@@ -167,3 +178,46 @@ class StyleGroup<T> extends AbstractStyle<T> {
     return value as T;
   }
 }
+
+export class CustomisableThemeStyleGroup extends StyleGroup<CustomisableTheme> {
+  constructor() {
+    super({
+      cardAlignment: new AlignItemsStyleProperty(
+        "--layout-flex-align-items",
+        DEFAULT_LIGHT_THEME.cardAlignment
+      ),
+      backgroundColor: new ColorStyleProperty(
+        "-—widget__bg-color",
+        DEFAULT_LIGHT_THEME.backgroundColor
+      ),
+
+      primaryButton: new StyleGroup({
+        backgroundColor: new ColorStyleProperty(
+          "-—primary-btn__bg-color",
+          DEFAULT_LIGHT_THEME.primaryButton.backgroundColor
+        ),
+        labelColor: new ColorStyleProperty(
+          "—-primary-btn__text-color",
+          DEFAULT_LIGHT_THEME.primaryButton.labelColor
+        ),
+        borderRadius: new BorderRadiusStyleProperty(
+          "—-primary-btn__border-radius",
+          DEFAULT_LIGHT_THEME.primaryButton.borderRadius
+        ),
+      }),
+
+      inputField: new StyleGroup({
+        borderRadius: new BorderRadiusStyleProperty(
+          "--input__border-radius",
+          DEFAULT_LIGHT_THEME.inputField.borderRadius
+        ),
+      }),
+
+      link: new StyleGroup({
+        color: new ColorStyleProperty(
+          "--body-text__link-color",
+          DEFAULT_LIGHT_THEME.link.color
+        ),
+      }),
+    });
+  }
