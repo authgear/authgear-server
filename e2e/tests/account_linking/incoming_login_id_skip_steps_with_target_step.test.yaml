@@ -1,0 +1,336 @@
+name: Account linking - Incoming Login ID - skip create 1FA OOB OTP with target_step
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+        - login_id
+        - oauth
+    identity:
+      login_id:
+        keys:
+        - type: email
+        - type: username
+        - type: phone
+      oauth:
+        providers:
+          - alias: google
+            client_id: "google"
+            type: google
+    account_linking:
+      login_id:
+        - key: email
+          action: login_and_link
+          user_profile:
+            pointer: "/email"
+
+    authentication_flow:
+      signup_flows:
+        - name: f1
+          steps:
+            - type: identify
+              name: identify_phone
+              one_of:
+              - identification: phone
+                steps:
+                - type: identify
+                  one_of:
+                  - identification: email
+                    steps:
+                      # This step should be skipped because the email in step "identify_phone" will not be created
+                      - type: create_authenticator
+                        one_of:
+                        - authentication: secondary_oob_otp_sms
+                          target_step: identify_phone
+      login_flows:
+        - name: f1
+          steps:
+          - name: identify
+            type: identify
+            one_of:
+            - identification: oauth
+            - identification: email
+              steps:
+              - type: authenticate
+                one_of:
+                - authentication: primary_password
+before:
+  - type: user_import
+    user_import: google_user_with_phone.json
+  - type: custom_sql
+    custom_sql:
+      path: google_user.sql
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "f1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+85251000000"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "mock@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "identification": "email",
+            "data": {
+              "type": "account_linking_identification_data"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "index": 0,
+        "redirect_uri": "http://mock"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "identification": "oauth",
+            "data": {
+              "type": "oauth_data",
+              "alias": "google",
+              "oauth_provider_type": "google",
+              "oauth_authorization_url": "[[string]]"
+            }
+          }
+        }
+
+  - action: oauth_redirect
+    to: "{{ .prev.result.action.data.oauth_authorization_url }}"
+    redirect_uri: http://mock
+    output:
+      result: |
+        {
+          "query": "[[string]]"
+        }
+
+  - action: input
+    input: |
+      {
+        "query": "{{ .prev.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+---
+name: Account linking - Incoming Login ID - DO NOT skip create 2FA OOB OTP without target_step
+authgear.yaml:
+  override: |
+    authenticator:
+      oob_otp:
+        email:
+          email_otp_mode: code
+    authentication:
+      identities:
+        - login_id
+        - oauth
+    identity:
+      login_id:
+        keys:
+        - type: email
+        - type: username
+        - type: phone
+      oauth:
+        providers:
+          - alias: google
+            client_id: "google"
+            type: google
+    account_linking:
+      login_id:
+        - key: email
+          action: login_and_link
+          user_profile:
+            pointer: "/email"
+
+    authentication_flow:
+      signup_flows:
+        - name: f1
+          steps:
+            - type: identify
+              name: identify_phone
+              one_of:
+              - identification: phone
+                steps:
+                - type: identify
+                  one_of:
+                  - identification: email
+                    steps:
+                      # This step should NOT be skipped because target is not specified
+                      - type: create_authenticator
+                        one_of:
+                        - authentication: secondary_oob_otp_email
+      login_flows:
+        - name: f1
+          steps:
+          - name: identify
+            type: identify
+            one_of:
+            - identification: oauth
+            - identification: email
+              steps:
+              - type: authenticate
+                one_of:
+                - authentication: primary_password
+before:
+  - type: user_import
+    user_import: google_user_with_phone.json
+  - type: custom_sql
+    custom_sql:
+      path: google_user.sql
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "f1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+85251000000"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "mock@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "identification": "email",
+            "data": {
+              "type": "account_linking_identification_data"
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "index": 0,
+        "redirect_uri": "http://mock"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "identification": "oauth",
+            "data": {
+              "type": "oauth_data",
+              "alias": "google",
+              "oauth_provider_type": "google",
+              "oauth_authorization_url": "[[string]]"
+            }
+          }
+        }
+
+  - action: oauth_redirect
+    to: "{{ .prev.result.action.data.oauth_authorization_url }}"
+    redirect_uri: http://mock
+    output:
+      result: |
+        {
+          "query": "[[string]]"
+        }
+
+  - action: input
+    input: |
+      {
+        "query": "{{ .prev.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "secondary_oob_otp_email",
+        "target": "anothermail@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator",
+            "authentication": "secondary_oob_otp_email",
+            "data": {
+              "type": "verify_oob_otp_data",
+              "otp_form": "code"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "code": "111111"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }

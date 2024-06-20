@@ -19,7 +19,7 @@ func GenerateSignupLoginFlowConfig(cfg *config.AppConfig) *config.Authentication
 
 func generateSignupLoginFlowStepIdentify(cfg *config.AppConfig) *config.AuthenticationFlowSignupLoginFlowStep {
 	step := &config.AuthenticationFlowSignupLoginFlowStep{
-		Name: nameStepIdentify,
+		Name: nameStepIdentify(config.AuthenticationFlowTypeSignupLogin),
 		Type: config.AuthenticationFlowSignupLoginFlowStepTypeIdentify,
 	}
 

@@ -22,12 +22,16 @@ var _ authflow.NodeSimple = &NodeSkipCreationByExistingAuthenticator{}
 var _ authflow.Milestone = &NodeSkipCreationByExistingAuthenticator{}
 var _ MilestoneAuthenticationMethod = &NodeSkipCreationByExistingAuthenticator{}
 var _ MilestoneDoCreateAuthenticator = &NodeSkipCreationByExistingAuthenticator{}
+var _ MilestoneFlowCreateAuthenticator = &NodeSkipCreationByExistingAuthenticator{}
 
 func (*NodeSkipCreationByExistingAuthenticator) Kind() string {
 	return "NodeSkipCreationByExistingAuthenticator"
 }
 
 func (n *NodeSkipCreationByExistingAuthenticator) Milestone() {}
+func (n *NodeSkipCreationByExistingAuthenticator) MilestoneFlowCreateAuthenticator(flows authflow.Flows) (MilestoneDoCreateAuthenticator, authflow.Flows, bool) {
+	return n, flows, true
+}
 func (n *NodeSkipCreationByExistingAuthenticator) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
 	return n.Authentication
 }

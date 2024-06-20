@@ -32,7 +32,7 @@ func (*IntentSignupFlowSteps) Kind() string {
 
 func (*IntentSignupFlowSteps) Milestone()            {}
 func (*IntentSignupFlowSteps) MilestoneNestedSteps() {}
-func (i *IntentSignupFlowSteps) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
+func (i *IntentSignupFlowSteps) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
 	i.UserID = newUserID
 	i.IsUpdatingExistingUser = true
 	return nil

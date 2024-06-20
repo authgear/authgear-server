@@ -39,10 +39,11 @@ func (i *IntentAccountRecoveryFlowStepResetPassword) CanReactTo(ctx context.Cont
 }
 
 func (i *IntentAccountRecoveryFlowStepResetPassword) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
-	milestone, ok := authflow.FindMilestone[MilestoneAccountRecoveryCode](flows.Root)
-	if !ok {
+	ms := authflow.FindAllMilestones[MilestoneAccountRecoveryCode](flows.Root)
+	if len(ms) == 0 {
 		return nil, InvalidFlowConfig.New("IntentAccountRecoveryFlowStepResetPassword depends on MilestoneAccountRecoveryCode")
 	}
+	milestone := ms[0]
 	code := milestone.MilestoneAccountRecoveryCode()
 
 	var inputTakeNewPassword inputTakeNewPassword

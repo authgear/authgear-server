@@ -141,10 +141,19 @@ func (n *NodePromptCreatePasskey) OutputData(ctx context.Context, deps *authflow
 }
 
 func (n *NodePromptCreatePasskey) isAlreadyPrompted(flows authflow.Flows) bool {
-	mileStone, ok := authflow.FindFirstMilestone[MilestonePromptCreatePasskey](flows.Root)
+	ms := authflow.FindAllMilestones[MilestonePromptCreatePasskey](flows.Root)
 
-	if !ok || mileStone == n {
+	if len(ms) == 0 {
 		return false
 	}
-	return true
+
+	for _, m := range ms {
+		// Another milestone was found => already prompted.
+		if m != n {
+			return true
+		}
+	}
+
+	// Otherwise len(ms) > 0 and all milestone == n, => not prompted yet.
+	return false
 }

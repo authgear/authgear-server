@@ -95,8 +95,8 @@ func (i *IntentAccountRecoveryFlowStepIdentify) CanReactTo(ctx context.Context, 
 		}, nil
 	}
 
-	_, identityUsed := authflow.FindMilestone[MilestoneDoUseAccountRecoveryIdentificationMethod](flows.Nearest)
-	_, nestedStepsHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
+	_, _, identityUsed := authflow.FindMilestoneInCurrentFlow[MilestoneDoUseAccountRecoveryIdentificationMethod](flows)
+	_, _, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
 	switch {
 	case (identityUsed || isSelectedIdenRestored) && !nestedStepsHandled:
@@ -142,8 +142,8 @@ func (i *IntentAccountRecoveryFlowStepIdentify) ReactTo(ctx context.Context, dep
 		return nil, authflow.ErrIncompatibleInput
 	}
 
-	_, identityUsed := authflow.FindMilestone[MilestoneDoUseAccountRecoveryIdentificationMethod](flows.Nearest)
-	_, nestedStepsHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
+	_, _, identityUsed := authflow.FindMilestoneInCurrentFlow[MilestoneDoUseAccountRecoveryIdentificationMethod](flows)
+	_, _, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 	restoredIdenJsonPointer, isSelectedIdenRestored := i.restoredIdentificationJsonPointer()
 
 	switch {
@@ -154,7 +154,7 @@ func (i *IntentAccountRecoveryFlowStepIdentify) ReactTo(ctx context.Context, dep
 			StartFrom:     i.StartFrom,
 		}), nil
 	case identityUsed && !nestedStepsHandled:
-		identification := i.identificationMethod(flows.Nearest)
+		identification := i.identificationMethod(flows)
 		return authflow.NewSubFlow(&IntentAccountRecoveryFlowSteps{
 			FlowReference: i.FlowReference,
 			JSONPointer:   i.jsonPointer(step, identification),
@@ -214,8 +214,8 @@ func (*IntentAccountRecoveryFlowStepIdentify) checkIdentificationMethod(
 	return
 }
 
-func (*IntentAccountRecoveryFlowStepIdentify) identificationMethod(w *authflow.Flow) config.AuthenticationFlowAccountRecoveryIdentification {
-	m, ok := authflow.FindMilestone[MilestoneDoUseAccountRecoveryIdentificationMethod](w)
+func (*IntentAccountRecoveryFlowStepIdentify) identificationMethod(flows authflow.Flows) config.AuthenticationFlowAccountRecoveryIdentification {
+	m, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneDoUseAccountRecoveryIdentificationMethod](flows)
 	if !ok {
 		panic(fmt.Errorf("identification method not yet selected"))
 	}

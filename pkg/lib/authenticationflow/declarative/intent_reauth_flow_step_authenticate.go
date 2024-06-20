@@ -15,6 +15,20 @@ func init() {
 	authflow.RegisterIntent(&IntentReauthFlowStepAuthenticate{})
 }
 
+// IntentReauthFlowStepAuthenticate
+//
+//   NodeUseAuthenticatorPassword (MilestoneFlowAuthenticate)
+//   NodeDoUseAuthenticatorPassword (MilestoneDidAuthenticate)
+//
+//   NodeUseAuthenticatorPasskey (MilestoneFlowAuthenticate)
+//   NodeDoUseAuthenticatorPasskey (MilestoneDidAuthenticate)
+//
+//   IntentUseAuthenticatorOOBOTP (MilestoneFlowAuthenticate)
+//     NodeDoUseAuthenticatorSimple (MilestoneDidAuthenticate)
+//
+//   NodeUseAuthenticatorTOTP (MilestoneFlowAuthenticate)
+//   NodeDoUseAuthenticatorSimple (MilestoneDidAuthenticate)
+
 type IntentReauthFlowStepAuthenticate struct {
 	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
 	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
@@ -47,9 +61,15 @@ func (*IntentReauthFlowStepAuthenticate) Kind() string {
 }
 
 func (i *IntentReauthFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	_, authenticationMethodSelected := authflow.FindMilestone[MilestoneAuthenticationMethod](flows.Nearest)
-	_, authenticated := authflow.FindMilestone[MilestoneDidAuthenticate](flows.Nearest)
-	_, nestedStepsHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
+	_, _, authenticationMethodSelected := authflow.FindMilestoneInCurrentFlow[MilestoneAuthenticationMethod](flows)
+
+	authenticated := false
+	mFlowAuthenticate, mFlowAuthenticateFlows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowAuthenticate](flows)
+	if ok {
+		_, _, authenticated = mFlowAuthenticate.MilestoneFlowAuthenticate(mFlowAuthenticateFlows)
+	}
+
+	_, _, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
 	switch {
 	case !authenticationMethodSelected:
@@ -89,11 +109,15 @@ func (i *IntentReauthFlowStepAuthenticate) ReactTo(ctx context.Context, deps *au
 	}
 	step := i.step(current)
 
-	_, authenticationMethodSelected := authflow.FindMilestone[MilestoneAuthenticationMethod](flows.Nearest)
+	_, _, authenticationMethodSelected := authflow.FindMilestoneInCurrentFlow[MilestoneAuthenticationMethod](flows)
 
-	_, authenticated := authflow.FindMilestone[MilestoneDidAuthenticate](flows.Nearest)
+	authenticated := false
+	mFlowAuthenticate, mFlowAuthenticateFlows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowAuthenticate](flows)
+	if ok {
+		_, _, authenticated = mFlowAuthenticate.MilestoneFlowAuthenticate(mFlowAuthenticateFlows)
+	}
 
-	_, nestedStepsHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
+	_, _, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
 	switch {
 	case !authenticationMethodSelected:
@@ -212,7 +236,7 @@ func (*IntentReauthFlowStepAuthenticate) step(o config.AuthenticationFlowObject)
 }
 
 func (*IntentReauthFlowStepAuthenticate) authenticationMethod(flows authflow.Flows) config.AuthenticationFlowAuthentication {
-	m, ok := authflow.FindMilestone[MilestoneAuthenticationMethod](flows.Nearest)
+	m, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneAuthenticationMethod](flows)
 	if !ok {
 		panic(fmt.Errorf("authentication method not yet selected"))
 	}

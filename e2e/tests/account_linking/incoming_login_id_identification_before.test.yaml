@@ -1,0 +1,319 @@
+name: Account linking - Incoming Login ID - identification=username before it
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+        - login_id
+        - oauth
+    identity:
+      login_id:
+        keys:
+        - type: email
+        - type: username
+      oauth:
+        providers:
+          - alias: google
+            client_id: "google"
+            type: google
+    account_linking:
+      login_id:
+        - key: email
+          action: login_and_link
+          user_profile:
+            pointer: "/email"
+
+    authentication_flow:
+      signup_flows:
+        - name: f1
+          steps:
+            - type: identify
+              one_of:
+              - identification: username
+                steps:
+                  - type: identify
+                    one_of:
+                      - identification: email
+      login_flows:
+        - name: f1
+          steps:
+          - name: identify
+            type: identify
+            one_of:
+            - identification: oauth
+            - identification: email
+              steps:
+              - type: authenticate
+                one_of:
+                - authentication: primary_password
+before:
+  - type: user_import
+    user_import: google_user.json
+  - type: custom_sql
+    custom_sql:
+      path: google_user.sql
+
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "f1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "test1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "type": "identification_data"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "mock@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "identification": "email",
+            "data": {
+              "type": "account_linking_identification_data"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "index": 0,
+        "redirect_uri": "http://mock"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "identification": "oauth",
+            "data": {
+              "type": "oauth_data",
+              "alias": "google",
+              "oauth_provider_type": "google",
+              "oauth_authorization_url": "[[string]]"
+            }
+          }
+        }
+
+  - action: oauth_redirect
+    to: "{{ .prev.result.action.data.oauth_authorization_url }}"
+    redirect_uri: http://mock
+    output:
+      result: |
+        {
+          "query": "[[string]]"
+        }
+
+  - action: input
+    input: |
+      {
+        "query": "{{ .prev.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+---
+
+name: Account linking - Incoming Login ID - identification=email before it
+authgear.yaml:
+  override: |
+    test_mode:
+      oob_otp:
+        enabled: true
+        rules:
+          - fixed_code: "aaaaaa"
+            regex: ".*"
+    authentication:
+      identities:
+        - login_id
+        - oauth
+    identity:
+      login_id:
+        keys:
+        - type: email
+        - type: username
+      oauth:
+        providers:
+          - alias: google
+            client_id: "google"
+            type: google
+    account_linking:
+      login_id:
+        - key: email
+          action: login_and_link
+          user_profile:
+            pointer: "/email"
+
+    authentication_flow:
+      signup_flows:
+        - name: f1
+          steps:
+            - type: identify
+              name: signup_identify
+              one_of:
+              - identification: email
+                steps:
+                  - type: verify
+                    target_step: signup_identify
+                  - type: identify
+                    one_of:
+                      - identification: email
+      login_flows:
+        - name: f1
+          steps:
+          - name: login_identify
+            type: identify
+            one_of:
+            - identification: oauth
+            - identification: email
+              steps:
+              - type: authenticate
+                one_of:
+                - authentication: primary_password
+before:
+  - type: user_import
+    user_import: google_user.json
+  - type: custom_sql
+    custom_sql:
+      path: google_user.sql
+
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "f1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "test@test.local"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "code": "aaaaaa"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "type": "identification_data"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "mock@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "identification": "email",
+            "data": {
+              "type": "account_linking_identification_data"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "index": 0,
+        "redirect_uri": "http://mock"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "identification": "oauth",
+            "data": {
+              "type": "oauth_data",
+              "alias": "google",
+              "oauth_provider_type": "google",
+              "oauth_authorization_url": "[[string]]"
+            }
+          }
+        }
+
+  - action: oauth_redirect
+    to: "{{ .prev.result.action.data.oauth_authorization_url }}"
+    redirect_uri: http://mock
+    output:
+      result: |
+        {
+          "query": "[[string]]"
+        }
+
+  - action: input
+    input: |
+      {
+        "query": "{{ .prev.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  # TODO(tung): We want to assert that the email is not really added

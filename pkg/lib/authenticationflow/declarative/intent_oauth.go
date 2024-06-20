@@ -22,6 +22,8 @@ type IntentOAuth struct {
 var _ authflow.Intent = &IntentOAuth{}
 var _ authflow.Milestone = &IntentOAuth{}
 var _ MilestoneIdentificationMethod = &IntentOAuth{}
+var _ MilestoneFlowCreateIdentity = &IntentOAuth{}
+var _ MilestoneFlowUseIdentity = &IntentOAuth{}
 
 func (*IntentOAuth) Kind() string {
 	return "IntentOAuth"
@@ -30,6 +32,21 @@ func (*IntentOAuth) Kind() string {
 func (*IntentOAuth) Milestone() {}
 func (i *IntentOAuth) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
 	return i.Identification
+}
+
+func (*IntentOAuth) MilestoneFlowCreateIdentity(flows authflow.Flows) (MilestoneDoCreateIdentity, authflow.Flows, bool) {
+	// Find IntentCheckConflictAndCreateIdenity
+	m, mFlows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
+	if !ok {
+		return nil, mFlows, false
+	}
+
+	// Delegate to IntentCheckConflictAndCreateIdenity
+	return m.MilestoneFlowCreateIdentity(mFlows)
+}
+
+func (*IntentOAuth) MilestoneFlowUseIdentity(flows authflow.Flows) (MilestoneDoUseIdentity, authflow.Flows, bool) {
+	return authflow.FindMilestoneInCurrentFlow[MilestoneDoUseIdentity](flows)
 }
 
 func (i *IntentOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {

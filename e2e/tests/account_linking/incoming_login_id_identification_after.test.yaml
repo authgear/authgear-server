@@ -1,4 +1,4 @@
-name: Account linking login and link with identification email after it
+name: Account linking - Incoming Login ID - identification=email after it
 authgear.yaml:
   override: |
     authentication:
@@ -6,33 +6,33 @@ authgear.yaml:
         - login_id
         - oauth
     identity:
+      login_id:
+        keys:
+        - type: email
+        - type: username
       oauth:
         providers:
           - alias: google
             client_id: "google"
             type: google
     account_linking:
-      oauth:
-        - alias: google
+      login_id:
+        - key: email
           action: login_and_link
-          oauth_claim:
-            pointer: "/email"
           user_profile:
             pointer: "/email"
+
     authentication_flow:
       signup_flows:
         - name: f1
           steps:
             - type: identify
               one_of:
-              - identification: oauth
+              - identification: email
                 steps:
                   - type: identify
-                    name: identify_email
                     one_of:
-                      - identification: email
-                  - type: verify
-                    target_step: identify_email
+                      - identification: oauth
       login_flows:
         - name: f1
           steps:
@@ -47,7 +47,11 @@ authgear.yaml:
                 - authentication: primary_password
 before:
   - type: user_import
-    user_import: email_users.json
+    user_import: google_user.json
+  - type: custom_sql
+    custom_sql:
+      path: google_user.sql
+
 steps:
   - action: "create"
     input: |
@@ -66,8 +70,25 @@ steps:
   - action: input
     input: |
       {
-        "identification": "oauth",
-        "alias": "google",
+        "identification": "email",
+        "login_id": "mock@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "identification": "email",
+            "data": {
+              "type": "account_linking_identification_data"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "index": 0,
         "redirect_uri": "http://mock"
       }
     output:
@@ -75,7 +96,11 @@ steps:
         {
           "action": {
             "type": "identify",
+            "identification": "oauth",
             "data": {
+              "type": "oauth_data",
+              "alias": "google",
+              "oauth_provider_type": "google",
               "oauth_authorization_url": "[[string]]"
             }
           }
@@ -94,40 +119,6 @@ steps:
     input: |
       {
         "query": "{{ .prev.result.query }}"
-      }
-    output:
-      result: |
-        {
-          "action": {
-            "type": "identify",
-            "identification": "oauth",
-            "data": {
-              "type": "account_linking_identification_data"
-            }
-          }
-        }
-
-  - action: input
-    input: |
-      {
-        "index": 0
-      }
-    output:
-      result: |
-        {
-          "action": {
-            "type": "authenticate",
-            "data": {
-              "type": "authentication_data"
-            }
-          }
-        }
-
-  - action: input
-    input: |
-      {
-        "authentication": "primary_password",
-        "password": "12341234"
       }
     output:
       result: |

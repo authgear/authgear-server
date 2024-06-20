@@ -36,10 +36,10 @@ func (*IntentVerifyClaim) Kind() string {
 
 func (*IntentVerifyClaim) Milestone()            {}
 func (*IntentVerifyClaim) MilestoneVerifyClaim() {}
-func (i *IntentVerifyClaim) MilestoneVerifyClaimUpdateUserID(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
+func (i *IntentVerifyClaim) MilestoneVerifyClaimUpdateUserID(deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
 	i.UserID = newUserID
 
-	milestone, ok := authflow.FindFirstMilestone[MilestoneDoMarkClaimVerified](flow)
+	milestone, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneDoMarkClaimVerified](flows)
 	if ok {
 		milestone.MilestoneDoMarkClaimVerifiedUpdateUserID(newUserID)
 	}

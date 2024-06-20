@@ -118,6 +118,11 @@ type MilestoneAuthenticationMethod interface {
 	MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication
 }
 
+type MilestoneFlowAuthenticate interface {
+	authflow.Milestone
+	MilestoneFlowAuthenticate(flows authflow.Flows) (MilestoneDidAuthenticate, authflow.Flows, bool)
+}
+
 type MilestoneDidAuthenticate interface {
 	authflow.Milestone
 	MilestoneDidAuthenticate() (amr []string)
@@ -134,11 +139,27 @@ type MilestoneDoCreateUser interface {
 	MilestoneDoCreateUserUseExisting(userID string)
 }
 
+type MilestoneFlowCreateIdentity interface {
+	authflow.Milestone
+	MilestoneFlowCreateIdentity(flows authflow.Flows) (created MilestoneDoCreateIdentity, newFlows authflow.Flows, ok bool)
+}
+
+type MilestoneFlowAccountLinking interface {
+	authflow.Milestone
+	MilestoneFlowCreateIdentity
+	MilestoneFlowAccountLinking()
+}
+
 type MilestoneDoCreateIdentity interface {
 	authflow.Milestone
 	MilestoneDoCreateIdentity() *identity.Info
 	MilestoneDoCreateIdentitySkipCreate()
 	MilestoneDoCreateIdentityUpdate(newInfo *identity.Info)
+}
+
+type MilestoneFlowCreateAuthenticator interface {
+	authflow.Milestone
+	MilestoneFlowCreateAuthenticator(flows authflow.Flows) (created MilestoneDoCreateAuthenticator, newFlow authflow.Flows, ok bool)
 }
 
 type MilestoneDoCreateAuthenticator interface {
@@ -156,6 +177,11 @@ type MilestoneDoCreatePasskey interface {
 type MilestoneDoUseUser interface {
 	authflow.Milestone
 	MilestoneDoUseUser() string
+}
+
+type MilestoneFlowUseIdentity interface {
+	authflow.Milestone
+	MilestoneFlowUseIdentity(flows authflow.Flows) (MilestoneDoUseIdentity, authflow.Flows, bool)
 }
 
 type MilestoneDoUseIdentity interface {
@@ -203,7 +229,7 @@ type MilestoneDoPopulateStandardAttributes interface {
 type MilestoneVerifyClaim interface {
 	authflow.Milestone
 	MilestoneVerifyClaim()
-	MilestoneVerifyClaimUpdateUserID(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error
+	MilestoneVerifyClaimUpdateUserID(deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error
 }
 
 type MilestoneDoMarkClaimVerified interface {
@@ -239,7 +265,7 @@ type MilestoneDidReauthenticate interface {
 
 type MilestoneSwitchToExistingUser interface {
 	authflow.Milestone
-	MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error
+	MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error
 }
 
 type MilestoneDoReplaceRecoveryCode interface {

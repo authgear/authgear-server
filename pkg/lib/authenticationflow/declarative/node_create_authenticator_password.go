@@ -25,6 +25,7 @@ type NodeCreateAuthenticatorPassword struct {
 var _ authflow.NodeSimple = &NodeCreateAuthenticatorPassword{}
 var _ authflow.InputReactor = &NodeCreateAuthenticatorPassword{}
 var _ authflow.Milestone = &NodeCreateAuthenticatorPassword{}
+var _ MilestoneFlowCreateAuthenticator = &NodeCreateAuthenticatorPassword{}
 var _ MilestoneAuthenticationMethod = &NodeCreateAuthenticatorPassword{}
 
 func (*NodeCreateAuthenticatorPassword) Kind() string {
@@ -32,6 +33,9 @@ func (*NodeCreateAuthenticatorPassword) Kind() string {
 }
 
 func (*NodeCreateAuthenticatorPassword) Milestone() {}
+func (*NodeCreateAuthenticatorPassword) MilestoneFlowCreateAuthenticator(flows authflow.Flows) (MilestoneDoCreateAuthenticator, authflow.Flows, bool) {
+	return authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateAuthenticator](flows)
+}
 func (n *NodeCreateAuthenticatorPassword) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
 	return n.Authentication
 }

@@ -214,6 +214,10 @@ type IDTokenService interface {
 	VerifyIDTokenHintWithoutClient(idTokenHint string) (jwt.Token, error)
 }
 
+type LoginIDService interface {
+	Normalize(typ model.LoginIDKeyType, value string) (normalized string, uniqueKey string, err error)
+}
+
 type Dependencies struct {
 	Config        *config.AppConfig
 	FeatureConfig *config.FeatureConfig
@@ -244,6 +248,7 @@ type Dependencies struct {
 	PasskeyRequestOptionsService    PasskeyRequestOptionsService
 	PasskeyCreationOptionsService   PasskeyCreationOptionsService
 	PasskeyService                  PasskeyService
+	LoginIDs                        LoginIDService
 
 	IDPSessions          IDPSessionService
 	Sessions             SessionService

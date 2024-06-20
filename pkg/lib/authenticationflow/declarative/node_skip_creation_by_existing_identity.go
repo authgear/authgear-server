@@ -23,6 +23,7 @@ type NodeSkipCreationByExistingIdentity struct {
 var _ authflow.NodeSimple = &NodeSkipCreationByExistingIdentity{}
 var _ authflow.Milestone = &NodeSkipCreationByExistingIdentity{}
 var _ MilestoneIdentificationMethod = &NodeSkipCreationByExistingIdentity{}
+var _ MilestoneFlowCreateIdentity = &NodeSkipCreationByExistingIdentity{}
 var _ MilestoneDoCreateIdentity = &NodeSkipCreationByExistingIdentity{}
 var _ authflow.InputReactor = &NodeSkipCreationByExistingIdentity{}
 
@@ -34,6 +35,9 @@ func (*NodeSkipCreationByExistingIdentity) Kind() string {
 
 func (n *NodeSkipCreationByExistingIdentity) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
 	return n.Identification
+}
+func (n *NodeSkipCreationByExistingIdentity) MilestoneFlowCreateIdentity(flows authflow.Flows) (MilestoneDoCreateIdentity, authflow.Flows, bool) {
+	return n, flows, true
 }
 func (n *NodeSkipCreationByExistingIdentity) MilestoneDoCreateIdentity() *identity.Info {
 	return n.Identity

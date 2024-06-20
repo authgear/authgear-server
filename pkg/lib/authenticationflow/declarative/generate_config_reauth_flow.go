@@ -20,7 +20,7 @@ func GenerateReauthFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowR
 
 func generateReauthFlowStepIdentify(cfg *config.AppConfig) *config.AuthenticationFlowReauthFlowStep {
 	step := &config.AuthenticationFlowReauthFlowStep{
-		Name: nameStepIdentify,
+		Name: nameStepIdentify(config.AuthenticationFlowTypeReauth),
 		Type: config.AuthenticationFlowReauthFlowStepTypeIdentify,
 		OneOf: []*config.AuthenticationFlowReauthFlowOneOf{
 			{

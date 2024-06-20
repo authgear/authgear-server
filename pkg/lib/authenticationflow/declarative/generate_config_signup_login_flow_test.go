@@ -49,7 +49,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: signup_login_identify
   type: identify
   one_of:
   - identification: email
@@ -71,7 +71,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: signup_login_identify
   type: identify
   one_of:
   - identification: phone
@@ -93,7 +93,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: signup_login_identify
   type: identify
   one_of:
   - identification: username
@@ -118,7 +118,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: signup_login_identify
   type: identify
   one_of:
   - identification: email
@@ -142,7 +142,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: signup_login_identify
   type: identify
   one_of:
   - identification: oauth
@@ -166,7 +166,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: signup_login_identify
   type: identify
   one_of:
   - identification: email
@@ -206,7 +206,7 @@ identity:
 `, `
 name: default
 steps:
-- name: identify
+- name: signup_login_identify
   type: identify
   one_of:
   - identification: email
@@ -246,7 +246,7 @@ name: default
 captcha:
   enabled: true
 steps:
-- name: identify
+- name: signup_login_identify
   type: identify
   one_of:
   - identification: email
@@ -293,7 +293,7 @@ name: default
 captcha:
   enabled: true
 steps:
-- name: identify
+- name: signup_login_identify
   type: identify
   one_of:
   - identification: email

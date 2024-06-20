@@ -204,6 +204,7 @@ var CommonDependencySet = wire.NewSet(
 		identityloginid.DependencySet,
 		wire.Bind(new(stdattrs.LoginIDNormalizerFactory), new(*identityloginid.NormalizerFactory)),
 		wire.Bind(new(authenticatoroob.LoginIDNormalizerFactory), new(*identityloginid.NormalizerFactory)),
+		wire.Bind(new(authenticationflow.LoginIDService), new(*identityloginid.Provider)),
 
 		identityoauth.DependencySet,
 

@@ -49,7 +49,7 @@ func (i *IntentLoginFlow) FlowRootObject(deps *authflow.Dependencies) (config.Au
 func (*IntentLoginFlow) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	// The last node is NodeDoCreateSession.
 	// So if MilestoneDoCreateSession is found, this flow has finished.
-	_, ok := authflow.FindMilestone[MilestoneDoCreateSession](flows.Nearest)
+	_, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateSession](flows)
 	if ok {
 		return nil, authflow.ErrEOF
 	}
@@ -109,7 +109,7 @@ func (i *IntentLoginFlow) GetEffects(ctx context.Context, deps *authflow.Depende
 				return err
 			}
 			var idpSession *idpsession.IDPSession
-			if m, ok := authflow.FindMilestone[MilestoneDoCreateSession](flows.Nearest); ok {
+			if m, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateSession](flows); ok {
 				idpSession, _ = m.MilestoneDoCreateSession()
 			}
 

@@ -28,6 +28,15 @@ type IntentAccountLinking struct {
 
 var _ authflow.Intent = &IntentAccountLinking{}
 var _ authflow.DataOutputer = &IntentAccountLinking{}
+var _ authflow.Milestone = &IntentAccountLinking{}
+var _ MilestoneFlowAccountLinking = &IntentAccountLinking{}
+var _ MilestoneFlowCreateIdentity = &IntentAccountLinking{}
+
+func (*IntentAccountLinking) Milestone()                   {}
+func (*IntentAccountLinking) MilestoneFlowAccountLinking() {}
+func (*IntentAccountLinking) MilestoneFlowCreateIdentity(flows authflow.Flows) (MilestoneDoCreateIdentity, authflow.Flows, bool) {
+	return authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateIdentity](flows)
+}
 
 func (*IntentAccountLinking) Kind() string {
 	return "IntentAccountLinking"
@@ -82,7 +91,7 @@ func (i *IntentAccountLinking) ReactTo(ctx context.Context, deps *authflow.Depen
 		return nil, authflow.ErrIncompatibleInput
 	}
 
-	milestone, ok := authflow.FindMilestoneInCurrentFlow[MilestoneUseAccountLinkingIdentification](flows.Nearest)
+	milestone, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneUseAccountLinkingIdentification](flows)
 	if !ok {
 		panic(fmt.Errorf("expected milestone MilestoneUseAccountLinkingIdentification not found"))
 	}
@@ -153,7 +162,7 @@ func (i *IntentAccountLinking) rewriteFlowIntoUserIDOfConflictedIdentity(
 		NodeSimple: func(nodeSimple authflow.NodeSimple, w *authflow.Flow) error {
 			milestone, ok := nodeSimple.(MilestoneSwitchToExistingUser)
 			if ok {
-				err := milestone.MilestoneSwitchToExistingUser(deps, w, conflictedUserID)
+				err := milestone.MilestoneSwitchToExistingUser(deps, flows.Replace(w), conflictedUserID)
 				if err != nil {
 					return err
 				}
@@ -163,7 +172,7 @@ func (i *IntentAccountLinking) rewriteFlowIntoUserIDOfConflictedIdentity(
 		Intent: func(intent authflow.Intent, w *authflow.Flow) error {
 			milestone, ok := intent.(MilestoneSwitchToExistingUser)
 			if ok {
-				err := milestone.MilestoneSwitchToExistingUser(deps, w, conflictedUserID)
+				err := milestone.MilestoneSwitchToExistingUser(deps, flows.Replace(w), conflictedUserID)
 				if err != nil {
 					return err
 				}

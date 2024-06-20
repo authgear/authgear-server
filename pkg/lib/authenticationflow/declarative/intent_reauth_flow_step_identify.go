@@ -49,8 +49,8 @@ func (*IntentReauthFlowStepIdentify) Kind() string {
 }
 
 func (i *IntentReauthFlowStepIdentify) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	_, userIdentified := authflow.FindMilestone[MilestoneDoUseUser](flows.Nearest)
-	_, nestedStepsHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
+	_, _, userIdentified := authflow.FindMilestoneInCurrentFlow[MilestoneDoUseUser](flows)
+	_, _, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
 	switch {
 	case len(flows.Nearest.Nodes) == 0 && authflow.GetIDToken(ctx) != "":
@@ -82,8 +82,8 @@ func (i *IntentReauthFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 	}
 	step := i.step(current)
 
-	_, userIdentified := authflow.FindMilestone[MilestoneDoUseUser](flows.Nearest)
-	_, nestedStepsHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
+	_, _, userIdentified := authflow.FindMilestoneInCurrentFlow[MilestoneDoUseUser](flows)
+	_, _, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
 	switch {
 	case len(flows.Nearest.Nodes) == 0 && authflow.GetIDToken(ctx) != "":
@@ -119,7 +119,7 @@ func (i *IntentReauthFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 		}
 		return nil, authflow.ErrIncompatibleInput
 	case userIdentified && !nestedStepsHandled:
-		identification := i.identificationMethod(flows.Nearest)
+		identification := i.identificationMethod(flows)
 		return authflow.NewSubFlow(&IntentReauthFlowSteps{
 			FlowReference: i.FlowReference,
 			JSONPointer:   i.jsonPointer(step, identification),
@@ -164,8 +164,8 @@ func (*IntentReauthFlowStepIdentify) checkIdentificationMethod(deps *authflow.De
 	return
 }
 
-func (*IntentReauthFlowStepIdentify) identificationMethod(w *authflow.Flow) config.AuthenticationFlowIdentification {
-	m, ok := authflow.FindMilestone[MilestoneIdentificationMethod](w)
+func (*IntentReauthFlowStepIdentify) identificationMethod(flows authflow.Flows) config.AuthenticationFlowIdentification {
+	m, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneIdentificationMethod](flows)
 	if !ok {
 		panic(fmt.Errorf("identification method not yet selected"))
 	}

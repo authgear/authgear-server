@@ -9,17 +9,13 @@ type Milestone interface {
 	Milestone()
 }
 
-func FindFirstMilestone[T Milestone](w *Flow) (T, bool) {
-	return findMilestone[T](w, true)
-}
-
-func FindMilestone[T Milestone](w *Flow) (T, bool) {
-	return findMilestone[T](w, false)
-}
-
-// This function only find milestones in the provided flow,
-// and will not nest into subflows
-func FindMilestoneInCurrentFlow[T Milestone](w *Flow) (T, bool) {
+// FindMilestoneInCurrentFlow find the last milestone in the flow.
+// It does not recur into sub flows.
+// If the found milestone is a node, then the returned flows is the same as flows.
+// If the found milestone is a intent, then the returned flows is Nearest=intent.
+func FindMilestoneInCurrentFlow[T Milestone](flows Flows) (T, Flows, bool) {
+	newFlows := flows
+	w := flows.Nearest
 	var t T
 	found := false
 	for _, node := range w.Nodes {
@@ -28,49 +24,20 @@ func FindMilestoneInCurrentFlow[T Milestone](w *Flow) (T, bool) {
 		case NodeTypeSimple:
 			if m, ok := n.Simple.(T); ok {
 				t = m
+				newFlows = flows.Replace(w)
 				found = true
 			}
 		case NodeTypeSubFlow:
 			if m, ok := n.SubFlow.Intent.(T); ok {
 				t = m
+				newFlows = flows.Replace(n.SubFlow)
 				found = true
 			}
 		default:
 			panic(errors.New("unreachable"))
 		}
 	}
-	return t, found
-}
-
-func findMilestone[T Milestone](w *Flow, stopOnFirst bool) (T, bool) {
-	var t T
-	found := false
-
-	err := TraverseFlow(Traverser{
-		NodeSimple: func(nodeSimple NodeSimple, _ *Flow) error {
-			if m, ok := nodeSimple.(T); ok && (!found || !stopOnFirst) {
-				t = m
-				found = true
-			}
-			return nil
-		},
-		Intent: func(intent Intent, w *Flow) error {
-			if m, ok := intent.(T); ok && (!found || !stopOnFirst) {
-				t = m
-				found = true
-			}
-			return nil
-		},
-	}, w)
-	if err != nil {
-		return *new(T), false
-	}
-
-	if !found {
-		return *new(T), false
-	}
-
-	return t, true
+	return t, newFlows, found
 }
 
 func FindAllMilestones[T Milestone](w *Flow) []T {

@@ -51,7 +51,7 @@ func (i *IntentPromoteFlow) CanReactTo(ctx context.Context, deps *authflow.Depen
 	// 1 IntentPromoteFlowSteps
 	// 1 NodeDoCreateSession
 	// So if MilestoneDoCreateSession is found, this flow has finished.
-	_, ok := authflow.FindMilestone[MilestoneDoCreateSession](flows.Nearest)
+	_, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateSession](flows)
 	if ok {
 		return nil, authflow.ErrEOF
 	}
@@ -70,11 +70,11 @@ func (i *IntentPromoteFlow) ReactTo(ctx context.Context, deps *authflow.Dependen
 		return authflow.NewSubFlow(&IntentPromoteFlowSteps{
 			FlowReference: i.FlowReference,
 			JSONPointer:   i.JSONPointer,
-			UserID:        i.userID(flows.Nearest),
+			UserID:        i.userID(flows),
 		}), nil
 	case len(flows.Nearest.Nodes) == 2:
 		n, err := NewNodeDoCreateSession(ctx, deps, flows, &NodeDoCreateSession{
-			UserID:       i.userID(flows.Nearest),
+			UserID:       i.userID(flows),
 			CreateReason: session.CreateReasonPromote,
 			SkipCreate:   authflow.GetSuppressIDPSessionCookie(ctx),
 		})
@@ -101,7 +101,7 @@ func (i *IntentPromoteFlow) GetEffects(ctx context.Context, deps *authflow.Depen
 		}),
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
 			// Remove the anonymous identity
-			anonymousIden := i.anonymousIdentity(flows.Nearest)
+			anonymousIden := i.anonymousIdentity(flows)
 
 			err := deps.Identities.Delete(anonymousIden)
 			if err != nil {
@@ -111,7 +111,7 @@ func (i *IntentPromoteFlow) GetEffects(ctx context.Context, deps *authflow.Depen
 			return nil
 		}),
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
-			userID := i.userID(flows.Nearest)
+			userID := i.userID(flows)
 			anonUserRef := model.UserRef{
 				Meta: model.Meta{
 					ID: userID,
@@ -146,8 +146,8 @@ func (i *IntentPromoteFlow) GetEffects(ctx context.Context, deps *authflow.Depen
 	}, nil
 }
 
-func (i *IntentPromoteFlow) anonymousIdentity(f *authflow.Flow) *identity.Info {
-	m, ok := authflow.FindMilestone[MilestoneDoUseAnonymousUser](f)
+func (i *IntentPromoteFlow) anonymousIdentity(flows authflow.Flows) *identity.Info {
+	m, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneDoUseAnonymousUser](flows)
 	if !ok {
 		panic(fmt.Errorf("expected userID"))
 	}
@@ -156,6 +156,6 @@ func (i *IntentPromoteFlow) anonymousIdentity(f *authflow.Flow) *identity.Info {
 	return info
 }
 
-func (i *IntentPromoteFlow) userID(f *authflow.Flow) string {
-	return i.anonymousIdentity(f).UserID
+func (i *IntentPromoteFlow) userID(flows authflow.Flows) string {
+	return i.anonymousIdentity(flows).UserID
 }

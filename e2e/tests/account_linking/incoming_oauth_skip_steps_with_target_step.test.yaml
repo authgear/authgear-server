@@ -1,4 +1,4 @@
-name: Account linking login and link with secondary oob otp setup skipped
+name: Account linking - Incoming OAuth - skip create 2FA OOB OTP with target_step
 authgear.yaml:
   override: |
     authentication:
@@ -156,7 +156,7 @@ steps:
         }
 
 ---
-name: Account linking login and link with secondary oob otp setup not skipped
+name: Account linking - Incoming OAuth - DO NOT skip create 2FA OOB OTP without target_step
 authgear.yaml:
   override: |
     authenticator:

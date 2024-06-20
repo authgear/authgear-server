@@ -47,6 +47,7 @@ type NodeCreateAuthenticatorTOTP struct {
 var _ authflow.NodeSimple = &NodeCreateAuthenticatorTOTP{}
 var _ authflow.Milestone = &NodeCreateAuthenticatorTOTP{}
 var _ MilestoneAuthenticationMethod = &NodeCreateAuthenticatorTOTP{}
+var _ MilestoneFlowCreateAuthenticator = &NodeCreateAuthenticatorTOTP{}
 var _ authflow.InputReactor = &NodeCreateAuthenticatorTOTP{}
 var _ authflow.DataOutputer = &NodeCreateAuthenticatorTOTP{}
 
@@ -86,6 +87,9 @@ func (*NodeCreateAuthenticatorTOTP) Kind() string {
 }
 
 func (*NodeCreateAuthenticatorTOTP) Milestone() {}
+func (*NodeCreateAuthenticatorTOTP) MilestoneFlowCreateAuthenticator(flows authflow.Flows) (MilestoneDoCreateAuthenticator, authflow.Flows, bool) {
+	return authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateAuthenticator](flows)
+}
 func (n *NodeCreateAuthenticatorTOTP) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
 	return n.Authentication
 }

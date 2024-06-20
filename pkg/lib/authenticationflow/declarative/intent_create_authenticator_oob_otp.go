@@ -25,25 +25,29 @@ type IntentCreateAuthenticatorOOBOTP struct {
 var _ authflow.Intent = &IntentCreateAuthenticatorOOBOTP{}
 var _ authflow.Milestone = &IntentCreateAuthenticatorOOBOTP{}
 var _ MilestoneAuthenticationMethod = &IntentCreateAuthenticatorOOBOTP{}
+var _ MilestoneFlowCreateAuthenticator = &IntentCreateAuthenticatorOOBOTP{}
 
 func (*IntentCreateAuthenticatorOOBOTP) Kind() string {
 	return "IntentCreateAuthenticatorOOBOTP"
 }
 
 func (*IntentCreateAuthenticatorOOBOTP) Milestone() {}
+func (*IntentCreateAuthenticatorOOBOTP) MilestoneFlowCreateAuthenticator(flows authflow.Flows) (MilestoneDoCreateAuthenticator, authflow.Flows, bool) {
+	return authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateAuthenticator](flows)
+}
 func (n *IntentCreateAuthenticatorOOBOTP) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
 	return n.Authentication
 }
-func (i *IntentCreateAuthenticatorOOBOTP) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
+func (i *IntentCreateAuthenticatorOOBOTP) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
 	i.UserID = newUserID
 	i.IsUpdatingExistingUser = true
 
 	// Skip creation was handled by the parent IntentSignupFlowStepCreateAuthenticator
 	// So don't need to do it here
 
-	milestoneVerifyClaim, ok := authflow.FindFirstMilestone[MilestoneVerifyClaim](flow)
+	milestoneVerifyClaim, milestoneVeriyClaimFlows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneVerifyClaim](flows)
 	if ok {
-		return milestoneVerifyClaim.MilestoneVerifyClaimUpdateUserID(deps, flow, newUserID)
+		return milestoneVerifyClaim.MilestoneVerifyClaimUpdateUserID(deps, milestoneVeriyClaimFlows, newUserID)
 	}
 
 	return nil
@@ -63,10 +67,10 @@ func (n *IntentCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *
 	verificationRequired := oneOf.IsVerificationRequired()
 	targetStepName := oneOf.TargetStep
 
-	m, authenticatorSelected := authflow.FindMilestone[MilestoneDidSelectAuthenticator](flows.Nearest)
+	m, _, authenticatorSelected := authflow.FindMilestoneInCurrentFlow[MilestoneDidSelectAuthenticator](flows)
 	claimVerifiedAlready := false
-	_, claimVerifiedInThisFlow := authflow.FindMilestone[MilestoneDoMarkClaimVerified](flows.Nearest)
-	_, created := authflow.FindMilestone[MilestoneDoCreateAuthenticator](flows.Nearest)
+	_, _, claimVerifiedInThisFlow := authflow.FindMilestoneInCurrentFlow[MilestoneVerifyClaim](flows)
+	_, _, created := authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateAuthenticator](flows)
 
 	if authenticatorSelected {
 		info := m.MilestoneDidSelectAuthenticator()
@@ -116,10 +120,10 @@ func (n *IntentCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *aut
 	verificationRequired := oneOf.IsVerificationRequired()
 	targetStepName := oneOf.TargetStep
 
-	m, authenticatorSelected := authflow.FindMilestone[MilestoneDidSelectAuthenticator](flows.Nearest)
+	m, _, authenticatorSelected := authflow.FindMilestoneInCurrentFlow[MilestoneDidSelectAuthenticator](flows)
 	claimVerifiedAlready := false
-	_, claimVerifiedInThisFlow := authflow.FindMilestone[MilestoneDoMarkClaimVerified](flows.Nearest)
-	_, created := authflow.FindMilestone[MilestoneDoCreateAuthenticator](flows.Nearest)
+	_, _, claimVerifiedInThisFlow := authflow.FindMilestoneInCurrentFlow[MilestoneVerifyClaim](flows)
+	_, _, created := authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateAuthenticator](flows)
 
 	if authenticatorSelected {
 		info := m.MilestoneDidSelectAuthenticator()

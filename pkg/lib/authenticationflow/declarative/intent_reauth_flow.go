@@ -44,7 +44,7 @@ func (i *IntentReauthFlow) FlowRootObject(deps *authflow.Dependencies) (config.A
 func (i *IntentReauthFlow) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	// The last node is NodeDidReauthenticate.
 	// So if MilestoneDidReauthenticate is found, this flow has finished.
-	_, ok := authflow.FindMilestone[MilestoneDidReauthenticate](flows.Nearest)
+	_, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneDidReauthenticate](flows)
 	if ok {
 		return nil, authflow.ErrEOF
 	}

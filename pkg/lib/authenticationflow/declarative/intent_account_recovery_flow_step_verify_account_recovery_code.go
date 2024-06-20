@@ -82,7 +82,7 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) ReactTo(ctx con
 			return authflow.NewNodeSimple(&NodeSentinel{}), nil
 		}
 
-		milestone, ok := authflow.FindMilestone[MilestoneDoUseAccountRecoveryDestination](flows.Root)
+		milestone, ok := i.findDestination(flows)
 		if !ok {
 			return nil, InvalidFlowConfig.New("NodeDoSendAccountRecoveryCode depends on MilestoneDoUseAccountRecoveryDestination")
 		}
@@ -137,7 +137,7 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) verifyCode(
 	flows authflow.Flows,
 	code string,
 ) (*authflow.Node, error) {
-	milestone, ok := authflow.FindMilestone[MilestoneDoUseAccountRecoveryDestination](flows.Root)
+	milestone, ok := i.findDestination(flows)
 	if ok {
 		dest := milestone.MilestoneDoUseAccountRecoveryDestination()
 		_, err := deps.ResetPassword.VerifyCodeWithTarget(
@@ -164,7 +164,7 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) isRestored() bo
 }
 
 func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	milestone, ok := authflow.FindMilestone[MilestoneDoUseAccountRecoveryDestination](flows.Root)
+	milestone, ok := i.findDestination(flows)
 	if ok {
 		dest := milestone.MilestoneDoUseAccountRecoveryDestination()
 		state, err := deps.ForgotPassword.InspectState(
@@ -192,4 +192,13 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) OutputData(ctx 
 		// MilestoneDoUseAccountRecoveryDestination might not exist, because the flow is restored
 		return nil, nil
 	}
+}
+
+func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) findDestination(flows authflow.Flows) (MilestoneDoUseAccountRecoveryDestination, bool) {
+	ms := authflow.FindAllMilestones[MilestoneDoUseAccountRecoveryDestination](flows.Root)
+	if len(ms) == 0 {
+		return nil, false
+	}
+	// Otherwise use the first one we find.
+	return ms[0], true
 }

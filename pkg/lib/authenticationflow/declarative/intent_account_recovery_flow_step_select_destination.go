@@ -62,10 +62,13 @@ func NewIntentAccountRecoveryFlowStepSelectDestination(
 	if err != nil {
 		return nil, err
 	}
-	milestone, ok := authflow.FindMilestone[MilestoneDoUseAccountRecoveryIdentity](flows.Root)
-	if !ok {
+
+	ms := authflow.FindAllMilestones[MilestoneDoUseAccountRecoveryIdentity](flows.Root)
+	if len(ms) == 0 {
 		return nil, InvalidFlowConfig.New("IntentAccountRecoveryFlowStepSelectDestination depends on MilestoneDoUseAccountRecoveryIdentity")
 	}
+	milestone := ms[0]
+
 	iden := milestone.MilestoneDoUseAccountRecoveryIdentity()
 	step := i.step(current)
 

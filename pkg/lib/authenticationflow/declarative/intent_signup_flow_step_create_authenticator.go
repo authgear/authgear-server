@@ -60,21 +60,24 @@ var _ authflow.Milestone = &IntentSignupFlowStepCreateAuthenticator{}
 var _ MilestoneSwitchToExistingUser = &IntentSignupFlowStepCreateAuthenticator{}
 
 func (*IntentSignupFlowStepCreateAuthenticator) Milestone() {}
-func (i *IntentSignupFlowStepCreateAuthenticator) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
+func (i *IntentSignupFlowStepCreateAuthenticator) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
 	i.UserID = newUserID
 	i.IsUpdatingExistingUser = true
 
-	milestone, ok := authflow.FindFirstMilestone[MilestoneDoCreateAuthenticator](flow)
+	m1, m1Flows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateAuthenticator](flows)
 	if ok {
-		authn := milestone.MilestoneDoCreateAuthenticator()
-		existing, err := i.findAuthenticatorOfSameType(deps, authn.Type)
-		if err != nil {
-			return err
-		}
-		if existing != nil {
-			milestone.MilestoneDoCreateAuthenticatorSkipCreate()
-		} else {
-			milestone.MilestoneDoCreateAuthenticatorUpdate(authn.UpdateUserID(newUserID))
+		milestone, _, ok := m1.MilestoneFlowCreateAuthenticator(m1Flows)
+		if ok {
+			authn := milestone.MilestoneDoCreateAuthenticator()
+			existing, err := i.findAuthenticatorOfSameType(deps, authn.Type)
+			if err != nil {
+				return err
+			}
+			if existing != nil {
+				milestone.MilestoneDoCreateAuthenticatorSkipCreate()
+			} else {
+				milestone.MilestoneDoCreateAuthenticatorUpdate(authn.UpdateUserID(newUserID))
+			}
 		}
 	}
 
@@ -125,8 +128,8 @@ func (i *IntentSignupFlowStepCreateAuthenticator) CanReactTo(ctx context.Context
 		}, nil
 	}
 
-	_, authenticatorCreated := authflow.FindMilestone[MilestoneDoCreateAuthenticator](flows.Nearest)
-	_, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows.Nearest)
+	_, _, authenticatorCreated := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateAuthenticator](flows)
+	_, _, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
 	switch {
 	case authenticatorCreated && !nestedStepsHandled:
@@ -203,8 +206,8 @@ func (i *IntentSignupFlowStepCreateAuthenticator) ReactTo(ctx context.Context, d
 		return nil, authflow.ErrIncompatibleInput
 	}
 
-	_, authenticatorCreated := authflow.FindMilestone[MilestoneDoCreateAuthenticator](flows.Nearest)
-	_, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows.Nearest)
+	_, _, authenticatorCreated := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateAuthenticator](flows)
+	_, _, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
 	switch {
 	case authenticatorCreated && !nestedStepsHandled:
@@ -261,7 +264,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) checkAuthenticationMethod(deps
 }
 
 func (*IntentSignupFlowStepCreateAuthenticator) authenticationMethod(flows authflow.Flows) config.AuthenticationFlowAuthentication {
-	m, ok := authflow.FindMilestone[MilestoneAuthenticationMethod](flows.Nearest)
+	m, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneAuthenticationMethod](flows)
 	if !ok {
 		panic(fmt.Errorf("authentication method not yet selected"))
 	}
@@ -336,8 +339,8 @@ func (i *IntentSignupFlowStepCreateAuthenticator) reactToExistingAuthenticator(c
 		}), nil
 	}
 
-	_, authenticatorCreated := authflow.FindMilestone[MilestoneDoCreateAuthenticator](flows.Nearest)
-	_, nestedStepsHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
+	_, _, authenticatorCreated := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateAuthenticator](flows)
+	_, _, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
 	current, err := i.currentFlowObject(deps)
 	if err != nil {

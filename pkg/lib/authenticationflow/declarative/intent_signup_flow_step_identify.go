@@ -17,6 +17,24 @@ func init() {
 	authflow.RegisterIntent(&IntentSignupFlowStepIdentify{})
 }
 
+// IntentSignupFlowStepIdentify
+//   NodeSkipCreationByExistingIdentity (MilestoneIdentificationMethod, MilestoneFlowCreateIdentity)
+//   NodeDoCreateIdentity (MilestoneDoCreateIdentity)
+//
+//   NodeCreateIdentityLoginID (MilestoneIdentificationMethod)
+//   IntentCheckConflictAndCreateIdenity (MilestoneFlowCreateIdentity)
+//     NodeDoCreateIdentity (MilestoneDoCreateIdentity)
+//     IntentAccountLing (MilestoneFlowCreateIdentity)
+//       NodeDoCreateIdentity (MilestoneDoCreateIdentity)
+//
+//   IntentOAuth (MilestoneIdentificationMethod, MilestoneFlowCreateIdentity)
+//     NodeOAuth
+//     IntentCheckConflictAndCreateIdenity (MilestoneFlowCreateIdentity)
+//       NodeDoCreateIdentity (MilestoneDoCreateIdentity)
+//       IntentAccountLing (MilestoneFlowCreateIdentity)
+//         NodeDoCreateIdentity (MilestoneDoCreateIdentity)
+//     NodeDoUseIdentity
+
 type IntentSignupFlowStepIdentify struct {
 	FlowReference          authflow.FlowReference `json:"flow_reference,omitempty"`
 	JSONPointer            jsonpointer.T          `json:"json_pointer,omitempty"`
@@ -32,26 +50,30 @@ var _ authflow.Milestone = &IntentSignupFlowStepIdentify{}
 var _ MilestoneSwitchToExistingUser = &IntentSignupFlowStepIdentify{}
 
 func (*IntentSignupFlowStepIdentify) Milestone() {}
-func (i *IntentSignupFlowStepIdentify) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flow *authflow.Flow, newUserID string) error {
+func (i *IntentSignupFlowStepIdentify) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
 	i.IsUpdatingExistingUser = true
 	i.UserID = newUserID
 
-	milestoneDoCreateIdentity, ok := authflow.FindFirstMilestone[MilestoneDoCreateIdentity](flow)
+	m1, m1Flows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
 	if ok {
-		iden := milestoneDoCreateIdentity.MilestoneDoCreateIdentity()
-		idenSpec := iden.ToSpec()
-		idenWithSameType, err := i.findIdentityOfSameType(deps, &idenSpec)
-		if err != nil {
-			return err
-		}
-		if idenWithSameType != nil {
-			milestoneDoCreateIdentity.MilestoneDoCreateIdentitySkipCreate()
-			i.IsCreateSkipped = true
-		} else {
-			milestoneDoCreateIdentity.MilestoneDoCreateIdentityUpdate(iden.UpdateUserID(newUserID))
+		milestoneDoCreateIdentity, _, ok := m1.MilestoneFlowCreateIdentity(m1Flows)
+		if ok {
+			iden := milestoneDoCreateIdentity.MilestoneDoCreateIdentity()
+			idenSpec := iden.ToSpec()
+			idenWithSameType, err := i.findIdentityOfSameType(deps, &idenSpec)
+			if err != nil {
+				return err
+			}
+			if idenWithSameType != nil {
+				milestoneDoCreateIdentity.MilestoneDoCreateIdentitySkipCreate()
+				i.IsCreateSkipped = true
+			} else {
+				milestoneDoCreateIdentity.MilestoneDoCreateIdentityUpdate(iden.UpdateUserID(newUserID))
+			}
 		}
 	}
-	milestoneDoPopulateStandardAttributes, ok := authflow.FindFirstMilestone[MilestoneDoPopulateStandardAttributes](flow)
+
+	milestoneDoPopulateStandardAttributes, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneDoPopulateStandardAttributes](flows)
 	if ok {
 		// Always skip population
 		milestoneDoPopulateStandardAttributes.MilestoneDoPopulateStandardAttributesSkip()
@@ -74,11 +96,17 @@ func (i *IntentSignupFlowStepIdentify) GetVerifiableClaims(_ context.Context, _ 
 		return nil, nil
 	}
 
-	m, ok := authflow.FindFirstMilestone[MilestoneDoCreateIdentity](flows.Nearest)
+	m1, m1Flows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
+	if !ok {
+		return nil, fmt.Errorf("MilestoneFlowCreateIdentity cannot be found in IntentSignupFlowStepIdentify")
+	}
+
+	m2, _, ok := m1.MilestoneFlowCreateIdentity(m1Flows)
 	if !ok {
 		return nil, fmt.Errorf("MilestoneDoCreateIdentity cannot be found in IntentSignupFlowStepIdentify")
 	}
-	info := m.MilestoneDoCreateIdentity()
+
+	info := m2.MilestoneDoCreateIdentity()
 
 	return info.IdentityAwareStandardClaims(), nil
 }
@@ -167,9 +195,9 @@ func (i *IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *aut
 		}, nil
 	}
 
-	_, identityCreated := authflow.FindMilestone[MilestoneDoCreateIdentity](flows.Nearest)
-	_, standardAttributesPopulated := authflow.FindMilestone[MilestoneDoPopulateStandardAttributes](flows.Nearest)
-	_, nestedStepHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows.Nearest)
+	_, _, identityCreated := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
+	_, _, standardAttributesPopulated := authflow.FindMilestoneInCurrentFlow[MilestoneDoPopulateStandardAttributes](flows)
+	_, _, nestedStepHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
 	switch {
 	case identityCreated && !standardAttributesPopulated && !nestedStepHandled:
@@ -234,19 +262,19 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 		return nil, authflow.ErrIncompatibleInput
 	}
 
-	_, identityCreated := authflow.FindMilestone[MilestoneDoCreateIdentity](flows.Nearest)
-	_, standardAttributesPopulated := authflow.FindMilestone[MilestoneDoPopulateStandardAttributes](flows.Nearest)
-	_, nestedStepHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows.Nearest)
+	_, _, identityCreated := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
+	_, _, standardAttributesPopulated := authflow.FindMilestoneInCurrentFlow[MilestoneDoPopulateStandardAttributes](flows)
+	_, _, nestedStepHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
 	switch {
 	case identityCreated && !standardAttributesPopulated && !nestedStepHandled:
-		iden := i.identityInfo(flows.Nearest)
+		iden := i.identityInfo(flows)
 		return authflow.NewNodeSimple(&NodeDoPopulateStandardAttributesInSignup{
 			Identity:   iden,
 			SkipUpdate: i.IsUpdatingExistingUser,
 		}), nil
 	case identityCreated && standardAttributesPopulated && !nestedStepHandled:
-		identification := i.identificationMethod(flows.Nearest)
+		identification := i.identificationMethod(flows)
 		return authflow.NewSubFlow(&IntentSignupFlowSteps{
 			FlowReference:          i.FlowReference,
 			JSONPointer:            i.jsonPointer(step, identification),
@@ -291,8 +319,11 @@ func (*IntentSignupFlowStepIdentify) checkIdentificationMethod(deps *authflow.De
 	return
 }
 
-func (*IntentSignupFlowStepIdentify) identificationMethod(w *authflow.Flow) config.AuthenticationFlowIdentification {
-	m, ok := authflow.FindMilestone[MilestoneIdentificationMethod](w)
+func (*IntentSignupFlowStepIdentify) identificationMethod(flows authflow.Flows) config.AuthenticationFlowIdentification {
+	// A bug is found by this test tests/account_linking/incoming_login_id_create_authenticator_before.test.yaml
+	// Previously, FindMilestone is used instead of FindMilestoneInCurrentFlow.
+	// But we should find the identification selected in THIS flow.
+	m, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneIdentificationMethod](flows)
 	if !ok {
 		panic(fmt.Errorf("identification method not yet selected"))
 	}
@@ -313,12 +344,18 @@ func (i *IntentSignupFlowStepIdentify) jsonPointer(step *config.AuthenticationFl
 	panic(fmt.Errorf("selected identification method is not allowed"))
 }
 
-func (*IntentSignupFlowStepIdentify) identityInfo(w *authflow.Flow) *identity.Info {
-	m, ok := authflow.FindMilestone[MilestoneDoCreateIdentity](w)
+func (*IntentSignupFlowStepIdentify) identityInfo(flows authflow.Flows) *identity.Info {
+	m1, m1Flows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
+	if !ok {
+		panic(fmt.Errorf("MilestoneFlowCreateIdentity cannot be found in IntentSignupFlowStepIdentify"))
+	}
+
+	m2, _, ok := m1.MilestoneFlowCreateIdentity(m1Flows)
 	if !ok {
 		panic(fmt.Errorf("MilestoneDoCreateIdentity cannot be found in IntentSignupFlowStepIdentify"))
 	}
-	info := m.MilestoneDoCreateIdentity()
+
+	info := m2.MilestoneDoCreateIdentity()
 	return info
 }
 
@@ -370,8 +407,8 @@ func (i *IntentSignupFlowStepIdentify) reactToExistingIdentity(ctx context.Conte
 		}), nil
 	}
 
-	_, identityCreated := authflow.FindMilestone[MilestoneDoCreateIdentity](flows.Nearest)
-	_, nestedStepHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
+	_, _, identityCreated := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
+	_, _, nestedStepHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
 	current, err := i.currentFlowObject(deps)
 	if err != nil {
@@ -381,7 +418,7 @@ func (i *IntentSignupFlowStepIdentify) reactToExistingIdentity(ctx context.Conte
 
 	switch {
 	case identityCreated && !nestedStepHandled:
-		identification := i.identificationMethod(flows.Nearest)
+		identification := i.identificationMethod(flows)
 		return authflow.NewSubFlow(&IntentSignupFlowSteps{
 			FlowReference:          i.FlowReference,
 			JSONPointer:            i.jsonPointer(step, identification),

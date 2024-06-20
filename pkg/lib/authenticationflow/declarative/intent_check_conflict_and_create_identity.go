@@ -22,6 +22,26 @@ type IntentCheckConflictAndCreateIdenity struct {
 }
 
 var _ authflow.Intent = &IntentCheckConflictAndCreateIdenity{}
+var _ authflow.Milestone = &IntentCheckConflictAndCreateIdenity{}
+var _ MilestoneFlowCreateIdentity = &IntentCheckConflictAndCreateIdenity{}
+
+func (*IntentCheckConflictAndCreateIdenity) Milestone() {}
+func (*IntentCheckConflictAndCreateIdenity) MilestoneFlowCreateIdentity(flows authflow.Flows) (MilestoneDoCreateIdentity, authflow.Flows, bool) {
+	// If there are no conflicts, then we will have MilestoneDoCreateIdentity directly.
+	m, mFlows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateIdentity](flows)
+	if ok {
+		return m, mFlows, true
+	}
+
+	// If there are conflicts, then we delegate to MilestoneFlowAccountLinking, which also implements MilestoneFlowCreateIdentity.
+	// We cannot find MilestoneFlowCreateIdentity because that would find this intent, resulting in an infinite recursion.
+	m1, m1Flows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowAccountLinking](flows)
+	if ok {
+		return m1.MilestoneFlowCreateIdentity(m1Flows)
+	}
+
+	return nil, flows, false
+}
 
 func (*IntentCheckConflictAndCreateIdenity) Kind() string {
 	return "IntentCheckConflictAndCreateIdenity"
@@ -68,7 +88,9 @@ func (i *IntentCheckConflictAndCreateIdenity) checkConflictByAccountLinkings(
 	flows authflow.Flows) (conflicts []*AccountLinkingConflict, err error) {
 	switch i.Request.Type {
 	case model.IdentityTypeOAuth:
-		return linkByOAuthIncomingOAuthSpec(ctx, deps, flows, i.Request.OAuth, i.JSONPointer)
+		return linkByIncomingOAuthSpec(ctx, deps, flows, i.Request.OAuth, i.JSONPointer)
+	case model.IdentityTypeLoginID:
+		return linkByIncomingLoginIDSpec(ctx, deps, flows, i.Request.LoginID, i.JSONPointer)
 	default:
 		// Linking of other types are not supported at the moment
 		return nil, nil
