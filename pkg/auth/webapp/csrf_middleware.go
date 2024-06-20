@@ -104,8 +104,6 @@ func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Requ
 				maskedTokenParts = append(maskedTokenParts, strings.Repeat("*", len(part)))
 			}
 			maskedCsrfCookieContent = strings.Join(maskedTokenParts, "|")
-		} else {
-			maskedCsrfCookieContent = fmt.Sprintf("failed to decode: %s", err.Error())
 		}
 	}
 
