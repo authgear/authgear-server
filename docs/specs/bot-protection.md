@@ -29,7 +29,7 @@
 ## Old configuration
 
 > The old configuration **IS NOT** used by Authentication Flow.
-> To configure bot protection providers for an Authentication Flow, the new configuration must be used.
+> To configure a bot protection provider for an Authentication Flow, the new configuration must be used.
 
 See [here](./captcha_legacy.md#configuration) for the documentation of the old configuration.
 
@@ -45,13 +45,13 @@ bot_protection:
   ip_allowlist:
   - "192.168.0.0/24"
   - "127.0.0.1"
-  providers:
-  - type: cloudflare
+  provider:
+    type: cloudflare
     site_key: "SITE_KEY"
   risk_assessment:
     enabled: true
-    providers:
-    - type: recaptchav3
+    provider:
+      type: recaptchav3
       site_key: "SITE_KEY"
       risk_level:
         high_if_gte: 0.7
@@ -60,50 +60,48 @@ bot_protection:
 
 - `bot_protection.enabled`: If it is true, the new configuration is used.
 - `bot_protection.ip_allowlist`: A list of IPv4/IPv6 CIDR notations or addresses. If the incoming request matches any entry in the allowlist, the request bypasses bot protection.
-- `bot_protection.providers`: A list of challenge-based provider configuration. The actual shape depends on the `type` property.
-- `bot_protection.providers.type`: Required. The type of the challenge-based provider. Valid values are `cloudflare` and `recaptchav2`.
+- `bot_protection.provider`: A challenge-based provider configuration. The actual shape depends on the `type` property.
+- `bot_protection.provider.type`: Required. The type of the challenge-based provider. Valid values are `cloudflare` and `recaptchav2`.
 - `bot_protection.risk_assessment.enabled`: If it is true, then risk assessment is enabled.
-- `bot_protection.risk_assessment.providers`: A list of risk assessment provider configuration. The actual shape depends on the `type` property.
-- `bot_protection.risk_assessment.providers.type`: Required. The type of the risk assessment provider. Valid values are `recaptchav3`.
-- `bot_protection.risk_assessment.providers.risk_level.high_if_gte`: Required. A floating number. If the provider-specific score is greater than or equal to this number, then the risk level is high. Otherwise, it is medium or low.
-- `bot_protection.risk_assessment.providers.risk_level.medium_if_gte`: Required. A floating number. If the provider-specific score is greater than or equal to this number, then the risk level is medium. Otherwise, it is low.
+- `bot_protection.risk_assessment.provider`: A risk assessment provider configuration. The actual shape depends on the `type` property.
+- `bot_protection.risk_assessment.provider.type`: Required. The type of the risk assessment provider. Valid values are `recaptchav3`.
+- `bot_protection.risk_assessment.provider.risk_level.high_if_gte`: Required. A floating number. If the provider-specific score is greater than or equal to this number, then the risk level is high. Otherwise, it is medium or low.
+- `bot_protection.risk_assessment.provider.risk_level.medium_if_gte`: Required. A floating number. If the provider-specific score is greater than or equal to this number, then the risk level is medium. Otherwise, it is low.
 
 Type specific fields:
 
-- `bot_protection.providers.type=cloudflare.site_key`: Required. The site key of Cloudflare Turnstile.
-- `bot_protection.providers.type=recaptchav2.site_key`: Required. The site key of reCAPTCHA v2.
-- `bot_protection.risk_assessment.providers.type=recaptchav3.site_key`: Required. The site key of reCAPTCHA v3.
+- `bot_protection.provider.type=cloudflare.site_key`: Required. The site key of Cloudflare Turnstile.
+- `bot_protection.provider.type=recaptchav2.site_key`: Required. The site key of reCAPTCHA v2.
+- `bot_protection.risk_assessment.provider.type=recaptchav3.site_key`: Required. The site key of reCAPTCHA v3.
 
 ### authgear.secrets.yaml
 
 ```yaml
 - data:
-    items:
-    - type: recaptchav3
-      secret_key: RECAPTCHAV3_SECRET_KEY
-  key: bot_protection.risk_assessment.providers
+    type: recaptchav3
+    secret_key: RECAPTCHAV3_SECRET_KEY
+  key: bot_protection.risk_assessment.provider
 
 - data:
-    items:
-    - type: cloudflare
-      secret_key: TURNSTILE_SECRET_KEY
-  key: bot_protection.providers
+    type: cloudflare
+    secret_key: TURNSTILE_SECRET_KEY
+  key: bot_protection.provider
 ```
 
-- `key=bot_protection.risk_assessment.providers.items.type`: Required. It is the same as `bot_protection.risk_assessment.providers.type`.
+- `key=bot_protection.risk_assessment.provider.type`: Required. It is the same as `bot_protection.risk_assessment.provider.type`.
 
 Type specific fields:
 
-- `key=bot_protection.risk_assessment.providers.items.type=recaptchav3.secret_key`: Required. The secret key of reCAPTCHA v3.
+- `key=bot_protection.risk_assessment.provider.type=recaptchav3.secret_key`: Required. The secret key of reCAPTCHA v3.
 
 ---
 
-- `key=bot_protection.providers.items.type`: Required. It is the same as `bot_protection.providers.type`.
+- `key=bot_protection.provider.type`: Required. It is the same as `bot_protection.provider.type`.
 
 Type specific fields:
 
-- `key=bot_protection.providers.items.type=cloudflare.secret_key`: Required. The secret key of Cloudflare Turnstile.
-- `key=bot_protection.providers.items.type=recaptchav2.secret_key`: Required. The secret key of reCAPTCHA v2.
+- `key=bot_protection.provider.type=cloudflare.secret_key`: Required. The secret key of Cloudflare Turnstile.
+- `key=bot_protection.provider.type=recaptchav2.secret_key`: Required. The secret key of reCAPTCHA v2.
 
 ## Authentication Flow
 
@@ -178,15 +176,15 @@ authentication_flow:
 
 ### Behavior of generated flows
 
-Given `bot_protection.risk_assessment.enabled=true` and `bot_protection.risk_assessment.providers` is non-empty,
+Given `bot_protection.risk_assessment.enabled=true`,
 
 1. All the branches of the first step (that is, the `identify` step, or the `authenticate` step in reauth flow) has `bot_protection.risk_assessment.enabled=true`.
-2. The first provider in `bot_protection.risk_assessment.providers` is used as `bot_protection.risk_assessment.provider.type`
+2. The configured provider is used as `bot_protection.risk_assessment.provider.type`
 
-Given `bot_protection.enabled=true` and `bot_protection.providers` is non-empty,
+Given `bot_protection.enabled=true`,
 
 1. All the branches of the first step (that is, the `identify` step, or the `authenticate` step in reauth flow) has `bot_protection.mode=always`.
-2. The first provider in `bot_protection.providers` is used as `bot_protection.provider.type`
+2. The configured provider is used as `bot_protection.provider.type`
 
 In terms of UX, when bot protection is enabled and configured, every generated flow requires bot protection at the beginning of the flow.
 
@@ -213,32 +211,6 @@ authentication_flow:
       - authentication: primary_password
       # Must pass bot protection BEFORE selecting this branch.
       # That is, before the OTP is sent.
-      - authentication: primary_oob_otp_email
-        bot_protection:
-          mode: "always"
-          provider:
-            type: cloudflare
-```
-
-### Advanced use case: Use different challenge-based providers in different branches
-
-The developer can specify different challenge-based providers to be used in different branches.
-
-```yaml
-authentication_flow:
-  login_flows:
-  - name: default
-    steps:
-    - type: identify
-      one_of:
-      - identification: email
-    - type: authenticate
-      one_of:
-      - authentication: primary_password
-        bot_protection:
-          mode: "always"
-          provider:
-            type: recaptchav2
       - authentication: primary_oob_otp_email
         bot_protection:
           mode: "always"
@@ -284,8 +256,8 @@ bot_protection:
   enabled: true
   ip_allowlist:
   - "10.0.0.0/16"
-  providers:
-  - type: cloudflare
+  provider:
+    type: cloudflare
     site_key: "SITE_KEY"
 
 authentication_flow:
@@ -315,13 +287,13 @@ Here is an example configuration:
 ```yaml
 bot_protection:
   enabled: true
-  providers:
-  - type: cloudflare
+  provider:
+    type: cloudflare
     site_key: "SITE_KEY"
   risk_assessment:
     enabled: true
-    providers:
-    - type: recaptchav3
+    provider:
+      type: recaptchav3
       site_key: "SITE_KEY"
       risk_score:
         low: 0.2
@@ -351,6 +323,12 @@ authentication_flow:
 When authenticating with password, a risk assessment has to be done first.
 If the risk level is low or medium, access is granted.
 Otherwise, challenge-based bot protection is required.
+
+### Unsupported use case: Use different challenge-based providers in different branches
+
+Since the configuration allow one provider only. It is impossible to use different providers in different branches.
+The developer must use a provider that is generally enough for their use case.
+For example, if the project targets to support both web and mobile platform, they have to use a provider that supports both.
 
 ## Audit log
 
