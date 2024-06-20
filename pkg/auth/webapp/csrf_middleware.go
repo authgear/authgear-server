@@ -1,8 +1,10 @@
 package webapp
 
 import (
+	"encoding/base64"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/csrf"
 	"github.com/sirupsen/logrus"
@@ -84,17 +86,36 @@ func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Requ
 
 	csrfCookie, _ := r.Cookie(m.CookieDef.Name)
 	csrfCookieSizeInBytes := 0
+	maskedCsrfCookieContent := ""
 	if csrfCookie != nil {
 		// do not return value but length only for debug.
 		csrfCookieSizeInBytes = len([]byte(csrfCookie.Value))
+		if data, err := base64.StdEncoding.DecodeString(csrfCookie.Value); err != nil {
+			csrfToken := string(data)
+			maskedTokenParts := make([]string, 0, 4)
+			for i, part := range strings.Split(csrfToken, "|") {
+				// token format is date|value|mac
+				// ref: https://github.com/gorilla/securecookie/blob/eae3c1840ec4adda88a4af683ad0f60bb690e7c2/securecookie.go#L320C30-L320C44
+				// we will mask value and sig
+				if i == 0 {
+					maskedTokenParts = append(maskedTokenParts, part)
+					continue
+				}
+				maskedTokenParts = append(maskedTokenParts, strings.Repeat("*", len(part)))
+			}
+			maskedCsrfCookieContent = strings.Join(maskedTokenParts, "|")
+		} else {
+			maskedCsrfCookieContent = fmt.Sprintf("failed to decode: %s", err.Error())
+		}
 	}
 
 	m.Logger.WithFields(logrus.Fields{
-		"hasOmitCookie":         hasOmitCookie,
-		"hasNoneCookie":         hasNoneCookie,
-		"hasLaxCookie":          hasLaxCookie,
-		"hasStrictCookie":       hasStrictCookie,
-		"csrfCookieSizeInBytes": csrfCookieSizeInBytes,
+		"hasOmitCookie":           hasOmitCookie,
+		"hasNoneCookie":           hasNoneCookie,
+		"hasLaxCookie":            hasLaxCookie,
+		"hasStrictCookie":         hasStrictCookie,
+		"csrfCookieSizeInBytes":   csrfCookieSizeInBytes,
+		"maskedCsrfCookieContent": maskedCsrfCookieContent,
 	}).Errorf("CSRF Forbidden: %s", csrf.FailureReason(r))
 
 	// TODO: beautify error page ui
