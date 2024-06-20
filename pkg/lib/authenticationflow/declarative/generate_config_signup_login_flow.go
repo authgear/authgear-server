@@ -36,15 +36,10 @@ func generateSignupLoginFlowStepIdentify(cfg *config.AppConfig) *config.Authenti
 		}
 	}
 
-	// Add captcha if enabled
-	if hasCaptcha(cfg) {
+	captcha, ok := getCaptchaProviderConfig(cfg)
+	if ok {
 		for _, oneOf := range step.OneOf {
-			oneOf.Captcha = &config.AuthenticationFlowCaptcha{
-				Mode: config.AuthenticationFlowCaptchaModeAlways,
-				Provider: &config.AuthenticationFlowCaptchaProvider{
-					Alias: cfg.Captcha.Providers[0].Alias,
-				},
-			}
+			oneOf.Captcha = captcha
 		}
 	}
 
