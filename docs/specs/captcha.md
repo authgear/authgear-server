@@ -47,9 +47,8 @@ risk_assessment:
     alias: recaptchav3
     site_key: "SITE_KEY"
     risk_level:
-      low: 0.2
-      medium: 0.5
-      high: 0.7
+      high_if_gte: 0.7
+      medium_if_gte: 0.5
 
 captcha:
   enabled: true
@@ -66,11 +65,12 @@ captcha:
 - `risk_assessment.providers`: A list of risk assessment provider configuration. The actual shape depends on the `type` property.
 - `risk_assessment.providers.type`: Required. The type of the risk assessment provider. Valid values are `recaptchav3`.
 - `risk_assessment.providers.alias`. Required. The unique identifier of the risk assessment provider. It is used in other parts of the configuration to refer to this particular risk assessment provider. For example, the project can configured a number of risk assessment providers, but only uses one of them in a particular Authentication Flow.
+- `risk_assessment.providers.risk_level.high_if_gte`: Required. A floating number. If the provider-specific score is greater than or equal to this number, then the risk level is high. Otherwise, it is medium or low.
+- `risk_assessment.providers.risk_level.medium_if_gte`: Required. A floating number. If the provider-specific score is greater than or equal to this number, then the risk level is medium. Otherwise, it is low.
 
 Type specific fields:
 
 - `risk_assessment.providers.type=recaptchav3.site_key`: Required. The site key of reCAPTCHA v3.
-- `risk_assessment.providers.type=recaptchav3.risk_level`: Required. The mapping of reCAPTCHA v3 score to Low, Medium, and High.
 
 ---
 
