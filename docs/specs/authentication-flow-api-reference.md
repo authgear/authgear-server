@@ -286,7 +286,7 @@ Each option may contain the key `risk_assessment` and the key `captcha`.
 
 The shape of `risk_assessment`:
 
-```
+```json
 {
   "required": true,
   "provider": {
@@ -306,7 +306,7 @@ You use `provider.alias` to determine which client side credentials to use.
 
 The shape of `captcha`:
 
-```
+```json
 {
   "required": true,
   "provider": {
