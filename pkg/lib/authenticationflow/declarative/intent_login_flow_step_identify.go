@@ -23,8 +23,8 @@ func init() {
 //     NodeOAuth
 //     NodeDoUseIdentity (MilestoneDoUseIdentity)
 //
-//   NodeUseIdentityPasskey (MilestoneIdentificationMethod, MilestoneFlowUseIdentity)
-//   NodeDoUseIdentityPasskey (MilestoneDoUseIdentity)
+//   IntentUseIdentityPasskey (MilestoneIdentificationMethod, MilestoneFlowUseIdentity)
+//     NodeDoUseIdentityPasskey (MilestoneDoUseIdentity)
 
 type IntentLoginFlowStepIdentify struct {
 	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
@@ -162,7 +162,7 @@ func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *authflo
 					Identification: identification,
 				}), nil
 			case config.AuthenticationFlowIdentificationPasskey:
-				return authflow.NewNodeSimple(&NodeUseIdentityPasskey{
+				return authflow.NewSubFlow(&IntentUseIdentityPasskey{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					Identification: identification,
 				}), nil
