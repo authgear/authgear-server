@@ -221,3 +221,46 @@ export class CustomisableThemeStyleGroup extends StyleGroup<CustomisableTheme> {
       }),
     });
   }
+}
+
+export class StyleCSSVisitor<T> extends CssNodeVisitor {
+  private ruleSelector: string;
+
+  private styleGroup: StyleGroup<T>;
+
+  constructor(ruleSelector: string, styleGroup: StyleGroup<T>) {
+    super();
+    this.ruleSelector = ruleSelector;
+    this.styleGroup = styleGroup;
+  }
+
+  visitRoot(root: CssRootNodeWrapper): void {
+    root.nodes.forEach((node) => {
+      node.accept(this);
+    });
+  }
+
+  visitRule(rule: CssRuleNodeWrapper): void {
+    if (rule.selector !== this.ruleSelector) {
+      return;
+    }
+    rule.nodes.forEach((node) => {
+      node.accept(this);
+    });
+  }
+
+  visitDeclaration(declaration: CssDeclarationNodeWrapper): void {
+    this.styleGroup.acceptDeclaration(declaration.declaration);
+  }
+
+  // eslint-disable-next-line
+  visitOther(_: CssOtherNodeWrapper): void {
+    // no-op
+  }
+
+  getStyle(root: Root): T {
+    const wrapper = new CssRootNodeWrapper(root);
+    wrapper.accept(this);
+    return this.styleGroup.getValue();
+  }
+}
