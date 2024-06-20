@@ -11,14 +11,11 @@
   * [Listen for change with Websocket](#listen-for-change-with-websocket)
 - [Reference on input and output](#reference-on-input-and-output)
   * [type: signup; action.type: identify](#type-signup-actiontype-identify)
-    + [Risk assessment and Captcha](#risk-assessment-and-captcha)
-      - [Risk assessment input](#risk-assessment-input)
-      - [risk_assessment input; type: recaptchav3](#risk_assessment-input-type-recaptchav3)
-      - [Risk assessment error](#risk-assessment-error)
-      - [Captcha input](#captcha-input)
-      - [Captcha input; type: cloudflare](#captcha-input-type-cloudflare)
-      - [Captcha input; type: recaptchav2](#captcha-input-type-recaptchav2)
-      - [Captcha error](#captcha-error)
+    + [Bot protection](#bot-protection)
+      - [Bot protection input](#bot-protection-input)
+      - [Bot protection input; type: cloudflare](#bot-protection-input-type-cloudflare)
+      - [Bot protection input; type: recaptchav2](#bot-protection-input-type-recaptchav2)
+      - [Bot protection error](#bot-protection-error)
     + [identification: email](#identification-email)
     + [identification: phone](#identification-phone)
     + [identification: username](#identification-username)
@@ -26,7 +23,7 @@
     + [type: signup; action.type: identify; data.type: account_linking_identification_data](#type-signup-actiontype-identify-datatype-account_linking_identification_data)
   * [type: signup; action.type: verify](#type-signup-actiontype-verify)
   * [type: signup; action.type: create_authenticator](#type-signup-actiontype-create_authenticator)
-    + [Risk assessment and Captcha](#risk-assessment-and-captcha-1)
+    + [Bot protection](#bot-protection-1)
     + [authentication: primary_password](#authentication-primary_password)
     + [authentication: primary_oob_otp_email](#authentication-primary_oob_otp_email)
     + [authentication: primary_oob_otp_sms](#authentication-primary_oob_otp_sms)
@@ -38,7 +35,7 @@
   * [type: signup; action.type: prompt_create_passkey](#type-signup-actiontype-prompt_create_passkey)
   * [type: login; action.type: identify](#type-login-actiontype-identify)
   * [type: login; action.type: authenticate](#type-login-actiontype-authenticate)
-    + [Risk assessment and Captcha](#risk-assessment-and-captcha-2)
+    + [Bot protection](#bot-protection-2)
     + [authentication: primary_password](#authentication-primary_password-1)
     + [authentication: primary_oob_otp_email](#authentication-primary_oob_otp_email-1)
     + [authentication: primary_oob_otp_sms](#authentication-primary_oob_otp_sms-1)
@@ -51,7 +48,7 @@
   * [type: login; action.type: prompt_create_passkey](#type-login-actiontype-prompt_create_passkey)
   * [type: signup_login; action.type: identify](#type-signup_login-actiontype-identify)
   * [type: account_recovery; action.type: identify](#type-account_recovery-actiontype-identify)
-    + [Risk assessment and Captcha](#risk-assessment-and-captcha-3)
+    + [Bot protection](#bot-protection-3)
     + [identification: email](#identification-email-1)
     + [identification: phone](#identification-phone-1)
   * [type: account_recovery; action.type: select_destination](#type-account_recovery-actiontype-select_destination)
@@ -247,14 +244,8 @@ When you are in this step of this flow, you will see a response like the followi
           },
           {
             "identification": "phone",
-            "risk_assessment": {
-              "required": true,
-              "provider": {
-                "type": "recaptchav3"
-              }
-            }
-            "captcha": {
-              "required": true,
+            "bot_protection": {
+              "enabled": true,
               "provider": {
                 "type": "cloudflare"
               }
@@ -278,118 +269,59 @@ When you are in this step of this flow, you will see a response like the followi
 }
 ```
 
-### Risk assessment and Captcha
+### Bot protection
 
-Each option may contain the key `risk_assessment` and the key `captcha`.
+Each option may contain the key `bot_protection`.
 
-The shape of `risk_assessment`:
+The shape of `bot_protection`:
 
 ```json
 {
-  "required": true,
+  "enabled": true,
   "provider": {
     "type": "recaptchav3"
   }
 }
 ```
 
-If `risk_assessment.required` is true, then selecting this option requires performing risk assessment first.
+- `enabled`: If it is true, then selecting this option requires performing Captcha challenge first.
+- `provider.type`: You use this to determine which client side library and which client side credentials to use.
 
-You use `provider.type` to determine which client side library and which client side credentials to use.
+#### Bot protection input
 
----
-
-The shape of `captcha`:
-
-```json
-{
-  "required": true,
-  "provider": {
-    "type": "recaptchav3"
-  }
-}
-```
-
-If `captcha.required` is true, then selecting this option requires performing captcha challenge first.
-
-You use `provider.type` to determine which client side library and which client side credentials to use.
-
----
-
-If both are present, you must perform risk assessment first.
-
-#### Risk assessment input
-
-To perform risk assessment, pass an input of the following shape:
+To pass a bot protection input, pass an input of the following shape:
 
 ```json
 {
-  "risk_assessment": {
-    "type": "recaptchav3",
-    "response": { ... }
-  }
-}
-```
-
-- `risk_assessment.type`: The type of the risk assessment provider.
-
-Other fields are provider-specific.
-
-#### risk_assessment input; type: recaptchav3
-
-- `risk_assessment.response`: The response provided by the reCAPTCHA v3 client-side library.
-
-#### Risk assessment error
-
-When you submit an input without performing risk assessment, you will receive the following error.
-
-```json
-{
-  "error": {
-    "name": "Forbidden",
-    "reason": "RiskAssessmentRequired",
-    "message': "risk assessment required",
-    "code": 403,
-    "info": {}
-  }
-}
-```
-
-#### Captcha input
-
-To pass a Captcha input, pass an input of the following shape:
-
-```json
-{
-  "captcha": {
+  "bot_protection": {
     "type": "cloudflare",
     "response": { ... }
   }
 }
 ```
 
-- `captcha.type`: The type of the captcha provider.
+- `bot_protection.type`: The type of the bot protection provider.
 
 Other fields are provider-specific.
 
-#### Captcha input; type: cloudflare
+#### Bot protection input; type: cloudflare
 
-- `captcha.response`: The response provided by the Turnstile client-side library.
+- `bot_protection.response`: The response provided by the Turnstile client-side library.
 
-#### Captcha input; type: recaptchav2
+#### Bot protection input; type: recaptchav2
 
-- `captcha.response`: The response provided by the reCAPTCHA v2 client-side library.
+- `bot_protection.response`: The response provided by the reCAPTCHA v2 client-side library.
 
-#### Captcha error
+#### Bot protection error
 
-When you submit an input without verifying captcha, you will receive the following error.
+When you submit an input without performing Captcha challenge, you will receive the following error.
 
 ```json
 {
   "error": {
     "name": "Forbidden",
-    "reason": "CaptchaRequired",
-    "message': "captcha required",
+    "reason": "BotProtectionRequired",
+    "message': "bot protection required",
     "code": 403,
     "info": {}
   }
@@ -820,13 +752,13 @@ Or this response if you are setting up 2FA.
 }
 ```
 
-### Risk assessment and Captcha
+### Bot protection
 
-Each option may contain the key `risk_assessment` and the key `captcha`.
+Each option may contain the key `bot_protection`.
 
-If either key is present, that means risk assessment or Captcha is required.
+If this key is present, then bot protection is enabled.
 
-See [Risk assessment and Captcha](#risk-assessment-and-captcha) for details.
+See [Bot protection](#bot-protection) for details.
 
 ### authentication: primary_password
 
@@ -1412,13 +1344,13 @@ Or this response if you are performing secondary authentication.
 }
 ```
 
-### Risk assessment and Captcha
+### Bot protection
 
-Each option may contain the key `risk_assessment` and the key `captcha`.
+Each option may contain the key `bot_protection`.
 
-If either key is present, that means risk assessment or Captcha is required.
+If this key is present, then bot protection is enabled.
 
-See [Risk assessment and Captcha](#risk-assessment-and-captcha) for details.
+See [Bot protection](#bot-protection) for details.
 
 ### authentication: primary_password
 
@@ -1848,13 +1780,13 @@ When you are in this step of this flow, you will see a response like the followi
 }
 ```
 
-### Risk assessment and Captcha
+### Bot protection
 
-Each option may contain the key `risk_assessment` and the key `captcha`.
+Each option may contain the key `bot_protection`.
 
-If either key is present, that means risk assessment or Captcha is required.
+If this key is present, then bot protection is enabled.
 
-See [Risk assessment and Captcha](#risk-assessment-and-captcha) for details.
+See [Bot protection](#bot-protection) for details.
 
 ### identification: email
 
