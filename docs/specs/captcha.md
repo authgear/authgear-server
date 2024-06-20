@@ -72,7 +72,7 @@ Type specific fields:
 ---
 
 - `captcha.enabled`: If it is true, the new configuration is used.
-- `captcha.ip_allowlist`: A list of IPv4 CIDR notations or IPv4 addresses. If the incoming request matches any entry in the allowlist, the request bypasses Captcha.
+- `captcha.ip_allowlist`: A list of IPv4/IPv6 CIDR notations or addresses. If the incoming request matches any entry in the allowlist, the request bypasses Captcha.
 - `captcha.providers`: A list of Captcha provider configuration. The actual shape depends on the `type` property.
 - `captcha.providers.type`: Required. The type of the Captcha provider. Valid values are `cloudflare` and `recaptchav2`.
 
