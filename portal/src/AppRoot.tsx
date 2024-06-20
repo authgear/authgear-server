@@ -88,6 +88,7 @@ const VerifyDomainScreen = lazy(
 const UISettingsScreen = lazy(
   async () => import("./graphql/portal/UISettingsScreen")
 );
+const DesignScreen = lazy(async () => import("./graphql/portal/DesignScreen"));
 const LocalizationConfigurationScreen = lazy(
   async () => import("./graphql/portal/LocalizationConfigurationScreen")
 );
@@ -184,6 +185,8 @@ const AppRoot: React.VFC = function AppRoot() {
   if (isInvalidAppID) {
     return <Navigate to="/projects" replace={true} />;
   }
+
+  const useAuthUIV2 = effectiveAppConfig?.ui?.implementation === "authflowv2";
 
   return (
     <ApolloProvider client={client}>
@@ -426,16 +429,32 @@ const AppRoot: React.VFC = function AppRoot() {
           <Route path="branding">
             <Route
               index={true}
-              element={<Navigate to="ui-settings" replace={true} />}
-            />
-            <Route
-              path="ui-settings"
               element={
-                <Suspense fallback={<ShowLoading />}>
-                  <UISettingsScreen />
-                </Suspense>
+                <Navigate
+                  to={useAuthUIV2 ? "design" : "ui-settings"}
+                  replace={true}
+                />
               }
             />
+            {useAuthUIV2 ? (
+              <Route
+                path="design"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <DesignScreen />
+                  </Suspense>
+                }
+              />
+            ) : (
+              <Route
+                path="ui-settings"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <UISettingsScreen />
+                  </Suspense>
+                }
+              />
+            )}
             <Route
               path="localization"
               element={
