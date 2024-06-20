@@ -208,6 +208,22 @@ export const RESOURCE_AUTHGEAR_DARK_THEME_CSS: ResourceDefinition = {
   optional: true,
 };
 
+export const RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS: ResourceDefinition =
+  {
+    resourcePath: resourcePath`static/authgear-authflowv2-light-theme.css`,
+    type: "text",
+    extensions: [],
+    optional: true,
+  };
+
+export const RESOURCE_AUTHGEAR_AUTHFLOW_V2_DARK_THEME_CSS: ResourceDefinition =
+  {
+    resourcePath: resourcePath`static/authgear-authflowv2-dark-theme.css`,
+    type: "text",
+    extensions: [],
+    optional: true,
+  };
+
 export const RESOURCE_EMAIL_DOMAIN_BLOCKLIST: ResourceDefinition = {
   resourcePath: resourcePath`email_domain_blocklist.txt`,
   type: "text",
