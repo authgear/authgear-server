@@ -54,3 +54,24 @@ value:
         mode: always
       signup_flow: a
       login_flow: b
+---
+part: AuthenticationFlowSignupLoginFlow
+name: captcha-provider-missing-alias
+error: |-
+  invalid value:
+  /steps/0/one_of/0/captcha/provider: 
+  /steps/0/one_of/0/captcha/provider: required
+    map[actual:[nickname] expected:[alias] missing:[alias]]
+  /steps/0/one_of/0/captcha/provider/nickname: 
+value:
+  name: id
+  steps:
+  - type: identify
+    one_of:
+    - identification: email
+      captcha:
+        mode: always
+        provider:
+          nickname: wrong-key
+      signup_flow: a
+      login_flow: b

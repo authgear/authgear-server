@@ -59,3 +59,26 @@ value:
       - type: authenticate
         one_of:
         - authentication: secondary_totp
+---
+part: AuthenticationFlowReauthFlow
+name: captcha-provider-missing-alias
+error: |-
+  invalid value:
+  /steps/0/one_of/0/captcha/provider: 
+  /steps/0/one_of/0/captcha/provider: required
+    map[actual:[nickname] expected:[alias] missing:[alias]]
+  /steps/0/one_of/0/captcha/provider/nickname: 
+value:
+  name: id
+  steps:
+  - type: authenticate
+    one_of:
+    - authentication: primary_password
+      captcha:
+        mode: always
+        provider:
+          nickname: wrong-key
+      steps:
+      - type: authenticate
+        one_of:
+        - authentication: secondary_totp
