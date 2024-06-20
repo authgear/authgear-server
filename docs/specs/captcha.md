@@ -69,8 +69,8 @@ captcha:
 
 Type specific fields:
 
-- `risk_assessment.providers.type=recaptchav3.site_key`: The site key of reCAPTCHA v3.
-- `risk_assessment.providers.type=recaptchav3.risk_level`: The mapping of reCAPTCHA v3 score to Low, Medium, and High.
+- `risk_assessment.providers.type=recaptchav3.site_key`: Required. The site key of reCAPTCHA v3.
+- `risk_assessment.providers.type=recaptchav3.risk_level`: Required. The mapping of reCAPTCHA v3 score to Low, Medium, and High.
 
 ---
 
@@ -83,8 +83,8 @@ Type specific fields:
 
 Type specific fields:
 
-- `captcha.providers.type=cloudflare.site_key`: The site key of Cloudflare Turnstile.
-- `captcha.providers.type=recaptchav2.site_key`: The site key of reCAPTCHA v2.
+- `captcha.providers.type=cloudflare.site_key`: Required. The site key of Cloudflare Turnstile.
+- `captcha.providers.type=recaptchav2.site_key`: Required. The site key of reCAPTCHA v2.
 
 ### authgear.secrets.yaml
 
