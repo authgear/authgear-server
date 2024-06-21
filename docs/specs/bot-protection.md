@@ -132,7 +132,7 @@ The configuration is as follows:
 
 ```yaml
 bot_protection:
-  mode: "always" # "never" | "always" | "risk_level_low" | "risk_level_medium" | "risk_level_high"
+  mode: "always" # "never" | "always" | "risk_level_medium" | "risk_level_high"
   fail_open: true
   provider:
     type: cloudflare
@@ -145,9 +145,8 @@ bot_protection:
 - `bot_protection.mode`: When bot protection is required.
   - `never`: Bot protection is never required. It is the default.
   - `always`: Bot protection is always required. Risk level is ignored.
-  - `risk_level_low`: Bot protection is required when the risk level obtained by risk assessment is low. If risk assessment is not enabled, then it means `always`. If risk assessment is service unavailable, then it means `always`.
-  - `risk_level_medium`: Bot protection is required when the risk level obtained by risk assessment is medium. If risk assessment is not enabled, then it means `always`. If risk assessment is service unavailable, then it means `always`.
-  - `risk_level_high`: Bot protection is required when the risk level obtained by risk assessment is high. If risk assessment is not enabled, then it means `always`. If risk assessment is service unavailable, then it means `always`.
+  - `risk_level_medium`: Bot protection is required when the risk level obtained by risk assessment is medium or above. If risk assessment is not enabled, then it means `always`. If risk assessment is service unavailable, then it means `always`. There is no `risk_level_low` because risk level is always low, medium, or high. `risk_level_low` is equivalent to `always`.
+  - `risk_level_high`: Bot protection is required when the risk level obtained by risk assessment is high. If risk assessment is not enabled, then it means `always`. If risk assessment is service unavailable, then it means `always`. There is no `risk_level_low` because risk level is always low, medium, or high. `risk_level_low` is equivalent to `always`.
 - `bot_protection.fail_open`: If it is true, then if the challenge-based provider is service unavailable, access is granted. It is false by default.
 - `bot_protection.provider.type`: If `mode` is not `never`, then it is required. Specify the challenge-based provider to be used in this branch.
 - `bot_protection.risk_assessment.enabled`: Whether risk assessment is enabled.
