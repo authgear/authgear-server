@@ -1,10 +1,12 @@
 import { useMemo } from "react";
 import { parse as parseCSS } from "postcss";
+import { produce } from "immer";
 import {
   ResourceFormModel,
   useResourceForm,
 } from "../../../hook/useResourceForm";
 import {
+  Alignment,
   CssAstVisitor,
   CustomisableTheme,
   CustomisableThemeStyleGroup,
@@ -26,6 +28,11 @@ const THEME_RESOURCE_DEFINITIONS = [
 export interface BranchDesignFormState {
   orignalResources: Resource[];
   customisableTheme: CustomisableTheme;
+}
+
+export interface BranchDesignForm
+  extends ResourceFormModel<BranchDesignFormState> {
+  setCardAlignment: (alignment: Alignment) => void;
 }
 
 function constructResourcesFormStateFromResources(
@@ -78,9 +85,7 @@ function constructResourcesFromFormState(
   ];
 }
 
-export function useBrandDesignForm(
-  appID: string
-): ResourceFormModel<BranchDesignFormState> {
+export function useBrandDesignForm(appID: string): BranchDesignForm {
   const specifiers = useMemo<ResourceSpecifier[]>(() => {
     const specifiers: ResourceSpecifier[] = [];
     for (const def of THEME_RESOURCE_DEFINITIONS) {
@@ -100,5 +105,20 @@ export function useBrandDesignForm(
     constructResourcesFromFormState
   );
 
-  return form;
+  const designForm = useMemo(
+    () => ({
+      ...form,
+      setCardAlignment: (alignment: Alignment) => {
+        form.setState((prev) => {
+          return produce(prev, (draft) => {
+            draft.customisableTheme.cardAlignment = alignment;
+          });
+        });
+      },
+    }),
+
+    [form]
+  );
+
+  return designForm;
 }
