@@ -10,8 +10,8 @@ import (
 )
 
 type OfflineGrantSessionManager interface {
-	List(userID string) ([]session.Session, error)
-	Delete(session session.Session) error
+	List(userID string) ([]session.ListableSession, error)
+	Delete(session session.ListableSession) error
 }
 
 type AuthorizationService struct {
@@ -19,6 +19,8 @@ type AuthorizationService struct {
 	Store               AuthorizationStore
 	Clock               clock.Clock
 	OAuthSessionManager OfflineGrantSessionManager
+	OfflineGrantService *OfflineGrantService
+	OfflineGrantStore   OfflineGrantStore
 }
 
 func (s *AuthorizationService) GetByID(id string) (*Authorization, error) {
@@ -57,8 +59,18 @@ func (s *AuthorizationService) Delete(a *Authorization) error {
 	// delete the offline grants that belong to the authorization
 	for _, sess := range sessions {
 		if offlineGrant, ok := sess.(*OfflineGrant); ok {
-			if offlineGrant.AuthorizationID == a.ID {
+			tokenHashes, shouldRemoveOfflineGrant := offlineGrant.GetRemovableTokenHashesByAuthorizationID(a.ID)
+			if shouldRemoveOfflineGrant {
 				err := s.OAuthSessionManager.Delete(sess)
+				if err != nil {
+					return err
+				}
+			} else if len(tokenHashes) > 0 {
+				expiry, err := s.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
+				if err != nil {
+					return err
+				}
+				_, err = s.OfflineGrantStore.RemoveOfflineGrantRefreshTokens(offlineGrant.ID, tokenHashes, expiry)
 				if err != nil {
 					return err
 				}

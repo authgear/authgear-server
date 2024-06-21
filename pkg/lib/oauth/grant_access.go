@@ -12,4 +12,6 @@ type AccessGrant struct {
 	ExpireAt  time.Time `json:"expire_at"`
 	Scopes    []string  `json:"scopes"`
 	TokenHash string    `json:"token_hash"`
+	// Only exist when session_kind is offline_grant
+	RefreshTokenHash string `json:"refresh_token_hash"`
 }

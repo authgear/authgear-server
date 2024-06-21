@@ -143,10 +143,14 @@ func TestSID(t *testing.T) {
 			ClientID: "client-id",
 		}
 		scopes := []string{"openid", "email"}
+		refreshToken := oauth.OfflineGrantRefreshToken{
+			ClientID: client.ClientID,
+			Scopes:   scopes,
+		}
 
 		offlineGrant := &oauth.OfflineGrant{
-			ID:     "offline-grant-id",
-			Scopes: scopes,
+			ID:            "offline-grant-id",
+			RefreshTokens: []oauth.OfflineGrantRefreshToken{refreshToken},
 			Attrs: session.Attrs{
 				UserID: "user-id",
 			},

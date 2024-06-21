@@ -149,8 +149,8 @@ type UserProfileFacade interface {
 }
 
 type SessionFacade interface {
-	List(userID string) ([]session.Session, error)
-	Get(id string) (session.Session, error)
+	List(userID string) ([]session.ListableSession, error)
+	Get(id string) (session.ListableSession, error)
 	Revoke(id string) error
 	RevokeAll(userID string) error
 }
@@ -162,11 +162,11 @@ type AuthorizationFacade interface {
 }
 
 type OAuthFacade interface {
-	CreateSession(clientID string, userID string) (session.Session, protocol.TokenResponse, error)
+	CreateSession(clientID string, userID string) (session.ListableSession, protocol.TokenResponse, error)
 }
 
 type SessionListingService interface {
-	FilterForDisplay(sessions []session.Session, currentSession session.Session) ([]*sessionlisting.Session, error)
+	FilterForDisplay(sessions []session.ListableSession, currentSession session.ResolvedSession) ([]*sessionlisting.Session, error)
 }
 
 type OTPCodeService interface {

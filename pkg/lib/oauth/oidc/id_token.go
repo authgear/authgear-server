@@ -341,7 +341,7 @@ type IDTokenHintResolver struct {
 	OfflineGrants oauth.OfflineGrantStore
 }
 
-func (r *IDTokenHintResolver) ResolveIDTokenHint(client *config.OAuthClientConfig, req protocol.AuthorizationRequest) (idToken jwt.Token, sidSession session.Session, err error) {
+func (r *IDTokenHintResolver) ResolveIDTokenHint(client *config.OAuthClientConfig, req protocol.AuthorizationRequest) (idToken jwt.Token, sidSession session.ListableSession, err error) {
 	idTokenHint, ok := req.IDTokenHint()
 	if !ok {
 		return
