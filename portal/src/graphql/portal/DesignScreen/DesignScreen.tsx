@@ -1,13 +1,13 @@
 import React, { useMemo } from "react";
 import { useParams } from "react-router-dom";
-import { useResourceForm } from "../../hook/useResourceForm";
-import { RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS } from "../../resources";
+import { parse as parseCSS } from "postcss";
+import { useResourceForm } from "../../../hook/useResourceForm";
+import { RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS } from "../../../resources";
 import {
   Resource,
   ResourceSpecifier,
   expandSpecifier,
-} from "../../util/resource";
-import { parse as parseCSS } from "postcss";
+} from "../../../util/resource";
 import {
   CssAstVisitor,
   CustomisableTheme,
@@ -15,10 +15,10 @@ import {
   DEFAULT_LIGHT_THEME,
   StyleCssVisitor,
   ThemeTargetSelector,
-} from "../../model/themeAuthFlowV2";
-import FormContainer from "../../FormContainer";
-import ShowError from "../../ShowError";
-import ShowLoading from "../../ShowLoading";
+} from "../../../model/themeAuthFlowV2";
+import FormContainer from "../../../FormContainer";
+import ShowError from "../../../ShowError";
+import ShowLoading from "../../../ShowLoading";
 
 const THEME_RESOURCE_DEFINITIONS = [
   RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS,

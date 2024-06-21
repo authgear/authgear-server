@@ -88,7 +88,9 @@ const VerifyDomainScreen = lazy(
 const UISettingsScreen = lazy(
   async () => import("./graphql/portal/UISettingsScreen")
 );
-const DesignScreen = lazy(async () => import("./graphql/portal/DesignScreen"));
+const DesignScreen = lazy(
+  async () => import("./graphql/portal/DesignScreen/DesignScreen")
+);
 const LocalizationConfigurationScreen = lazy(
   async () => import("./graphql/portal/LocalizationConfigurationScreen")
 );
