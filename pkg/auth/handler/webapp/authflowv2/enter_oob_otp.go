@@ -14,7 +14,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -110,7 +109,7 @@ func NewInlinePreviewAuthflowEnterOOBOTPViewModel(
 		} else {
 			channelForPreview = model.AuthenticatorOOBChannelSMS
 		}
-		maskedClaimValue = phone.Mask(viewmodels.PreviewDummyPhoneNumber)
+		maskedClaimValue = viewmodels.PreviewDummyPhoneNumberMasked
 	}
 
 	return AuthflowEnterOOBOTPViewModel{

@@ -1,6 +1,6 @@
 package viewmodels
 
 const (
-	PreviewDummyPhoneNumber = "+85298765432"
-	PreviewDummyEmail       = "johndoe@example.com"
+	PreviewDummyPhoneNumberMasked = "PHONE NUMBER"
+	PreviewDummyEmail             = "johndoe@example.com"
 )

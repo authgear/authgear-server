@@ -6,7 +6,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
-	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
@@ -220,7 +219,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateSignupFlowStepAuthentic
 		{
 			Authentication:        config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
 			Channel:               channel,
-			MaskedClaimValue:      phone.Mask(PreviewDummyPhoneNumber),
+			MaskedClaimValue:      PreviewDummyPhoneNumberMasked,
 			OTPForm:               otp.FormCode,
 			VerificationSkippable: true,
 		},
@@ -373,7 +372,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateLoginFlowStepAuthentica
 		{
 			Authentication:   config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
 			Channel:          channel,
-			MaskedClaimValue: phone.Mask(PreviewDummyPhoneNumber),
+			MaskedClaimValue: PreviewDummyPhoneNumberMasked,
 			OTPForm:          otp.FormCode,
 		},
 	}
@@ -464,7 +463,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateLoginFlowStepAuthentica
 		{
 			Authentication:   config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
 			Channel:          channel,
-			MaskedClaimValue: phone.Mask(PreviewDummyPhoneNumber),
+			MaskedClaimValue: PreviewDummyPhoneNumberMasked,
 			OTPForm:          otp.FormCode,
 		},
 	}
