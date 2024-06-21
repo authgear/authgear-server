@@ -5,7 +5,6 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
@@ -196,7 +195,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateSignupFlowStepAuthentic
 		{
 			Authentication:   config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
 			Channel:          model.AuthenticatorOOBChannelEmail,
-			MaskedClaimValue: mail.MaskAddress(PreviewDummyEmail),
+			MaskedClaimValue: PreviewDummyEmailMasked,
 			OTPForm: func() otp.Form {
 				if m.AppConfig.Authenticator.OOB.Email.EmailOTPMode.IsCodeEnabled() {
 					return otp.FormCode
@@ -350,7 +349,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateLoginFlowStepAuthentica
 		{
 			Authentication:   config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
 			Channel:          model.AuthenticatorOOBChannelEmail,
-			MaskedClaimValue: mail.MaskAddress(PreviewDummyEmail),
+			MaskedClaimValue: PreviewDummyEmailMasked,
 			OTPForm: func() otp.Form {
 				if m.AppConfig.Authenticator.OOB.Email.EmailOTPMode.IsCodeEnabled() {
 					return otp.FormCode
@@ -441,7 +440,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateLoginFlowStepAuthentica
 		{
 			Authentication:   config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail,
 			Channel:          model.AuthenticatorOOBChannelEmail,
-			MaskedClaimValue: mail.MaskAddress(PreviewDummyEmail),
+			MaskedClaimValue: PreviewDummyEmailMasked,
 			OTPForm: func() otp.Form {
 				if m.AppConfig.Authenticator.OOB.Email.EmailOTPMode.IsCodeEnabled() {
 					return otp.FormCode

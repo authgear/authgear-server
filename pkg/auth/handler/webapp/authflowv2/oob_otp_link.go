@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
-	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -69,12 +68,11 @@ func NewAuthflowOOBOTPLinkViewModel(s *webapp.Session, screen *webapp.AuthflowSc
 }
 
 func NewInlinePreviewAuthflowOOBOTPLinkViewModel() AuthflowOOBOTPLinkViewModel {
-	maskedClaimValue := mail.MaskAddress(viewmodels.PreviewDummyEmail)
 	return AuthflowOOBOTPLinkViewModel{
 		WebsocketURL:     "",
 		StateToken:       "",
 		StateQuery:       handlerwebapp.LoginLinkOTPPageQueryStateInitial,
-		MaskedClaimValue: maskedClaimValue,
+		MaskedClaimValue: viewmodels.PreviewDummyEmailMasked,
 		ResendCooldown:   0,
 	}
 }
