@@ -649,6 +649,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 			SID:                oidc.EncodeSID(offlineGrant),
 			AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
 			ClientLike:         oauth.ClientClientLike(client, scopes),
+			DeviceSecretHash:   offlineGrant.DeviceSecretHash,
 		})
 		if err != nil {
 			return nil, err
@@ -874,6 +875,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 			SID:                oidc.EncodeSID(offlineGrant),
 			AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
 			ClientLike:         oauth.ClientClientLike(client, scopes),
+			DeviceSecretHash:   offlineGrant.DeviceSecretHash,
 		})
 		if err != nil {
 			return nil, err
@@ -1027,6 +1029,11 @@ func (h *TokenHandler) handleIDToken(
 	if s == nil {
 		return nil, protocol.NewErrorStatusCode("invalid_grant", "valid session is required", http.StatusUnauthorized)
 	}
+	var deviceSecretHash string
+	offlineGrantSession, ok := s.(*oauth.OfflineGrantSession)
+	if ok {
+		deviceSecretHash = offlineGrantSession.OfflineGrant.DeviceSecretHash
+	}
 	idToken, err := h.IDTokenIssuer.IssueIDToken(oidc.IssueIDTokenOptions{
 		ClientID:           client.ClientID,
 		SID:                oidc.EncodeSID(s),
@@ -1035,7 +1042,8 @@ func (h *TokenHandler) handleIDToken(
 		// those fields may include personal identifiable information
 		// Since the ID token issued here will be used in id_token_hint
 		// so no scopes are needed
-		ClientLike: oauth.ClientClientLike(client, []string{}),
+		ClientLike:       oauth.ClientClientLike(client, []string{}),
+		DeviceSecretHash: deviceSecretHash,
 	})
 	if err != nil {
 		return nil, err
@@ -1161,6 +1169,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	var accessTokenSessionID string
 	var accessTokenSessionKind oauth.GrantSessionKind
 	var refreshTokenHash string
+	var deviceSecretHash string
 	var sid string
 
 	opts := IssueOfflineGrantOptions{
@@ -1187,6 +1196,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		accessTokenSessionID = offlineGrant.ID
 		accessTokenSessionKind = oauth.GrantSessionKindOffline
 		refreshTokenHash = tokenHash
+		deviceSecretHash = offlineGrant.DeviceSecretHash
 
 		// ref: https://github.com/authgear/authgear-server/issues/2930
 		if info.ShouldFireAuthenticatedEventWhenIssueOfflineGrant {
@@ -1262,6 +1272,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 			Nonce:              code.AuthorizationRequest.Nonce(),
 			AuthenticationInfo: info,
 			ClientLike:         oauth.ClientClientLike(client, code.AuthorizationRequest.Scope()),
+			DeviceSecretHash:   deviceSecretHash,
 		})
 		if err != nil {
 			return nil, err
@@ -1293,6 +1304,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 			SID:                oidc.EncodeSID(offlineGrantSession.OfflineGrant),
 			AuthenticationInfo: offlineGrantSession.GetAuthenticationInfo(),
 			ClientLike:         oauth.ClientClientLike(client, authz.Scopes),
+			DeviceSecretHash:   offlineGrantSession.OfflineGrant.DeviceSecretHash,
 		})
 		if err != nil {
 			return nil, err
