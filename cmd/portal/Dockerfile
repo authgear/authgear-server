@@ -56,7 +56,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     media-types \
     tzdata \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
 RUN update-ca-certificates
 COPY ./GeoLite2-Country.mmdb ./GeoLite2-Country.mmdb
 COPY ./migrations ./migrations
