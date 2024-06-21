@@ -122,6 +122,8 @@ type TokenHandler struct {
 	CodeGrantService         CodeGrantService
 	ClientResolver           OAuthClientResolver
 	UIInfoResolver           UIInfoResolver
+
+	ValidateScopes ScopesValidator
 }
 
 // TODO: Write some tests
@@ -755,8 +757,15 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		return nil, err
 	}
 
-	// TODO(DEV-1404): allow specifying scopes
 	scopes := []string{"openid", oauth.FullAccessScope}
+	requestedScopes := r.Scope()
+	if len(requestedScopes) > 0 {
+		err := h.ValidateScopes(client, requestedScopes)
+		if err != nil {
+			return nil, err
+		}
+		scopes = requestedScopes
+	}
 
 	authz, err := h.Authorizations.CheckAndGrant(
 		client.ClientID,
