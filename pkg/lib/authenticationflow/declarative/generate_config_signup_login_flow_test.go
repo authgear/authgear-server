@@ -224,7 +224,7 @@ steps:
   - identification: passkey
     login_flow: default
 `)
-		// captcha, 1 branch
+		// bot_protection, 1 branch
 		test(`
 authentication:
   identities:
@@ -235,11 +235,10 @@ identity:
   login_id:
     keys:
     - type: email
-captcha:
+bot_protection:
   enabled: true
-  providers:
-  - type: recaptchav2
-    alias: recaptchav2
+  provider:
+    type: recaptchav2
     site_key: some-site-key
 `, `
 name: default
@@ -248,14 +247,14 @@ steps:
   type: identify
   one_of:
   - identification: email
-    captcha:
+    bot_protection:
       mode: always
       provider: 
-        alias: recaptchav2
+        type: recaptchav2
     signup_flow: default
     login_flow: default
 `)
-		// captcha, all branches
+		// bot_protection, all branches
 		test(`
 authentication:
   identities:
@@ -282,11 +281,10 @@ identity:
     providers:
     - alias: google
       type: google
-captcha:
+bot_protection:
   enabled: true
-  providers:
-  - type: recaptchav2
-    alias: recaptchav2
+  provider:
+    type: recaptchav2
     site_key: some-site-key
 `, `
 name: default
@@ -295,38 +293,38 @@ steps:
   type: identify
   one_of:
   - identification: email
-    captcha:
+    bot_protection:
       mode: always
       provider: 
-        alias: recaptchav2
+        type: recaptchav2
     signup_flow: default
     login_flow: default
   - identification: phone
-    captcha:
+    bot_protection:
       mode: always
       provider: 
-        alias: recaptchav2
+        type: recaptchav2
     signup_flow: default
     login_flow: default
   - identification: username
-    captcha:
+    bot_protection:
       mode: always
       provider: 
-        alias: recaptchav2
+        type: recaptchav2
     signup_flow: default
     login_flow: default
   - identification: oauth
-    captcha:
+    bot_protection:
       mode: always
       provider: 
-        alias: recaptchav2
+        type: recaptchav2
     signup_flow: default
     login_flow: default
   - identification: passkey
-    captcha:
+    bot_protection:
       mode: always
       provider: 
-        alias: recaptchav2
+        type: recaptchav2
     login_flow: default
 `)
 	})

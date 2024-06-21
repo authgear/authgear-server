@@ -151,17 +151,16 @@ steps:
 - type: verify_account_recovery_code
 - type: reset_password
 `)
-		// captcha, 1 branch
+		// bot_protection, 1 branch
 		test(`
 identity:
   login_id:
     keys:
       - type: phone
-captcha:
+bot_protection:
   enabled: true
-  providers:
-  - type: recaptchav2
-    alias: recaptchav2-a
+  provider:
+    type: recaptchav2
     site_key: some-site-key
 `,
 			`
@@ -170,10 +169,10 @@ steps:
 - type: identify
   one_of:
   - identification: phone
-    captcha:
+    bot_protection:
       mode: always
       provider: 
-        alias: recaptchav2-a
+        type: recaptchav2
     on_failure: ignore
     steps:
       - type: select_destination
@@ -183,7 +182,7 @@ steps:
 - type: verify_account_recovery_code
 - type: reset_password
 `)
-		// captcha, 2 branches
+		// bot_protection, 2 branches
 		test(
 			`
 identity:
@@ -191,11 +190,10 @@ identity:
     keys:
     - type: email
     - type: phone
-captcha:
+bot_protection:
   enabled: true
-  providers:
-  - type: recaptchav2
-    alias: recaptchav2-a
+  provider:
+    type: recaptchav2
     site_key: some-site-key
 `,
 			`
@@ -204,10 +202,10 @@ steps:
 - type: identify
   one_of:
   - identification: email
-    captcha:
+    bot_protection:
       mode: always
       provider: 
-        alias: recaptchav2-a
+        type: recaptchav2
     on_failure: ignore
     steps:
       - type: select_destination
@@ -215,10 +213,10 @@ steps:
           - channel: email
             otp_form: link
   - identification: phone
-    captcha:
+    bot_protection:
       mode: always
       provider: 
-        alias: recaptchav2-a
+        type: recaptchav2
     on_failure: ignore
     steps:
       - type: select_destination

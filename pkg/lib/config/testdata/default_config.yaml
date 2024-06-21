@@ -638,6 +638,7 @@ account_migration:
   hook:
     timeout: 5
 captcha: {}
+bot_protection: {}
 test_mode:
   oob_otp:
     enabled: false

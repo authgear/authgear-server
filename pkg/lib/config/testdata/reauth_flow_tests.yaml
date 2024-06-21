@@ -7,7 +7,7 @@ value:
   - type: authenticate
     one_of:
     - authentication: primary_password
-      captcha:
+      bot_protection:
         mode: never
       steps:
       - type: authenticate
@@ -25,9 +25,9 @@ error: |-
     map[actual:foobar expected:[id_token]]
   /steps/2/one_of/0/authentication: enum
     map[actual:foobar expected:[primary_password primary_passkey primary_oob_otp_email primary_oob_otp_sms secondary_password secondary_totp secondary_oob_otp_email secondary_oob_otp_sms]]
-  /steps/2/one_of/0/captcha: required
+  /steps/2/one_of/0/bot_protection: required
     map[actual:[foobar] expected:[mode] missing:[mode]]
-  /steps/2/one_of/0/captcha/foobar: 
+  /steps/2/one_of/0/bot_protection/foobar: 
 value:
   name: id
   steps:
@@ -38,14 +38,14 @@ value:
   - type: authenticate
     one_of:
     - authentication: foobar
-      captcha:
+      bot_protection:
         foobar: true
 ---
 part: AuthenticationFlowReauthFlow
-name: captcha-mode-always-but-missing-provider
+name: bot-protection-mode-always-but-missing-provider
 error: |-
   invalid value:
-  /steps/0/one_of/0/captcha: required
+  /steps/0/one_of/0/bot_protection: required
     map[actual:[mode] expected:[provider] missing:[provider]]
 value:
   name: id
@@ -53,7 +53,7 @@ value:
   - type: authenticate
     one_of:
     - authentication: primary_password
-      captcha:
+      bot_protection:
         mode: always
       steps:
       - type: authenticate
@@ -61,20 +61,20 @@ value:
         - authentication: secondary_totp
 ---
 part: AuthenticationFlowReauthFlow
-name: captcha-provider-missing-alias
+name: bot-protection-provider-missing-alias
 error: |-
   invalid value:
-  /steps/0/one_of/0/captcha/provider: 
-  /steps/0/one_of/0/captcha/provider: required
-    map[actual:[nickname] expected:[alias] missing:[alias]]
-  /steps/0/one_of/0/captcha/provider/nickname: 
+  /steps/0/one_of/0/bot_protection/provider: 
+  /steps/0/one_of/0/bot_protection/provider: required
+    map[actual:[nickname] expected:[type] missing:[type]]
+  /steps/0/one_of/0/bot_protection/provider/nickname: 
 value:
   name: id
   steps:
   - type: authenticate
     one_of:
     - authentication: primary_password
-      captcha:
+      bot_protection:
         mode: always
         provider:
           nickname: wrong-key

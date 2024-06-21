@@ -47,6 +47,7 @@ var _ = Schema.Add("AppConfig", `
 		"google_tag_manager": { "$ref": "#/$defs/GoogleTagManagerConfig" },
 		"account_migration": { "$ref": "#/$defs/AccountMigrationConfig" },
 		"captcha": { "$ref": "#/$defs/CaptchaConfig" },
+		"bot_protection": { "$ref": "#/$defs/BotProtectionConfig" },
 		"test_mode": { "$ref": "#/$defs/TestModeConfig" },
 		"authentication_flow": { "$ref": "#/$defs/AuthenticationFlowConfig" }
 	},
@@ -85,7 +86,8 @@ type AppConfig struct {
 
 	AccountMigration *AccountMigrationConfig `json:"account_migration,omitempty"`
 
-	Captcha *CaptchaConfig `json:"captcha,omitempty"`
+	Captcha       *CaptchaConfig       `json:"captcha,omitempty"`
+	BotProtection *BotProtectionConfig `json:"bot_protection,omitempty"`
 
 	TestMode *TestModeConfig `json:"test_mode,omitempty"`
 
@@ -124,9 +126,6 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 
 	// Validation 9: validate authentication flow
 	c.validateAuthenticationFlow(ctx)
-
-	// Validation 10: validate captcha
-	c.validateCaptchaProviders(ctx)
 }
 
 func (c *AppConfig) validateTokenLifetime(ctx *validation.Context) {
@@ -341,20 +340,6 @@ func (c *AppConfig) validateAuthenticationFlow(ctx *validation.Context) {
 
 		// Ensure client's flow allowlist is valid
 		validateFlowAllowlist(ctx, client.AuthenticationFlowAllowlist.Flows, definedFlows, i)
-	}
-}
-
-func (c *AppConfig) validateCaptchaProviders(ctx *validation.Context) {
-	captchaProviderAliases := map[string]struct{}{}
-	for i, providerConfig := range c.Captcha.Providers {
-		alias := providerConfig.Alias
-		childCtx := ctx.Child("captcha", "providers", strconv.Itoa(i), "alias")
-
-		if _, ok := captchaProviderAliases[alias]; ok {
-			childCtx.EmitErrorMessage("duplicated Captcha provider alias")
-			continue
-		}
-		captchaProviderAliases[alias] = struct{}{}
 	}
 }
 

@@ -42,10 +42,10 @@ func generateSignupFlowStepIdentify(cfg *config.AppConfig) *config.Authenticatio
 		}
 	}
 
-	captcha, ok := getCaptchaProviderConfig(cfg)
+	botProtection, ok := getBotProtectionProviderConfig(cfg)
 	if ok {
 		for _, oneOf := range step.OneOf {
-			oneOf.Captcha = captcha
+			oneOf.BotProtection = botProtection
 		}
 	}
 

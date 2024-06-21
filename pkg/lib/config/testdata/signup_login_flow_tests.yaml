@@ -7,7 +7,7 @@ value:
   - type: identify
     one_of:
     - identification: email
-      captcha:
+      bot_protection:
         mode: never
       signup_flow: a
       login_flow: b
@@ -20,10 +20,10 @@ error: |-
   /steps/0/type: enum
     map[actual:foobar expected:[identify]]
   /steps/1/one_of/0: required
-    map[actual:[captcha identification] expected:[identification login_flow signup_flow] missing:[login_flow signup_flow]]
-  /steps/1/one_of/0/captcha: required
+    map[actual:[bot_protection identification] expected:[identification login_flow signup_flow] missing:[login_flow signup_flow]]
+  /steps/1/one_of/0/bot_protection: required
     map[actual:[foobar] expected:[mode] missing:[mode]]
-  /steps/1/one_of/0/captcha/foobar: 
+  /steps/1/one_of/0/bot_protection/foobar: 
   /steps/1/one_of/0/identification: enum
     map[actual:foobar expected:[email phone username oauth passkey]]
 value:
@@ -35,14 +35,14 @@ value:
   - type: identify
     one_of:
     - identification: foobar
-      captcha:
+      bot_protection:
         foobar: true
 ---
 part: AuthenticationFlowSignupLoginFlow
-name: captcha-mode-always-but-missing-provider
+name: bot_protection-mode-always-but-missing-provider
 error: |-
   invalid value:
-  /steps/0/one_of/0/captcha: required
+  /steps/0/one_of/0/bot_protection: required
     map[actual:[mode] expected:[provider] missing:[provider]]
 value:
   name: id
@@ -50,26 +50,26 @@ value:
   - type: identify
     one_of:
     - identification: email
-      captcha:
+      bot_protection:
         mode: always
       signup_flow: a
       login_flow: b
 ---
 part: AuthenticationFlowSignupLoginFlow
-name: captcha-provider-missing-alias
+name: bot-protection-provider-missing-alias
 error: |-
   invalid value:
-  /steps/0/one_of/0/captcha/provider: 
-  /steps/0/one_of/0/captcha/provider: required
-    map[actual:[nickname] expected:[alias] missing:[alias]]
-  /steps/0/one_of/0/captcha/provider/nickname: 
+  /steps/0/one_of/0/bot_protection/provider: 
+  /steps/0/one_of/0/bot_protection/provider: required
+    map[actual:[nickname] expected:[type] missing:[type]]
+  /steps/0/one_of/0/bot_protection/provider/nickname: 
 value:
   name: id
   steps:
   - type: identify
     one_of:
     - identification: email
-      captcha:
+      bot_protection:
         mode: always
         provider:
           nickname: wrong-key

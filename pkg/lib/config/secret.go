@@ -201,25 +201,16 @@ func (c *SecretConfig) validateConfidentialClients(ctx *validation.Context, conf
 	}
 }
 
-func (c *SecretConfig) validateCaptchaSecrets(ctx *validation.Context, captchaProviders []*CaptchaProvider) {
-	c.validateRequire(ctx, CaptchaProvidersCredentialsKey, "captcha provider credentials")
-	_, data, _ := c.LookupDataWithIndex(CaptchaProvidersCredentialsKey)
-	captcha, ok := data.(*CaptchaProvidersCredentials)
+func (c *SecretConfig) validateBotProtectionSecrets(ctx *validation.Context, botProtectionProvider *BotProtectionProvider) {
+	c.validateRequire(ctx, BotProtectionProviderCredentialsKey, "bot protection provider credentials")
+	_, data, _ := c.LookupDataWithIndex(BotProtectionProviderCredentialsKey)
+	botProtectionSecret, ok := data.(*BotProtectionProviderCredentials)
 	if ok {
-		for _, p := range captchaProviders {
-			matched := false
-			for index := range captcha.Items {
-				item := captcha.Items[index]
-				if p.Alias == item.Alias && string(p.Type) == string(item.Type) {
-					matched = true
-					break
-				}
-			}
-			if !matched {
-				ctx.EmitErrorMessage(fmt.Sprintf("captcha provider credentials (type='%s',alias='%s') is required", p.Type, p.Alias))
-			} else {
-				// keys are validated by the jsonschema
-			}
+		matched := botProtectionSecret.Type == botProtectionProvider.Type
+		if !matched {
+			ctx.EmitErrorMessage(fmt.Sprintf("bot protection provider credentials for '%s' is required", botProtectionProvider.Type))
+		} else {
+			// keys are validated by the jsonschema
 		}
 	}
 }
@@ -253,9 +244,9 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 	if len(appConfig.Hook.BlockingHandlers) > 0 || len(appConfig.Hook.NonBlockingHandlers) > 0 {
 		c.validateRequire(ctx, WebhookKeyMaterialsKey, "web-hook signing key materials")
 	}
-	if appConfig.Captcha.Enabled || len(appConfig.Captcha.Providers) > 0 {
-		c.validateRequire(ctx, CaptchaProvidersCredentialsKey, "captcha key materials")
-		c.validateCaptchaSecrets(ctx, appConfig.Captcha.Providers)
+	if appConfig.BotProtection != nil && appConfig.BotProtection.Enabled != nil && *appConfig.BotProtection.Enabled && appConfig.BotProtection.Provider != nil {
+		c.validateRequire(ctx, BotProtectionProviderCredentialsKey, "bot protection key materials")
+		c.validateBotProtectionSecrets(ctx, appConfig.BotProtection.Provider)
 	}
 
 	return ctx.Error("invalid secrets")
@@ -293,7 +284,7 @@ const (
 	OAuthClientCredentialsKey SecretKey = "oauth.client_secrets"
 	// nolint: gosec
 	Deprecated_CaptchaCloudflareCredentialsKey SecretKey = "captcha.cloudflare"
-	CaptchaProvidersCredentialsKey             SecretKey = "captcha.providers"
+	BotProtectionProviderCredentialsKey        SecretKey = "bot_protection.provider"
 	WhatsappOnPremisesCredentialsKey           SecretKey = "whatsapp.on-premises"
 )
 
@@ -335,7 +326,7 @@ var secretItemKeys = map[SecretKey]secretKeyDef{
 	OAuthClientCredentialsKey:                  {"OAuthClientCredentials", func() SecretItemData { return &OAuthClientCredentials{} }},
 	CustomSMSProviderConfigKey:                 {"CustomSMSProviderConfig", func() SecretItemData { return &CustomSMSProviderConfig{} }},
 	Deprecated_CaptchaCloudflareCredentialsKey: {"Deprecated_CaptchaCloudflareCredentials", func() SecretItemData { return &Deprecated_CaptchaCloudflareCredentials{} }},
-	CaptchaProvidersCredentialsKey:             {"CaptchaProvidersCredentials", func() SecretItemData { return &CaptchaProvidersCredentials{} }},
+	BotProtectionProviderCredentialsKey:        {"BotProtectionProviderCredentials", func() SecretItemData { return &BotProtectionProviderCredentials{} }},
 	WhatsappOnPremisesCredentialsKey:           {"WhatsappOnPremisesCredentials", func() SecretItemData { return &WhatsappOnPremisesCredentials{} }},
 }
 

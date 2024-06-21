@@ -175,7 +175,7 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowIdentify", `
 	"required": ["identification"],
 	"properties": {
 		"identification": { "$ref": "#/$defs/AuthenticationFlowIdentification" },
-		"captcha": { "$ref": "#/$defs/AuthenticationFlowCaptcha" },
+		"bot_protection": { "$ref": "#/$defs/AuthenticationFlowBotProtection" },
 		"steps": {
 			"type": "array",
 			"items": { "$ref": "#/$defs/AuthenticationFlowSignupFlowStep" }
@@ -202,7 +202,7 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowAuthenticate", `
 				"secondary_oob_otp_sms"
 			]
 		},
-		"captcha": { "$ref": "#/$defs/AuthenticationFlowCaptcha" },
+		"bot_protection": { "$ref": "#/$defs/AuthenticationFlowBotProtection" },
 		"target_step": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
 		"steps": {
 			"type": "array",
@@ -319,7 +319,7 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowIdentify", `
 	"required": ["identification"],
 	"properties": {
 		"identification": { "$ref": "#/$defs/AuthenticationFlowIdentification" },
-		"captcha": { "$ref": "#/$defs/AuthenticationFlowCaptcha" },
+		"bot_protection": { "$ref": "#/$defs/AuthenticationFlowBotProtection" },
 		"steps": {
 			"type": "array",
 			"items": { "$ref": "#/$defs/AuthenticationFlowLoginFlowStep" }
@@ -348,7 +348,7 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowAuthenticate", `
 				"device_token"
 			]
 		},
-		"captcha": { "$ref": "#/$defs/AuthenticationFlowCaptcha" },
+		"bot_protection": { "$ref": "#/$defs/AuthenticationFlowBotProtection" },
 		"target_step": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
 		"steps": {
 			"type": "array",
@@ -412,7 +412,7 @@ var _ = Schema.Add("AuthenticationFlowSignupLoginFlowIdentify", `
 	"required": ["identification", "signup_flow", "login_flow"],
 	"properties": {
 		"identification": { "$ref": "#/$defs/AuthenticationFlowIdentification" },
-		"captcha": { "$ref": "#/$defs/AuthenticationFlowCaptcha" },
+		"bot_protection": { "$ref": "#/$defs/AuthenticationFlowBotProtection" },
 		"signup_flow": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
 		"login_flow": { "$ref": "#/$defs/AuthenticationFlowObjectName" }
 	}
@@ -524,7 +524,7 @@ var _ = Schema.Add("AuthenticationFlowReauthFlowAuthenticate", `
 				"secondary_oob_otp_sms"
 			]
 		},
-		"captcha": { "$ref": "#/$defs/AuthenticationFlowCaptcha" },
+		"bot_protection": { "$ref": "#/$defs/AuthenticationFlowBotProtection" },
 		"steps": {
 			"type": "array",
 			"items": { "$ref": "#/$defs/AuthenticationFlowReauthFlowStep" }
@@ -611,7 +611,7 @@ var _ = Schema.Add("AuthenticationFlowAccountRecoveryFlowOneOf", `
 	"required": ["identification"],
 	"properties": {
 		"identification": { "$ref": "#/$defs/AuthenticationFlowAccountRecoveryIdentification" },
-		"captcha": { "$ref": "#/$defs/AuthenticationFlowCaptcha" },
+		"bot_protection": { "$ref": "#/$defs/AuthenticationFlowBotProtection" },
 		"on_failure": { "type": "string", "enum": [ "error", "ignore"] },
 		"steps": {
 			"type": "array",
@@ -926,8 +926,8 @@ type AuthenticationFlowSignupFlowOneOf struct {
 	// VerificationRequired is specific to OOB.
 	VerificationRequired *bool `json:"verification_required,omitempty"`
 
-	// Captcha is specific to identify & create_authenticator
-	Captcha *AuthenticationFlowCaptcha `json:"captcha,omitempty"`
+	// BotProtection is specific to identify & create_authenticator
+	BotProtection *AuthenticationFlowBotProtection `json:"bot_protection,omitempty"`
 
 	// Steps are common.
 	Steps []*AuthenticationFlowSignupFlowStep `json:"steps,omitempty"`
@@ -1055,8 +1055,8 @@ type AuthenticationFlowLoginFlowOneOf struct {
 	// TargetStep is specific to authenticate.
 	TargetStep string `json:"target_step,omitempty"`
 
-	// Captcha is common
-	Captcha *AuthenticationFlowCaptcha `json:"captcha,omitempty"`
+	// BotProtection is common
+	BotProtection *AuthenticationFlowBotProtection `json:"bot_protection,omitempty"`
 
 	// Steps are common.
 	Steps []*AuthenticationFlowLoginFlowStep `json:"steps,omitempty"`
@@ -1137,7 +1137,7 @@ const (
 
 type AuthenticationFlowSignupLoginFlowOneOf struct {
 	Identification AuthenticationFlowIdentification `json:"identification,omitempty"`
-	Captcha        *AuthenticationFlowCaptcha       `json:"captcha,omitempty"`
+	BotProtection  *AuthenticationFlowBotProtection `json:"bot_protection,omitempty"`
 	SignupFlow     string                           `json:"signup_flow,omitempty"`
 	LoginFlow      string                           `json:"login_flow,omitempty"`
 }
@@ -1218,8 +1218,8 @@ type AuthenticationFlowReauthFlowOneOf struct {
 	// Identification is specific to identify.
 	Identification AuthenticationFlowIdentification `json:"identification,omitempty"`
 
-	// Captcha is specific to authenticate.
-	Captcha *AuthenticationFlowCaptcha `json:"captcha,omitempty"`
+	// BotProtection is specific to authenticate.
+	BotProtection *AuthenticationFlowBotProtection `json:"bot_protection,omitempty"`
 
 	// Authentication is specific to authenticate.
 	Authentication AuthenticationFlowAuthentication `json:"authentication,omitempty"`
@@ -1358,7 +1358,7 @@ const (
 
 type AuthenticationFlowAccountRecoveryFlowOneOf struct {
 	Identification AuthenticationFlowAccountRecoveryIdentification          `json:"identification,omitempty"`
-	Captcha        *AuthenticationFlowCaptcha                               `json:"captcha,omitempty"`
+	BotProtection  *AuthenticationFlowBotProtection                         `json:"bot_protection,omitempty"`
 	OnFailure      AuthenticationFlowAccountRecoveryIdentificationOnFailure `json:"on_failure,omitempty"`
 	Steps          []*AuthenticationFlowAccountRecoveryFlowStep             `json:"steps,omitempty"`
 }
