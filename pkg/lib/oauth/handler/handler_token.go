@@ -178,6 +178,7 @@ type TokenHandler struct {
 
 	RemoteIP        httputil.RemoteIP
 	UserAgentString httputil.UserAgentString
+	ValidateScopes  ScopesValidator
 }
 
 func (h *TokenHandler) Handle(rw http.ResponseWriter, req *http.Request, r protocol.TokenRequest) httputil.Result {
@@ -813,8 +814,15 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		return nil, err
 	}
 
-	// TODO(DEV-1404): allow specifying scopes
 	scopes := []string{"openid", oauth.FullAccessScope}
+	requestedScopes := r.Scope()
+	if len(requestedScopes) > 0 {
+		err := h.ValidateScopes(client, requestedScopes)
+		if err != nil {
+			return nil, err
+		}
+		scopes = requestedScopes
+	}
 
 	authz, err := h.Authorizations.CheckAndGrant(
 		client.ClientID,
