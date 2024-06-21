@@ -33,6 +33,7 @@ export interface BranchDesignFormState {
 export interface BranchDesignForm
   extends ResourceFormModel<BranchDesignFormState> {
   setCardAlignment: (alignment: Alignment) => void;
+  setBackgroundColor: (color: string) => void;
 }
 
 function constructResourcesFormStateFromResources(
@@ -106,12 +107,19 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
   );
 
   const designForm = useMemo(
-    () => ({
+    (): BranchDesignForm => ({
       ...form,
       setCardAlignment: (alignment: Alignment) => {
         form.setState((prev) => {
           return produce(prev, (draft) => {
             draft.customisableTheme.cardAlignment = alignment;
+          });
+        });
+      },
+      setBackgroundColor: (backgroundColor: string) => {
+        form.setState((prev) => {
+          return produce(prev, (draft) => {
+            draft.customisableTheme.backgroundColor = backgroundColor;
           });
         });
       },

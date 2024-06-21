@@ -9,9 +9,12 @@ import ShowLoading from "../../../ShowLoading";
 import { BranchDesignForm, useBrandDesignForm } from "./form";
 import {
   ButtonToggleGroup,
+  ColorPicker,
   Configuration,
+  ConfigurationDescription,
   ConfigurationGroup,
   Option,
+  Separator,
 } from "./Components";
 import { Alignment, AllAlignments } from "../../../model/themeAuthFlowV2";
 
@@ -70,6 +73,25 @@ const AlignmentConfiguration: React.VFC<AlignmentConfigurationProps> =
     );
   };
 
+interface BackgroundConfigurationProps {
+  designForm: BranchDesignForm;
+}
+const BackgroundConfiguration: React.VFC<BackgroundConfigurationProps> =
+  function BackgroundConfiguration(props) {
+    const { designForm } = props;
+    return (
+      <ConfigurationGroup labelKey="DesignScreen.configuration.background.label">
+        <ConfigurationDescription labelKey="DesignScreen.configuration.background.description" />
+        <Configuration labelKey="DesignScreen.configuration.background.color.label">
+          <ColorPicker
+            color={designForm.state.customisableTheme.backgroundColor}
+            onChange={designForm.setBackgroundColor}
+          />
+        </Configuration>
+      </ConfigurationGroup>
+    );
+  };
+
 interface ConfigurationPanelProps {
   designForm: BranchDesignForm;
 }
@@ -79,6 +101,8 @@ const ConfigurationPanel: React.VFC<ConfigurationPanelProps> =
     return (
       <div>
         <AlignmentConfiguration designForm={designForm} />
+        <Separator />
+        <BackgroundConfiguration designForm={designForm} />
       </div>
     );
   };

@@ -880,6 +880,9 @@
 
   "DesignScreen.configuration.card.label": "Card",
   "DesignScreen.configuration.card.alignment.label": "Alignment",
+  "DesignScreen.configuration.background.label": "Background",
+  "DesignScreen.configuration.background.description": "Upload a PNG, JPEG or GIF image smaller than 1 MB",
+  "DesignScreen.configuration.background.color.label": "Background color",
 
   "UISettingsScreen.title": "UI Settings",
   "UISettingsScreen.description": "Authgear comes with some simple styling for your login and signup page. You can customize the look and feel here.",
