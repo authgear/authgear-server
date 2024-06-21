@@ -1,8 +1,23 @@
-import React, { PropsWithChildren } from "react";
-import cn from "classnames";
+import React, {
+  ChangeEvent,
+  PropsWithChildren,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import {
+  Callout,
+  ColorPicker as FluentUIColorPicker,
+  getColorFromString,
+} from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
+import cn from "classnames";
 import WidgetTitle from "../../../WidgetTitle";
 import WidgetSubtitle from "../../../WidgetSubtitle";
+import WidgetDescription from "../../../WidgetDescription";
+
+import styles from "./DesignScreen.module.css";
 
 export const Separator: React.VFC = function Separator() {
   return <div className={cn("h-px", "my-12", "bg-separator")}></div>;
@@ -36,8 +51,21 @@ export const Configuration: React.VFC<PropsWithChildren<ConfigurationProps>> =
         <WidgetSubtitle>
           <FormattedMessage id={labelKey} />
         </WidgetSubtitle>
-        {props.children}
+        <div className={cn("mt-[0.3125rem]")}>{props.children}</div>
       </div>
+    );
+  };
+
+interface ConfigurationDescriptionProps {
+  labelKey: string;
+}
+export const ConfigurationDescription: React.VFC<ConfigurationDescriptionProps> =
+  function ConfigurationDescription(props) {
+    const { labelKey } = props;
+    return (
+      <WidgetDescription>
+        <FormattedMessage id={labelKey} />
+      </WidgetDescription>
     );
   };
 
@@ -112,7 +140,7 @@ export function ButtonToggleGroup<T>(
         "overflow-hidden",
         "border",
         "border-solid",
-        "border-[#8A8886]",
+        "border-grey-grey110",
         props.className
       )}
     >
@@ -128,3 +156,108 @@ export function ButtonToggleGroup<T>(
     </div>
   );
 }
+
+interface ColorPickerProps {
+  className?: string;
+  color: string;
+  onChange: (color: string) => void;
+}
+export const ColorPicker: React.VFC<ColorPickerProps> = function ColorPicker(
+  props
+) {
+  const { color, onChange } = props;
+
+  const colorboxRef = useRef<HTMLDivElement | null>(null);
+
+  const [inputValue, setInputValue] = useState(color);
+  const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
+  const [isFocusingInput, setIsFocusingInput] = useState(false);
+
+  useEffect(() => {
+    setInputValue(color);
+  }, [color]);
+
+  const onInputChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      setInputValue(e.currentTarget.value);
+      const colorObject = getColorFromString(e.currentTarget.value);
+      if (colorObject == null) {
+        return;
+      }
+      onChange(colorObject.str);
+    },
+    [onChange]
+  );
+
+  const onFocusInput = useCallback(() => {
+    setIsFocusingInput(true);
+  }, []);
+  const onBlurInput = useCallback(() => {
+    setIsFocusingInput(false);
+  }, []);
+
+  const showColorPicker = useCallback(() => {
+    setIsFocusingInput(true);
+    setIsColorPickerVisible(true);
+  }, []);
+  const hideColorPicker = useCallback(() => {
+    setIsFocusingInput(false);
+    setIsColorPickerVisible(false);
+  }, []);
+
+  const onColorPickerChange = useCallback(
+    (_e, newColor) => {
+      setInputValue(newColor.str);
+      onChange(newColor.str);
+    },
+    [onChange]
+  );
+
+  const colorObject = getColorFromString(color);
+  return (
+    <div className={cn(styles.colorPicker, isFocusingInput && styles.active)}>
+      <div
+        ref={colorboxRef}
+        className={cn(
+          "inline-block",
+          "h-5",
+          "w-5",
+          "rounded",
+          "overflow-hidden",
+          "border",
+          "border-solid",
+          "border-neutral-tertiaryAlt"
+        )}
+        style={{ backgroundColor: colorObject?.str }}
+        onClick={showColorPicker}
+      ></div>
+      <input
+        className={cn(
+          "ml-2",
+          "flex-1",
+          "h-full",
+          "border-none",
+          "outline-none"
+        )}
+        type="text"
+        value={inputValue}
+        onChange={onInputChange}
+        onBlur={onBlurInput}
+        onFocus={onFocusInput}
+      />
+      {isColorPickerVisible && colorObject != null ? (
+        <Callout
+          target={colorboxRef.current}
+          gapSpace={10}
+          onDismiss={hideColorPicker}
+        >
+          <FluentUIColorPicker
+            color={colorObject}
+            onChange={onColorPickerChange}
+            alphaType="none"
+          />
+        </Callout>
+      ) : null}
+    </div>
+  );
+};

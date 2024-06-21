@@ -15,7 +15,10 @@ module.exports = {
         "1-0-auto": "1 0 auto",
       },
       colors: {
-        grey: { white7: "#F4F4F4" },
+        grey: {
+          grey110: "#8A8886",
+          white7: "#F4F4F4",
+        },
         status: {
           green: "#10B070",
           grey: "#605E5C",
@@ -26,6 +29,7 @@ module.exports = {
         neutral: {
           light: "#edebe9",
           lighter: "#f3f2f1",
+          tertiaryAlt: "#C8C6C4",
         },
         separator: "#EDEBE9",
       },
