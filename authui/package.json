@@ -28,7 +28,10 @@
     "buffer": false
   },
   "overrides": {
-    "word-wrap": "@aashutoshrathi/word-wrap"
+    "word-wrap": "@aashutoshrathi/word-wrap",
+    "ethers": {
+      "ws": "^7.5.10"
+    }
   },
   "devDependencies": {
     "@jest/globals": "29.7.0",
