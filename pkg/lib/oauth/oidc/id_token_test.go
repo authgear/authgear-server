@@ -148,12 +148,15 @@ func TestSID(t *testing.T) {
 			Scopes:   scopes,
 		}
 
+		testDeviceSecretHash := "devicesecrethash"
+
 		offlineGrant := &oauth.OfflineGrant{
 			ID:            "offline-grant-id",
 			RefreshTokens: []oauth.OfflineGrantRefreshToken{refreshToken},
 			Attrs: session.Attrs{
 				UserID: "user-id",
 			},
+			DeviceSecretHash: testDeviceSecretHash,
 		}
 
 		idToken, err := issuer.IssueIDToken(IssueIDTokenOptions{
@@ -162,6 +165,7 @@ func TestSID(t *testing.T) {
 			AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
 			ClientLike:         oauth.ClientClientLike(client, scopes),
 			Nonce:              "nonce-1",
+			DeviceSecretHash:   testDeviceSecretHash,
 		})
 		So(err, ShouldBeNil)
 
@@ -190,6 +194,9 @@ func TestSID(t *testing.T) {
 		encodedSessionID, _ := token.Get(string(model.ClaimSID))
 		_, sessionID, _ := DecodeSID(encodedSessionID.(string))
 		So(sessionID, ShouldEqual, offlineGrant.ID)
+
+		ds_hash, _ := token.Get(string(model.ClaimDeviceSecretHash))
+		So(ds_hash, ShouldEqual, offlineGrant.DeviceSecretHash)
 
 		// Authz-specific claims
 		nonce, _ := token.Get(string("nonce"))
