@@ -591,19 +591,21 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
-	authorizationService := &oauth2.AuthorizationService{
-		AppID:               appID,
-		Store:               authorizationStore,
-		Clock:               clock,
-		OAuthSessionManager: sessionManager,
-	}
-	scopesValidator := _wireScopesValidatorValue
 	oauthOfflineGrantService := &oauth2.OfflineGrantService{
 		OAuthConfig:    oAuthConfig,
 		Clock:          clock,
 		IDPSessions:    idpsessionProvider,
 		ClientResolver: oauthclientResolver,
 	}
+	authorizationService := &oauth2.AuthorizationService{
+		AppID:               appID,
+		Store:               authorizationStore,
+		Clock:               clock,
+		OAuthSessionManager: sessionManager,
+		OfflineGrantService: oauthOfflineGrantService,
+		OfflineGrantStore:   redisStore,
+	}
+	scopesValidator := _wireScopesValidatorValue
 	appSessionTokenService := &oauth2.AppSessionTokenService{
 		AppSessions:         redisStore,
 		AppSessionTokens:    redisStore,
@@ -1138,19 +1140,21 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
-	authorizationService := &oauth2.AuthorizationService{
-		AppID:               appID,
-		Store:               authorizationStore,
-		Clock:               clockClock,
-		OAuthSessionManager: sessionManager,
-	}
-	scopesValidator := _wireScopesValidatorValue
 	oauthOfflineGrantService := &oauth2.OfflineGrantService{
 		OAuthConfig:    oAuthConfig,
 		Clock:          clockClock,
 		IDPSessions:    idpsessionProvider,
 		ClientResolver: oauthclientResolver,
 	}
+	authorizationService := &oauth2.AuthorizationService{
+		AppID:               appID,
+		Store:               authorizationStore,
+		Clock:               clockClock,
+		OAuthSessionManager: sessionManager,
+		OfflineGrantService: oauthOfflineGrantService,
+		OfflineGrantStore:   redisStore,
+	}
+	scopesValidator := _wireScopesValidatorValue
 	appSessionTokenService := &oauth2.AppSessionTokenService{
 		AppSessions:         redisStore,
 		AppSessionTokens:    redisStore,
@@ -1346,11 +1350,19 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
+	oauthOfflineGrantService := &oauth2.OfflineGrantService{
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    provider,
+		ClientResolver: resolver,
+	}
 	authorizationService := &oauth2.AuthorizationService{
 		AppID:               appID,
 		Store:               authorizationStore,
 		Clock:               clockClock,
 		OAuthSessionManager: sessionManager,
+		OfflineGrantService: oauthOfflineGrantService,
+		OfflineGrantStore:   store,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -4165,11 +4177,19 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
+	oauthOfflineGrantService := &oauth2.OfflineGrantService{
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    provider,
+		ClientResolver: resolver,
+	}
 	authorizationService := &oauth2.AuthorizationService{
 		AppID:               appID,
 		Store:               authorizationStore,
 		Clock:               clockClock,
 		OAuthSessionManager: sessionManager,
+		OfflineGrantService: oauthOfflineGrantService,
+		OfflineGrantStore:   store,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -5826,11 +5846,19 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
+	oauthOfflineGrantService := &oauth2.OfflineGrantService{
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: resolver,
+	}
 	authorizationService := &oauth2.AuthorizationService{
 		AppID:               appID,
 		Store:               authorizationStore,
 		Clock:               clockClock,
 		OAuthSessionManager: sessionManager,
+		OfflineGrantService: oauthOfflineGrantService,
+		OfflineGrantStore:   store,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	idTokenIssuer := &oidc.IDTokenIssuer{
@@ -6669,11 +6697,19 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
+	oauthOfflineGrantService := &oauth2.OfflineGrantService{
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: resolver,
+	}
 	authorizationService := &oauth2.AuthorizationService{
 		AppID:               appID,
 		Store:               authorizationStore,
 		Clock:               clockClock,
 		OAuthSessionManager: sessionManager,
+		OfflineGrantService: oauthOfflineGrantService,
+		OfflineGrantStore:   store,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	idTokenIssuer := &oidc.IDTokenIssuer{
@@ -48406,17 +48442,19 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	authorizationService := &oauth2.AuthorizationService{
-		AppID:               appID,
-		Store:               authorizationStore,
-		Clock:               clockClock,
-		OAuthSessionManager: sessionManager,
-	}
 	oauthOfflineGrantService := &oauth2.OfflineGrantService{
 		OAuthConfig:    oAuthConfig,
 		Clock:          clockClock,
 		IDPSessions:    idpsessionProvider,
 		ClientResolver: oauthclientResolver,
+	}
+	authorizationService := &oauth2.AuthorizationService{
+		AppID:               appID,
+		Store:               authorizationStore,
+		Clock:               clockClock,
+		OAuthSessionManager: sessionManager,
+		OfflineGrantService: oauthOfflineGrantService,
+		OfflineGrantStore:   redisStore,
 	}
 	sessionListingService := &sessionlisting.SessionListingService{
 		OAuthConfig:   oAuthConfig,
@@ -65342,11 +65380,19 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 	oAuthFeatureConfig := featureConfig.OAuth
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	tokenHandlerLogger := handler.NewTokenHandlerLogger(factory)
+	oauthOfflineGrantService := &oauth2.OfflineGrantService{
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
+	}
 	authorizationService := &oauth2.AuthorizationService{
 		AppID:               appID,
 		Store:               authorizationStore,
 		Clock:               clockClock,
 		OAuthSessionManager: sessionManager,
+		OfflineGrantService: oauthOfflineGrantService,
+		OfflineGrantStore:   redisStore,
 	}
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
 		Secrets:    oAuthKeyMaterials,
@@ -65408,12 +65454,6 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		CodeGrantService:         codeGrantService,
 		ClientResolver:           oauthclientResolver,
 		UIInfoResolver:           uiInfoResolver,
-	}
-	oauthOfflineGrantService := &oauth2.OfflineGrantService{
-		OAuthConfig:    oAuthConfig,
-		Clock:          clockClock,
-		IDPSessions:    idpsessionProvider,
-		ClientResolver: oauthclientResolver,
 	}
 	appSessionTokenService := &oauth2.AppSessionTokenService{
 		AppSessions:         redisStore,

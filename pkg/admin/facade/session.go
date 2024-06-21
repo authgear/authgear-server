@@ -7,21 +7,21 @@ import (
 )
 
 type SessionManager interface {
-	List(userID string) ([]session.Session, error)
-	Get(id string) (session.Session, error)
-	RevokeWithEvent(session session.Session, isTermination bool, isAdminAPI bool) error
-	TerminateAllExcept(userID string, currentSession session.Session, isAdminAPI bool) error
+	List(userID string) ([]session.ListableSession, error)
+	Get(id string) (session.ListableSession, error)
+	RevokeWithEvent(session session.SessionBase, isTermination bool, isAdminAPI bool) error
+	TerminateAllExcept(userID string, currentSession session.ResolvedSession, isAdminAPI bool) error
 }
 
 type SessionFacade struct {
 	Sessions SessionManager
 }
 
-func (f *SessionFacade) List(userID string) ([]session.Session, error) {
+func (f *SessionFacade) List(userID string) ([]session.ListableSession, error) {
 	return f.Sessions.List(userID)
 }
 
-func (f *SessionFacade) Get(id string) (session.Session, error) {
+func (f *SessionFacade) Get(id string) (session.ListableSession, error) {
 	return f.Sessions.Get(id)
 }
 

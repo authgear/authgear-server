@@ -110,8 +110,8 @@ type OAuthService interface {
 }
 
 type SessionManager interface {
-	Delete(session session.Session) error
-	List(userID string) ([]session.Session, error)
+	Delete(session session.ListableSession) error
+	List(userID string) ([]session.ListableSession, error)
 }
 
 type StdAttrsService interface {
