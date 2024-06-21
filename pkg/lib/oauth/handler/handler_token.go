@@ -344,6 +344,24 @@ func (h *TokenHandler) app2appGetDeviceKeyJWKVerified(jwt string) (jwk.Key, erro
 	return key, nil
 }
 
+func (h *TokenHandler) rotateDeviceSecretIfNeeded(offlineGrant *oauth.OfflineGrant, resp protocol.TokenResponse) (*oauth.OfflineGrant, error) {
+	if offlineGrant.DeviceSecretHash == "" {
+		// No device secret, no rotation needed.
+		return offlineGrant, nil
+	}
+
+	_, deviceSecretHash := h.TokenService.IssueDeviceSecret(resp)
+	expiry, err := h.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
+	if err != nil {
+		return nil, err
+	}
+	offlineGrant, err = h.OfflineGrants.UpdateOfflineGrantDeviceSecretHash(offlineGrant.ID, deviceSecretHash, expiry)
+	if err != nil {
+		return nil, err
+	}
+	return offlineGrant, nil
+}
+
 func (h *TokenHandler) app2appUpdateDeviceKeyIfNeeded(
 	client *config.OAuthClientConfig,
 	offlineGrant *oauth.OfflineGrant,
@@ -1142,12 +1160,15 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		app2appDevicePublicKey = k
 	}
 
-	// Update auth_time of the offline grant if possible.
-	// TODO(DEV-1404): Rotate device secret if needed
+	resp := protocol.TokenResponse{}
+
+	// Reauth
+	// Update auth_time, app2app device key and device_secret of the offline grant if possible.
 	if sid := code.IDTokenHintSID; sid != "" {
 		if typ, sessionID, ok := oidc.DecodeSID(sid); ok && typ == session.TypeOfflineGrant {
 			offlineGrant, err := h.OfflineGrants.GetOfflineGrant(sessionID)
 			if err == nil {
+				// Update auth_time
 				if info.AuthenticatedAt.After(offlineGrant.AuthenticatedAt) {
 					expiry, err := h.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
 					if err != nil {
@@ -1157,18 +1178,24 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 					if err != nil {
 						return nil, err
 					}
-					if app2appDevicePublicKey != nil {
-						_, err = h.app2appUpdateDeviceKeyIfNeeded(client, offlineGrant, app2appDevicePublicKey)
-						if err != nil {
-							return nil, err
-						}
+				}
+
+				// Rotate device_secret
+				offlineGrant, err = h.rotateDeviceSecretIfNeeded(offlineGrant, resp)
+				if err != nil {
+					return nil, err
+				}
+
+				// Update app2app device key
+				if app2appDevicePublicKey != nil {
+					_, err = h.app2appUpdateDeviceKeyIfNeeded(client, offlineGrant, app2appDevicePublicKey)
+					if err != nil {
+						return nil, err
 					}
 				}
 			}
 		}
 	}
-
-	resp := protocol.TokenResponse{}
 
 	// As required by the spec, we must include access_token.
 	// If we issue refresh token, then access token is just the access token of the refresh token.
@@ -1229,6 +1256,12 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 			switch typ {
 			case session.TypeOfflineGrant:
 				accessTokenSessionKind = oauth.GrantSessionKindOffline
+				offlineGrant, err := h.OfflineGrants.GetOfflineGrant(sessionID)
+				if err != nil {
+					return nil, err
+				}
+				// Include ds_hash in id_token if it exist
+				deviceSecretHash = offlineGrant.DeviceSecretHash
 			case session.TypeIdentityProvider:
 				accessTokenSessionKind = oauth.GrantSessionKindSession
 			default:

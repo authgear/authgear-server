@@ -43,7 +43,6 @@ func (s *TokenService) IssueOfflineGrant(
 	tokenHash = oauth.HashToken(token)
 	now := s.Clock.NowUTC()
 	accessEvent := access.NewEvent(now, s.RemoteIP, s.UserAgentString)
-	var deviceSecret string
 
 	refreshToken := &oauth.OfflineGrantRefreshToken{
 		TokenHash:       tokenHash,
@@ -78,8 +77,7 @@ func (s *TokenService) IssueOfflineGrant(
 	}
 
 	if opts.IssueDeviceSecret {
-		deviceSecret = s.GenerateToken()
-		deviceSecretHash := oauth.HashToken(deviceSecret)
+		_, deviceSecretHash := s.IssueDeviceSecret(resp)
 		offlineGrant.DeviceSecretHash = deviceSecretHash
 	}
 
@@ -108,10 +106,6 @@ func (s *TokenService) IssueOfflineGrant(
 
 	if resp != nil {
 		resp.RefreshToken(oauth.EncodeRefreshToken(token, offlineGrant.ID))
-
-		if deviceSecret != "" {
-			resp.DeviceSecret(deviceSecret)
-		}
 	}
 	return offlineGrant, tokenHash, nil
 }
@@ -210,4 +204,11 @@ func (s *TokenService) ParseRefreshToken(token string) (
 	}
 
 	return authz, offlineGrant, tokenHash, nil
+}
+
+func (s *TokenService) IssueDeviceSecret(resp protocol.TokenResponse) (deviceSecret string, hash string) {
+	deviceSecret = s.GenerateToken()
+	deviceSecretHash := oauth.HashToken(deviceSecret)
+	resp.DeviceSecret(deviceSecret)
+	return deviceSecret, deviceSecretHash
 }
