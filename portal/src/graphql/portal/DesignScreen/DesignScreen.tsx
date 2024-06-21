@@ -92,6 +92,32 @@ const BackgroundConfiguration: React.VFC<BackgroundConfigurationProps> =
     );
   };
 
+interface ButtonConfigurationProps {
+  designForm: BranchDesignForm;
+}
+const ButtonConfiguration: React.VFC<ButtonConfigurationProps> =
+  function ButtonConfiguration(props) {
+    const { designForm } = props;
+    return (
+      <ConfigurationGroup labelKey="DesignScreen.configuration.button.label">
+        <Configuration labelKey="DesignScreen.configuration.button.primaryButton.label">
+          <ColorPicker
+            color={
+              designForm.state.customisableTheme.primaryButton.backgroundColor
+            }
+            onChange={designForm.setPrimaryButtonBackgroundColor}
+          />
+        </Configuration>
+        <Configuration labelKey="DesignScreen.configuration.button.primaryButtonLabel.label">
+          <ColorPicker
+            color={designForm.state.customisableTheme.primaryButton.labelColor}
+            onChange={designForm.setPrimaryButtonLabelColor}
+          />
+        </Configuration>
+      </ConfigurationGroup>
+    );
+  };
+
 interface ConfigurationPanelProps {
   designForm: BranchDesignForm;
 }
@@ -103,6 +129,8 @@ const ConfigurationPanel: React.VFC<ConfigurationPanelProps> =
         <AlignmentConfiguration designForm={designForm} />
         <Separator />
         <BackgroundConfiguration designForm={designForm} />
+        <Separator />
+        <ButtonConfiguration designForm={designForm} />
       </div>
     );
   };

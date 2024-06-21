@@ -34,6 +34,8 @@ export interface BranchDesignForm
   extends ResourceFormModel<BranchDesignFormState> {
   setCardAlignment: (alignment: Alignment) => void;
   setBackgroundColor: (color: string) => void;
+  setPrimaryButtonBackgroundColor: (color: string) => void;
+  setPrimaryButtonLabelColor: (color: string) => void;
 }
 
 function constructResourcesFormStateFromResources(
@@ -120,6 +122,21 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         form.setState((prev) => {
           return produce(prev, (draft) => {
             draft.customisableTheme.backgroundColor = backgroundColor;
+          });
+        });
+      },
+      setPrimaryButtonBackgroundColor: (backgroundColor: string) => {
+        form.setState((prev) => {
+          return produce(prev, (draft) => {
+            draft.customisableTheme.primaryButton.backgroundColor =
+              backgroundColor;
+          });
+        });
+      },
+      setPrimaryButtonLabelColor: (color: string) => {
+        form.setState((prev) => {
+          return produce(prev, (draft) => {
+            draft.customisableTheme.primaryButton.labelColor = color;
           });
         });
       },
