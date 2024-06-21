@@ -2110,6 +2110,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:             cookieManager,
 		ClientResolver:      resolver,
 	}
+	scopesValidator := _wireScopesValidatorValue
 	tokenHandler := &handler.TokenHandler{
 		Context:                  contextContext,
 		AppID:                    appID,
@@ -2138,6 +2139,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		CodeGrantService:         codeGrantService,
 		ClientResolver:           resolver,
 		UIInfoResolver:           uiInfoResolver,
+		ValidateScopes:           scopesValidator,
 	}
 	oauthTokenHandler := &oauth.TokenHandler{
 		Logger:       tokenHandlerLogger,
@@ -4937,6 +4939,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:             cookieManager,
 		ClientResolver:      resolver,
 	}
+	scopesValidator := _wireScopesValidatorValue
 	tokenHandler := &handler.TokenHandler{
 		Context:                  contextContext,
 		AppID:                    appID,
@@ -4965,6 +4968,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		CodeGrantService:         codeGrantService,
 		ClientResolver:           resolver,
 		UIInfoResolver:           uiInfoResolver,
+		ValidateScopes:           scopesValidator,
 	}
 	appSessionTokenHandler := &oauth.AppSessionTokenHandler{
 		Database:         handle,
@@ -65430,6 +65434,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		CodeGrants:    redisStore,
 	}
+	scopesValidator := _wireScopesValidatorValue
 	tokenHandler := &handler.TokenHandler{
 		Context:                  contextContext,
 		AppID:                    appID,
@@ -65458,6 +65463,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		CodeGrantService:         codeGrantService,
 		ClientResolver:           oauthclientResolver,
 		UIInfoResolver:           uiInfoResolver,
+		ValidateScopes:           scopesValidator,
 	}
 	appSessionTokenService := &oauth2.AppSessionTokenService{
 		AppSessions:         redisStore,
