@@ -27,10 +27,10 @@ type UserQuery interface {
 
 type ManagementService interface {
 	ClearCookie() []*http.Cookie
-	Get(id string) (Session, error)
-	Delete(Session) error
-	List(userID string) ([]Session, error)
-	TerminateAllExcept(userID string, currentSession Session) ([]Session, error)
+	Get(id string) (ListableSession, error)
+	Delete(ListableSession) error
+	List(userID string) ([]ListableSession, error)
+	TerminateAllExcept(userID string, currentSession ResolvedSession) ([]ListableSession, error)
 }
 
 type IDPSessionManager ManagementService
@@ -46,7 +46,7 @@ type Manager struct {
 	Events              EventService
 }
 
-func (m *Manager) resolveManagementProvider(session Session) ManagementService {
+func (m *Manager) resolveManagementProvider(session ListableSession) ManagementService {
 	switch session.SessionType() {
 	case TypeIdentityProvider:
 		return m.IDPSessions
@@ -57,7 +57,7 @@ func (m *Manager) resolveManagementProvider(session Session) ManagementService {
 	}
 }
 
-func (m *Manager) invalidate(session Session, option *revokeEventOption) (ManagementService, error) {
+func (m *Manager) invalidate(session SessionBase, option *revokeEventOption) (ManagementService, error) {
 	sessions, err := m.List(session.GetAuthenticationInfo().UserID)
 	if err != nil {
 		return nil, err
@@ -88,7 +88,7 @@ func (m *Manager) invalidate(session Session, option *revokeEventOption) (Manage
 			if err != nil {
 				return nil, err
 			}
-			if s.Equal(session) {
+			if s.EqualSession(session) {
 				provider = p
 			}
 		}
@@ -128,7 +128,7 @@ func (m *Manager) invalidate(session Session, option *revokeEventOption) (Manage
 
 // invalidateSession should not be called directly
 // invalidate should be called instead
-func (m *Manager) invalidateSession(session Session) (ManagementService, error) {
+func (m *Manager) invalidateSession(session ListableSession) (ManagementService, error) {
 	provider := m.resolveManagementProvider(session)
 	err := provider.Delete(session)
 	if err != nil {
@@ -137,7 +137,7 @@ func (m *Manager) invalidateSession(session Session) (ManagementService, error) 
 	return provider, nil
 }
 
-func (m *Manager) Logout(session Session, rw http.ResponseWriter) error {
+func (m *Manager) Logout(session ResolvedSession, rw http.ResponseWriter) error {
 	provider, err := m.invalidate(session, &revokeEventOption{IsAdminAPI: false, IsTermination: false})
 	if err != nil {
 		return err
@@ -150,7 +150,7 @@ func (m *Manager) Logout(session Session, rw http.ResponseWriter) error {
 	return nil
 }
 
-func (m *Manager) RevokeWithEvent(session Session, isTermination bool, isAdminAPI bool) error {
+func (m *Manager) RevokeWithEvent(session SessionBase, isTermination bool, isAdminAPI bool) error {
 	_, err := m.invalidate(session, &revokeEventOption{
 		IsAdminAPI:    isAdminAPI,
 		IsTermination: isTermination,
@@ -162,7 +162,7 @@ func (m *Manager) RevokeWithEvent(session Session, isTermination bool, isAdminAP
 	return nil
 }
 
-func (m *Manager) RevokeWithoutEvent(session Session) error {
+func (m *Manager) RevokeWithoutEvent(session SessionBase) error {
 	_, err := m.invalidate(session, nil)
 	if err != nil {
 		return err
@@ -171,7 +171,7 @@ func (m *Manager) RevokeWithoutEvent(session Session) error {
 	return nil
 }
 
-func (m *Manager) TerminateAllExcept(userID string, currentSession Session, isAdminAPI bool) error {
+func (m *Manager) TerminateAllExcept(userID string, currentSession ResolvedSession, isAdminAPI bool) error {
 	idpSessions, err := m.IDPSessions.TerminateAllExcept(userID, currentSession)
 	if err != nil {
 		return err
@@ -217,7 +217,7 @@ func (m *Manager) TerminateAllExcept(userID string, currentSession Session, isAd
 	return nil
 }
 
-func (m *Manager) Get(id string) (Session, error) {
+func (m *Manager) Get(id string) (ListableSession, error) {
 	session, err := m.IDPSessions.Get(id)
 	if err != nil && !errors.Is(err, ErrSessionNotFound) {
 		return nil, err
@@ -235,7 +235,7 @@ func (m *Manager) Get(id string) (Session, error) {
 	return nil, ErrSessionNotFound
 }
 
-func (m *Manager) List(userID string) ([]Session, error) {
+func (m *Manager) List(userID string) ([]ListableSession, error) {
 	idpSessions, err := m.IDPSessions.List(userID)
 	if err != nil {
 		return nil, err
@@ -245,7 +245,7 @@ func (m *Manager) List(userID string) ([]Session, error) {
 		return nil, err
 	}
 
-	sessions := make([]Session, len(idpSessions)+len(accessGrantSessions))
+	sessions := make([]ListableSession, len(idpSessions)+len(accessGrantSessions))
 	copy(sessions[0:], idpSessions)
 	copy(sessions[len(idpSessions):], accessGrantSessions)
 

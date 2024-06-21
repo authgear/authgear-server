@@ -18,7 +18,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 const queryNameOAuthSessionID = "x_ref"
@@ -69,16 +68,16 @@ func (i *UIInfo) ToUIParam() uiparam.T {
 
 type UIInfoByProduct struct {
 	IDToken        jwt.Token
-	SIDSession     session.Session
+	SIDSession     session.ListableSession
 	IDTokenHintSID string
 }
 
 type UIInfoResolverPromptResolver interface {
-	ResolvePrompt(r protocol.AuthorizationRequest, sidSession session.Session) (prompt []string)
+	ResolvePrompt(r protocol.AuthorizationRequest, sidSession session.ListableSession) (prompt []string)
 }
 
 type UIInfoResolverIDTokenHintResolver interface {
-	ResolveIDTokenHint(client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (idToken jwt.Token, sidSession session.Session, err error)
+	ResolveIDTokenHint(client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (idToken jwt.Token, sidSession session.ListableSession, err error)
 }
 
 type UIInfoResolverCookieManager interface {
@@ -226,7 +225,7 @@ func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
 					canUseIntentReauthenticate = true
 				case session.TypeOfflineGrant:
 					if offlineGrant, ok := sidSession.(*oauth.OfflineGrant); ok {
-						if slice.ContainsString(offlineGrant.Scopes, oauth.FullAccessScope) {
+						if offlineGrant.HasAllScope(req.ClientID(), []string{oauth.FullAccessScope}) {
 							canUseIntentReauthenticate = true
 						}
 					}

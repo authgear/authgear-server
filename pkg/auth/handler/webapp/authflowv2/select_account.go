@@ -100,6 +100,7 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		return
 	}
 
+	// TODO(DEV-1402): Handle offlinegrant
 	idpSession := session.GetSession(r.Context())
 	webSession := webapp.GetSession(r.Context())
 
