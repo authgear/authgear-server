@@ -36,6 +36,7 @@ export interface BranchDesignForm
   setBackgroundColor: (color: string) => void;
   setPrimaryButtonBackgroundColor: (color: string) => void;
   setPrimaryButtonLabelColor: (color: string) => void;
+  setLinkColor: (color: string) => void;
 }
 
 function constructResourcesFormStateFromResources(
@@ -137,6 +138,13 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         form.setState((prev) => {
           return produce(prev, (draft) => {
             draft.customisableTheme.primaryButton.labelColor = color;
+          });
+        });
+      },
+      setLinkColor: (color: string) => {
+        form.setState((prev) => {
+          return produce(prev, (draft) => {
+            draft.customisableTheme.link.color = color;
           });
         });
       },

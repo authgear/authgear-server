@@ -118,6 +118,24 @@ const ButtonConfiguration: React.VFC<ButtonConfigurationProps> =
     );
   };
 
+interface LinkConfigurationProps {
+  designForm: BranchDesignForm;
+}
+const LinkConfiguration: React.VFC<LinkConfigurationProps> =
+  function LinkConfiguration(props) {
+    const { designForm } = props;
+    return (
+      <ConfigurationGroup labelKey="DesignScreen.configuration.link.label">
+        <Configuration labelKey="DesignScreen.configuration.link.color.label">
+          <ColorPicker
+            color={designForm.state.customisableTheme.link.color}
+            onChange={designForm.setLinkColor}
+          />
+        </Configuration>
+      </ConfigurationGroup>
+    );
+  };
+
 interface ConfigurationPanelProps {
   designForm: BranchDesignForm;
 }
@@ -131,6 +149,8 @@ const ConfigurationPanel: React.VFC<ConfigurationPanelProps> =
         <BackgroundConfiguration designForm={designForm} />
         <Separator />
         <ButtonConfiguration designForm={designForm} />
+        <Separator />
+        <LinkConfiguration designForm={designForm} />
       </div>
     );
   };

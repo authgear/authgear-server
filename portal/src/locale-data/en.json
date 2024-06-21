@@ -886,6 +886,8 @@
   "DesignScreen.configuration.button.label": "Buttons",
   "DesignScreen.configuration.button.primaryButton.label": "Primary button",
   "DesignScreen.configuration.button.primaryButtonLabel.label": "Primary button label",
+  "DesignScreen.configuration.link.label": "Links",
+  "DesignScreen.configuration.link.color.label": "Link color",
 
   "UISettingsScreen.title": "UI Settings",
   "UISettingsScreen.description": "Authgear comes with some simple styling for your login and signup page. You can customize the look and feel here.",
