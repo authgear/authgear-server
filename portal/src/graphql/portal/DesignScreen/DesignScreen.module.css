@@ -1,0 +1,25 @@
+.icAlignmentLeft {
+  @apply h-6 w-6;
+  background-color: #1C1B1F;
+  mask: url("../../../images/ic-alignment-left.svg");
+}
+
+.icAlignmentCenter {
+  @apply h-6 w-6;
+  background-color: #1C1B1F;
+  mask: url("../../../images/ic-alignment-center.svg");
+}
+
+.icAlignmentRight {
+  @apply h-6 w-6;
+  mask: url("../../../images/ic-alignment-right.svg");
+}
+
+.icAlignment {
+  @apply inline-block;
+  background-color: #1C1B1F;
+}
+
+.icAlignment.selected {
+  @apply bg-theme-primary;
+}

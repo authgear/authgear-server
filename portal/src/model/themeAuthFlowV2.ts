@@ -13,7 +13,8 @@ export const enum ThemeTargetSelector {
 
 type Color = string;
 
-export type Alignment = "start" | "center" | "end";
+export const AllAlignments = ["start", "center", "end"] as const;
+export type Alignment = typeof AllAlignments[number];
 
 export type BorderRadiusStyleType = "none" | "rounded" | "rounded-full";
 

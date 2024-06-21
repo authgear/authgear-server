@@ -20,6 +20,14 @@ module.exports = {
           green: "#10B070",
           grey: "#605E5C",
         },
+        theme: {
+          primary: "#176df3",
+        },
+        neutral: {
+          light: "#edebe9",
+          lighter: "#f3f2f1",
+        },
+        separator: "#EDEBE9",
       },
       height: (theme) => theme("spacing"),
       width: (theme) => theme("spacing"),

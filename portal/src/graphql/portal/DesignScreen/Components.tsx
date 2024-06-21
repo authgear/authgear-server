@@ -28,7 +28,7 @@ export const ConfigurationGroup: React.VFC<
 interface ConfigurationProps {
   labelKey: string;
 }
-export const Configuration: React.VFC<ConfigurationProps> =
+export const Configuration: React.VFC<PropsWithChildren<ConfigurationProps>> =
   function Configuration(props) {
     const { labelKey } = props;
     return (
@@ -36,6 +36,7 @@ export const Configuration: React.VFC<ConfigurationProps> =
         <WidgetSubtitle>
           <FormattedMessage id={labelKey} />
         </WidgetSubtitle>
+        {props.children}
       </div>
     );
   };
@@ -83,6 +84,7 @@ function defaultKeyExtractor(o: Option<any>): string {
   return String(o.value);
 }
 interface ButtonToggleGroupProps<T> {
+  className?: string;
   options: Option<T>[];
   onSelectOption: (option: Option<T>) => void;
   value: T;
@@ -110,7 +112,8 @@ export function ButtonToggleGroup<T>(
         "overflow-hidden",
         "border",
         "border-solid",
-        "border-[#8A8886]"
+        "border-[#8A8886]",
+        props.className
       )}
     >
       {options.map((o) => (
