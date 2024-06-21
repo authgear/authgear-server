@@ -25,26 +25,37 @@ type HTML struct {
 	Name string
 	// ComponentDependencies is the HTML component templates this template depends on.
 	ComponentDependencies []*HTML
-	// IsFindAllowedInFs returns an boolean indicating if the Fs can be used to find this resources
-	// For example, if you don't want a html inside the app fs to be used, it should return false.
-	IsFindAllowedInFs FindResourcesFsFilter
+}
+
+type MessageHTML struct {
+	// Name is the name of template
+	Name string
 }
 
 var _ resource.Descriptor = &HTML{}
+var _ resource.Descriptor = &MessageHTML{}
 
-func (t *HTML) templateResource() {}
+func (t *HTML) templateResource()        {}
+func (t *MessageHTML) templateResource() {}
 
 func (t *HTML) MatchResource(path string) (*resource.Match, bool) {
 	return matchTemplatePath(path, t.Name)
 }
 
+func (t *MessageHTML) MatchResource(path string) (*resource.Match, bool) {
+	return matchTemplatePath(path, t.Name)
+}
+
 func (t *HTML) FindResources(fs resource.Fs) ([]resource.Location, error) {
-	if t.IsFindAllowedInFs != nil {
-		allowed := t.IsFindAllowedInFs(fs)
-		if !allowed {
-			return []resource.Location{}, nil
-		}
+	// Exclude App Fs
+	if fs.GetFsLevel() == resource.FsLevelApp {
+		return []resource.Location{}, nil
 	}
+	return readTemplates(fs, t.Name)
+}
+
+func (t *MessageHTML) FindResources(fs resource.Fs) ([]resource.Location, error) {
+	// Any Fs
 	return readTemplates(fs, t.Name)
 }
 
@@ -52,7 +63,16 @@ func (t *HTML) ViewResources(resources []resource.ResourceFile, view resource.Vi
 	return viewHTMLTemplates(t.Name, resources, view)
 }
 
+func (t *MessageHTML) ViewResources(resources []resource.ResourceFile, view resource.View) (interface{}, error) {
+	return viewHTMLTemplates(t.Name, resources, view)
+}
+
 func (t *HTML) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
+	return nil, fmt.Errorf("HTML resource cannot be updated. Use MessageHTML resource instead.")
+}
+
+func (t *MessageHTML) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
+	// TODO: Check feature flag from context
 	return &resource.ResourceFile{
 		Location: resrc.Location,
 		Data:     data,
@@ -67,11 +87,22 @@ type PlainText struct {
 	ComponentDependencies []*PlainText
 }
 
-var _ resource.Descriptor = &PlainText{}
+type MessagePlainText struct {
+	// Name is the name of template
+	Name string
+}
 
-func (t *PlainText) templateResource() {}
+var _ resource.Descriptor = &PlainText{}
+var _ resource.Descriptor = &MessagePlainText{}
+
+func (t *PlainText) templateResource()        {}
+func (t *MessagePlainText) templateResource() {}
 
 func (t *PlainText) MatchResource(path string) (*resource.Match, bool) {
+	return matchTemplatePath(path, t.Name)
+}
+
+func (t *MessagePlainText) MatchResource(path string) (*resource.Match, bool) {
 	return matchTemplatePath(path, t.Name)
 }
 
@@ -79,7 +110,15 @@ func (t *PlainText) FindResources(fs resource.Fs) ([]resource.Location, error) {
 	return readTemplates(fs, t.Name)
 }
 
+func (t *MessagePlainText) FindResources(fs resource.Fs) ([]resource.Location, error) {
+	return readTemplates(fs, t.Name)
+}
+
 func (t *PlainText) ViewResources(resources []resource.ResourceFile, view resource.View) (interface{}, error) {
+	return viewTextTemplates(t.Name, resources, view)
+}
+
+func (t *MessagePlainText) ViewResources(resources []resource.ResourceFile, view resource.View) (interface{}, error) {
 	return viewTextTemplates(t.Name, resources, view)
 }
 
@@ -90,22 +129,33 @@ func (t *PlainText) UpdateResource(_ context.Context, _ []resource.ResourceFile,
 	}, nil
 }
 
-func registerHTML(name string, dependencies []*HTML, isFindAllowedInFs FindResourcesFsFilter) *HTML {
-	desc := &HTML{Name: name, ComponentDependencies: dependencies, IsFindAllowedInFs: isFindAllowedInFs}
+func (t *MessagePlainText) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
+	return &resource.ResourceFile{
+		Location: resrc.Location,
+		Data:     data,
+	}, nil
+}
+
+func RegisterHTML(name string, dependencies ...*HTML) *HTML {
+	desc := &HTML{Name: name, ComponentDependencies: dependencies}
 	resource.RegisterResource(desc)
 	return desc
 }
 
-func RegisterHTML(name string, dependencies ...*HTML) *HTML {
-	return registerHTML(name, dependencies, ExcludeAppFs)
-}
-
-func RegisterAppOverridableHTML(name string, dependencies ...*HTML) *HTML {
-	return registerHTML(name, dependencies, AnyFs)
+func RegisterMessageHTML(name string) *MessageHTML {
+	desc := &MessageHTML{Name: name}
+	resource.RegisterResource(desc)
+	return desc
 }
 
 func RegisterPlainText(name string, dependencies ...*PlainText) *PlainText {
 	desc := &PlainText{Name: name, ComponentDependencies: dependencies}
+	resource.RegisterResource(desc)
+	return desc
+}
+
+func RegisterMessagePlainText(name string) *MessagePlainText {
+	desc := &MessagePlainText{Name: name}
 	resource.RegisterResource(desc)
 	return desc
 }
