@@ -1,12 +1,10 @@
 .icAlignmentLeft {
   @apply h-6 w-6;
-  background-color: #1C1B1F;
   mask: url("../../../images/ic-alignment-left.svg");
 }
 
 .icAlignmentCenter {
   @apply h-6 w-6;
-  background-color: #1C1B1F;
   mask: url("../../../images/ic-alignment-center.svg");
 }
 
@@ -36,9 +34,26 @@
   @apply outline outline-2 -outline-offset-2 outline-theme-primary;
 }
 
-/* .colorPicker.active::after { */
-/*   content: ""; */
-/*   @apply absolute inset-px; */
-/*   @apply outline; */
-/*   @apply outline  outline-theme-primary; */
-/* } */
+.icBorderRadius {
+  @apply inline-block;
+  background-color: #1C1B1F;
+}
+
+.icBorderRadiusSquare {
+  @apply h-6 w-6;
+  mask: url("../../../images/ic-border-corner-square.svg");
+}
+
+.icBorderRadiusRounded {
+  @apply h-6 w-6;
+  mask: url("../../../images/ic-border-corner-rounded.svg");
+}
+
+.icBorderRadiusFullRounded {
+  @apply h-6 w-6;
+  mask: url("../../../images/ic-border-corner-pill.svg");
+}
+
+.icBorderRadius.selected {
+  @apply bg-theme-primary;
+}

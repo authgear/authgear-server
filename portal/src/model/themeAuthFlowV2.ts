@@ -16,7 +16,12 @@ type Color = string;
 export const AllAlignments = ["start", "center", "end"] as const;
 export type Alignment = typeof AllAlignments[number];
 
-export type BorderRadiusStyleType = "none" | "rounded" | "rounded-full";
+export const AllBorderRadiusStyleTypes = [
+  "none",
+  "rounded",
+  "rounded-full",
+] as const;
+export type BorderRadiusStyleType = typeof AllBorderRadiusStyleTypes[number];
 
 export type BorderRadiusStyle =
   | {

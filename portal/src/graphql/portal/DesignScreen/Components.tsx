@@ -2,7 +2,9 @@ import React, {
   ChangeEvent,
   PropsWithChildren,
   useCallback,
+  useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -11,13 +13,22 @@ import {
   ColorPicker as FluentUIColorPicker,
   getColorFromString,
 } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import {
+  Context as MFContext,
+  FormattedMessage,
+} from "@oursky/react-messageformat";
 import cn from "classnames";
 import WidgetTitle from "../../../WidgetTitle";
 import WidgetSubtitle from "../../../WidgetSubtitle";
 import WidgetDescription from "../../../WidgetDescription";
 
 import styles from "./DesignScreen.module.css";
+import {
+  AllBorderRadiusStyleTypes,
+  BorderRadiusStyle,
+  BorderRadiusStyleType,
+} from "../../../model/themeAuthFlowV2";
+import TextField from "../../../TextField";
 
 export const Separator: React.VFC = function Separator() {
   return <div className={cn("h-px", "my-12", "bg-separator")}></div>;
@@ -257,6 +268,112 @@ export const ColorPicker: React.VFC<ColorPickerProps> = function ColorPicker(
             alphaType="none"
           />
         </Callout>
+      ) : null}
+    </div>
+  );
+};
+
+interface BorderRadiusProps {
+  value: BorderRadiusStyle;
+  onChange: (value: BorderRadiusStyle) => void;
+}
+export const BorderRadius: React.VFC<BorderRadiusProps> = function BorderRadius(
+  props
+) {
+  const { value, onChange } = props;
+  const { renderToString } = useContext(MFContext);
+  const options = useMemo(
+    () => AllBorderRadiusStyleTypes.map((value) => ({ value })),
+    []
+  );
+
+  const [radiusValue, setRadiusValue] = useState(() => {
+    if (value.type !== "rounded") {
+      return "";
+    }
+    return value.radius;
+  });
+
+  useEffect(() => {
+    if (value.type !== "rounded") {
+      setRadiusValue("");
+    } else {
+      setRadiusValue(value.radius);
+    }
+  }, [value, radiusValue]);
+
+  const onSelectOption = useCallback(
+    (option: Option<BorderRadiusStyleType>) => {
+      if (option.value === "rounded") {
+        onChange({
+          type: option.value,
+          radius: "0",
+        });
+      } else {
+        onChange({
+          type: option.value,
+        });
+      }
+    },
+    [onChange]
+  );
+
+  const onBorderRadiusChange = useCallback(
+    (_: any, value?: string) => {
+      if (value == null) {
+        return;
+      }
+      onChange({
+        type: "rounded",
+        radius: value,
+      });
+    },
+    [onChange]
+  );
+
+  const renderOption = useCallback(
+    (option: Option<BorderRadiusStyleType>, selected: boolean) => {
+      return (
+        <span
+          className={cn(
+            styles.icAlignment,
+            (() => {
+              switch (option.value) {
+                case "none":
+                  return styles.icBorderRadiusSquare;
+                case "rounded":
+                  return styles.icBorderRadiusRounded;
+                case "rounded-full":
+                  return styles.icBorderRadiusFullRounded;
+                default:
+                  return undefined;
+              }
+            })(),
+            selected && styles.selected
+          )}
+        ></span>
+      );
+    },
+    []
+  );
+
+  return (
+    <div>
+      <ButtonToggleGroup
+        value={value.type}
+        options={options}
+        onSelectOption={onSelectOption}
+        renderOption={renderOption}
+      ></ButtonToggleGroup>
+      {value.type === "rounded" ? (
+        <TextField
+          className={cn("mt-3")}
+          label={renderToString(
+            "DesignScreen.configuration.borderRadius.label"
+          )}
+          value={radiusValue}
+          onChange={onBorderRadiusChange}
+        />
       ) : null}
     </div>
   );
