@@ -1,5 +1,9 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useContext } from "react";
 import { DefaultEffects } from "@fluentui/react";
+import {
+  Context as MFContext,
+  FormattedMessage,
+} from "@oursky/react-messageformat";
 import cn from "classnames";
 
 import { useParams } from "react-router-dom";
@@ -21,8 +25,37 @@ import { Alignment, AllAlignments } from "../../../model/themeAuthFlowV2";
 
 import styles from "./DesignScreen.module.css";
 import ScreenTitle from "../../../ScreenTitle";
-import { FormattedMessage } from "@oursky/react-messageformat";
 import ManageLanguageWidget from "../ManageLanguageWidget";
+import TextField from "../../../TextField";
+
+interface OrganisationConfigurationProps {
+  designForm: BranchDesignForm;
+}
+const OrganisationConfiguration: React.VFC<OrganisationConfigurationProps> =
+  function OrganisationConfiguration(props) {
+    const { designForm } = props;
+    const { renderToString } = useContext(MFContext);
+    const onChange = useCallback(
+      (_: React.FormEvent<any>, value?: string) => {
+        if (value == null) {
+          return;
+        }
+        designForm.setAppName(value);
+      },
+      [designForm]
+    );
+    return (
+      <ConfigurationGroup labelKey="DesignScreen.configuration.organisation.label">
+        <TextField
+          label={renderToString(
+            "DesignScreen.configuration.organisation.name.label"
+          )}
+          value={designForm.state.appName}
+          onChange={onChange}
+        />
+      </ConfigurationGroup>
+    );
+  };
 
 const AlignmentOptions = AllAlignments.map((value) => ({ value }));
 interface AlignmentConfigurationProps {
@@ -174,6 +207,8 @@ const ConfigurationPanel: React.VFC<ConfigurationPanelProps> =
     const { designForm } = props;
     return (
       <div>
+        <OrganisationConfiguration designForm={designForm} />
+        <Separator />
         <AlignmentConfiguration designForm={designForm} />
         <Separator />
         <BackgroundConfiguration designForm={designForm} />
