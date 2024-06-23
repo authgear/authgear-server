@@ -15,12 +15,13 @@ import {
 import { RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS } from "../../../resources";
 import {
   LanguageTag,
-  Resource,
   ResourceSpecifier,
   expandSpecifier,
+  specifierId,
 } from "../../../util/resource";
 import { useAppConfigForm } from "../../../hook/useAppConfigForm";
 import { PortalAPIAppConfig } from "../../../types";
+import { nonNullable } from "../../../util/types";
 
 const THEME_RESOURCE_DEFINITIONS = [
   RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS,
@@ -32,7 +33,6 @@ interface ConfigFormState {
 }
 
 interface ResourcesFormState {
-  orignalResources: Resource[];
   customisableTheme: CustomisableTheme;
 }
 
@@ -77,67 +77,17 @@ function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
   };
 }
 
-function constrcutConfigFromFormState(
+function constructConfigFromFormState(
   config: PortalAPIAppConfig
 ): PortalAPIAppConfig {
   return config;
-}
-
-function constructResourcesFormStateFromResources(
-  resources: Resource[]
-): ResourcesFormState {
-  const lightTheme = (() => {
-    const lightThemeResource = resources.find((r) => {
-      return (
-        r.nullableValue != null &&
-        r.specifier.def === RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS
-      );
-    });
-    if (lightThemeResource?.nullableValue == null) {
-      return DEFAULT_LIGHT_THEME;
-    }
-    const root = parseCSS(lightThemeResource.nullableValue);
-    const styleCSSVisitor = new StyleCssVisitor(
-      ThemeTargetSelector.Light,
-      new CustomisableThemeStyleGroup()
-    );
-    return styleCSSVisitor.getStyle(root);
-  })();
-  return {
-    orignalResources: resources,
-    customisableTheme: lightTheme,
-  };
-}
-
-function constructResourcesFromFormState(
-  state: ResourcesFormState
-): Resource[] {
-  const lightThemeResourceSpecifier = {
-    def: RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS,
-    locale: null,
-    extension: null,
-  };
-  return [
-    {
-      specifier: lightThemeResourceSpecifier,
-      path: expandSpecifier(lightThemeResourceSpecifier),
-      nullableValue: (() => {
-        const cssAstVisitor = new CssAstVisitor(ThemeTargetSelector.Light);
-        const styleGroup = new CustomisableThemeStyleGroup(
-          state.customisableTheme
-        );
-        styleGroup.acceptCssAstVisitor(cssAstVisitor);
-        return cssAstVisitor.getCSS().toResult().css;
-      })(),
-    },
-  ];
 }
 
 export function useBrandDesignForm(appID: string): BranchDesignForm {
   const configForm = useAppConfigForm({
     appID,
     constructFormState: constructConfigFormState,
-    constructConfig: constrcutConfigFromFormState,
+    constructConfig: constructConfigFromFormState,
   });
   const [selectedLanguage, setSelectedLanguage] = useState(
     configForm.state.fallbackLanguage
@@ -155,20 +105,84 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
     return specifiers;
   }, []);
 
-  const resourceForm = useResourceForm(
-    appID,
-    specifiers,
-    constructResourcesFormStateFromResources,
-    constructResourcesFromFormState
-  );
+  const resourceForm = useResourceForm(appID, specifiers);
+
+  const resourcesState: ResourcesFormState = useMemo(() => {
+    const resources = Object.values(resourceForm.state.resources).filter(
+      nonNullable
+    );
+    const lightTheme = (() => {
+      const lightThemeResource = resources.find((r) => {
+        return (
+          r.nullableValue != null &&
+          r.specifier.def === RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS
+        );
+      });
+      if (lightThemeResource?.nullableValue == null) {
+        return DEFAULT_LIGHT_THEME;
+      }
+      const root = parseCSS(lightThemeResource.nullableValue);
+      const styleCSSVisitor = new StyleCssVisitor(
+        ThemeTargetSelector.Light,
+        new CustomisableThemeStyleGroup()
+      );
+      return styleCSSVisitor.getStyle(root);
+    })();
+    return {
+      customisableTheme: lightTheme,
+    };
+  }, [resourceForm]);
+
+  const resourceMutator = useMemo(() => {
+    return {
+      updateCustomisableTheme: (
+        updater: (prev: CustomisableTheme) => CustomisableTheme
+      ) => {
+        const newState = updater(resourcesState.customisableTheme);
+        resourceForm.setState((s) => {
+          return produce(s, (draft) => {
+            const resources = Object.values(draft.resources).filter(
+              nonNullable
+            );
+            const lightThemeResourceSpecifier = {
+              def: RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS,
+              locale: null,
+              extension: null,
+            };
+            const lightThemeResource = resources.find((r) => {
+              return (
+                r.nullableValue != null &&
+                r.specifier.def ===
+                  RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS
+              );
+            }) ?? {
+              specifier: lightThemeResourceSpecifier,
+              path: expandSpecifier(lightThemeResourceSpecifier),
+            };
+            lightThemeResource.nullableValue = (() => {
+              const cssAstVisitor = new CssAstVisitor(
+                ThemeTargetSelector.Light
+              );
+              const styleGroup = new CustomisableThemeStyleGroup(newState);
+              styleGroup.acceptCssAstVisitor(cssAstVisitor);
+              return cssAstVisitor.getCSS().toResult().css;
+            })();
+
+            draft.resources[specifierId(lightThemeResourceSpecifier)] =
+              lightThemeResource;
+          });
+        });
+      },
+    };
+  }, [resourcesState, resourceForm]);
 
   const state: BranchDesignFormState = useMemo(
     () => ({
       selectedLanguage,
       ...configForm.state,
-      ...resourceForm.state,
+      ...resourcesState,
     }),
-    [selectedLanguage, configForm.state, resourceForm.state]
+    [selectedLanguage, configForm.state, resourcesState]
   );
 
   const designForm = useMemo(
@@ -195,62 +209,60 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       setSelectedLanguage,
 
       setCardAlignment: (alignment: Alignment) => {
-        resourceForm.setState((prev) => {
+        resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
-            draft.customisableTheme.cardAlignment = alignment;
+            draft.cardAlignment = alignment;
           });
         });
       },
       setBackgroundColor: (backgroundColor: string) => {
-        resourceForm.setState((prev) => {
+        resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
-            draft.customisableTheme.backgroundColor = backgroundColor;
+            draft.backgroundColor = backgroundColor;
           });
         });
       },
       setPrimaryButtonBackgroundColor: (backgroundColor: string) => {
-        resourceForm.setState((prev) => {
+        resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
-            draft.customisableTheme.primaryButton.backgroundColor =
-              backgroundColor;
+            draft.primaryButton.backgroundColor = backgroundColor;
           });
         });
       },
       setPrimaryButtonLabelColor: (color: string) => {
-        resourceForm.setState((prev) => {
+        resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
-            draft.customisableTheme.primaryButton.labelColor = color;
+            draft.primaryButton.labelColor = color;
           });
         });
       },
       setPrimaryButtonBorderRadiusStyle: (
         borderRadiusStyle: BorderRadiusStyle
       ) => {
-        resourceForm.setState((prev) => {
+        resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
-            draft.customisableTheme.primaryButton.borderRadius =
-              borderRadiusStyle;
+            draft.primaryButton.borderRadius = borderRadiusStyle;
           });
         });
       },
       setLinkColor: (color: string) => {
-        resourceForm.setState((prev) => {
+        resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
-            draft.customisableTheme.link.color = color;
+            draft.link.color = color;
           });
         });
       },
       setInputFieldBorderRadiusStyle: (
         borderRadiusStyle: BorderRadiusStyle
       ) => {
-        resourceForm.setState((prev) => {
+        resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
-            draft.customisableTheme.inputField.borderRadius = borderRadiusStyle;
+            draft.inputField.borderRadius = borderRadiusStyle;
           });
         });
       },
     }),
-    [state, configForm, resourceForm]
+    [state, configForm, resourceForm, resourceMutator]
   );
 
   return designForm;
