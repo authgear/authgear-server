@@ -119,7 +119,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateSignupFlowBranchesIdent
 			}
 		}
 	}
-	return output
+	return reorderBranches(output)
 }
 
 func (m *InlinePreviewAuthflowBranchViewModeler) generateSignupFlowBranchesIdentityLoginID(keyType model.LoginIDKeyType) []AuthflowBranch {
@@ -247,7 +247,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesIdentit
 			}
 		}
 	}
-	return output
+	return reorderBranches(output)
 }
 
 func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesIdentityLoginID(keyType model.LoginIDKeyType) []AuthflowBranch {
