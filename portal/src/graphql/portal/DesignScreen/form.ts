@@ -23,6 +23,8 @@ import { useAppConfigForm } from "../../../hook/useAppConfigForm";
 import { PortalAPIAppConfig } from "../../../types";
 import { nonNullable } from "../../../util/types";
 
+const LOCALE_BASED_RESOUCE_DEFINITIONS = [RESOURCE_TRANSLATION_JSON];
+
 const THEME_RESOURCE_DEFINITIONS = [
   RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS,
 ];
@@ -102,8 +104,13 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         extension: null,
       });
     }
+    for (const locale of configForm.state.supportedLanguages) {
+      for (const def of LOCALE_BASED_RESOUCE_DEFINITIONS) {
+        specifiers.push(...expandDef(def, locale));
+      }
+    }
     return specifiers;
-  }, []);
+  }, [configForm.state.supportedLanguages]);
 
   const resourceForm = useResourceForm(appID, specifiers);
 
