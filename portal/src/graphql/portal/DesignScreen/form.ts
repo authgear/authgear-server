@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { parse as parseCSS } from "postcss";
 import { produce } from "immer";
 import { useResourceForm } from "../../../hook/useResourceForm";
@@ -13,12 +13,14 @@ import {
   ThemeTargetSelector,
 } from "../../../model/themeAuthFlowV2";
 import {
+  RESOURCE_APP_LOGO,
   RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS,
   RESOURCE_TRANSLATION_JSON,
 } from "../../../resources";
 import {
   LanguageTag,
   Resource,
+  ResourceDefinition,
   ResourceSpecifier,
   expandDef,
   expandSpecifier,
@@ -26,8 +28,13 @@ import {
 } from "../../../util/resource";
 import { useAppConfigForm } from "../../../hook/useAppConfigForm";
 import { PortalAPIAppConfig } from "../../../types";
+import { APIError } from "../../../error/error";
+import { ErrorParseRule, ErrorParseRuleResult } from "../../../error/parse";
 
-const LOCALE_BASED_RESOUCE_DEFINITIONS = [RESOURCE_TRANSLATION_JSON];
+const LOCALE_BASED_RESOUCE_DEFINITIONS = [
+  RESOURCE_TRANSLATION_JSON,
+  RESOURCE_APP_LOGO,
+];
 
 const THEME_RESOURCE_DEFINITIONS = [
   RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS,
@@ -46,6 +53,7 @@ interface ConfigFormState {
 
 interface ResourcesFormState {
   appName: string;
+  appLogoBase64EncodedData: string | null;
   customisableTheme: CustomisableTheme;
 }
 
@@ -65,10 +73,14 @@ export interface BranchDesignForm {
   reset: () => void;
   save: () => Promise<void>;
 
+  errorRules: ErrorParseRule[];
+
   setSelectedLanguage: (lang: LanguageTag) => void;
 
   setAppName: (appName: string) => void;
-
+  setAppLogo: (
+    image: { base64EncodedData: string; extension: string } | null
+  ) => void;
   setCardAlignment: (alignment: Alignment) => void;
   setBackgroundColor: (color: string) => void;
   setPrimaryButtonBackgroundColor: (color: string) => void;
@@ -110,6 +122,8 @@ function resolveResource(
   }
   return resources[specifierId(specifiers[specifiers.length - 1])] ?? null;
 }
+
+const ImageMaxSizeInKB = 100;
 
 export function useBrandDesignForm(appID: string): BranchDesignForm {
   const configForm = useAppConfigForm({
@@ -163,6 +177,20 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       return jsonValue[key] ?? "";
     };
 
+    const getValueFromImageResource = (
+      def: ResourceDefinition
+    ): string | null => {
+      const specifiers = expandDef(def, selectedLanguage);
+      const imageResouece = resolveResource(
+        resourceForm.state.resources,
+        specifiers
+      );
+      if (!imageResouece?.nullableValue) {
+        return null;
+      }
+      return imageResouece.nullableValue;
+    };
+
     const lightTheme = (() => {
       const lightThemeResource =
         resourceForm.state.resources[specifierId(LightThemeResourceSpecifier)];
@@ -179,13 +207,14 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
 
     return {
       appName: getValueFromTranslationJSON("app.name"),
+      appLogoBase64EncodedData: getValueFromImageResource(RESOURCE_APP_LOGO),
       customisableTheme: lightTheme,
     };
   }, [resourceForm, selectedLanguage, configForm.state.fallbackLanguage]);
 
   const resourceMutator = useMemo(() => {
     return {
-      setTransalationValue: (key: string, value: string) => {
+      setTranslationValue: (key: string, value: string) => {
         resourceForm.setState((s) => {
           return produce(s, (draft) => {
             const specifier: ResourceSpecifier = {
@@ -216,6 +245,39 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
               path: expandSpecifier(specifier),
               nullableValue: JSON.stringify(jsonValue, null, 2),
             };
+          });
+        });
+      },
+      setImage: (
+        def: ResourceDefinition,
+        image: {
+          base64EncodedData: string;
+          extension: string;
+        } | null
+      ) => {
+        resourceForm.setState((prev) => {
+          return produce(prev, (draft) => {
+            const specifiers = expandDef(def, selectedLanguage);
+            for (const specifier of specifiers) {
+              const resource = draft.resources[specifierId(specifier)];
+              if (resource != null) {
+                resource.nullableValue = "";
+              }
+            }
+            if (image == null) {
+              return;
+            }
+            const specifier = {
+              def,
+              extension: image.extension,
+              locale: selectedLanguage,
+            };
+            const resource: Resource = {
+              specifier,
+              path: expandSpecifier(specifier),
+              nullableValue: image.base64EncodedData,
+            };
+            draft.resources[specifierId(specifier)] = resource;
           });
         });
       },
@@ -267,6 +329,62 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
     [selectedLanguage, configForm.state, resourcesState]
   );
 
+  const imageSizeTooLargeErrorRule = useCallback(
+    (apiError: APIError): ErrorParseRuleResult => {
+      if (apiError.reason === "RequestEntityTooLarge") {
+        // When the request is blocked by the load balancer due to RequestEntityTooLarge
+        // We try to get the largest resource from the state
+        // and construct the error message for display
+
+        let path = "";
+        let longestLength = 0;
+        // get the largest resources from the state
+        for (const r of Object.keys(resourceForm.state.resources)) {
+          const l = resourceForm.state.resources[r]?.nullableValue?.length ?? 0;
+          if (l > longestLength) {
+            longestLength = l;
+            path = resourceForm.state.resources[r]?.path ?? "";
+          }
+        }
+
+        // parse resource type from resource path
+        let resourceType = "other";
+        if (path !== "") {
+          const dir = path.split("/");
+          const fileName = dir[dir.length - 1];
+          if (fileName.lastIndexOf(".") !== -1) {
+            resourceType = fileName.slice(0, fileName.lastIndexOf("."));
+          } else {
+            resourceType = fileName;
+          }
+        }
+
+        return {
+          parsedAPIErrors: [
+            {
+              messageID: "errors.resource-too-large",
+              arguments: {
+                maxSize: ImageMaxSizeInKB,
+                resourceType,
+              },
+            },
+          ],
+          fullyHandled: true,
+        };
+      }
+      return {
+        parsedAPIErrors: [],
+        fullyHandled: false,
+      };
+    },
+    [resourceForm.state.resources]
+  );
+
+  const errorRules: ErrorParseRule[] = useMemo(
+    () => [imageSizeTooLargeErrorRule],
+    [imageSizeTooLargeErrorRule]
+  );
+
   const designForm = useMemo(
     (): BranchDesignForm => ({
       isLoading: configForm.isLoading || resourceForm.isLoading,
@@ -287,11 +405,15 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         await configForm.save(ignoreConflict);
         await resourceForm.save(ignoreConflict);
       },
+      errorRules,
 
       setSelectedLanguage,
 
       setAppName: (appName: string) => {
-        resourceMutator.setTransalationValue("app.name", appName);
+        resourceMutator.setTranslationValue("app.name", appName);
+      },
+      setAppLogo: (image) => {
+        resourceMutator.setImage(RESOURCE_APP_LOGO, image);
       },
       setCardAlignment: (alignment: Alignment) => {
         resourceMutator.updateCustomisableTheme((prev) => {
@@ -347,7 +469,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         });
       },
     }),
-    [state, configForm, resourceForm, resourceMutator]
+    [state, configForm, resourceForm, resourceMutator, errorRules]
   );
 
   return designForm;

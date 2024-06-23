@@ -57,3 +57,10 @@
 .icBorderRadius.selected {
   @apply bg-theme-primary;
 }
+
+.icImagePlaceholder {
+  @apply inline-block;
+  @apply h-6 w-6;
+  @apply bg-grey-grey110;
+  mask: url("../../../images/ic-imagesmode.svg");
+}

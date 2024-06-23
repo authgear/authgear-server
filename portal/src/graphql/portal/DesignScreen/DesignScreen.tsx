@@ -18,6 +18,7 @@ import {
   Configuration,
   ConfigurationDescription,
   ConfigurationGroup,
+  ImagePicker,
   Option,
   Separator,
 } from "./Components";
@@ -52,6 +53,23 @@ const OrganisationConfiguration: React.VFC<OrganisationConfigurationProps> =
           )}
           value={designForm.state.appName}
           onChange={onChange}
+        />
+      </ConfigurationGroup>
+    );
+  };
+
+interface AppLogoConfigurationProps {
+  designForm: BranchDesignForm;
+}
+const AppLogoConfiguration: React.VFC<AppLogoConfigurationProps> =
+  function AppLogoConfiguration(props) {
+    const { designForm } = props;
+    return (
+      <ConfigurationGroup labelKey="DesignScreen.configuration.logo.label">
+        <ConfigurationDescription labelKey="DesignScreen.configuration.logo.description" />
+        <ImagePicker
+          base64EncodedData={designForm.state.appLogoBase64EncodedData}
+          onChange={designForm.setAppLogo}
         />
       </ConfigurationGroup>
     );
@@ -209,6 +227,8 @@ const ConfigurationPanel: React.VFC<ConfigurationPanelProps> =
       <div>
         <OrganisationConfiguration designForm={designForm} />
         <Separator />
+        <AppLogoConfiguration designForm={designForm} />
+        <Separator />
         <AlignmentConfiguration designForm={designForm} />
         <Separator />
         <BackgroundConfiguration designForm={designForm} />
@@ -239,6 +259,7 @@ const DesignScreen: React.VFC = function DesignScreen() {
       className={cn("h-full", "flex", "flex-col")}
       form={form}
       canSave={true}
+      errorRules={form.errorRules}
     >
       <div
         className={cn(
