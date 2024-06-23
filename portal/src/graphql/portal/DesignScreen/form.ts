@@ -21,7 +21,6 @@ import {
   ResourceSpecifier,
   expandSpecifier,
 } from "../../../util/resource";
-import { BorderRadius } from "./Components";
 
 const THEME_RESOURCE_DEFINITIONS = [
   RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS,
@@ -38,8 +37,13 @@ export interface BranchDesignForm
   setBackgroundColor: (color: string) => void;
   setPrimaryButtonBackgroundColor: (color: string) => void;
   setPrimaryButtonLabelColor: (color: string) => void;
-  setPrimaryButtonBorderRadiusStyle: (borderStyle: BorderRadiusStyle) => void;
+  setPrimaryButtonBorderRadiusStyle: (
+    borderRadiusStyle: BorderRadiusStyle
+  ) => void;
   setLinkColor: (color: string) => void;
+  setInputFieldBorderRadiusStyle: (
+    borderRadiusStyle: BorderRadiusStyle
+  ) => void;
 }
 
 function constructResourcesFormStateFromResources(
@@ -158,6 +162,15 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         form.setState((prev) => {
           return produce(prev, (draft) => {
             draft.customisableTheme.link.color = color;
+          });
+        });
+      },
+      setInputFieldBorderRadiusStyle: (
+        borderRadiusStyle: BorderRadiusStyle
+      ) => {
+        form.setState((prev) => {
+          return produce(prev, (draft) => {
+            draft.customisableTheme.inputField.borderRadius = borderRadiusStyle;
           });
         });
       },

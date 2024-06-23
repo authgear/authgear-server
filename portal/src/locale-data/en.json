@@ -890,6 +890,8 @@
   "DesignScreen.configuration.button.borderRadiusStyle.label": "Border radius style",
   "DesignScreen.configuration.link.label": "Links",
   "DesignScreen.configuration.link.color.label": "Link color",
+  "DesignScreen.configuration.input.label": "Input field",
+  "DesignScreen.configuration.input.border.label": "Border radius style",
 
   "UISettingsScreen.title": "UI Settings",
   "UISettingsScreen.description": "Authgear comes with some simple styling for your login and signup page. You can customize the look and feel here.",

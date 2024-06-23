@@ -145,6 +145,24 @@ const LinkConfiguration: React.VFC<LinkConfigurationProps> =
     );
   };
 
+interface InputConfigurationProps {
+  designForm: BranchDesignForm;
+}
+const InputConfiguration: React.VFC<InputConfigurationProps> =
+  function InputConfiguration(props) {
+    const { designForm } = props;
+    return (
+      <ConfigurationGroup labelKey="DesignScreen.configuration.input.label">
+        <Configuration labelKey="DesignScreen.configuration.input.border.label">
+          <BorderRadius
+            value={designForm.state.customisableTheme.inputField.borderRadius}
+            onChange={designForm.setInputFieldBorderRadiusStyle}
+          />
+        </Configuration>
+      </ConfigurationGroup>
+    );
+  };
+
 interface ConfigurationPanelProps {
   designForm: BranchDesignForm;
 }
@@ -160,6 +178,8 @@ const ConfigurationPanel: React.VFC<ConfigurationPanelProps> =
         <ButtonConfiguration designForm={designForm} />
         <Separator />
         <LinkConfiguration designForm={designForm} />
+        <Separator />
+        <InputConfiguration designForm={designForm} />
       </div>
     );
   };
