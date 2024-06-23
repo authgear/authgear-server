@@ -1,6 +1,7 @@
 package template_test
 
 import (
+	"context"
 	htmltemplate "html/template"
 	"strings"
 	"testing"
@@ -8,6 +9,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/spf13/afero"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -363,6 +366,72 @@ func TestTemplateResource(t *testing.T) {
 			So(folderRes, ShouldBeFalse)
 			_, nestedFolderRes := messageTxt.MatchResource("templates/en/other/messages/dummy.txt")
 			So(nestedFolderRes, ShouldBeFalse)
+		})
+	})
+
+	Convey("Feature flag for update html resource", t, func() {
+		app := resource.LeveledAferoFs{FsLevel: resource.FsLevelApp}
+		path := "templates/en/messages/dummy.html"
+		messageHtml := &template.MessageHTML{
+			Name: "messages/dummy.html",
+		}
+		resourceFile := resource.ResourceFile{
+			Location: resource.Location{
+				Fs:   app,
+				Path: path,
+			},
+			Data: []byte("qwer"),
+		}
+		Convey("Should not allow update if disallowed", func() {
+			featureConfig := config.NewEffectiveDefaultFeatureConfig()
+			featureConfig.Messaging.TemplateCustomizationDisabled = true
+			ctx := context.Background()
+			ctx = context.WithValue(ctx, configsource.ContextKeyFeatureConfig, featureConfig)
+			res, err := messageHtml.UpdateResource(ctx, nil, &resourceFile, []byte("asdf"))
+			So(res, ShouldBeNil)
+			So(err, ShouldEqual, template.ErrUpdateDisallowed)
+		})
+		Convey("Should allow update if flag not set", func() {
+			featureConfig := config.NewEffectiveDefaultFeatureConfig()
+			ctx := context.Background()
+			ctx = context.WithValue(ctx, configsource.ContextKeyFeatureConfig, featureConfig)
+			res, err := messageHtml.UpdateResource(ctx, nil, &resourceFile, []byte("asdf"))
+			So(res, ShouldNotBeNil)
+			So(res.Data, ShouldEqual, []byte("asdf"))
+			So(err, ShouldBeNil)
+		})
+	})
+
+	Convey("Feature flag for update txt resource", t, func() {
+		app := resource.LeveledAferoFs{FsLevel: resource.FsLevelApp}
+		path := "templates/en/messages/dummy.txt"
+		messageTxt := &template.MessagePlainText{
+			Name: "messages/dummy.txt",
+		}
+		resourceFile := resource.ResourceFile{
+			Location: resource.Location{
+				Fs:   app,
+				Path: path,
+			},
+			Data: []byte("qwer"),
+		}
+		Convey("Should not allow update if disallowed", func() {
+			featureConfig := config.NewEffectiveDefaultFeatureConfig()
+			featureConfig.Messaging.TemplateCustomizationDisabled = true
+			ctx := context.Background()
+			ctx = context.WithValue(ctx, configsource.ContextKeyFeatureConfig, featureConfig)
+			res, err := messageTxt.UpdateResource(ctx, nil, &resourceFile, []byte("asdf"))
+			So(res, ShouldBeNil)
+			So(err, ShouldEqual, template.ErrUpdateDisallowed)
+		})
+		Convey("Should allow update if flag not set", func() {
+			featureConfig := config.NewEffectiveDefaultFeatureConfig()
+			ctx := context.Background()
+			ctx = context.WithValue(ctx, configsource.ContextKeyFeatureConfig, featureConfig)
+			res, err := messageTxt.UpdateResource(ctx, nil, &resourceFile, []byte("asdf"))
+			So(res, ShouldNotBeNil)
+			So(res.Data, ShouldEqual, []byte("asdf"))
+			So(err, ShouldBeNil)
 		})
 	})
 }
