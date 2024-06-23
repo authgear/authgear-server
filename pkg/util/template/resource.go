@@ -10,6 +10,8 @@ import (
 	"regexp"
 	texttemplate "text/template"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/intlresource"
 	"github.com/authgear/authgear-server/pkg/util/resource"
@@ -17,6 +19,17 @@ import (
 
 type Resource interface {
 	templateResource()
+}
+
+func isTemplateUpdateAllowed(ctx context.Context) (bool, error) {
+	fc, ok := ctx.Value(configsource.ContextKeyFeatureConfig).(*config.FeatureConfig)
+	if !ok || fc == nil {
+		return false, ErrMissingFeatureFlagInCtx
+	}
+	if fc.Messaging.TemplateCustomizationDisabled {
+		return false, ErrUpdateDisallowed
+	}
+	return true, nil
 }
 
 // HTML defines a HTML template
@@ -71,8 +84,10 @@ func (t *HTML) UpdateResource(_ context.Context, _ []resource.ResourceFile, resr
 	return nil, fmt.Errorf("HTML resource cannot be updated. Use MessageHTML resource instead.")
 }
 
-func (t *MessageHTML) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
-	// TODO: Check feature flag from context
+func (t *MessageHTML) UpdateResource(ctx context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
+	if isAllowed, error := isTemplateUpdateAllowed(ctx); !isAllowed || error != nil {
+		return nil, error
+	}
 	return &resource.ResourceFile{
 		Location: resrc.Location,
 		Data:     data,
@@ -129,7 +144,10 @@ func (t *PlainText) UpdateResource(_ context.Context, _ []resource.ResourceFile,
 	}, nil
 }
 
-func (t *MessagePlainText) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
+func (t *MessagePlainText) UpdateResource(ctx context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
+	if isAllowed, error := isTemplateUpdateAllowed(ctx); !isAllowed || error != nil {
+		return nil, error
+	}
 	return &resource.ResourceFile{
 		Location: resrc.Location,
 		Data:     data,
