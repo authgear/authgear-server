@@ -14,7 +14,7 @@ import ManageLanguageWidget from "./ManageLanguageWidget";
 import EditTemplatesWidget, {
   EditTemplatesWidgetSection,
 } from "./EditTemplatesWidget";
-import { AuthenticatorEmailOTPMode } from "../../types";
+import { AuthenticatorEmailOTPMode, MessagingConfig } from "../../types";
 import {
   ALL_LANGUAGES_TEMPLATES,
   DEFAULT_TEMPLATE_LOCALE,
@@ -61,6 +61,8 @@ import {
 import FormContainer from "../../FormContainer";
 import styles from "./LocalizationConfigurationScreen.module.css";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
+import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
+import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 
 interface FormState extends ResourcesFormState {
   supportedLanguages: string[];
@@ -88,6 +90,7 @@ interface ResourcesConfigurationContentProps {
   passwordlessViaSMSEnabled: boolean;
   passwordlessViaEmailOTPMode: AuthenticatorEmailOTPMode;
   verificationEnabled: boolean;
+  messagingFeatureConfig?: MessagingConfig;
 }
 
 const PIVOT_KEY_FORGOT_PASSWORD_LINK = "forgot_password_link";
@@ -115,9 +118,13 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
       passwordlessViaSMSEnabled,
       passwordlessViaEmailOTPMode,
       verificationEnabled,
+      messagingFeatureConfig,
     } = props;
     const { supportedLanguages } = state;
     const { renderToString } = useContext(Context);
+
+    const isTemplateCustomizationDisabled =
+      messagingFeatureConfig?.template_customization_disabled ?? false;
 
     const setSelectedLanguage = useCallback(
       (selectedLanguage: LanguageTag) => {
@@ -389,6 +396,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
               TRANSLATION_JSON_KEY_EMAIL_FORGOT_PASSWORD_LINK_SUBJECT
             ),
             editor: "textfield",
+            readOnly: isTemplateCustomizationDisabled,
           },
           {
             key: "html-email",
@@ -397,6 +405,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             value: getValue(RESOURCE_FORGOT_PASSWORD_EMAIL_LINK_HTML),
             onChange: getOnChange(RESOURCE_FORGOT_PASSWORD_EMAIL_LINK_HTML),
             editor: "code",
+            readOnly: isTemplateCustomizationDisabled,
           },
           {
             key: "plaintext-email",
@@ -407,6 +416,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             value: getValue(RESOURCE_FORGOT_PASSWORD_EMAIL_LINK_TXT),
             onChange: getOnChange(RESOURCE_FORGOT_PASSWORD_EMAIL_LINK_TXT),
             editor: "code",
+            readOnly: isTemplateCustomizationDisabled,
           },
         ],
       },
@@ -421,6 +431,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             value: getValue(RESOURCE_FORGOT_PASSWORD_SMS_LINK_TXT),
             onChange: getOnChange(RESOURCE_FORGOT_PASSWORD_SMS_LINK_TXT),
             editor: "code",
+            readOnly: isTemplateCustomizationDisabled,
           },
         ],
       },
@@ -442,6 +453,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
               TRANSLATION_JSON_KEY_EMAIL_FORGOT_PASSWORD_CODE_SUBJECT
             ),
             editor: "textfield",
+            readOnly: isTemplateCustomizationDisabled,
           },
           {
             key: "html-email",
@@ -450,6 +462,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             value: getValue(RESOURCE_FORGOT_PASSWORD_EMAIL_CODE_HTML),
             onChange: getOnChange(RESOURCE_FORGOT_PASSWORD_EMAIL_CODE_HTML),
             editor: "code",
+            readOnly: isTemplateCustomizationDisabled,
           },
           {
             key: "plaintext-email",
@@ -460,6 +473,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             value: getValue(RESOURCE_FORGOT_PASSWORD_EMAIL_CODE_TXT),
             onChange: getOnChange(RESOURCE_FORGOT_PASSWORD_EMAIL_CODE_TXT),
             editor: "code",
+            readOnly: isTemplateCustomizationDisabled,
           },
         ],
       },
@@ -474,6 +488,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             value: getValue(RESOURCE_FORGOT_PASSWORD_SMS_CODE_TXT),
             onChange: getOnChange(RESOURCE_FORGOT_PASSWORD_SMS_CODE_TXT),
             editor: "code",
+            readOnly: isTemplateCustomizationDisabled,
           },
         ],
       },
@@ -495,6 +510,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
               TRANSLATION_JSON_KEY_EMAIL_VERIFICATION_SUBJECT
             ),
             editor: "textfield",
+            readOnly: isTemplateCustomizationDisabled,
           },
           {
             key: "html-email",
@@ -503,6 +519,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             value: getValue(RESOURCE_VERIFICATION_EMAIL_HTML),
             onChange: getOnChange(RESOURCE_VERIFICATION_EMAIL_HTML),
             editor: "code",
+            readOnly: isTemplateCustomizationDisabled,
           },
           {
             key: "plaintext-email",
@@ -513,6 +530,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             value: getValue(RESOURCE_VERIFICATION_EMAIL_TXT),
             onChange: getOnChange(RESOURCE_VERIFICATION_EMAIL_TXT),
             editor: "code",
+            readOnly: isTemplateCustomizationDisabled,
           },
         ],
       },
@@ -527,6 +545,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             value: getValue(RESOURCE_VERIFICATION_SMS_TXT),
             onChange: getOnChange(RESOURCE_VERIFICATION_SMS_TXT),
             editor: "code",
+            readOnly: isTemplateCustomizationDisabled,
           },
         ],
       },
@@ -574,6 +593,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             value: getTranslationValue(passwordlessViaEmailSubject.setup),
             onChange: getTranslationOnChange(passwordlessViaEmailSubject.setup),
             editor: "textfield",
+            readOnly: isTemplateCustomizationDisabled,
           },
           {
             key: "html-email",
@@ -582,6 +602,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             value: getValue(passwordlessViaEmailTemplates.setupHtml),
             onChange: getOnChange(passwordlessViaEmailTemplates.setupHtml),
             editor: "code",
+            readOnly: isTemplateCustomizationDisabled,
           },
           {
             key: "plaintext-email",
@@ -592,6 +613,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             value: getValue(passwordlessViaEmailTemplates.setupPlainText),
             onChange: getOnChange(passwordlessViaEmailTemplates.setupPlainText),
             editor: "code",
+            readOnly: isTemplateCustomizationDisabled,
           },
         ],
       },
@@ -612,6 +634,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
               passwordlessViaEmailSubject.authenticate
             ),
             editor: "textfield",
+            readOnly: isTemplateCustomizationDisabled,
           },
           {
             key: "html-email",
@@ -622,6 +645,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
               passwordlessViaEmailTemplates.authenticateHtml
             ),
             editor: "code",
+            readOnly: isTemplateCustomizationDisabled,
           },
           {
             key: "plaintext-email",
@@ -636,6 +660,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
               passwordlessViaEmailTemplates.authenticatePlainText
             ),
             editor: "code",
+            readOnly: isTemplateCustomizationDisabled,
           },
         ],
       },
@@ -655,6 +680,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             value: getValue(RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT),
             onChange: getOnChange(RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT),
             editor: "code",
+            readOnly: isTemplateCustomizationDisabled,
           },
         ],
       },
@@ -671,6 +697,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             value: getValue(RESOURCE_AUTHENTICATE_PRIMARY_OOB_SMS_TXT),
             onChange: getOnChange(RESOURCE_AUTHENTICATE_PRIMARY_OOB_SMS_TXT),
             editor: "code",
+            readOnly: isTemplateCustomizationDisabled,
           },
         ],
       },
@@ -700,6 +727,9 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
           <WidgetTitle>
             <FormattedMessage id="LocalizationConfigurationScreen.template-content-title" />
           </WidgetTitle>
+          {isTemplateCustomizationDisabled ? (
+            <FeatureDisabledMessageBar messageID="FeatureConfig.edit-template.disabled" />
+          ) : null}
           <Pivot
             overflowBehavior="menu"
             onLinkClick={onLinkClick}
@@ -764,6 +794,8 @@ const LocalizationConfigurationScreen: React.VFC =
       useState<LanguageTag | null>(null);
 
     const config = useAppAndSecretConfigQuery(appID);
+
+    const featureConfig = useAppFeatureConfigQuery(appID);
 
     const initialSupportedLanguages = useMemo(() => {
       return (
@@ -889,6 +921,9 @@ const LocalizationConfigurationScreen: React.VFC =
           passwordlessViaSMSEnabled={passwordlessViaSMSEnabled}
           passwordlessViaEmailOTPMode={passwordlessViaEmailOTPMode}
           verificationEnabled={verificationEnabled}
+          messagingFeatureConfig={
+            featureConfig.effectiveFeatureConfig?.messaging
+          }
         />
       </FormContainer>
     );
