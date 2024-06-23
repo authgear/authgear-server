@@ -19,7 +19,7 @@ func TestTemplateResource(t *testing.T) {
 		r := &resource.Registry{}
 		manager := resource.NewManager(r, []resource.Fs{
 			resource.LeveledAferoFs{Fs: fsA, FsLevel: resource.FsLevelBuiltin},
-			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
+			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelCustom},
 		})
 
 		txt := &template.HTML{Name: "resource.txt"}
@@ -146,7 +146,7 @@ func TestTemplateResource(t *testing.T) {
 		r := &resource.Registry{}
 		manager := resource.NewManager(r, []resource.Fs{
 			resource.LeveledAferoFs{Fs: fsA, FsLevel: resource.FsLevelBuiltin},
-			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
+			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelCustom},
 		})
 
 		txt := &template.HTML{Name: "resource.txt"}
@@ -217,17 +217,17 @@ func TestTemplateResource(t *testing.T) {
 			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
 		})
 
-		txt := &template.HTML{Name: "resource.txt"}
+		txt := &template.MessageHTML{Name: "messages/resource.txt"}
 		r.Register(txt)
 
 		writeFile := func(fs afero.Fs, lang string, data string) {
-			_ = fs.MkdirAll("templates/"+lang, 0777)
-			_ = afero.WriteFile(fs, "templates/"+lang+"/resource.txt", []byte(data), 0666)
+			_ = fs.MkdirAll("templates/"+lang+"/messages", 0777)
+			_ = afero.WriteFile(fs, "templates/"+lang+"/messages/resource.txt", []byte(data), 0666)
 		}
 
 		read := func(lang string) (str string, err error) {
 			view := resource.AppFile{
-				Path: "templates/" + lang + "/resource.txt",
+				Path: "templates/" + lang + "/messages/resource.txt",
 			}
 			result, err := manager.Read(txt, view)
 			if err != nil {
