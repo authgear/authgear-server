@@ -20,9 +20,11 @@ const AppAssetsURLDirname = "static"
 const GeneratedAssetsURLDirname = "shared-assets"
 
 var StaticAssetResources = map[string]resource.Descriptor{
-	"app-logo":      AppLogo,
-	"app-logo-dark": AppLogoDark,
-	"favicon":       Favicon,
+	"app-logo":                  AppLogo,
+	"app-logo-dark":             AppLogoDark,
+	"favicon":                   Favicon,
+	"app-background-image":      AppBackgroundImage,
+	"app-background-image-dark": AppBackgroundImageDark,
 
 	"authgear-light-theme.css":            AuthgearLightThemeCSS,
 	"authgear-dark-theme.css":             AuthgearDarkThemeCSS,
