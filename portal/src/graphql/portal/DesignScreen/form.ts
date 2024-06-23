@@ -7,6 +7,7 @@ import {
 } from "../../../hook/useResourceForm";
 import {
   Alignment,
+  BorderRadiusStyle,
   CssAstVisitor,
   CustomisableTheme,
   CustomisableThemeStyleGroup,
@@ -20,6 +21,7 @@ import {
   ResourceSpecifier,
   expandSpecifier,
 } from "../../../util/resource";
+import { BorderRadius } from "./Components";
 
 const THEME_RESOURCE_DEFINITIONS = [
   RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS,
@@ -36,6 +38,7 @@ export interface BranchDesignForm
   setBackgroundColor: (color: string) => void;
   setPrimaryButtonBackgroundColor: (color: string) => void;
   setPrimaryButtonLabelColor: (color: string) => void;
+  setPrimaryButtonBorderRadiusStyle: (borderStyle: BorderRadiusStyle) => void;
   setLinkColor: (color: string) => void;
 }
 
@@ -138,6 +141,16 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         form.setState((prev) => {
           return produce(prev, (draft) => {
             draft.customisableTheme.primaryButton.labelColor = color;
+          });
+        });
+      },
+      setPrimaryButtonBorderRadiusStyle: (
+        borderRadiusStyle: BorderRadiusStyle
+      ) => {
+        form.setState((prev) => {
+          return produce(prev, (draft) => {
+            draft.customisableTheme.primaryButton.borderRadius =
+              borderRadiusStyle;
           });
         });
       },

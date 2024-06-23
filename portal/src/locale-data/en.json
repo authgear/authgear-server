@@ -887,6 +887,7 @@
   "DesignScreen.configuration.button.label": "Buttons",
   "DesignScreen.configuration.button.primaryButton.label": "Primary button",
   "DesignScreen.configuration.button.primaryButtonLabel.label": "Primary button label",
+  "DesignScreen.configuration.button.borderRadiusStyle.label": "Border radius style",
   "DesignScreen.configuration.link.label": "Links",
   "DesignScreen.configuration.link.color.label": "Link color",
 

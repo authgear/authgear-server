@@ -8,6 +8,7 @@ import ShowError from "../../../ShowError";
 import ShowLoading from "../../../ShowLoading";
 import { BranchDesignForm, useBrandDesignForm } from "./form";
 import {
+  BorderRadius,
   ButtonToggleGroup,
   ColorPicker,
   Configuration,
@@ -112,6 +113,14 @@ const ButtonConfiguration: React.VFC<ButtonConfigurationProps> =
           <ColorPicker
             color={designForm.state.customisableTheme.primaryButton.labelColor}
             onChange={designForm.setPrimaryButtonLabelColor}
+          />
+        </Configuration>
+        <Configuration labelKey="DesignScreen.configuration.button.borderRadiusStyle.label">
+          <BorderRadius
+            value={
+              designForm.state.customisableTheme.primaryButton.borderRadius
+            }
+            onChange={designForm.setPrimaryButtonBorderRadiusStyle}
           />
         </Configuration>
       </ConfigurationGroup>
