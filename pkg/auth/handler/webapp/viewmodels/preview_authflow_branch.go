@@ -17,8 +17,7 @@ type InlinePreviewAuthflowBranchViewModeler struct {
 }
 
 func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForInlinePreviewEnterPassword() AuthflowBranchViewModel {
-	loginIDKeyType := m.getFirstLoginIDKeyType()
-	branches := m.generateAuthflowBranchesIdentityLoginID(loginIDKeyType)
+	branches := m.generateAuthflowBranchesIdentityLoginIDs(m.getLoginIDKeyTypes())
 	branches = slice.Filter[AuthflowBranch](branches, func(b AuthflowBranch) bool {
 		return b.Authentication != config.AuthenticationFlowAuthenticationPrimaryPassword
 	})
@@ -31,17 +30,11 @@ func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForIn
 }
 
 func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForInlinePreviewEnterOOBOTP() AuthflowBranchViewModel {
-	loginIDKeyType := m.getFirstLoginIDKeyType()
-	if loginIDKeyType == model.LoginIDKeyTypeUsername {
-		loginIDKeyType = model.LoginIDKeyTypeEmail
-	}
-	branches := m.generateAuthflowBranchesIdentityLoginID(loginIDKeyType)
-	branches = slice.Filter[AuthflowBranch](branches, func(b AuthflowBranch) bool {
-		if loginIDKeyType == model.LoginIDKeyTypeEmail {
-			return b.Authentication != config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail
-		}
-		return b.Authentication != config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS
+	targetedLoginIDKeyTypes := m.getLoginIDKeyTypes()
+	targetedLoginIDKeyTypes = slice.Filter(targetedLoginIDKeyTypes, func(t model.LoginIDKeyType) bool {
+		return t != model.LoginIDKeyTypeUsername
 	})
+	branches := m.generateAuthflowBranchesIdentityLoginIDs(targetedLoginIDKeyTypes)
 	return AuthflowBranchViewModel{
 		FlowType:           authflow.FlowTypeLogin,
 		ActionType:         authflow.FlowActionType(config.AuthenticationFlowStepTypeAuthenticate),
@@ -51,8 +44,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForIn
 }
 
 func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForInlinePreviewUsePasskey() AuthflowBranchViewModel {
-	loginIDKeyType := m.getFirstLoginIDKeyType()
-	branches := m.generateAuthflowBranchesIdentityLoginID(loginIDKeyType)
+	branches := m.generateAuthflowBranchesIdentityLoginIDs(m.getLoginIDKeyTypes())
 	branches = slice.Filter[AuthflowBranch](branches, func(b AuthflowBranch) bool {
 		return b.Authentication != config.AuthenticationFlowAuthenticationPrimaryPasskey
 	})
@@ -65,8 +57,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForIn
 }
 
 func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForInlinePreviewEnterTOTP() AuthflowBranchViewModel {
-	loginIDKeyType := m.getFirstLoginIDKeyType()
-	branches := m.generateAuthflowBranchesLoginIDAuthenticateSecondary(loginIDKeyType)
+	branches := m.generateAuthflowBranchesIdentityLoginIDs(m.getLoginIDKeyTypes())
 	branches = slice.Filter[AuthflowBranch](branches, func(b AuthflowBranch) bool {
 		return b.Authentication != config.AuthenticationFlowAuthenticationSecondaryTOTP
 	})
@@ -92,8 +83,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForIn
 }
 
 func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForInlinePreviewCreatePassword() AuthflowBranchViewModel {
-	loginIDKeyType := m.getFirstLoginIDKeyType()
-	branches := m.generateSignupFlowBranchesIdentityLoginID(loginIDKeyType)
+	branches := m.generateSignupFlowBranchesIdentityLoginIDs(m.getLoginIDKeyTypes())
 	branches = slice.Filter[AuthflowBranch](branches, func(b AuthflowBranch) bool {
 		return b.Authentication != config.AuthenticationFlowAuthenticationPrimaryPassword
 	})
@@ -105,12 +95,31 @@ func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForIn
 	}
 }
 
-func (m *InlinePreviewAuthflowBranchViewModeler) getFirstLoginIDKeyType() model.LoginIDKeyType {
-	loginIDKeyType := defaultLoginIDKeyType
-	if len(m.AppConfig.Identity.LoginID.Keys) > 0 {
-		loginIDKeyType = m.AppConfig.Identity.LoginID.Keys[0].Type
+func (m *InlinePreviewAuthflowBranchViewModeler) getLoginIDKeyTypes() []model.LoginIDKeyType {
+	if len(m.AppConfig.Identity.LoginID.Keys) == 0 {
+		return []model.LoginIDKeyType{
+			defaultLoginIDKeyType,
+		}
 	}
-	return loginIDKeyType
+	return slice.Map(m.AppConfig.Identity.LoginID.Keys, func(key config.LoginIDKeyConfig) model.LoginIDKeyType {
+		return key.Type
+	})
+}
+
+func (m *InlinePreviewAuthflowBranchViewModeler) generateSignupFlowBranchesIdentityLoginIDs(keyTypes []model.LoginIDKeyType) []AuthflowBranch {
+	var output []AuthflowBranch
+	addedMap := make(map[config.AuthenticationFlowAuthentication]struct{})
+	for _, typ := range keyTypes {
+		branches := m.generateSignupFlowBranchesIdentityLoginID(typ)
+		for _, branch := range branches {
+			branch_ := branch
+			if _, ok := addedMap[branch.Authentication]; !ok {
+				addedMap[branch.Authentication] = struct{}{}
+				output = append(output, branch_)
+			}
+		}
+	}
+	return output
 }
 
 func (m *InlinePreviewAuthflowBranchViewModeler) generateSignupFlowBranchesIdentityLoginID(keyType model.LoginIDKeyType) []AuthflowBranch {
@@ -223,6 +232,22 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateSignupFlowStepAuthentic
 			VerificationSkippable: true,
 		},
 	}
+}
+
+func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesIdentityLoginIDs(keyTypes []model.LoginIDKeyType) []AuthflowBranch {
+	var output []AuthflowBranch
+	addedMap := make(map[config.AuthenticationFlowAuthentication]struct{})
+	for _, typ := range keyTypes {
+		branches := m.generateAuthflowBranchesIdentityLoginID(typ)
+		for _, branch := range branches {
+			branch_ := branch
+			if _, ok := addedMap[branch.Authentication]; !ok {
+				addedMap[branch.Authentication] = struct{}{}
+				output = append(output, branch_)
+			}
+		}
+	}
+	return output
 }
 
 func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesIdentityLoginID(keyType model.LoginIDKeyType) []AuthflowBranch {
