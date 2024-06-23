@@ -75,6 +75,23 @@ const AppLogoConfiguration: React.VFC<AppLogoConfigurationProps> =
     );
   };
 
+interface FaviconConfigurationProps {
+  designForm: BranchDesignForm;
+}
+const FaviconConfiguration: React.VFC<FaviconConfigurationProps> =
+  function FaviconConfiguration(props) {
+    const { designForm } = props;
+    return (
+      <ConfigurationGroup labelKey="DesignScreen.configuration.favicon.label">
+        <ConfigurationDescription labelKey="DesignScreen.configuration.favicon.description" />
+        <ImagePicker
+          base64EncodedData={designForm.state.faviconBase64EncodedData}
+          onChange={designForm.setFavicon}
+        />
+      </ConfigurationGroup>
+    );
+  };
+
 const AlignmentOptions = AllAlignments.map((value) => ({ value }));
 interface AlignmentConfigurationProps {
   designForm: BranchDesignForm;
@@ -228,6 +245,8 @@ const ConfigurationPanel: React.VFC<ConfigurationPanelProps> =
         <OrganisationConfiguration designForm={designForm} />
         <Separator />
         <AppLogoConfiguration designForm={designForm} />
+        <Separator />
+        <FaviconConfiguration designForm={designForm} />
         <Separator />
         <AlignmentConfiguration designForm={designForm} />
         <Separator />

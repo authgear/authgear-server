@@ -883,6 +883,8 @@
   "DesignScreen.configuration.organisation.name.label": "Name",
   "DesignScreen.configuration.logo.description": "Add a PNG, JPG, or GIF image that is smaller than 100 KB and can be resized.",
   "DesignScreen.configuration.logo.label": "Logo",
+  "DesignScreen.configuration.favicon.label": "Favicon",
+  "DesignScreen.configuration.favicon.description": "Add a favicon to browser tabs to identify your brand. The size must be a multiple of 32px square PNG, JPG or GIF",
   "DesignScreen.configuration.imagePicker.upload": "Upload",
   "DesignScreen.configuration.card.label": "Card",
   "DesignScreen.configuration.card.alignment.label": "Alignment",

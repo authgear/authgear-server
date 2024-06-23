@@ -15,6 +15,7 @@ import {
 import {
   RESOURCE_APP_LOGO,
   RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS,
+  RESOURCE_FAVICON,
   RESOURCE_TRANSLATION_JSON,
 } from "../../../resources";
 import {
@@ -34,6 +35,7 @@ import { ErrorParseRule, ErrorParseRuleResult } from "../../../error/parse";
 const LOCALE_BASED_RESOUCE_DEFINITIONS = [
   RESOURCE_TRANSLATION_JSON,
   RESOURCE_APP_LOGO,
+  RESOURCE_FAVICON,
 ];
 
 const THEME_RESOURCE_DEFINITIONS = [
@@ -54,6 +56,7 @@ interface ConfigFormState {
 interface ResourcesFormState {
   appName: string;
   appLogoBase64EncodedData: string | null;
+  faviconBase64EncodedData: string | null;
   customisableTheme: CustomisableTheme;
 }
 
@@ -79,6 +82,9 @@ export interface BranchDesignForm {
 
   setAppName: (appName: string) => void;
   setAppLogo: (
+    image: { base64EncodedData: string; extension: string } | null
+  ) => void;
+  setFavicon: (
     image: { base64EncodedData: string; extension: string } | null
   ) => void;
   setCardAlignment: (alignment: Alignment) => void;
@@ -208,6 +214,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
     return {
       appName: getValueFromTranslationJSON("app.name"),
       appLogoBase64EncodedData: getValueFromImageResource(RESOURCE_APP_LOGO),
+      faviconBase64EncodedData: getValueFromImageResource(RESOURCE_FAVICON),
       customisableTheme: lightTheme,
     };
   }, [resourceForm, selectedLanguage, configForm.state.fallbackLanguage]);
@@ -414,6 +421,9 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       },
       setAppLogo: (image) => {
         resourceMutator.setImage(RESOURCE_APP_LOGO, image);
+      },
+      setFavicon: (image) => {
+        resourceMutator.setImage(RESOURCE_FAVICON, image);
       },
       setCardAlignment: (alignment: Alignment) => {
         resourceMutator.updateCustomisableTheme((prev) => {
