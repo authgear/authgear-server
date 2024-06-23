@@ -140,6 +140,10 @@ func (c *AuthflowController) HandleStartOfFlow(
 	flowType authflow.FlowType,
 	handlers *AuthflowControllerHandlers,
 	input interface{}) {
+	if handled := c.handleInlinePreviewIfNecessary(w, r, handlers); handled {
+		return
+	}
+
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -286,6 +290,10 @@ func (c *AuthflowController) HandleResumeOfFlow(
 }
 
 func (c *AuthflowController) HandleStep(w http.ResponseWriter, r *http.Request, handlers *AuthflowControllerHandlers) {
+	if handled := c.handleInlinePreviewIfNecessary(w, r, handlers); handled {
+		return
+	}
+
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -332,11 +340,15 @@ func (c *AuthflowController) HandleWithoutFlow(w http.ResponseWriter, r *http.Re
 	handler.ServeHTTP(w, r)
 }
 
-func (c *AuthflowController) HandleInlinePreview(w http.ResponseWriter, r *http.Request, handlers *AuthflowControllerHandlers) {
-	if err := handlers.InlinePreviewHandler(w, r); err != nil {
-		c.Logger.WithError(err).Errorf("failed to handle inline preview")
-		c.renderError(w, r, err)
+func (c *AuthflowController) handleInlinePreviewIfNecessary(w http.ResponseWriter, r *http.Request, handlers *AuthflowControllerHandlers) bool {
+	if webapp.IsPreviewModeInline(r) && handlers.InlinePreviewHandler != nil {
+		if err := handlers.InlinePreviewHandler(w, r); err != nil {
+			c.Logger.WithError(err).Errorf("failed to handle inline preview")
+			c.renderError(w, r, err)
+		}
+		return true
 	}
+	return false
 }
 
 func (c *AuthflowController) getWebSession(r *http.Request) (*webapp.Session, error) {

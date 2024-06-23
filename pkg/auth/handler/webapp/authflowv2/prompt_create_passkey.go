@@ -122,9 +122,5 @@ func (h *AuthflowV2PromptCreatePasskeyHandler) ServeHTTP(w http.ResponseWriter, 
 		return nil
 	})
 
-	if webapp.IsPreviewModeInline(r) {
-		h.Controller.HandleInlinePreview(w, r, &handlers)
-		return
-	}
 	h.Controller.HandleStep(w, r, &handlers)
 }

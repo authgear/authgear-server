@@ -216,10 +216,5 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		return nil
 	})
 
-	if webapp.IsPreviewModeInline(r) {
-		h.Controller.HandleInlinePreview(w, r, &handlers)
-		return
-	}
-
 	h.Controller.HandleStartOfFlow(w, r, opts, authflow.FlowTypeLogin, &handlers, nil)
 }

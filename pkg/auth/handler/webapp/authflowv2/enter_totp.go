@@ -107,9 +107,5 @@ func (h *AuthflowV2EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		return nil
 	})
 
-	if webapp.IsPreviewModeInline(r) {
-		h.Controller.HandleInlinePreview(w, r, &handlers)
-		return
-	}
 	h.Controller.HandleStep(w, r, &handlers)
 }

@@ -165,9 +165,5 @@ func (h *AuthflowV2OOBOTPLinkHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		return nil
 	})
 
-	if webapp.IsPreviewModeInline(r) {
-		h.Controller.HandleInlinePreview(w, r, &handlers)
-		return
-	}
 	h.Controller.HandleStep(w, r, &handlers)
 }
