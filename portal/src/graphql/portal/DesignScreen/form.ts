@@ -13,6 +13,7 @@ import {
   ThemeTargetSelector,
 } from "../../../model/themeAuthFlowV2";
 import {
+  RESOURCE_APP_BACKGROUND_IMAGE,
   RESOURCE_APP_LOGO,
   RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS,
   RESOURCE_FAVICON,
@@ -36,6 +37,7 @@ const LOCALE_BASED_RESOUCE_DEFINITIONS = [
   RESOURCE_TRANSLATION_JSON,
   RESOURCE_APP_LOGO,
   RESOURCE_FAVICON,
+  RESOURCE_APP_BACKGROUND_IMAGE,
 ];
 
 const THEME_RESOURCE_DEFINITIONS = [
@@ -57,6 +59,7 @@ interface ResourcesFormState {
   appName: string;
   appLogoBase64EncodedData: string | null;
   faviconBase64EncodedData: string | null;
+  backgroundImageBase64EncodedData: string | null;
   customisableTheme: CustomisableTheme;
 }
 
@@ -89,6 +92,9 @@ export interface BranchDesignForm {
   ) => void;
   setCardAlignment: (alignment: Alignment) => void;
   setBackgroundColor: (color: string) => void;
+  setBackgroundImage: (
+    image: { base64EncodedData: string; extension: string } | null
+  ) => void;
   setPrimaryButtonBackgroundColor: (color: string) => void;
   setPrimaryButtonLabelColor: (color: string) => void;
   setPrimaryButtonBorderRadiusStyle: (
@@ -215,6 +221,9 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       appName: getValueFromTranslationJSON("app.name"),
       appLogoBase64EncodedData: getValueFromImageResource(RESOURCE_APP_LOGO),
       faviconBase64EncodedData: getValueFromImageResource(RESOURCE_FAVICON),
+      backgroundImageBase64EncodedData: getValueFromImageResource(
+        RESOURCE_APP_BACKGROUND_IMAGE
+      ),
       customisableTheme: lightTheme,
     };
   }, [resourceForm, selectedLanguage, configForm.state.fallbackLanguage]);
@@ -438,6 +447,9 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
             draft.backgroundColor = backgroundColor;
           });
         });
+      },
+      setBackgroundImage: (image) => {
+        resourceMutator.setImage(RESOURCE_APP_BACKGROUND_IMAGE, image);
       },
       setPrimaryButtonBackgroundColor: (backgroundColor: string) => {
         resourceMutator.updateCustomisableTheme((prev) => {
