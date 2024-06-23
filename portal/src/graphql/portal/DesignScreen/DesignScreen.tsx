@@ -1,5 +1,5 @@
 import React, { useCallback, useContext } from "react";
-import { DefaultEffects } from "@fluentui/react";
+import { DefaultEffects, Text } from "@fluentui/react";
 import {
   Context as MFContext,
   FormattedMessage,
@@ -28,6 +28,8 @@ import styles from "./DesignScreen.module.css";
 import ScreenTitle from "../../../ScreenTitle";
 import ManageLanguageWidget from "../ManageLanguageWidget";
 import TextField from "../../../TextField";
+import DefaultButton from "../../../DefaultButton";
+import Toggle from "../../../Toggle";
 
 interface OrganisationConfigurationProps {
   designForm: BranchDesignForm;
@@ -290,14 +292,72 @@ const InputConfiguration: React.VFC<InputConfigurationProps> =
     );
   };
 
+interface AuthgearBrandingConfigurationProps {
+  appID: string;
+  designForm: BranchDesignForm;
+}
+const AuthgearBrandingConfiguration: React.VFC<AuthgearBrandingConfigurationProps> =
+  function AuthgearBrandingConfiguration(props) {
+    const { appID, designForm } = props;
+    const { renderToString } = useContext(MFContext);
+    const onChangeDisableWatermark = useCallback(
+      (_: React.MouseEvent, checked?: boolean) => {
+        designForm.setDisplayAuthgearLogo(checked ?? true);
+      },
+      [designForm]
+    );
+    return (
+      <ConfigurationGroup labelKey="DesignScreen.configuration.authgearBranding.label">
+        {designForm.state.whiteLabelingDisabled ? (
+          <div
+            className={cn(
+              "flex",
+              "items-center",
+              "p-4",
+              "border",
+              "border-solid",
+              "border-neutral-quaternaryAlt"
+            )}
+          >
+            <Text
+              className={cn("leading-5", "font-semibold", "text-neutral-dark")}
+            >
+              <FormattedMessage id="DesignScreen.configuration.authgearBranding.upgradeToHide" />
+            </Text>
+            <DefaultButton
+              className={cn(styles.upgradeNowButton, "ml-3", "flex-none")}
+              href={`/project/${appID}/billing`}
+              text={
+                <FormattedMessage id="DesignScreen.configuration.authgearBranding.upgradeNow" />
+              }
+            />
+          </div>
+        ) : null}
+        <Toggle
+          checked={
+            designForm.state.whiteLabelingDisabled ||
+            designForm.state.showAuthgearLogo
+          }
+          onChange={onChangeDisableWatermark}
+          label={renderToString(
+            "DesignScreen.configuration.authgearBranding.disableAuthgearLogo.label"
+          )}
+          inlineLabel={true}
+          disabled={designForm.state.whiteLabelingDisabled}
+        />
+      </ConfigurationGroup>
+    );
+  };
+
 interface ConfigurationPanelProps {
+  appID: string;
   designForm: BranchDesignForm;
 }
 const ConfigurationPanel: React.VFC<ConfigurationPanelProps> =
   function ConfigurationPanel(props) {
-    const { designForm } = props;
+    const { appID, designForm } = props;
     return (
-      <div>
+      <div className={cn("w-80")}>
         <OrganisationConfiguration designForm={designForm} />
         <Separator />
         <AppLogoConfiguration designForm={designForm} />
@@ -313,6 +373,8 @@ const ConfigurationPanel: React.VFC<ConfigurationPanelProps> =
         <LinkConfiguration designForm={designForm} />
         <Separator />
         <InputConfiguration designForm={designForm} />
+        <Separator />
+        <AuthgearBrandingConfiguration appID={appID} designForm={designForm} />
       </div>
     );
   };
@@ -368,8 +430,8 @@ const DesignScreen: React.VFC = function DesignScreen() {
             Preview
           </div>
         </div>
-        <div className={cn("w-80", "p-6", "pt-4", "overflow-auto")}>
-          <ConfigurationPanel designForm={form} />
+        <div className={cn("p-6", "pt-4", "overflow-auto")}>
+          <ConfigurationPanel appID={appID} designForm={form} />
         </div>
       </div>
     </FormContainer>

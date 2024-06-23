@@ -27,8 +27,10 @@ module.exports = {
           primary: "#176df3",
         },
         neutral: {
+          dark: "#201F1E",
           light: "#edebe9",
           lighter: "#f3f2f1",
+          quaternaryAlt: "#E1DFDD",
           tertiaryAlt: "#C8C6C4",
         },
         separator: "#EDEBE9",

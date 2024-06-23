@@ -69,3 +69,7 @@
   margin-top: 1.5rem !important;
   margin-bottom: 1.5rem !important;
 }
+
+.upgradeNowButton {
+  @apply px-1;
+}

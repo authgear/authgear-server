@@ -32,6 +32,7 @@ import { useAppConfigForm } from "../../../hook/useAppConfigForm";
 import { PortalAPIAppConfig } from "../../../types";
 import { APIError } from "../../../error/error";
 import { ErrorParseRule, ErrorParseRuleResult } from "../../../error/parse";
+import { useAppFeatureConfigQuery } from "../query/appFeatureConfigQuery";
 
 const LOCALE_BASED_RESOUCE_DEFINITIONS = [
   RESOURCE_TRANSLATION_JSON,
@@ -53,6 +54,7 @@ const LightThemeResourceSpecifier = {
 interface ConfigFormState {
   supportedLanguages: LanguageTag[];
   fallbackLanguage: LanguageTag;
+  showAuthgearLogo: boolean;
 }
 
 interface ResourcesFormState {
@@ -69,6 +71,10 @@ interface ResourcesFormState {
   };
 }
 
+interface FeatureConfig {
+  whiteLabelingDisabled: boolean;
+}
+
 const enum TranslationKey {
   AppName = "app.name",
   PrivacyPolicy = "privacy-policy-link",
@@ -79,7 +85,8 @@ const enum TranslationKey {
 export type BranchDesignFormState = {
   selectedLanguage: LanguageTag;
 } & ConfigFormState &
-  ResourcesFormState;
+  ResourcesFormState &
+  FeatureConfig;
 
 export interface BranchDesignForm {
   isLoading: boolean;
@@ -121,6 +128,8 @@ export interface BranchDesignForm {
   setPrivacyPolicyLink: (url: string) => void;
   setTermsOfServiceLink: (url: string) => void;
   setCustomerSupportLink: (url: string) => void;
+
+  setDisplayAuthgearLogo: (disabled: boolean) => void;
 }
 
 function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
@@ -130,13 +139,21 @@ function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
     supportedLanguages: config.localization?.supported_languages ?? [
       fallbackLanguage,
     ],
+    showAuthgearLogo: !(config.ui?.watermark_disabled ?? false),
   };
 }
 
 function constructConfigFromFormState(
-  config: PortalAPIAppConfig
+  config: PortalAPIAppConfig,
+  _initialState: ConfigFormState,
+  currentState: ConfigFormState
 ): PortalAPIAppConfig {
-  return config;
+  return produce(config, (draft) => {
+    if (draft.ui == null) {
+      draft.ui = {};
+    }
+    draft.ui.watermark_disabled = !currentState.showAuthgearLogo;
+  });
 }
 
 function resolveResource(
@@ -155,6 +172,7 @@ function resolveResource(
 const ImageMaxSizeInKB = 100;
 
 export function useBrandDesignForm(appID: string): BranchDesignForm {
+  const featureConfig = useAppFeatureConfigQuery(appID);
   const configForm = useAppConfigForm({
     appID,
     constructFormState: constructConfigFormState,
@@ -370,8 +388,16 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       selectedLanguage,
       ...configForm.state,
       ...resourcesState,
+      whiteLabelingDisabled:
+        featureConfig.effectiveFeatureConfig?.ui?.white_labeling?.disabled ??
+        false,
     }),
-    [selectedLanguage, configForm.state, resourcesState]
+    [
+      selectedLanguage,
+      configForm.state,
+      resourcesState,
+      featureConfig.effectiveFeatureConfig?.ui?.white_labeling?.disabled,
+    ]
   );
 
   const imageSizeTooLargeErrorRule = useCallback(
@@ -534,6 +560,13 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
           TranslationKey.CustomerSupport,
           link
         );
+      },
+      setDisplayAuthgearLogo: (visible: boolean) => {
+        configForm.setState((prev) => {
+          return produce(prev, (draft) => {
+            draft.showAuthgearLogo = visible;
+          });
+        });
       },
     }),
     [state, configForm, resourceForm, resourceMutator, errorRules]
