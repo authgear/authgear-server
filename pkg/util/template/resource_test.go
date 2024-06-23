@@ -265,7 +265,7 @@ func TestTemplateResource(t *testing.T) {
 
 	Convey("matchTemplatePath", t, func() {
 		// expected path "templates/{{ localeKey }}/.../{{ templateName }}"
-		mockRes := &template.HTML{
+		mockRes := &template.MessageHTML{
 			Name: "messages/dummy.html",
 		}
 
@@ -303,6 +303,66 @@ func TestTemplateResource(t *testing.T) {
 			)
 			So(result, ShouldBeTrue)
 			So(match.LanguageTag, ShouldEqual, "en")
+		})
+	})
+
+	Convey("Match html vs message html", t, func() {
+		// expected path "templates/{{ localeKey }}/.../{{ templateName }}"
+		html := &template.HTML{
+			Name: "dummy.html",
+		}
+		messageHtml := &template.MessageHTML{
+			Name: "messages/dummy.html",
+		}
+		Convey("html should not match messages/ prefix", func() {
+			_, messageRes := html.MatchResource("templates/en/messages/dummy.html")
+			So(messageRes, ShouldBeFalse)
+			_, rootRes := html.MatchResource("templates/en/dummy.html")
+			So(rootRes, ShouldBeTrue)
+			_, folderRes := html.MatchResource("templates/en/other/dummy.html")
+			So(folderRes, ShouldBeFalse)
+			_, nestedFolderRes := html.MatchResource("templates/en/other/messages/dummy.html")
+			So(nestedFolderRes, ShouldBeFalse)
+		})
+		Convey("message html should only match messages/ prefix", func() {
+			_, messageRes := messageHtml.MatchResource("templates/en/messages/dummy.html")
+			So(messageRes, ShouldBeTrue)
+			_, rootRes := messageHtml.MatchResource("templates/en/dummy.html")
+			So(rootRes, ShouldBeFalse)
+			_, folderRes := messageHtml.MatchResource("templates/en/other/dummy.html")
+			So(folderRes, ShouldBeFalse)
+			_, nestedFolderRes := messageHtml.MatchResource("templates/en/other/messages/dummy.html")
+			So(nestedFolderRes, ShouldBeFalse)
+		})
+	})
+
+	Convey("Match txt vs message txt", t, func() {
+		// expected path "templates/{{ localeKey }}/.../{{ templateName }}"
+		txt := &template.PlainText{
+			Name: "dummy.txt",
+		}
+		messageTxt := &template.MessagePlainText{
+			Name: "messages/dummy.txt",
+		}
+		Convey("txt should not match messages/ prefix", func() {
+			_, messageRes := txt.MatchResource("templates/en/messages/dummy.txt")
+			So(messageRes, ShouldBeFalse)
+			_, rootRes := txt.MatchResource("templates/en/dummy.txt")
+			So(rootRes, ShouldBeTrue)
+			_, folderRes := txt.MatchResource("templates/en/other/dummy.txt")
+			So(folderRes, ShouldBeFalse)
+			_, nestedFolderRes := txt.MatchResource("templates/en/other/messages/dummy.txt")
+			So(nestedFolderRes, ShouldBeFalse)
+		})
+		Convey("message txt should only match messages/ prefix", func() {
+			_, messageRes := messageTxt.MatchResource("templates/en/messages/dummy.txt")
+			So(messageRes, ShouldBeTrue)
+			_, rootRes := messageTxt.MatchResource("templates/en/dummy.txt")
+			So(rootRes, ShouldBeFalse)
+			_, folderRes := messageTxt.MatchResource("templates/en/other/dummy.txt")
+			So(folderRes, ShouldBeFalse)
+			_, nestedFolderRes := messageTxt.MatchResource("templates/en/other/messages/dummy.txt")
+			So(nestedFolderRes, ShouldBeFalse)
 		})
 	})
 }
