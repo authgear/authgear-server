@@ -45,11 +45,7 @@ type AuthenticationFlowBotProtectionProvider struct {
 }
 type AuthenticationFlowBotProtection struct {
 	Mode     AuthenticationFlowBotProtectionMode      `json:"mode,omitempty"`
-	Provider *AuthenticationFlowBotProtectionProvider `json:"provider,omitempty" nullable:"true"`
-}
-
-func (c *AuthenticationFlowBotProtection) SetDefaults() {
-	c.Mode = AuthenticationFlowBotProtectionModeNever
+	Provider *AuthenticationFlowBotProtectionProvider `json:"provider,omitempty"`
 }
 
 type AuthenticationFlowBotProtectionMode string

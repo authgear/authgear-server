@@ -927,7 +927,7 @@ type AuthenticationFlowSignupFlowOneOf struct {
 	VerificationRequired *bool `json:"verification_required,omitempty"`
 
 	// BotProtection is specific to identify & create_authenticator
-	BotProtection *AuthenticationFlowBotProtection `json:"bot_protection,omitempty"`
+	BotProtection *AuthenticationFlowBotProtection `json:"bot_protection,omitempty" nullable:"true"`
 
 	// Steps are common.
 	Steps []*AuthenticationFlowSignupFlowStep `json:"steps,omitempty"`
@@ -1056,7 +1056,7 @@ type AuthenticationFlowLoginFlowOneOf struct {
 	TargetStep string `json:"target_step,omitempty"`
 
 	// BotProtection is common
-	BotProtection *AuthenticationFlowBotProtection `json:"bot_protection,omitempty"`
+	BotProtection *AuthenticationFlowBotProtection `json:"bot_protection,omitempty" nullable:"true"`
 
 	// Steps are common.
 	Steps []*AuthenticationFlowLoginFlowStep `json:"steps,omitempty"`
@@ -1137,7 +1137,7 @@ const (
 
 type AuthenticationFlowSignupLoginFlowOneOf struct {
 	Identification AuthenticationFlowIdentification `json:"identification,omitempty"`
-	BotProtection  *AuthenticationFlowBotProtection `json:"bot_protection,omitempty"`
+	BotProtection  *AuthenticationFlowBotProtection `json:"bot_protection,omitempty" nullable:"true"`
 	SignupFlow     string                           `json:"signup_flow,omitempty"`
 	LoginFlow      string                           `json:"login_flow,omitempty"`
 }
@@ -1219,7 +1219,7 @@ type AuthenticationFlowReauthFlowOneOf struct {
 	Identification AuthenticationFlowIdentification `json:"identification,omitempty"`
 
 	// BotProtection is specific to authenticate.
-	BotProtection *AuthenticationFlowBotProtection `json:"bot_protection,omitempty"`
+	BotProtection *AuthenticationFlowBotProtection `json:"bot_protection,omitempty" nullable:"true"`
 
 	// Authentication is specific to authenticate.
 	Authentication AuthenticationFlowAuthentication `json:"authentication,omitempty"`
@@ -1358,7 +1358,7 @@ const (
 
 type AuthenticationFlowAccountRecoveryFlowOneOf struct {
 	Identification AuthenticationFlowAccountRecoveryIdentification          `json:"identification,omitempty"`
-	BotProtection  *AuthenticationFlowBotProtection                         `json:"bot_protection,omitempty"`
+	BotProtection  *AuthenticationFlowBotProtection                         `json:"bot_protection,omitempty" nullable:"true"`
 	OnFailure      AuthenticationFlowAccountRecoveryIdentificationOnFailure `json:"on_failure,omitempty"`
 	Steps          []*AuthenticationFlowAccountRecoveryFlowStep             `json:"steps,omitempty"`
 }
