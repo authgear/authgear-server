@@ -898,6 +898,12 @@
   "DesignScreen.configuration.button.borderRadiusStyle.label": "Border radius style",
   "DesignScreen.configuration.link.label": "Links",
   "DesignScreen.configuration.link.color.label": "Link color",
+  "DesignScreen.configuration.link.urls.privacyPolicy.label": "Privacy Policy",
+  "DesignScreen.configuration.link.urls.privacyPolicy.placeholder": "https://example.com/privacy-policy",
+  "DesignScreen.configuration.link.urls.termsOfService.label": "Terms of Service",
+  "DesignScreen.configuration.link.urls.termsOfService.placeholder": "https://example.com/terms-of-service",
+  "DesignScreen.configuration.link.urls.customerSupport.label": "Customer Support",
+  "DesignScreen.configuration.link.urls.customerSupport.placeholder": "https://example.com/customer-support",
   "DesignScreen.configuration.input.label": "Input field",
   "DesignScreen.configuration.input.border.label": "Border radius style",
 

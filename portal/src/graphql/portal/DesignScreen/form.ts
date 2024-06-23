@@ -61,6 +61,19 @@ interface ResourcesFormState {
   faviconBase64EncodedData: string | null;
   backgroundImageBase64EncodedData: string | null;
   customisableTheme: CustomisableTheme;
+
+  urls: {
+    privacyPolicy: string;
+    termsOfService: string;
+    customerSupport: string;
+  };
+}
+
+const enum TranslationKey {
+  AppName = "app.name",
+  PrivacyPolicy = "privacy-policy-link",
+  TermsOfService = "terms-of-service-link",
+  CustomerSupport = "customer-support-link",
 }
 
 export type BranchDesignFormState = {
@@ -104,6 +117,10 @@ export interface BranchDesignForm {
   setInputFieldBorderRadiusStyle: (
     borderRadiusStyle: BorderRadiusStyle
   ) => void;
+
+  setPrivacyPolicyLink: (url: string) => void;
+  setTermsOfServiceLink: (url: string) => void;
+  setCustomerSupportLink: (url: string) => void;
 }
 
 function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
@@ -218,13 +235,25 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
     })();
 
     return {
-      appName: getValueFromTranslationJSON("app.name"),
+      appName: getValueFromTranslationJSON(TranslationKey.AppName),
       appLogoBase64EncodedData: getValueFromImageResource(RESOURCE_APP_LOGO),
       faviconBase64EncodedData: getValueFromImageResource(RESOURCE_FAVICON),
       backgroundImageBase64EncodedData: getValueFromImageResource(
         RESOURCE_APP_BACKGROUND_IMAGE
       ),
       customisableTheme: lightTheme,
+
+      urls: {
+        privacyPolicy: getValueFromTranslationJSON(
+          TranslationKey.PrivacyPolicy
+        ),
+        termsOfService: getValueFromTranslationJSON(
+          TranslationKey.TermsOfService
+        ),
+        customerSupport: getValueFromTranslationJSON(
+          TranslationKey.CustomerSupport
+        ),
+      },
     };
   }, [resourceForm, selectedLanguage, configForm.state.fallbackLanguage]);
 
@@ -426,7 +455,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       setSelectedLanguage,
 
       setAppName: (appName: string) => {
-        resourceMutator.setTranslationValue("app.name", appName);
+        resourceMutator.setTranslationValue(TranslationKey.AppName, appName);
       },
       setAppLogo: (image) => {
         resourceMutator.setImage(RESOURCE_APP_LOGO, image);
@@ -489,6 +518,22 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
             draft.inputField.borderRadius = borderRadiusStyle;
           });
         });
+      },
+
+      setPrivacyPolicyLink: (link: string) => {
+        resourceMutator.setTranslationValue(TranslationKey.PrivacyPolicy, link);
+      },
+      setTermsOfServiceLink: (link: string) => {
+        resourceMutator.setTranslationValue(
+          TranslationKey.TermsOfService,
+          link
+        );
+      },
+      setCustomerSupportLink: (link: string) => {
+        resourceMutator.setTranslationValue(
+          TranslationKey.CustomerSupport,
+          link
+        );
       },
     }),
     [state, configForm, resourceForm, resourceMutator, errorRules]

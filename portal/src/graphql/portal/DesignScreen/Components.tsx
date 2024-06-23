@@ -39,8 +39,12 @@ import {
 import { useSystemConfig } from "../../../context/SystemConfigContext";
 import PrimaryButton from "../../../PrimaryButton";
 
-export const Separator: React.VFC = function Separator() {
-  return <div className={cn("h-px", "my-12", "bg-separator")}></div>;
+interface SeparatorProps {
+  className?: string;
+}
+export const Separator: React.VFC<SeparatorProps> = function Separator(props) {
+  const { className } = props;
+  return <div className={cn("h-px", "my-12", "bg-separator", className)}></div>;
 };
 
 interface ConfigurationGroupProps {

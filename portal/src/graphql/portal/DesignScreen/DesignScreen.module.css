@@ -64,3 +64,8 @@
   @apply bg-grey-grey110;
   mask: url("../../../images/ic-imagesmode.svg");
 }
+
+.linkConfigurationSeparator {
+  margin-top: 1.5rem !important;
+  margin-bottom: 1.5rem !important;
+}

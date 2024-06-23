@@ -208,6 +208,27 @@ interface LinkConfigurationProps {
 const LinkConfiguration: React.VFC<LinkConfigurationProps> =
   function LinkConfiguration(props) {
     const { designForm } = props;
+    const { renderToString } = useContext(MFContext);
+
+    const onPrivacyPolicyLinkChange = useCallback(
+      (_: React.FormEvent, value?: string) => {
+        designForm.setPrivacyPolicyLink(value ?? "");
+      },
+      [designForm]
+    );
+    const onTermsOfServiceLinkChange = useCallback(
+      (_: React.FormEvent, value?: string) => {
+        designForm.setTermsOfServiceLink(value ?? "");
+      },
+      [designForm]
+    );
+    const onCustomerSupportLinkChange = useCallback(
+      (_: React.FormEvent, value?: string) => {
+        designForm.setCustomerSupportLink(value ?? "");
+      },
+      [designForm]
+    );
+
     return (
       <ConfigurationGroup labelKey="DesignScreen.configuration.link.label">
         <Configuration labelKey="DesignScreen.configuration.link.color.label">
@@ -216,6 +237,37 @@ const LinkConfiguration: React.VFC<LinkConfigurationProps> =
             onChange={designForm.setLinkColor}
           />
         </Configuration>
+        <Separator className={cn(styles.linkConfigurationSeparator)} />
+        <TextField
+          label={renderToString(
+            "DesignScreen.configuration.link.urls.privacyPolicy.label"
+          )}
+          placeholder={renderToString(
+            "DesignScreen.configuration.link.urls.privacyPolicy.placeholder"
+          )}
+          value={designForm.state.urls.privacyPolicy}
+          onChange={onPrivacyPolicyLinkChange}
+        />
+        <TextField
+          label={renderToString(
+            "DesignScreen.configuration.link.urls.termsOfService.label"
+          )}
+          placeholder={renderToString(
+            "DesignScreen.configuration.link.urls.termsOfService.placeholder"
+          )}
+          value={designForm.state.urls.termsOfService}
+          onChange={onTermsOfServiceLinkChange}
+        />
+        <TextField
+          label={renderToString(
+            "DesignScreen.configuration.link.urls.customerSupport.label"
+          )}
+          placeholder={renderToString(
+            "DesignScreen.configuration.link.urls.customerSupport.placeholder"
+          )}
+          value={designForm.state.urls.customerSupport}
+          onChange={onCustomerSupportLinkChange}
+        />
       </ConfigurationGroup>
     );
   };
