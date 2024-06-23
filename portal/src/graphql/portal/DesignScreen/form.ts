@@ -1,10 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { parse as parseCSS } from "postcss";
 import { produce } from "immer";
-import {
-  ResourceFormModel,
-  useResourceForm,
-} from "../../../hook/useResourceForm";
+import { useResourceForm } from "../../../hook/useResourceForm";
 import {
   Alignment,
   BorderRadiusStyle,
@@ -17,22 +14,46 @@ import {
 } from "../../../model/themeAuthFlowV2";
 import { RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS } from "../../../resources";
 import {
+  LanguageTag,
   Resource,
   ResourceSpecifier,
   expandSpecifier,
 } from "../../../util/resource";
+import { useAppConfigForm } from "../../../hook/useAppConfigForm";
+import { PortalAPIAppConfig } from "../../../types";
 
 const THEME_RESOURCE_DEFINITIONS = [
   RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS,
 ];
 
-export interface BranchDesignFormState {
+interface ConfigFormState {
+  supportedLanguages: LanguageTag[];
+  fallbackLanguage: LanguageTag;
+}
+
+interface ResourcesFormState {
   orignalResources: Resource[];
   customisableTheme: CustomisableTheme;
 }
 
-export interface BranchDesignForm
-  extends ResourceFormModel<BranchDesignFormState> {
+export type BranchDesignFormState = {
+  selectedLanguage: LanguageTag;
+} & ConfigFormState &
+  ResourcesFormState;
+
+export interface BranchDesignForm {
+  isLoading: boolean;
+  isUpdating: boolean;
+  isDirty: boolean;
+  loadError: unknown;
+  updateError: unknown;
+  state: BranchDesignFormState;
+  reload: () => void;
+  reset: () => void;
+  save: () => Promise<void>;
+
+  setSelectedLanguage: (lang: LanguageTag) => void;
+
   setCardAlignment: (alignment: Alignment) => void;
   setBackgroundColor: (color: string) => void;
   setPrimaryButtonBackgroundColor: (color: string) => void;
@@ -46,9 +67,25 @@ export interface BranchDesignForm
   ) => void;
 }
 
+function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
+  const fallbackLanguage = config.localization?.fallback_language ?? "en";
+  return {
+    fallbackLanguage,
+    supportedLanguages: config.localization?.supported_languages ?? [
+      fallbackLanguage,
+    ],
+  };
+}
+
+function constrcutConfigFromFormState(
+  config: PortalAPIAppConfig
+): PortalAPIAppConfig {
+  return config;
+}
+
 function constructResourcesFormStateFromResources(
   resources: Resource[]
-): BranchDesignFormState {
+): ResourcesFormState {
   const lightTheme = (() => {
     const lightThemeResource = resources.find((r) => {
       return (
@@ -73,7 +110,7 @@ function constructResourcesFormStateFromResources(
 }
 
 function constructResourcesFromFormState(
-  state: BranchDesignFormState
+  state: ResourcesFormState
 ): Resource[] {
   const lightThemeResourceSpecifier = {
     def: RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS,
@@ -97,6 +134,15 @@ function constructResourcesFromFormState(
 }
 
 export function useBrandDesignForm(appID: string): BranchDesignForm {
+  const configForm = useAppConfigForm({
+    appID,
+    constructFormState: constructConfigFormState,
+    constructConfig: constrcutConfigFromFormState,
+  });
+  const [selectedLanguage, setSelectedLanguage] = useState(
+    configForm.state.fallbackLanguage
+  );
+
   const specifiers = useMemo<ResourceSpecifier[]>(() => {
     const specifiers: ResourceSpecifier[] = [];
     for (const def of THEME_RESOURCE_DEFINITIONS) {
@@ -109,32 +155,61 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
     return specifiers;
   }, []);
 
-  const form = useResourceForm(
+  const resourceForm = useResourceForm(
     appID,
     specifiers,
     constructResourcesFormStateFromResources,
     constructResourcesFromFormState
   );
 
+  const state: BranchDesignFormState = useMemo(
+    () => ({
+      selectedLanguage,
+      ...configForm.state,
+      ...resourceForm.state,
+    }),
+    [selectedLanguage, configForm.state, resourceForm.state]
+  );
+
   const designForm = useMemo(
     (): BranchDesignForm => ({
-      ...form,
+      isLoading: configForm.isLoading || resourceForm.isLoading,
+      isUpdating: configForm.isUpdating || resourceForm.isUpdating,
+      isDirty: configForm.isDirty || resourceForm.isDirty,
+      loadError: configForm.loadError ?? resourceForm.loadError,
+      updateError: configForm.updateError ?? resourceForm.updateError,
+      state,
+      reload: () => {
+        configForm.reload();
+        resourceForm.reload();
+      },
+      reset: () => {
+        configForm.reset();
+        resourceForm.reset();
+      },
+      save: async (ignoreConflict: boolean = false) => {
+        await configForm.save(ignoreConflict);
+        await resourceForm.save(ignoreConflict);
+      },
+
+      setSelectedLanguage,
+
       setCardAlignment: (alignment: Alignment) => {
-        form.setState((prev) => {
+        resourceForm.setState((prev) => {
           return produce(prev, (draft) => {
             draft.customisableTheme.cardAlignment = alignment;
           });
         });
       },
       setBackgroundColor: (backgroundColor: string) => {
-        form.setState((prev) => {
+        resourceForm.setState((prev) => {
           return produce(prev, (draft) => {
             draft.customisableTheme.backgroundColor = backgroundColor;
           });
         });
       },
       setPrimaryButtonBackgroundColor: (backgroundColor: string) => {
-        form.setState((prev) => {
+        resourceForm.setState((prev) => {
           return produce(prev, (draft) => {
             draft.customisableTheme.primaryButton.backgroundColor =
               backgroundColor;
@@ -142,7 +217,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         });
       },
       setPrimaryButtonLabelColor: (color: string) => {
-        form.setState((prev) => {
+        resourceForm.setState((prev) => {
           return produce(prev, (draft) => {
             draft.customisableTheme.primaryButton.labelColor = color;
           });
@@ -151,7 +226,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       setPrimaryButtonBorderRadiusStyle: (
         borderRadiusStyle: BorderRadiusStyle
       ) => {
-        form.setState((prev) => {
+        resourceForm.setState((prev) => {
           return produce(prev, (draft) => {
             draft.customisableTheme.primaryButton.borderRadius =
               borderRadiusStyle;
@@ -159,7 +234,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         });
       },
       setLinkColor: (color: string) => {
-        form.setState((prev) => {
+        resourceForm.setState((prev) => {
           return produce(prev, (draft) => {
             draft.customisableTheme.link.color = color;
           });
@@ -168,15 +243,14 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       setInputFieldBorderRadiusStyle: (
         borderRadiusStyle: BorderRadiusStyle
       ) => {
-        form.setState((prev) => {
+        resourceForm.setState((prev) => {
           return produce(prev, (draft) => {
             draft.customisableTheme.inputField.borderRadius = borderRadiusStyle;
           });
         });
       },
     }),
-
-    [form]
+    [state, configForm, resourceForm]
   );
 
   return designForm;

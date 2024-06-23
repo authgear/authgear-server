@@ -20,6 +20,9 @@ import {
 import { Alignment, AllAlignments } from "../../../model/themeAuthFlowV2";
 
 import styles from "./DesignScreen.module.css";
+import ScreenTitle from "../../../ScreenTitle";
+import { FormattedMessage } from "@oursky/react-messageformat";
+import ManageLanguageWidget from "../ManageLanguageWidget";
 
 const AlignmentOptions = AllAlignments.map((value) => ({ value }));
 interface AlignmentConfigurationProps {
@@ -197,11 +200,36 @@ const DesignScreen: React.VFC = function DesignScreen() {
   }
 
   return (
-    <FormContainer className={cn("h-full")} form={form} canSave={true}>
-      <div className={cn("h-full", "flex")}>
-        <div className={cn("flex-1", "h-full", "p-6")}>
+    <FormContainer
+      className={cn("h-full", "flex", "flex-col")}
+      form={form}
+      canSave={true}
+    >
+      <div
+        className={cn(
+          "pt-6",
+          "px-6",
+          "flex",
+          "items-center",
+          "justify-between"
+        )}
+      >
+        <ScreenTitle>
+          <FormattedMessage id="DesignScreen.title" />
+        </ScreenTitle>
+
+        <ManageLanguageWidget
+          existingLanguages={form.state.supportedLanguages}
+          supportedLanguages={form.state.supportedLanguages}
+          selectedLanguage={form.state.selectedLanguage}
+          fallbackLanguage={form.state.fallbackLanguage}
+          onChangeSelectedLanguage={form.setSelectedLanguage}
+        />
+      </div>
+      <div className={cn("min-h-0", "flex-1", "flex")}>
+        <div className={cn("flex-1", "h-full", "p-6", "pt-4")}>
           <div
-            className={cn("flex-1", "rounded-xl", "h-full")}
+            className={cn("rounded-xl", "h-full")}
             style={{
               boxShadow: DefaultEffects.elevation4,
             }}
@@ -209,7 +237,7 @@ const DesignScreen: React.VFC = function DesignScreen() {
             Preview
           </div>
         </div>
-        <div className={cn("w-80", "p-6", "overflow-auto")}>
+        <div className={cn("w-80", "p-6", "pt-4", "overflow-auto")}>
           <ConfigurationPanel designForm={form} />
         </div>
       </div>

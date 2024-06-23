@@ -878,6 +878,7 @@
   "ManageLanguageWidget.option-removed": "{LANG} (Removed)",
   "ManageLanguageWidget.save-to-select-new-language": "Save changes to select newly added language",
 
+  "DesignScreen.title": "Design",
   "DesignScreen.configuration.card.label": "Card",
   "DesignScreen.configuration.card.alignment.label": "Alignment",
   "DesignScreen.configuration.background.label": "Background",
