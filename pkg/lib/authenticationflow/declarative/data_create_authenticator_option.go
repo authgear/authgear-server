@@ -14,6 +14,7 @@ import (
 type CreateAuthenticatorOption struct {
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication"`
 
+	BotProtection *BotProtectionData `json:"bot_protection,omitempty"`
 	// OTPForm is specific to OOBOTP.
 	OTPForm otp.Form `json:"otp_form,omitempty"`
 	// Channels is specific to OOBOTP.
@@ -92,6 +93,7 @@ func NewCreateAuthenticationOptions(
 				CreateAuthenticatorOption: CreateAuthenticatorOption{
 					Authentication: b.Authentication,
 					PasswordPolicy: passwordPolicy,
+					BotProtection:  GetBotProtectionData(b.BotProtection, deps.Config.BotProtection),
 				},
 			})
 		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
@@ -118,6 +120,7 @@ func NewCreateAuthenticationOptions(
 					OTPForm:        otpForm,
 					Channels:       channels,
 					Target:         target,
+					BotProtection:  GetBotProtectionData(b.BotProtection, deps.Config.BotProtection),
 				},
 			})
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
@@ -140,6 +143,7 @@ func NewCreateAuthenticationOptions(
 					OTPForm:        otpForm,
 					Channels:       channels,
 					Target:         target,
+					BotProtection:  GetBotProtectionData(b.BotProtection, deps.Config.BotProtection),
 				},
 				UnmaskedTarget: unmaskedTarget,
 			})
@@ -147,6 +151,7 @@ func NewCreateAuthenticationOptions(
 			options = append(options, CreateAuthenticatorOptionInternal{
 				CreateAuthenticatorOption: CreateAuthenticatorOption{
 					Authentication: b.Authentication,
+					BotProtection:  GetBotProtectionData(b.BotProtection, deps.Config.BotProtection),
 				},
 			})
 		case config.AuthenticationFlowAuthenticationRecoveryCode:
