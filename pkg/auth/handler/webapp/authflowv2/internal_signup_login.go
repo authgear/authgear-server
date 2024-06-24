@@ -82,6 +82,21 @@ func (h *InternalAuthflowV2SignupLoginHandler) GetData(w http.ResponseWriter, r 
 	return data, nil
 }
 
+func (h *InternalAuthflowV2SignupLoginHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request, options AuthflowV2SignupServeOptions) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+	baseViewModel := h.BaseViewModel.ViewModelForInlinePreviewAuthFlow(r, w)
+	viewmodels.Embed(data, baseViewModel)
+	authflowViewModel := h.AuthflowViewModel.NewWithConfig()
+	viewmodels.Embed(data, authflowViewModel)
+	viewmodels.Embed(data, v2viewmodels.NewOAuthErrorViewModel(baseViewModel.RawError))
+	signupViewModel := AuthflowV2SignupViewModel{
+		CanSwitchToLogin: options.CanSwitchToLogin,
+		UIVariant:        options.UIVariant,
+	}
+	viewmodels.Embed(data, signupViewModel)
+	return data, nil
+}
+
 func (h *InternalAuthflowV2SignupLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request, options AuthflowV2SignupServeOptions) {
 	opts := webapp.SessionOptions{
 		RedirectURI: h.Controller.RedirectURI(r),
@@ -170,6 +185,15 @@ func (h *InternalAuthflowV2SignupLoginHandler) ServeHTTP(w http.ResponseWriter, 
 		}
 
 		result.WriteResponse(w, r)
+		return nil
+	})
+
+	handlers.InlinePreview(func(w http.ResponseWriter, r *http.Request) error {
+		data, err := h.GetInlinePreviewData(w, r, options)
+		if err != nil {
+			return err
+		}
+		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowV2SignupHTML, data)
 		return nil
 	})
 

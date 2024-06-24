@@ -27,7 +27,7 @@
       data-controller="authflow-passkey-request"
       data-authflow-passkey-request-options-value="{{ $.PasskeyRequestOptionsJSON }}"
       {{ if not $.Error }}
-        data-authflow-passkey-request-auto-value="true"
+        data-authflow-passkey-request-auto-value="{{ $.AutoExecute }}"
       {{ end }}
       >
       <button

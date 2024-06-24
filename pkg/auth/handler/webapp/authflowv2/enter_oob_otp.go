@@ -8,9 +8,12 @@ import (
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/secretcode"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -81,12 +84,52 @@ func NewAuthflowEnterOOBOTPViewModel(s *webapp.Session, screen *webapp.AuthflowS
 	}
 }
 
+func NewInlinePreviewAuthflowEnterOOBOTPViewModel(
+	authenticatorConfig *config.AuthenticatorConfig,
+	identityConfig *config.IdentityConfig,
+) AuthflowEnterOOBOTPViewModel {
+	firstLoginIDTypeForPreview := model.LoginIDKeyTypeEmail
+	if len(identityConfig.LoginID.Keys) > 0 {
+		firstLoginIDKey := identityConfig.LoginID.Keys[0]
+		if firstLoginIDKey.Type != model.LoginIDKeyTypeUsername {
+			firstLoginIDTypeForPreview = firstLoginIDKey.Type
+		}
+	}
+
+	var channelForPreview model.AuthenticatorOOBChannel
+	var maskedClaimValue string
+	switch firstLoginIDTypeForPreview {
+	case model.LoginIDKeyTypeEmail:
+		channelForPreview = model.AuthenticatorOOBChannelEmail
+		maskedClaimValue = viewmodels.PreviewDummyEmailMasked
+	case model.LoginIDKeyTypePhone:
+		if authenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
+			channelForPreview = model.AuthenticatorOOBChannelWhatsapp
+		} else {
+			channelForPreview = model.AuthenticatorOOBChannelSMS
+		}
+		maskedClaimValue = viewmodels.PreviewDummyPhoneNumberMasked
+	}
+
+	return AuthflowEnterOOBOTPViewModel{
+		FlowActionType:                 string(authflow.FlowTypeLogin),
+		Channel:                        string(channelForPreview),
+		MaskedClaimValue:               maskedClaimValue,
+		CodeLength:                     secretcode.OOBOTPSecretCode.Length(),
+		FailedAttemptRateLimitExceeded: false,
+		ResendCooldown:                 0,
+	}
+}
+
 type AuthflowV2EnterOOBOTPHandler struct {
-	Controller    *handlerwebapp.AuthflowController
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      handlerwebapp.Renderer
-	FlashMessage  handlerwebapp.FlashMessage
-	Clock         clock.Clock
+	Controller                             *handlerwebapp.AuthflowController
+	BaseViewModel                          *viewmodels.BaseViewModeler
+	InlinePreviewAuthflowBranchViewModeler *viewmodels.InlinePreviewAuthflowBranchViewModeler
+	Renderer                               handlerwebapp.Renderer
+	FlashMessage                           handlerwebapp.FlashMessage
+	Clock                                  clock.Clock
+	AuthenticatorConfig                    *config.AuthenticatorConfig
+	IdentityConfig                         *config.IdentityConfig
 }
 
 func (h *AuthflowV2EnterOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
@@ -102,6 +145,23 @@ func (h *AuthflowV2EnterOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Re
 	branchViewModel := viewmodels.NewAuthflowBranchViewModel(screen)
 	viewmodels.Embed(data, branchViewModel)
 
+	return data, nil
+}
+
+func (h *AuthflowV2EnterOOBOTPHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+
+	baseViewModel := h.BaseViewModel.ViewModelForInlinePreviewAuthFlow(r, w)
+	viewmodels.Embed(data, baseViewModel)
+
+	screenViewModel := NewInlinePreviewAuthflowEnterOOBOTPViewModel(
+		h.AuthenticatorConfig,
+		h.IdentityConfig,
+	)
+	viewmodels.Embed(data, screenViewModel)
+
+	branchViewModel := h.InlinePreviewAuthflowBranchViewModeler.NewAuthflowBranchViewModelForInlinePreviewEnterOOBOTP()
+	viewmodels.Embed(data, branchViewModel)
 	return data, nil
 }
 
@@ -152,5 +212,14 @@ func (h *AuthflowV2EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		result.WriteResponse(w, r)
 		return nil
 	})
+	handlers.InlinePreview(func(w http.ResponseWriter, r *http.Request) error {
+		data, err := h.GetInlinePreviewData(w, r)
+		if err != nil {
+			return err
+		}
+		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowEnterOOBOTPHTML, data)
+		return nil
+	})
+
 	h.Controller.HandleStep(w, r, &handlers)
 }

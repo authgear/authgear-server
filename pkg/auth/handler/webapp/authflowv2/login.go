@@ -78,6 +78,17 @@ func (h *AuthflowV2LoginHandler) GetData(w http.ResponseWriter, r *http.Request,
 	return data, nil
 }
 
+func (h *AuthflowV2LoginHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+	baseViewModel := h.BaseViewModel.ViewModelForInlinePreviewAuthFlow(r, w)
+	viewmodels.Embed(data, baseViewModel)
+	authflowViewModel := h.AuthflowViewModel.NewWithConfig()
+	viewmodels.Embed(data, authflowViewModel)
+	viewmodels.Embed(data, v2viewmodels.NewOAuthErrorViewModel(baseViewModel.RawError))
+	viewmodels.Embed(data, NewAuthflowLoginViewModel(false))
+	return data, nil
+}
+
 func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if h.UIConfig.SignupLoginFlowEnabled && !h.AuthenticationConfig.PublicSignupDisabled {
 		// Login will be same as signup
@@ -193,6 +204,15 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		}
 
 		result.WriteResponse(w, r)
+		return nil
+	})
+
+	handlers.InlinePreview(func(w http.ResponseWriter, r *http.Request) error {
+		data, err := h.GetInlinePreviewData(w, r)
+		if err != nil {
+			return err
+		}
+		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowLoginHTML, data)
 		return nil
 	})
 

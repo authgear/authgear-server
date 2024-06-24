@@ -67,11 +67,22 @@ func NewAuthflowOOBOTPLinkViewModel(s *webapp.Session, screen *webapp.AuthflowSc
 	}
 }
 
+func NewInlinePreviewAuthflowOOBOTPLinkViewModel() AuthflowOOBOTPLinkViewModel {
+	return AuthflowOOBOTPLinkViewModel{
+		WebsocketURL:     "",
+		StateToken:       "",
+		StateQuery:       handlerwebapp.LoginLinkOTPPageQueryStateInitial,
+		MaskedClaimValue: viewmodels.PreviewDummyEmailMasked,
+		ResendCooldown:   0,
+	}
+}
+
 type AuthflowV2OOBOTPLinkHandler struct {
-	Controller    *handlerwebapp.AuthflowController
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      handlerwebapp.Renderer
-	Clock         clock.Clock
+	Controller                             *handlerwebapp.AuthflowController
+	BaseViewModel                          *viewmodels.BaseViewModeler
+	InlinePreviewAuthflowBranchViewModeler *viewmodels.InlinePreviewAuthflowBranchViewModeler
+	Renderer                               handlerwebapp.Renderer
+	Clock                                  clock.Clock
 }
 
 func (h *AuthflowV2OOBOTPLinkHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
@@ -85,6 +96,21 @@ func (h *AuthflowV2OOBOTPLinkHandler) GetData(w http.ResponseWriter, r *http.Req
 	viewmodels.Embed(data, screenViewModel)
 
 	branchViewModel := viewmodels.NewAuthflowBranchViewModel(screen)
+	viewmodels.Embed(data, branchViewModel)
+
+	return data, nil
+}
+
+func (h *AuthflowV2OOBOTPLinkHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
+	data := map[string]interface{}{}
+
+	baseViewModel := h.BaseViewModel.ViewModelForInlinePreviewAuthFlow(r, w)
+	viewmodels.Embed(data, baseViewModel)
+
+	screenViewModel := NewInlinePreviewAuthflowOOBOTPLinkViewModel()
+	viewmodels.Embed(data, screenViewModel)
+
+	branchViewModel := h.InlinePreviewAuthflowBranchViewModeler.NewAuthflowBranchViewModelForInlinePreviewOOBOTPLink()
 	viewmodels.Embed(data, branchViewModel)
 
 	return data, nil
@@ -130,5 +156,14 @@ func (h *AuthflowV2OOBOTPLinkHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		result.WriteResponse(w, r)
 		return nil
 	})
+	handlers.InlinePreview(func(w http.ResponseWriter, r *http.Request) error {
+		data, err := h.GetInlinePreviewData(w, r)
+		if err != nil {
+			return err
+		}
+		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowOOBOTPLinkHTML, data)
+		return nil
+	})
+
 	h.Controller.HandleStep(w, r, &handlers)
 }

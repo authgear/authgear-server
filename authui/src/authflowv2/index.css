@@ -3,5 +3,6 @@
 @import "tailwindcss/utilities";
 
 @import "./base.css";
+@import "./document.css";
 @import "./components.css";
 @import "./icons.css";

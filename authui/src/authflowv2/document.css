@@ -1,0 +1,13 @@
+@layer component {
+  :root {
+    --document-pointer-event: auto;
+  }
+
+  html[data-inline-preview="true"] {
+    --document-pointer-event: none;
+  }
+
+  html {
+    pointer-events: var(--document-pointer-event);
+  }
+}

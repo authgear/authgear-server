@@ -43,9 +43,10 @@ type AuthflowEnterPasswordViewModel struct {
 }
 
 type AuthflowV2EnterPasswordHandler struct {
-	Controller    *handlerwebapp.AuthflowController
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      handlerwebapp.Renderer
+	Controller                             *handlerwebapp.AuthflowController
+	BaseViewModel                          *viewmodels.BaseViewModeler
+	Renderer                               handlerwebapp.Renderer
+	InlinePreviewAuthflowBranchViewModeler *viewmodels.InlinePreviewAuthflowBranchViewModeler
 }
 
 func NewAuthflowEnterPasswordViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) AuthflowEnterPasswordViewModel {
@@ -82,6 +83,15 @@ func NewAuthflowEnterPasswordViewModel(s *webapp.Session, screen *webapp.Authflo
 	}
 }
 
+func NewInlinePreviewAuthflowEnterPasswordViewModel() AuthflowEnterPasswordViewModel {
+	return AuthflowEnterPasswordViewModel{
+		AuthenticationStage:     string(authn.AuthenticationStagePrimary),
+		PasswordManagerUsername: "",
+		ForgotPasswordInputType: "",
+		ForgotPasswordLoginID:   "",
+	}
+}
+
 func (h *AuthflowV2EnterPasswordHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
@@ -92,6 +102,24 @@ func (h *AuthflowV2EnterPasswordHandler) GetData(w http.ResponseWriter, r *http.
 	viewmodels.Embed(data, screenViewModel)
 
 	branchViewModel := viewmodels.NewAuthflowBranchViewModel(screen)
+	viewmodels.Embed(data, branchViewModel)
+
+	passwordInputErrorViewModel := authflowv2viewmodels.NewPasswordInputErrorViewModel(baseViewModel.RawError)
+	viewmodels.Embed(data, passwordInputErrorViewModel)
+
+	return data, nil
+}
+
+func (h *AuthflowV2EnterPasswordHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+
+	baseViewModel := h.BaseViewModel.ViewModelForInlinePreviewAuthFlow(r, w)
+	viewmodels.Embed(data, baseViewModel)
+
+	screenViewModel := NewInlinePreviewAuthflowEnterPasswordViewModel()
+	viewmodels.Embed(data, screenViewModel)
+
+	branchViewModel := h.InlinePreviewAuthflowBranchViewModeler.NewAuthflowBranchViewModelForInlinePreviewEnterPassword()
 	viewmodels.Embed(data, branchViewModel)
 
 	passwordInputErrorViewModel := authflowv2viewmodels.NewPasswordInputErrorViewModel(baseViewModel.RawError)
@@ -137,6 +165,14 @@ func (h *AuthflowV2EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		}
 
 		result.WriteResponse(w, r)
+		return nil
+	})
+	handlers.InlinePreview(func(w http.ResponseWriter, r *http.Request) error {
+		data, err := h.GetInlinePreviewData(w, r)
+		if err != nil {
+			return err
+		}
+		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowEnterPasswordHTML, data)
 		return nil
 	})
 

@@ -24,6 +24,7 @@ func ConfigureAuthflowV2UsePasskeyRoute(route httproute.Route) httproute.Route {
 }
 
 type AuthflowV2UsePasskeyViewModel struct {
+	AutoExecute               bool
 	PasskeyRequestOptionsJSON string
 }
 
@@ -39,14 +40,16 @@ func NewAuthflowV2UsePasskeyViewModel(s *webapp.Session, screen *webapp.Authflow
 	}
 
 	return &AuthflowV2UsePasskeyViewModel{
+		AutoExecute:               true,
 		PasskeyRequestOptionsJSON: string(requestOptionsJSONBytes),
 	}, nil
 }
 
 type AuthflowV2UsePasskeyHandler struct {
-	Controller    *handlerwebapp.AuthflowController
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      handlerwebapp.Renderer
+	Controller                             *handlerwebapp.AuthflowController
+	BaseViewModel                          *viewmodels.BaseViewModeler
+	InlinePreviewAuthflowBranchViewModeler *viewmodels.InlinePreviewAuthflowBranchViewModeler
+	Renderer                               handlerwebapp.Renderer
 }
 
 func (h *AuthflowV2UsePasskeyHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
@@ -62,6 +65,24 @@ func (h *AuthflowV2UsePasskeyHandler) GetData(w http.ResponseWriter, r *http.Req
 	viewmodels.Embed(data, *screenViewModel)
 
 	branchViewModel := viewmodels.NewAuthflowBranchViewModel(screen)
+	viewmodels.Embed(data, branchViewModel)
+
+	return data, nil
+}
+
+func (h *AuthflowV2UsePasskeyHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+
+	baseViewModel := h.BaseViewModel.ViewModelForInlinePreviewAuthFlow(r, w)
+	viewmodels.Embed(data, baseViewModel)
+
+	screenViewModel := AuthflowV2UsePasskeyViewModel{
+		AutoExecute:               false,
+		PasskeyRequestOptionsJSON: "{}",
+	}
+	viewmodels.Embed(data, screenViewModel)
+
+	branchViewModel := h.InlinePreviewAuthflowBranchViewModeler.NewAuthflowBranchViewModelForInlinePreviewUsePasskey()
 	viewmodels.Embed(data, branchViewModel)
 
 	return data, nil
@@ -105,5 +126,14 @@ func (h *AuthflowV2UsePasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		result.WriteResponse(w, r)
 		return nil
 	})
+	handlers.InlinePreview(func(w http.ResponseWriter, r *http.Request) error {
+		data, err := h.GetInlinePreviewData(w, r)
+		if err != nil {
+			return err
+		}
+		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowUsePasskeyHTML, data)
+		return nil
+	})
+
 	h.Controller.HandleStep(w, r, &handlers)
 }

@@ -72308,6 +72308,7 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 	authflowViewModeler := &viewmodels.AuthflowViewModeler{
 		Authentication: authenticationConfig,
 		LoginID:        loginIDConfig,
+		Identity:       identityConfig,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -73263,6 +73264,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 	authflowViewModeler := &viewmodels.AuthflowViewModeler{
 		Authentication: authenticationConfig,
 		LoginID:        loginIDConfig,
+		Identity:       identityConfig,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -74230,6 +74232,7 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 	authflowViewModeler := &viewmodels.AuthflowViewModeler{
 		Authentication: authenticationConfig,
 		LoginID:        loginIDConfig,
+		Identity:       identityConfig,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -75184,6 +75187,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 	authflowViewModeler := &viewmodels.AuthflowViewModeler{
 		Authentication: authenticationConfig,
 		LoginID:        loginIDConfig,
+		Identity:       identityConfig,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -76142,6 +76146,7 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 	authflowViewModeler := &viewmodels.AuthflowViewModeler{
 		Authentication: authenticationConfig,
 		LoginID:        loginIDConfig,
+		Identity:       identityConfig,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -77079,6 +77084,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 	authflowViewModeler := &viewmodels.AuthflowViewModeler{
 		Authentication: authenticationConfig,
 		LoginID:        loginIDConfig,
+		Identity:       identityConfig,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -78947,10 +78953,14 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
+	inlinePreviewAuthflowBranchViewModeler := &viewmodels.InlinePreviewAuthflowBranchViewModeler{
+		AppConfig: appConfig,
+	}
 	authflowV2EnterPasswordHandler := &authflowv2.AuthflowV2EnterPasswordHandler{
-		Controller:    authflowController,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
+		Controller:                             authflowController,
+		BaseViewModel:                          baseViewModeler,
+		Renderer:                               responseRenderer,
+		InlinePreviewAuthflowBranchViewModeler: inlinePreviewAuthflowBranchViewModeler,
 	}
 	return authflowV2EnterPasswordHandler
 }
@@ -80808,15 +80818,21 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		OAuthClientResolver:   oauthclientResolver,
 		Logger:                baseLogger,
 	}
+	inlinePreviewAuthflowBranchViewModeler := &viewmodels.InlinePreviewAuthflowBranchViewModeler{
+		AppConfig: appConfig,
+	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowV2EnterOOBOTPHandler := &authflowv2.AuthflowV2EnterOOBOTPHandler{
-		Controller:    authflowController,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		FlashMessage:  flashMessage,
-		Clock:         clockClock,
+		Controller:                             authflowController,
+		BaseViewModel:                          baseViewModeler,
+		InlinePreviewAuthflowBranchViewModeler: inlinePreviewAuthflowBranchViewModeler,
+		Renderer:                               responseRenderer,
+		FlashMessage:                           flashMessage,
+		Clock:                                  clockClock,
+		AuthenticatorConfig:                    authenticatorConfig,
+		IdentityConfig:                         identityConfig,
 	}
 	return authflowV2EnterOOBOTPHandler
 }
@@ -82672,13 +82688,19 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		OAuthClientResolver:   oauthclientResolver,
 		Logger:                baseLogger,
 	}
+	inlinePreviewAuthflowBranchViewModeler := &viewmodels.InlinePreviewAuthflowBranchViewModeler{
+		AppConfig: appConfig,
+	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowV2CreatePasswordHandler := &authflowv2.AuthflowV2CreatePasswordHandler{
-		Controller:    authflowController,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
+		Controller:                             authflowController,
+		BaseViewModel:                          baseViewModeler,
+		InlinePreviewAuthflowBranchViewModeler: inlinePreviewAuthflowBranchViewModeler,
+		Renderer:                               responseRenderer,
+		FeatureConfig:                          featureConfig,
+		AuthenticatorConfig:                    authenticatorConfig,
 	}
 	return authflowV2CreatePasswordHandler
 }
@@ -84534,13 +84556,17 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OAuthClientResolver:   oauthclientResolver,
 		Logger:                baseLogger,
 	}
+	inlinePreviewAuthflowBranchViewModeler := &viewmodels.InlinePreviewAuthflowBranchViewModeler{
+		AppConfig: appConfig,
+	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowV2EnterTOTPHandler := &authflowv2.AuthflowV2EnterTOTPHandler{
-		Controller:    authflowController,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
+		Controller:                             authflowController,
+		BaseViewModel:                          baseViewModeler,
+		InlinePreviewAuthflowBranchViewModeler: inlinePreviewAuthflowBranchViewModeler,
+		Renderer:                               responseRenderer,
 	}
 	return authflowV2EnterTOTPHandler
 }
@@ -91055,14 +91081,18 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		OAuthClientResolver:   oauthclientResolver,
 		Logger:                baseLogger,
 	}
+	inlinePreviewAuthflowBranchViewModeler := &viewmodels.InlinePreviewAuthflowBranchViewModeler{
+		AppConfig: appConfig,
+	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowV2OOBOTPLinkHandler := &authflowv2.AuthflowV2OOBOTPLinkHandler{
-		Controller:    authflowController,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Clock:         clockClock,
+		Controller:                             authflowController,
+		BaseViewModel:                          baseViewModeler,
+		InlinePreviewAuthflowBranchViewModeler: inlinePreviewAuthflowBranchViewModeler,
+		Renderer:                               responseRenderer,
+		Clock:                                  clockClock,
 	}
 	return authflowV2OOBOTPLinkHandler
 }
@@ -95722,13 +95752,17 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		OAuthClientResolver:   oauthclientResolver,
 		Logger:                baseLogger,
 	}
+	inlinePreviewAuthflowBranchViewModeler := &viewmodels.InlinePreviewAuthflowBranchViewModeler{
+		AppConfig: appConfig,
+	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	authflowV2UsePasskeyHandler := &authflowv2.AuthflowV2UsePasskeyHandler{
-		Controller:    authflowController,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
+		Controller:                             authflowController,
+		BaseViewModel:                          baseViewModeler,
+		InlinePreviewAuthflowBranchViewModeler: inlinePreviewAuthflowBranchViewModeler,
+		Renderer:                               responseRenderer,
 	}
 	return authflowV2UsePasskeyHandler
 }
