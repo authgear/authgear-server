@@ -35,7 +35,9 @@ func NewIntentReauthFlowStepIdentify(ctx context.Context, deps *authflow.Depende
 	for _, b := range step.OneOf {
 		switch b.Identification {
 		case config.AuthenticationFlowIdentificationIDToken:
-			c := NewIdentificationOptionIDToken(b.Identification)
+			// Reauth flow identify step has no user interaction. It's called by our own backend to identify user. Thus, no bot protection is needed.
+			var botProtection *config.AuthenticationFlowBotProtection = nil
+			c := NewIdentificationOptionIDToken(b.Identification, botProtection, deps.Config.BotProtection)
 			options = append(options, c)
 		}
 	}
