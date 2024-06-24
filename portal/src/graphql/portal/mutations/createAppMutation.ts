@@ -9,7 +9,7 @@ import {
 import { AppListQueryDocument } from "../query/appListQuery.generated";
 
 export function useCreateAppMutation(): {
-  createApp: (appID: string, phoneNumber?: string) => Promise<string | null>;
+  createApp: (appID: string) => Promise<string | null>;
   loading: boolean;
   error: unknown;
 } {
@@ -20,9 +20,9 @@ export function useCreateAppMutation(): {
       refetchQueries: [{ query: AppListQueryDocument }],
     });
   const createApp = React.useCallback(
-    async (appID: string, phoneNumber?: string) => {
+    async (appID: string) => {
       const result = await mutationFunction({
-        variables: { appID, phoneNumber },
+        variables: { appID },
       });
       return result.data?.createApp.app.id ?? null;
     },

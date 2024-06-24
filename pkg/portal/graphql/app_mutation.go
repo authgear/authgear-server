@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	relay "github.com/authgear/graphql-go-relay"
+	"github.com/google/martian/log"
 	"github.com/graphql-go/graphql"
 	"sigs.k8s.io/yaml"
 
@@ -15,7 +16,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
-	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -361,10 +361,6 @@ var createAppInput = graphql.NewInputObject(graphql.InputObjectConfig{
 			Type:        graphql.NewNonNull(graphql.String),
 			Description: "ID of the new app.",
 		},
-		"phoneNumber": &graphql.InputObjectFieldConfig{
-			Type:        graphql.String,
-			Description: "Phone number of the new app.",
-		},
 	},
 })
 
@@ -389,8 +385,8 @@ var _ = registerMutationField(
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			input := p.Args["input"].(map[string]interface{})
+			log.Debugf("%+v", input)
 			appID := input["id"].(string)
-			phoneNumber := input["phoneNumber"].(string)
 
 			gqlCtx := GQLContext(p.Context)
 
@@ -405,19 +401,6 @@ var _ = registerMutationField(
 			err := checkAppQuota(gqlCtx, actorID)
 			if err != nil {
 				return nil, err
-			}
-
-			if phoneNumber != "" {
-				entry := model.OnboardEntry{
-					PhoneNumber: phoneNumber,
-				}
-				err := gqlCtx.OnboardService.SubmitOnboardEntry(
-					entry,
-					actorID,
-				)
-				if err != nil {
-					return nil, err
-				}
 			}
 
 			app, err := gqlCtx.AppService.Create(actorID, appID)

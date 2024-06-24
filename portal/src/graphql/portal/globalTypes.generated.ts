@@ -175,8 +175,6 @@ export enum CollaboratorRole {
 export type CreateAppInput = {
   /** ID of the new app. */
   id: Scalars['String']['input'];
-  /** Phone number of the new app. */
-  phoneNumber?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CreateAppPayload = {
