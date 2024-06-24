@@ -29,6 +29,12 @@ var ErrNoChange = errors.New("no change")
 // This error originates from CanReactTo and will be propagated to public API.
 var ErrEOF = errors.New("eof")
 
+// ErrBotProtectionVerificationSomeStatus means bot-protection verification is of some status
+// This error can only be returned by IntentBotProtection ReactTo
+var ErrBotProtectionVerificationFailed = errors.New("bot-protection verification failed")
+var ErrBotProtectionVerificationSuccess = errors.New("bot-protection verification success")
+var ErrBotProtectionVerificationServiceUnavailable = errors.New("bot-protection verification service unavailable")
+
 var ErrFlowNotFound = apierrors.NotFound.WithReason("AuthenticationFlowNotFound").New("flow not found")
 
 var ErrFlowNotAllowed = apierrors.Forbidden.WithReason("AuthenticationFlowNotAllowed").New("flow not allowed")
