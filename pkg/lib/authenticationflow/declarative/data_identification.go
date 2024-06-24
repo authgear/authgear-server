@@ -25,7 +25,7 @@ func (IdentificationData) Data() {}
 type IdentificationOption struct {
 	Identification config.AuthenticationFlowIdentification `json:"identification"`
 
-	BotProtection *BotProtectionData `json:"bot_protection,omitempty" nullable:"true"`
+	BotProtection *BotProtectionData `json:"bot_protection,omitempty"`
 	// ProviderType is specific to OAuth.
 	ProviderType string `json:"provider_type,omitempty"`
 	// Alias is specific to OAuth.
