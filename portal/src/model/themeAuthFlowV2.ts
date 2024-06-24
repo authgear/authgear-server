@@ -117,7 +117,7 @@ abstract class StyleProperty<T> extends AbstractStyle<T> {
   abstract getCSSValue(): string | number;
 }
 
-class ColorStyleProperty extends StyleProperty<string> {
+export class ColorStyleProperty extends StyleProperty<string> {
   protected setWithRawValue(rawValue: string): void {
     this.value = rawValue;
   }
@@ -131,7 +131,7 @@ class ColorStyleProperty extends StyleProperty<string> {
   }
 }
 
-class AlignItemsStyleProperty extends StyleProperty<Alignment> {
+export class AlignItemsStyleProperty extends StyleProperty<Alignment> {
   protected setWithRawValue(rawValue: string): void {
     switch (rawValue) {
       case "flex-start":
@@ -164,7 +164,7 @@ class AlignItemsStyleProperty extends StyleProperty<Alignment> {
   }
 }
 
-class BorderRadiusStyleProperty extends StyleProperty<BorderRadiusStyle> {
+export class BorderRadiusStyleProperty extends StyleProperty<BorderRadiusStyle> {
   static FULL_ROUNDED_CSS_VALUE = "9999px";
 
   protected setWithRawValue(rawValue: string): void {
@@ -209,7 +209,7 @@ class BorderRadiusStyleProperty extends StyleProperty<BorderRadiusStyle> {
 type StyleProperties<T> = {
   [K in keyof T]: AbstractStyle<T[K] | null>;
 };
-class StyleGroup<T> extends AbstractStyle<T> {
+export class StyleGroup<T> extends AbstractStyle<T> {
   styles: StyleProperties<T>;
 
   constructor(styles: StyleProperties<T>) {
