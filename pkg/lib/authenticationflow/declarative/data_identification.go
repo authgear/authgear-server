@@ -25,6 +25,7 @@ func (IdentificationData) Data() {}
 type IdentificationOption struct {
 	Identification config.AuthenticationFlowIdentification `json:"identification"`
 
+	BotProtection *BotProtectionData `json:"bot_protection,omitempty"`
 	// ProviderType is specific to OAuth.
 	ProviderType string `json:"provider_type,omitempty"`
 	// Alias is specific to OAuth.
@@ -36,24 +37,27 @@ type IdentificationOption struct {
 	RequestOptions *model.WebAuthnRequestOptions `json:"request_options,omitempty"`
 }
 
-func NewIdentificationOptionIDToken(i config.AuthenticationFlowIdentification) IdentificationOption {
+func NewIdentificationOptionIDToken(i config.AuthenticationFlowIdentification, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) IdentificationOption {
 	return IdentificationOption{
 		Identification: i,
+		BotProtection:  GetBotProtectionData(authflowCfg, appCfg),
 	}
 }
 
-func NewIdentificationOptionLoginID(i config.AuthenticationFlowIdentification) IdentificationOption {
+func NewIdentificationOptionLoginID(i config.AuthenticationFlowIdentification, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) IdentificationOption {
 	return IdentificationOption{
 		Identification: i,
+		BotProtection:  GetBotProtectionData(authflowCfg, appCfg),
 	}
 }
 
-func NewIdentificationOptionsOAuth(oauthConfig *config.OAuthSSOConfig, oauthFeatureConfig *config.OAuthSSOProvidersFeatureConfig) []IdentificationOption {
+func NewIdentificationOptionsOAuth(oauthConfig *config.OAuthSSOConfig, oauthFeatureConfig *config.OAuthSSOProvidersFeatureConfig, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) []IdentificationOption {
 	output := []IdentificationOption{}
 	for _, p := range oauthConfig.Providers {
 		if !identity.IsOAuthSSOProviderTypeDisabled(p.AsProviderConfig(), oauthFeatureConfig) {
 			output = append(output, IdentificationOption{
 				Identification: config.AuthenticationFlowIdentificationOAuth,
+				BotProtection:  GetBotProtectionData(authflowCfg, appCfg),
 				ProviderType:   p.AsProviderConfig().Type(),
 				Alias:          p.Alias(),
 				WechatAppType:  wechat.ProviderConfig(p).AppType(),
@@ -63,9 +67,10 @@ func NewIdentificationOptionsOAuth(oauthConfig *config.OAuthSSOConfig, oauthFeat
 	return output
 }
 
-func NewIdentificationOptionPasskey(requestOptions *model.WebAuthnRequestOptions) IdentificationOption {
+func NewIdentificationOptionPasskey(requestOptions *model.WebAuthnRequestOptions, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) IdentificationOption {
 	return IdentificationOption{
 		Identification: config.AuthenticationFlowIdentificationPasskey,
+		BotProtection:  GetBotProtectionData(authflowCfg, appCfg),
 		RequestOptions: requestOptions,
 	}
 }

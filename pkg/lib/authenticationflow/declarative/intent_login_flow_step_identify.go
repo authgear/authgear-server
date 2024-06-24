@@ -78,12 +78,12 @@ func NewIntentLoginFlowStepIdentify(ctx context.Context, deps *authflow.Dependen
 		case config.AuthenticationFlowIdentificationPhone:
 			fallthrough
 		case config.AuthenticationFlowIdentificationUsername:
-			c := NewIdentificationOptionLoginID(b.Identification)
+			c := NewIdentificationOptionLoginID(b.Identification, b.BotProtection, deps.Config.BotProtection)
 			options = append(options, c)
 		case config.AuthenticationFlowIdentificationOAuth:
 			oauthOptions := NewIdentificationOptionsOAuth(
 				deps.Config.Identity.OAuth,
-				deps.FeatureConfig.Identity.OAuth.Providers,
+				deps.FeatureConfig.Identity.OAuth.Providers, b.BotProtection, deps.Config.BotProtection,
 			)
 			options = append(options, oauthOptions...)
 		case config.AuthenticationFlowIdentificationPasskey:
@@ -91,7 +91,7 @@ func NewIntentLoginFlowStepIdentify(ctx context.Context, deps *authflow.Dependen
 			if err != nil {
 				return nil, err
 			}
-			c := NewIdentificationOptionPasskey(requestOptions)
+			c := NewIdentificationOptionPasskey(requestOptions, b.BotProtection, deps.Config.BotProtection)
 			options = append(options, c)
 		}
 	}

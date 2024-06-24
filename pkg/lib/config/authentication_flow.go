@@ -935,6 +935,7 @@ type AuthenticationFlowSignupFlowOneOf struct {
 
 var _ AuthenticationFlowObjectFlowBranch = &AuthenticationFlowSignupFlowOneOf{}
 var _ AuthenticationFlowObjectAccountLinkingConfigProvider = &AuthenticationFlowSignupFlowOneOf{}
+var _ AuthenticationFlowObjectBotProtectionConfigProvider = &AuthenticationFlowSignupFlowOneOf{}
 
 func (f *AuthenticationFlowSignupFlowOneOf) IsFlowObject() {}
 
@@ -961,6 +962,10 @@ func (f *AuthenticationFlowSignupFlowOneOf) IsVerificationRequired() bool {
 
 func (f *AuthenticationFlowSignupFlowOneOf) GetAccountLinkingConfig() *AuthenticationFlowAccountLinking {
 	return f.AccountLinking
+}
+
+func (f *AuthenticationFlowSignupFlowOneOf) GetBotProtectionConfig() *AuthenticationFlowBotProtection {
+	return f.BotProtection
 }
 
 type AuthenticationFlowSignupFlowUserProfile struct {
@@ -1063,6 +1068,7 @@ type AuthenticationFlowLoginFlowOneOf struct {
 }
 
 var _ AuthenticationFlowObjectFlowBranch = &AuthenticationFlowLoginFlowOneOf{}
+var _ AuthenticationFlowObjectBotProtectionConfigProvider = &AuthenticationFlowLoginFlowOneOf{}
 
 func (f *AuthenticationFlowLoginFlowOneOf) IsFlowObject() {}
 
@@ -1080,6 +1086,10 @@ func (f *AuthenticationFlowLoginFlowOneOf) GetBranchInfo() AuthenticationFlowObj
 		Identification: f.Identification,
 		Authentication: f.Authentication,
 	}
+}
+
+func (f *AuthenticationFlowLoginFlowOneOf) GetBotProtectionConfig() *AuthenticationFlowBotProtection {
+	return f.BotProtection
 }
 
 type AuthenticationFlowSignupLoginFlow struct {
@@ -1143,6 +1153,7 @@ type AuthenticationFlowSignupLoginFlowOneOf struct {
 }
 
 var _ AuthenticationFlowObjectFlowBranch = &AuthenticationFlowSignupLoginFlowOneOf{}
+var _ AuthenticationFlowObjectBotProtectionConfigProvider = &AuthenticationFlowSignupLoginFlowOneOf{}
 
 func (s *AuthenticationFlowSignupLoginFlowOneOf) IsFlowObject() {}
 
@@ -1154,6 +1165,10 @@ func (s *AuthenticationFlowSignupLoginFlowOneOf) GetBranchInfo() AuthenticationF
 	return AuthenticationFlowObjectFlowBranchInfo{
 		Identification: s.Identification,
 	}
+}
+
+func (s *AuthenticationFlowSignupLoginFlowOneOf) GetBotProtectionConfig() *AuthenticationFlowBotProtection {
+	return s.BotProtection
 }
 
 type AuthenticationFlowReauthFlow struct {
@@ -1229,6 +1244,7 @@ type AuthenticationFlowReauthFlowOneOf struct {
 }
 
 var _ AuthenticationFlowObjectFlowBranch = &AuthenticationFlowReauthFlowOneOf{}
+var _ AuthenticationFlowObjectBotProtectionConfigProvider = &AuthenticationFlowReauthFlowOneOf{}
 
 func (f *AuthenticationFlowReauthFlowOneOf) IsFlowObject() {}
 
@@ -1246,6 +1262,10 @@ func (f *AuthenticationFlowReauthFlowOneOf) GetBranchInfo() AuthenticationFlowOb
 		Identification: f.Identification,
 		Authentication: f.Authentication,
 	}
+}
+
+func (f *AuthenticationFlowReauthFlowOneOf) GetBotProtectionConfig() *AuthenticationFlowBotProtection {
+	return f.BotProtection
 }
 
 type AuthenticationFlowAccountRecoveryFlow struct {
@@ -1364,6 +1384,7 @@ type AuthenticationFlowAccountRecoveryFlowOneOf struct {
 }
 
 var _ AuthenticationFlowObjectFlowBranch = &AuthenticationFlowAccountRecoveryFlowOneOf{}
+var _ AuthenticationFlowObjectBotProtectionConfigProvider = &AuthenticationFlowAccountRecoveryFlowOneOf{}
 
 func (f *AuthenticationFlowAccountRecoveryFlowOneOf) IsFlowObject() {}
 func (f *AuthenticationFlowAccountRecoveryFlowOneOf) GetSteps() []AuthenticationFlowObject {
@@ -1378,6 +1399,9 @@ func (f *AuthenticationFlowAccountRecoveryFlowOneOf) GetBranchInfo() Authenticat
 	return AuthenticationFlowObjectFlowBranchInfo{
 		Identification: AuthenticationFlowIdentification(f.Identification),
 	}
+}
+func (f *AuthenticationFlowAccountRecoveryFlowOneOf) GetBotProtectionConfig() *AuthenticationFlowBotProtection {
+	return f.BotProtection
 }
 
 type AuthenticationFlowAccountRecoveryIdentification AuthenticationFlowIdentification
@@ -1417,6 +1441,10 @@ type AuthenticationFlowAccountLinkingLoginIDItem struct {
 
 type AuthenticationFlowObjectAccountLinkingConfigProvider interface {
 	GetAccountLinkingConfig() *AuthenticationFlowAccountLinking
+}
+
+type AuthenticationFlowObjectBotProtectionConfigProvider interface {
+	GetBotProtectionConfig() *AuthenticationFlowBotProtection
 }
 
 func init() {

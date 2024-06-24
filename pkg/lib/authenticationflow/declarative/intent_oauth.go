@@ -51,11 +51,21 @@ func (*IntentOAuth) MilestoneFlowUseIdentity(flows authflow.Flows) (MilestoneDoU
 
 func (i *IntentOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	if len(flows.Nearest.Nodes) == 0 {
-		oauthOptions := NewIdentificationOptionsOAuth(deps.Config.Identity.OAuth, deps.FeatureConfig.Identity.OAuth.Providers)
 		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
 		if err != nil {
 			return nil, err
 		}
+		current, err := authflow.FlowObject(flowRootObject, i.JSONPointer)
+		if err != nil {
+			return nil, err
+		}
+		var authflowCfg *config.AuthenticationFlowBotProtection = nil
+		if currentBranch, ok := current.(config.AuthenticationFlowObjectBotProtectionConfigProvider); ok {
+			authflowCfg = currentBranch.GetBotProtectionConfig()
+		}
+
+		oauthOptions := NewIdentificationOptionsOAuth(deps.Config.Identity.OAuth, deps.FeatureConfig.Identity.OAuth.Providers, authflowCfg, deps.Config.BotProtection)
+
 		return &InputSchemaTakeOAuthAuthorizationRequest{
 			FlowRootObject: flowRootObject,
 			JSONPointer:    i.JSONPointer,
