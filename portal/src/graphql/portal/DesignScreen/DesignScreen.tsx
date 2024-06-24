@@ -10,27 +10,27 @@ import { useParams } from "react-router-dom";
 import FormContainer from "../../../FormContainer";
 import ShowError from "../../../ShowError";
 import ShowLoading from "../../../ShowLoading";
-import { BranchDesignForm, useBrandDesignForm } from "./form";
-import {
-  BorderRadius,
-  ButtonToggleGroup,
-  ColorPicker,
-  Configuration,
-  ConfigurationDescription,
-  ConfigurationGroup,
-  FallbackDescription,
-  ImagePicker,
-  Option,
-  Separator,
-} from "./Components";
 import { Alignment, AllAlignments } from "../../../model/themeAuthFlowV2";
 
-import styles from "./DesignScreen.module.css";
 import ScreenTitle from "../../../ScreenTitle";
 import ManageLanguageWidget from "../ManageLanguageWidget";
 import TextField from "../../../TextField";
 import DefaultButton from "../../../DefaultButton";
 import Toggle from "../../../Toggle";
+import ConfigurationGroup from "../../../components/design/ConfigurationGroup";
+import FallbackDescription from "../../../components/design/FallbackDescription";
+import ConfigurationDescription from "../../../components/design/ConfigurationDescription";
+import { ImagePicker } from "../../../components/design/ImagePicker";
+import ButtonToggleGroup, {
+  Option,
+} from "../../../components/common/ButtonToggleGroup";
+import Configuration from "../../../components/design/Configuration";
+import { ColorPicker } from "../../../components/design/ColorPicker";
+import BorderRadius from "../../../components/design/BorderRadius";
+import Separator from "../../../components/design/Separator";
+
+import { BranchDesignForm, useBrandDesignForm } from "./form";
+import styles from "./DesignScreen.module.css";
 
 interface OrganisationConfigurationProps {
   designForm: BranchDesignForm;

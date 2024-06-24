@@ -1,0 +1,7 @@
+.icImagePlaceholder {
+  @apply inline-block;
+  @apply h-6 w-6;
+  @apply bg-grey-grey110;
+  /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
+  mask: url("../../images/ic-imagesmode.svg");
+}

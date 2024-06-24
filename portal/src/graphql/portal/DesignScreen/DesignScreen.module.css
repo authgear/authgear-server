@@ -25,53 +25,6 @@
   @apply bg-theme-primary;
 }
 
-.colorPicker {
-  @apply flex items-center;
-  @apply px-2 h-8;
-  @apply relative;
-  @apply rounded overflow-hidden border border-solid border-grey-grey110;
-}
-
-.colorPicker.active {
-  @apply border-theme-primary;
-  @apply outline outline-2 -outline-offset-2 outline-theme-primary;
-}
-
-.icBorderRadius {
-  @apply inline-block;
-  background-color: #1c1b1f;
-}
-
-.icBorderRadiusSquare {
-  @apply h-6 w-6;
-  /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
-  mask: url("../../../images/ic-border-corner-square.svg");
-}
-
-.icBorderRadiusRounded {
-  @apply h-6 w-6;
-  /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
-  mask: url("../../../images/ic-border-corner-rounded.svg");
-}
-
-.icBorderRadiusFullRounded {
-  @apply h-6 w-6;
-  /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
-  mask: url("../../../images/ic-border-corner-pill.svg");
-}
-
-.icBorderRadius.selected {
-  @apply bg-theme-primary;
-}
-
-.icImagePlaceholder {
-  @apply inline-block;
-  @apply h-6 w-6;
-  @apply bg-grey-grey110;
-  /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
-  mask: url("../../../images/ic-imagesmode.svg");
-}
-
 .linkConfigurationSeparator {
   /* stylelint-disable-next-line declaration-no-important */
   margin-top: 1.5rem !important;
