@@ -353,7 +353,7 @@ func (h *TokenHandler) rotateDeviceSecretIfNeeded(
 		return offlineGrant, nil
 	}
 
-	_, deviceSecretHash := h.TokenService.IssueDeviceSecret(resp)
+	deviceSecretHash := h.TokenService.IssueDeviceSecret(resp)
 	expiry, err := h.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
 	if err != nil {
 		return nil, err
