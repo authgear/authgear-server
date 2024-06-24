@@ -45,6 +45,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
+	"github.com/authgear/authgear-server/pkg/lib/feature/botprotection"
 	"github.com/authgear/authgear-server/pkg/lib/feature/captcha"
 	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
@@ -55,6 +56,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/web3"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
+	botprotection2 "github.com/authgear/authgear-server/pkg/lib/infra/botprotection"
 	captcha2 "github.com/authgear/authgear-server/pkg/lib/infra/captcha"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
@@ -12133,6 +12135,18 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -12198,6 +12212,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -13155,6 +13170,18 @@ func newWebAppAuthflowSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -13220,6 +13247,7 @@ func newWebAppAuthflowSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -14177,6 +14205,18 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -14242,6 +14282,7 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -58120,6 +58161,18 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -58185,6 +58238,7 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -69514,6 +69568,18 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -69579,6 +69645,7 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -70383,6 +70450,18 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -70448,6 +70527,7 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -71245,6 +71325,18 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -71310,6 +71402,7 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -72149,6 +72242,18 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -72214,6 +72319,7 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -73105,6 +73211,18 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -73170,6 +73288,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -74073,6 +74192,18 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -74138,6 +74269,7 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -75028,6 +75160,18 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -75093,6 +75237,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -75987,6 +76132,18 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -76052,6 +76209,7 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -76925,6 +77083,18 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -76990,6 +77160,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -77863,6 +78034,18 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -77928,6 +78111,7 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -78794,6 +78978,18 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -78859,6 +79055,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -79729,6 +79926,18 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -79794,6 +80003,7 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -80662,6 +80872,18 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -80727,6 +80949,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -81601,6 +81824,18 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -81666,6 +81901,7 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -82532,6 +82768,18 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -82597,6 +82845,7 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -83469,6 +83718,18 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -83534,6 +83795,7 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -84400,6 +84662,18 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -84465,6 +84739,7 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -85335,6 +85610,18 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -85400,6 +85687,7 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -86266,6 +86554,18 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -86331,6 +86631,7 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -87197,6 +87498,18 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -87262,6 +87575,7 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -88128,6 +88442,18 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -88193,6 +88519,7 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -89059,6 +89386,18 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -89124,6 +89463,7 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -89992,6 +90332,18 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -90057,6 +90409,7 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -90925,6 +91278,18 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -90990,6 +91355,7 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -91861,6 +92227,18 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -91926,6 +92304,7 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -92797,6 +93176,18 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -92862,6 +93253,7 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -93734,6 +94126,18 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -93799,6 +94203,7 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -94665,6 +95070,18 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -94730,6 +95147,7 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -95596,6 +96014,18 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -95661,6 +96091,7 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -96531,6 +96962,18 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -96596,6 +97039,7 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -97462,6 +97906,18 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -97527,6 +97983,7 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -98393,6 +98850,18 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -98458,6 +98927,7 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -99324,6 +99794,18 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -99389,6 +99871,7 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -100255,6 +100738,18 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -100320,6 +100815,7 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -101186,6 +101682,18 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -101251,6 +101759,7 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -102117,6 +102626,18 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -102182,6 +102703,7 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -103048,6 +103570,18 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -103113,6 +103647,7 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -103979,6 +104514,18 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -104044,6 +104591,7 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -104911,6 +105459,18 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -104976,6 +105536,7 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -105842,6 +106403,18 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -105907,6 +106480,7 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -106773,6 +107347,18 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -106838,6 +107424,7 @@ func newWebAppAuthflowForgotPasswordOTPHandler(p *deps.RequestProvider) http.Han
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -107706,6 +108293,18 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -107771,6 +108370,7 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -108639,6 +109239,18 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -108704,6 +109316,7 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -109570,6 +110183,18 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -109635,6 +110260,7 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -111388,6 +112014,18 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -111453,6 +112091,7 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -112288,6 +112927,18 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -112353,6 +113004,7 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -113188,6 +113840,18 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -113253,6 +113917,7 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -114119,6 +114784,18 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -114184,6 +114861,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -115050,6 +115728,18 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -115115,6 +115805,7 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -115981,6 +116672,18 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -116046,6 +116749,7 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -117209,6 +117913,18 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -117274,6 +117990,7 @@ func newWebAppAuthflowFinishFlowHandler(p *deps.RequestProvider) http.Handler {
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -118140,6 +118857,18 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -118205,6 +118934,7 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -119071,6 +119801,18 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -119136,6 +119878,7 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
@@ -120102,6 +120845,18 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	botProtectionConfig := appConfig.BotProtection
+	botprotectionProviderLogger := botprotection.NewProviderLogger(factory)
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection2.NewCloudflareClient(botProtectionProviderCredentials)
+	recaptchaV2Client := botprotection2.NewRecaptchaV2Client(botProtectionProviderCredentials)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		Logger:            botprotectionProviderLogger,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -120167,6 +120922,7 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 		AccountMigrations:               accountmigrationService,
 		Challenges:                      challengeProvider,
 		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		PasskeyRequestOptionsService:    requestOptionsService,
 		PasskeyCreationOptionsService:   creationOptionsService,
