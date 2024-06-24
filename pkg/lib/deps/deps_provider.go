@@ -33,6 +33,7 @@ var envConfigDeps = wire.NewSet(
 		"ImagesCDNHost",
 		"WebAppCDNHost",
 		"CORSAllowedOrigins",
+		"AllowedFrameAncestors",
 		"RedisConfig",
 		"NFTIndexerAPIEndpoint",
 		"DenoEndpoint",
