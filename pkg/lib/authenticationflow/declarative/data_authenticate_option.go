@@ -15,6 +15,7 @@ import (
 type AuthenticateOptionForOutput struct {
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication"`
 
+	BotProtection *BotProtectionData `json:"bot_protection,omitempty"`
 	// OTPForm is specific to OOBOTP.
 	OTPForm otp.Form `json:"otp_form,omitempty"`
 	// MaskedDisplayName is specific to OOBOTP.
@@ -29,6 +30,7 @@ type AuthenticateOptionForOutput struct {
 type AuthenticateOption struct {
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication"`
 
+	BotProtection *BotProtectionData `json:"bot_protection,omitempty"`
 	// OTPForm is specific to OOBOTP.
 	OTPForm otp.Form `json:"otp_form,omitempty"`
 	// MaskedDisplayName is specific to OOBOTP.
@@ -48,38 +50,43 @@ func (o *AuthenticateOption) ToOutput() AuthenticateOptionForOutput {
 	return AuthenticateOptionForOutput{
 		Authentication:    o.Authentication,
 		OTPForm:           o.OTPForm,
+		BotProtection:     o.BotProtection,
 		MaskedDisplayName: o.MaskedDisplayName,
 		Channels:          o.Channels,
 		RequestOptions:    o.RequestOptions,
 	}
 }
 
-func NewAuthenticateOptionRecoveryCode() AuthenticateOption {
+func NewAuthenticateOptionRecoveryCode(authflowBotProtectionCfg *config.AuthenticationFlowBotProtection, appBotProtectionConfig *config.BotProtectionConfig) AuthenticateOption {
 	return AuthenticateOption{
 		Authentication: config.AuthenticationFlowAuthenticationRecoveryCode,
+		BotProtection:  GetBotProtectionData(authflowBotProtectionCfg, appBotProtectionConfig),
 	}
 }
 
-func NewAuthenticateOptionPassword(am config.AuthenticationFlowAuthentication) AuthenticateOption {
+func NewAuthenticateOptionPassword(am config.AuthenticationFlowAuthentication, authflowBotProtectionCfg *config.AuthenticationFlowBotProtection, appBotProtectionConfig *config.BotProtectionConfig) AuthenticateOption {
 	return AuthenticateOption{
 		Authentication: am,
+		BotProtection:  GetBotProtectionData(authflowBotProtectionCfg, appBotProtectionConfig),
 	}
 }
 
-func NewAuthenticateOptionPasskey(requestOptions *model.WebAuthnRequestOptions) AuthenticateOption {
+func NewAuthenticateOptionPasskey(requestOptions *model.WebAuthnRequestOptions, authflowBotProtectionCfg *config.AuthenticationFlowBotProtection, appBotProtectionConfig *config.BotProtectionConfig) AuthenticateOption {
 	return AuthenticateOption{
 		Authentication: config.AuthenticationFlowAuthenticationPrimaryPasskey,
 		RequestOptions: requestOptions,
+		BotProtection:  GetBotProtectionData(authflowBotProtectionCfg, appBotProtectionConfig),
 	}
 }
 
-func NewAuthenticateOptionTOTP() AuthenticateOption {
+func NewAuthenticateOptionTOTP(authflowBotProtectionCfg *config.AuthenticationFlowBotProtection, appBotProtectionConfig *config.BotProtectionConfig) AuthenticateOption {
 	return AuthenticateOption{
 		Authentication: config.AuthenticationFlowAuthenticationSecondaryTOTP,
+		BotProtection:  GetBotProtectionData(authflowBotProtectionCfg, appBotProtectionConfig),
 	}
 }
 
-func NewAuthenticateOptionOOBOTPFromAuthenticator(oobConfig *config.AuthenticatorOOBConfig, i *authenticator.Info) (*AuthenticateOption, bool) {
+func NewAuthenticateOptionOOBOTPFromAuthenticator(oobConfig *config.AuthenticatorOOBConfig, i *authenticator.Info, authflowBotProtectionCfg *config.AuthenticationFlowBotProtection, appBotProtectionConfig *config.BotProtectionConfig) (*AuthenticateOption, bool) {
 	am := AuthenticationFromAuthenticator(i)
 	switch am {
 	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
@@ -94,6 +101,7 @@ func NewAuthenticateOptionOOBOTPFromAuthenticator(oobConfig *config.Authenticato
 			Channels:          channels,
 			MaskedDisplayName: mail.MaskAddress(i.OOBOTP.Email),
 			AuthenticatorID:   i.ID,
+			BotProtection:     GetBotProtectionData(authflowBotProtectionCfg, appBotProtectionConfig),
 		}, true
 	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 		fallthrough
@@ -107,13 +115,14 @@ func NewAuthenticateOptionOOBOTPFromAuthenticator(oobConfig *config.Authenticato
 			Channels:          channels,
 			MaskedDisplayName: phone.Mask(i.OOBOTP.Phone),
 			AuthenticatorID:   i.ID,
+			BotProtection:     GetBotProtectionData(authflowBotProtectionCfg, appBotProtectionConfig),
 		}, true
 	default:
 		return nil, false
 	}
 }
 
-func NewAuthenticateOptionOOBOTPFromIdentity(oobConfig *config.AuthenticatorOOBConfig, i *identity.Info) (*AuthenticateOption, bool) {
+func NewAuthenticateOptionOOBOTPFromIdentity(oobConfig *config.AuthenticatorOOBConfig, i *identity.Info, authflowBotProtectionCfg *config.AuthenticationFlowBotProtection, appBotProtectionConfig *config.BotProtectionConfig) (*AuthenticateOption, bool) {
 	switch i.Type {
 	case model.IdentityTypeLoginID:
 		switch i.LoginID.LoginIDType {
@@ -127,6 +136,7 @@ func NewAuthenticateOptionOOBOTPFromIdentity(oobConfig *config.AuthenticatorOOBC
 				Channels:          channels,
 				MaskedDisplayName: mail.MaskAddress(i.LoginID.LoginID),
 				IdentityID:        i.ID,
+				BotProtection:     GetBotProtectionData(authflowBotProtectionCfg, appBotProtectionConfig),
 			}, true
 		case model.LoginIDKeyTypePhone:
 			purpose := otp.PurposeOOBOTP
@@ -138,6 +148,7 @@ func NewAuthenticateOptionOOBOTPFromIdentity(oobConfig *config.AuthenticatorOOBC
 				Channels:          channels,
 				MaskedDisplayName: phone.Mask(i.LoginID.LoginID),
 				IdentityID:        i.ID,
+				BotProtection:     GetBotProtectionData(authflowBotProtectionCfg, appBotProtectionConfig),
 			}, true
 		default:
 			return nil, false
