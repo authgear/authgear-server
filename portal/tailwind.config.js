@@ -8,6 +8,7 @@ module.exports = {
     screens: {
       mobile: { max: "640px" },
       tablet: { max: "1080px" },
+      desktop: { min: "1081px" },
     },
     extend: {
       flex: {

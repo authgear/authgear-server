@@ -374,7 +374,7 @@ const ConfigurationPanel: React.VFC<ConfigurationPanelProps> =
   function ConfigurationPanel(props) {
     const { appID, designForm } = props;
     return (
-      <div className={cn("w-80")}>
+      <div>
         <OrganisationConfiguration designForm={designForm} />
         <Separator />
         <AppLogoConfiguration designForm={designForm} />
@@ -436,10 +436,18 @@ const DesignScreen: React.VFC = function DesignScreen() {
           onChangeSelectedLanguage={form.setSelectedLanguage}
         />
       </div>
-      <div className={cn("min-h-0", "flex-1", "flex")}>
-        <div className={cn("flex-1", "h-full", "p-6", "pt-4")}>
+      <div
+        className={cn(
+          "min-h-0",
+          "flex-1",
+          "flex",
+          "tablet:flex-col-reverse",
+          "tablet:overflow-auto"
+        )}
+      >
+        <div className={cn("desktop:flex-1", "h-full", "p-6", "pt-4")}>
           <div
-            className={cn("rounded-xl", "h-full")}
+            className={cn("rounded-xl", "h-full", "tablet:h-178.5")}
             style={{
               boxShadow: DefaultEffects.elevation4,
             }}
@@ -447,8 +455,10 @@ const DesignScreen: React.VFC = function DesignScreen() {
             Preview
           </div>
         </div>
-        <div className={cn("p-6", "pt-4", "overflow-auto")}>
-          <ConfigurationPanel appID={appID} designForm={form} />
+        <div className={cn("p-6", "pt-4", "desktop:overflow-auto")}>
+          <div className={cn("desktop:w-80")}>
+            <ConfigurationPanel appID={appID} designForm={form} />
+          </div>
         </div>
       </div>
     </FormContainer>
