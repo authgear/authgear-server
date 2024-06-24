@@ -15,20 +15,14 @@ import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 import { useSimpleForm } from "../../hook/useSimpleForm";
 import { randomProjectName } from "../../util/projectname";
 import PrimaryButton from "../../PrimaryButton";
-import FormPhoneTextField from "../../FormPhoneTextField";
-import { useViewerQuery } from "./query/viewerQuery";
 
 interface FormState {
   appID: string;
-  rawPhoneInput: string;
-  maybeInvalidFullPhoneNumber: string;
 }
 
 function makeDefaultState(): FormState {
   return {
     appID: randomProjectName(),
-    rawPhoneInput: "",
-    maybeInvalidFullPhoneNumber: "",
   };
 }
 
@@ -83,14 +77,11 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
   const { appHostSuffix } = useSystemConfig();
   const { createApp } = useCreateAppMutation();
   const { renderToString } = useContext(Context);
-  const { viewer } = useViewerQuery();
   const { state } = useLocation();
-
-  const isFirstProject = numberOfApps === 0;
 
   const submit = useCallback(
     async (state: FormState) => {
-      return createApp(state.appID, state.maybeInvalidFullPhoneNumber);
+      return createApp(state.appID);
     },
     [createApp]
   );
@@ -114,7 +105,7 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
     updateError,
     save,
     isUpdating,
-    state: { appID, rawPhoneInput },
+    state: { appID },
     setState,
   } = form;
 
@@ -123,18 +114,6 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
       if (newValue != null) {
         setState((prev) => ({ ...prev, appID: newValue }));
       }
-    },
-    [setState]
-  );
-
-  const onChangePhoneNumber = useCallback(
-    (values: { rawInputValue: string; partialValue?: string }) => {
-      const { rawInputValue, partialValue } = values;
-      setState((prev) => ({
-        ...prev,
-        rawPhoneInput: rawInputValue,
-        maybeInvalidFullPhoneNumber: partialValue ?? "",
-      }));
     },
     [setState]
   );
@@ -195,16 +174,6 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
                 "CreateProjectScreen.app-id.description"
               )}
             />
-            {isFirstProject ? (
-              <FormPhoneTextField
-                parentJSONPointer=""
-                fieldName="phone_number"
-                initialCountry={viewer?.geoIPCountryCode ?? undefined}
-                inputValue={rawPhoneInput}
-                onChange={onChangePhoneNumber}
-                label={renderToString("CreateProjectScreen.phone-number.label")}
-              />
-            ) : null}
           </form>
         </WizardContentLayout>
       </WizardScreenLayout>
