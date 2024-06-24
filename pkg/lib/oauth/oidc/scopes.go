@@ -20,7 +20,7 @@ func ValidateScopes(client *config.OAuthClientConfig, scopes []string) error {
 		if !IsScopeAllowed(s) {
 			return protocol.NewError("invalid_scope", "specified scope is not allowed")
 		}
-		if s == "offline_access" && !allowOfflineAccess {
+		if s == oauth.OfflineAccess && !allowOfflineAccess {
 			return protocol.NewError("invalid_scope", "offline access is not allowed for this client")
 		}
 		if s == oauth.FullAccessScope && !client.HasFullAccessScope() {
@@ -51,7 +51,7 @@ func ValidateScopes(client *config.OAuthClientConfig, scopes []string) error {
 
 var AllowedScopes = []string{
 	"openid",
-	"offline_access",
+	oauth.OfflineAccess,
 	oauth.FullAccessScope,
 	oauth.FullUserInfoScope,
 	oauth.AppInitiatedSSOToWebScope,
@@ -61,15 +61,6 @@ var AllowedScopes = []string{
 func IsScopeAllowed(scope string) bool {
 	for _, s := range AllowedScopes {
 		if s == scope {
-			return true
-		}
-	}
-	return false
-}
-
-func IsScopeAuthorized(authorizedScopes []string, requiredScope string) bool {
-	for _, scope := range authorizedScopes {
-		if scope == requiredScope {
 			return true
 		}
 	}

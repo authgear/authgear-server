@@ -13,6 +13,7 @@ import (
 const FullAccessScope = "https://authgear.com/scopes/full-access"
 const FullUserInfoScope = "https://authgear.com/scopes/full-userinfo"
 const AppInitiatedSSOToWebScope = "https://authgear.com/scopes/app-initiated-sso-to-web"
+const OfflineAccess = "offline_access"
 const DeviceSSOScope = "device_sso"
 
 func SessionScopes(s session.ResolvedSession) []string {
@@ -79,4 +80,17 @@ func checkAuthz(session session.ResolvedSession, requiredScopes map[string]struc
 	}
 
 	return http.StatusOK, nil
+}
+
+func ContainsAllScopes(scopes []string, shouldContainsScopes []string) bool {
+	scopesSet := map[string]struct{}{}
+	for _, scope := range scopes {
+		scopesSet[scope] = struct{}{}
+	}
+	for _, scope := range shouldContainsScopes {
+		if _, exist := scopesSet[scope]; !exist {
+			return false
+		}
+	}
+	return true
 }
