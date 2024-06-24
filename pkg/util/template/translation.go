@@ -7,9 +7,12 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strings"
 
 	"golang.org/x/text/language"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/util/intlresource"
 	"github.com/authgear/authgear-server/pkg/util/messageformat"
 	"github.com/authgear/authgear-server/pkg/util/resource"
@@ -78,7 +81,7 @@ func (t *translationJSON) ViewResources(resources []resource.ResourceFile, rawVi
 	}
 }
 
-func (t *translationJSON) UpdateResource(_ context.Context, all []resource.ResourceFile, fileToUpdate *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
+func (t *translationJSON) UpdateResource(ctx context.Context, all []resource.ResourceFile, fileToUpdate *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
 	path := fileToUpdate.Location.Path
 
 	requestedLangTag, err := t.computeRequestedLangTag(path)
@@ -93,7 +96,7 @@ func (t *translationJSON) UpdateResource(_ context.Context, all []resource.Resou
 
 	var appTranslationData []byte
 	if data != nil {
-		appTranslationData, err = t.processAppTranslationData(data, defaultTranslationObj)
+		appTranslationData, err = t.processAppTranslationData(ctx, data, defaultTranslationObj)
 		if err != nil {
 			return nil, err
 		}
@@ -146,7 +149,14 @@ func (t *translationJSON) getDefaultTranslationObj(all []resource.ResourceFile, 
 	return defaultTranslationObj, nil
 }
 
-func (t *translationJSON) processAppTranslationData(data []byte, defaultTranslationObj map[string]string) ([]byte, error) {
+func (t *translationJSON) processAppTranslationData(ctx context.Context, data []byte, defaultTranslationObj map[string]string) ([]byte, error) {
+
+	fc, ok := ctx.Value(configsource.ContextKeyFeatureConfig).(*config.FeatureConfig)
+	if !ok || fc == nil {
+		return nil, ErrMissingFeatureFlagInCtx
+	}
+	isCustomizationDisallowed := fc.Messaging.TemplateCustomizationDisabled
+
 	appTranslationRaw := make(map[string]interface{})
 	err := json.Unmarshal(data, &appTranslationRaw)
 	if err != nil {
@@ -165,6 +175,11 @@ func (t *translationJSON) processAppTranslationData(data []byte, defaultTranslat
 		// If the value is the same as default, delete it.
 		defaultValue := defaultTranslationObj[key]
 		if defaultValue == val {
+			delete(appTranslationObj, key)
+		}
+
+		// If the key is for email template, respect customization feature flag
+		if isCustomizationDisallowed && strings.HasPrefix(key, "email.") && strings.HasSuffix(key, ".subject") {
 			delete(appTranslationObj, key)
 		}
 
