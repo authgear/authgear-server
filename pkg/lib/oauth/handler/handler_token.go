@@ -1420,7 +1420,7 @@ func (h *TokenHandler) shouldIssueDeviceSecret(scopes []string) bool {
 	issueDeviceToken := false
 	for _, scope := range scopes {
 		switch scope {
-		case oauth.AppInitiatedSSOToWebScope:
+		case oauth.DeviceSSOScope:
 			issueDeviceToken = true
 		}
 	}
