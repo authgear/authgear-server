@@ -21,11 +21,11 @@ type Session struct {
 	XState      string   `json:"x_state,omitempty"`
 	UILocales   string   `json:"ui_locales,omitempty"`
 
-	BotProtectionVerificationStatus BotProtectionVerificationStatus `json:"bot_protection_verification_status,omitempty"`
-	IDToken                         string                          `json:"id_token,omitempty"`
-	SuppressIDPSessionCookie        bool                            `json:"suppress_idp_session_cookie,omitempty"`
-	UserIDHint                      string                          `json:"user_id_hint,omitempty"`
-	LoginHint                       string                          `json:"login_hint,omitempty"`
+	BotProtectionVerificationResult *BotProtectionVerificationResult `json:"bot_protection_verification_result,omitempty"`
+	IDToken                         string                           `json:"id_token,omitempty"`
+	SuppressIDPSessionCookie        bool                             `json:"suppress_idp_session_cookie,omitempty"`
+	UserIDHint                      string                           `json:"user_id_hint,omitempty"`
+	LoginHint                       string                           `json:"login_hint,omitempty"`
 }
 
 type SessionOutput struct {
@@ -44,7 +44,7 @@ type SessionOptions struct {
 	XState      string
 	UILocales   string
 
-	BotProtectionVerificationStatus BotProtectionVerificationStatus
+	BotProtectionVerificationResult *BotProtectionVerificationResult
 	IDToken                         string
 	SuppressIDPSessionCookie        bool
 	UserIDHint                      string
@@ -63,7 +63,7 @@ func (s *SessionOptions) PartiallyMergeFrom(o *SessionOptions) *SessionOptions {
 		out.XState = s.XState
 		out.UILocales = s.UILocales
 
-		out.BotProtectionVerificationStatus = s.BotProtectionVerificationStatus
+		out.BotProtectionVerificationResult = s.BotProtectionVerificationResult
 		out.IDToken = s.IDToken
 		out.SuppressIDPSessionCookie = s.SuppressIDPSessionCookie
 		out.UserIDHint = s.UserIDHint
@@ -99,7 +99,7 @@ func NewSession(opts *SessionOptions) *Session {
 		XState:      opts.XState,
 		UILocales:   opts.UILocales,
 
-		BotProtectionVerificationStatus: opts.BotProtectionVerificationStatus,
+		BotProtectionVerificationResult: opts.BotProtectionVerificationResult,
 		IDToken:                         opts.IDToken,
 		SuppressIDPSessionCookie:        opts.SuppressIDPSessionCookie,
 		UserIDHint:                      opts.UserIDHint,
@@ -135,7 +135,7 @@ func (s *Session) MakeContext(ctx context.Context, deps *Dependencies) (context.
 		ctx = intl.WithPreferredLanguageTags(ctx, tags)
 	}
 
-	ctx = context.WithValue(ctx, contextKeyBotProtectionVerificationStatus, s.BotProtectionVerificationStatus)
+	ctx = context.WithValue(ctx, contextKeyBotProtectionVerificationResult, s.BotProtectionVerificationResult)
 	ctx = context.WithValue(ctx, contextKeyIDToken, s.IDToken)
 	ctx = context.WithValue(ctx, contextKeySuppressIDPSessionCookie, s.SuppressIDPSessionCookie)
 	ctx = context.WithValue(ctx, contextKeyUserIDHint, s.UserIDHint)

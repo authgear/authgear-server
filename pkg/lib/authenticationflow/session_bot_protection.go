@@ -1,13 +1,14 @@
 package authenticationflow
 
-type BotProtectionVerificationStatus string
+type BotProtectionVerificationResult struct {
+	Outcome  BotProtectionVerificationOutcome `json:"outcome,omitempty"`
+	Response interface{}                      `json:"response,omitempty"`
+}
+
+type BotProtectionVerificationOutcome string
 
 const (
-	// initial status
-	BotProtectionVerificationStatusDefault BotProtectionVerificationStatus = ""
-
-	// terminal status
-	BotProtectionVerificationStatusFailed             BotProtectionVerificationStatus = "failed"
-	BotProtectionVerificationStatusSuccess            BotProtectionVerificationStatus = "success"
-	BotProtectionVerificationStatusServiceUnavailable BotProtectionVerificationStatus = "service_unavailable"
+	BotProtectionVerificationOutcomeFailed             = "failed"
+	BotProtectionVerificationOutcomeVerified           = "verified"
+	BotProtectionVerificationOutcomeServiceUnavailable = "service_unavailable"
 )
