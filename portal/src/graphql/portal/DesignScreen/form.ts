@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { parse as parseCSS } from "postcss";
 import { produce } from "immer";
 import { useResourceForm } from "../../../hook/useResourceForm";
@@ -31,9 +31,10 @@ import {
 } from "../../../util/resource";
 import { useAppConfigForm } from "../../../hook/useAppConfigForm";
 import { PortalAPIAppConfig } from "../../../types";
-import { APIError } from "../../../error/error";
-import { ErrorParseRule, ErrorParseRuleResult } from "../../../error/parse";
+import { ErrorParseRule } from "../../../error/parse";
 import { useAppFeatureConfigQuery } from "../query/appFeatureConfigQuery";
+import { makeImageSizeTooLargeErrorRule } from "../../../error/resources";
+import { nonNullable } from "../../../util/types";
 
 const LOCALE_BASED_RESOUCE_DEFINITIONS = [
   RESOURCE_TRANSLATION_JSON,
@@ -169,8 +170,6 @@ function resolveResource(
   }
   return resources[specifierId(specifiers[specifiers.length - 1])] ?? null;
 }
-
-const ImageMaxSizeInKB = 100;
 
 export function useBrandDesignForm(appID: string): BranchDesignForm {
   const featureConfig = useAppFeatureConfigQuery(appID);
@@ -401,60 +400,13 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
     ]
   );
 
-  const imageSizeTooLargeErrorRule = useCallback(
-    (apiError: APIError): ErrorParseRuleResult => {
-      if (apiError.reason === "RequestEntityTooLarge") {
-        // When the request is blocked by the load balancer due to RequestEntityTooLarge
-        // We try to get the largest resource from the state
-        // and construct the error message for display
-
-        let path = "";
-        let longestLength = 0;
-        // get the largest resources from the state
-        for (const r of Object.keys(resourceForm.state.resources)) {
-          const l = resourceForm.state.resources[r]?.nullableValue?.length ?? 0;
-          if (l > longestLength) {
-            longestLength = l;
-            path = resourceForm.state.resources[r]?.path ?? "";
-          }
-        }
-
-        // parse resource type from resource path
-        let resourceType = "other";
-        if (path !== "") {
-          const dir = path.split("/");
-          const fileName = dir[dir.length - 1];
-          if (fileName.lastIndexOf(".") !== -1) {
-            resourceType = fileName.slice(0, fileName.lastIndexOf("."));
-          } else {
-            resourceType = fileName;
-          }
-        }
-
-        return {
-          parsedAPIErrors: [
-            {
-              messageID: "errors.resource-too-large",
-              arguments: {
-                maxSize: ImageMaxSizeInKB,
-                resourceType,
-              },
-            },
-          ],
-          fullyHandled: true,
-        };
-      }
-      return {
-        parsedAPIErrors: [],
-        fullyHandled: false,
-      };
-    },
-    [resourceForm.state.resources]
-  );
-
   const errorRules: ErrorParseRule[] = useMemo(
-    () => [imageSizeTooLargeErrorRule],
-    [imageSizeTooLargeErrorRule]
+    () => [
+      makeImageSizeTooLargeErrorRule(
+        Object.values(resourceForm.state.resources).filter(nonNullable)
+      ),
+    ],
+    [resourceForm.state.resources]
   );
 
   const designForm = useMemo(
