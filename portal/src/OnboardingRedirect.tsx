@@ -3,11 +3,13 @@ import { useNavigate } from "react-router-dom";
 import ShowLoading from "./ShowLoading";
 import ShowError from "./ShowError";
 import { useAppListQuery } from "./graphql/portal/query/appListQuery";
+import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 
 const OnboardingRedirect: React.VFC = function OnboardingRedirect() {
   const { loading, error, apps, refetch } = useAppListQuery();
 
   const navigate = useNavigate();
+  const { viewer } = useViewerQuery();
 
   useEffect(() => {
     if (loading) {
@@ -16,13 +18,15 @@ const OnboardingRedirect: React.VFC = function OnboardingRedirect() {
     if (error != null) {
       return;
     }
-    // redirect to create apps if user doesn't have any apps
-    if (apps && apps.length > 0) {
-      navigate("/");
-    } else {
+    if (
+      (apps === null || apps.length === 0) &&
+      !viewer?.isOnboardingSurveyCompleted
+    ) {
       navigate("/onboarding-survey");
+    } else {
+      navigate("/");
     }
-  }, [navigate, error, apps, loading]);
+  }, [navigate, viewer, error, apps, loading]);
 
   if (loading) {
     return <ShowLoading />;

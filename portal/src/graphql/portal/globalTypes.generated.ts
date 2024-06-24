@@ -863,6 +863,7 @@ export type Viewer = Node & {
   geoIPCountryCode?: Maybe<Scalars['String']['output']>;
   /** The ID of an object */
   id: Scalars['ID']['output'];
+  isOnboardingSurveyCompleted?: Maybe<Scalars['Boolean']['output']>;
   projectOwnerCount: Scalars['Int']['output'];
   projectQuota?: Maybe<Scalars['Int']['output']>;
 };

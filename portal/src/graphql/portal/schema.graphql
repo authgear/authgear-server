@@ -1102,6 +1102,9 @@ type Viewer implements Node {
 
   """"""
   projectQuota: Int
+
+  """"""
+  isOnboardingSurveyCompleted: Boolean
 }
 
 """Webhook secret"""
