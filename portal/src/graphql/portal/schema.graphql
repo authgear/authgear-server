@@ -492,6 +492,9 @@ type Mutation {
 
   """Request verification of a domain of target app"""
   verifyDomain(input: VerifyDomainInput!): VerifyDomainPayload!
+
+  """Update custom attribute with pointer being /onboarding_survey_json"""
+  updateSurveyCustomAttribute(input: updateSurveyCustomAttributeInput!): Boolean
 }
 
 """Web3 NFT Collection"""
@@ -1171,4 +1174,10 @@ input sendTestSMTPConfigurationEmailInput {
 
   """The recipient email address."""
   to: String!
+}
+
+""""""
+input updateSurveyCustomAttributeInput {
+  """Onboarding survey result in JSON form."""
+  surveyJSON: String!
 }

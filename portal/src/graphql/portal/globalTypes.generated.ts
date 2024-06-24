@@ -353,6 +353,8 @@ export type Mutation = {
   updateApp: UpdateAppPayload;
   /** Update subscription */
   updateSubscription: UpdateSubscriptionPayload;
+  /** Update custom attribute with pointer being /onboarding_survey_json */
+  updateSurveyCustomAttribute?: Maybe<Scalars['Boolean']['output']>;
   /** Request verification of a domain of target app */
   verifyDomain: VerifyDomainPayload;
 };
@@ -465,6 +467,11 @@ export type MutationUpdateAppArgs = {
 
 export type MutationUpdateSubscriptionArgs = {
   input: UpdateSubscriptionInput;
+};
+
+
+export type MutationUpdateSurveyCustomAttributeArgs = {
+  input: UpdateSurveyCustomAttributeInput;
 };
 
 
@@ -913,4 +920,9 @@ export type SendTestSmtpConfigurationEmailInput = {
   smtpUsername: Scalars['String']['input'];
   /** The recipient email address. */
   to: Scalars['String']['input'];
+};
+
+export type UpdateSurveyCustomAttributeInput = {
+  /** Onboarding survey result in JSON form. */
+  surveyJSON: Scalars['String']['input'];
 };

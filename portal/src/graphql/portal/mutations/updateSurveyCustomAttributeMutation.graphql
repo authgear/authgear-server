@@ -1,0 +1,3 @@
+mutation updateSurveyCustomAttributeMutation($surveyJSON: String!) {
+  updateSurveyCustomAttribute(input: { surveyJSON: $surveyJSON })
+}
