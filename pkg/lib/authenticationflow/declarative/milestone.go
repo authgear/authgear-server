@@ -290,3 +290,8 @@ type MilestonePromptCreatePasskey interface {
 	authflow.Milestone
 	MilestonePromptCreatePasskey()
 }
+
+type MilestoneDidVerifyBotProtection interface {
+	authflow.Milestone
+	MilestoneDidVerifyBotProtection()
+}
