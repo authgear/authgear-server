@@ -12,6 +12,14 @@ func GetOAuthSessionID(ctx context.Context) string {
 	return ctx.Value(contextKeyOAuthSessionID).(string)
 }
 
+type contextKeyTypeBotProtectionVerificationStatus struct{}
+
+var contextKeyBotProtectionVerificationStatus = contextKeyTypeBotProtectionVerificationStatus{}
+
+func GetBotProtectionVerificationStatus(ctx context.Context) BotProtectionVerificationStatus {
+	return ctx.Value(contextKeyBotProtectionVerificationStatus).(BotProtectionVerificationStatus)
+}
+
 type contextKeyTypeIDToken struct{}
 
 var contextKeyIDToken = contextKeyTypeIDToken{}
