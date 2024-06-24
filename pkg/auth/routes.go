@@ -15,16 +15,16 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-func newUnsafeDynamicCSPMiddleware(deps *deps.RequestProvider) httproute.Middleware {
-	return newDynamicCSPMiddleware(deps, webapp.AllowInlineScript(true), webapp.AllowFrameAncestorsFromCustomUI(false))
+func newSIWEDynamicCSPMiddleware(deps *deps.RequestProvider) httproute.Middleware {
+	return newDynamicCSPMiddleware(deps, webapp.AllowInlineScript(true), webapp.AllowFrameAncestorsFromEnv(true), webapp.AllowFrameAncestorsFromCustomUI(false))
 }
 
-func newSafeDynamicCSPMiddleware(deps *deps.RequestProvider) httproute.Middleware {
-	return newDynamicCSPMiddleware(deps, webapp.AllowInlineScript(false), webapp.AllowFrameAncestorsFromCustomUI(false))
+func newWebPageDynamicCSPMiddleware(deps *deps.RequestProvider) httproute.Middleware {
+	return newDynamicCSPMiddleware(deps, webapp.AllowInlineScript(false), webapp.AllowFrameAncestorsFromEnv(true), webapp.AllowFrameAncestorsFromCustomUI(false))
 }
 
 func newConsentPageDynamicCSPMiddleware(deps *deps.RequestProvider) httproute.Middleware {
-	return newDynamicCSPMiddleware(deps, webapp.AllowInlineScript(false), webapp.AllowFrameAncestorsFromCustomUI(true))
+	return newDynamicCSPMiddleware(deps, webapp.AllowInlineScript(false), webapp.AllowFrameAncestorsFromEnv(false), webapp.AllowFrameAncestorsFromCustomUI(true))
 }
 
 func newAllSessionMiddleware(deps *deps.RequestProvider) httproute.Middleware {
@@ -172,7 +172,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 			// Turbo no longer requires us to tell the redirected location.
 			// It can now determine redirection from the response.
 			// https://github.com/hotwired/turbo/blob/daabebb0575fffbae1b2582dc458967cd638e899/src/core/drive/visit.ts#L316
-			p.Middleware(newSafeDynamicCSPMiddleware),
+			p.Middleware(newWebPageDynamicCSPMiddleware),
 			p.Middleware(newWebAppWeChatRedirectURIMiddleware),
 		)
 	}
@@ -181,7 +181,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		webappChain,
 		p.Middleware(newCSRFDebugMiddleware),
 		p.Middleware(newCSRFMiddleware),
-		p.Middleware(newUnsafeDynamicCSPMiddleware),
+		p.Middleware(newSIWEDynamicCSPMiddleware),
 	)
 	webappAuthEntrypointChain := httproute.Chain(
 		webappPageChain,

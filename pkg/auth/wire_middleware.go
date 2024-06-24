@@ -78,7 +78,12 @@ func newContextHolderMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	))
 }
 
-func newDynamicCSPMiddleware(p *deps.RequestProvider, allowInlineScript webapp.AllowInlineScript, allowFrameAncestorsFromCustomUI webapp.AllowFrameAncestorsFromCustomUI) httproute.Middleware {
+func newDynamicCSPMiddleware(
+	p *deps.RequestProvider,
+	allowInlineScript webapp.AllowInlineScript,
+	allowFrameAncestorsFromEnv webapp.AllowFrameAncestorsFromEnv,
+	allowFrameAncestorsFromCustomUI webapp.AllowFrameAncestorsFromCustomUI,
+) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*webapp.DynamicCSPMiddleware)),
