@@ -891,6 +891,7 @@
   "DesignScreen.configuration.background.label": "Background",
   "DesignScreen.configuration.background.description": "Upload a PNG, JPEG or GIF image smaller than 1 MB",
   "DesignScreen.configuration.background.color.label": "Background color",
+  "DesignScreen.configuration.background.image.label": "Image",
   "DesignScreen.configuration.borderRadius.label": "Border radius",
   "DesignScreen.configuration.button.label": "Buttons",
   "DesignScreen.configuration.button.primaryButton.label": "Primary button",

@@ -172,10 +172,14 @@ const BackgroundConfiguration: React.VFC<BackgroundConfigurationProps> =
             onChange={designForm.setBackgroundColor}
           />
         </Configuration>
-        <ImagePicker
-          base64EncodedData={designForm.state.backgroundImageBase64EncodedData}
-          onChange={designForm.setBackgroundImage}
-        />
+        <Configuration labelKey="DesignScreen.configuration.background.image.label">
+          <ImagePicker
+            base64EncodedData={
+              designForm.state.backgroundImageBase64EncodedData
+            }
+            onChange={designForm.setBackgroundImage}
+          />
+        </Configuration>
       </ConfigurationGroup>
     );
   };
