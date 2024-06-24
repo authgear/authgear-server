@@ -4,7 +4,7 @@ import { usePortalClient } from "../../portal/apollo";
 import {
   UpdateSurveyCustomAttributeMutationDocument,
   UpdateSurveyCustomAttributeMutationMutation,
-} from "./updateSurveyCustomAttributeMutation.generated"
+} from "./updateSurveyCustomAttributeMutation.generated";
 
 export interface UseUpdateSurveyCustomAttributeMutationReturnType {
   updateSurveyCustomAttributeHook: (surveyJson: string) => Promise<void>;
@@ -15,16 +15,20 @@ export interface UseUpdateSurveyCustomAttributeMutationReturnType {
 
 export function useUpdateSurveyCustomAttributeMutation(): UseUpdateSurveyCustomAttributeMutationReturnType {
   const client = usePortalClient();
-  const [mutationFunction, { error, loading, reset }] = 
-    useMutation<UpdateSurveyCustomAttributeMutationMutation>(UpdateSurveyCustomAttributeMutationDocument, {
-      client,
-    });
+  const [mutationFunction, { error, loading, reset }] =
+    useMutation<UpdateSurveyCustomAttributeMutationMutation>(
+      UpdateSurveyCustomAttributeMutationDocument,
+      {
+        client,
+      }
+    );
   const updateSurveyCustomAttributeHook = useCallback(
     async (surveyJson: string) => {
       await mutationFunction({
-        variables: { surveyJson }
+        variables: { surveyJSON: surveyJson },
       });
-    }, [mutationFunction]
+    },
+    [mutationFunction]
   );
 
   return { updateSurveyCustomAttributeHook, error, loading, reset };

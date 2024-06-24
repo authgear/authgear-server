@@ -21,6 +21,9 @@ import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import FormTextField from "./FormTextField";
 import PhoneTextField, { PhoneTextFieldValues } from "./PhoneTextField";
 import { FormProvider } from "./form";
+import { useUpdateSurveyCustomAttributeMutation } from "./graphql/portal/mutations/updateSurveyCustomAttributeMutation";
+import { useLoading, useIsLoading } from "./hook/loading";
+import { useProvideError } from "./hook/error";
 import SurveyLayout from "./OnboardingSurveyLayout";
 import styles from "./OnboardingSurveyScreen.module.css";
 
@@ -748,11 +751,19 @@ function Step4(_props: StepProps) {
         otherReasonFromLocalStorage = elem.other_reason;
     });
   const [otherReason, setOtherReason] = useState(otherReasonFromLocalStorage);
+  const isLoading = useIsLoading();
   const navigate = useNavigate();
   const capture = useCapture();
   useEffect(() => goToFirstUnfilled(4, navigate), [navigate]);
+  const {
+    updateSurveyCustomAttributeHook: updateCustAttrHook,
+    error: updateCustAttrError,
+    loading: updateCustAttrLoading,
+  } = useUpdateSurveyCustomAttributeMutation();
+  useLoading(updateCustAttrLoading);
+  useProvideError(updateCustAttrError);
   const onClickNext = useCallback(
-    (e) => {
+    async (e) => {
       e.preventDefault();
       e.stopPropagation();
       const companyName = getFromLocalStorage("company_name");
@@ -773,6 +784,8 @@ function Step4(_props: StepProps) {
           survey_json: final_survey_obj,
         },
       });
+      await updateCustAttrHook(JSON.stringify(final_survey_obj));
+
       localStorage.removeItem(localStorageKey);
       if (companyName !== undefined)
         navigate("./../../projects/create", {
@@ -786,6 +799,7 @@ function Step4(_props: StepProps) {
       reasonChoicesState,
       otherReason,
       reasonChoicesEnum.Other,
+      updateCustAttrHook,
     ]
   );
   const onClickBack = useCallback(
@@ -827,7 +841,7 @@ function Step4(_props: StepProps) {
           onClick={onClickNext}
           text={renderToString("OnboardingSurveyScreen.step4.finish")}
           className={styles.nextButton}
-          disabled={empty}
+          disabled={empty || isLoading}
         />
       }
       backButton={
