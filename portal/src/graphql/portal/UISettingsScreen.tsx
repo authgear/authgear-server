@@ -208,7 +208,9 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
 
     const getOnChangeImage = useCallback(
       (def: ResourceDefinition) => {
-        return (base64EncodedData?: string, extension?: string) => {
+        return (
+          image: { base64EncodedData: string; extension: string } | null
+        ) => {
           setState((prev) => {
             const updatedResources = { ...prev.resources };
 
@@ -229,16 +231,16 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             }
 
             // Add the new one.
-            if (base64EncodedData != null && extension != null) {
+            if (image != null) {
               const specifier = {
                 def,
-                extension,
+                extension: image.extension,
                 locale: state.selectedLanguage,
               };
               const resource: Resource = {
                 specifier,
                 path: expandSpecifier(specifier),
-                nullableValue: base64EncodedData,
+                nullableValue: image.base64EncodedData,
               };
               updatedResources[specifierId(specifier)] = resource;
             }
