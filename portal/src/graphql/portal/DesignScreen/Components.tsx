@@ -30,6 +30,7 @@ import {
   AllBorderRadiusStyleTypes,
   BorderRadiusStyle,
   BorderRadiusStyleType,
+  CSSColor,
 } from "../../../model/themeAuthFlowV2";
 import TextField from "../../../TextField";
 import DefaultButton from "../../../DefaultButton";
@@ -208,8 +209,8 @@ export function ButtonToggleGroup<T>(
 
 interface ColorPickerProps {
   className?: string;
-  color: string;
-  onChange: (color: string) => void;
+  color: CSSColor;
+  onChange: (CSSColor: string) => void;
 }
 export const ColorPicker: React.VFC<ColorPickerProps> = function ColorPicker(
   props

@@ -11,7 +11,7 @@ export const enum ThemeTargetSelector {
   Light = ":root",
 }
 
-type Color = string;
+export type CSSColor = string;
 
 export const AllAlignments = ["start", "center", "end"] as const;
 export type Alignment = typeof AllAlignments[number];
@@ -36,8 +36,8 @@ export type BorderRadiusStyle =
     };
 
 export interface ButtonStyle {
-  backgroundColor: Color;
-  labelColor: Color;
+  backgroundColor: CSSColor;
+  labelColor: CSSColor;
   borderRadius: BorderRadiusStyle;
 }
 
@@ -46,12 +46,12 @@ export interface InputFieldStyle {
 }
 
 export interface LinkStyle {
-  color: Color;
+  color: CSSColor;
 }
 
 export interface CustomisableTheme {
   cardAlignment: Alignment;
-  backgroundColor: Color;
+  backgroundColor: CSSColor;
 
   primaryButton: ButtonStyle;
   inputField: InputFieldStyle;

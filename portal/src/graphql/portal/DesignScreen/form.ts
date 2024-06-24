@@ -5,6 +5,7 @@ import { useResourceForm } from "../../../hook/useResourceForm";
 import {
   Alignment,
   BorderRadiusStyle,
+  CSSColor,
   CssAstVisitor,
   CustomisableTheme,
   CustomisableThemeStyleGroup,
@@ -111,16 +112,16 @@ export interface BranchDesignForm {
     image: { base64EncodedData: string; extension: string } | null
   ) => void;
   setCardAlignment: (alignment: Alignment) => void;
-  setBackgroundColor: (color: string) => void;
+  setBackgroundColor: (color: CSSColor) => void;
   setBackgroundImage: (
     image: { base64EncodedData: string; extension: string } | null
   ) => void;
-  setPrimaryButtonBackgroundColor: (color: string) => void;
-  setPrimaryButtonLabelColor: (color: string) => void;
+  setPrimaryButtonBackgroundColor: (color: CSSColor) => void;
+  setPrimaryButtonLabelColor: (color: CSSColor) => void;
   setPrimaryButtonBorderRadiusStyle: (
     borderRadiusStyle: BorderRadiusStyle
   ) => void;
-  setLinkColor: (color: string) => void;
+  setLinkColor: (color: CSSColor) => void;
   setInputFieldBorderRadiusStyle: (
     borderRadiusStyle: BorderRadiusStyle
   ) => void;
@@ -496,7 +497,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
           });
         });
       },
-      setBackgroundColor: (backgroundColor: string) => {
+      setBackgroundColor: (backgroundColor: CSSColor) => {
         resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
             draft.backgroundColor = backgroundColor;
@@ -506,14 +507,14 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       setBackgroundImage: (image) => {
         resourceMutator.setImage(RESOURCE_APP_BACKGROUND_IMAGE, image);
       },
-      setPrimaryButtonBackgroundColor: (backgroundColor: string) => {
+      setPrimaryButtonBackgroundColor: (backgroundColor: CSSColor) => {
         resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
             draft.primaryButton.backgroundColor = backgroundColor;
           });
         });
       },
-      setPrimaryButtonLabelColor: (color: string) => {
+      setPrimaryButtonLabelColor: (color: CSSColor) => {
         resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
             draft.primaryButton.labelColor = color;
@@ -529,7 +530,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
           });
         });
       },
-      setLinkColor: (color: string) => {
+      setLinkColor: (color: CSSColor) => {
         resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
             draft.link.color = color;
