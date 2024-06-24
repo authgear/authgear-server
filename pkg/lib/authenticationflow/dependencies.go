@@ -165,6 +165,10 @@ type AccountMigrationService interface {
 	Run(migrationTokenString string) (*accountmigration.HookResponse, error)
 }
 
+type BotProtectionService interface {
+	Verify(t config.BotProtectionProviderType, response string) error
+}
+
 type CaptchaService interface {
 	VerifyToken(token string) error
 }
@@ -244,6 +248,7 @@ type Dependencies struct {
 	AccountMigrations               AccountMigrationService
 	Challenges                      ChallengeService
 	Captcha                         CaptchaService
+	BotProtection                   BotProtectionService
 	OAuthProviderFactory            OAuthProviderFactory
 	PasskeyRequestOptionsService    PasskeyRequestOptionsService
 	PasskeyCreationOptionsService   PasskeyCreationOptionsService

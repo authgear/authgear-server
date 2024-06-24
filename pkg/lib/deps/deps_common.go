@@ -32,6 +32,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
+	"github.com/authgear/authgear-server/pkg/lib/feature/botprotection"
 	"github.com/authgear/authgear-server/pkg/lib/feature/captcha"
 	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
@@ -310,6 +311,11 @@ var CommonDependencySet = wire.NewSet(
 		captcha.DependencySet,
 		wire.Bind(new(workflow.CaptchaService), new(*captcha.Provider)),
 		wire.Bind(new(authenticationflow.CaptchaService), new(*captcha.Provider)),
+	),
+
+	wire.NewSet(
+		botprotection.DependencySet,
+		wire.Bind(new(authenticationflow.BotProtectionService), new(*botprotection.Provider)),
 	),
 
 	wire.NewSet(
