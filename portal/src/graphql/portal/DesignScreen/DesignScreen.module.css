@@ -1,21 +1,24 @@
 .icAlignmentLeft {
   @apply h-6 w-6;
+  /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
   mask: url("../../../images/ic-alignment-left.svg");
 }
 
 .icAlignmentCenter {
   @apply h-6 w-6;
+  /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
   mask: url("../../../images/ic-alignment-center.svg");
 }
 
 .icAlignmentRight {
   @apply h-6 w-6;
+  /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
   mask: url("../../../images/ic-alignment-right.svg");
 }
 
 .icAlignment {
   @apply inline-block;
-  background-color: #1C1B1F;
+  background-color: #1c1b1f;
 }
 
 .icAlignment.selected {
@@ -36,21 +39,24 @@
 
 .icBorderRadius {
   @apply inline-block;
-  background-color: #1C1B1F;
+  background-color: #1c1b1f;
 }
 
 .icBorderRadiusSquare {
   @apply h-6 w-6;
+  /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
   mask: url("../../../images/ic-border-corner-square.svg");
 }
 
 .icBorderRadiusRounded {
   @apply h-6 w-6;
+  /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
   mask: url("../../../images/ic-border-corner-rounded.svg");
 }
 
 .icBorderRadiusFullRounded {
   @apply h-6 w-6;
+  /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
   mask: url("../../../images/ic-border-corner-pill.svg");
 }
 
@@ -62,11 +68,14 @@
   @apply inline-block;
   @apply h-6 w-6;
   @apply bg-grey-grey110;
+  /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
   mask: url("../../../images/ic-imagesmode.svg");
 }
 
 .linkConfigurationSeparator {
+  /* stylelint-disable-next-line declaration-no-important */
   margin-top: 1.5rem !important;
+  /* stylelint-disable-next-line declaration-no-important */
   margin-bottom: 1.5rem !important;
 }
 
