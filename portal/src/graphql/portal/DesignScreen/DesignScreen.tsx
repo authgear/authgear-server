@@ -18,6 +18,7 @@ import {
   Configuration,
   ConfigurationDescription,
   ConfigurationGroup,
+  FallbackDescription,
   ImagePicker,
   Option,
   Separator,
@@ -56,6 +57,9 @@ const OrganisationConfiguration: React.VFC<OrganisationConfigurationProps> =
           value={designForm.state.appName}
           onChange={onChange}
         />
+        <FallbackDescription
+          fallbackLanguage={designForm.state.fallbackLanguage}
+        />
       </ConfigurationGroup>
     );
   };
@@ -73,6 +77,9 @@ const AppLogoConfiguration: React.VFC<AppLogoConfigurationProps> =
           base64EncodedData={designForm.state.appLogoBase64EncodedData}
           onChange={designForm.setAppLogo}
         />
+        <FallbackDescription
+          fallbackLanguage={designForm.state.fallbackLanguage}
+        />
       </ConfigurationGroup>
     );
   };
@@ -89,6 +96,9 @@ const FaviconConfiguration: React.VFC<FaviconConfigurationProps> =
         <ImagePicker
           base64EncodedData={designForm.state.faviconBase64EncodedData}
           onChange={designForm.setFavicon}
+        />
+        <FallbackDescription
+          fallbackLanguage={designForm.state.fallbackLanguage}
         />
       </ConfigurationGroup>
     );
@@ -269,6 +279,9 @@ const LinkConfiguration: React.VFC<LinkConfigurationProps> =
           )}
           value={designForm.state.urls.customerSupport}
           onChange={onCustomerSupportLinkChange}
+        />
+        <FallbackDescription
+          fallbackLanguage={designForm.state.fallbackLanguage}
         />
       </ConfigurationGroup>
     );

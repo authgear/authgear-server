@@ -14,6 +14,7 @@ import {
   Image,
   ImageFit,
   getColorFromString,
+  Text,
 } from "@fluentui/react";
 import {
   Context as MFContext,
@@ -38,6 +39,7 @@ import {
 } from "../../../util/uri";
 import { useSystemConfig } from "../../../context/SystemConfigContext";
 import PrimaryButton from "../../../PrimaryButton";
+import { LanguageTag } from "../../../util/resource";
 
 interface SeparatorProps {
   className?: string;
@@ -46,6 +48,29 @@ export const Separator: React.VFC<SeparatorProps> = function Separator(props) {
   const { className } = props;
   return <div className={cn("h-px", "my-12", "bg-separator", className)}></div>;
 };
+
+interface FallbackDescriptionProps {
+  fallbackLanguage: LanguageTag;
+}
+export const FallbackDescription: React.VFC<FallbackDescriptionProps> =
+  function FallbackDescription(props) {
+    const { fallbackLanguage } = props;
+    const { renderToString } = useContext(MFContext);
+    return (
+      <Text
+        className={cn("text-neutral-secondary")}
+        variant="small"
+        block={true}
+      >
+        <FormattedMessage
+          id="DesignScreen.configuration.fallback"
+          values={{
+            fallbackLanguage: renderToString(`Locales.${fallbackLanguage}`),
+          }}
+        />
+      </Text>
+    );
+  };
 
 interface ConfigurationGroupProps {
   labelKey: string;

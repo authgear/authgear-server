@@ -31,6 +31,7 @@ module.exports = {
           light: "#edebe9",
           lighter: "#f3f2f1",
           quaternaryAlt: "#E1DFDD",
+          secondary: "#605E5C",
           tertiaryAlt: "#C8C6C4",
         },
         separator: "#EDEBE9",
