@@ -244,7 +244,7 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 	if len(appConfig.Hook.BlockingHandlers) > 0 || len(appConfig.Hook.NonBlockingHandlers) > 0 {
 		c.validateRequire(ctx, WebhookKeyMaterialsKey, "web-hook signing key materials")
 	}
-	if appConfig.BotProtection != nil && appConfig.BotProtection.Enabled != nil && *appConfig.BotProtection.Enabled && appConfig.BotProtection.Provider != nil {
+	if appConfig.BotProtection != nil && appConfig.BotProtection.Enabled && appConfig.BotProtection.Provider != nil {
 		c.validateRequire(ctx, BotProtectionProviderCredentialsKey, "bot protection key materials")
 		c.validateBotProtectionSecrets(ctx, appConfig.BotProtection.Provider)
 	}

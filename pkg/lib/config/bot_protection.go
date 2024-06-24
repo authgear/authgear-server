@@ -39,7 +39,7 @@ var _ = Schema.Add("BotProtectionProvider", `
 `)
 
 type BotProtectionConfig struct {
-	Enabled  *bool                  `json:"enabled,omitempty"`
+	Enabled  bool                   `json:"enabled,omitempty"`
 	Provider *BotProtectionProvider `json:"provider,omitempty" nullable:"true"`
 }
 

@@ -3,7 +3,7 @@ package declarative
 import "github.com/authgear/authgear-server/pkg/lib/config"
 
 func getBotProtectionProviderConfig(cfg *config.AppConfig) (botProtection *config.AuthenticationFlowBotProtection, ok bool) {
-	if cfg.BotProtection == nil || cfg.BotProtection.Enabled == nil || !*cfg.BotProtection.Enabled || cfg.BotProtection.Provider == nil {
+	if cfg.BotProtection == nil || !cfg.BotProtection.Enabled || cfg.BotProtection.Provider == nil {
 		return nil, false
 	}
 	return &config.AuthenticationFlowBotProtection{
