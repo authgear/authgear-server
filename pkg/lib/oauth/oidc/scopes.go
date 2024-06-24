@@ -15,6 +15,7 @@ func ValidateScopes(client *config.OAuthClientConfig, scopes []string) error {
 		}
 	}
 	hasOIDC := false
+	hasDeviceSSO := false
 	for _, s := range scopes {
 		if !IsScopeAllowed(s) {
 			return protocol.NewError("invalid_scope", "specified scope is not allowed")
@@ -27,6 +28,16 @@ func ValidateScopes(client *config.OAuthClientConfig, scopes []string) error {
 		}
 		if s == "openid" {
 			hasOIDC = true
+		}
+		if s == oauth.DeviceSSOScope {
+			hasDeviceSSO = true
+		}
+		// TODO(tung): Validate if device_sso is allowed by client config
+		if s == oauth.DeviceSSOScope && !client.AppInitiatedSSOToWebEnabled {
+			return protocol.NewError("invalid_scope", "device_sso is not allowed for this client")
+		}
+		if s == oauth.AppInitiatedSSOToWebScope && !hasDeviceSSO {
+			return protocol.NewError("invalid_scope", "device_sso must be requested when using app-initiated-sso-to-web")
 		}
 		if s == oauth.AppInitiatedSSOToWebScope && !client.AppInitiatedSSOToWebEnabled {
 			return protocol.NewError("invalid_scope", "app-initiated-sso-to-web is not allowed for this client")
@@ -44,6 +55,7 @@ var AllowedScopes = []string{
 	oauth.FullAccessScope,
 	oauth.FullUserInfoScope,
 	oauth.AppInitiatedSSOToWebScope,
+	oauth.DeviceSSOScope,
 }
 
 func IsScopeAllowed(scope string) bool {
