@@ -119,6 +119,7 @@ var secretDeps = wire.NewSet(
 	ProvideWATICredentials,
 	ProvideOAuthClientCredentials,
 	ProvideCaptchaCloudflareCredentials,
+	ProvideBotProtectionProvidersCredentials,
 	ProvideWhatsappOnPremisesCredentials,
 )
 
@@ -208,6 +209,11 @@ func ProvideOAuthClientCredentials(c *config.SecretConfig) *config.OAuthClientCr
 
 func ProvideCaptchaCloudflareCredentials(c *config.SecretConfig) *config.Deprecated_CaptchaCloudflareCredentials {
 	s, _ := c.LookupData(config.Deprecated_CaptchaCloudflareCredentialsKey).(*config.Deprecated_CaptchaCloudflareCredentials)
+	return s
+}
+
+func ProvideBotProtectionProvidersCredentials(c *config.SecretConfig) *config.BotProtectionProviderCredentials {
+	s, _ := c.LookupData(config.BotProtectionProviderCredentialsKey).(*config.BotProtectionProviderCredentials)
 	return s
 }
 
