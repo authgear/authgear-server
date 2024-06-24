@@ -294,7 +294,7 @@ func (h *TokenHandler) rotateDeviceSecretIfNeeded(
 	authorizedScopes []string,
 	offlineGrant *oauth.OfflineGrant,
 	resp protocol.TokenResponse) (*oauth.OfflineGrant, error) {
-	if offlineGrant.DeviceSecretHash == "" || !oidc.IsScopeAuthorized(authorizedScopes, oauth.DeviceSSOScope) {
+	if offlineGrant.DeviceSecretHash == "" || !oauth.ContainsAllScopes(authorizedScopes, []string{oauth.DeviceSSOScope}) {
 		// No device secret, no rotation needed.
 		return offlineGrant, nil
 	}
@@ -788,6 +788,10 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		scopes = requestedScopes
 	}
 
+	if !oauth.ContainsAllScopes(scopes, []string{oauth.OfflineAccess, oauth.FullAccessScope}) {
+		return nil, protocol.NewError("invalid_scope", "offline_access and full-access must be requested")
+	}
+
 	authz, err := h.Authorizations.CheckAndGrant(
 		client.ClientID,
 		info.UserID,
@@ -1084,7 +1088,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	issueDeviceToken := h.shouldIssueDeviceSecret(code.AuthorizationRequest.Scope())
 	for _, scope := range code.AuthorizationRequest.Scope() {
 		switch scope {
-		case "offline_access":
+		case oauth.OfflineAccess:
 			issueRefreshToken = true
 		case "openid":
 			issueIDToken = true
