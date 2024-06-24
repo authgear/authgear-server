@@ -1,0 +1,66 @@
+part: BotProtectionConfig
+name: valid-cloudflare
+error: null
+value:
+  enabled: true
+  provider:
+    type: cloudflare
+    site_key: asdkjhfjaksdhjkfsdhadsk
+---
+part: BotProtectionConfig
+name: valid-recaptchav2
+error: null
+value:
+  enabled: true
+  provider:
+    type: recaptchav2
+    site_key: asdkjhfjaksdhjkfsdhadsk
+---
+part: BotProtectionConfig
+name: missing-enabled-and-provider
+error: |-
+  invalid value:
+  /some_invalid_key: 
+value:
+  some_invalid_key: blahblah
+---
+part: BotProtectionConfig
+name: invalid-provider-type
+error: |-
+  invalid value:
+  /provider/type: enum
+    map[actual:hcaptcha expected:[cloudflare recaptchav2]]
+value:
+  enabled: true
+  provider:
+    type: hcaptcha # not supported yet
+---
+part: BotProtectionConfig
+name: missing-site-key-for-cloudflare
+error: |-
+  invalid value:
+  /provider: required
+    map[actual:[type] expected:[site_key] missing:[site_key]]
+value:
+  enabled: true
+  provider:
+    type: cloudflare
+    # "site_key" is not set
+---
+part: BotProtectionConfig
+name: missing-site-key-for-recaptcha-v2
+error: |-
+  invalid value:
+  /provider: required
+    map[actual:[type] expected:[site_key] missing:[site_key]]
+value:
+  enabled: true
+  provider:
+    type: recaptchav2
+    # "site_key" is not set
+---
+part: BotProtectionConfig
+name: enabled-false
+error: null
+value:
+  enabled: false

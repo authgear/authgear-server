@@ -9,8 +9,7 @@ import (
 
 func GenerateSignupFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowSignupFlow {
 	flow := &config.AuthenticationFlowSignupFlow{
-		Name:    nameGeneratedFlow,
-		Captcha: generateFlowCaptcha(cfg),
+		Name: nameGeneratedFlow,
 		Steps: []*config.AuthenticationFlowSignupFlowStep{
 			generateSignupFlowStepIdentify(cfg),
 		},
@@ -43,12 +42,10 @@ func generateSignupFlowStepIdentify(cfg *config.AppConfig) *config.Authenticatio
 		}
 	}
 
-	// Add captcha if enabled
-	if hasCaptcha(cfg) {
+	botProtection, ok := getBotProtectionProviderConfig(cfg)
+	if ok {
 		for _, oneOf := range step.OneOf {
-			oneOf.Captcha = &config.AuthenticationFlowCaptcha{
-				Required: getBoolPtr(true),
-			}
+			oneOf.BotProtection = botProtection
 		}
 	}
 

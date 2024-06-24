@@ -7,8 +7,7 @@ import (
 
 func GenerateSignupLoginFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowSignupLoginFlow {
 	flow := &config.AuthenticationFlowSignupLoginFlow{
-		Name:    nameGeneratedFlow,
-		Captcha: generateFlowCaptcha(cfg),
+		Name: nameGeneratedFlow,
 		Steps: []*config.AuthenticationFlowSignupLoginFlowStep{
 			generateSignupLoginFlowStepIdentify(cfg),
 		},
@@ -37,12 +36,10 @@ func generateSignupLoginFlowStepIdentify(cfg *config.AppConfig) *config.Authenti
 		}
 	}
 
-	// Add captcha if enabled
-	if hasCaptcha(cfg) {
+	botProtection, ok := getBotProtectionProviderConfig(cfg)
+	if ok {
 		for _, oneOf := range step.OneOf {
-			oneOf.Captcha = &config.AuthenticationFlowCaptcha{
-				Required: getBoolPtr(true),
-			}
+			oneOf.BotProtection = botProtection
 		}
 	}
 

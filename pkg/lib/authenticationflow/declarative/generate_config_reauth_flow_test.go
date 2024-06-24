@@ -283,7 +283,7 @@ steps:
   - authentication: primary_passkey
   - authentication: secondary_totp
 `)
-		// captcha, 1 branch
+		// bot_protection, 1 branch
 		test(`
 authentication:
   identities:
@@ -295,16 +295,13 @@ identity:
   login_id:
     keys:
     - type: email
-captcha:
+bot_protection:
   enabled: true
-  providers:
-  - type: recaptchav2
-    alias: recaptchav2-a
+  provider:
+    type: recaptchav2
     site_key: some-site-key
 `, `
 name: default
-captcha:
-  enabled: true
 steps:
 - name: reauth_identify
   type: identify
@@ -314,10 +311,12 @@ steps:
   type: authenticate
   one_of:
   - authentication: primary_password
-    captcha:
-      required: true
+    bot_protection:
+      mode: always
+      provider: 
+        type: recaptchav2
 `)
-		// captcha, 3 branches
+		// bot_protection, 3 branches
 		test(`
 authentication:
   identities:
@@ -332,16 +331,13 @@ identity:
     keys:
     - type: email
     - type: phone
-captcha:
+bot_protection:
   enabled: true
-  providers:
-  - type: recaptchav2
-    alias: recaptchav2-a
+  provider:
+    type: recaptchav2
     site_key: some-site-key
 `, `
 name: default
-captcha:
-  enabled: true
 steps:
 - name: reauth_identify
   type: identify
@@ -351,14 +347,20 @@ steps:
   type: authenticate
   one_of:
   - authentication: primary_password
-    captcha:
-      required: true
+    bot_protection:
+      mode: always
+      provider: 
+        type: recaptchav2
   - authentication: primary_oob_otp_email
-    captcha:
-      required: true
+    bot_protection:
+      mode: always
+      provider: 
+        type: recaptchav2
   - authentication: primary_oob_otp_sms
-    captcha:
-      required: true
+    bot_protection:
+      mode: always
+      provider: 
+        type: recaptchav2
 `)
 	})
 }

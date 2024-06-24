@@ -536,7 +536,7 @@ steps:
 - type: terminate_other_sessions
 - type: prompt_create_passkey
 `)
-		// captcha, 1 branch
+		// bot_protection, 1 branch
 		test(`
 authentication:
   identities:
@@ -547,23 +547,22 @@ identity:
   login_id:
     keys:
     - type: email
-captcha:
+bot_protection:
   enabled: true
-  providers:
-  - type: recaptchav2
-    alias: recaptchav2-a
+  provider:
+    type: recaptchav2
     site_key: some-site-key
 `, `
 name: default
-captcha:
-  enabled: true
 steps:
 - name: login_identify
   type: identify
   one_of:
   - identification: email
-    captcha:
-      required: true
+    bot_protection:
+      mode: always
+      provider: 
+        type: recaptchav2
     steps:
     - name: authenticate_primary_email
       type: authenticate
@@ -582,7 +581,7 @@ steps:
 - type: check_account_status
 - type: terminate_other_sessions
 `)
-		// captcha, 3 branches
+		// bot_protection, 3 branches
 		test(`
 authentication:
   identities:
@@ -595,23 +594,22 @@ identity:
     - type: email
     - type: phone
     - type: username
-captcha:
+bot_protection:
   enabled: true
-  providers:
-  - type: recaptchav2
-    alias: recaptchav2-a
+  provider:
+    type: recaptchav2
     site_key: some-site-key
 `, `
 name: default
-captcha:
-  enabled: true
 steps:
 - name: login_identify
   type: identify
   one_of:
   - identification: email
-    captcha:
-      required: true
+    bot_protection:
+      mode: always
+      provider: 
+        type: recaptchav2
     steps:
     - name: authenticate_primary_email
       one_of:
@@ -628,8 +626,10 @@ steps:
           type: change_password
       type: authenticate
   - identification: phone
-    captcha:
-      required: true
+    bot_protection:
+      mode: always
+      provider: 
+        type: recaptchav2
     steps:
     - name: authenticate_primary_phone
       one_of:
@@ -646,8 +646,10 @@ steps:
           type: change_password
       type: authenticate
   - identification: username
-    captcha:
-      required: true
+    bot_protection:
+      mode: always
+      provider: 
+        type: recaptchav2
     steps:
     - name: authenticate_primary_username
       one_of:

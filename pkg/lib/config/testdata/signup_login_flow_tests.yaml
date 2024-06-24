@@ -3,14 +3,12 @@ name: valid
 error: null
 value:
   name: id
-  captcha:
-    enabled: true
   steps:
   - type: identify
     one_of:
     - identification: email
-      captcha:
-        required: true
+      bot_protection:
+        mode: never
       signup_flow: a
       login_flow: b
 
@@ -19,18 +17,17 @@ part: AuthenticationFlowSignupLoginFlow
 name: invalid
 error: |-
   invalid value:
-  /captcha/foobar: 
   /steps/0/type: enum
     map[actual:foobar expected:[identify]]
   /steps/1/one_of/0: required
-    map[actual:[captcha identification] expected:[identification login_flow signup_flow] missing:[login_flow signup_flow]]
-  /steps/1/one_of/0/captcha/foobar: 
+    map[actual:[bot_protection identification] expected:[identification login_flow signup_flow] missing:[login_flow signup_flow]]
+  /steps/1/one_of/0/bot_protection: required
+    map[actual:[foobar] expected:[mode] missing:[mode]]
+  /steps/1/one_of/0/bot_protection/foobar: 
   /steps/1/one_of/0/identification: enum
     map[actual:foobar expected:[email phone username oauth passkey]]
 value:
   name: id
-  captcha:
-    foobar: true
   steps:
   - type: foobar
     one_of:
@@ -38,5 +35,43 @@ value:
   - type: identify
     one_of:
     - identification: foobar
-      captcha:
+      bot_protection:
         foobar: true
+---
+part: AuthenticationFlowSignupLoginFlow
+name: bot_protection-mode-always-but-missing-provider
+error: |-
+  invalid value:
+  /steps/0/one_of/0/bot_protection: required
+    map[actual:[mode] expected:[provider] missing:[provider]]
+value:
+  name: id
+  steps:
+  - type: identify
+    one_of:
+    - identification: email
+      bot_protection:
+        mode: always
+      signup_flow: a
+      login_flow: b
+---
+part: AuthenticationFlowSignupLoginFlow
+name: bot-protection-provider-missing-alias
+error: |-
+  invalid value:
+  /steps/0/one_of/0/bot_protection/provider: 
+  /steps/0/one_of/0/bot_protection/provider: required
+    map[actual:[nickname] expected:[type] missing:[type]]
+  /steps/0/one_of/0/bot_protection/provider/nickname: 
+value:
+  name: id
+  steps:
+  - type: identify
+    one_of:
+    - identification: email
+      bot_protection:
+        mode: always
+        provider:
+          nickname: wrong-key
+      signup_flow: a
+      login_flow: b

@@ -46,16 +46,14 @@ func GenerateAccountRecoveryFlowConfig(cfg *config.AppConfig) *config.Authentica
 		})
 	}
 
-	if hasCaptcha(cfg) {
+	botProtection, ok := getBotProtectionProviderConfig(cfg)
+	if ok {
 		for _, oneOf := range oneOfs {
-			oneOf.Captcha = &config.AuthenticationFlowCaptcha{
-				Required: getBoolPtr(true),
-			}
+			oneOf.BotProtection = botProtection
 		}
 	}
 	return &config.AuthenticationFlowAccountRecoveryFlow{
-		Name:    nameGeneratedFlow,
-		Captcha: generateFlowCaptcha(cfg),
+		Name: nameGeneratedFlow,
 		Steps: []*config.AuthenticationFlowAccountRecoveryFlowStep{
 			{
 				Type:  config.AuthenticationFlowAccountRecoveryFlowTypeIdentify,
