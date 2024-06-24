@@ -120550,7 +120550,7 @@ func newContextHolderMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	return contextHolderMiddleware
 }
 
-func newDynamicCSPMiddleware(p *deps.RequestProvider, allowInlineScript webapp2.AllowInlineScript, allowFrameAncestors webapp2.AllowFrameAncestors) httproute.Middleware {
+func newDynamicCSPMiddleware(p *deps.RequestProvider, allowInlineScript webapp2.AllowInlineScript, allowFrameAncestorsFromCustomUI webapp2.AllowFrameAncestorsFromCustomUI) httproute.Middleware {
 	request := p.Request
 	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
@@ -120568,13 +120568,13 @@ func newDynamicCSPMiddleware(p *deps.RequestProvider, allowInlineScript webapp2.
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	dynamicCSPMiddleware := &webapp2.DynamicCSPMiddleware{
-		Cookies:             cookieManager,
-		HTTPOrigin:          httpOrigin,
-		OAuthConfig:         oAuthConfig,
-		WebAppCDNHost:       webAppCDNHost,
-		AuthUISentryDSN:     authUISentryDSN,
-		AllowInlineScript:   allowInlineScript,
-		AllowFrameAncestors: allowFrameAncestors,
+		Cookies:                         cookieManager,
+		HTTPOrigin:                      httpOrigin,
+		OAuthConfig:                     oAuthConfig,
+		WebAppCDNHost:                   webAppCDNHost,
+		AuthUISentryDSN:                 authUISentryDSN,
+		AllowInlineScript:               allowInlineScript,
+		AllowFrameAncestorsFromCustomUI: allowFrameAncestorsFromCustomUI,
 	}
 	return dynamicCSPMiddleware
 }

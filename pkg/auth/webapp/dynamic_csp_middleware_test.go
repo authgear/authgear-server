@@ -20,10 +20,10 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 		cookieManager.EXPECT().GetCookie(gomock.Any(), CSPNonceCookieDef).Return(&http.Cookie{}, nil).AnyTimes()
 
 		type TestCase struct {
-			OAuthConfig         *config.OAuthConfig
-			AllowInlineScript   bool
-			AllowFrameAncestors bool
-			ExpectedHeaders     map[string][]string
+			OAuthConfig                     *config.OAuthConfig
+			AllowInlineScript               bool
+			AllowFrameAncestorsFromCustomUI bool
+			ExpectedHeaders                 map[string][]string
 		}
 
 		Convey("CSP Directives", func() {
@@ -36,8 +36,8 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 							},
 						},
 					},
-					AllowInlineScript:   true,
-					AllowFrameAncestors: true,
+					AllowInlineScript:               true,
+					AllowFrameAncestorsFromCustomUI: true,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
 							"default-src 'self'; script-src 'unsafe-inline' www.googletagmanager.com eu-assets.i.posthog.com https://browser.sentry-cdn.com 'self' http://cdn.authgear.com; frame-src www.googletagmanager.com 'self'; font-src cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com 'self' http://cdn.authgear.com; style-src 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com 'self' http://cdn.authgear.com; img-src http: https: data: 'self' http://cdn.authgear.com; object-src 'none'; base-uri 'none'; connect-src 'self' https://www.google-analytics.com ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors http://customui.com",
@@ -52,8 +52,8 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 							},
 						},
 					},
-					AllowInlineScript:   true,
-					AllowFrameAncestors: false,
+					AllowInlineScript:               true,
+					AllowFrameAncestorsFromCustomUI: false,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
 							"default-src 'self'; script-src 'unsafe-inline' www.googletagmanager.com eu-assets.i.posthog.com https://browser.sentry-cdn.com 'self' http://cdn.authgear.com; frame-src www.googletagmanager.com 'self'; font-src cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com 'self' http://cdn.authgear.com; style-src 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com 'self' http://cdn.authgear.com; img-src http: https: data: 'self' http://cdn.authgear.com; object-src 'none'; base-uri 'none'; connect-src 'self' https://www.google-analytics.com ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors 'none'",
@@ -62,9 +62,9 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 					},
 				},
 				{
-					OAuthConfig:         &config.OAuthConfig{},
-					AllowInlineScript:   true,
-					AllowFrameAncestors: true,
+					OAuthConfig:                     &config.OAuthConfig{},
+					AllowInlineScript:               true,
+					AllowFrameAncestorsFromCustomUI: true,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
 							"default-src 'self'; script-src 'unsafe-inline' www.googletagmanager.com eu-assets.i.posthog.com https://browser.sentry-cdn.com 'self' http://cdn.authgear.com; frame-src www.googletagmanager.com 'self'; font-src cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com 'self' http://cdn.authgear.com; style-src 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com 'self' http://cdn.authgear.com; img-src http: https: data: 'self' http://cdn.authgear.com; object-src 'none'; base-uri 'none'; connect-src 'self' https://www.google-analytics.com ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors 'none'",
@@ -73,9 +73,9 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 					},
 				},
 				{
-					OAuthConfig:         &config.OAuthConfig{},
-					AllowInlineScript:   true,
-					AllowFrameAncestors: false,
+					OAuthConfig:                     &config.OAuthConfig{},
+					AllowInlineScript:               true,
+					AllowFrameAncestorsFromCustomUI: false,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
 							"default-src 'self'; script-src 'unsafe-inline' www.googletagmanager.com eu-assets.i.posthog.com https://browser.sentry-cdn.com 'self' http://cdn.authgear.com; frame-src www.googletagmanager.com 'self'; font-src cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com 'self' http://cdn.authgear.com; style-src 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com 'self' http://cdn.authgear.com; img-src http: https: data: 'self' http://cdn.authgear.com; object-src 'none'; base-uri 'none'; connect-src 'self' https://www.google-analytics.com ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors 'none'",
@@ -84,9 +84,9 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 					},
 				},
 				{
-					OAuthConfig:         &config.OAuthConfig{},
-					AllowInlineScript:   false,
-					AllowFrameAncestors: true,
+					OAuthConfig:                     &config.OAuthConfig{},
+					AllowInlineScript:               false,
+					AllowFrameAncestorsFromCustomUI: true,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
 							"default-src 'self'; script-src 'strict-dynamic' 'nonce-' www.googletagmanager.com eu-assets.i.posthog.com https://browser.sentry-cdn.com 'self' http://cdn.authgear.com; frame-src www.googletagmanager.com 'self'; font-src cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com 'self' http://cdn.authgear.com; style-src 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com 'self' http://cdn.authgear.com; img-src http: https: data: 'self' http://cdn.authgear.com; object-src 'none'; base-uri 'none'; connect-src 'self' https://www.google-analytics.com ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors 'none'",
@@ -95,9 +95,9 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 					},
 				},
 				{
-					OAuthConfig:         &config.OAuthConfig{},
-					AllowInlineScript:   false,
-					AllowFrameAncestors: false,
+					OAuthConfig:                     &config.OAuthConfig{},
+					AllowInlineScript:               false,
+					AllowFrameAncestorsFromCustomUI: false,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
 							"default-src 'self'; script-src 'strict-dynamic' 'nonce-' www.googletagmanager.com eu-assets.i.posthog.com https://browser.sentry-cdn.com 'self' http://cdn.authgear.com; frame-src www.googletagmanager.com 'self'; font-src cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com 'self' http://cdn.authgear.com; style-src 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com 'self' http://cdn.authgear.com; img-src http: https: data: 'self' http://cdn.authgear.com; object-src 'none'; base-uri 'none'; connect-src 'self' https://www.google-analytics.com ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors 'none'",
@@ -109,12 +109,12 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 
 			test := func(testcase TestCase, resultHeaders map[string][]string) {
 				middleware := DynamicCSPMiddleware{
-					Cookies:             cookieManager,
-					HTTPOrigin:          "http://authgear.com",
-					WebAppCDNHost:       "http://cdn.authgear.com",
-					OAuthConfig:         testcase.OAuthConfig,
-					AllowInlineScript:   AllowInlineScript(testcase.AllowInlineScript),
-					AllowFrameAncestors: AllowFrameAncestors(testcase.AllowFrameAncestors),
+					Cookies:                         cookieManager,
+					HTTPOrigin:                      "http://authgear.com",
+					WebAppCDNHost:                   "http://cdn.authgear.com",
+					OAuthConfig:                     testcase.OAuthConfig,
+					AllowInlineScript:               AllowInlineScript(testcase.AllowInlineScript),
+					AllowFrameAncestorsFromCustomUI: AllowFrameAncestorsFromCustomUI(testcase.AllowFrameAncestorsFromCustomUI),
 				}
 
 				makeHandler := func() http.Handler {

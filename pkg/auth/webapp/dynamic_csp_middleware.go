@@ -27,16 +27,16 @@ var CSPNonceCookieDef = &httputil.CookieDef{
 
 type AllowInlineScript bool
 
-type AllowFrameAncestors bool
+type AllowFrameAncestorsFromCustomUI bool
 
 type DynamicCSPMiddleware struct {
-	Cookies             CookieManager
-	HTTPOrigin          httputil.HTTPOrigin
-	OAuthConfig         *config.OAuthConfig
-	WebAppCDNHost       config.WebAppCDNHost
-	AuthUISentryDSN     config.AuthUISentryDSN
-	AllowInlineScript   AllowInlineScript
-	AllowFrameAncestors AllowFrameAncestors
+	Cookies                         CookieManager
+	HTTPOrigin                      httputil.HTTPOrigin
+	OAuthConfig                     *config.OAuthConfig
+	WebAppCDNHost                   config.WebAppCDNHost
+	AuthUISentryDSN                 config.AuthUISentryDSN
+	AllowInlineScript               AllowInlineScript
+	AllowFrameAncestorsFromCustomUI AllowFrameAncestorsFromCustomUI
 }
 
 func (m *DynamicCSPMiddleware) Handle(next http.Handler) http.Handler {
@@ -54,7 +54,7 @@ func (m *DynamicCSPMiddleware) Handle(next http.Handler) http.Handler {
 		r = r.WithContext(web.WithCSPNonce(r.Context(), nonce))
 
 		var frameAncestors []string
-		if m.AllowFrameAncestors {
+		if m.AllowFrameAncestorsFromCustomUI {
 			for _, oauthClient := range m.OAuthConfig.Clients {
 				if oauthClient.CustomUIURI != "" {
 					u, err := url.Parse(oauthClient.CustomUIURI)
