@@ -13,6 +13,7 @@ import (
 const FullAccessScope = "https://authgear.com/scopes/full-access"
 const FullUserInfoScope = "https://authgear.com/scopes/full-userinfo"
 const AppInitiatedSSOToWebScope = "https://authgear.com/scopes/app-initiated-sso-to-web"
+const DeviceSSOScope = "device_sso"
 
 func SessionScopes(s session.ResolvedSession) []string {
 	switch s := s.(type) {
