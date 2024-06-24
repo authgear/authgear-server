@@ -57,7 +57,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForIn
 }
 
 func (m *InlinePreviewAuthflowBranchViewModeler) NewAuthflowBranchViewModelForInlinePreviewEnterTOTP() AuthflowBranchViewModel {
-	branches := m.generateAuthflowBranchesIdentityLoginIDs(m.getLoginIDKeyTypes())
+	branches := m.generateAuthflowBranchesLoginIDAuthenticateSecondaries(m.getLoginIDKeyTypes())
 	branches = slice.Filter[AuthflowBranch](branches, func(b AuthflowBranch) bool {
 		return b.Authentication != config.AuthenticationFlowAuthenticationSecondaryTOTP
 	})
@@ -278,6 +278,22 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesIdentit
 	}
 
 	return output
+}
+
+func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesLoginIDAuthenticateSecondaries(keyTypes []model.LoginIDKeyType) []AuthflowBranch {
+	var output []AuthflowBranch
+	addedMap := make(map[config.AuthenticationFlowAuthentication]struct{})
+	for _, typ := range keyTypes {
+		branches := m.generateAuthflowBranchesLoginIDAuthenticateSecondary(typ)
+		for _, branch := range branches {
+			branch_ := branch
+			if _, ok := addedMap[branch.Authentication]; !ok {
+				addedMap[branch.Authentication] = struct{}{}
+				output = append(output, branch_)
+			}
+		}
+	}
+	return reorderBranches(output)
 }
 
 func (m *InlinePreviewAuthflowBranchViewModeler) generateAuthflowBranchesLoginIDAuthenticateSecondary(keyType model.LoginIDKeyType) []AuthflowBranch {
