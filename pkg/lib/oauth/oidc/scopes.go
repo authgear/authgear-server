@@ -66,3 +66,12 @@ func IsScopeAllowed(scope string) bool {
 	}
 	return false
 }
+
+func IsScopeAuthorized(authorizedScopes []string, requiredScope string) bool {
+	for _, scope := range authorizedScopes {
+		if scope == requiredScope {
+			return true
+		}
+	}
+	return false
+}
