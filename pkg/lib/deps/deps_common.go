@@ -32,6 +32,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
+	"github.com/authgear/authgear-server/pkg/lib/feature/botprotection"
 	"github.com/authgear/authgear-server/pkg/lib/feature/captcha"
 	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
@@ -42,7 +43,9 @@ import (
 	featureweb3 "github.com/authgear/authgear-server/pkg/lib/feature/web3"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
-	infracaptcha "github.com/authgear/authgear-server/pkg/lib/infra/captcha"
+
+	infrabotprotection "github.com/authgear/authgear-server/pkg/lib/infra/botprotection"
+	deprecated_infracaptcha "github.com/authgear/authgear-server/pkg/lib/infra/captcha"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
@@ -314,6 +317,11 @@ var CommonDependencySet = wire.NewSet(
 	),
 
 	wire.NewSet(
+		botprotection.DependencySet,
+		wire.Bind(new(authenticationflow.BotProtectionService), new(*botprotection.Provider)),
+	),
+
+	wire.NewSet(
 		oauthpq.DependencySet,
 		wire.Bind(new(oauth.AuthorizationStore), new(*oauthpq.AuthorizationStore)),
 		wire.Bind(new(facade.OAuthService), new(*oauthpq.AuthorizationStore)),
@@ -461,7 +469,11 @@ var CommonDependencySet = wire.NewSet(
 	),
 
 	wire.NewSet(
-		infracaptcha.DependencySet,
+		infrabotprotection.DependencySet,
+	),
+
+	wire.NewSet(
+		deprecated_infracaptcha.DependencySet,
 	),
 
 	wire.NewSet(
