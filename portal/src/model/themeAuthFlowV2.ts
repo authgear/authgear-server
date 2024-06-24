@@ -174,7 +174,7 @@ class BorderRadiusStyleProperty extends StyleProperty<BorderRadiusStyle> {
           type: "rounded-full",
         };
         break;
-      case "0":
+      case "initial":
         this.value = {
           type: "none",
         };
@@ -199,7 +199,7 @@ class BorderRadiusStyleProperty extends StyleProperty<BorderRadiusStyle> {
       case "rounded-full":
         return BorderRadiusStyleProperty.FULL_ROUNDED_CSS_VALUE;
       case "none":
-        return "0";
+        return "initial";
       default:
         return "";
     }
