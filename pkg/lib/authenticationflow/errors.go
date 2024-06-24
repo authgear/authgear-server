@@ -43,6 +43,8 @@ var ErrStepNotFound = apierrors.NotFound.WithReason("AuthenticationFlowStepNotFo
 
 var ErrUnknownFlow = apierrors.BadRequest.WithReason("AuthenticationFlowUnknownFlow").New("unknown flow")
 
+var ErrBotProtectionRequired = apierrors.Forbidden.WithReason("AuthenticationFlowBotProtectionRequired").New("bot-protection required")
+
 // ErrorSwitchFlow is a special error for switching flow.
 type ErrorSwitchFlow struct {
 	// FlowReference indicates the flow to switch to.
