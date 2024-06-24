@@ -7,12 +7,9 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
-	"github.com/authgear/authgear-server/pkg/util/geoip"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/web3"
 )
 
@@ -40,20 +37,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					return nil, nil
 				}
 
-				userIface, err := ctx.Users.Load(sessionInfo.UserID).Value()
-				if err != nil {
-					return nil, err
-				}
-
-				user := userIface.(*model.User)
-
-				requestIP := httputil.GetIP(ctx.Request, bool(ctx.TrustProxy))
-				geoipInfo, ok := geoip.DefaultDatabase.IPString(requestIP)
-				if ok {
-					user.GeoIPCountryCode = geoipInfo.CountryCode
-				}
-
-				return user, nil
+				return viewerSubresolver(ctx, sessionInfo.UserID)
 			},
 		},
 		"appList": &graphql.Field{
