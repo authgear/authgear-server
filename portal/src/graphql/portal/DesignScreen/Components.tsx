@@ -528,7 +528,7 @@ export const ImagePicker: React.VFC<ImagePickerProps> = function ImagePicker(
           <Image
             src={base64EncodedDataToDataURI(base64EncodedData)}
             className={cn("h-full", "w-full")}
-            imageFit={ImageFit.centerContain}
+            imageFit={ImageFit.centerCover}
             maximizeFrame={true}
           />
         )}
