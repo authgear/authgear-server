@@ -16,30 +16,30 @@ import (
 )
 
 func init() {
-	authflow.RegisterNode(&NodeLookupIdentityPasskey{})
+	authflow.RegisterIntent(&IntentLookupIdentityPasskey{})
 }
 
-type NodeLookupIdentityPasskey struct {
+type IntentLookupIdentityPasskey struct {
 	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
 	Identification config.AuthenticationFlowIdentification `json:"identification,omitempty"`
 	SyntheticInput *InputStepIdentify                      `json:"synthetic_input,omitempty"`
 }
 
-var _ authflow.NodeSimple = &NodeLookupIdentityPasskey{}
-var _ authflow.Milestone = &NodeLookupIdentityPasskey{}
-var _ MilestoneIdentificationMethod = &NodeLookupIdentityPasskey{}
-var _ authflow.InputReactor = &NodeLookupIdentityPasskey{}
+var _ authflow.Intent = &IntentLookupIdentityPasskey{}
+var _ authflow.Milestone = &IntentLookupIdentityPasskey{}
+var _ MilestoneIdentificationMethod = &IntentLookupIdentityPasskey{}
+var _ authflow.InputReactor = &IntentLookupIdentityPasskey{}
 
-func (*NodeLookupIdentityPasskey) Kind() string {
-	return "NodeLookupIdentityPasskey"
+func (*IntentLookupIdentityPasskey) Kind() string {
+	return "IntentLookupIdentityPasskey"
 }
 
-func (*NodeLookupIdentityPasskey) Milestone() {}
-func (n *NodeLookupIdentityPasskey) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
+func (*IntentLookupIdentityPasskey) Milestone() {}
+func (n *IntentLookupIdentityPasskey) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
 	return n.Identification
 }
 
-func (n *NodeLookupIdentityPasskey) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+func (n *IntentLookupIdentityPasskey) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (n *NodeLookupIdentityPasskey) CanReactTo(ctx context.Context, deps *authfl
 	}, nil
 }
 
-func (n *NodeLookupIdentityPasskey) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (n *IntentLookupIdentityPasskey) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
 	if err != nil {
 		return nil, err
@@ -107,7 +107,7 @@ func (n *NodeLookupIdentityPasskey) ReactTo(ctx context.Context, deps *authflow.
 	return nil, authflow.ErrIncompatibleInput
 }
 
-func (n *NodeLookupIdentityPasskey) oneOf(o config.AuthenticationFlowObject) *config.AuthenticationFlowSignupLoginFlowOneOf {
+func (n *IntentLookupIdentityPasskey) oneOf(o config.AuthenticationFlowObject) *config.AuthenticationFlowSignupLoginFlowOneOf {
 	oneOf, ok := o.(*config.AuthenticationFlowSignupLoginFlowOneOf)
 	if !ok {
 		panic(fmt.Errorf("flow object is %T", o))
