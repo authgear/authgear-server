@@ -107,6 +107,7 @@ type TutorialService interface {
 
 type OnboardService interface {
 	SubmitOnboardEntry(entry model.OnboardEntry, actorID string) error
+	CheckOnboardingSurveyCompletion(actorID string) (bool, error)
 }
 
 type AnalyticChartService interface {

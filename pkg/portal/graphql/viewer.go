@@ -14,6 +14,23 @@ import (
 
 const typeViewer = "Viewer"
 
+var viewerSubresolver = func(gqlCtx *Context, id string) (interface{}, error) {
+	userIface, err := gqlCtx.Users.Load(id).Value()
+	if err != nil {
+		return nil, err
+	}
+
+	user := userIface.(*model.User)
+
+	requestIP := httputil.GetIP(gqlCtx.Request, bool(gqlCtx.TrustProxy))
+	geoipInfo, ok := geoip.DefaultDatabase.IPString(requestIP)
+	if ok {
+		user.GeoIPCountryCode = geoipInfo.CountryCode
+	}
+
+	return user, nil
+}
+
 var nodeViewer = node(
 	graphql.NewObject(graphql.ObjectConfig{
 		Name:        typeViewer,
@@ -38,6 +55,18 @@ var nodeViewer = node(
 			"geoIPCountryCode": &graphql.Field{
 				Type: graphql.String,
 			},
+			"isOnboardingSurveyCompleted": &graphql.Field{
+				Type: graphql.Boolean,
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					user := p.Source.(*model.User)
+					gqlCtx := GQLContext(p.Context)
+					isCompleted, err := gqlCtx.OnboardService.CheckOnboardingSurveyCompletion(user.ID)
+					if err != nil {
+						return nil, err
+					}
+					return isCompleted, nil
+				},
+			},
 		},
 	}),
 	&model.User{},
@@ -53,19 +82,6 @@ var nodeViewer = node(
 			return nil, nil
 		}
 
-		userIface, err := gqlCtx.Users.Load(id).Value()
-		if err != nil {
-			return nil, err
-		}
-
-		user := userIface.(*model.User)
-
-		requestIP := httputil.GetIP(gqlCtx.Request, bool(gqlCtx.TrustProxy))
-		geoipInfo, ok := geoip.DefaultDatabase.IPString(requestIP)
-		if ok {
-			user.GeoIPCountryCode = geoipInfo.CountryCode
-		}
-
-		return user, nil
+		return viewerSubresolver(gqlCtx, id)
 	},
 )

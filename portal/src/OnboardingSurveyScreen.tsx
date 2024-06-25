@@ -24,6 +24,7 @@ import { FormProvider } from "./form";
 import { useSaveOnboardingSurveyMutation } from "./graphql/portal/mutations/saveOnboardingSurveyMutation";
 import { useLoading, useIsLoading } from "./hook/loading";
 import { useProvideError } from "./hook/error";
+import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 import SurveyLayout from "./OnboardingSurveyLayout";
 import styles from "./OnboardingSurveyScreen.module.css";
 
@@ -754,6 +755,7 @@ function Step4(_props: StepProps) {
   const isLoading = useIsLoading();
   const navigate = useNavigate();
   const capture = useCapture();
+  const { refetch: refetchViewer } = useViewerQuery();
   useEffect(() => goToFirstUnfilled(4, navigate), [navigate]);
   const {
     saveOnboardingSurveyHook: updateCustAttrHook,
@@ -785,7 +787,7 @@ function Step4(_props: StepProps) {
         },
       });
       await updateCustAttrHook(JSON.stringify(final_survey_obj));
-
+      await refetchViewer();
       localStorage.removeItem(localStorageKey);
       if (companyName !== undefined)
         navigate("./../../projects/create", {
@@ -800,6 +802,7 @@ function Step4(_props: StepProps) {
       otherReason,
       reasonChoicesEnum.Other,
       updateCustAttrHook,
+      refetchViewer,
     ]
   );
   const onClickBack = useCallback(

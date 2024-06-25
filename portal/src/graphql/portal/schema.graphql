@@ -1098,6 +1098,9 @@ type Viewer implements Node {
   id: ID!
 
   """"""
+  isOnboardingSurveyCompleted: Boolean
+
+  """"""
   projectOwnerCount: Int!
 
   """"""

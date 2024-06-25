@@ -3,33 +3,60 @@ import { useNavigate } from "react-router-dom";
 import ShowLoading from "./ShowLoading";
 import ShowError from "./ShowError";
 import { useAppListQuery } from "./graphql/portal/query/appListQuery";
+import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 
 const OnboardingRedirect: React.VFC = function OnboardingRedirect() {
-  const { loading, error, apps, refetch } = useAppListQuery();
-
+  const {
+    apps,
+    loading: loadingAppList,
+    error: errorAppList,
+    refetch: refetchAppList,
+  } = useAppListQuery();
+  const {
+    viewer,
+    loading: loadingViewer,
+    error: errorViewer,
+    refetch: refetchViewer,
+  } = useViewerQuery();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (loading) {
+    if (loadingAppList || loadingViewer) {
       return;
     }
-    if (error != null) {
+    if (errorAppList != null || errorViewer != null) {
       return;
     }
-    // redirect to create apps if user doesn't have any apps
-    if (apps && apps.length > 0) {
-      navigate("/");
+    if (viewer === undefined || viewer === null) {
+      return;
+    }
+    if (
+      (apps === null || apps.length === 0) &&
+      !viewer.isOnboardingSurveyCompleted
+    ) {
+      navigate("/onboarding-survey");
     } else {
-      navigate("/projects/create");
+      navigate("/");
     }
-  }, [navigate, error, apps, loading]);
+  }, [
+    navigate,
+    viewer,
+    apps,
+    loadingAppList,
+    loadingViewer,
+    errorAppList,
+    errorViewer,
+  ]);
 
-  if (loading) {
+  if (loadingAppList || loadingViewer) {
     return <ShowLoading />;
   }
 
-  if (error != null) {
-    return <ShowError error={error} onRetry={refetch} />;
+  if (errorAppList != null) {
+    return <ShowError error={errorAppList} onRetry={refetchAppList} />;
+  }
+  if (errorViewer != null) {
+    return <ShowError error={errorViewer} onRetry={refetchViewer} />;
   }
 
   return null;
