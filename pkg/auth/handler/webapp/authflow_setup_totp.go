@@ -52,7 +52,7 @@ func (h *AuthflowSetupTOTPHandler) GetData(w http.ResponseWriter, r *http.Reques
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.NodeCreateAuthenticatorTOTPData)
+	screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.IntentCreateAuthenticatorTOTPData)
 
 	img, err := secretcode.QRCodeImageFromURI(screenData.OTPAuthURI, 512, 512)
 	if err != nil {
