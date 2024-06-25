@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -32,6 +33,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
+	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
@@ -58,6 +60,12 @@ const (
 	SettingsActionGrantType = "urn:authgear:params:oauth:grant-type:settings-action"
 )
 
+const (
+	AppInitiatedSSOToWebTokenTokenType = "urn:authgear:params:oauth:token-type:app-initiated-sso-to-web-token"
+	IDTokenTokenType                   = "urn:ietf:params:oauth:token-type:id_token"
+	DeviceSecretTokenType              = "urn:x-oath:params:oauth:token-type:device-secret"
+)
+
 const AppSessionTokenDuration = duration.Short
 
 // whitelistedGrantTypes is a list of grant types that would be always allowed
@@ -73,6 +81,7 @@ var whitelistedGrantTypes = []string{
 
 type IDTokenIssuer interface {
 	IssueIDToken(opts oidc.IssueIDTokenOptions) (token string, err error)
+	VerifyIDTokenWithoutClient(idToken string) (token jwt.Token, err error)
 }
 
 type AccessTokenIssuer interface {
@@ -166,6 +175,7 @@ type TokenHandler struct {
 	Authorizations           AuthorizationService
 	CodeGrants               TokenHandlerCodeGrantStore
 	SettingsActionGrantStore TokenHandlerSettingsActionGrantStore
+	IDPSessions              oauth.IDPSessionStore
 	OfflineGrants            TokenHandlerOfflineGrantStore
 	AppSessionTokens         TokenHandlerAppSessionTokenStore
 	OfflineGrantService      TokenHandlerOfflineGrantService
@@ -313,6 +323,10 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.O
 			return protocol.NewError("invalid_request", "only 'S256' PKCE transform is supported")
 		}
 	case IDTokenGrantType:
+		break
+	case TokenExchangeGrantType:
+		// The validation logics can be different depends on requested_token_type
+		// Do the validation in methods for each requested_token_type
 		break
 	default:
 		return protocol.NewError("unsupported_grant_type", "grant type is not supported")
@@ -555,7 +569,127 @@ func (h *TokenHandler) handleTokenExchange(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
-	// TODO
+	switch r.RequestedTokenType() {
+	case AppInitiatedSSOToWebTokenTokenType:
+		resp, err := h.handleAppInitiatedSSOToWebToken(client, r)
+		if err != nil {
+			return nil, err
+		}
+		return tokenResultOK{Response: resp}, nil
+	default:
+		// Note(tung): According to spec, requested_token_type is optional,
+		// but we do not support it at the moment.
+		return nil, protocol.NewError("invalid_request", "requested_token_type not supported")
+	}
+}
+
+func (h *TokenHandler) resolveIDTokenSession(idToken jwt.Token) (sidSession session.ListableSession, ok bool, err error) {
+	sidInterface, ok := idToken.Get(string(model.ClaimSID))
+	if !ok {
+		return nil, false, nil
+	}
+
+	sid, ok := sidInterface.(string)
+	if !ok {
+		return nil, false, nil
+	}
+
+	typ, sessionID, ok := oidc.DecodeSID(sid)
+	if !ok {
+		return nil, false, nil
+	}
+
+	switch typ {
+	case session.TypeIdentityProvider:
+		if sess, err := h.IDPSessions.Get(sessionID); err == nil {
+			sidSession = sess
+		}
+	case session.TypeOfflineGrant:
+		if sess, err := h.OfflineGrants.GetOfflineGrant(sessionID); err == nil {
+			sidSession = sess
+		}
+	default:
+		panic(fmt.Errorf("oauth: unknown session type: %v", typ))
+	}
+
+	return sidSession, true, nil
+}
+
+func (h *TokenHandler) verifyIDTokenDeviceSecretHash(idToken jwt.Token, deviceSecret string) error {
+	deviceSecretHash := oauth.HashToken(deviceSecret)
+	dsHashInterface, ok := idToken.Get(string(model.ClaimDeviceSecretHash))
+	if !ok {
+		return fmt.Errorf("ds_hash does not exist")
+	}
+	dsHash, ok := dsHashInterface.(string)
+	if !ok {
+		return fmt.Errorf("ds_hash is not string")
+	}
+	if subtle.ConstantTimeCompare([]byte(dsHash), []byte(deviceSecretHash)) != 1 {
+		return fmt.Errorf("ds_hash does not match")
+	}
+	return nil
+}
+
+func (h *TokenHandler) handleAppInitiatedSSOToWebToken(
+	client *config.OAuthClientConfig,
+	r protocol.TokenRequest,
+) (protocol.TokenResponse, error) {
+	if r.ActorTokenType() != DeviceSecretTokenType {
+		return nil, protocol.NewError("invalid_request", "actor_token_type not supported")
+	}
+	if r.SubjectTokenType() != IDTokenTokenType {
+		return nil, protocol.NewError("invalid_request", "subject_token_type not supported")
+	}
+	if r.ActorToken() == "" {
+		return nil, protocol.NewError("invalid_request", "invalid actor_token")
+	}
+	if r.SubjectToken() == "" {
+		return nil, protocol.NewError("invalid_request", "invalid subject_token")
+	}
+
+	deviceSecret := r.ActorToken()
+	idToken, err := h.IDTokenIssuer.VerifyIDTokenWithoutClient(r.SubjectToken())
+	if err != nil {
+		return nil, protocol.NewError("invalid_request", "invalid subject_token")
+	}
+	session, ok, err := h.resolveIDTokenSession(idToken)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, protocol.NewError("invalid_grant", "invalid session")
+	}
+	err = h.verifyIDTokenDeviceSecretHash(idToken, deviceSecret)
+	if err != nil {
+		return nil, protocol.NewError("invalid_grant", "invalid device secret")
+	}
+
+	var isAllowed bool = false
+	var scopes []string
+	var offlineGrant *oauth.OfflineGrant
+	switch session := session.(type) {
+	case *idpsession.IDPSession:
+		return nil, protocol.NewError("invalid_grant", "invalid session type")
+	case *oauth.OfflineGrant:
+		offlineGrant = session
+		isAllowed = offlineGrant.HasAllScopes(client.ClientID, []string{oauth.AppInitiatedSSOToWebScope})
+		scopes = offlineGrant.GetScopes(client.ClientID)
+	}
+	if !isAllowed {
+		return nil, protocol.NewError("invalid_grant", "operation not allowed")
+	}
+
+	requestedScopes := r.Scope()
+	if len(requestedScopes) > 0 {
+		if !offlineGrant.HasAllScopes(client.ClientID, requestedScopes) {
+			return nil, protocol.NewError("invalid_scope", "requesting extra scopes is not allowed")
+		}
+		scopes = requestedScopes
+	}
+
+	// TODO(DEV-1405): issue device browser sso token
+	return nil, nil
 }
 
 type anonymousTokenInput struct {

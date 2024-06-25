@@ -291,7 +291,7 @@ func (g *OfflineGrant) HasValidTokens() bool {
 	return len(g.RefreshTokens) > 0
 }
 
-func (g *OfflineGrant) HasAllScope(clientID string, requiredScopes []string) bool {
+func (g *OfflineGrant) getScopesSet(clientID string) map[string]interface{} {
 	clientScopes := map[string]interface{}{}
 
 	if g.InitialClientID == clientID {
@@ -307,6 +307,22 @@ func (g *OfflineGrant) HasAllScope(clientID string, requiredScopes []string) boo
 			}
 		}
 	}
+
+	return clientScopes
+}
+
+func (g *OfflineGrant) GetScopes(clientID string) []string {
+	clientScopes := g.getScopesSet(clientID)
+
+	result := []string{}
+	for scope := range clientScopes {
+		result = append(result, scope)
+	}
+	return result
+}
+
+func (g *OfflineGrant) HasAllScopes(clientID string, requiredScopes []string) bool {
+	clientScopes := g.getScopesSet(clientID)
 
 	hasAll := true
 
