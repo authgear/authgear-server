@@ -6,7 +6,6 @@ import (
 	"errors"
 
 	relay "github.com/authgear/graphql-go-relay"
-	"github.com/google/martian/log"
 	"github.com/graphql-go/graphql"
 	"sigs.k8s.io/yaml"
 
@@ -385,7 +384,6 @@ var _ = registerMutationField(
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			input := p.Args["input"].(map[string]interface{})
-			log.Debugf("%+v", input)
 			appID := input["id"].(string)
 
 			gqlCtx := GQLContext(p.Context)
