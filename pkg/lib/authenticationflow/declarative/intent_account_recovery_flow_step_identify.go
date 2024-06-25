@@ -15,6 +15,13 @@ func init() {
 	authflow.RegisterIntent(&IntentAccountRecoveryFlowStepIdentify{})
 }
 
+// IntentAccountRecoveryFlowStepIdentify
+//
+//   NodeSentinel
+//
+//   NodeUseAccountRecoveryIdentity (MilestoneDoUseAccountRecoveryIdentificationMethod)
+//   NodeDoUseAccountRecoveryIdentity (MilestoneDoUseAccountRecoveryIdentity)
+
 type IntentAccountRecoveryFlowStepIdentifyData struct {
 	TypedData
 	Options []AccountRecoveryIdentificationOption `json:"options"`
