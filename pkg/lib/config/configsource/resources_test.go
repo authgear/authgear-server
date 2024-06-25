@@ -771,4 +771,148 @@ authentication:
 
 		})
 	})
+	Convey("AuthgearYAML oauth client", t, func() {
+		path := "authgear.yaml"
+		app := resource.LeveledAferoFs{FsLevel: resource.FsLevelApp}
+		descriptor := &AuthgearYAMLDescriptor{}
+
+		Convey("test disallow client id change", func() {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			domainService := NewMockDomainService(ctrl)
+			domainService.EXPECT().ListDomains("test").Return([]*apimodel.Domain{}, nil).AnyTimes()
+
+			featureConfig := configtest.FixtureFeatureConfig(configtest.FixtureUnlimitedPlanName)
+			ctx := context.Background()
+			ctx = context.WithValue(ctx, ContextKeyFeatureConfig, featureConfig)
+			ctx = context.WithValue(ctx, ContextKeyAppHostSuffixes, &config.AppHostSuffixes{})
+			ctx = context.WithValue(ctx, ContextKeyDomainService, domainService)
+
+			Convey("should not allow changing client id", func() {
+				_, err := descriptor.UpdateResource(
+					ctx,
+					nil,
+					&resource.ResourceFile{
+						Location: resource.Location{
+							Fs:   app,
+							Path: path,
+						},
+						Data: []byte(`
+id: app-id
+http:
+  public_origin: http://test
+oauth:
+  clients:
+    - name: Test Client
+      client_id: foo-client
+      x_custom_ui_uri: https://custom-auth-webapp.example.com
+      redirect_uris:
+      - "https://example.com"
+`),
+					},
+					[]byte(`
+id: app-id
+http:
+  public_origin: http://test
+oauth:
+  clients:
+    - name: Test Client
+      client_id: bar-client
+      x_custom_ui_uri: https://custom-auth-webapp.example.com
+      redirect_uris:
+      - "https://example.com"
+`),
+				)
+				So(err, ShouldBeError, `invalid authgear.yaml:
+/oauth/clients: client ids cannot be changed`)
+			})
+
+			Convey("should allow adding client id", func() {
+				_, err := descriptor.UpdateResource(
+					ctx,
+					nil,
+					&resource.ResourceFile{
+						Location: resource.Location{
+							Fs:   app,
+							Path: path,
+						},
+						Data: []byte(`
+id: app-id
+http:
+  public_origin: http://test
+oauth:
+  clients:
+    - name: Test Client
+      client_id: foo-client
+      x_custom_ui_uri: https://custom-auth-webapp.example.com
+      redirect_uris:
+      - "https://example.com"
+`),
+					},
+					[]byte(`
+id: app-id
+http:
+  public_origin: http://test
+oauth:
+  clients:
+    - name: Test Client
+      client_id: foo-client
+      x_custom_ui_uri: https://custom-auth-webapp.example.com
+      redirect_uris:
+      - "https://example.com"
+    - name: Test Client 2
+      client_id: bar-client
+      x_custom_ui_uri: https://custom-auth-webapp.example2.com
+      redirect_uris:
+      - "https://example2.com"
+`),
+				)
+				So(err, ShouldBeNil)
+			})
+
+			Convey("should allow removing client id", func() {
+				_, err := descriptor.UpdateResource(
+					ctx,
+					nil,
+					&resource.ResourceFile{
+						Location: resource.Location{
+							Fs:   app,
+							Path: path,
+						},
+						Data: []byte(`
+id: app-id
+http:
+  public_origin: http://test
+oauth:
+  clients:
+    - name: Test Client
+      client_id: foo-client
+      x_custom_ui_uri: https://custom-auth-webapp.example.com
+      redirect_uris:
+      - "https://example.com"
+    - name: Test Client 2
+      client_id: bar-client
+      x_custom_ui_uri: https://custom-auth-webapp.example2.com
+      redirect_uris:
+      - "https://example2.com"
+`),
+					},
+					[]byte(`
+id: app-id
+http:
+  public_origin: http://test
+oauth:
+  clients:
+    - name: Test Client 2
+      client_id: bar-client
+      x_custom_ui_uri: https://custom-auth-webapp.example2.com
+      redirect_uris:
+      - "https://example2.com"
+`),
+				)
+				So(err, ShouldBeNil)
+			})
+		})
+	})
 }
