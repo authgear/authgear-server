@@ -62,8 +62,13 @@ export function createLogoutLink(onLogout: () => void): ApolloLink {
       networkError.statusCode === 401;
     const isUnauthenticatedError = graphQLErrors?.some(
       (err) =>
-        err.extensions.errorName === "Unauthorized" &&
-        err.extensions.reason === "Unauthenticated"
+        // The type definition of GraphQLError is incorrect.
+        // It does not always have "extensions"
+        // https://github.com/apollographql/apollo-client/issues/11787
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        err?.extensions?.errorName === "Unauthorized" &&
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        err?.extensions?.reason === "Unauthenticated"
     );
     if (is401Error || isUnauthenticatedError) {
       onLogout();
