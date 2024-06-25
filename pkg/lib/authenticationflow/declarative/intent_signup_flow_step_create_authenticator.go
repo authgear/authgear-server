@@ -22,6 +22,21 @@ func init() {
 	authflow.RegisterIntent(&IntentSignupFlowStepCreateAuthenticator{})
 }
 
+// IntentSignupFlowStepCreateAuthenticator
+//
+//   NodeCreateAuthenticatorPassword (MilestoneFlowCreateAuthenticator, MilestoneAuthenticationMethod)
+//   NodeDoCreateAuthenticator (MilestoneDoCreateAuthenticator)
+//
+//   IntentCreateAuthenticatorOOBOTP (MilestoneFlowCreateAuthenticator, MilestoneAuthenticationMethod)
+//     IntentVerifyClaim (MilestoneVerifyClaim)
+//       NodeVerifyClaim
+//     NodeDoCreateAuthenticator (MilestoneDoCreateAuthenticator)
+//     NodeDidSelectAuthenticator (MilestoneDidSelectAuthenticator)
+//
+//   NodeCreateAuthenticatorTOTP (MilestoneFlowCreateAuthenticator, MilestoneAuthenticationMethod)
+//   NodeDoCreateAuthenticator (MilestoneDoCreateAuthenticator)
+//   NodeCreateAuthenticatorTOTPData
+
 type IntentSignupFlowStepCreateAuthenticatorData struct {
 	TypedData
 	Options []CreateAuthenticatorOption `json:"options,omitempty"`
