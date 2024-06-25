@@ -90,7 +90,9 @@ func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Requ
 	if csrfCookie != nil {
 		// do not return value but length only for debug.
 		csrfCookieSizeInBytes = len([]byte(csrfCookie.Value))
-		if data, err := base64.StdEncoding.DecodeString(csrfCookie.Value); err != nil {
+		// securecookie uses URLEncoding
+		// See https://github.com/gorilla/securecookie/blob/v1.1.2/securecookie.go#L489
+		if data, err := base64.URLEncoding.DecodeString(csrfCookie.Value); err != nil {
 			csrfToken := string(data)
 			maskedTokenParts := make([]string, 0, 4)
 			for i, part := range strings.Split(csrfToken, "|") {
