@@ -15,35 +15,35 @@ import (
 )
 
 func init() {
-	authflow.RegisterNode(&NodeUseAuthenticatorPasskey{})
+	authflow.RegisterIntent(&IntentUseAuthenticatorPasskey{})
 }
 
-type NodeUseAuthenticatorPasskey struct {
+type IntentUseAuthenticatorPasskey struct {
 	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
 	UserID         string                                  `json:"user_id,omitempty"`
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
 }
 
-var _ authflow.NodeSimple = &NodeUseAuthenticatorPasskey{}
-var _ authflow.Milestone = &NodeUseAuthenticatorPasskey{}
-var _ MilestoneAuthenticationMethod = &NodeUseAuthenticatorPasskey{}
-var _ MilestoneFlowAuthenticate = &NodeUseAuthenticatorPasskey{}
-var _ authflow.InputReactor = &NodeUseAuthenticatorPasskey{}
+var _ authflow.Intent = &IntentUseAuthenticatorPasskey{}
+var _ authflow.Milestone = &IntentUseAuthenticatorPasskey{}
+var _ MilestoneAuthenticationMethod = &IntentUseAuthenticatorPasskey{}
+var _ MilestoneFlowAuthenticate = &IntentUseAuthenticatorPasskey{}
+var _ authflow.InputReactor = &IntentUseAuthenticatorPasskey{}
 
-func (*NodeUseAuthenticatorPasskey) Kind() string {
-	return "NodeUseAuthenticatorPasskey"
+func (*IntentUseAuthenticatorPasskey) Kind() string {
+	return "IntentUseAuthenticatorPasskey"
 }
 
-func (*NodeUseAuthenticatorPasskey) Milestone() {}
-func (n *NodeUseAuthenticatorPasskey) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
+func (*IntentUseAuthenticatorPasskey) Milestone() {}
+func (n *IntentUseAuthenticatorPasskey) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
 	return n.Authentication
 }
 
-func (*NodeUseAuthenticatorPasskey) MilestoneFlowAuthenticate(flows authflow.Flows) (MilestoneDidAuthenticate, authflow.Flows, bool) {
+func (*IntentUseAuthenticatorPasskey) MilestoneFlowAuthenticate(flows authflow.Flows) (MilestoneDidAuthenticate, authflow.Flows, bool) {
 	return authflow.FindMilestoneInCurrentFlow[MilestoneDidAuthenticate](flows)
 }
 
-func (n *NodeUseAuthenticatorPasskey) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+func (n *IntentUseAuthenticatorPasskey) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func (n *NodeUseAuthenticatorPasskey) CanReactTo(ctx context.Context, deps *auth
 	}, nil
 }
 
-func (n *NodeUseAuthenticatorPasskey) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (n *IntentUseAuthenticatorPasskey) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	var inputAssertionResponse inputTakePasskeyAssertionResponse
 	if authflow.AsInput(input, &inputAssertionResponse) {
 		assertionResponse := inputAssertionResponse.GetAssertionResponse()

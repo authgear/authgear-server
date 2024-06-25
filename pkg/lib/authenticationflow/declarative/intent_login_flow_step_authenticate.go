@@ -23,20 +23,20 @@ func init() {
 
 // IntentLoginFlowStepAuthenticate
 //
-//   NodeUseAuthenticatorPassword (MilestoneFlowAuthenticate)
-//   NodeDoUseAuthenticatorPassword (MilestoneDidAuthenticate)
+//   IntentUseAuthenticatorPassword (MilestoneFlowAuthenticate)
+//     NodeDoUseAuthenticatorPassword (MilestoneDidAuthenticate)
 //
-//   NodeUseAuthenticatorPasskey (MilestoneFlowAuthenticate)
-//   NodeDoUseAuthenticatorPasskey (MilestoneDidAuthenticate)
+//   IntentUseAuthenticatorPasskey (MilestoneFlowAuthenticate)
+//     NodeDoUseAuthenticatorPasskey (MilestoneDidAuthenticate)
 //
 //   IntentUseAuthenticatorOOBOTP (MilestoneFlowAuthenticate)
 //     NodeDoUseAuthenticatorSimple (MilestoneDidAuthenticate)
 //
-//   NodeUseAuthenticatorTOTP (MilestoneFlowAuthenticate)
-//   NodeDoUseAuthenticatorSimple (MilestoneDidAuthenticate)
+//   IntentUseAuthenticatorTOTP (MilestoneFlowAuthenticate)
+//     NodeDoUseAuthenticatorSimple (MilestoneDidAuthenticate)
 //
-//   NodeUseRecoveryCode (MilestoneFlowAuthenticate)
-//   NodeDoConsumeRecoveryCode (MilestoneDidAuthenticate)
+//   IntentUseRecoveryCode (MilestoneFlowAuthenticate)
+//     NodeDoConsumeRecoveryCode (MilestoneDidAuthenticate)
 
 type IntentLoginFlowStepAuthenticate struct {
 	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
@@ -214,13 +214,13 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 			case config.AuthenticationFlowAuthenticationPrimaryPassword:
 				fallthrough
 			case config.AuthenticationFlowAuthenticationSecondaryPassword:
-				return authflow.NewNodeSimple(&NodeUseAuthenticatorPassword{
+				return authflow.NewSubFlow(&IntentUseAuthenticatorPassword{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
 				}), nil
 			case config.AuthenticationFlowAuthenticationPrimaryPasskey:
-				return authflow.NewNodeSimple(&NodeUseAuthenticatorPasskey{
+				return authflow.NewSubFlow(&IntentUseAuthenticatorPasskey{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
@@ -239,13 +239,13 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 					Options:        i.Options,
 				}), nil
 			case config.AuthenticationFlowAuthenticationSecondaryTOTP:
-				return authflow.NewNodeSimple(&NodeUseAuthenticatorTOTP{
+				return authflow.NewSubFlow(&IntentUseAuthenticatorTOTP{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
 				}), nil
 			case config.AuthenticationFlowAuthenticationRecoveryCode:
-				return authflow.NewNodeSimple(&NodeUseRecoveryCode{
+				return authflow.NewSubFlow(&IntentUseRecoveryCode{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
