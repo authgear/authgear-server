@@ -16,35 +16,35 @@ import (
 )
 
 func init() {
-	authflow.RegisterNode(&NodePromoteIdentityLoginID{})
+	authflow.RegisterIntent(&IntentPromoteIdentityLoginID{})
 }
 
-type NodePromoteIdentityLoginID struct {
+type IntentPromoteIdentityLoginID struct {
 	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
 	UserID         string                                  `json:"user_id,omitempty"`
 	Identification config.AuthenticationFlowIdentification `json:"identification,omitempty"`
 	SyntheticInput *InputStepIdentify                      `json:"synthetic_input,omitempty"`
 }
 
-var _ authflow.NodeSimple = &NodePromoteIdentityLoginID{}
-var _ authflow.Milestone = &NodePromoteIdentityLoginID{}
-var _ MilestoneIdentificationMethod = &NodePromoteIdentityLoginID{}
-var _ MilestoneFlowCreateIdentity = &NodePromoteIdentityLoginID{}
-var _ authflow.InputReactor = &NodePromoteIdentityLoginID{}
+var _ authflow.Intent = &IntentPromoteIdentityLoginID{}
+var _ authflow.Milestone = &IntentPromoteIdentityLoginID{}
+var _ MilestoneIdentificationMethod = &IntentPromoteIdentityLoginID{}
+var _ MilestoneFlowCreateIdentity = &IntentPromoteIdentityLoginID{}
+var _ authflow.InputReactor = &IntentPromoteIdentityLoginID{}
 
-func (*NodePromoteIdentityLoginID) Kind() string {
-	return "NodePromoteIdentityLoginID"
+func (*IntentPromoteIdentityLoginID) Kind() string {
+	return "IntentPromoteIdentityLoginID"
 }
 
-func (*NodePromoteIdentityLoginID) Milestone() {}
-func (n *NodePromoteIdentityLoginID) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
+func (*IntentPromoteIdentityLoginID) Milestone() {}
+func (n *IntentPromoteIdentityLoginID) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
 	return n.Identification
 }
-func (n *NodePromoteIdentityLoginID) MilestoneFlowCreateIdentity(flows authflow.Flows) (MilestoneDoCreateIdentity, authflow.Flows, bool) {
+func (n *IntentPromoteIdentityLoginID) MilestoneFlowCreateIdentity(flows authflow.Flows) (MilestoneDoCreateIdentity, authflow.Flows, bool) {
 	return authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateIdentity](flows)
 }
 
-func (n *NodePromoteIdentityLoginID) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+func (n *IntentPromoteIdentityLoginID) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func (n *NodePromoteIdentityLoginID) CanReactTo(ctx context.Context, deps *authf
 	}, nil
 }
 
-func (n *NodePromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (n *IntentPromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	var inputTakeLoginID inputTakeLoginID
 	if authflow.AsInput(input, &inputTakeLoginID) {
 		loginID := inputTakeLoginID.GetLoginID()
@@ -119,7 +119,7 @@ func (n *NodePromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authflow
 	return nil, authflow.ErrIncompatibleInput
 }
 
-func (n *NodePromoteIdentityLoginID) makeLoginIDSpec(loginID string) *identity.Spec {
+func (n *IntentPromoteIdentityLoginID) makeLoginIDSpec(loginID string) *identity.Spec {
 	spec := &identity.Spec{
 		Type: model.IdentityTypeLoginID,
 		LoginID: &identity.LoginIDSpec{
@@ -143,7 +143,7 @@ func (n *NodePromoteIdentityLoginID) makeLoginIDSpec(loginID string) *identity.S
 	return spec
 }
 
-func (n *NodePromoteIdentityLoginID) checkConflictByAccountLinkings(
+func (n *IntentPromoteIdentityLoginID) checkConflictByAccountLinkings(
 	ctx context.Context,
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
