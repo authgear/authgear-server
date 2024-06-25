@@ -28,6 +28,7 @@ var envConfigDeps = wire.NewSet(
 		"DevMode",
 		"SentryDSN",
 		"AuthUISentryDSN",
+		"AuthUIWindowMessageAllowedOrigins",
 		"GlobalDatabase",
 		"DatabaseConfig",
 		"ImagesCDNHost",

@@ -5,6 +5,7 @@ import (
 	htmltemplate "html/template"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/gorilla/csrf"
 	"golang.org/x/text/language"
@@ -73,8 +74,9 @@ type BaseViewModel struct {
 	GoogleTagManagerContainerID string
 	TutorialMessageType         string
 	// HasThirdPartyApp indicates whether the project has third-party client
-	HasThirdPartyClient bool
-	AuthUISentryDSN     string
+	HasThirdPartyClient               bool
+	AuthUISentryDSN                   string
+	AuthUIWindowMessageAllowedOrigins string
 
 	FirstNonPasskeyPrimaryAuthenticatorType string
 	// websocket is used in interaction only, we disable it in authflow
@@ -142,23 +144,24 @@ type WebappOAuthClientResolver interface {
 }
 
 type BaseViewModeler struct {
-	TrustProxy            config.TrustProxy
-	OAuth                 *config.OAuthConfig
-	AuthUI                *config.UIConfig
-	AuthUIFeatureConfig   *config.UIFeatureConfig
-	StaticAssets          StaticAssetResolver
-	ForgotPassword        *config.ForgotPasswordConfig
-	Authentication        *config.AuthenticationConfig
-	GoogleTagManager      *config.GoogleTagManagerConfig
-	ErrorCookie           ErrorCookie
-	Translations          TranslationService
-	Clock                 clock.Clock
-	FlashMessage          FlashMessage
-	DefaultLanguageTag    template.DefaultLanguageTag
-	SupportedLanguageTags template.SupportedLanguageTags
-	AuthUISentryDSN       config.AuthUISentryDSN
-	OAuthClientResolver   WebappOAuthClientResolver
-	Logger                BaseLogger
+	TrustProxy                        config.TrustProxy
+	OAuth                             *config.OAuthConfig
+	AuthUI                            *config.UIConfig
+	AuthUIFeatureConfig               *config.UIFeatureConfig
+	StaticAssets                      StaticAssetResolver
+	ForgotPassword                    *config.ForgotPasswordConfig
+	Authentication                    *config.AuthenticationConfig
+	GoogleTagManager                  *config.GoogleTagManagerConfig
+	ErrorCookie                       ErrorCookie
+	Translations                      TranslationService
+	Clock                             clock.Clock
+	FlashMessage                      FlashMessage
+	DefaultLanguageTag                template.DefaultLanguageTag
+	SupportedLanguageTags             template.SupportedLanguageTags
+	AuthUISentryDSN                   config.AuthUISentryDSN
+	AuthUIWindowMessageAllowedOrigins config.AuthUIWindowMessageAllowedOrigins
+	OAuthClientResolver               WebappOAuthClientResolver
+	Logger                            BaseLogger
 }
 
 func (m *BaseViewModeler) ViewModelForAuthFlow(r *http.Request, rw http.ResponseWriter) BaseViewModel {
@@ -264,16 +267,17 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 			}
 			return webapp.MakeURL(u, path, outQuery).String()
 		},
-		ForgotPasswordEnabled:       *m.ForgotPassword.Enabled,
-		PublicSignupDisabled:        m.Authentication.PublicSignupDisabled,
-		PageLoadedAt:                int(now),
-		FlashMessageType:            m.FlashMessage.Pop(r, rw),
-		ResolvedLanguageTag:         resolvedLanguageTag,
-		ResolvedCLDRLocale:          locale,
-		HTMLDir:                     htmlDir,
-		GoogleTagManagerContainerID: m.GoogleTagManager.ContainerID,
-		HasThirdPartyClient:         hasThirdPartyApp,
-		AuthUISentryDSN:             string(m.AuthUISentryDSN),
+		ForgotPasswordEnabled:             *m.ForgotPassword.Enabled,
+		PublicSignupDisabled:              m.Authentication.PublicSignupDisabled,
+		PageLoadedAt:                      int(now),
+		FlashMessageType:                  m.FlashMessage.Pop(r, rw),
+		ResolvedLanguageTag:               resolvedLanguageTag,
+		ResolvedCLDRLocale:                locale,
+		HTMLDir:                           htmlDir,
+		GoogleTagManagerContainerID:       m.GoogleTagManager.ContainerID,
+		HasThirdPartyClient:               hasThirdPartyApp,
+		AuthUISentryDSN:                   string(m.AuthUISentryDSN),
+		AuthUIWindowMessageAllowedOrigins: strings.Join(m.AuthUIWindowMessageAllowedOrigins, ","),
 		LogUnknownError: func(err map[string]interface{}) string {
 			if err != nil {
 				m.Logger.WithFields(err).Errorf("unknown error: %v", err)
