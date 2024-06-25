@@ -1,4 +1,11 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   DefaultEffects,
   Dropdown,
@@ -433,6 +440,12 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
   const { designForm, effectiveAppConfig } = props;
   const { renderToString } = useContext(MFContext);
 
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+
+  useEffect(() => {
+    iframeRef.current?.contentWindow?.postMessage(designForm.state, "*");
+  }, [designForm.state, effectiveAppConfig.http?.public_origin]);
+
   const supportedPreviewPages = useMemo(
     () => getSupportedPreviewPagesFromConfig(effectiveAppConfig),
     [effectiveAppConfig]
@@ -496,6 +509,7 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
         />
       </div>
       <iframe
+        ref={iframeRef}
         className={cn("w-full", "h-full", "border-none")}
         src={src}
         sandbox="allow-scripts"
