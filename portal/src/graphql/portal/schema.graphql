@@ -1098,13 +1098,13 @@ type Viewer implements Node {
   id: ID!
 
   """"""
+  isOnboardingSurveyCompleted: Boolean
+
+  """"""
   projectOwnerCount: Int!
 
   """"""
   projectQuota: Int
-
-  """"""
-  isOnboardingSurveyCompleted: Boolean
 }
 
 """Webhook secret"""

@@ -28,12 +28,6 @@ var viewerSubresolver = func(gqlCtx *Context, id string) (interface{}, error) {
 		user.GeoIPCountryCode = geoipInfo.CountryCode
 	}
 
-	isCompleted, err := gqlCtx.OnboardService.CheckCompletion(id)
-	if err != nil {
-		return nil, err
-	}
-	user.IsOnboardingSurveyCompleted = isCompleted
-
 	return user, nil
 }
 
@@ -63,6 +57,15 @@ var nodeViewer = node(
 			},
 			"isOnboardingSurveyCompleted": &graphql.Field{
 				Type: graphql.Boolean,
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					user := p.Source.(*model.User)
+					gqlCtx := GQLContext(p.Context)
+					isCompleted, err := gqlCtx.OnboardService.CheckOnboardingSurveyCompletion(user.ID)
+					if err != nil {
+						return nil, err
+					}
+					return isCompleted, nil
+				},
 			},
 		},
 	}),

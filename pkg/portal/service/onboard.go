@@ -89,7 +89,7 @@ func unwrap(thing interface{}, keys []string) (interface{}, bool) {
 	return unwrap(value, keys[1:])
 }
 
-func (s *OnboardService) CheckCompletion(actorID string) (bool, error) {
+func (s *OnboardService) CheckOnboardingSurveyCompletion(actorID string) (bool, error) {
 	id := relay.ToGlobalID("User", actorID)
 	params := graphqlutil.DoParams{
 		OperationName: "checkOnboardEntry",
