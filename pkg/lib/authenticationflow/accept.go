@@ -38,6 +38,7 @@ func AcceptSyntheticInput(ctx context.Context, deps *Dependencies, flows Flows, 
 	})
 }
 
+// nolint: gocognit
 func accept(ctx context.Context, deps *Dependencies, flows Flows, inputFn func(inputSchema InputSchema) (Input, error)) (result *AcceptResult, err error) {
 	var changed bool
 	defer func() {
