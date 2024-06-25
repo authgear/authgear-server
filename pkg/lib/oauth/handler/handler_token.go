@@ -566,8 +566,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 	}
 
 	// TODO(oauth): allow specifying scopes
-	// Note(tung): Do we allow anonymous user to use device_sso and x_app_initiated_sso_to_web?
-	scopes := []string{"openid", oauth.FullAccessScope}
+	scopes := []string{"openid", oauth.OfflineAccess, oauth.FullAccessScope}
 
 	authz, err := h.Authorizations.CheckAndGrant(
 		client.ClientID,
@@ -778,7 +777,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		return nil, err
 	}
 
-	scopes := []string{"openid", oauth.FullAccessScope}
+	scopes := []string{"openid", oauth.OfflineAccess, oauth.FullAccessScope}
 	requestedScopes := r.Scope()
 	if len(requestedScopes) > 0 {
 		err := h.ValidateScopes(client, requestedScopes)
