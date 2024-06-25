@@ -1,0 +1,3 @@
+mutation saveOnboardingSurveyMutation($surveyJSON: String!) {
+  saveOnboardingSurvey(input: { surveyJSON: $surveyJSON })
+}

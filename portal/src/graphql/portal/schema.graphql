@@ -472,6 +472,9 @@ type Mutation {
   """Reconcile the completed checkout session"""
   reconcileCheckoutSession(input: reconcileCheckoutSession!): reconcileCheckoutSessionPayload!
 
+  """Updates the current user's custom attribute with 'survey' key"""
+  saveOnboardingSurvey(input: SaveOnboardingSurveyInput!): Boolean
+
   """Send test STMP configuration email"""
   sendTestSMTPConfigurationEmail(input: sendTestSMTPConfigurationEmailInput!): Boolean
 
@@ -492,9 +495,6 @@ type Mutation {
 
   """Request verification of a domain of target app"""
   verifyDomain(input: VerifyDomainInput!): VerifyDomainPayload!
-
-  """Update custom attribute with pointer being /onboarding_survey_json"""
-  updateSurveyCustomAttribute(input: updateSurveyCustomAttributeInput!): Boolean
 }
 
 """Web3 NFT Collection"""
@@ -729,6 +729,12 @@ input SMTPSecretInput {
 
   """"""
   username: String!
+}
+
+""""""
+input SaveOnboardingSurveyInput {
+  """Onboarding survey result JSON."""
+  surveyJSON: String!
 }
 
 """The content of authgear.secrets.yaml"""
@@ -1174,10 +1180,4 @@ input sendTestSMTPConfigurationEmailInput {
 
   """The recipient email address."""
   to: String!
-}
-
-""""""
-input updateSurveyCustomAttributeInput {
-  """Onboarding survey result in JSON form."""
-  surveyJSON: String!
 }

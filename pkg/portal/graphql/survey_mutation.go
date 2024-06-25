@@ -7,8 +7,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/session"
 )
 
-var updateSurveyCustomAttributeInput = graphql.NewInputObject(graphql.InputObjectConfig{
-	Name: "UpdateSurveyCustomAttributeInput",
+var saveOnboardingSurveyInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SaveOnboardingSurveyInput",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"surveyJSON": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewNonNull(graphql.String),
@@ -18,13 +18,13 @@ var updateSurveyCustomAttributeInput = graphql.NewInputObject(graphql.InputObjec
 })
 
 var _ = registerMutationField(
-	"updateSurveyCustomAttribute",
+	"saveOnboardingSurvey",
 	&graphql.Field{
 		Description: "Updates the current user's custom attribute with 'survey' key",
 		Type:        graphql.Boolean,
 		Args: graphql.FieldConfigArgument{
 			"input": &graphql.ArgumentConfig{
-				Type: graphql.NewNonNull(updateSurveyCustomAttributeInput),
+				Type: graphql.NewNonNull(saveOnboardingSurveyInput),
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -35,7 +35,7 @@ var _ = registerMutationField(
 			// Access Control: authenicated user.
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
-				return nil, Unauthenticated.New("only authenticated users can create app")
+				return nil, Unauthenticated.New("only authenticated users can fill onboarding survey")
 			}
 			actorID := sessionInfo.UserID
 

@@ -21,7 +21,7 @@ import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import FormTextField from "./FormTextField";
 import PhoneTextField, { PhoneTextFieldValues } from "./PhoneTextField";
 import { FormProvider } from "./form";
-import { useUpdateSurveyCustomAttributeMutation } from "./graphql/portal/mutations/updateSurveyCustomAttributeMutation";
+import { useSaveOnboardingSurveyMutation } from "./graphql/portal/mutations/saveOnboardingSurveyMutation";
 import { useLoading, useIsLoading } from "./hook/loading";
 import { useProvideError } from "./hook/error";
 import SurveyLayout from "./OnboardingSurveyLayout";
@@ -756,10 +756,10 @@ function Step4(_props: StepProps) {
   const capture = useCapture();
   useEffect(() => goToFirstUnfilled(4, navigate), [navigate]);
   const {
-    updateSurveyCustomAttributeHook: updateCustAttrHook,
+    saveOnboardingSurveyHook: updateCustAttrHook,
     error: updateCustAttrError,
     loading: updateCustAttrLoading,
-  } = useUpdateSurveyCustomAttributeMutation();
+  } = useSaveOnboardingSurveyMutation();
   useLoading(updateCustAttrLoading);
   useProvideError(updateCustAttrError);
   const onClickNext = useCallback(
@@ -767,7 +767,7 @@ function Step4(_props: StepProps) {
       e.preventDefault();
       e.stopPropagation();
       const companyName = getFromLocalStorage("company_name");
-      const constructUseCases = reasonChoicesState as UseCase[];
+      const constructUseCases = [...reasonChoicesState] as UseCase[];
       if (constructUseCases.includes(reasonChoicesEnum.Other)) {
         const i = constructUseCases.indexOf(reasonChoicesEnum.Other, 0);
         constructUseCases[i] = { other_reason: otherReason };

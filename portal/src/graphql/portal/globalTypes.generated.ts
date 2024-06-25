@@ -341,6 +341,8 @@ export type Mutation = {
   probeNFTCollection: ProbeNftCollectionsPayload;
   /** Reconcile the completed checkout session */
   reconcileCheckoutSession: ReconcileCheckoutSessionPayload;
+  /** Update custom attribute with pointer being /onboarding_survey_json */
+  saveOnboardingSurvey?: Maybe<Scalars['Boolean']['output']>;
   /** Send test STMP configuration email */
   sendTestSMTPConfigurationEmail?: Maybe<Scalars['Boolean']['output']>;
   /** Set app subscription cancellation status */
@@ -353,8 +355,6 @@ export type Mutation = {
   updateApp: UpdateAppPayload;
   /** Update subscription */
   updateSubscription: UpdateSubscriptionPayload;
-  /** Update custom attribute with pointer being /onboarding_survey_json */
-  updateSurveyCustomAttribute?: Maybe<Scalars['Boolean']['output']>;
   /** Request verification of a domain of target app */
   verifyDomain: VerifyDomainPayload;
 };
@@ -440,6 +440,11 @@ export type MutationReconcileCheckoutSessionArgs = {
 };
 
 
+export type MutationSaveOnboardingSurveyArgs = {
+  input: SaveOnboardingSurveyInput;
+};
+
+
 export type MutationSendTestSmtpConfigurationEmailArgs = {
   input: SendTestSmtpConfigurationEmailInput;
 };
@@ -467,11 +472,6 @@ export type MutationUpdateAppArgs = {
 
 export type MutationUpdateSubscriptionArgs = {
   input: UpdateSubscriptionInput;
-};
-
-
-export type MutationUpdateSurveyCustomAttributeArgs = {
-  input: UpdateSurveyCustomAttributeInput;
 };
 
 
@@ -900,6 +900,11 @@ export type ReconcileCheckoutSessionPayload = {
   app: App;
 };
 
+export type SaveOnboardingSurveyInput = {
+  /** Onboarding survey result in JSON form. */
+  surveyJSON: Scalars['String']['input'];
+};
+
 export type SendDenoHookInput = {
   /** App ID. */
   appID: Scalars['ID']['input'];
@@ -920,9 +925,4 @@ export type SendTestSmtpConfigurationEmailInput = {
   smtpUsername: Scalars['String']['input'];
   /** The recipient email address. */
   to: Scalars['String']['input'];
-};
-
-export type UpdateSurveyCustomAttributeInput = {
-  /** Onboarding survey result in JSON form. */
-  surveyJSON: Scalars['String']['input'];
 };
