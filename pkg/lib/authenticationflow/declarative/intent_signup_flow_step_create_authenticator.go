@@ -33,10 +33,8 @@ func init() {
 //     NodeDoCreateAuthenticator (MilestoneDoCreateAuthenticator)
 //     NodeDidSelectAuthenticator (MilestoneDidSelectAuthenticator)
 //
-//   FIXME: Figure out how to make below as Intent
-//   NodeCreateAuthenticatorTOTP (MilestoneFlowCreateAuthenticator, MilestoneAuthenticationMethod)
-//   NodeDoCreateAuthenticator (MilestoneDoCreateAuthenticator)
-//   NodeCreateAuthenticatorTOTPData
+//   IntentCreateAuthenticatorTOTP (MilestoneFlowCreateAuthenticator, MilestoneAuthenticationMethod)
+//     NodeDoCreateAuthenticator (MilestoneDoCreateAuthenticator)
 
 type IntentSignupFlowStepCreateAuthenticatorData struct {
 	TypedData
@@ -208,7 +206,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) ReactTo(ctx context.Context, d
 					Authentication: authentication,
 				}), nil
 			case config.AuthenticationFlowAuthenticationSecondaryTOTP:
-				node, err := NewNodeCreateAuthenticatorTOTP(deps, &NodeCreateAuthenticatorTOTP{
+				intent, err := NewIntentCreateAuthenticatorTOTP(deps, &IntentCreateAuthenticatorTOTP{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
@@ -216,7 +214,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) ReactTo(ctx context.Context, d
 				if err != nil {
 					return nil, err
 				}
-				return authflow.NewNodeSimple(node), nil
+				return authflow.NewSubFlow(intent), nil
 			}
 		}
 		return nil, authflow.ErrIncompatibleInput
