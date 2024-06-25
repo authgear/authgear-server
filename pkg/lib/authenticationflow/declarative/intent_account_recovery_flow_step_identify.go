@@ -19,8 +19,8 @@ func init() {
 //
 //   NodeSentinel
 //
-//   NodeUseAccountRecoveryIdentity (MilestoneDoUseAccountRecoveryIdentificationMethod)
-//   NodeDoUseAccountRecoveryIdentity (MilestoneDoUseAccountRecoveryIdentity)
+//   IntentUseAccountRecoveryIdentity (MilestoneDoUseAccountRecoveryIdentificationMethod)
+//     NodeDoUseAccountRecoveryIdentity (MilestoneDoUseAccountRecoveryIdentity)
 
 type IntentAccountRecoveryFlowStepIdentifyData struct {
 	TypedData
@@ -139,7 +139,7 @@ func (i *IntentAccountRecoveryFlowStepIdentify) ReactTo(ctx context.Context, dep
 			case config.AuthenticationFlowAccountRecoveryIdentificationEmail:
 				fallthrough
 			case config.AuthenticationFlowAccountRecoveryIdentificationPhone:
-				return authflow.NewNodeSimple(&NodeUseAccountRecoveryIdentity{
+				return authflow.NewSubFlow(&IntentUseAccountRecoveryIdentity{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					Identification: identification,
 					OnFailure:      branch.OnFailure,
