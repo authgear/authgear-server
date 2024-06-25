@@ -24,8 +24,8 @@ func init() {
 
 // IntentSignupFlowStepCreateAuthenticator
 //
-//   NodeCreateAuthenticatorPassword (MilestoneFlowCreateAuthenticator, MilestoneAuthenticationMethod)
-//   NodeDoCreateAuthenticator (MilestoneDoCreateAuthenticator)
+//   IntentCreateAuthenticatorPassword (MilestoneFlowCreateAuthenticator, MilestoneAuthenticationMethod)
+//     NodeDoCreateAuthenticator (MilestoneDoCreateAuthenticator)
 //
 //   IntentCreateAuthenticatorOOBOTP (MilestoneFlowCreateAuthenticator, MilestoneAuthenticationMethod)
 //     IntentVerifyClaim (MilestoneVerifyClaim)
@@ -33,6 +33,7 @@ func init() {
 //     NodeDoCreateAuthenticator (MilestoneDoCreateAuthenticator)
 //     NodeDidSelectAuthenticator (MilestoneDidSelectAuthenticator)
 //
+//   FIXME: Figure out how to make below as Intent
 //   NodeCreateAuthenticatorTOTP (MilestoneFlowCreateAuthenticator, MilestoneAuthenticationMethod)
 //   NodeDoCreateAuthenticator (MilestoneDoCreateAuthenticator)
 //   NodeCreateAuthenticatorTOTPData
@@ -186,7 +187,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) ReactTo(ctx context.Context, d
 			case config.AuthenticationFlowAuthenticationPrimaryPassword:
 				fallthrough
 			case config.AuthenticationFlowAuthenticationSecondaryPassword:
-				return authflow.NewNodeSimple(&NodeCreateAuthenticatorPassword{
+				return authflow.NewSubFlow(&IntentCreateAuthenticatorPassword{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
