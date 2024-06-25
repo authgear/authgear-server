@@ -121,6 +121,20 @@ func (mr *MockStoreMockRecorder) GetSession(flowID interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSession", reflect.TypeOf((*MockStore)(nil).GetSession), flowID)
 }
 
+// UpdateSession mocks base method.
+func (m *MockStore) UpdateSession(session *Session) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateSession", session)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateSession indicates an expected call of UpdateSession.
+func (mr *MockStoreMockRecorder) UpdateSession(session interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSession", reflect.TypeOf((*MockStore)(nil).UpdateSession), session)
+}
+
 // MockServiceDatabase is a mock of ServiceDatabase interface.
 type MockServiceDatabase struct {
 	ctrl     *gomock.Controller
