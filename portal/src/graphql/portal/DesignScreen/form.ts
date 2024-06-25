@@ -11,6 +11,7 @@ import {
   CustomisableThemeStyleGroup,
   DEFAULT_LIGHT_THEME,
   StyleCssVisitor,
+  Theme,
   ThemeTargetSelector,
 } from "../../../model/themeAuthFlowV2";
 import {
@@ -86,6 +87,7 @@ const enum TranslationKey {
 
 export type BranchDesignFormState = {
   selectedLanguage: LanguageTag;
+  theme: Theme;
 } & ConfigFormState &
   ResourcesFormState &
   FeatureConfig;
@@ -385,6 +387,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
 
   const state: BranchDesignFormState = useMemo(
     () => ({
+      theme: Theme.Light,
       selectedLanguage,
       ...configForm.state,
       ...resourcesState,

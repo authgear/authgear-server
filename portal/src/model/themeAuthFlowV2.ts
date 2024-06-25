@@ -7,6 +7,11 @@ import {
   CssRuleNodeWrapper,
 } from "../util/cssVisitor";
 
+export enum Theme {
+  Light = "light",
+  Dark = "dark",
+}
+
 export const enum ThemeTargetSelector {
   Light = ":root",
 }

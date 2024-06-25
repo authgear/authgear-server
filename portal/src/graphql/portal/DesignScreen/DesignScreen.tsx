@@ -1,4 +1,4 @@
-import React, { useCallback, useContext } from "react";
+import React, { useCallback, useContext, useMemo } from "react";
 import { DefaultEffects, Text } from "@fluentui/react";
 import {
   Context as MFContext,
@@ -31,6 +31,7 @@ import Separator from "../../../components/design/Separator";
 
 import { BranchDesignForm, useBrandDesignForm } from "./form";
 import styles from "./DesignScreen.module.css";
+import { useAppAndSecretConfigQuery } from "../query/appAndSecretConfigQuery";
 
 interface OrganisationConfigurationProps {
   designForm: BranchDesignForm;
@@ -396,16 +397,58 @@ const ConfigurationPanel: React.VFC<ConfigurationPanelProps> =
     );
   };
 
+interface PreviewProps {
+  publicOrgin: string;
+  designForm: BranchDesignForm;
+}
+const Preview: React.VFC<PreviewProps> = function Preview(props) {
+  const { designForm, publicOrgin } = props;
+
+  const src = useMemo(() => {
+    const url = new URL(publicOrgin);
+    url.pathname = "login";
+    url.searchParams.append("x_color_scheme", designForm.state.theme);
+    url.searchParams.append("ui_locales", designForm.state.selectedLanguage);
+    return url.toString();
+  }, [publicOrgin, designForm.state.selectedLanguage, designForm.state.theme]);
+
+  return (
+    <iframe
+      className={cn("w-full", "h-full", "border-none")}
+      src={src}
+      sandbox="allow-scripts"
+    ></iframe>
+  );
+};
+
 const DesignScreen: React.VFC = function DesignScreen() {
   const { appID } = useParams() as { appID: string };
+  const {
+    effectiveAppConfig,
+    loading: appConfigLoading,
+    error: appConfigError,
+    refetch: reloadConfig,
+  } = useAppAndSecretConfigQuery(appID);
   const form = useBrandDesignForm(appID);
 
-  if (form.isLoading) {
+  const reloadData = useCallback(() => {
+    form.reload();
+    reloadConfig().catch((error) => {
+      console.error(error);
+    });
+  }, [form, reloadConfig]);
+
+  if (form.isLoading || appConfigLoading) {
     return <ShowLoading />;
   }
 
-  if (form.loadError) {
-    return <ShowError error={form.loadError} onRetry={form.reload} />;
+  if (form.loadError ?? appConfigError) {
+    return (
+      <ShowError
+        error={form.loadError ?? appConfigError}
+        onRetry={reloadData}
+      />
+    );
   }
 
   return (
@@ -447,12 +490,20 @@ const DesignScreen: React.VFC = function DesignScreen() {
       >
         <div className={cn("desktop:flex-1", "h-full", "p-6", "pt-4")}>
           <div
-            className={cn("rounded-xl", "h-full", "tablet:h-178.5")}
+            className={cn(
+              "rounded-xl",
+              "h-full",
+              "tablet:h-178.5",
+              "overflow-hidden"
+            )}
             style={{
               boxShadow: DefaultEffects.elevation4,
             }}
           >
-            Preview
+            <Preview
+              publicOrgin={effectiveAppConfig?.http?.public_origin ?? ""}
+              designForm={form}
+            />
           </div>
         </div>
         <div className={cn("p-6", "pt-4", "desktop:overflow-auto")}>
