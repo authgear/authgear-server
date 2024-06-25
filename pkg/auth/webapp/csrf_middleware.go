@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/csrf"
+	"github.com/gorilla/securecookie"
 	"github.com/sirupsen/logrus"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -34,7 +35,7 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		secure := httputil.GetProto(r, bool(m.TrustProxy)) == "https"
 		options := []csrf.Option{
-			csrf.MaxAge(int(duration.UserInteraction.Seconds())),
+			csrf.MaxAge(m.maxAge()),
 			csrf.FieldName(CSRFFieldName),
 			csrf.CookieName(m.CookieDef.Name),
 			csrf.Path("/"),
@@ -60,7 +61,7 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 
 		options = append(options, csrf.ErrorHandler(http.HandlerFunc(m.unauthorizedHandler)))
 
-		key, err := jwkutil.ExtractOctetKey(m.Secret.Set, "")
+		key, err := m.getSecretKey()
 		if err != nil {
 			panic("webapp: CSRF key not found")
 		}
@@ -87,10 +88,14 @@ func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Requ
 	csrfCookie, _ := r.Cookie(m.CookieDef.Name)
 	csrfCookieSizeInBytes := 0
 	maskedCsrfCookieContent := ""
+	securecookieError := ""
+	csrfFailureReason := csrf.FailureReason(r)
 	if csrfCookie != nil {
 		// do not return value but length only for debug.
 		csrfCookieSizeInBytes = len([]byte(csrfCookie.Value))
-		if data, err := base64.StdEncoding.DecodeString(csrfCookie.Value); err != nil {
+		// securecookie uses URLEncoding
+		// See https://github.com/gorilla/securecookie/blob/v1.1.2/securecookie.go#L489
+		if data, err := base64.URLEncoding.DecodeString(csrfCookie.Value); err != nil {
 			csrfToken := string(data)
 			maskedTokenParts := make([]string, 0, 4)
 			for i, part := range strings.Split(csrfToken, "|") {
@@ -105,6 +110,23 @@ func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Requ
 			}
 			maskedCsrfCookieContent = strings.Join(maskedTokenParts, "|")
 		}
+
+		// Ask securecookie to decode it once to obtain the underlying error.
+		if key, err := m.getSecretKey(); err == nil {
+			// Replicate how securecookie was constructed.
+			// See https://github.com/gorilla/csrf/blob/v1.7.2/csrf.go#L175
+			sc := securecookie.New(key, nil)
+			sc.SetSerializer(securecookie.JSONEncoder{})
+			sc.MaxAge(m.maxAge())
+
+			// Token length is 32.
+			// https://github.com/gorilla/csrf/blob/v1.7.2/store.go#L46
+			token := make([]byte, 32)
+			err = sc.Decode(m.CookieDef.Name, csrfCookie.Value, &token)
+			if err != nil {
+				securecookieError = err.Error()
+			}
+		}
 	}
 
 	m.Logger.WithFields(logrus.Fields{
@@ -114,10 +136,25 @@ func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Requ
 		"hasStrictCookie":         hasStrictCookie,
 		"csrfCookieSizeInBytes":   csrfCookieSizeInBytes,
 		"maskedCsrfCookieContent": maskedCsrfCookieContent,
-	}).Errorf("CSRF Forbidden: %s", csrf.FailureReason(r))
+		"securecookieError":       securecookieError,
+		"csrfFailureReason":       csrfFailureReason,
+	}).Errorf("CSRF Forbidden: %v", csrfFailureReason)
 
 	// TODO: beautify error page ui
-	http.Error(w, fmt.Sprintf("%s - %s",
-		http.StatusText(http.StatusForbidden), csrf.FailureReason(r)),
+	http.Error(w, fmt.Sprintf("%v - %v",
+		http.StatusText(http.StatusForbidden), csrfFailureReason),
 		http.StatusForbidden)
+}
+
+func (m *CSRFMiddleware) getSecretKey() ([]byte, error) {
+	key, err := jwkutil.ExtractOctetKey(m.Secret.Set, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return key, nil
+}
+
+func (m *CSRFMiddleware) maxAge() int {
+	return int(duration.UserInteraction.Seconds())
 }
