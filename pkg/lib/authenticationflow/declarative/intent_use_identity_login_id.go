@@ -56,6 +56,14 @@ func (n *IntentUseIdentityLoginID) CanReactTo(ctx context.Context, deps *authflo
 func (n *IntentUseIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	var inputTakeLoginID inputTakeLoginID
 	if authflow.AsInput(input, &inputTakeLoginID) {
+		bpRequired, err := IsBotProtectionRequired(ctx, deps, flows, n.JSONPointer)
+		if err != nil {
+			return nil, err
+		}
+		if bpRequired {
+			return NewBotProtectionVerification(ctx, deps, flows, n.JSONPointer)
+		}
+
 		loginID := inputTakeLoginID.GetLoginID()
 		spec := &identity.Spec{
 			Type: model.IdentityTypeLoginID,

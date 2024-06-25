@@ -35,8 +35,3 @@ func GetBotProtectionData(authflowCfg *config.AuthenticationFlowBotProtection, a
 	}
 	return nil
 }
-
-func IsBotProtectionRequired(authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) bool {
-	data := GetBotProtectionData(authflowCfg, appCfg)
-	return data != nil
-}
