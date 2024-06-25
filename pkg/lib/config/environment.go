@@ -22,6 +22,8 @@ type DenoEndpoint string
 
 type AppHostSuffixes []string
 
+type AllowedFrameAncestors []string
+
 func (s AppHostSuffixes) CheckIsDefaultDomain(host string) bool {
 	for _, suffix := range s {
 		if before, found := strings.CutSuffix(host, suffix); found {
@@ -70,6 +72,8 @@ type EnvironmentConfig struct {
 
 	// CORSAllowOrigins configures a comma-separated list of allowed origins for CORSMiddleware
 	CORSAllowedOrigins CORSAllowedOrigins `envconfig:"CORS_ALLOWED_ORIGINS"`
+
+	AllowedFrameAncestors AllowedFrameAncestors `envconfig:"ALLOWED_FRAME_ANCESTORS"`
 
 	NFTIndexerAPIEndpoint NFTIndexerAPIEndpoint `envconfig:"NFT_INDEXER_API_ENDPOINT"`
 
