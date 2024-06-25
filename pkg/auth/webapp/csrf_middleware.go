@@ -89,6 +89,7 @@ func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Requ
 	csrfCookieSizeInBytes := 0
 	maskedCsrfCookieContent := ""
 	securecookieError := ""
+	csrfFailureReason := csrf.FailureReason(r)
 	if csrfCookie != nil {
 		// do not return value but length only for debug.
 		csrfCookieSizeInBytes = len([]byte(csrfCookie.Value))
@@ -136,11 +137,12 @@ func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Requ
 		"csrfCookieSizeInBytes":   csrfCookieSizeInBytes,
 		"maskedCsrfCookieContent": maskedCsrfCookieContent,
 		"securecookieError":       securecookieError,
-	}).Errorf("CSRF Forbidden: %s", csrf.FailureReason(r))
+		"csrfFailureReason":       csrfFailureReason,
+	}).Errorf("CSRF Forbidden: %v", csrfFailureReason)
 
 	// TODO: beautify error page ui
-	http.Error(w, fmt.Sprintf("%s - %s",
-		http.StatusText(http.StatusForbidden), csrf.FailureReason(r)),
+	http.Error(w, fmt.Sprintf("%v - %v",
+		http.StatusText(http.StatusForbidden), csrfFailureReason),
 		http.StatusForbidden)
 }
 
