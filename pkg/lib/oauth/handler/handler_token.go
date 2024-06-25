@@ -42,6 +42,10 @@ import (
 )
 
 const (
+	AuthorizationCodeGrantType = "authorization_code"
+	RefreshTokenGrantType      = "refresh_token"
+	TokenExchangeGrantType     = "urn:ietf:params:oauth:grant-type:token-exchange"
+
 	AnonymousRequestGrantType = "urn:authgear:params:oauth:grant-type:anonymous-request"
 	BiometricRequestGrantType = "urn:authgear:params:oauth:grant-type:biometric-request"
 	App2AppRequestGrantType   = "urn:authgear:params:oauth:grant-type:app2app-request"
@@ -60,6 +64,7 @@ var whitelistedGrantTypes = []string{
 	App2AppRequestGrantType,
 	IDTokenGrantType,
 	SettingsActionGrantType,
+	TokenExchangeGrantType,
 }
 
 type IDTokenIssuer interface {
@@ -165,7 +170,7 @@ func (h *TokenHandler) doHandle(
 
 	allowedGrantTypes := client.GrantTypes
 	if len(allowedGrantTypes) == 0 {
-		allowedGrantTypes = []string{"authorization_code"}
+		allowedGrantTypes = []string{AuthorizationCodeGrantType}
 	}
 	allowedGrantTypes = append(allowedGrantTypes, whitelistedGrantTypes...)
 
@@ -181,14 +186,16 @@ func (h *TokenHandler) doHandle(
 	}
 
 	switch r.GrantType() {
-	case "authorization_code":
+	case AuthorizationCodeGrantType:
 		return h.handleAuthorizationCode(client, r)
-	case "refresh_token":
+	case RefreshTokenGrantType:
 		resp, err := h.handleRefreshToken(client, r)
 		if err != nil {
 			return nil, err
 		}
 		return tokenResultOK{Response: resp}, nil
+	case TokenExchangeGrantType:
+		return h.handleTokenExchange(client, r)
 	case AnonymousRequestGrantType:
 		return h.handleAnonymousRequest(client, r)
 	case BiometricRequestGrantType:
@@ -209,7 +216,7 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.O
 	switch r.GrantType() {
 	case SettingsActionGrantType:
 		fallthrough
-	case "authorization_code":
+	case AuthorizationCodeGrantType:
 		if r.Code() == "" {
 			return protocol.NewError("invalid_request", "code is required")
 		}
@@ -223,7 +230,7 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.O
 				return protocol.NewError("invalid_request", "client secret is required")
 			}
 		}
-	case "refresh_token":
+	case RefreshTokenGrantType:
 		if r.RefreshToken() == "" {
 			return protocol.NewError("invalid_request", "refresh token is required")
 		}
@@ -485,6 +492,13 @@ func (h *TokenHandler) handleRefreshToken(
 	}
 
 	return resp, nil
+}
+
+func (h *TokenHandler) handleTokenExchange(
+	client *config.OAuthClientConfig,
+	r protocol.TokenRequest,
+) (httputil.Result, error) {
+	// TODO
 }
 
 type anonymousTokenInput struct {
@@ -1098,7 +1112,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		// Only if client is allowed to use refresh tokens
 		allowRefreshToken := false
 		for _, grantType := range client.GrantTypes {
-			if grantType == "refresh_token" {
+			if grantType == RefreshTokenGrantType {
 				allowRefreshToken = true
 				break
 			}
