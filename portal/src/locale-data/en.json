@@ -1300,7 +1300,7 @@
   "FeatureConfig.audit-log.retrieval-days": "You can only retrieve audit logs for the last {logRetrievalDays, plural, one{1 day} other{# days}}. To retrieve more logs, {ReactRouterLink, react, to{{planPagePath}} children{upgrade your project plan} target{_blank}}.",
   "FeatureConfig.collaborator": "You can only have {maximum, plural, one{1 admin} other{# admins}}. To invite more, {ReactRouterLink, react, to{{planPagePath}} children{upgrade your project plan} target{_blank}}",
   "FeatureConfig.web3-nft.maximum": "You can index {maximum, plural, one{1 collection} other{# collections}} max. {ReactRouterLink, react, to{{planPagePath}} children{Upgrade your project plan} target{_blank}} to add more",
-
+  "FeatureConfig.edit-template.disabled": "{ReactRouterLink, react, to{{planPagePath}} children{Upgrade your project plan} target{_blank}} to change the templates.",
   "SubscriptionCurrentPlanSummary.title.known-plan": "Current Plan: {name} {expiredAt, select, false{(${amount}/mo)} other{(Expire at: {expiredAt})}}",
   "SubscriptionCurrentPlanSummary.title.custom-plan": "Custom Plan: {name}",
   "SubscriptionCurrentPlanSummary.label.free": "Free",

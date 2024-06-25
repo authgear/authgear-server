@@ -19,6 +19,12 @@ pkg/portal/service/system_config.go cannot import github.com/authgear/authgear-s
 pkg/portal/wire_gen.go cannot import github.com/authgear/authgear-server/pkg/auth
 
 exit status 1
+pkg/util/template/resource.go cannot import github.com/authgear/authgear-server/pkg/lib/config/configsource
+pkg/util/template/resource_test.go cannot import github.com/authgear/authgear-server/pkg/lib/config/configsource
+pkg/util/template/translation.go cannot import github.com/authgear/authgear-server/pkg/lib/config/configsource
+pkg/util/template/translation_test.go cannot import github.com/authgear/authgear-server/pkg/lib/config/configsource
+
+exit status 1
 pkg/lib/config/config_test.go cannot import gopkg.in/yaml.v2
 pkg/lib/config/feature_test.go cannot import gopkg.in/yaml.v2
 pkg/lib/config/schema_test.go cannot import gopkg.in/yaml.v2

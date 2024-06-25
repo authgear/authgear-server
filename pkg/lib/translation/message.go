@@ -4,10 +4,10 @@ import "github.com/authgear/authgear-server/pkg/util/template"
 
 type MessageSpec struct {
 	Name              string
-	TXTEmailTemplate  *template.PlainText
-	HTMLEmailTemplate *template.HTML
-	SMSTemplate       *template.PlainText
-	WhatsappTemplate  *template.PlainText
+	TXTEmailTemplate  *template.MessagePlainText
+	HTMLEmailTemplate *template.MessageHTML
+	SMSTemplate       *template.MessagePlainText
+	WhatsappTemplate  *template.MessagePlainText
 }
 
 func RegisterMessage(msg *MessageSpec) *MessageSpec {

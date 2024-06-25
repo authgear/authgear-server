@@ -9,6 +9,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/spf13/afero"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -707,7 +709,9 @@ func TestTranslationResource(t *testing.T) {
 		app := resource.LeveledAferoFs{FsLevel: resource.FsLevelApp}
 
 		Convey("it should only write value that is not equal to default value", func() {
+			featureConfig := config.NewEffectiveDefaultFeatureConfig()
 			ctx := context.Background()
+			ctx = context.WithValue(ctx, configsource.ContextKeyFeatureConfig, featureConfig)
 			updated, err := template.TranslationJSON.UpdateResource(
 				ctx,
 				[]resource.ResourceFile{
@@ -747,7 +751,9 @@ func TestTranslationResource(t *testing.T) {
 		})
 
 		Convey("it should delete the file if the file is empty", func() {
+			featureConfig := config.NewEffectiveDefaultFeatureConfig()
 			ctx := context.Background()
+			ctx = context.WithValue(ctx, configsource.ContextKeyFeatureConfig, featureConfig)
 			updated, err := template.TranslationJSON.UpdateResource(
 				ctx,
 				[]resource.ResourceFile{
@@ -781,6 +787,48 @@ func TestTranslationResource(t *testing.T) {
 					Path: path,
 				},
 				Data: nil,
+			})
+		})
+
+		Convey("it should skip write value for email template if disallowed by feature flag", func() {
+			featureConfig := config.NewEffectiveDefaultFeatureConfig()
+			featureConfig.Messaging.TemplateCustomizationDisabled = true
+			ctx := context.Background()
+			ctx = context.WithValue(ctx, configsource.ContextKeyFeatureConfig, featureConfig)
+			updated, err := template.TranslationJSON.UpdateResource(
+				ctx,
+				[]resource.ResourceFile{
+					resource.ResourceFile{
+						Location: resource.Location{
+							Fs:   builtin,
+							Path: path,
+						},
+						Data: []byte(`{
+							"email.test.subject": "default title"
+						}`),
+					},
+				},
+				&resource.ResourceFile{
+					Location: resource.Location{
+						Fs:   app,
+						Path: path,
+					},
+					Data: nil,
+				},
+				[]byte(`{
+					"email.test.subject": "skip me",
+					"another.test.subject": "foo",
+					"email.test.another": "bar"
+				}`),
+			)
+
+			So(err, ShouldBeNil)
+			So(updated, ShouldResemble, &resource.ResourceFile{
+				Location: resource.Location{
+					Fs:   app,
+					Path: path,
+				},
+				Data: []byte(`{"another.test.subject":"foo","email.test.another":"bar"}`),
 			})
 		})
 	})

@@ -9,6 +9,7 @@ export interface TextFieldWidgetIteProps {
   className?: string;
   value: string;
   onChange: (value: string | undefined, e: unknown) => void;
+  readOnly?: boolean;
 }
 
 // TextFieldWidgetItem is a wrapper of TextField
@@ -16,7 +17,7 @@ export interface TextFieldWidgetIteProps {
 // TextField and CodeEditor, so we need to wrap the TextField
 const TextFieldWidgetItem: React.VFC<TextFieldWidgetIteProps> =
   function TextFieldWidgetItem(props) {
-    const { className, value, onChange: onChangeProps } = props;
+    const { className, value, onChange: onChangeProps, readOnly } = props;
 
     const onChange = useCallback(
       (
@@ -27,7 +28,12 @@ const TextFieldWidgetItem: React.VFC<TextFieldWidgetIteProps> =
     );
 
     return (
-      <TextField className={className} value={value} onChange={onChange} />
+      <TextField
+        className={className}
+        value={value}
+        onChange={onChange}
+        readOnly={readOnly}
+      />
     );
   };
 
@@ -38,6 +44,7 @@ export interface EditTemplatesWidgetItem {
   editor: "code" | "textfield";
   value: string;
   onChange: (value: string | undefined, e: unknown) => void;
+  readOnly?: boolean;
 }
 
 export interface EditTemplatesWidgetSection {
@@ -72,6 +79,7 @@ const EditTemplatesWidget: React.VFC<EditTemplatesWidgetProps> =
                       language={item.language}
                       value={item.value}
                       onChange={item.onChange}
+                      options={{ readOnly: item.readOnly }}
                     />
                   </Fragment>
                 ) : (
@@ -83,6 +91,7 @@ const EditTemplatesWidget: React.VFC<EditTemplatesWidgetProps> =
                       className={styles.textField}
                       value={item.value}
                       onChange={item.onChange}
+                      readOnly={item.readOnly}
                     />
                   </Fragment>
                 );

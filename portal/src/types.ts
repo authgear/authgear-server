@@ -395,6 +395,7 @@ export interface VerificationRateLimitsSMSConfig {
 
 export interface MessagingConfig {
   rate_limits?: MessagingRateLimitsConfig;
+  template_customization_disabled?: boolean;
 }
 
 export interface MessagingRateLimitsConfig {
