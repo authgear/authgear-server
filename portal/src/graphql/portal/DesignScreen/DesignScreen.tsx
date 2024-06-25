@@ -1,5 +1,13 @@
-import React, { useCallback, useContext, useMemo } from "react";
-import { DefaultEffects, Text } from "@fluentui/react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
+import {
+  DefaultEffects,
+  Dropdown,
+  IDropdownOption,
+  IDropdownStyleProps,
+  IDropdownStyles,
+  IStyleFunctionOrObject,
+  Text,
+} from "@fluentui/react";
 import {
   Context as MFContext,
   FormattedMessage,
@@ -32,6 +40,8 @@ import Separator from "../../../components/design/Separator";
 import { BranchDesignForm, useBrandDesignForm } from "./form";
 import styles from "./DesignScreen.module.css";
 import { useAppAndSecretConfigQuery } from "../query/appAndSecretConfigQuery";
+import { PortalAPIAppConfig } from "../../../types";
+import { PreviewPage, getSupportedPreviewPagesFromConfig } from "./viewModel";
 
 interface OrganisationConfigurationProps {
   designForm: BranchDesignForm;
@@ -397,27 +407,100 @@ const ConfigurationPanel: React.VFC<ConfigurationPanelProps> =
     );
   };
 
+const PreviewPageDropdownStyles: IStyleFunctionOrObject<
+  IDropdownStyleProps,
+  IDropdownStyles
+> = {
+  dropdown: {
+    width: "180px",
+    selectors: {
+      "::after": {
+        display: "none",
+      },
+    },
+  },
+  title: {
+    border: "none",
+    textAlign: "right",
+  },
+};
+
 interface PreviewProps {
-  publicOrgin: string;
+  effectiveAppConfig: PortalAPIAppConfig;
   designForm: BranchDesignForm;
 }
 const Preview: React.VFC<PreviewProps> = function Preview(props) {
-  const { designForm, publicOrgin } = props;
+  const { designForm, effectiveAppConfig } = props;
+  const { renderToString } = useContext(MFContext);
+
+  const supportedPreviewPages = useMemo(
+    () => getSupportedPreviewPagesFromConfig(effectiveAppConfig),
+    [effectiveAppConfig]
+  );
+
+  const [selectedPreviewPage, setSelectedPreviewPage] = useState(
+    () => supportedPreviewPages[0]
+  );
+
+  const previewPageOptions = useMemo((): IDropdownOption[] => {
+    return supportedPreviewPages.map(
+      (page): IDropdownOption => ({
+        key: page,
+        text: renderToString(`DesignScreen.preview.pages.title.${page}`),
+      })
+    );
+  }, [supportedPreviewPages, renderToString]);
+  const onChangePreviewPageOption = useCallback(
+    (_e: unknown, option?: IDropdownOption) => {
+      if (option == null) {
+        return;
+      }
+      setSelectedPreviewPage(option.key as PreviewPage);
+    },
+    []
+  );
 
   const src = useMemo(() => {
-    const url = new URL(publicOrgin);
-    url.pathname = "login";
+    const url = new URL(effectiveAppConfig.http?.public_origin ?? "");
+    url.pathname = selectedPreviewPage;
     url.searchParams.append("x_color_scheme", designForm.state.theme);
     url.searchParams.append("ui_locales", designForm.state.selectedLanguage);
     return url.toString();
-  }, [publicOrgin, designForm.state.selectedLanguage, designForm.state.theme]);
+  }, [
+    effectiveAppConfig.http?.public_origin,
+    designForm.state.selectedLanguage,
+    designForm.state.theme,
+    selectedPreviewPage,
+  ]);
 
   return (
-    <iframe
-      className={cn("w-full", "h-full", "border-none")}
-      src={src}
-      sandbox="allow-scripts"
-    ></iframe>
+    <div className={cn("h-full")}>
+      <div
+        className={cn(
+          "flex",
+          "justify-end",
+          "px-6",
+          "py-1",
+          "border-x-0",
+          "border-t-0",
+          "border-b",
+          "border-solid",
+          "border-neutral-light"
+        )}
+      >
+        <Dropdown
+          styles={PreviewPageDropdownStyles}
+          selectedKey={selectedPreviewPage}
+          options={previewPageOptions}
+          onChange={onChangePreviewPageOption}
+        />
+      </div>
+      <iframe
+        className={cn("w-full", "h-full", "border-none")}
+        src={src}
+        sandbox="allow-scripts"
+      ></iframe>
+    </div>
   );
 };
 
@@ -438,17 +521,15 @@ const DesignScreen: React.VFC = function DesignScreen() {
     });
   }, [form, reloadConfig]);
 
-  if (form.isLoading || appConfigLoading) {
+  const isLoading =
+    form.isLoading || appConfigLoading || effectiveAppConfig == null;
+  if (isLoading) {
     return <ShowLoading />;
   }
 
-  if (form.loadError ?? appConfigError) {
-    return (
-      <ShowError
-        error={form.loadError ?? appConfigError}
-        onRetry={reloadData}
-      />
-    );
+  const loadError = form.loadError ?? appConfigError;
+  if (loadError != null) {
+    return <ShowError error={loadError} onRetry={reloadData} />;
   }
 
   return (
@@ -501,7 +582,7 @@ const DesignScreen: React.VFC = function DesignScreen() {
             }}
           >
             <Preview
-              publicOrgin={effectiveAppConfig?.http?.public_origin ?? ""}
+              effectiveAppConfig={effectiveAppConfig}
               designForm={form}
             />
           </div>
