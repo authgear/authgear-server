@@ -16,6 +16,37 @@ func TestRoute(t *testing.T) {
 		So(r1.Methods, ShouldBeNil)
 		So(r2.Methods, ShouldResemble, []string{"GET"})
 	})
+
+	Convey("Prepend path pattern", t, func() {
+		Convey("Prepend path has / suffix and original path has / prefix", func() {
+			r1 := Route{
+				PathPattern: "/path",
+			}
+			r2 := r1.PrependPathPattern("/prepend/")
+			So(r2.PathPattern, ShouldEqual, "/prepend/path")
+		})
+		Convey("Prepend path has / suffix and original path has no / prefix", func() {
+			r1 := Route{
+				PathPattern: "path",
+			}
+			r2 := r1.PrependPathPattern("/prepend/")
+			So(r2.PathPattern, ShouldEqual, "/prepend/path")
+		})
+		Convey("Prepend path has no / suffix and original path has / prefix", func() {
+			r1 := Route{
+				PathPattern: "/path",
+			}
+			r2 := r1.PrependPathPattern("/prepend")
+			So(r2.PathPattern, ShouldEqual, "/prepend/path")
+		})
+		Convey("Prepend path has no / suffix and original path has no / prefix", func() {
+			r1 := Route{
+				PathPattern: "path",
+			}
+			r2 := r1.PrependPathPattern("/prepend")
+			So(r2.PathPattern, ShouldEqual, "/prepend/path")
+		})
+	})
 }
 
 func TestRedirectTrailingSlash(t *testing.T) {

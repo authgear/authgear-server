@@ -2,6 +2,7 @@ package httproute
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -38,6 +39,25 @@ func (r Route) WithMethods(methods ...string) Route {
 
 func (r Route) WithPathPattern(pathPattern string) Route {
 	r.PathPattern = pathPattern
+	return r
+}
+
+func (r Route) PrependPathPattern(pathPattern string) Route {
+	newPathPattern := pathPattern
+	if strings.HasSuffix(pathPattern, "/") {
+		if strings.HasPrefix(r.PathPattern, "/") {
+			newPathPattern = newPathPattern[:len(newPathPattern)-1] + r.PathPattern
+		} else {
+			newPathPattern = newPathPattern + r.PathPattern
+		}
+	} else {
+		if strings.HasPrefix(r.PathPattern, "/") {
+			newPathPattern = newPathPattern + r.PathPattern
+		} else {
+			newPathPattern = newPathPattern + "/" + r.PathPattern
+		}
+	}
+	r.PathPattern = newPathPattern
 	return r
 }
 
