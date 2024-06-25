@@ -14,35 +14,35 @@ import (
 )
 
 func init() {
-	authflow.RegisterNode(&NodeUseAuthenticatorTOTP{})
+	authflow.RegisterIntent(&IntentUseAuthenticatorTOTP{})
 }
 
-type NodeUseAuthenticatorTOTP struct {
+type IntentUseAuthenticatorTOTP struct {
 	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
 	UserID         string                                  `json:"user_id,omitempty"`
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
 }
 
-var _ authflow.NodeSimple = &NodeUseAuthenticatorTOTP{}
-var _ authflow.Milestone = &NodeUseAuthenticatorTOTP{}
-var _ MilestoneAuthenticationMethod = &NodeUseAuthenticatorTOTP{}
-var _ MilestoneFlowAuthenticate = &NodeUseAuthenticatorTOTP{}
-var _ authflow.InputReactor = &NodeUseAuthenticatorTOTP{}
+var _ authflow.Intent = &IntentUseAuthenticatorTOTP{}
+var _ authflow.Milestone = &IntentUseAuthenticatorTOTP{}
+var _ MilestoneAuthenticationMethod = &IntentUseAuthenticatorTOTP{}
+var _ MilestoneFlowAuthenticate = &IntentUseAuthenticatorTOTP{}
+var _ authflow.InputReactor = &IntentUseAuthenticatorTOTP{}
 
-func (*NodeUseAuthenticatorTOTP) Kind() string {
-	return "NodeUseAuthenticatorTOTP"
+func (*IntentUseAuthenticatorTOTP) Kind() string {
+	return "IntentUseAuthenticatorTOTP"
 }
 
-func (*NodeUseAuthenticatorTOTP) Milestone() {}
-func (n *NodeUseAuthenticatorTOTP) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
+func (*IntentUseAuthenticatorTOTP) Milestone() {}
+func (n *IntentUseAuthenticatorTOTP) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
 	return n.Authentication
 }
 
-func (*NodeUseAuthenticatorTOTP) MilestoneFlowAuthenticate(flows authflow.Flows) (MilestoneDidAuthenticate, authflow.Flows, bool) {
+func (*IntentUseAuthenticatorTOTP) MilestoneFlowAuthenticate(flows authflow.Flows) (MilestoneDidAuthenticate, authflow.Flows, bool) {
 	return authflow.FindMilestoneInCurrentFlow[MilestoneDidAuthenticate](flows)
 }
 
-func (n *NodeUseAuthenticatorTOTP) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+func (n *IntentUseAuthenticatorTOTP) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
 	if err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func (n *NodeUseAuthenticatorTOTP) CanReactTo(ctx context.Context, deps *authflo
 	}, nil
 }
 
-func (n *NodeUseAuthenticatorTOTP) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (n *IntentUseAuthenticatorTOTP) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	var inputTakeTOTP inputTakeTOTP
 	if authflow.AsInput(input, &inputTakeTOTP) {
 		as, err := deps.Authenticators.List(

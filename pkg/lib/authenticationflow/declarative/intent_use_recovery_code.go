@@ -10,35 +10,35 @@ import (
 )
 
 func init() {
-	authflow.RegisterNode(&NodeUseRecoveryCode{})
+	authflow.RegisterIntent(&IntentUseRecoveryCode{})
 }
 
-type NodeUseRecoveryCode struct {
+type IntentUseRecoveryCode struct {
 	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
 	UserID         string                                  `json:"user_id,omitempty"`
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
 }
 
-var _ authflow.NodeSimple = &NodeUseRecoveryCode{}
-var _ authflow.Milestone = &NodeUseRecoveryCode{}
-var _ MilestoneAuthenticationMethod = &NodeUseRecoveryCode{}
-var _ MilestoneFlowAuthenticate = &NodeUseRecoveryCode{}
-var _ authflow.InputReactor = &NodeUseRecoveryCode{}
+var _ authflow.Intent = &IntentUseRecoveryCode{}
+var _ authflow.Milestone = &IntentUseRecoveryCode{}
+var _ MilestoneAuthenticationMethod = &IntentUseRecoveryCode{}
+var _ MilestoneFlowAuthenticate = &IntentUseRecoveryCode{}
+var _ authflow.InputReactor = &IntentUseRecoveryCode{}
 
-func (*NodeUseRecoveryCode) Kind() string {
-	return "NodeUseRecoveryCode"
+func (*IntentUseRecoveryCode) Kind() string {
+	return "IntentUseRecoveryCode"
 }
 
-func (*NodeUseRecoveryCode) Milestone() {}
-func (n *NodeUseRecoveryCode) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
+func (*IntentUseRecoveryCode) Milestone() {}
+func (n *IntentUseRecoveryCode) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
 	return n.Authentication
 }
 
-func (*NodeUseRecoveryCode) MilestoneFlowAuthenticate(flows authflow.Flows) (MilestoneDidAuthenticate, authflow.Flows, bool) {
+func (*IntentUseRecoveryCode) MilestoneFlowAuthenticate(flows authflow.Flows) (MilestoneDidAuthenticate, authflow.Flows, bool) {
 	return authflow.FindMilestoneInCurrentFlow[MilestoneDidAuthenticate](flows)
 }
 
-func (n *NodeUseRecoveryCode) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+func (n *IntentUseRecoveryCode) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
 	if err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ func (n *NodeUseRecoveryCode) CanReactTo(ctx context.Context, deps *authflow.Dep
 	}, nil
 }
 
-func (n *NodeUseRecoveryCode) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (n *IntentUseRecoveryCode) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	var inputTakeRecoveryCode inputTakeRecoveryCode
 	if authflow.AsInput(input, &inputTakeRecoveryCode) {
 		recoveryCode := inputTakeRecoveryCode.GetRecoveryCode()
