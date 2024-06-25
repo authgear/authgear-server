@@ -13,34 +13,34 @@ import (
 )
 
 func init() {
-	authflow.RegisterNode(&NodeCreateAuthenticatorPassword{})
+	authflow.RegisterIntent(&IntentCreateAuthenticatorPassword{})
 }
 
-type NodeCreateAuthenticatorPassword struct {
+type IntentCreateAuthenticatorPassword struct {
 	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
 	UserID         string                                  `json:"user_id,omitempty"`
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
 }
 
-var _ authflow.NodeSimple = &NodeCreateAuthenticatorPassword{}
-var _ authflow.InputReactor = &NodeCreateAuthenticatorPassword{}
-var _ authflow.Milestone = &NodeCreateAuthenticatorPassword{}
-var _ MilestoneFlowCreateAuthenticator = &NodeCreateAuthenticatorPassword{}
-var _ MilestoneAuthenticationMethod = &NodeCreateAuthenticatorPassword{}
+var _ authflow.Intent = &IntentCreateAuthenticatorPassword{}
+var _ authflow.InputReactor = &IntentCreateAuthenticatorPassword{}
+var _ authflow.Milestone = &IntentCreateAuthenticatorPassword{}
+var _ MilestoneFlowCreateAuthenticator = &IntentCreateAuthenticatorPassword{}
+var _ MilestoneAuthenticationMethod = &IntentCreateAuthenticatorPassword{}
 
-func (*NodeCreateAuthenticatorPassword) Kind() string {
-	return "NodeCreateAuthenticatorPassword"
+func (*IntentCreateAuthenticatorPassword) Kind() string {
+	return "IntentCreateAuthenticatorPassword"
 }
 
-func (*NodeCreateAuthenticatorPassword) Milestone() {}
-func (*NodeCreateAuthenticatorPassword) MilestoneFlowCreateAuthenticator(flows authflow.Flows) (MilestoneDoCreateAuthenticator, authflow.Flows, bool) {
+func (*IntentCreateAuthenticatorPassword) Milestone() {}
+func (*IntentCreateAuthenticatorPassword) MilestoneFlowCreateAuthenticator(flows authflow.Flows) (MilestoneDoCreateAuthenticator, authflow.Flows, bool) {
 	return authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateAuthenticator](flows)
 }
-func (n *NodeCreateAuthenticatorPassword) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
+func (n *IntentCreateAuthenticatorPassword) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
 	return n.Authentication
 }
 
-func (n *NodeCreateAuthenticatorPassword) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+func (n *IntentCreateAuthenticatorPassword) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
 	if err != nil {
 		return nil, err
@@ -52,7 +52,7 @@ func (n *NodeCreateAuthenticatorPassword) CanReactTo(ctx context.Context, deps *
 	}, nil
 }
 
-func (i *NodeCreateAuthenticatorPassword) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (i *IntentCreateAuthenticatorPassword) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	var inputTakeNewPassword inputTakeNewPassword
 	if authflow.AsInput(input, &inputTakeNewPassword) {
 		authenticatorKind := i.Authentication.AuthenticatorKind()
