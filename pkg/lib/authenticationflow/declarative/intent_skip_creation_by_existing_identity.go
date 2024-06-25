@@ -11,49 +11,49 @@ import (
 )
 
 func init() {
-	authflow.RegisterNode(&NodeSkipCreationByExistingIdentity{})
+	authflow.RegisterIntent(&IntentSkipCreationByExistingIdentity{})
 }
 
-type NodeSkipCreationByExistingIdentity struct {
+type IntentSkipCreationByExistingIdentity struct {
 	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
 	Identity       *identity.Info                          `json:"identity,omitempty"`
 	Identification config.AuthenticationFlowIdentification `json:"identification,omitempty"`
 }
 
-var _ authflow.NodeSimple = &NodeSkipCreationByExistingIdentity{}
-var _ authflow.Milestone = &NodeSkipCreationByExistingIdentity{}
-var _ MilestoneIdentificationMethod = &NodeSkipCreationByExistingIdentity{}
-var _ MilestoneFlowCreateIdentity = &NodeSkipCreationByExistingIdentity{}
-var _ MilestoneDoCreateIdentity = &NodeSkipCreationByExistingIdentity{}
-var _ authflow.InputReactor = &NodeSkipCreationByExistingIdentity{}
+var _ authflow.Intent = &IntentSkipCreationByExistingIdentity{}
+var _ authflow.Milestone = &IntentSkipCreationByExistingIdentity{}
+var _ MilestoneIdentificationMethod = &IntentSkipCreationByExistingIdentity{}
+var _ MilestoneFlowCreateIdentity = &IntentSkipCreationByExistingIdentity{}
+var _ MilestoneDoCreateIdentity = &IntentSkipCreationByExistingIdentity{}
+var _ authflow.InputReactor = &IntentSkipCreationByExistingIdentity{}
 
-func (*NodeSkipCreationByExistingIdentity) Milestone() {}
+func (*IntentSkipCreationByExistingIdentity) Milestone() {}
 
-func (*NodeSkipCreationByExistingIdentity) Kind() string {
-	return "NodeSkipCreationByExistingIdentity"
+func (*IntentSkipCreationByExistingIdentity) Kind() string {
+	return "IntentSkipCreationByExistingIdentity"
 }
 
-func (n *NodeSkipCreationByExistingIdentity) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
+func (n *IntentSkipCreationByExistingIdentity) MilestoneIdentificationMethod() config.AuthenticationFlowIdentification {
 	return n.Identification
 }
-func (n *NodeSkipCreationByExistingIdentity) MilestoneFlowCreateIdentity(flows authflow.Flows) (MilestoneDoCreateIdentity, authflow.Flows, bool) {
+func (n *IntentSkipCreationByExistingIdentity) MilestoneFlowCreateIdentity(flows authflow.Flows) (MilestoneDoCreateIdentity, authflow.Flows, bool) {
 	return n, flows, true
 }
-func (n *NodeSkipCreationByExistingIdentity) MilestoneDoCreateIdentity() *identity.Info {
+func (n *IntentSkipCreationByExistingIdentity) MilestoneDoCreateIdentity() *identity.Info {
 	return n.Identity
 }
-func (n *NodeSkipCreationByExistingIdentity) MilestoneDoCreateIdentitySkipCreate() {
+func (n *IntentSkipCreationByExistingIdentity) MilestoneDoCreateIdentitySkipCreate() {
 	// Already skipping
 }
-func (n *NodeSkipCreationByExistingIdentity) MilestoneDoCreateIdentityUpdate(newInfo *identity.Info) {
+func (n *IntentSkipCreationByExistingIdentity) MilestoneDoCreateIdentityUpdate(newInfo *identity.Info) {
 	n.Identity = newInfo
 }
 
-func (n *NodeSkipCreationByExistingIdentity) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+func (n *IntentSkipCreationByExistingIdentity) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	return nil, nil
 }
 
-func (n *NodeSkipCreationByExistingIdentity) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (n *IntentSkipCreationByExistingIdentity) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	return authflow.NewNodeSimple(&NodeDoCreateIdentity{
 		Identity:   n.Identity,
 		SkipCreate: true,

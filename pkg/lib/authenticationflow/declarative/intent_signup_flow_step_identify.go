@@ -18,14 +18,14 @@ func init() {
 }
 
 // IntentSignupFlowStepIdentify
-//   NodeSkipCreationByExistingIdentity (MilestoneIdentificationMethod, MilestoneFlowCreateIdentity)
-//   NodeDoCreateIdentity (MilestoneDoCreateIdentity)
-//
-//   NodeCreateIdentityLoginID (MilestoneIdentificationMethod)
-//   IntentCheckConflictAndCreateIdenity (MilestoneFlowCreateIdentity)
+//   IntentSkipCreationByExistingIdentity (MilestoneIdentificationMethod, MilestoneFlowCreateIdentity)
 //     NodeDoCreateIdentity (MilestoneDoCreateIdentity)
-//     IntentAccountLinking (MilestoneFlowCreateIdentity)
+//
+//   IntentCreateIdentityLoginID (MilestoneIdentificationMethod)
+//     IntentCheckConflictAndCreateIdenity (MilestoneFlowCreateIdentity)
 //       NodeDoCreateIdentity (MilestoneDoCreateIdentity)
+//       IntentAccountLinking (MilestoneFlowCreateIdentity)
+//         NodeDoCreateIdentity (MilestoneDoCreateIdentity)
 //
 //   IntentOAuth (MilestoneIdentificationMethod, MilestoneFlowCreateIdentity)
 //     NodeOAuth
@@ -245,7 +245,7 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 			case config.AuthenticationFlowIdentificationPhone:
 				fallthrough
 			case config.AuthenticationFlowIdentificationUsername:
-				return authflow.NewNodeSimple(&NodeCreateIdentityLoginID{
+				return authflow.NewSubFlow(&IntentCreateIdentityLoginID{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Identification: identification,
@@ -402,7 +402,7 @@ func (i *IntentSignupFlowStepIdentify) findIdentityOfSameType(deps *authflow.Dep
 
 func (i *IntentSignupFlowStepIdentify) reactToExistingIdentity(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, option IdentificationOption, identity *identity.Info, idx int) (*authflow.Node, error) {
 	if len(flows.Nearest.Nodes) == 0 {
-		return authflow.NewNodeSimple(&NodeSkipCreationByExistingIdentity{
+		return authflow.NewSubFlow(&IntentSkipCreationByExistingIdentity{
 			Identity:       identity,
 			JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 			Identification: option.Identification,
