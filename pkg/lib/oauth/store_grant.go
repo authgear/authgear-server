@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
+	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 )
 
 type CodeGrantStore interface {
@@ -32,6 +33,10 @@ type OfflineGrantStore interface {
 
 	ListOfflineGrants(userID string) ([]*OfflineGrant, error)
 	ListClientOfflineGrants(clientID string, userID string) ([]*OfflineGrant, error)
+}
+
+type IDPSessionStore interface {
+	Get(id string) (*idpsession.IDPSession, error)
 }
 
 type AccessGrantStore interface {
