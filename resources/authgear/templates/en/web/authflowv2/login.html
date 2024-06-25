@@ -76,11 +76,21 @@
         )
       }}
     </div>
+
+    <!-- We don't need to retore the auth form in inline preview mode -->
+    <!-- retain-form-form will try to access session store, which is not allowed -->
+    <!-- or necessary if we preview page in iframe  -->
+    <!-- Disabling it makes us don't need to do extra work when implementing -->
+    <!-- page preview via iframe -->
+    {{ $formController := "retain-form-form" }}
+    {{ if $.InlinePreview }}
+      {{ $formController = "" }}
+    {{ end }}
     <form
       class="flex flex-col gap-4 mt-8"
       method="post"
       novalidate
-      data-controller="retain-form-form"
+      data-controller="{{ $formController }}"
       data-retain-form-form-id-value="auth-form">
       {{ $.CSRFField }}
       <input type="hidden" name="x_login_id_input_type" value="{{ $.LoginIDInputType }}"/>
