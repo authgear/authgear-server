@@ -145,3 +145,7 @@ func (s *Session) MakeContext(ctx context.Context, deps *Dependencies) (context.
 
 	return ctx, nil
 }
+
+func (s *Session) SetBotProtectionVerificationResult(result *BotProtectionVerificationResult) {
+	s.BotProtectionVerificationResult = result
+}
