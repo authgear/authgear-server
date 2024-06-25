@@ -341,7 +341,7 @@ export type Mutation = {
   probeNFTCollection: ProbeNftCollectionsPayload;
   /** Reconcile the completed checkout session */
   reconcileCheckoutSession: ReconcileCheckoutSessionPayload;
-  /** Update custom attribute with pointer being /onboarding_survey_json */
+  /** Updates the current user's custom attribute with 'survey' key */
   saveOnboardingSurvey?: Maybe<Scalars['Boolean']['output']>;
   /** Send test STMP configuration email */
   sendTestSMTPConfigurationEmail?: Maybe<Scalars['Boolean']['output']>;
@@ -647,6 +647,11 @@ export type SmtpSecretInput = {
   username: Scalars['String']['input'];
 };
 
+export type SaveOnboardingSurveyInput = {
+  /** Onboarding survey result JSON. */
+  surveyJSON: Scalars['String']['input'];
+};
+
 /** The content of authgear.secrets.yaml */
 export type SecretConfig = {
   __typename?: 'SecretConfig';
@@ -898,11 +903,6 @@ export type ReconcileCheckoutSession = {
 export type ReconcileCheckoutSessionPayload = {
   __typename?: 'reconcileCheckoutSessionPayload';
   app: App;
-};
-
-export type SaveOnboardingSurveyInput = {
-  /** Onboarding survey result in JSON form. */
-  surveyJSON: Scalars['String']['input'];
 };
 
 export type SendDenoHookInput = {
