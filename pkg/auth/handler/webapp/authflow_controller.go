@@ -341,7 +341,7 @@ func (c *AuthflowController) HandleWithoutFlow(w http.ResponseWriter, r *http.Re
 }
 
 func (c *AuthflowController) handleInlinePreviewIfNecessary(w http.ResponseWriter, r *http.Request, handlers *AuthflowControllerHandlers) bool {
-	if webapp.IsPreviewModeInline(r) && handlers.InlinePreviewHandler != nil {
+	if webapp.IsInlinePreviewPageRequest(r) && handlers.InlinePreviewHandler != nil {
 		if err := handlers.InlinePreviewHandler(w, r); err != nil {
 			c.Logger.WithError(err).Errorf("failed to handle inline preview")
 			c.renderError(w, r, err)
