@@ -14,6 +14,7 @@ on:
 
 jobs:
   authui-test:
+    if: ${{ github.repository != 'oursky/authgear-server' }}
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
@@ -42,6 +43,7 @@ jobs:
       if: ${{ !cancelled() }}
 
   portal-test:
+    if: ${{ github.repository != 'oursky/authgear-server' }}
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
@@ -80,6 +82,7 @@ jobs:
       if: ${{ !cancelled() }}
 
   portal-image:
+    if: ${{ github.repository != 'oursky/authgear-server' }}
     runs-on: ubuntu-22.04
     needs: portal-test
     env:
@@ -104,6 +107,7 @@ jobs:
         docker logout quay.io
 
   authgear-test:
+    if: ${{ github.repository != 'oursky/authgear-server' }}
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
@@ -136,6 +140,7 @@ jobs:
       if: ${{ !cancelled() }}
 
   authgear-e2e:
+    if: ${{ github.repository != 'oursky/authgear-server' }}
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
@@ -171,6 +176,7 @@ jobs:
         docker save redis:6.2.6 -o ~/.cache/images/redis.tar
 
   authgear-image:
+    if: ${{ github.repository != 'oursky/authgear-server' }}
     runs-on: ubuntu-22.04
     needs: ["authgear-test", "authui-test"]
     env:
@@ -195,6 +201,7 @@ jobs:
         docker logout quay.io
 
   release:
+    if: ${{ github.repository != 'oursky/authgear-server' }}
     runs-on: ubuntu-22.04
     needs: ["portal-test", "authgear-test"]
     steps:
