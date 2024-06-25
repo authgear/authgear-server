@@ -14,6 +14,15 @@ func init() {
 	authflow.RegisterIntent(&IntentSignupLoginFlowStepIdentify{})
 }
 
+// IntentSignupLoginFlowStepIdentify
+//
+//   NodeLookupIdentityLoginID (MilestoneIdentificationMethod)
+//
+//   IntentLookupIdentityOAuth (MilestoneIdentificationMethod)
+//     NodeLookupIdentityOAuth
+//
+//   NodeLookupIdentityPasskey (MilestoneIdentificationMethod)
+
 type IntentSignupLoginFlowStepIdentify struct {
 	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
 	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
