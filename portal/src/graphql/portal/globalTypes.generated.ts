@@ -175,8 +175,6 @@ export enum CollaboratorRole {
 export type CreateAppInput = {
   /** ID of the new app. */
   id: Scalars['String']['input'];
-  /** Phone number of the new app. */
-  phoneNumber?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CreateAppPayload = {
@@ -343,6 +341,8 @@ export type Mutation = {
   probeNFTCollection: ProbeNftCollectionsPayload;
   /** Reconcile the completed checkout session */
   reconcileCheckoutSession: ReconcileCheckoutSessionPayload;
+  /** Updates the current user's custom attribute with 'survey' key */
+  saveOnboardingSurvey?: Maybe<Scalars['Boolean']['output']>;
   /** Send test STMP configuration email */
   sendTestSMTPConfigurationEmail?: Maybe<Scalars['Boolean']['output']>;
   /** Set app subscription cancellation status */
@@ -437,6 +437,11 @@ export type MutationProbeNftCollectionArgs = {
 
 export type MutationReconcileCheckoutSessionArgs = {
   input: ReconcileCheckoutSession;
+};
+
+
+export type MutationSaveOnboardingSurveyArgs = {
+  input: SaveOnboardingSurveyInput;
 };
 
 
@@ -640,6 +645,11 @@ export type SmtpSecretInput = {
   password?: InputMaybe<Scalars['String']['input']>;
   port: Scalars['Int']['input'];
   username: Scalars['String']['input'];
+};
+
+export type SaveOnboardingSurveyInput = {
+  /** Onboarding survey result JSON. */
+  surveyJSON: Scalars['String']['input'];
 };
 
 /** The content of authgear.secrets.yaml */

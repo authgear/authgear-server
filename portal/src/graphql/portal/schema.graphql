@@ -231,9 +231,6 @@ enum CollaboratorRole {
 input CreateAppInput {
   """ID of the new app."""
   id: String!
-
-  """Phone number of the new app."""
-  phoneNumber: String
 }
 
 """"""
@@ -474,6 +471,9 @@ type Mutation {
 
   """Reconcile the completed checkout session"""
   reconcileCheckoutSession(input: reconcileCheckoutSession!): reconcileCheckoutSessionPayload!
+
+  """Updates the current user's custom attribute with 'survey' key"""
+  saveOnboardingSurvey(input: SaveOnboardingSurveyInput!): Boolean
 
   """Send test STMP configuration email"""
   sendTestSMTPConfigurationEmail(input: sendTestSMTPConfigurationEmailInput!): Boolean
@@ -729,6 +729,12 @@ input SMTPSecretInput {
 
   """"""
   username: String!
+}
+
+""""""
+input SaveOnboardingSurveyInput {
+  """Onboarding survey result JSON."""
+  surveyJSON: String!
 }
 
 """The content of authgear.secrets.yaml"""
