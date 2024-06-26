@@ -149,7 +149,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 	}
 
 	// TODO(oauth): allow specifying scopes for anonymous user signup
-	scopes := []string{"openid", oauth.FullAccessScope}
+	scopes := []string{"openid", oauth.OfflineAccess, oauth.FullAccessScope}
 
 	if refreshToken != "" {
 		authz, grant, refreshTokenHash, err := h.TokenService.ParseRefreshToken(refreshToken)

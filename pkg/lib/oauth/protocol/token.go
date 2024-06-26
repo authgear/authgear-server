@@ -21,11 +21,13 @@ func (r TokenRequest) RefreshToken() string        { return r["refresh_token"] }
 func (r TokenRequest) JWT() string                 { return r["jwt"] }
 func (r TokenRequest) App2AppDeviceKeyJWT() string { return r["x_app2app_device_key_jwt"] }
 func (r TokenRequest) ClientSecret() string        { return r["client_secret"] }
+func (r TokenRequest) Scope() []string             { return parseSpaceDelimitedString(r["scope"]) }
 
 func (r TokenResponse) AccessToken(v string)  { r["access_token"] = v }
 func (r TokenResponse) TokenType(v string)    { r["token_type"] = v }
 func (r TokenResponse) ExpiresIn(v int)       { r["expires_in"] = v }
 func (r TokenResponse) RefreshToken(v string) { r["refresh_token"] = v }
+func (r TokenResponse) DeviceSecret(v string) { r["device_secret"] = v }
 func (r TokenResponse) Scope(v string)        { r["scope"] = v }
 
 // OIDC extension
