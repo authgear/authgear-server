@@ -156,6 +156,32 @@ func (tc *TestCase) executeStep(
 			Error:  flowErr,
 		}
 
+	case StepActionGenerateTOTPCode:
+		var lastStep *StepResult
+		if len(prevSteps) != 0 {
+			lastStep = &prevSteps[len(prevSteps)-1]
+		}
+
+		var parsedTOTPSecret string
+		parsedTOTPSecret, ok = prepareTOTPSecret(t, cmd, lastStep, step.TOTPSecret)
+		if !ok {
+			return nil, state, false
+		}
+
+		totpCode, err := client.GenerateTOTPCode(parsedTOTPSecret)
+		if err != nil {
+			t.Errorf("failed to generate TOTP code in '%s': %v\n", step.Name, err)
+			return
+		}
+		nextState = state
+
+		result = &StepResult{
+			Result: map[string]interface{}{
+				"totp_code": totpCode,
+			},
+			Error: nil,
+		}
+
 	case StepActionOAuthRedirect:
 		var lastStep *StepResult
 
@@ -245,6 +271,16 @@ func prepareInput(t *testing.T, cmd *End2EndCmd, prev *StepResult, input string)
 	}
 
 	return inputMap, true
+}
+
+func prepareTOTPSecret(t *testing.T, cmd *End2EndCmd, prev *StepResult, totpSecret string) (prepared string, ok bool) {
+	parsedTOTPSecret, err := execTemplate(cmd, prev, totpSecret)
+	if err != nil {
+		t.Errorf("failed to parse totp_secret: %v\n", err)
+		return "", false
+	}
+
+	return parsedTOTPSecret, true
 }
 
 func prepareTo(t *testing.T, cmd *End2EndCmd, prev *StepResult, to string) (prepared string, ok bool) {
