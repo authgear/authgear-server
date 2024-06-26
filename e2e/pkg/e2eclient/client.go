@@ -12,8 +12,10 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
 
 type Client struct {
@@ -109,6 +111,21 @@ func (c *Client) Get(stateToken string) (*FlowResponse, error) {
 	}
 
 	return c.doRequest(nil, req)
+}
+
+// GenerateTOTPCode generates a TOTP code for the given secret.
+func (c *Client) GenerateTOTPCode(secret string) (string, error) {
+	totp, err := secretcode.NewTOTPFromSecret(secret)
+	if err != nil {
+		return "", err
+	}
+
+	code, err := totp.GenerateCode(time.Now().UTC())
+	if err != nil {
+		return "", err
+	}
+
+	return code, nil
 }
 
 // OAuthRedirect follows the OAuth redirect until the URL matches the given prefix.
