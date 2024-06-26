@@ -95,6 +95,10 @@ func (n *IntentCreateAuthenticatorTOTP) MilestoneAuthenticationMethod() config.A
 }
 
 func (n *IntentCreateAuthenticatorTOTP) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	_, _, created := authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateAuthenticator](flows)
+	if created {
+		return nil, authflow.ErrEOF
+	}
 	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
 	if err != nil {
 		return nil, err
