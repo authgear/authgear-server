@@ -629,6 +629,10 @@ func (h *TokenHandler) handleAppInitiatedSSOToWebToken(
 		if !offlineGrant.HasAllScopes(client.ClientID, requestedScopes) {
 			return nil, protocol.NewError("invalid_scope", "requesting extra scopes is not allowed")
 		}
+		err = h.ValidateScopes(client, requestedScopes)
+		if err != nil {
+			return nil, err
+		}
 		scopes = requestedScopes
 	}
 
