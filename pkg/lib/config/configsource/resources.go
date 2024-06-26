@@ -168,6 +168,7 @@ func (d AuthgearYAMLDescriptor) validate(original *config.AppConfig, incoming *c
 	if err != nil {
 		return err
 	}
+	d.validateOAuthClients(validationCtx, incoming, original)
 
 	return validationCtx.Error(fmt.Sprintf("invalid %v", AuthgearYAML))
 }
@@ -269,6 +270,35 @@ func (d AuthgearYAMLDescriptor) validatePublicOrigin(validationCtx *validation.C
 	}
 
 	return nil
+}
+
+func (d AuthgearYAMLDescriptor) validateOAuthClients(validationCtx *validation.Context, incoming *config.AppConfig, original *config.AppConfig) {
+	incomingClientIds := map[string]struct{}{}
+	for _, incomingClient := range incoming.OAuth.Clients {
+		incomingClientIds[incomingClient.ClientID] = struct{}{}
+	}
+	origClientIds := map[string]struct{}{}
+	for _, origClient := range original.OAuth.Clients {
+		origClientIds[origClient.ClientID] = struct{}{}
+	}
+	var addedClientIds []string
+	for incomingClientId := range incomingClientIds {
+		if _, origHasIncoming := origClientIds[incomingClientId]; !origHasIncoming {
+			addedClientIds = append(addedClientIds, incomingClientId)
+		}
+	}
+	var removedClientIds []string
+	for origClientId := range origClientIds {
+		if _, incomingHasOrig := incomingClientIds[origClientId]; !incomingHasOrig {
+			removedClientIds = append(removedClientIds, origClientId)
+		}
+	}
+	// Ref DEV-1146 Disallow Changing Client ID
+	// - authgear portal will not add and remove client at the same operation
+	// - if there is both added and removed clients, user is probably modifying client id manually via api
+	if len(addedClientIds) > 0 && len(removedClientIds) > 0 {
+		validationCtx.Child("oauth", "clients").EmitErrorMessage("client ids cannot be changed")
+	}
 }
 
 func (d AuthgearYAMLDescriptor) validateBasedOnFeatureConfig(appConfig *config.AppConfig, fc *config.FeatureConfig) error {
