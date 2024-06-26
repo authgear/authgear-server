@@ -559,20 +559,25 @@ func (h *TokenHandler) resolveIDTokenSession(idToken jwt.Token) (sidSession sess
 	return sidSession, true, nil
 }
 
-func (h *TokenHandler) verifyIDTokenDeviceSecretHash(idToken jwt.Token, deviceSecret string) error {
+func (h *TokenHandler) verifyIDTokenDeviceSecretHash(offlineGrant *oauth.OfflineGrant, idToken jwt.Token, deviceSecret string) error {
+	// Always do all checks to ensure this method consumes constant time
+	var err error = nil
 	deviceSecretHash := oauth.HashToken(deviceSecret)
 	dsHashInterface, ok := idToken.Get(string(model.ClaimDeviceSecretHash))
 	if !ok {
-		return fmt.Errorf("ds_hash does not exist")
+		err = fmt.Errorf("ds_hash does not exist")
 	}
 	dsHash, ok := dsHashInterface.(string)
 	if !ok {
-		return fmt.Errorf("ds_hash is not string")
+		err = fmt.Errorf("ds_hash is not string")
 	}
 	if subtle.ConstantTimeCompare([]byte(dsHash), []byte(deviceSecretHash)) != 1 {
-		return fmt.Errorf("ds_hash does not match")
+		err = fmt.Errorf("ds_hash does not match")
 	}
-	return nil
+	if subtle.ConstantTimeCompare([]byte(offlineGrant.DeviceSecretHash), []byte(deviceSecretHash)) != 1 {
+		err = fmt.Errorf("invalid device secret")
+	}
+	return err
 }
 
 func (h *TokenHandler) handleAppInitiatedSSOToWebToken(
@@ -607,10 +612,6 @@ func (h *TokenHandler) handleAppInitiatedSSOToWebToken(
 	if !ok {
 		return nil, protocol.NewError("invalid_grant", "invalid session")
 	}
-	err = h.verifyIDTokenDeviceSecretHash(idToken, deviceSecret)
-	if err != nil {
-		return nil, protocol.NewError("invalid_grant", "invalid device secret")
-	}
 
 	var isAllowed bool = false
 	var scopes []string
@@ -625,6 +626,11 @@ func (h *TokenHandler) handleAppInitiatedSSOToWebToken(
 	}
 	if !isAllowed {
 		return nil, protocol.NewError("invalid_grant", "operation not allowed")
+	}
+
+	err = h.verifyIDTokenDeviceSecretHash(offlineGrant, idToken, deviceSecret)
+	if err != nil {
+		return nil, protocol.NewError("invalid_grant", "invalid device secret")
 	}
 
 	requestedScopes := r.Scope()
