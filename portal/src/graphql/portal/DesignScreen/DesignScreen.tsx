@@ -451,7 +451,7 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
       designForm.state
     );
     authUIIframeRef.current?.contentWindow?.postMessage(message, "*");
-  }, [designForm.state, effectiveAppConfig.http?.public_origin]);
+  }, [designForm.state]);
 
   const supportedPreviewPages = useMemo(
     () => getSupportedPreviewPagesFromConfig(effectiveAppConfig),
@@ -493,6 +493,13 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
     selectedPreviewPage,
   ]);
 
+  const onLoadIframe = useCallback(() => {
+    const message = mapDesignFormStateToPreviewCustomisationMessage(
+      designForm.state
+    );
+    authUIIframeRef.current?.contentWindow?.postMessage(message, "*");
+  }, [designForm.state]);
+
   return (
     <div className={cn("h-full")}>
       <div
@@ -520,6 +527,7 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
         className={cn("w-full", "h-full", "border-none")}
         src={src}
         sandbox="allow-scripts"
+        onLoad={onLoadIframe}
       ></iframe>
     </div>
   );
