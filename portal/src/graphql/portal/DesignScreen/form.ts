@@ -6,6 +6,7 @@ import {
   Alignment,
   BorderRadiusStyle,
   CSSColor,
+  CardAlignedSideDefaultSpacing,
   CssAstVisitor,
   CustomisableTheme,
   CustomisableThemeStyleGroup,
@@ -448,14 +449,21 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       setCardAlignment: (alignment: Alignment) => {
         resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
-            draft.cardAlignment = alignment;
+            draft.card.alignment = alignment;
+            if (alignment === "center") {
+              draft.card.leftMargin = "0";
+              draft.card.rightMargin = "0";
+            } else {
+              draft.card.leftMargin = CardAlignedSideDefaultSpacing;
+              draft.card.rightMargin = CardAlignedSideDefaultSpacing;
+            }
           });
         });
       },
       setBackgroundColor: (backgroundColor: CSSColor) => {
         resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
-            draft.backgroundColor = backgroundColor;
+            draft.card.backgroundColor = backgroundColor;
           });
         });
       },

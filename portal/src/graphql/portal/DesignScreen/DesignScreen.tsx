@@ -169,7 +169,7 @@ const AlignmentConfiguration: React.VFC<AlignmentConfigurationProps> =
         <Configuration labelKey="DesignScreen.configuration.card.alignment.label">
           <ButtonToggleGroup
             className={cn("mt-2")}
-            value={designForm.state.customisableTheme.cardAlignment}
+            value={designForm.state.customisableTheme.card.alignment}
             options={AlignmentOptions}
             onSelectOption={onSelectOption}
             renderOption={renderOption}
@@ -190,7 +190,7 @@ const BackgroundConfiguration: React.VFC<BackgroundConfigurationProps> =
         <ConfigurationDescription labelKey="DesignScreen.configuration.background.description" />
         <Configuration labelKey="DesignScreen.configuration.background.color.label">
           <ColorPicker
-            color={designForm.state.customisableTheme.backgroundColor}
+            color={designForm.state.customisableTheme.card.backgroundColor}
             onChange={designForm.setBackgroundColor}
           />
         </Configuration>

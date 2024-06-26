@@ -57,6 +57,14 @@ export interface ButtonStyle {
   borderRadius: BorderRadiusStyle;
 }
 
+export const CardAlignedSideDefaultSpacing = "15rem";
+export interface CardStyle {
+  backgroundColor: CSSColor;
+  alignment: Alignment;
+  leftMargin: string;
+  rightMargin: string;
+}
+
 export interface InputFieldStyle {
   borderRadius: BorderRadiusStyle;
 }
@@ -66,8 +74,7 @@ export interface LinkStyle {
 }
 
 export interface CustomisableTheme {
-  cardAlignment: Alignment;
-  backgroundColor: CSSColor;
+  card: CardStyle;
 
   primaryButton: ButtonStyle;
   inputField: InputFieldStyle;
@@ -76,8 +83,12 @@ export interface CustomisableTheme {
 }
 
 export const DEFAULT_LIGHT_THEME: CustomisableTheme = {
-  cardAlignment: "center",
-  backgroundColor: "#ffffff",
+  card: {
+    backgroundColor: "#ffffff",
+    alignment: "center",
+    leftMargin: "0",
+    rightMargin: "0,",
+  },
 
   primaryButton: {
     backgroundColor: "#176df3",
@@ -130,7 +141,7 @@ abstract class StyleProperty<T> extends AbstractStyle<T> {
     return this.value;
   }
 
-  abstract getCSSValue(): string | number;
+  abstract getCSSValue(): string;
 }
 
 export class ColorStyleProperty extends StyleProperty<string> {
@@ -222,6 +233,20 @@ export class BorderRadiusStyleProperty extends StyleProperty<BorderRadiusStyle> 
   }
 }
 
+export class SpaceStyleProperty extends StyleProperty<string> {
+  protected setWithRawValue(rawValue: string): void {
+    this.value = rawValue;
+  }
+
+  acceptCssAstVisitor(visitor: CssAstVisitor): void {
+    visitor.visitSpaceStyleProperty(this);
+  }
+
+  getCSSValue(): string {
+    return this.value;
+  }
+}
+
 type StyleProperties<T> = {
   [K in keyof T]: AbstractStyle<T[K] | null>;
 };
@@ -260,14 +285,24 @@ export class StyleGroup<T> extends AbstractStyle<T> {
 export class CustomisableThemeStyleGroup extends StyleGroup<CustomisableTheme> {
   constructor(value: CustomisableTheme = DEFAULT_LIGHT_THEME) {
     super({
-      cardAlignment: new AlignItemsStyleProperty(
-        "--layout-flex-align-items",
-        value.cardAlignment
-      ),
-      backgroundColor: new ColorStyleProperty(
-        "--widget__bg-color",
-        value.backgroundColor
-      ),
+      card: new StyleGroup({
+        alignment: new AlignItemsStyleProperty(
+          "--layout-flex-align-items",
+          value.card.alignment
+        ),
+        leftMargin: new SpaceStyleProperty(
+          "--layout-padding-left",
+          value.card.leftMargin
+        ),
+        rightMargin: new SpaceStyleProperty(
+          "--layout-padding-right",
+          value.card.rightMargin
+        ),
+        backgroundColor: new ColorStyleProperty(
+          "--widget__bg-color",
+          value.card.backgroundColor
+        ),
+      }),
 
       primaryButton: new StyleGroup({
         backgroundColor: new ColorStyleProperty(
@@ -376,11 +411,15 @@ export class CssAstVisitor {
     this.visitorStyleProperty(styleProperty);
   }
 
+  visitSpaceStyleProperty(styleProperty: SpaceStyleProperty): void {
+    this.visitorStyleProperty(styleProperty);
+  }
+
   visitorStyleProperty<T>(styleProperty: StyleProperty<T>): void {
     this.rule.append(
       new Declaration({
         prop: styleProperty.propertyName,
-        value: String(styleProperty.getCSSValue()),
+        value: styleProperty.getCSSValue(),
       })
     );
   }

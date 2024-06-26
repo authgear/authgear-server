@@ -1,4 +1,10 @@
 @layer components {
+  :root {
+    --layout-flex-align-items: center;
+    --layout-padding-left: 0;
+    --layout-padding-right: 0;
+  }
+
   .layout--default {
     @apply flex flex-col flex-1-0-auto;
     @apply items-center justify-start;
@@ -16,10 +22,21 @@
   }
 
   @media (min-width: theme("screens.tablet")) {
+    .layout--default {
+      align-items: var(--layout-flex-align-items);
+    }
+
     .layout__header--default,
     .layout__footer--default {
       @apply flex-1;
       max-height: 160px;
+    }
+  }
+
+  @media (min-width: theme("screens.desktop")) {
+    .layout--default {
+      padding-left: var(--layout-padding-left);
+      padding-right: var(--layout-padding-right);
     }
   }
 }
