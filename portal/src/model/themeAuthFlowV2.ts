@@ -38,6 +38,7 @@ export const enum CSSVariable {
   PrimaryButtonBorderRadius = "--primary-btn__border-radius",
   InputFiledBorderRadius = "--input__border-radius",
   LinkColor = "--body-text__link-color",
+  WatermarkDisplay = "--watermark-display",
 }
 
 export type CSSColor = string;
@@ -85,6 +86,9 @@ export interface InputFieldStyle {
 export interface LinkStyle {
   color: CSSColor;
 }
+
+export const WatermarkEnabledDisplay = "inline-block";
+export const WatermarkDisabledDisplay = "hidden";
 
 export interface CustomisableTheme {
   card: CardStyle;

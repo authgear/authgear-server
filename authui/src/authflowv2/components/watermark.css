@@ -1,6 +1,15 @@
 @layer components {
+  :root {
+    --watermark-display: inline-block;
+  }
+
+  html[data-watermark-enabled="false"] {
+    --watermark-display: hidden;
+  }
+
   .watermark {
-    @apply inline-block h-[22px] w-[120px] bg-no-repeat bg-center;
+    @apply h-[22px] w-[120px] bg-no-repeat bg-center;
+    display: var(--watermark-display);
     background-size: auto 22px;
     background-image: url("./icons/raw/watermark.svg");
   }

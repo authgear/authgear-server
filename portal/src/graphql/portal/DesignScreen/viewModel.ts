@@ -2,6 +2,8 @@ import {
   CSSVariable,
   CssAstVisitor,
   CustomisableThemeStyleGroup,
+  WatermarkDisabledDisplay,
+  WatermarkEnabledDisplay,
   getThemeTargetSelector,
 } from "../../../model/themeAuthFlowV2";
 import { PortalAPIAppConfig } from "../../../types";
@@ -80,6 +82,10 @@ export function mapDesignFormStateToPreviewCustomisationMessage(
   } else {
     cssVars[CSSVariable.WidgetBackgroundImage] = "initial";
   }
+
+  cssVars[CSSVariable.WatermarkDisplay] = state.showAuthgearLogo
+    ? WatermarkEnabledDisplay
+    : WatermarkDisabledDisplay;
 
   const images: Record<string, string | null> = {};
   images["brand-logo-light"] = state.appLogoBase64EncodedData
