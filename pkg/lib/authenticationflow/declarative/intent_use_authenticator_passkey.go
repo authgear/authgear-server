@@ -44,6 +44,10 @@ func (*IntentUseAuthenticatorPasskey) MilestoneFlowAuthenticate(flows authflow.F
 }
 
 func (n *IntentUseAuthenticatorPasskey) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	_, _, authenticated := authflow.FindMilestoneInCurrentFlow[MilestoneDidAuthenticate](flows)
+	if authenticated {
+		return nil, authflow.ErrEOF
+	}
 	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
 	if err != nil {
 		return nil, err
