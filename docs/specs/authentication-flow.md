@@ -12,6 +12,7 @@
     + [type: login](#type-login)
     + [type: signup_login](#type-signup_login)
     + [type: reauth](#type-reauth)
+    + [type: account_recovery](#type-account_recovery)
   * [Use case examples](#use-case-examples)
     + [Use case example 1: Latte](#use-case-example-1-latte)
     + [Use case example 2: Uber](#use-case-example-2-uber)
@@ -327,6 +328,30 @@ reauth_flows:
     one_of:
     - authentication: secondary_totp
     - authentication: secondary_sms_code
+```
+
+### type: account_recovery
+
+Example:
+
+```yaml
+account_recovery_flows:
+# Reset password with email+link, sms+code
+- name: default
+  steps:
+  - type: identify
+    one_of:
+    - identification: email
+    - identification: phone
+  - type: select_destination
+    enumerate_destinations: false
+    allowed_channels:
+    - channel: email
+      otp_form: link
+    - channel: sms
+      otp_form: code
+  - type: verify_account_recovery_code
+  - type: reset_password
 ```
 
 ## Use case examples
