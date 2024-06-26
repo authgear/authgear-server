@@ -21,7 +21,7 @@ func init() {
 //   IntentSkipCreationByExistingIdentity (MilestoneIdentificationMethod, MilestoneFlowCreateIdentity)
 //     NodeDoCreateIdentity (MilestoneDoCreateIdentity)
 //
-//   IntentCreateIdentityLoginID (MilestoneIdentificationMethod)
+//   IntentCreateIdentityLoginID (MilestoneIdentificationMethod, MilestoneFlowCreateIdentity)
 //     IntentCheckConflictAndCreateIdenity (MilestoneFlowCreateIdentity)
 //       NodeDoCreateIdentity (MilestoneDoCreateIdentity)
 //       IntentAccountLinking (MilestoneFlowCreateIdentity)
