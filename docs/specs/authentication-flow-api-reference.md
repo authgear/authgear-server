@@ -10,12 +10,12 @@
   * [Retrieve a state again](#retrieve-a-state-again)
   * [Listen for change with Websocket](#listen-for-change-with-websocket)
 - [Reference on input and output](#reference-on-input-and-output)
-  * [type: signup; action.type: identification](#type-signup-actiontype-identification)
+  * [type: signup; action.type: identify](#type-signup-actiontype-identify)
     + [identification: email](#identification-email)
     + [identification: phone](#identification-phone)
     + [identification: username](#identification-username)
     + [identification: oauth](#identification-oauth)
-    + [type: signup; action.type: identification; data.type: account_linking_identification_data](#type-signup-actiontype-identification-datatype-account_linking_identification_data)
+    + [type: signup; action.type: identify; data.type: account_linking_identification_data](#type-signup-actiontype-identify-datatype-account_linking_identification_data)
   * [type: signup; action.type: verify](#type-signup-actiontype-verify)
   * [type: signup; action.type: create_authenticator](#type-signup-actiontype-create_authenticator)
     + [authentication: primary_password](#authentication-primary_password)
@@ -216,7 +216,7 @@ Connect to the websocket by specifying `flow_id`. The only message you will rece
 
 # Reference on input and output
 
-## type: signup; action.type: identification
+## type: signup; action.type: identify
 
 When you are in this step of this flow, you will see a response like the following.
 
@@ -393,7 +393,7 @@ Here are some examples:
 }
 ```
 
-### type: signup; action.type: identification; data.type: account_linking_identification_data
+### type: signup; action.type: identify; data.type: account_linking_identification_data
 
 During identification steps in signup flow, an account linking could be triggered. In this case, you will see a response like the following:
 
@@ -431,7 +431,7 @@ During identification steps in signup flow, an account linking could be triggere
 This means account linking was triggered by the previously identified identity. You can find the followings in `action.data`:
 
 - `options`: Contains options that you can use to continue the account linking flow. The items contains the following fields:
-  - `identification`: See [type: signup; action.type: identification](#type-signup-actiontype-identification). They are having the same meaning.
+  - `identification`: See [type: signup; action.type: identify](#type-signup-actiontype-identify). They are having the same meaning.
   - `action`: This field specify what is going to happen when this option is selected. The only possible value in current version is `login_and_link`.
       - `login_and_link`: You need to login to one of the account in `options`. After that, the identity you have just created in previous steps will be linked to the logged in account.
   - `masked_display_name`: The display name of the identity to use. Different from signup flow, during account linking, you must use an existing identity to start account linking. The display name here is the display name of the referred identity of this option. If it is an `email`, a masked email will be displayed. If it is a `phone`, a masked phone number will be displayed. If it is a `username`, the username will be displayed without masking. If it is a `oauth` identity, the display name will be a name which you should be able to recongize the account in that provider.
@@ -1182,7 +1182,7 @@ Pass `creation_options` to `main` and then pass this input
 
 ## type: login; action.type: identify
 
-See [type: signup; action.type: identification](#type-signup-actiontype-identification). They are the same except that `type` is `login`.
+See [type: signup; action.type: identify](#type-signup-actiontype-identify). They are the same except that `type` is `login`.
 
 ## type: login; action.type: authenticate
 
@@ -1661,7 +1661,7 @@ See [type: signup; action.type: prompt_create_passkey](#type-signup-actiontype-p
 
 ## type: signup_login; action.type: identify
 
-See [type: signup; action.type: identification](#type-signup-actiontype-identification). They are the same except that `type` is `signup_login`.
+See [type: signup; action.type: identify](#type-signup-actiontype-identify). They are the same except that `type` is `signup_login`.
 
 ## type: account_recovery; action.type: identify
 
