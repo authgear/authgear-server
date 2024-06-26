@@ -597,6 +597,9 @@ func (h *TokenHandler) handleAppInitiatedSSOToWebToken(
 	if err != nil {
 		return nil, protocol.NewError("invalid_request", "invalid subject_token")
 	}
+	if idToken.Issuer() != r.Audience() {
+		return nil, protocol.NewError("invalid_request", "invalid audience")
+	}
 	session, ok, err := h.resolveIDTokenSession(idToken)
 	if err != nil {
 		return nil, err
