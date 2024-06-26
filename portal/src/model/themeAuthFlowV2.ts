@@ -265,21 +265,21 @@ export class CustomisableThemeStyleGroup extends StyleGroup<CustomisableTheme> {
         value.cardAlignment
       ),
       backgroundColor: new ColorStyleProperty(
-        "-—widget__bg-color",
+        "--widget__bg-color",
         value.backgroundColor
       ),
 
       primaryButton: new StyleGroup({
         backgroundColor: new ColorStyleProperty(
-          "-—primary-btn__bg-color",
+          "--primary-btn__bg-color",
           value.primaryButton.backgroundColor
         ),
         labelColor: new ColorStyleProperty(
-          "—-primary-btn__text-color",
+          "--primary-btn__text-color",
           value.primaryButton.labelColor
         ),
         borderRadius: new BorderRadiusStyleProperty(
-          "—-primary-btn__border-radius",
+          "--primary-btn__border-radius",
           value.primaryButton.borderRadius
         ),
       }),
