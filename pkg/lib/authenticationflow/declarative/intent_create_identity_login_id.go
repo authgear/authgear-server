@@ -25,6 +25,7 @@ type IntentCreateIdentityLoginID struct {
 var _ authflow.Intent = &IntentCreateIdentityLoginID{}
 var _ authflow.Milestone = &IntentCreateIdentityLoginID{}
 var _ MilestoneIdentificationMethod = &IntentCreateIdentityLoginID{}
+var _ MilestoneFlowCreateIdentity = &IntentCreateIdentityLoginID{}
 var _ authflow.InputReactor = &IntentCreateIdentityLoginID{}
 
 func (*IntentCreateIdentityLoginID) Milestone() {}
@@ -37,7 +38,23 @@ func (n *IntentCreateIdentityLoginID) MilestoneIdentificationMethod() config.Aut
 	return n.Identification
 }
 
+func (n *IntentCreateIdentityLoginID) MilestoneFlowCreateIdentity(flows authflow.Flows) (MilestoneDoCreateIdentity, authflow.Flows, bool) {
+	// Find IntentCheckConflictAndCreateIdenity
+	m, mFlows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
+	if !ok {
+		return nil, mFlows, false
+	}
+
+	// Delegate to IntentCheckConflictAndCreateIdenity
+	return m.MilestoneFlowCreateIdentity(mFlows)
+}
+
 func (n *IntentCreateIdentityLoginID) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	_, _, identified := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
+	if identified {
+		return nil, authflow.ErrEOF
+	}
+
 	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
 	if err != nil {
 		return nil, err
