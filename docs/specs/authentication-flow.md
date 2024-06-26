@@ -8,10 +8,10 @@
   * [Design](#design)
     + [Design Principles](#design-principles)
     + [Design of the configuration](#design-of-the-configuration)
-    + [SignupFlow](#signupflow)
-    + [LoginFlow](#loginflow)
-    + [SignupLoginFlow](#signuploginflow)
-    + [ReauthFlow](#reauthflow)
+    + [type: signup](#type-signup)
+    + [type: login](#type-login)
+    + [type: signup_login](#type-signup_login)
+    + [type: reauth](#type-reauth)
   * [Use case examples](#use-case-examples)
     + [Use case example 1: Latte](#use-case-example-1-latte)
     + [Use case example 2: Uber](#use-case-example-2-uber)
@@ -24,7 +24,6 @@
     + [Create a Authentication Flow](#create-a-authentication-flow)
     + [Execute the Authentication Flow](#execute-the-authentication-flow)
     + [Get the Authentication Flow](#get-the-authentication-flow)
-    + [Connect websocket](#connect-websocket)
   * [Mobile apps using the Default UI](#mobile-apps-using-the-default-ui)
     + [Ordinary Authentication Flow](#ordinary-authentication-flow)
     + [Authentication Flow involving OAuth](#authentication-flow-involving-oauth)
@@ -48,6 +47,19 @@
       - [Supertokens](#supertokens)
     + [JSON schema](#json-schema)
     + [Action Data](#action-data)
+      - [identification_data](#identification_data)
+      - [authentication_data](#authentication_data)
+      - [oauth_data](#oauth_data)
+      - [create_authenticator_data](#create_authenticator_data)
+      - [view_recovery_code_data](#view_recovery_code_data)
+      - [select_oob_otp_channels_data](#select_oob_otp_channels_data)
+      - [verify_oob_otp_data](#verify_oob_otp_data)
+      - [create_passkey_data](#create_passkey_data)
+      - [create_totp_data](#create_totp_data)
+      - [new_password_data](#new_password_data)
+      - [account_recovery_identification_data](#account_recovery_identification_data)
+      - [account_recovery_select_destination_data](#account_recovery_select_destination_data)
+      - [account_recovery_verify_code_data](#account_recovery_verify_code_data)
 
 # Authentication Flow
 
@@ -115,7 +127,7 @@ If the User identifies themselves with the OAuth Identity `johndoe@gmail.com`, t
 - Some steps allow branching. Those steps have `one_of`.
 - The branch of a step MAY optionally have zero or more `steps`.
 
-### SignupFlow
+### type: signup
 
 Example:
 
@@ -166,7 +178,7 @@ signup_flows:
       required: true
 ```
 
-### LoginFlow
+### type: login
 
 ```yaml
 login_flows:
@@ -266,7 +278,7 @@ login_flows:
     target_step: step1
 ```
 
-### SignupLoginFlow
+### type: signup_login
 
 Example:
 
@@ -284,7 +296,7 @@ signup_login_flows:
       login_flow: default_login_flow
 ```
 
-### ReauthFlow
+### type: reauth
 
 Example:
 
@@ -575,7 +587,7 @@ Example of a successful response.
 {
   "result": {
     "state_token": "authflowstate_blahblahblah",
-    "type": "login_flow",
+    "type": "login",
     "name": "default",
     "action": {
       "type": "authenticate",
@@ -587,7 +599,7 @@ Example of a successful response.
 ```
 
 - `result.state_token`: The token that refers to a particular state of an Authentication Flow. You must keep this for the next request. This token changes every time you give an input to the flow. As a result, you can back-track by associating the token with your application navigation backstack very easily.
-- `result.type`: The type of the flow. Valid values are `signup_flow`, `login_flow`, `signup_login_flow`, and `reauth_flow`.
+- `result.type`: The type of the flow. Valid values are `signup`, `login`, `signup_login`, `reauth`, and `account_recovery`.
 - `result.name`: The name of the flow. Use the special value `default` to refer to the flow generated according to configuration.
 - `result.action.type`: The action to be taken. Valid values are `identify`, `authenticate`, `verify`, `user_profile`, `recovery_code`, `change_password`, and `prompt_create_passkey`, and `finished`.
 - `result.action.identification`: The taken branch in this action. It is only present when `result.action.type=identify`. Valid values are `email`, `phone`, and `username`.
@@ -600,7 +612,7 @@ Example of a finished response.
 {
   "result": {
     "state_token": "authflowstate_blahblahblah",
-    "type": "login_flow",
+    "type": "login",
     "name": "default",
     "action": {
       "type": "finished",
@@ -624,7 +636,7 @@ POST /api/v1/authentication_flows
 Content-Type: application/json
 
 {
-  "type": "login_flow",
+  "type": "login",
   "name": "default"
 }
 ```
