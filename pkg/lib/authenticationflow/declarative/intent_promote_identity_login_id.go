@@ -45,6 +45,10 @@ func (n *IntentPromoteIdentityLoginID) MilestoneFlowCreateIdentity(flows authflo
 }
 
 func (n *IntentPromoteIdentityLoginID) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	_, _, identified := authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateIdentity](flows)
+	if identified {
+		return nil, authflow.ErrEOF
+	}
 	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
 	if err != nil {
 		return nil, err
