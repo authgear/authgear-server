@@ -27,6 +27,18 @@ export function getThemeTargetSelector(theme: Theme): ThemeTargetSelector {
   }
 }
 
+export const enum CSSVariable {
+  LayoutFixAlignItems = "--layout-flex-align-items",
+  LayoutPaddingLeft = "--layout-padding-left",
+  LayoutPaddingRight = "--layout-padding-right",
+  WidgetBackgroundColor = "--widget__bg-color",
+  PrimaryButtonBackgroundColor = "--primary-btn__bg-color",
+  PrimaryButtonTextColor = "--primary-btn__text-color",
+  PrimaryButtonBorderRadius = "--primary-btn__border-radius",
+  InputFiledBorderRadius = "--input__border-radius",
+  LinkColor = "--body-text__link-color",
+}
+
 export type CSSColor = string;
 
 export const AllAlignments = ["start", "center", "end"] as const;
@@ -287,50 +299,47 @@ export class CustomisableThemeStyleGroup extends StyleGroup<CustomisableTheme> {
     super({
       card: new StyleGroup({
         alignment: new AlignItemsStyleProperty(
-          "--layout-flex-align-items",
+          CSSVariable.LayoutFixAlignItems,
           value.card.alignment
         ),
         leftMargin: new SpaceStyleProperty(
-          "--layout-padding-left",
+          CSSVariable.LayoutPaddingLeft,
           value.card.leftMargin
         ),
         rightMargin: new SpaceStyleProperty(
-          "--layout-padding-right",
+          CSSVariable.LayoutPaddingRight,
           value.card.rightMargin
         ),
         backgroundColor: new ColorStyleProperty(
-          "--widget__bg-color",
+          CSSVariable.WidgetBackgroundColor,
           value.card.backgroundColor
         ),
       }),
 
       primaryButton: new StyleGroup({
         backgroundColor: new ColorStyleProperty(
-          "--primary-btn__bg-color",
+          CSSVariable.PrimaryButtonBackgroundColor,
           value.primaryButton.backgroundColor
         ),
         labelColor: new ColorStyleProperty(
-          "--primary-btn__text-color",
+          CSSVariable.PrimaryButtonTextColor,
           value.primaryButton.labelColor
         ),
         borderRadius: new BorderRadiusStyleProperty(
-          "--primary-btn__border-radius",
+          CSSVariable.PrimaryButtonBorderRadius,
           value.primaryButton.borderRadius
         ),
       }),
 
       inputField: new StyleGroup({
         borderRadius: new BorderRadiusStyleProperty(
-          "--input__border-radius",
+          CSSVariable.InputFiledBorderRadius,
           value.inputField.borderRadius
         ),
       }),
 
       link: new StyleGroup({
-        color: new ColorStyleProperty(
-          "--body-text__link-color",
-          value.link.color
-        ),
+        color: new ColorStyleProperty(CSSVariable.LinkColor, value.link.color),
       }),
     });
   }
