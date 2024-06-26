@@ -56,6 +56,7 @@ export function getSupportedPreviewPagesFromConfig(
 export interface PreviewCustomisationMessage {
   type: "PreviewCustomisationMessage";
   cssVars: Record<string, string>;
+  images: Record<string, string | null>;
   translations: Record<string, string>;
 }
 
@@ -80,6 +81,11 @@ export function mapDesignFormStateToPreviewCustomisationMessage(
     cssVars[CSSVariable.WidgetBackgroundImage] = "initial";
   }
 
+  const images: Record<string, string | null> = {};
+  images["brand-logo-light"] = state.appLogoBase64EncodedData
+    ? `data:;base64,${state.appLogoBase64EncodedData}`
+    : null;
+
   const translations = {
     [TranslationKey.AppName]: state.appName,
   };
@@ -87,6 +93,7 @@ export function mapDesignFormStateToPreviewCustomisationMessage(
   return {
     type: "PreviewCustomisationMessage",
     cssVars,
+    images,
     translations,
   };
 }

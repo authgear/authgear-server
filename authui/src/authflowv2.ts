@@ -38,7 +38,7 @@ import { DismissKeyboardOnScrollController } from "./authflowv2/dismissKeyboard"
 import { BodyScrollLockController } from "./authflowv2/bodyScrollLock";
 import { ClickToSwitchController } from "./clickToSwitch";
 import { InlinePreviewController } from "./inline-preview";
-import { TranslatedMessageController } from "./translated-message";
+import { PreviewableResourceController } from "./previewable-resource";
 
 axios.defaults.withCredentials = true;
 
@@ -103,6 +103,6 @@ Stimulus.register(
 Stimulus.register("body-scroll-lock", BodyScrollLockController);
 Stimulus.register("click-to-switch", ClickToSwitchController);
 Stimulus.register("inline-preview", InlinePreviewController);
-Stimulus.register("translated-message", TranslatedMessageController);
+Stimulus.register("previewable-resource", PreviewableResourceController);
 
 injectCSSAttrs(document.documentElement);

@@ -1,8 +1,9 @@
 import { Controller } from "@hotwired/stimulus";
-import { TranslatedMessageController } from "./translated-message";
+import { PreviewableResourceController } from "./previewable-resource";
 
 interface PreviewCustomisationMessage {
   cssVars: Record<string, string>;
+  images: Record<string, string | null>;
   translations: Record<string, string>;
 }
 
@@ -14,17 +15,18 @@ function parsePreviewCustomisationMessage(
   }
   return {
     cssVars: message.cssVars ?? {},
+    images: message.images ?? {},
     translations: message.translations ?? {},
   };
 }
 
 export class InlinePreviewController extends Controller {
-  static outlets = ["translated-message"];
+  static outlets = ["previewable-resource"];
   static values = {
     isInlinePreview: Boolean,
   };
 
-  declare translatedMessageOutlets: TranslatedMessageController[];
+  declare previewableResourceOutlets: PreviewableResourceController[];
   declare isInlinePreviewValue: boolean;
 
   windowMessageAllowedOrigins!: string[];
@@ -64,17 +66,23 @@ export class InlinePreviewController extends Controller {
       el.style.setProperty(name, value);
     }
 
-    const keyToTranslatedMessageOutlet: Partial<
-      Record<string, TranslatedMessageController>
+    const keyToPreviewableResourceController: Partial<
+      Record<string, PreviewableResourceController>
     > = {};
-    this.translatedMessageOutlets.forEach((outlet) => {
-      keyToTranslatedMessageOutlet[outlet.keyValue] = outlet;
+    this.previewableResourceOutlets.forEach((outlet) => {
+      keyToPreviewableResourceController[outlet.keyValue] = outlet;
     });
+
     for (const [key, value] of Object.entries(
       customisationMessage.translations
     )) {
-      const outlet = keyToTranslatedMessageOutlet[key];
-      outlet?.setMessage(value);
+      const outlet = keyToPreviewableResourceController[key];
+      outlet?.setValue(value);
+    }
+
+    for (const [key, value] of Object.entries(customisationMessage.images)) {
+      const outlet = keyToPreviewableResourceController[key];
+      outlet?.setValue(value);
     }
   };
 }

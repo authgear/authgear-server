@@ -1,7 +1,9 @@
 {{ define "__translation_message.html" }}
-<span 
+<span
   class="translated-message"
-  data-controller="translated-message"
-  data-translated-message-key-value="{{ .Key }}"
->{{ .Value }}</span>
+  data-controller="previewable-resource"
+  data-previewable-resource-key-value="{{ .Key }}"
+  data-previewable-resource-changable-attribute-value="innerHTML"
+  >{{ .Value }}</span
+>
 {{ end }}

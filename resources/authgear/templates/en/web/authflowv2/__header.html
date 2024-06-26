@@ -1,10 +1,31 @@
 {{ define "__brand-logo.html" }}
 
 {{ if .darkThemeEnabled }}
-<img class="brand-logo light" src="{{ .light }}">
-<img class="brand-logo dark" src="{{ .dark }}">
+<img 
+  class="brand-logo light" 
+  src="{{ .light }}"
+  data-controller="previewable-resource"
+  data-previewable-resource-key-value="brand-logo-light"
+  data-previewable-resource-changable-attribute-value="src"
+  data-previewable-resource-original-value="{{ .light }}"
+>
+<img 
+  class="brand-logo dark" 
+  src="{{ .dark }}"
+  data-controller="previewable-resource"
+  data-previewable-resource-key-value="brand-logo-dark"
+  data-previewable-resource-changable-attribute-value="src"
+  data-previewable-resource-original-value="{{ .dark }}"
+>
 {{ else }}
-<img class="brand-logo" src="{{ .light }}">
+<img 
+  class="brand-logo" 
+  src="{{ .light }}"
+  data-controller="previewable-resource"
+  data-previewable-resource-key-value="brand-logo-light"
+  data-previewable-resource-changable-attribute-value="src"
+  data-previewable-resource-original-value="{{ .light }}"
+>
 {{ end }}
 
 {{ end }}
