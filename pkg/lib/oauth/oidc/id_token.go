@@ -194,19 +194,19 @@ func (ti *IDTokenIssuer) IssueIDToken(opts IssueIDTokenOptions) (string, error) 
 	return signed, nil
 }
 
-func (ti *IDTokenIssuer) VerifyIDTokenWithoutClient(idTokenHint string) (token jwt.Token, err error) {
+func (ti *IDTokenIssuer) VerifyIDTokenWithoutClient(idToken string) (token jwt.Token, err error) {
 	// Verify the signature.
 	jwkSet, err := ti.GetPublicKeySet()
 	if err != nil {
 		return
 	}
 
-	_, err = jws.Verify([]byte(idTokenHint), jws.WithKeySet(jwkSet))
+	_, err = jws.Verify([]byte(idToken), jws.WithKeySet(jwkSet))
 	if err != nil {
 		return
 	}
 	// Parse the JWT.
-	_, token, err = jwtutil.SplitWithoutVerify([]byte(idTokenHint))
+	_, token, err = jwtutil.SplitWithoutVerify([]byte(idToken))
 	if err != nil {
 		return
 	}

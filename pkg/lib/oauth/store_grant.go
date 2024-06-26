@@ -56,3 +56,7 @@ type AppSessionTokenStore interface {
 	CreateAppSessionToken(*AppSessionToken) error
 	DeleteAppSessionToken(*AppSessionToken) error
 }
+
+type AppInitiatedSSOToWebTokenStore interface {
+	CreateAppSessionToken(*AppInitiatedSSOToWebToken) error
+}
