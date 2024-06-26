@@ -12,10 +12,11 @@ const (
 )
 
 type AppInitiatedSSOToWebToken struct {
-	AppID          string   `json:"app_id"`
-	ClientID       string   `json:"client_id"`
-	OfflineGrantID string   `json:"offline_grant_id"`
-	Scopes         []string `json:"scopes"`
+	AppID           string   `json:"app_id"`
+	AuthorizationID string   `json:"authorization_id"`
+	ClientID        string   `json:"client_id"`
+	OfflineGrantID  string   `json:"offline_grant_id"`
+	Scopes          []string `json:"scopes"`
 
 	CreatedAt time.Time `json:"created_at"`
 	ExpireAt  time.Time `json:"expire_at"`
@@ -36,10 +37,11 @@ type issueAppInitiatedSSOToWebTokenResult struct {
 }
 
 type IssueAppInitiatedSSOToWebTokenOptions struct {
-	AppID          string
-	ClientID       string
-	OfflineGrantID string
-	Scopes         []string
+	AppID           string
+	ClientID        string
+	OfflineGrantID  string
+	AuthorizationID string
+	Scopes          []string
 }
 
 func (s *AppInitiatedSSOToWebTokenService) IssueAppInitiatedSSOToWebToken(
@@ -49,10 +51,11 @@ func (s *AppInitiatedSSOToWebTokenService) IssueAppInitiatedSSOToWebToken(
 	token := GenerateToken()
 	tokenHash := HashToken(token)
 	err := s.AppInitiatedSSOToWebTokens.CreateAppInitiatedSSOToWebToken(&AppInitiatedSSOToWebToken{
-		AppID:          options.AppID,
-		ClientID:       options.ClientID,
-		OfflineGrantID: options.OfflineGrantID,
-		Scopes:         options.Scopes,
+		AppID:           options.AppID,
+		AuthorizationID: options.AuthorizationID,
+		ClientID:        options.ClientID,
+		OfflineGrantID:  options.OfflineGrantID,
+		Scopes:          options.Scopes,
 
 		CreatedAt: now,
 		ExpireAt:  now.Add(AppInitiatedSSOToWebTokenLifetime),
