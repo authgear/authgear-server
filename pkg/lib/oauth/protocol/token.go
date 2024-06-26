@@ -29,12 +29,13 @@ func (r TokenRequest) SubjectToken() string        { return r["subject_token"] }
 func (r TokenRequest) ActorTokenType() string      { return r["actor_token_type"] }
 func (r TokenRequest) ActorToken() string          { return r["actor_token"] }
 
-func (r TokenResponse) AccessToken(v string)  { r["access_token"] = v }
-func (r TokenResponse) TokenType(v string)    { r["token_type"] = v }
-func (r TokenResponse) ExpiresIn(v int)       { r["expires_in"] = v }
-func (r TokenResponse) RefreshToken(v string) { r["refresh_token"] = v }
-func (r TokenResponse) DeviceSecret(v string) { r["device_secret"] = v }
-func (r TokenResponse) Scope(v string)        { r["scope"] = v }
+func (r TokenResponse) AccessToken(v string)     { r["access_token"] = v }
+func (r TokenResponse) TokenType(v string)       { r["token_type"] = v }
+func (r TokenResponse) IssuedTokenType(v string) { r["issued_token_type"] = v }
+func (r TokenResponse) ExpiresIn(v int)          { r["expires_in"] = v }
+func (r TokenResponse) RefreshToken(v string)    { r["refresh_token"] = v }
+func (r TokenResponse) DeviceSecret(v string)    { r["device_secret"] = v }
+func (r TokenResponse) Scope(v string)           { r["scope"] = v }
 
 // OIDC extension
 

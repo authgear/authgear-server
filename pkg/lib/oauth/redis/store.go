@@ -640,3 +640,9 @@ func (s *Store) DeleteAppSession(session *oauth.AppSession) error {
 		return s.del(conn, appSessionKey(session.AppID, session.TokenHash))
 	})
 }
+
+func (s *Store) CreateAppInitiatedSSOToWebToken(token *oauth.AppInitiatedSSOToWebToken) error {
+	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+		return s.save(conn, appInitiatedSSOToWebTokenKey(token.AppID, token.TokenHash), token, token.ExpireAt, true)
+	})
+}
