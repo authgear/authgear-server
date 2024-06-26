@@ -1,0 +1,11 @@
+.colorPicker {
+  @apply flex items-center;
+  @apply px-2 h-8;
+  @apply relative;
+  @apply rounded overflow-hidden border border-solid border-grey-grey110;
+}
+
+.colorPicker.active {
+  @apply border-theme-primary;
+  @apply outline outline-2 -outline-offset-2 outline-theme-primary;
+}

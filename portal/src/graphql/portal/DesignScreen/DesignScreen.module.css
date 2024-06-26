@@ -1,0 +1,37 @@
+.icAlignmentLeft {
+  @apply h-6 w-6;
+  /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
+  mask: url("../../../images/ic-alignment-left.svg");
+}
+
+.icAlignmentCenter {
+  @apply h-6 w-6;
+  /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
+  mask: url("../../../images/ic-alignment-center.svg");
+}
+
+.icAlignmentRight {
+  @apply h-6 w-6;
+  /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
+  mask: url("../../../images/ic-alignment-right.svg");
+}
+
+.icAlignment {
+  @apply inline-block;
+  background-color: #1c1b1f;
+}
+
+.icAlignment.selected {
+  @apply bg-theme-primary;
+}
+
+.linkConfigurationSeparator {
+  /* stylelint-disable-next-line declaration-no-important */
+  margin-top: 1.5rem !important;
+  /* stylelint-disable-next-line declaration-no-important */
+  margin-bottom: 1.5rem !important;
+}
+
+.upgradeNowButton {
+  @apply px-1;
+}

@@ -63,10 +63,9 @@ import FormContainer from "../../FormContainer";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import WidgetDescription from "../../WidgetDescription";
 import Toggle from "../../Toggle";
-import { ErrorParseRule, ErrorParseRuleResult } from "../../error/parse";
-import { APIError } from "../../error/error";
-
-const ImageMaxSizeInKB = 100;
+import { ErrorParseRule } from "../../error/parse";
+import { makeImageSizeTooLargeErrorRule } from "../../error/resources";
+import { nonNullable } from "../../util/types";
 
 interface ConfigFormState {
   supportedLanguages: string[];
@@ -208,7 +207,9 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
 
     const getOnChangeImage = useCallback(
       (def: ResourceDefinition) => {
-        return (base64EncodedData?: string, extension?: string) => {
+        return (
+          image: { base64EncodedData: string; extension: string } | null
+        ) => {
           setState((prev) => {
             const updatedResources = { ...prev.resources };
 
@@ -229,16 +230,16 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             }
 
             // Add the new one.
-            if (base64EncodedData != null && extension != null) {
+            if (image != null) {
               const specifier = {
                 def,
-                extension,
+                extension: image.extension,
                 locale: state.selectedLanguage,
               };
               const resource: Resource = {
                 specifier,
                 path: expandSpecifier(specifier),
-                nullableValue: base64EncodedData,
+                nullableValue: image.base64EncodedData,
               };
               updatedResources[specifierId(specifier)] = resource;
             }
@@ -863,60 +864,13 @@ const UISettingsScreen: React.VFC = function UISettingsScreen() {
     [config, featureConfig, resources, state]
   );
 
-  const imageSizeTooLargeErrorRule = useCallback(
-    (apiError: APIError): ErrorParseRuleResult => {
-      if (apiError.reason === "RequestEntityTooLarge") {
-        // When the request is blocked by the load balancer due to RequestEntityTooLarge
-        // We try to get the largest resource from the state
-        // and construct the error message for display
-
-        let path = "";
-        let longestLength = 0;
-        // get the largest resources from the state
-        for (const r of Object.keys(state.resources)) {
-          const l = state.resources[r]?.nullableValue?.length ?? 0;
-          if (l > longestLength) {
-            longestLength = l;
-            path = state.resources[r]?.path ?? "";
-          }
-        }
-
-        // parse resource type from resource path
-        let resourceType = "other";
-        if (path !== "") {
-          const dir = path.split("/");
-          const fileName = dir[dir.length - 1];
-          if (fileName.lastIndexOf(".") !== -1) {
-            resourceType = fileName.slice(0, fileName.lastIndexOf("."));
-          } else {
-            resourceType = fileName;
-          }
-        }
-
-        return {
-          parsedAPIErrors: [
-            {
-              messageID: "errors.resource-too-large",
-              arguments: {
-                maxSize: ImageMaxSizeInKB,
-                resourceType,
-              },
-            },
-          ],
-          fullyHandled: true,
-        };
-      }
-      return {
-        parsedAPIErrors: [],
-        fullyHandled: false,
-      };
-    },
-    [state.resources]
-  );
-
   const errorRules: ErrorParseRule[] = useMemo(
-    () => [imageSizeTooLargeErrorRule],
-    [imageSizeTooLargeErrorRule]
+    () => [
+      makeImageSizeTooLargeErrorRule(
+        Object.values(form.state.resources).filter(nonNullable)
+      ),
+    ],
+    [form.state.resources]
   );
 
   if (form.isLoading) {

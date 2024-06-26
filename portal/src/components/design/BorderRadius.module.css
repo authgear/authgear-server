@@ -1,0 +1,26 @@
+.icBorderRadius {
+  @apply inline-block;
+  background-color: #1c1b1f;
+}
+
+.icBorderRadiusSquare {
+  @apply h-6 w-6;
+  /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
+  mask: url("../../images/ic-border-corner-square.svg");
+}
+
+.icBorderRadiusRounded {
+  @apply h-6 w-6;
+  /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
+  mask: url("../../images/ic-border-corner-rounded.svg");
+}
+
+.icBorderRadiusFullRounded {
+  @apply h-6 w-6;
+  /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
+  mask: url("../../images/ic-border-corner-pill.svg");
+}
+
+.icBorderRadius.selected {
+  @apply bg-theme-primary;
+}

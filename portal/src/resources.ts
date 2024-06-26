@@ -164,6 +164,20 @@ export const RESOURCE_FAVICON: ResourceDefinition = {
   optional: true,
 };
 
+export const RESOURCE_APP_BACKGROUND_IMAGE: ResourceDefinition = {
+  resourcePath: resourcePath`static/${"locale"}/app_background_image${"extension"}`,
+  type: "binary",
+  extensions: IMAGE_EXTENSIONS,
+  optional: true,
+};
+
+export const RESOURCE_APP_BACKGROUND_IMAGE_DARK: ResourceDefinition = {
+  resourcePath: resourcePath`static/${"locale"}/app_background_image_dark${"extension"}`,
+  type: "binary",
+  extensions: IMAGE_EXTENSIONS,
+  optional: true,
+};
+
 export const ALL_LANGUAGES_TEMPLATES = [
   RESOURCE_TRANSLATION_JSON,
 
@@ -207,6 +221,22 @@ export const RESOURCE_AUTHGEAR_DARK_THEME_CSS: ResourceDefinition = {
   extensions: [],
   optional: true,
 };
+
+export const RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS: ResourceDefinition =
+  {
+    resourcePath: resourcePath`static/authgear-authflowv2-light-theme.css`,
+    type: "text",
+    extensions: [],
+    optional: true,
+  };
+
+export const RESOURCE_AUTHGEAR_AUTHFLOW_V2_DARK_THEME_CSS: ResourceDefinition =
+  {
+    resourcePath: resourcePath`static/authgear-authflowv2-dark-theme.css`,
+    type: "text",
+    extensions: [],
+    optional: true,
+  };
 
 export const RESOURCE_EMAIL_DOMAIN_BLOCKLIST: ResourceDefinition = {
   resourcePath: resourcePath`email_domain_blocklist.txt`,
