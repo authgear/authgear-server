@@ -236,6 +236,15 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		// anonymous user
 		p.Middleware(newSettingsSubRoutesMiddleware),
 	)
+	webappPagePreviewChain := httproute.Chain(
+		rootChain,
+		p.Middleware(newPublicOriginMiddleware),
+		p.Middleware(newPanicWebAppMiddleware),
+		httproute.MiddlewareFunc(httputil.NoStore),
+		httproute.MiddlewareFunc(webapp.IntlMiddleware),
+		p.Middleware(newWebAppColorSchemeMiddleware),
+		p.Middleware(newWebPageDynamicCSPMiddleware),
+	)
 
 	appStaticRoute := httproute.Route{Middleware: appStaticChain}
 	generatedStaticRoute := httproute.Route{Middleware: generatedStaticChain}
@@ -263,6 +272,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	webappSSOCallbackRoute := httproute.Route{Middleware: webappSSOCallbackChain}
 	webappWebsocketRoute := httproute.Route{Middleware: webappWebsocketChain}
 	webappAPIRoute := httproute.Route{Middleware: webappAPIChain}
+	webappPagePreviewRoute := httproute.Route{Middleware: webappPagePreviewChain}
 
 	router.Add(webapphandler.ConfigureRootRoute(webappAuthEntrypointRoute), p.Handler(newWebAppRootHandler))
 	router.Add(webapphandler.ConfigureOAuthEntrypointRoute(webappAuthEntrypointRoute), p.Handler(newWebAppOAuthEntrypointHandler))
@@ -322,6 +332,16 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowv2FinishFlowRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2FinishFlowHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2WechatRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2WechatHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2AccountLinkingRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2AccountLinkingHandler))
+
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2PreviewRoute(webapphandler.ConfigureAuthflowLoginRoute(webappPagePreviewRoute)), p.Handler(newWebAppAuthflowV2LoginHandler))
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2PreviewRoute(webapphandler.ConfigureAuthflowSignupRoute(webappPagePreviewRoute)), p.Handler(newWebAppAuthflowV2SignupHandler))
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2PreviewRoute(webapphandlerauthflowv2.ConfigureAuthflowV2EnterPasswordRoute(webappPagePreviewRoute)), p.Handler(newWebAppAuthflowV2EnterPasswordHandler))
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2PreviewRoute(webapphandlerauthflowv2.ConfigureAuthflowV2EnterOOBOTPRoute(webappPagePreviewRoute)), p.Handler(newWebAppAuthflowV2EnterOOBOTPHandler))
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2PreviewRoute(webapphandlerauthflowv2.ConfigureAuthflowV2UsePasskeyRoute(webappPagePreviewRoute)), p.Handler(newWebAppAuthflowV2UsePasskeyHandler))
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2PreviewRoute(webapphandlerauthflowv2.ConfigureAuthflowV2PromptCreatePasskeyRoute(webappPagePreviewRoute)), p.Handler(newWebAppAuthflowV2PromptCreatePasskeyHandler))
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2PreviewRoute(webapphandlerauthflowv2.ConfigureAuthflowV2EnterTOTPRoute(webappPagePreviewRoute)), p.Handler(newWebAppAuthflowV2EnterTOTPHandler))
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2PreviewRoute(webapphandlerauthflowv2.ConfigureV2AuthflowOOBOTPLinkRoute(webappPagePreviewRoute)), p.Handler(newWebAppAuthflowV2OOBOTPLinkHandler))
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2PreviewRoute(webapphandlerauthflowv2.ConfigureAuthflowV2CreatePasswordRoute(webappPagePreviewRoute)), p.Handler(newWebAppAuthflowV2CreatePasswordHandler))
 
 	router.Add(webapphandler.ConfigureAuthflowEnterPasswordRoute(webappPageRoute), p.Handler(newWebAppAuthflowEnterPasswordHandler))
 	router.Add(webapphandler.ConfigureAuthflowEnterOOBOTPRoute(webappPageRoute), p.Handler(newWebAppAuthflowEnterOOBOTPHandler))
