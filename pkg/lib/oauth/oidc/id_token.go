@@ -138,6 +138,7 @@ type IssueIDTokenOptions struct {
 	Nonce              string
 	AuthenticationInfo authenticationinfo.T
 	ClientLike         *oauth.ClientLike
+	DeviceSecretHash   string
 }
 
 func (ti *IDTokenIssuer) IssueIDToken(opts IssueIDTokenOptions) (string, error) {
@@ -175,6 +176,9 @@ func (ti *IDTokenIssuer) IssueIDToken(opts IssueIDTokenOptions) (string, error) 
 	_ = claims.Set(string(model.ClaimAuthTime), info.AuthenticatedAt.Unix())
 	if amr := info.AMR; len(amr) > 0 {
 		_ = claims.Set(string(model.ClaimAMR), amr)
+	}
+	if dshash := opts.DeviceSecretHash; dshash != "" {
+		_ = claims.Set(string(model.ClaimDeviceSecretHash), dshash)
 	}
 
 	// Populate authorization flow specific claims

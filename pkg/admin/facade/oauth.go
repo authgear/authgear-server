@@ -53,7 +53,7 @@ type OAuthFacade struct {
 func (f *OAuthFacade) CreateSession(clientID string, userID string) (session.ListableSession, protocol.TokenResponse, error) {
 	scopes := []string{
 		"openid",
-		"offline_access",
+		oauth.OfflineAccess,
 		oauth.FullAccessScope,
 	}
 	authenticationInfo := authenticationinfo.T{
