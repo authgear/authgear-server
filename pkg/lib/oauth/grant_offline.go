@@ -41,6 +41,7 @@ type OfflineGrant struct {
 	SSOEnabled bool `json:"sso_enabled,omitempty"`
 
 	App2AppDeviceKeyJWKJSON string `json:"app2app_device_key_jwk_json"`
+	DeviceSecretHash        string `json:"device_secret_hash"`
 
 	RefreshTokens []OfflineGrantRefreshToken `json:"refresh_tokens,omitempty"`
 
