@@ -372,7 +372,7 @@ func (h *TokenHandler) rotateDeviceSecretIfNeeded(
 	authorizedScopes []string,
 	offlineGrant *oauth.OfflineGrant,
 	resp protocol.TokenResponse) (*oauth.OfflineGrant, bool, error) {
-	if oauth.ContainsAllScopes(authorizedScopes, []string{oauth.DeviceSSOScope}) {
+	if !oauth.ContainsAllScopes(authorizedScopes, []string{oauth.DeviceSSOScope}) {
 		// No device secret, no rotation needed.
 		return offlineGrant, false, nil
 	}
@@ -681,7 +681,7 @@ func (h *TokenHandler) handleAppInitiatedSSOToWebToken(
 	case *oauth.OfflineGrant:
 		offlineGrant = session
 		isAllowed = offlineGrant.HasAllScopes(offlineGrant.InitialClientID, []string{oauth.AppInitiatedSSOToWebScope})
-		scopes = offlineGrant.GetScopes(client.ClientID)
+		scopes = offlineGrant.GetScopes(offlineGrant.InitialClientID)
 	}
 	if !isAllowed {
 		return nil, protocol.NewError("invalid_grant", "operation not allowed")
