@@ -50,7 +50,8 @@ import (
 const (
 	AuthorizationCodeGrantType = "authorization_code"
 	RefreshTokenGrantType      = "refresh_token"
-	TokenExchangeGrantType     = "urn:ietf:params:oauth:grant-type:token-exchange"
+	// nolint:gosec
+	TokenExchangeGrantType = "urn:ietf:params:oauth:grant-type:token-exchange"
 
 	AnonymousRequestGrantType = "urn:authgear:params:oauth:grant-type:anonymous-request"
 	BiometricRequestGrantType = "urn:authgear:params:oauth:grant-type:biometric-request"
@@ -61,9 +62,12 @@ const (
 )
 
 const (
+	// nolint:gosec
 	AppInitiatedSSOToWebTokenTokenType = "urn:authgear:params:oauth:token-type:app-initiated-sso-to-web-token"
-	IDTokenTokenType                   = "urn:ietf:params:oauth:token-type:id_token"
-	DeviceSecretTokenType              = "urn:x-oath:params:oauth:token-type:device-secret"
+	// nolint:gosec
+	IDTokenTokenType = "urn:ietf:params:oauth:token-type:id_token"
+	// nolint:gosec
+	DeviceSecretTokenType = "urn:x-oath:params:oauth:token-type:device-secret"
 )
 
 const AppSessionTokenDuration = duration.Short
