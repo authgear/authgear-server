@@ -78,7 +78,7 @@ interface FeatureConfig {
   whiteLabelingDisabled: boolean;
 }
 
-const enum TranslationKey {
+export const enum TranslationKey {
   AppName = "app.name",
   PrivacyPolicy = "privacy-policy-link",
   TermsOfService = "terms-of-service-link",

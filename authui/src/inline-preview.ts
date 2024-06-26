@@ -1,7 +1,9 @@
 import { Controller } from "@hotwired/stimulus";
+import { TranslatedMessageController } from "./translated-message";
 
 interface PreviewCustomisationMessage {
   cssVars: Record<string, string>;
+  translations: Record<string, string>;
 }
 
 function parsePreviewCustomisationMessage(
@@ -12,14 +14,17 @@ function parsePreviewCustomisationMessage(
   }
   return {
     cssVars: message.cssVars ?? {},
+    translations: message.translations ?? {},
   };
 }
 
 export class InlinePreviewController extends Controller {
+  static outlets = ["translated-message"];
   static values = {
     isInlinePreview: Boolean,
   };
 
+  declare translatedMessageOutlets: TranslatedMessageController[];
   declare isInlinePreviewValue: boolean;
 
   windowMessageAllowedOrigins!: string[];
@@ -57,6 +62,19 @@ export class InlinePreviewController extends Controller {
     const el = this.element as HTMLElement;
     for (const [name, value] of Object.entries(customisationMessage.cssVars)) {
       el.style.setProperty(name, value);
+    }
+
+    const keyToTranslatedMessageOutlet: Partial<
+      Record<string, TranslatedMessageController>
+    > = {};
+    this.translatedMessageOutlets.forEach((outlet) => {
+      keyToTranslatedMessageOutlet[outlet.keyValue] = outlet;
+    });
+    for (const [key, value] of Object.entries(
+      customisationMessage.translations
+    )) {
+      const outlet = keyToTranslatedMessageOutlet[key];
+      outlet?.setMessage(value);
     }
   };
 }

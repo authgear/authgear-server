@@ -1,3 +1,7 @@
 {{ define "__translation_message.html" }}
-<span data-translation-key="{{.Key}}">{{.Value}}</span>
+<span 
+  class="translated-message"
+  data-controller="translated-message"
+  data-translated-message-key-value="{{ .Key }}"
+>{{ .Value }}</span>
 {{ end }}

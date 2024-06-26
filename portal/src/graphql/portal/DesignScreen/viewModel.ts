@@ -4,7 +4,7 @@ import {
   getThemeTargetSelector,
 } from "../../../model/themeAuthFlowV2";
 import { PortalAPIAppConfig } from "../../../types";
-import { BranchDesignFormState } from "./form";
+import { BranchDesignFormState, TranslationKey } from "./form";
 
 export enum PreviewPage {
   Login = "preview/login",
@@ -55,6 +55,7 @@ export function getSupportedPreviewPagesFromConfig(
 export interface PreviewCustomisationMessage {
   type: "PreviewCustomisationMessage";
   cssVars: Record<string, string>;
+  translations: Record<string, string>;
 }
 
 export function mapDesignFormStateToPreviewCustomisationMessage(
@@ -68,8 +69,14 @@ export function mapDesignFormStateToPreviewCustomisationMessage(
   for (const declaration of declarations) {
     cssVars[declaration.prop] = declaration.value;
   }
+
+  const translations = {
+    [TranslationKey.AppName]: state.appName,
+  };
+
   return {
     type: "PreviewCustomisationMessage",
     cssVars,
+    translations,
   };
 }
