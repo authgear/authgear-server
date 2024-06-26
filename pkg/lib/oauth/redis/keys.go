@@ -33,3 +33,7 @@ func appSessionTokenKey(appID string, tokenHash string) string {
 func appSessionKey(appID string, tokenHash string) string {
 	return fmt.Sprintf("app:%s:app-session:%s", appID, tokenHash)
 }
+
+func appInitiatedSSOToWebTokenKey(appID string, tokenHash string) string {
+	return fmt.Sprintf("app:%s:app-initiated-sso-to-web-token:%s", appID, tokenHash)
+}

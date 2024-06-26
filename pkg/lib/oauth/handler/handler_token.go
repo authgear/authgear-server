@@ -119,24 +119,25 @@ type TokenHandler struct {
 	OAuthClientCredentials *config.OAuthClientCredentials
 	Logger                 TokenHandlerLogger
 
-	Authorizations           AuthorizationService
-	CodeGrants               oauth.CodeGrantStore
-	SettingsActionGrantStore oauth.SettingsActionGrantStore
-	OfflineGrants            oauth.OfflineGrantStore
-	IDPSessions              oauth.IDPSessionStore
-	AppSessionTokens         oauth.AppSessionTokenStore
-	OfflineGrantService      oauth.OfflineGrantService
-	Graphs                   GraphService
-	IDTokenIssuer            IDTokenIssuer
-	Clock                    clock.Clock
-	TokenService             TokenService
-	Events                   EventService
-	SessionManager           SessionManager
-	App2App                  App2AppService
-	Challenges               ChallengeProvider
-	CodeGrantService         CodeGrantService
-	ClientResolver           OAuthClientResolver
-	UIInfoResolver           UIInfoResolver
+	Authorizations             AuthorizationService
+	CodeGrants                 oauth.CodeGrantStore
+	SettingsActionGrantStore   oauth.SettingsActionGrantStore
+	OfflineGrants              oauth.OfflineGrantStore
+	IDPSessions                oauth.IDPSessionStore
+	AppSessionTokens           oauth.AppSessionTokenStore
+	OfflineGrantService        oauth.OfflineGrantService
+	AppInitiatedSSOToWebTokens oauth.AppInitiatedSSOToWebTokenStore
+	Graphs                     GraphService
+	IDTokenIssuer              IDTokenIssuer
+	Clock                      clock.Clock
+	TokenService               TokenService
+	Events                     EventService
+	SessionManager             SessionManager
+	App2App                    App2AppService
+	Challenges                 ChallengeProvider
+	CodeGrantService           CodeGrantService
+	ClientResolver             OAuthClientResolver
+	UIInfoResolver             UIInfoResolver
 
 	ValidateScopes ScopesValidator
 }
@@ -315,7 +316,7 @@ func (h *TokenHandler) rotateDeviceSecretIfNeeded(
 	authorizedScopes []string,
 	offlineGrant *oauth.OfflineGrant,
 	resp protocol.TokenResponse) (*oauth.OfflineGrant, error) {
-	if offlineGrant.DeviceSecretHash == "" || !oauth.ContainsAllScopes(authorizedScopes, []string{oauth.DeviceSSOScope}) {
+	if oauth.ContainsAllScopes(authorizedScopes, []string{oauth.DeviceSSOScope}) {
 		// No device secret, no rotation needed.
 		return offlineGrant, nil
 	}
@@ -631,8 +632,42 @@ func (h *TokenHandler) handleAppInitiatedSSOToWebToken(
 		scopes = requestedScopes
 	}
 
-	// TODO(DEV-1405): issue device browser sso token
-	return nil, nil
+	// TODO(Tung): Move it to a service
+	tokenLifetime := duration.Short
+	now := h.Clock.NowUTC()
+	token := oauth.GenerateToken()
+	tokenHash := oauth.HashToken(token)
+	err = h.AppInitiatedSSOToWebTokens.CreateAppSessionToken(&oauth.AppInitiatedSSOToWebToken{
+		AppID:          string(h.AppID),
+		ClientID:       client.ClientID,
+		OfflineGrantID: offlineGrant.ID,
+		Scopes:         scopes,
+
+		CreatedAt: now,
+		ExpireAt:  now.Add(tokenLifetime),
+		TokenHash: tokenHash,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	resp := protocol.TokenResponse{}
+	// Return the token in access_token as specified by RFC8963
+	resp.AccessToken(token)
+	resp.TokenType("Bearer")
+	resp.IssuedTokenType(AppInitiatedSSOToWebTokenTokenType)
+	resp.ExpiresIn(int(tokenLifetime.Seconds()))
+
+	offlineGrant, err = h.rotateDeviceSecretIfNeeded(
+		scopes,
+		offlineGrant,
+		resp,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
 }
 
 type anonymousTokenInput struct {
