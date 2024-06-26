@@ -1,0 +1,102 @@
+name: Login with TOTP
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+      secondary_authenticators:
+      - totp
+      secondary_authentication_mode: required
+    identity:
+      login_id:
+        keys:
+        - type: email
+before:
+  - type: custom_sql
+    custom_sql:
+      path: totp_user.sql
+steps:
+
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+                "type": "identification_data",
+                "options": [
+                  "[[arrayof]]",
+                  {
+                    "identification": "email"
+                  }
+                ]
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "signup@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate",
+            "data": {
+                "type": "authentication_data",
+                "options": [
+                    "[[arrayof]]",
+                    {
+                        "authentication": "primary_password"
+                    }
+                ],
+                "device_token_enabled": false
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate",
+            "data": {
+                "type": "authentication_data",
+                "options": [
+                    "[[arrayof]]",
+                    {
+                        "authentication": "[[string]]"
+                    }
+                ],
+                "device_token_enabled": true
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "authentication": "secondary_totp",
+        "code": "{{ generateTOTPCode "3I526Y3Y7GSXO34RTFEEFXCJM6Y4VZXR" }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
