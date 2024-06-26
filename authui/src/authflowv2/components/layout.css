@@ -10,6 +10,11 @@
     --layout__bg_size: cover;
   }
 
+  :root.dark {
+    --layout__bg-color: var(--color-bg-base);
+    --layout__bg-image: ;
+  }
+
   .layout--default {
     @apply flex flex-col flex-1-0-auto;
     @apply items-center justify-start;
