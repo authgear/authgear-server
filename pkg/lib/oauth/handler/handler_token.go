@@ -312,6 +312,21 @@ func (h *TokenHandler) app2appGetDeviceKeyJWKVerified(jwt string) (jwk.Key, erro
 	return key, nil
 }
 
+func (h *TokenHandler) rotateDeviceSecret(
+	offlineGrant *oauth.OfflineGrant,
+	resp protocol.TokenResponse) (*oauth.OfflineGrant, error) {
+	deviceSecretHash := h.TokenService.IssueDeviceSecret(resp)
+	expiry, err := h.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
+	if err != nil {
+		return nil, err
+	}
+	offlineGrant, err = h.OfflineGrants.UpdateOfflineGrantDeviceSecretHash(offlineGrant.ID, deviceSecretHash, expiry)
+	if err != nil {
+		return nil, err
+	}
+	return offlineGrant, nil
+}
+
 func (h *TokenHandler) rotateDeviceSecretIfNeeded(
 	authorizedScopes []string,
 	offlineGrant *oauth.OfflineGrant,
@@ -321,16 +336,11 @@ func (h *TokenHandler) rotateDeviceSecretIfNeeded(
 		return offlineGrant, false, nil
 	}
 
-	deviceSecretHash := h.TokenService.IssueDeviceSecret(resp)
-	expiry, err := h.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
+	newOfflineGrant, err := h.rotateDeviceSecret(offlineGrant, resp)
 	if err != nil {
 		return nil, false, err
 	}
-	offlineGrant, err = h.OfflineGrants.UpdateOfflineGrantDeviceSecretHash(offlineGrant.ID, deviceSecretHash, expiry)
-	if err != nil {
-		return nil, false, err
-	}
-	return offlineGrant, true, nil
+	return newOfflineGrant, true, nil
 }
 
 func (h *TokenHandler) app2appUpdateDeviceKeyIfNeeded(
@@ -663,8 +673,7 @@ func (h *TokenHandler) handleAppInitiatedSSOToWebToken(
 	resp.IssuedTokenType(AppInitiatedSSOToWebTokenTokenType)
 	resp.ExpiresIn(result.ExpiresIn)
 
-	offlineGrant, isDeviceSecretRotated, err := h.rotateDeviceSecretIfNeeded(
-		scopes,
+	offlineGrant, err = h.rotateDeviceSecret(
 		offlineGrant,
 		resp,
 	)
@@ -672,24 +681,22 @@ func (h *TokenHandler) handleAppInitiatedSSOToWebToken(
 		return nil, err
 	}
 
-	if isDeviceSecretRotated {
-		// Issue new id_token which associated to the new device_secret
-		idToken, err := h.IDTokenIssuer.IssueIDToken(oidc.IssueIDTokenOptions{
-			ClientID:           client.ClientID,
-			SID:                oidc.EncodeSID(offlineGrant),
-			AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
-			// scopes are used for specifying which fields should be included in the ID token
-			// those fields may include personal identifiable information
-			// Since the ID token issued here will be used in id_token_hint
-			// so no scopes are needed
-			ClientLike:       oauth.ClientClientLike(client, []string{}),
-			DeviceSecretHash: offlineGrant.DeviceSecretHash,
-		})
-		if err != nil {
-			return nil, err
-		}
-		resp.IDToken(idToken)
+	// Issue new id_token which associated to the new device_secret
+	newIDToken, err := h.IDTokenIssuer.IssueIDToken(oidc.IssueIDTokenOptions{
+		ClientID:           client.ClientID,
+		SID:                oidc.EncodeSID(offlineGrant),
+		AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
+		// scopes are used for specifying which fields should be included in the ID token
+		// those fields may include personal identifiable information
+		// Since the ID token issued here will be used in id_token_hint
+		// so no scopes are needed
+		ClientLike:       oauth.ClientClientLike(client, []string{}),
+		DeviceSecretHash: offlineGrant.DeviceSecretHash,
+	})
+	if err != nil {
+		return nil, err
 	}
+	resp.IDToken(newIDToken)
 
 	return resp, nil
 }
