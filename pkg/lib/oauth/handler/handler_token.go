@@ -177,7 +177,7 @@ type TokenHandler struct {
 	Authorizations                   AuthorizationService
 	CodeGrants                       TokenHandlerCodeGrantStore
 	SettingsActionGrantStore         TokenHandlerSettingsActionGrantStore
-	IDPSessions                      oauth.IDPSessionStore
+	IDPSessions                      oauth.IDPSessionProvider
 	OfflineGrants                    TokenHandlerOfflineGrantStore
 	AppSessionTokens                 TokenHandlerAppSessionTokenStore
 	OfflineGrantService              TokenHandlerOfflineGrantService
