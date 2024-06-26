@@ -1,5 +1,20 @@
 import { Controller } from "@hotwired/stimulus";
 
+interface PreviewCustomisationMessage {
+  cssVars: Record<string, string>;
+}
+
+function parsePreviewCustomisationMessage(
+  message: any
+): PreviewCustomisationMessage | null {
+  if (message.type !== "PreviewCustomisationMessage") {
+    return null;
+  }
+  return {
+    cssVars: message.cssVars ?? {},
+  };
+}
+
 export class InlinePreviewController extends Controller {
   static values = {
     isInlinePreview: Boolean,
@@ -34,6 +49,14 @@ export class InlinePreviewController extends Controller {
   onReceiveMessage = (e: MessageEvent<any>): void => {
     if (!this.windowMessageAllowedOrigins.includes(e.origin)) {
       return;
+    }
+    const customisationMessage = parsePreviewCustomisationMessage(e.data);
+    if (customisationMessage == null) {
+      return;
+    }
+    const el = this.element as HTMLElement;
+    for (const [name, value] of Object.entries(customisationMessage.cssVars)) {
+      el.style.setProperty(name, value);
     }
   };
 }

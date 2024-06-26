@@ -37,7 +37,7 @@ import { AlertMessageController } from "./authflowv2/alert-message";
 import { DismissKeyboardOnScrollController } from "./authflowv2/dismissKeyboard";
 import { BodyScrollLockController } from "./authflowv2/bodyScrollLock";
 import { ClickToSwitchController } from "./clickToSwitch";
-import { InlinePreviewController } from "./inline-review";
+import { InlinePreviewController } from "./inline-preview";
 
 axios.defaults.withCredentials = true;
 
