@@ -437,11 +437,12 @@ const PreviewPageDropdownStyles: IStyleFunctionOrObject<
 };
 
 interface PreviewProps {
+  className?: string;
   effectiveAppConfig: PortalAPIAppConfig;
   designForm: BranchDesignForm;
 }
 const Preview: React.VFC<PreviewProps> = function Preview(props) {
-  const { designForm, effectiveAppConfig } = props;
+  const { className, designForm, effectiveAppConfig } = props;
   const { renderToString } = useContext(MFContext);
 
   const authUIIframeRef = useRef<HTMLIFrameElement | null>(null);
@@ -501,7 +502,7 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
   }, [designForm.state]);
 
   return (
-    <div className={cn("h-full")}>
+    <div className={cn("flex", "flex-col", className)}>
       <div
         className={cn(
           "flex",
@@ -524,7 +525,7 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
       </div>
       <iframe
         ref={authUIIframeRef}
-        className={cn("w-full", "h-full", "border-none")}
+        className={cn("w-full", "min-h-0", "flex-1", "border-none")}
         src={src}
         sandbox="allow-scripts"
         onLoad={onLoadIframe}
@@ -611,6 +612,7 @@ const DesignScreen: React.VFC = function DesignScreen() {
             }}
           >
             <Preview
+              className={cn("h-full")}
               effectiveAppConfig={effectiveAppConfig}
               designForm={form}
             />
