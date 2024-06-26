@@ -50,6 +50,10 @@ func (n *IntentSkipCreationByExistingIdentity) MilestoneDoCreateIdentityUpdate(n
 }
 
 func (n *IntentSkipCreationByExistingIdentity) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	_, _, identified := authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateIdentity](flows)
+	if identified {
+		return nil, authflow.ErrEOF
+	}
 	return nil, nil
 }
 
