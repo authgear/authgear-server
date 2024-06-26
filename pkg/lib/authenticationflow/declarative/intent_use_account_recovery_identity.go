@@ -36,6 +36,10 @@ func (n *IntentUseAccountRecoveryIdentity) MilestoneDoUseAccountRecoveryIdentifi
 }
 
 func (n *IntentUseAccountRecoveryIdentity) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	_, _, recovered := authflow.FindMilestoneInCurrentFlow[MilestoneDoUseAccountRecoveryIdentity](flows)
+	if recovered {
+		return nil, authflow.ErrEOF
+	}
 	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
 	if err != nil {
 		return nil, err
