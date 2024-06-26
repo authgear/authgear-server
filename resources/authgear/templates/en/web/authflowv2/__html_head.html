@@ -23,6 +23,23 @@
 
 <!-- Our CSS have to override styles in authflowv2/__generated_asset.html -->
 {{ template "authflowv2/__generated_asset.html" . }}
+
+{{ $appBackgroundImage := call $.StaticAssetURL "app-background-image" }}
+{{ $appBackgroundImageDark := call $.StaticAssetURL "app-background-image-dark" }}
+<style>
+:root {
+{{ if $appBackgroundImage }}
+  --widget__bg-image: url("{{ $appBackgroundImage }}");
+{{ else }}
+  --widget__bg-image: ;
+{{ end }}
+}
+{{ if $appBackgroundImageDark }}
+:root.dark {
+  --widget__bg-image: url("{{ $appBackgroundImageDark }}");
+}
+{{ end }}
+</style>
 {{ if call $.HasAppSpecificAsset "authgear-authflowv2-light-theme.css" }}
 <link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-authflowv2-light-theme.css" }}">
 {{ end }}

@@ -6,6 +6,9 @@
     --widget__border-radius: 0;
     --widget__box-shadow: none;
     --widget__border: none;
+    --widget__bg_position: center;
+    --widget__bg_repeat: no-repeat;
+    --widget__bg_size: cover;
 
     @media (min-width: theme("screens.tablet")) {
       --widget__border-radius: var(--border-radius-large);
@@ -20,8 +23,13 @@
     border: var(--widget__border);
     box-shadow: var(--widget__box-shadow);
     background-color: var(--widget__bg-color);
-    @apply px-6 pt-8 pb-10;
+    background-image: var(--widget__bg-image);
+    background-repeat: var(--widget__bg_repeat);
+    background-position: var(--widget__bg_position);
+    background-size: var(--widget__bg_size);
     @apply flex flex-col;
+    @apply relative;
+    @apply px-6 pt-8 pb-10;
   }
 
   .widget-content {

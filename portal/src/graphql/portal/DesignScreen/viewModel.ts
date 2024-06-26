@@ -1,4 +1,5 @@
 import {
+  CSSVariable,
   CssAstVisitor,
   CustomisableThemeStyleGroup,
   getThemeTargetSelector,
@@ -68,6 +69,15 @@ export function mapDesignFormStateToPreviewCustomisationMessage(
   const cssVars: Record<string, string> = {};
   for (const declaration of declarations) {
     cssVars[declaration.prop] = declaration.value;
+  }
+
+  // Special handle for previewing background image
+  if (state.backgroundImageBase64EncodedData) {
+    cssVars[
+      CSSVariable.WidgetBackgroundImage
+    ] = `url("data:;base64,${state.backgroundImageBase64EncodedData}")`;
+  } else {
+    cssVars[CSSVariable.WidgetBackgroundImage] = "initial";
   }
 
   const translations = {

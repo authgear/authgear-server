@@ -32,6 +32,7 @@ export const enum CSSVariable {
   LayoutPaddingLeft = "--layout-padding-left",
   LayoutPaddingRight = "--layout-padding-right",
   WidgetBackgroundColor = "--widget__bg-color",
+  WidgetBackgroundImage = "--widget__bg-image",
   PrimaryButtonBackgroundColor = "--primary-btn__bg-color",
   PrimaryButtonTextColor = "--primary-btn__text-color",
   PrimaryButtonBorderRadius = "--primary-btn__border-radius",
