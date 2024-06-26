@@ -620,7 +620,7 @@ func (h *TokenHandler) handleAppInitiatedSSOToWebToken(
 		return nil, protocol.NewError("invalid_grant", "invalid session type")
 	case *oauth.OfflineGrant:
 		offlineGrant = session
-		isAllowed = offlineGrant.HasAllScopes(client.ClientID, []string{oauth.AppInitiatedSSOToWebScope})
+		isAllowed = offlineGrant.HasAllScopes(offlineGrant.InitialClientID, []string{oauth.AppInitiatedSSOToWebScope})
 		scopes = offlineGrant.GetScopes(client.ClientID)
 	}
 	if !isAllowed {
@@ -629,7 +629,7 @@ func (h *TokenHandler) handleAppInitiatedSSOToWebToken(
 
 	requestedScopes := r.Scope()
 	if len(requestedScopes) > 0 {
-		if !offlineGrant.HasAllScopes(client.ClientID, requestedScopes) {
+		if !offlineGrant.HasAllScopes(offlineGrant.InitialClientID, requestedScopes) {
 			return nil, protocol.NewError("invalid_scope", "requesting extra scopes is not allowed")
 		}
 		err = h.ValidateScopes(client, requestedScopes)
