@@ -8,8 +8,6 @@
 
   .layout--default .widget {
     @apply flex-1-0-auto;
-
-    background-color: var(--color-bg-base);
   }
 
   .layout__header--default,
