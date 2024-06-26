@@ -15,6 +15,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/messageformat"
 )
 
+const (
+	templateTranslationMessageTemplateName = "__translation_message.html"
+)
+
 type tpl interface {
 	ExecuteTemplate(wr io.Writer, name string, data any) error
 }
@@ -22,6 +26,7 @@ type tpl interface {
 func MakeTemplateFuncMap(t tpl) map[string]interface{} {
 	templateFuncMap := makeTemplateFuncMap()
 	templateFuncMap["include"] = makeInclude(t)
+	templateFuncMap["translate"] = makeTranslate(t)
 	templateFuncMap["trimHTML"] = trimHTML
 	return templateFuncMap
 }
@@ -113,6 +118,32 @@ func makeInclude(t tpl) func(tplName string, data any) (template.HTML, error) {
 	) (template.HTML, error) {
 		buf := &bytes.Buffer{}
 		err := t.ExecuteTemplate(buf, tplName, data)
+		// Ignore gosec error because the app developer can actually write any template
+		// But we should be careful that do not pass any user input to this function
+		html := template.HTML(buf.String()) // nolint:gosec
+		return html, err
+	}
+}
+
+// `translate` is intended for `include` a translation message but wrapped it
+// in a span and set its translation key with data attribute
+// In theory it can be used with resources other than translation, but take your
+// own risks
+func makeTranslate(t tpl) func(tranlsationKey string, data any) (template.HTML, error) {
+	include := makeInclude(t)
+	return func(
+		tranlsationKey string,
+		data any,
+	) (template.HTML, error) {
+		included, err := include(tranlsationKey, data)
+		if err != nil {
+			return template.HTML(""), err
+		}
+		buf := &bytes.Buffer{}
+		d := make(map[string]interface{})
+		d["Key"] = tranlsationKey
+		d["Value"] = included
+		err = t.ExecuteTemplate(buf, templateTranslationMessageTemplateName, d)
 		// Ignore gosec error because the app developer can actually write any template
 		// But we should be careful that do not pass any user input to this function
 		html := template.HTML(buf.String()) // nolint:gosec
