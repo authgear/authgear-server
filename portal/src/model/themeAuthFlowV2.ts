@@ -111,7 +111,7 @@ abstract class StyleProperty<T> extends AbstractStyle<T> {
     if (declaration.prop !== this.propertyName) {
       return false;
     }
-    this.setWithRawValue(declaration.value);
+    this.setWithRawValue(declaration.value.trim());
     return true;
   }
 
