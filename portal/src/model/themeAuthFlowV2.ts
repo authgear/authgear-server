@@ -27,6 +27,10 @@ export function getThemeTargetSelector(theme: Theme): ThemeTargetSelector {
   }
 }
 
+export function selectByTheme<T>(option: { [t in Theme]: T }, theme: Theme): T {
+  return option[theme];
+}
+
 export const enum CSSVariable {
   LayoutFixAlignItems = "--layout-flex-align-items",
   LayoutPaddingLeft = "--layout-padding-left",
@@ -126,6 +130,34 @@ export const DEFAULT_LIGHT_THEME: CustomisableTheme = {
   },
   link: {
     color: "#176df3",
+  },
+};
+
+export const DEFAULT_DARK_THEME: CustomisableTheme = {
+  page: {
+    backgroundColor: "#1c1c1e",
+  },
+  card: {
+    alignment: "center",
+    leftMargin: "0",
+    rightMargin: "0,",
+  },
+  primaryButton: {
+    backgroundColor: "#176df3",
+    labelColor: "#1c1c1e",
+    borderRadius: {
+      type: "rounded",
+      radius: "0.875em",
+    },
+  },
+  inputField: {
+    borderRadius: {
+      type: "rounded",
+      radius: "0.875em",
+    },
+  },
+  link: {
+    color: "#2f7bf4",
   },
 };
 
