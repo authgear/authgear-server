@@ -242,7 +242,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.Middleware(newPanicWebAppMiddleware),
 		httproute.MiddlewareFunc(httputil.NoStore),
 		httproute.MiddlewareFunc(webapp.IntlMiddleware),
-		p.Middleware(newWebAppUIParamMiddleware),
 		p.Middleware(newWebAppColorSchemeMiddleware),
 		p.Middleware(newWebPageDynamicCSPMiddleware),
 	)
