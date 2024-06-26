@@ -35,7 +35,7 @@ type OfflineGrantStore interface {
 	ListClientOfflineGrants(clientID string, userID string) ([]*OfflineGrant, error)
 }
 
-type IDPSessionStore interface {
+type IDPSessionProvider interface {
 	Get(id string) (*idpsession.IDPSession, error)
 }
 
@@ -58,5 +58,5 @@ type AppSessionTokenStore interface {
 }
 
 type AppInitiatedSSOToWebTokenStore interface {
-	CreateAppSessionToken(*AppInitiatedSSOToWebToken) error
+	CreateAppInitiatedSSOToWebToken(*AppInitiatedSSOToWebToken) error
 }
