@@ -10,11 +10,13 @@ import (
 	"strings"
 	"testing"
 	texttemplate "text/template"
+	"time"
 
 	"github.com/Masterminds/sprig"
 
 	authflowclient "github.com/authgear/authgear-server/e2e/pkg/e2eclient"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
 
 var _ = TestCaseSchema.Add("TestCase", `
@@ -328,6 +330,19 @@ func makeTemplateFuncMap(cmd *End2EndCmd) texttemplate.FuncMap {
 		}
 		return otpCode
 	}
+	templateFuncMap["generateTOTPCode"] = func(secret string) string {
+		totp, err := secretcode.NewTOTPFromSecret(secret)
+		if err != nil {
+			panic(err)
+		}
+
+		code, err := totp.GenerateCode(time.Now().UTC())
+		if err != nil {
+			panic(err)
+		}
+		return code
+	}
+
 	return templateFuncMap
 }
 
