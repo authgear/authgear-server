@@ -655,11 +655,17 @@ func (h *TokenHandler) handleAppInitiatedSSOToWebToken(
 		scopes = requestedScopes
 	}
 
+	authz, err := h.Authorizations.CheckAndGrant(client.ClientID, offlineGrant.GetUserID(), scopes)
+	if err != nil {
+		return nil, err
+	}
+
 	options := &oauth.IssueAppInitiatedSSOToWebTokenOptions{
-		AppID:          string(h.AppID),
-		ClientID:       client.ClientID,
-		OfflineGrantID: offlineGrant.ID,
-		Scopes:         scopes,
+		AppID:           string(h.AppID),
+		AuthorizationID: authz.ID,
+		ClientID:        client.ClientID,
+		OfflineGrantID:  offlineGrant.ID,
+		Scopes:          scopes,
 	}
 	result, err := h.AppInitiatedSSOToWebTokenService.IssueAppInitiatedSSOToWebToken(options)
 	if err != nil {
