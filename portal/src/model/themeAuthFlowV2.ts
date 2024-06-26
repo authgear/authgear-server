@@ -14,6 +14,17 @@ export enum Theme {
 
 export const enum ThemeTargetSelector {
   Light = ":root",
+  Dark = ":root.dark",
+}
+export function getThemeTargetSelector(theme: Theme): ThemeTargetSelector {
+  switch (theme) {
+    case Theme.Light:
+      return ThemeTargetSelector.Light;
+    case Theme.Dark:
+      return ThemeTargetSelector.Dark;
+    default:
+      return ThemeTargetSelector.Light;
+  }
 }
 
 export type CSSColor = string;
@@ -376,5 +387,11 @@ export class CssAstVisitor {
 
   getCSS(): Root {
     return this.root;
+  }
+
+  getDeclarations(): Declaration[] {
+    return this.rule.nodes.filter(
+      (n): n is Declaration => n instanceof Declaration
+    );
   }
 }

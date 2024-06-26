@@ -1,4 +1,10 @@
+import {
+  CssAstVisitor,
+  CustomisableThemeStyleGroup,
+  getThemeTargetSelector,
+} from "../../../model/themeAuthFlowV2";
 import { PortalAPIAppConfig } from "../../../types";
+import { BranchDesignFormState } from "./form";
 
 export enum PreviewPage {
   Login = "preview/login",
@@ -44,4 +50,26 @@ export function getSupportedPreviewPagesFromConfig(
     pages.push(PreviewPage.OOBOTPLink);
   }
   return pages;
+}
+
+export interface PreviewCustomisationMessage {
+  type: "PreviewCustomisationMessage";
+  cssVars: Record<string, string>;
+}
+
+export function mapDesignFormStateToPreviewCustomisationMessage(
+  state: BranchDesignFormState
+): PreviewCustomisationMessage {
+  const cssAstVisitor = new CssAstVisitor(getThemeTargetSelector(state.theme));
+  const styleGroup = new CustomisableThemeStyleGroup(state.customisableTheme);
+  styleGroup.acceptCssAstVisitor(cssAstVisitor);
+  const declarations = cssAstVisitor.getDeclarations();
+  const cssVars: Record<string, string> = {};
+  for (const declaration of declarations) {
+    cssVars[declaration.prop] = declaration.value;
+  }
+  return {
+    type: "PreviewCustomisationMessage",
+    cssVars,
+  };
 }

@@ -48,7 +48,11 @@ import { BranchDesignForm, useBrandDesignForm } from "./form";
 import styles from "./DesignScreen.module.css";
 import { useAppAndSecretConfigQuery } from "../query/appAndSecretConfigQuery";
 import { PortalAPIAppConfig } from "../../../types";
-import { PreviewPage, getSupportedPreviewPagesFromConfig } from "./viewModel";
+import {
+  PreviewPage,
+  getSupportedPreviewPagesFromConfig,
+  mapDesignFormStateToPreviewCustomisationMessage,
+} from "./viewModel";
 
 interface OrganisationConfigurationProps {
   designForm: BranchDesignForm;
@@ -440,10 +444,13 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
   const { designForm, effectiveAppConfig } = props;
   const { renderToString } = useContext(MFContext);
 
-  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const authUIIframeRef = useRef<HTMLIFrameElement | null>(null);
 
   useEffect(() => {
-    iframeRef.current?.contentWindow?.postMessage(designForm.state, "*");
+    const message = mapDesignFormStateToPreviewCustomisationMessage(
+      designForm.state
+    );
+    authUIIframeRef.current?.contentWindow?.postMessage(message, "*");
   }, [designForm.state, effectiveAppConfig.http?.public_origin]);
 
   const supportedPreviewPages = useMemo(
@@ -509,7 +516,7 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
         />
       </div>
       <iframe
-        ref={iframeRef}
+        ref={authUIIframeRef}
         className={cn("w-full", "h-full", "border-none")}
         src={src}
         sandbox="allow-scripts"
