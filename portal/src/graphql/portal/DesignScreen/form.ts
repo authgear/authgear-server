@@ -463,7 +463,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       setBackgroundColor: (backgroundColor: CSSColor) => {
         resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
-            draft.card.backgroundColor = backgroundColor;
+            draft.page.backgroundColor = backgroundColor;
           });
         });
       },

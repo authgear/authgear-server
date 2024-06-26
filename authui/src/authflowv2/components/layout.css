@@ -3,13 +3,22 @@
     --layout-flex-align-items: center;
     --layout-padding-left: 0;
     --layout-padding-right: 0;
+
+    --layout__bg-color: var(--color-bg-base);
+    --layout__bg_position: center;
+    --layout__bg_repeat: no-repeat;
+    --layout__bg_size: cover;
   }
 
   .layout--default {
     @apply flex flex-col flex-1-0-auto;
     @apply items-center justify-start;
 
-    background-color: var(--color-bg-base);
+    background-color: var(--layout__bg-color);
+    background-image: var(--layout__bg-image);
+    background-repeat: var(--layout__bg_repeat);
+    background-position: var(--layout__bg_position);
+    background-size: var(--layout__bg_size);
   }
 
   .layout--default .widget {

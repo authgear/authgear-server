@@ -31,8 +31,8 @@ export const enum CSSVariable {
   LayoutFixAlignItems = "--layout-flex-align-items",
   LayoutPaddingLeft = "--layout-padding-left",
   LayoutPaddingRight = "--layout-padding-right",
-  WidgetBackgroundColor = "--widget__bg-color",
-  WidgetBackgroundImage = "--widget__bg-image",
+  LayoutBackgroundColor = "--layout__bg-color",
+  LayoutBackgroundImage = "--layout__bg-image",
   PrimaryButtonBackgroundColor = "--primary-btn__bg-color",
   PrimaryButtonTextColor = "--primary-btn__text-color",
   PrimaryButtonBorderRadius = "--primary-btn__border-radius",
@@ -71,9 +71,12 @@ export interface ButtonStyle {
   borderRadius: BorderRadiusStyle;
 }
 
+export interface PageStyle {
+  backgroundColor: CSSColor;
+}
+
 export const CardAlignedSideDefaultSpacing = "15rem";
 export interface CardStyle {
-  backgroundColor: CSSColor;
   alignment: Alignment;
   leftMargin: string;
   rightMargin: string;
@@ -91,22 +94,22 @@ export const WatermarkEnabledDisplay = "inline-block";
 export const WatermarkDisabledDisplay = "hidden";
 
 export interface CustomisableTheme {
+  page: PageStyle;
   card: CardStyle;
-
   primaryButton: ButtonStyle;
   inputField: InputFieldStyle;
-
   link: LinkStyle;
 }
 
 export const DEFAULT_LIGHT_THEME: CustomisableTheme = {
-  card: {
+  page: {
     backgroundColor: "#ffffff",
+  },
+  card: {
     alignment: "center",
     leftMargin: "0",
     rightMargin: "0,",
   },
-
   primaryButton: {
     backgroundColor: "#176df3",
     labelColor: "#ffffff",
@@ -115,14 +118,12 @@ export const DEFAULT_LIGHT_THEME: CustomisableTheme = {
       radius: "0.875em",
     },
   },
-
   inputField: {
     borderRadius: {
       type: "rounded",
       radius: "0.875em",
     },
   },
-
   link: {
     color: "#176df3",
   },
@@ -163,7 +164,9 @@ abstract class StyleProperty<T> extends AbstractStyle<T> {
 
 export class ColorStyleProperty extends StyleProperty<string> {
   protected setWithRawValue(rawValue: string): void {
-    this.value = rawValue;
+    if (rawValue) {
+      this.value = rawValue;
+    }
   }
 
   acceptCssAstVisitor(visitor: CssAstVisitor): void {
@@ -302,6 +305,12 @@ export class StyleGroup<T> extends AbstractStyle<T> {
 export class CustomisableThemeStyleGroup extends StyleGroup<CustomisableTheme> {
   constructor(value: CustomisableTheme = DEFAULT_LIGHT_THEME) {
     super({
+      page: new StyleGroup({
+        backgroundColor: new ColorStyleProperty(
+          CSSVariable.LayoutBackgroundColor,
+          value.page.backgroundColor
+        ),
+      }),
       card: new StyleGroup({
         alignment: new AlignItemsStyleProperty(
           CSSVariable.LayoutFixAlignItems,
@@ -314,10 +323,6 @@ export class CustomisableThemeStyleGroup extends StyleGroup<CustomisableTheme> {
         rightMargin: new SpaceStyleProperty(
           CSSVariable.LayoutPaddingRight,
           value.card.rightMargin
-        ),
-        backgroundColor: new ColorStyleProperty(
-          CSSVariable.WidgetBackgroundColor,
-          value.card.backgroundColor
         ),
       }),
 

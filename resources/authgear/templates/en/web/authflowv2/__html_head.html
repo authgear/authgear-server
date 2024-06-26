@@ -29,14 +29,14 @@
 <style>
 :root {
 {{ if $appBackgroundImage }}
-  --widget__bg-image: url("{{ $appBackgroundImage }}");
+  --layout__bg-image: url("{{ $appBackgroundImage }}");
 {{ else }}
-  --widget__bg-image: ;
+  --layout__bg-image: ;
 {{ end }}
 }
 {{ if $appBackgroundImageDark }}
 :root.dark {
-  --widget__bg-image: url("{{ $appBackgroundImageDark }}");
+  --layout__bg-image: url("{{ $appBackgroundImageDark }}");
 }
 {{ end }}
 </style>

@@ -77,10 +77,10 @@ export function mapDesignFormStateToPreviewCustomisationMessage(
   // Special handle for previewing background image
   if (state.backgroundImageBase64EncodedData) {
     cssVars[
-      CSSVariable.WidgetBackgroundImage
+      CSSVariable.LayoutBackgroundImage
     ] = `url("data:;base64,${state.backgroundImageBase64EncodedData}")`;
   } else {
-    cssVars[CSSVariable.WidgetBackgroundImage] = "initial";
+    cssVars[CSSVariable.LayoutBackgroundImage] = "initial";
   }
 
   cssVars[CSSVariable.WatermarkDisplay] = state.showAuthgearLogo

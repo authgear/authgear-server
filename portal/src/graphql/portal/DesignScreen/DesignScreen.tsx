@@ -190,7 +190,7 @@ const BackgroundConfiguration: React.VFC<BackgroundConfigurationProps> =
         <ConfigurationDescription labelKey="DesignScreen.configuration.background.description" />
         <Configuration labelKey="DesignScreen.configuration.background.color.label">
           <ColorPicker
-            color={designForm.state.customisableTheme.card.backgroundColor}
+            color={designForm.state.customisableTheme.page.backgroundColor}
             onChange={designForm.setBackgroundColor}
           />
         </Configuration>
