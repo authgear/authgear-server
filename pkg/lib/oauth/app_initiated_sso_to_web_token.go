@@ -48,7 +48,7 @@ func (s *AppInitiatedSSOToWebTokenService) IssueAppInitiatedSSOToWebToken(
 	now := s.Clock.NowUTC()
 	token := GenerateToken()
 	tokenHash := HashToken(token)
-	err := s.AppInitiatedSSOToWebTokens.CreateAppSessionToken(&AppInitiatedSSOToWebToken{
+	err := s.AppInitiatedSSOToWebTokens.CreateAppInitiatedSSOToWebToken(&AppInitiatedSSOToWebToken{
 		AppID:          options.AppID,
 		ClientID:       options.ClientID,
 		OfflineGrantID: options.OfflineGrantID,

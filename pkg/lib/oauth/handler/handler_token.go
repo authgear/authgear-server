@@ -123,7 +123,7 @@ type TokenHandler struct {
 	CodeGrants                       oauth.CodeGrantStore
 	SettingsActionGrantStore         oauth.SettingsActionGrantStore
 	OfflineGrants                    oauth.OfflineGrantStore
-	IDPSessions                      oauth.IDPSessionStore
+	IDPSessions                      oauth.IDPSessionProvider
 	AppSessionTokens                 oauth.AppSessionTokenStore
 	OfflineGrantService              oauth.OfflineGrantService
 	AppInitiatedSSOToWebTokenService oauth.AppInitiatedSSOToWebTokenService
