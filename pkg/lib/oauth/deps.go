@@ -20,4 +20,5 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(AppSessionTokenServiceOfflineGrantService), new(*OfflineGrantService)),
 
 	wire.Struct(new(AppInitiatedSSOToWebTokenService), "*"),
+	wire.Struct(new(AccessGrantService), "*"),
 )

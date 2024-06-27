@@ -3,6 +3,7 @@ package oauth
 import (
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 )
@@ -27,6 +28,8 @@ type AppInitiatedSSOToWebTokenService struct {
 	Clock clock.Clock
 
 	AppInitiatedSSOToWebTokens AppInitiatedSSOToWebTokenStore
+	OfflineGrants              OfflineGrantStore
+	AccessGrantService         AccessGrantService
 }
 
 type IssueAppInitiatedSSOToWebTokenResult struct {
@@ -71,4 +74,40 @@ func (s *AppInitiatedSSOToWebTokenService) IssueAppInitiatedSSOToWebToken(
 		TokenType: "Bearer",
 		ExpiresIn: int(AppInitiatedSSOToWebTokenLifetime.Seconds()),
 	}, nil
+}
+
+func (s *AppInitiatedSSOToWebTokenService) ExchangeForAccessToken(
+	client *config.OAuthClientConfig,
+	token string,
+) (string, error) {
+	tokenHash := HashToken(token)
+	tokenModel, err := s.AppInitiatedSSOToWebTokens.GetAppInitiatedSSOToWebToken(tokenHash)
+	if err != nil {
+		return "", err
+	}
+	if tokenModel.ClientID != client.ClientID {
+		return "", ErrUnmatchedClient
+	}
+
+	offlineGrant, err := s.OfflineGrants.GetOfflineGrant(tokenModel.OfflineGrantID)
+	if err != nil {
+		return "", err
+	}
+
+	result, err := s.AccessGrantService.IssueAccessGrant(
+		client,
+		tokenModel.Scopes,
+		tokenModel.AuthorizationID,
+		offlineGrant.GetUserID(),
+		offlineGrant.ID,
+		GrantSessionKindOffline,
+		// TODO(DEV-1406): Create a new refresh token
+		"",
+	)
+
+	if err != nil {
+		return "", err
+	}
+
+	return result.Token, nil
 }
