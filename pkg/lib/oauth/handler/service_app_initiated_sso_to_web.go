@@ -61,6 +61,7 @@ func (s *AppInitiatedSSOToWebTokenServiceImpl) IssueAppInitiatedSSOToWebToken(
 
 func (s *AppInitiatedSSOToWebTokenServiceImpl) ExchangeForAccessToken(
 	client *config.OAuthClientConfig,
+	sessionID string,
 	token string,
 ) (string, error) {
 	tokenHash := oauth.HashToken(token)
@@ -70,6 +71,9 @@ func (s *AppInitiatedSSOToWebTokenServiceImpl) ExchangeForAccessToken(
 	}
 	if tokenModel.ClientID != client.ClientID {
 		return "", oauth.ErrUnmatchedClient
+	}
+	if tokenModel.OfflineGrantID != sessionID {
+		return "", oauth.ErrUnmatchedSession
 	}
 
 	offlineGrant, err := s.OfflineGrants.GetOfflineGrant(tokenModel.OfflineGrantID)
