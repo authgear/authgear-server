@@ -30,6 +30,7 @@ var ConfigDeps = wire.NewSet(
 		"GoogleTagManager",
 		"AccountMigration",
 		"Captcha",
+		"BotProtection",
 		"TestMode",
 		"AuthenticationFlow",
 	),

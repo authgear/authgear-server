@@ -43,7 +43,9 @@ import (
 	featureweb3 "github.com/authgear/authgear-server/pkg/lib/feature/web3"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
-	infracaptcha "github.com/authgear/authgear-server/pkg/lib/infra/captcha"
+
+	infrabotprotection "github.com/authgear/authgear-server/pkg/lib/infra/botprotection"
+	deprecated_infracaptcha "github.com/authgear/authgear-server/pkg/lib/infra/captcha"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
@@ -461,7 +463,11 @@ var CommonDependencySet = wire.NewSet(
 	),
 
 	wire.NewSet(
-		infracaptcha.DependencySet,
+		infrabotprotection.DependencySet,
+	),
+
+	wire.NewSet(
+		deprecated_infracaptcha.DependencySet,
 	),
 
 	wire.NewSet(

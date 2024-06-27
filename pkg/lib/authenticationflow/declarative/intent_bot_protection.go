@@ -51,10 +51,9 @@ func (i *IntentBotProtection) ReactTo(ctx context.Context, deps *authflow.Depend
 		return nil, authflow.ErrIncompatibleInput
 	}
 
-	err := deps.BotProtection.Verify(inputBotProtectionVerification.GetBotProtectionProviderType(), inputBotProtectionVerification.GetBotProtectionProviderResponse())
-
+	err := deps.BotProtection.Verify(inputBotProtectionVerification.GetBotProtectionProviderResponse())
+	// only allow retry if service unavailable
 	switch {
-	// TODO: confirm failed/service unavailable count as DidVerify? -- assume only fail count as DidVerify for now
 	case errors.Is(err, botprotection.ErrVerificationFailed):
 		return authflow.NewNodeSimple(&NodeDidPerformBotProtectionVerification{}), authflow.ErrBotProtectionVerificationFailed
 	case errors.Is(err, botprotection.ErrVerificationServiceUnavailable):

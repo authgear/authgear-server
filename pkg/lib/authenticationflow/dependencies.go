@@ -166,7 +166,7 @@ type AccountMigrationService interface {
 }
 
 type BotProtectionService interface {
-	Verify(t config.BotProtectionProviderType, response string) error
+	Verify(response string) error
 }
 
 type CaptchaService interface {
