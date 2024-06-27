@@ -52900,6 +52900,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Clock:             clockClock,
 		Users:             userFacade,
 		Cookies:           cookieManager,
+		OAuthSessions:     oauthsessionStoreRedis,
 	}
 	return settingsDeleteAccountHandler
 }

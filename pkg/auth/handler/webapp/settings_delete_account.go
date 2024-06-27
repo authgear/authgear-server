@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/successpage"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -34,6 +35,11 @@ type SettingsDeleteAccountUserService interface {
 	ScheduleDeletionByEndUser(userID string) error
 }
 
+type SettingsDeleteAccountOAuthSessionService interface {
+	Get(entryID string) (*oauthsession.Entry, error)
+	Save(entry *oauthsession.Entry) error
+}
+
 type SettingsDeleteAccountHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
@@ -42,6 +48,7 @@ type SettingsDeleteAccountHandler struct {
 	Clock             clock.Clock
 	Users             SettingsDeleteAccountUserService
 	Cookies           CookieManager
+	OAuthSessions     SettingsDeleteAccountOAuthSessionService
 }
 
 func (h *SettingsDeleteAccountHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -70,6 +77,7 @@ func (h *SettingsDeleteAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.
 
 	currentSession := session.GetSession(r.Context())
 	redirectURI := "/settings/delete_account/success"
+	webSession := webapp.GetSession(r.Context())
 
 	ctrl.Get(func() error {
 		data, err := h.GetData(r, w)
@@ -95,6 +103,21 @@ func (h *SettingsDeleteAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		err := h.Users.ScheduleDeletionByEndUser(currentSession.GetAuthenticationInfo().UserID)
 		if err != nil {
 			return err
+		}
+
+		if webSession != nil && webSession.OAuthSessionID != "" {
+			// delete account triggered by sdk via settings action
+			// handle settings action result here
+			entry, err := h.OAuthSessions.Get(webSession.OAuthSessionID)
+			if err != nil {
+				return err
+			}
+
+			entry.T.SettingsActionResult = oauthsession.NewSettingsActionResult()
+			err = h.OAuthSessions.Save(entry)
+			if err != nil {
+				return err
+			}
 		}
 
 		// set success page path cookie before visiting success page

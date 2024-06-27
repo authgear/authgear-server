@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -17,7 +18,7 @@ var TemplateWebSettingsDeleteAccountSuccessHTML = template.RegisterHTML(
 
 func ConfigureSettingsDeleteAccountSuccessRoute(route httproute.Route) httproute.Route {
 	return route.
-		WithMethods("GET").
+		WithMethods("OPTIONS", "POST", "GET").
 		WithPathPattern("/settings/delete_account/success")
 }
 
@@ -53,6 +54,8 @@ func (h *SettingsDeleteAccountSuccessHandler) ServeHTTP(w http.ResponseWriter, r
 	}
 	defer ctrl.Serve()
 
+	webSession := webapp.GetSession(r.Context())
+
 	ctrl.Get(func() error {
 		data, err := h.GetData(r, w)
 		if err != nil {
@@ -60,6 +63,17 @@ func (h *SettingsDeleteAccountSuccessHandler) ServeHTTP(w http.ResponseWriter, r
 		}
 
 		h.Renderer.RenderHTML(w, r, TemplateWebSettingsDeleteAccountSuccessHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("", func() error {
+		if webSession != nil && webSession.OAuthSessionID != "" {
+			// delete account triggered by sdk via settings action
+			// redirect to oauth callback
+			http.Redirect(w, r, ctrl.RedirectURI(), http.StatusFound)
+			return nil
+		}
+		http.Redirect(w, r, "/", http.StatusFound)
 		return nil
 	})
 }
