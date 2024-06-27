@@ -26,21 +26,27 @@ func (i *InputSchemaBotProtectionVerification) GetFlowRootObject() config.Authen
 }
 
 func (i *InputSchemaBotProtectionVerification) SchemaBuilder() validation.SchemaBuilder {
-
 	b := validation.SchemaBuilder{}.Type(validation.TypeObject)
-	required := []string{"type"}
-	b.Required(required...)
+	b.Required("type")
 	b.AdditionalPropertiesFalse()
 	b.Properties().Property("type", validation.SchemaBuilder{}.Type(validation.TypeString).Enum(config.BotProtectionProviderTypeCloudflare, config.BotProtectionProviderTypeRecaptchaV2))
 	b.Properties().Property("response", validation.SchemaBuilder{}.Type(validation.TypeString))
 
 	// require "response" if type is in {"cloudflare", "recaptchav2"}
-	bAllOfIf := validation.SchemaBuilder{}.Properties().Property("type", validation.SchemaBuilder{}.Enum(config.BotProtectionProviderTypeCloudflare, config.BotProtectionProviderTypeRecaptchaV2))
-	bAllOfIf.Required("type")
-	bAllOf := validation.SchemaBuilder{}.If(bAllOfIf)
-	bAllOf.Then(validation.SchemaBuilder{}.Required("response"))
-	b.AllOf(bAllOf)
-	return b
+	allOf := validation.SchemaBuilder{}
+	if_ := validation.SchemaBuilder{}
+	if_.Properties().Property("type", validation.SchemaBuilder{}.Enum(config.BotProtectionProviderTypeCloudflare, config.BotProtectionProviderTypeRecaptchaV2))
+	if_.Required("type")
+	then_ := validation.SchemaBuilder{}
+	then_.Required("response", "type")
+	allOf.If(if_).Then(then_)
+	b.AllOf(allOf)
+
+	bRoot := validation.SchemaBuilder{}.Type(validation.TypeObject)
+	bRoot.Required("bot_protection")
+	bRoot.AdditionalPropertiesFalse()
+	bRoot.Properties().Property("bot_protection", b)
+	return bRoot
 }
 
 func (i *InputSchemaBotProtectionVerification) MakeInput(rawMessage json.RawMessage) (authflow.Input, error) {
@@ -53,6 +59,10 @@ func (i *InputSchemaBotProtectionVerification) MakeInput(rawMessage json.RawMess
 }
 
 type InputBotProtectionVerification struct {
+	BotProtection *InputBotProtectionVerificationInfo `json:"bot_protection,omitempty"`
+}
+
+type InputBotProtectionVerificationInfo struct {
 	Type config.BotProtectionProviderType `json:"type,omitempty"`
 
 	// Response is specific to cloudflare, recaptchav2
@@ -65,9 +75,9 @@ var _ inputBotProtectionVerification = &InputBotProtectionVerification{}
 func (*InputBotProtectionVerification) Input() {}
 
 func (i *InputBotProtectionVerification) GetBotProtectionProviderType() config.BotProtectionProviderType {
-	return i.Type
+	return i.BotProtection.Type
 }
 
 func (i *InputBotProtectionVerification) GetBotProtectionProviderResponse() string {
-	return i.Response
+	return i.BotProtection.Response
 }
