@@ -67,13 +67,21 @@ func (h *SettingsDeleteAccountSuccessHandler) ServeHTTP(w http.ResponseWriter, r
 	})
 
 	ctrl.PostAction("", func() error {
+		redirectURI := ""
 		if webSession != nil && webSession.OAuthSessionID != "" {
 			// delete account triggered by sdk via settings action
 			// redirect to oauth callback
-			http.Redirect(w, r, ctrl.RedirectURI(), http.StatusFound)
-			return nil
+			redirectURI = webSession.RedirectURI
 		}
-		http.Redirect(w, r, "/", http.StatusFound)
+
+		result := webapp.Result{
+			RedirectURI: redirectURI,
+		}
+
+		// You will now see error=login_required&error_description=authentication+required
+		// This is because the user was disabled and the original session was invalidated.
+		// You need to save authentication info before the session was invalidated in settings_delete_account.go
+		result.WriteResponse(w, r)
 		return nil
 	})
 }

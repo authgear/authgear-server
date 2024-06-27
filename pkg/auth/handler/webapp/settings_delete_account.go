@@ -106,6 +106,9 @@ func (h *SettingsDeleteAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		}
 
 		if webSession != nil && webSession.OAuthSessionID != "" {
+			// TODO: you need to call AuthenticationInfoService.Save(n.AuthenticationInfoEntry)
+			// So that when we return to oauth2, there is a authentication info.
+
 			// delete account triggered by sdk via settings action
 			// handle settings action result here
 			entry, err := h.OAuthSessions.Get(webSession.OAuthSessionID)
