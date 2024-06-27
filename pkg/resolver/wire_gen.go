@@ -108,7 +108,7 @@ func newBodyLimitMiddleware(p *deps.RootProvider) httproute.Middleware {
 	return bodyLimitMiddleware
 }
 
-func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httproute.Middleware {
+func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	appContext := appProvider.AppContext
 	config := appContext.Config
@@ -690,7 +690,6 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Database:                   appdbHandle,
 		Logger:                     middlewareLogger,
 		MeterService:               meterService,
-		IDPSessionOnly:             idpSessionOnly,
 	}
 	return sessionMiddleware
 }
