@@ -10,12 +10,12 @@
   * [Retrieve a state again](#retrieve-a-state-again)
   * [Listen for change with Websocket](#listen-for-change-with-websocket)
 - [Reference on input and output](#reference-on-input-and-output)
-  * [type: signup; action.type: identification](#type-signup-actiontype-identification)
+  * [type: signup; action.type: identify](#type-signup-actiontype-identify)
     + [identification: email](#identification-email)
     + [identification: phone](#identification-phone)
     + [identification: username](#identification-username)
     + [identification: oauth](#identification-oauth)
-  * [type: signup; action.type: identification; data.type: account_linking_identification_data](#type-signup-actiontype-identification-datatype-account_linking_identification_data)
+    + [type: signup; action.type: identify; data.type: account_linking_identification_data](#type-signup-actiontype-identify-datatype-account_linking_identification_data)
   * [type: signup; action.type: verify](#type-signup-actiontype-verify)
   * [type: signup; action.type: create_authenticator](#type-signup-actiontype-create_authenticator)
     + [authentication: primary_password](#authentication-primary_password)
@@ -41,9 +41,25 @@
   * [type: login; action.type: prompt_create_passkey](#type-login-actiontype-prompt_create_passkey)
   * [type: signup_login; action.type: identify](#type-signup_login-actiontype-identify)
   * [type: account_recovery; action.type: identify](#type-account_recovery-actiontype-identify)
+    + [identification: email](#identification-email-1)
+    + [identification: phone](#identification-phone-1)
   * [type: account_recovery; action.type: select_destination](#type-account_recovery-actiontype-select_destination)
   * [type: account_recovery; action.type: verify_account_recovery_code](#type-account_recovery-actiontype-verify_account_recovery_code)
   * [type: account_recovery; action.type: reset_password](#type-account_recovery-actiontype-reset_password)
+- [Reference on action data](#reference-on-action-data)
+  * [identification_data](#identification_data)
+  * [authentication_data](#authentication_data)
+  * [oauth_data](#oauth_data)
+  * [create_authenticator_data](#create_authenticator_data)
+  * [view_recovery_code_data](#view_recovery_code_data)
+  * [select_oob_otp_channels_data](#select_oob_otp_channels_data)
+  * [verify_oob_otp_data](#verify_oob_otp_data)
+  * [create_passkey_data](#create_passkey_data)
+  * [create_totp_data](#create_totp_data)
+  * [new_password_data](#new_password_data)
+  * [account_recovery_identification_data](#account_recovery_identification_data)
+  * [account_recovery_select_destination_data](#account_recovery_select_destination_data)
+  * [account_recovery_verify_code_data](#account_recovery_verify_code_data)
 
 # Authentication Flow API
 
@@ -200,7 +216,7 @@ Connect to the websocket by specifying `flow_id`. The only message you will rece
 
 # Reference on input and output
 
-## type: signup; action.type: identification
+## type: signup; action.type: identify
 
 When you are in this step of this flow, you will see a response like the following.
 
@@ -377,7 +393,7 @@ Here are some examples:
 }
 ```
 
-### type: signup; action.type: identification; data.type: account_linking_identification_data
+### type: signup; action.type: identify; data.type: account_linking_identification_data
 
 During identification steps in signup flow, an account linking could be triggered. In this case, you will see a response like the following:
 
@@ -415,7 +431,7 @@ During identification steps in signup flow, an account linking could be triggere
 This means account linking was triggered by the previously identified identity. You can find the followings in `action.data`:
 
 - `options`: Contains options that you can use to continue the account linking flow. The items contains the following fields:
-  - `identification`: See [type: signup; action.type: identification](#type-signup-actiontype-identification). They are having the same meaning.
+  - `identification`: See [type: signup; action.type: identify](#type-signup-actiontype-identify). They are having the same meaning.
   - `action`: This field specify what is going to happen when this option is selected. The only possible value in current version is `login_and_link`.
       - `login_and_link`: You need to login to one of the account in `options`. After that, the identity you have just created in previous steps will be linked to the logged in account.
   - `masked_display_name`: The display name of the identity to use. Different from signup flow, during account linking, you must use an existing identity to start account linking. The display name here is the display name of the referred identity of this option. If it is an `email`, a masked email will be displayed. If it is a `phone`, a masked phone number will be displayed. If it is a `username`, the username will be displayed without masking. If it is a `oauth` identity, the display name will be a name which you should be able to recongize the account in that provider.
@@ -1166,7 +1182,7 @@ Pass `creation_options` to `main` and then pass this input
 
 ## type: login; action.type: identify
 
-See [type: signup; action.type: identification](#type-signup-actiontype-identification). They are the same except that `type` is `login`.
+See [type: signup; action.type: identify](#type-signup-actiontype-identify). They are the same except that `type` is `login`.
 
 ## type: login; action.type: authenticate
 
@@ -1645,7 +1661,7 @@ See [type: signup; action.type: prompt_create_passkey](#type-signup-actiontype-p
 
 ## type: signup_login; action.type: identify
 
-See [type: signup; action.type: identification](#type-signup-actiontype-identification). They are the same except that `type` is `signup_login`.
+See [type: signup; action.type: identify](#type-signup-actiontype-identify). They are the same except that `type` is `signup_login`.
 
 ## type: account_recovery; action.type: identify
 
@@ -1856,3 +1872,104 @@ The corresponding input is
   "new_password": "a.new.password.that.meet.the.password.policy"
 }
 ```
+
+# Reference on action data
+
+This section lists all possible types of data of `result.action.data`.
+
+Developer could identify the data type by checking the type key in `result.action.data.type`. All possible values are listed below:
+
+## identification_data
+
+The data contains identification options.
+
+- `options`: The list of usable identification options.
+
+## authentication_data
+
+The data contains authentication options.
+
+- `options`: The list of usable authentication options.
+
+## oauth_data
+
+The data contains information for initiating an oauth authentication.
+
+- `alias`: The configured alias of the selected oauth provider.
+- `oauth_provider_type`: The type of the oauth provider, such as `google`.
+- `oauth_authorization_url`: The authorization url of the oauth provider.
+- `wechat_app_type`: The wechat app type. Only used when provider is `wechat`.
+
+## create_authenticator_data
+
+The data contains options for creating new authenticator.
+
+- `options`: The list of creatable authenticators.
+
+## view_recovery_code_data
+
+The data contains recovery codes of the user.
+
+- `recovery_codes`: The recovery codes of the user.
+
+## select_oob_otp_channels_data
+
+The data contains usable channels of the oob authenticator, with information of the selected oob authenticator.
+
+- `channels`: The list of usable channels for receiving the OTP.
+- `masked_claim_value`: The masked phone number or email address that is going to recieve the OTP.
+
+## verify_oob_otp_data
+
+The data contains information about the otp verification step.
+
+- `channel`: The selected channel.
+- `otp_form`: The otp form. `code` for a 6-digit otp code, or `link` for a long otp embedded in a link.
+- `websocket_url`: The websocket url for listening to the change of the otp verification status.
+- `masked_claim_value`: The masked phone number or email address that is going to recieve the OTP.
+- `code_length`: The length of the sent code.
+- `can_resend_at`: A timestamp. Resend can be triggered after this timestamp.
+- `can_check`: Used when otp_form is `link` only. If `true`, you can check the latest verification state.
+- `failed_attempt_rate_limit_exceeded`: If `true`, the maximum number of fail attempt has been exceeded, therefore the OTP becomes invalid. You should request for a new OTP.
+
+## create_passkey_data
+
+The data contains information used for creating passkey.
+
+- `creation_options`: The options used to create the passkey in the browser.
+
+## create_totp_data
+
+The data contains information of the totp.
+
+- `secret`: The totp secret.
+- `otpauth_uri`: The uri for constructing a QR code image, which can be read by authenticator apps.
+
+## new_password_data
+
+The data contains requirements of the new password.
+
+- `password_policy`: The password policy requirements.
+
+## account_recovery_identification_data
+
+The data contains identification options for triggering account recovery flow.
+
+- `options`: The list of usable identification options.
+
+## account_recovery_select_destination_data
+
+The data contains options of destinations for receiving the account recovery code.
+
+- `options`: The list of destinations, such as phone number and emails, with the corresponding channel.
+
+## account_recovery_verify_code_data
+
+The data contains information about the account recovery code verification step.
+
+- `channel`: The selected channel.
+- `otp_form`: The otp form. `code` for a 6-digit otp code, or `link` for a long otp embedded in a link.
+- `masked_display_name`: The masked phone number or email address that is going to recieve the code.
+- `code_length`: The length of the sent code.
+- `can_resend_at`: A timestamp. Resend can be triggered after this timestamp.
+- `failed_attempt_rate_limit_exceeded`: If `true`, the maximum number of fail attempt has been exceeded, therefore the code becomes invalid. You should request for a new code.

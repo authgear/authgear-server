@@ -8,10 +8,11 @@
   * [Design](#design)
     + [Design Principles](#design-principles)
     + [Design of the configuration](#design-of-the-configuration)
-    + [SignupFlow](#signupflow)
-    + [LoginFlow](#loginflow)
-    + [SignupLoginFlow](#signuploginflow)
-    + [ReauthFlow](#reauthflow)
+    + [type: signup](#type-signup)
+    + [type: login](#type-login)
+    + [type: signup_login](#type-signup_login)
+    + [type: reauth](#type-reauth)
+    + [type: account_recovery](#type-account_recovery)
   * [Use case examples](#use-case-examples)
     + [Use case example 1: Latte](#use-case-example-1-latte)
     + [Use case example 2: Uber](#use-case-example-2-uber)
@@ -24,7 +25,6 @@
     + [Create a Authentication Flow](#create-a-authentication-flow)
     + [Execute the Authentication Flow](#execute-the-authentication-flow)
     + [Get the Authentication Flow](#get-the-authentication-flow)
-    + [Connect websocket](#connect-websocket)
   * [Mobile apps using the Default UI](#mobile-apps-using-the-default-ui)
     + [Ordinary Authentication Flow](#ordinary-authentication-flow)
     + [Authentication Flow involving OAuth](#authentication-flow-involving-oauth)
@@ -48,6 +48,19 @@
       - [Supertokens](#supertokens)
     + [JSON schema](#json-schema)
     + [Action Data](#action-data)
+      - [identification_data](#identification_data)
+      - [authentication_data](#authentication_data)
+      - [oauth_data](#oauth_data)
+      - [create_authenticator_data](#create_authenticator_data)
+      - [view_recovery_code_data](#view_recovery_code_data)
+      - [select_oob_otp_channels_data](#select_oob_otp_channels_data)
+      - [verify_oob_otp_data](#verify_oob_otp_data)
+      - [create_passkey_data](#create_passkey_data)
+      - [create_totp_data](#create_totp_data)
+      - [new_password_data](#new_password_data)
+      - [account_recovery_identification_data](#account_recovery_identification_data)
+      - [account_recovery_select_destination_data](#account_recovery_select_destination_data)
+      - [account_recovery_verify_code_data](#account_recovery_verify_code_data)
 
 # Authentication Flow
 
@@ -115,7 +128,7 @@ If the User identifies themselves with the OAuth Identity `johndoe@gmail.com`, t
 - Some steps allow branching. Those steps have `one_of`.
 - The branch of a step MAY optionally have zero or more `steps`.
 
-### SignupFlow
+### type: signup
 
 Example:
 
@@ -166,7 +179,7 @@ signup_flows:
       required: true
 ```
 
-### LoginFlow
+### type: login
 
 ```yaml
 login_flows:
@@ -266,7 +279,7 @@ login_flows:
     target_step: step1
 ```
 
-### SignupLoginFlow
+### type: signup_login
 
 Example:
 
@@ -284,7 +297,7 @@ signup_login_flows:
       login_flow: default_login_flow
 ```
 
-### ReauthFlow
+### type: reauth
 
 Example:
 
@@ -315,6 +328,30 @@ reauth_flows:
     one_of:
     - authentication: secondary_totp
     - authentication: secondary_sms_code
+```
+
+### type: account_recovery
+
+Example:
+
+```yaml
+account_recovery_flows:
+# Reset password with email+link, sms+code
+- name: default
+  steps:
+  - type: identify
+    one_of:
+    - identification: email
+    - identification: phone
+  - type: select_destination
+    enumerate_destinations: false
+    allowed_channels:
+    - channel: email
+      otp_form: link
+    - channel: sms
+      otp_form: code
+  - type: verify_account_recovery_code
+  - type: reset_password
 ```
 
 ## Use case examples
@@ -575,7 +612,7 @@ Example of a successful response.
 {
   "result": {
     "state_token": "authflowstate_blahblahblah",
-    "type": "login_flow",
+    "type": "login",
     "name": "default",
     "action": {
       "type": "authenticate",
@@ -587,7 +624,7 @@ Example of a successful response.
 ```
 
 - `result.state_token`: The token that refers to a particular state of an Authentication Flow. You must keep this for the next request. This token changes every time you give an input to the flow. As a result, you can back-track by associating the token with your application navigation backstack very easily.
-- `result.type`: The type of the flow. Valid values are `signup_flow`, `login_flow`, `signup_login_flow`, and `reauth_flow`.
+- `result.type`: The type of the flow. Valid values are `signup`, `login`, `signup_login`, `reauth`, and `account_recovery`.
 - `result.name`: The name of the flow. Use the special value `default` to refer to the flow generated according to configuration.
 - `result.action.type`: The action to be taken. Valid values are `identify`, `authenticate`, `verify`, `user_profile`, `recovery_code`, `change_password`, and `prompt_create_passkey`, and `finished`.
 - `result.action.identification`: The taken branch in this action. It is only present when `result.action.type=identify`. Valid values are `email`, `phone`, and `username`.
@@ -600,7 +637,7 @@ Example of a finished response.
 {
   "result": {
     "state_token": "authflowstate_blahblahblah",
-    "type": "login_flow",
+    "type": "login",
     "name": "default",
     "action": {
       "type": "finished",
@@ -624,7 +661,7 @@ POST /api/v1/authentication_flows
 Content-Type: application/json
 
 {
-  "type": "login_flow",
+  "type": "login",
   "name": "default"
 }
 ```
@@ -803,104 +840,3 @@ Supertokens requires the developer to host a backend server to interactive with 
 ### JSON schema
 
 Refer to the source code.
-
-### Action Data
-
-This section lists all possible types of data of `result.action.data`.
-
-Developer could identify the data type by checking the type key in `result.action.data.type`. All possible values are listed below:
-
-#### identification_data
-
-The data contains identification options.
-
-`options`: The list of usable identification options.
-
-#### authentication_data
-
-The data contains authentication options.
-
-`options`: The list of usable authentication options.
-
-#### oauth_data
-
-The data contains information for initiating an oauth authentication.
-
-`alias`: The configured alias of the selected oauth provider.
-`oauth_provider_type`: The type of the oauth provider, such as `google`.
-`oauth_authorization_url`: The authorization url of the oauth provider.
-`wechat_app_type`: The wechat app type. Only used when provider is `wechat`.
-
-#### create_authenticator_data
-
-The data contains options for creating new authenticator.
-
-`options`: The list of creatable authenticators.
-
-#### view_recovery_code_data
-
-The data contains recovery codes of the user.
-
-`recovery_codes`: The recovery codes of the user.
-
-#### select_oob_otp_channels_data
-
-The data contains usable channels of the oob authenticator, with information of the selected oob authenticator.
-
-`channels`: The list of usable channels for receiving the OTP.
-`masked_claim_value`: The masked phone number or email address that is going to recieve the OTP.
-
-#### verify_oob_otp_data
-
-The data contains information about the otp verification step.
-
-`channel`: The selected channel.
-`otp_form`: The otp form. `code` for a 6-digit otp code, or `link` for a long otp embedded in a link.
-`websocket_url`: The websocket url for listening to the change of the otp verification status.
-`masked_claim_value`: The masked phone number or email address that is going to recieve the OTP.
-`code_length`: The length of the sent code.
-`can_resend_at`: A timestamp. Resend can be triggered after this timestamp.
-`can_check`: Used when otp_form is `link` only. If `true`, you can check the latest verification state.
-`failed_attempt_rate_limit_exceeded`: If `true`, the maximum number of fail attempt has been exceeded, therefore the OTP becomes invalid. You should request for a new OTP.
-
-#### create_passkey_data
-
-The data contains information used for creating passkey.
-
-`creation_options`: The options used to create the passkey in the browser.
-
-#### create_totp_data
-
-The data contains information of the totp.
-
-`secret`: The totp secret.
-`otpauth_uri`: The uri for constructing a QR code image, which can be read by authenticator apps.
-
-#### new_password_data
-
-The data contains requirements of the new password.
-
-`password_policy`: The password policy requirements.
-
-#### account_recovery_identification_data
-
-The data contains identification options for triggering account recovery flow.
-
-`options`: The list of usable identification options.
-
-#### account_recovery_select_destination_data
-
-The data contains options of destinations for receiving the account recovery code.
-
-`options`: The list of destinations, such as phone number and emails, with the corresponding channel.
-
-#### account_recovery_verify_code_data
-
-The data contains information about the account recovery code verification step.
-
-`channel`: The selected channel.
-`otp_form`: The otp form. `code` for a 6-digit otp code, or `link` for a long otp embedded in a link.
-`masked_display_name`: The masked phone number or email address that is going to recieve the code.
-`code_length`: The length of the sent code.
-`can_resend_at`: A timestamp. Resend can be triggered after this timestamp.
-`failed_attempt_rate_limit_exceeded`: If `true`, the maximum number of fail attempt has been exceeded, therefore the code becomes invalid. You should request for a new code.
