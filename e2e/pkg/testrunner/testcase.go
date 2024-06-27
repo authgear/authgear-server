@@ -342,6 +342,13 @@ func makeTemplateFuncMap(cmd *End2EndCmd) texttemplate.FuncMap {
 		}
 		return code
 	}
+	templateFuncMap["generateIDToken"] = func(userID string) string {
+		idToken, err := cmd.GenerateIDToken(userID)
+		if err != nil {
+			panic(err)
+		}
+		return idToken
+	}
 
 	return templateFuncMap
 }
