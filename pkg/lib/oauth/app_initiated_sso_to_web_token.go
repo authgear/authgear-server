@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 )
 
@@ -24,13 +23,16 @@ type AppInitiatedSSOToWebToken struct {
 	TokenHash string    `json:"token_hash"`
 }
 
-type AppInitiatedSSOToWebTokenService struct {
-	Clock clock.Clock
-
-	AppInitiatedSSOToWebTokens AppInitiatedSSOToWebTokenStore
-	OfflineGrants              OfflineGrantStore
-	AccessGrantService         AccessGrantService
-	OfflineGrantService        OfflineGrantService
+type AppInitiatedSSOToWebTokenAccessGrantService interface {
+	IssueAccessGrant(
+		client *config.OAuthClientConfig,
+		scopes []string,
+		authzID string,
+		userID string,
+		sessionID string,
+		sessionKind GrantSessionKind,
+		refreshTokenHash string,
+	) (*IssueAccessGrantResult, error)
 }
 
 type IssueAppInitiatedSSOToWebTokenResult struct {
@@ -118,4 +120,13 @@ func (s *AppInitiatedSSOToWebTokenService) ExchangeForAccessToken(
 	}
 
 	return result.Token, nil
+}
+
+type AppInitiatedSSOToWebTokenOfflineGrantService interface {
+	CreateNewRefreshToken(
+		grant *OfflineGrant,
+		clientID string,
+		scopes []string,
+		authorizationID string,
+	) (*CreateNewRefreshTokenResult, *OfflineGrant, error)
 }

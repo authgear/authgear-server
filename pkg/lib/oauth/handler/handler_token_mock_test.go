@@ -722,11 +722,26 @@ func (m *MockAppInitiatedSSOToWebTokenService) EXPECT() *MockAppInitiatedSSOToWe
 	return m.recorder
 }
 
+// ExchangeForAccessToken mocks base method.
+func (m *MockAppInitiatedSSOToWebTokenService) ExchangeForAccessToken(client *config.OAuthClientConfig, token string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ExchangeForAccessToken", client, token)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ExchangeForAccessToken indicates an expected call of ExchangeForAccessToken.
+func (mr *MockAppInitiatedSSOToWebTokenServiceMockRecorder) ExchangeForAccessToken(client, token interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExchangeForAccessToken", reflect.TypeOf((*MockAppInitiatedSSOToWebTokenService)(nil).ExchangeForAccessToken), client, token)
+}
+
 // IssueAppInitiatedSSOToWebToken mocks base method.
-func (m *MockAppInitiatedSSOToWebTokenService) IssueAppInitiatedSSOToWebToken(options *oauth.IssueAppInitiatedSSOToWebTokenOptions) (*oauth.IssueAppInitiatedSSOToWebTokenResult, error) {
+func (m *MockAppInitiatedSSOToWebTokenService) IssueAppInitiatedSSOToWebToken(options *handler.IssueAppInitiatedSSOToWebTokenOptions) (*handler.IssueAppInitiatedSSOToWebTokenResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IssueAppInitiatedSSOToWebToken", options)
-	ret0, _ := ret[0].(*oauth.IssueAppInitiatedSSOToWebTokenResult)
+	ret0, _ := ret[0].(*handler.IssueAppInitiatedSSOToWebTokenResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

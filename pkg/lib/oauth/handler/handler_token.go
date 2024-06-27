@@ -171,8 +171,12 @@ type TokenHandlerTokenService interface {
 
 type AppInitiatedSSOToWebTokenService interface {
 	IssueAppInitiatedSSOToWebToken(
-		options *oauth.IssueAppInitiatedSSOToWebTokenOptions,
-	) (*oauth.IssueAppInitiatedSSOToWebTokenResult, error)
+		options *IssueAppInitiatedSSOToWebTokenOptions,
+	) (*IssueAppInitiatedSSOToWebTokenResult, error)
+	ExchangeForAccessToken(
+		client *config.OAuthClientConfig,
+		token string,
+	) (string, error)
 }
 
 type TokenHandler struct {
@@ -728,7 +732,7 @@ func (h *TokenHandler) handleAppInitiatedSSOToWebToken(
 		return nil, err
 	}
 
-	options := &oauth.IssueAppInitiatedSSOToWebTokenOptions{
+	options := &IssueAppInitiatedSSOToWebTokenOptions{
 		AppID:           string(h.AppID),
 		AuthorizationID: authz.ID,
 		ClientID:        client.ClientID,

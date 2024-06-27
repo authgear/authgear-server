@@ -13,7 +13,7 @@ type AccessGrantService struct {
 	Clock             clock.Clock
 }
 
-type issueAccessGrantResult struct {
+type IssueAccessGrantResult struct {
 	Token     string
 	TokenType string
 	ExpiresIn int
@@ -27,7 +27,7 @@ func (s *AccessGrantService) IssueAccessGrant(
 	sessionID string,
 	sessionKind GrantSessionKind,
 	refreshTokenHash string,
-) (*issueAccessGrantResult, error) {
+) (*IssueAccessGrantResult, error) {
 	token := GenerateToken()
 	now := s.Clock.NowUTC()
 
@@ -52,7 +52,7 @@ func (s *AccessGrantService) IssueAccessGrant(
 		return nil, err
 	}
 
-	result := &issueAccessGrantResult{
+	result := &IssueAccessGrantResult{
 		Token:     at,
 		TokenType: "Bearer",
 		ExpiresIn: int(client.AccessTokenLifetime),
