@@ -697,11 +697,12 @@ func (s *Store) CreateAppInitiatedSSOToWebToken(token *oauth.AppInitiatedSSOToWe
 	})
 }
 
-func (s *Store) GetAppInitiatedSSOToWebToken(tokenHash string) (*oauth.AppInitiatedSSOToWebToken, error) {
+func (s *Store) ConsumeAppInitiatedSSOToWebToken(tokenHash string) (*oauth.AppInitiatedSSOToWebToken, error) {
 	t := &oauth.AppInitiatedSSOToWebToken{}
 
 	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
-		data, err := s.loadData(conn, appInitiatedSSOToWebTokenKey(string(s.AppID), tokenHash))
+		key := appInitiatedSSOToWebTokenKey(string(s.AppID), tokenHash)
+		data, err := s.loadData(conn, key)
 		if err != nil {
 			return err
 		}
@@ -711,7 +712,7 @@ func (s *Store) GetAppInitiatedSSOToWebToken(tokenHash string) (*oauth.AppInitia
 			return err
 		}
 
-		return nil
+		return s.del(conn, key)
 	})
 	if err != nil {
 		return nil, err
