@@ -38,6 +38,7 @@ var whitelistedResponseTypes = []string{
 	CodeResponseType,
 	NoneResponseType,
 	SettingsActonResponseType,
+	AppInitiatedSSOToWebTokenResponseType,
 }
 
 const CodeGrantValidDuration = duration.Short
