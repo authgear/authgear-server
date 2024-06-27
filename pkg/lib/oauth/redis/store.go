@@ -420,6 +420,47 @@ func (s *Store) UpdateOfflineGrantDeviceSecretHash(grantID string, newDeviceSecr
 	return grant, nil
 }
 
+func (s *Store) AddOfflineGrantRefreshToken(
+	grantID string,
+	expireAt time.Time,
+	tokenHash string,
+	clientID string,
+	scopes []string,
+	authorizationID string,
+) (*oauth.OfflineGrant, error) {
+	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
+	mutex := s.Redis.NewMutex(mutexName)
+	err := mutex.LockContext(s.Context)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_, _ = mutex.UnlockContext(s.Context)
+	}()
+
+	grant, err := s.GetOfflineGrant(grantID)
+	if err != nil {
+		return nil, err
+	}
+
+	now := s.Clock.NowUTC()
+	newRefreshToken := oauth.OfflineGrantRefreshToken{
+		TokenHash:       tokenHash,
+		ClientID:        clientID,
+		CreatedAt:       now,
+		Scopes:          scopes,
+		AuthorizationID: authorizationID,
+	}
+
+	grant.RefreshTokens = append(grant.RefreshTokens, newRefreshToken)
+	err = s.updateOfflineGrant(grant, expireAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return grant, nil
+}
+
 func (s *Store) RemoveOfflineGrantRefreshTokens(grantID string, tokenHashes []string, expireAt time.Time) (*oauth.OfflineGrant, error) {
 	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
 	mutex := s.Redis.NewMutex(mutexName)
