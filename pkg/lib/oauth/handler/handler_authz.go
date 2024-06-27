@@ -7,6 +7,7 @@ import (
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -119,6 +120,7 @@ type AuthorizationHandler struct {
 	SettingsActionGrantService       SettingsActionGrantService
 	ClientResolver                   OAuthClientResolver
 	AppInitiatedSSOToWebTokenService AppInitiatedSSOToWebTokenService
+	IDTokenIssuer                    IDTokenIssuer
 }
 
 func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.Result {
@@ -483,9 +485,43 @@ func (h *AuthorizationHandler) doHandleAppInitiatedSSOToWeb(
 	client *config.OAuthClientConfig,
 	r protocol.AuthorizationRequest,
 ) (httputil.Result, error) {
-	accessToken, err := h.AppInitiatedSSOToWebTokenService.ExchangeForAccessToken(client, r.AppInitiatedSSOToWebToken())
+	idTokenHint, ok := r.IDTokenHint()
+	if !ok {
+		panic("cannot get id_token_hint, the request should be validated")
+	}
+	idToken, err := h.IDTokenIssuer.VerifyIDTokenWithoutClient(idTokenHint)
 	if err != nil {
-		return nil, protocol.NewError("invalid_grant", "invalid x_app_initiated_sso_to_web_token")
+		return nil, protocol.NewError("invalid_grant", "invalid id_token_hint")
+	}
+	var sidInt interface{}
+	if sidInt, ok = idToken.Get(string(model.ClaimSID)); !ok {
+		return nil, protocol.NewError("invalid_grant", "required sid in id_token_hint")
+	}
+	var sid string
+	if sid, ok = sidInt.(string); !ok {
+		return nil, protocol.NewError("invalid_grant", "sid is not a string in id_token_hint")
+	}
+	_, sessionID, ok := oidc.DecodeSID(sid)
+	if !ok {
+		return nil, protocol.NewError("invalid_grant", "invalid sid format id_token_hint")
+	}
+
+	accessToken, err := h.AppInitiatedSSOToWebTokenService.ExchangeForAccessToken(
+		client,
+		sessionID,
+		r.AppInitiatedSSOToWebToken(),
+	)
+	if err != nil {
+		if err == oauth.ErrUnmatchedClient {
+			return nil, protocol.NewError("invalid_grant", "incorrect client_id")
+		}
+		if err == oauth.ErrUnmatchedSession {
+			return nil, protocol.NewError("invalid_grant", "incorrect sid in id_token_hint")
+		}
+		if err == oauth.ErrGrantNotFound {
+			return nil, protocol.NewError("invalid_grant", "invalid x_app_initiated_sso_to_web_token")
+		}
+		return nil, err
 	}
 	cookie := h.Cookies.ValueCookie(session.AppAccessTokenCookieDef, accessToken)
 
