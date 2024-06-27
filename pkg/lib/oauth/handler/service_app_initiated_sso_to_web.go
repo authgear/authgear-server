@@ -65,7 +65,7 @@ func (s *AppInitiatedSSOToWebTokenServiceImpl) ExchangeForAccessToken(
 	token string,
 ) (string, error) {
 	tokenHash := oauth.HashToken(token)
-	tokenModel, err := s.AppInitiatedSSOToWebTokens.GetAppInitiatedSSOToWebToken(tokenHash)
+	tokenModel, err := s.AppInitiatedSSOToWebTokens.ConsumeAppInitiatedSSOToWebToken(tokenHash)
 	if err != nil {
 		return "", err
 	}

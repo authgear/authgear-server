@@ -69,5 +69,5 @@ type AppSessionTokenStore interface {
 
 type AppInitiatedSSOToWebTokenStore interface {
 	CreateAppInitiatedSSOToWebToken(*AppInitiatedSSOToWebToken) error
-	GetAppInitiatedSSOToWebToken(tokenHash string) (*AppInitiatedSSOToWebToken, error)
+	ConsumeAppInitiatedSSOToWebToken(tokenHash string) (*AppInitiatedSSOToWebToken, error)
 }
