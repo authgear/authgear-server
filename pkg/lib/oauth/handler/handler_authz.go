@@ -116,7 +116,7 @@ type AuthorizationHandler struct {
 	CodeGrantService                 CodeGrantService
 	SettingsActionGrantService       SettingsActionGrantService
 	ClientResolver                   OAuthClientResolver
-	AppInitiatedSSOToWebTokenService oauth.AppInitiatedSSOToWebTokenService
+	AppInitiatedSSOToWebTokenService AppInitiatedSSOToWebTokenService
 }
 
 func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.Result {

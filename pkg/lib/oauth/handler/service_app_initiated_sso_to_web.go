@@ -1,38 +1,18 @@
-package oauth
+package handler
 
 import (
-	"time"
-
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/duration"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
-const (
-	AppInitiatedSSOToWebTokenLifetime = duration.Short
-)
+type AppInitiatedSSOToWebTokenServiceImpl struct {
+	Clock clock.Clock
 
-type AppInitiatedSSOToWebToken struct {
-	AppID           string   `json:"app_id"`
-	AuthorizationID string   `json:"authorization_id"`
-	ClientID        string   `json:"client_id"`
-	OfflineGrantID  string   `json:"offline_grant_id"`
-	Scopes          []string `json:"scopes"`
-
-	CreatedAt time.Time `json:"created_at"`
-	ExpireAt  time.Time `json:"expire_at"`
-	TokenHash string    `json:"token_hash"`
-}
-
-type AppInitiatedSSOToWebTokenAccessGrantService interface {
-	IssueAccessGrant(
-		client *config.OAuthClientConfig,
-		scopes []string,
-		authzID string,
-		userID string,
-		sessionID string,
-		sessionKind GrantSessionKind,
-		refreshTokenHash string,
-	) (*IssueAccessGrantResult, error)
+	AppInitiatedSSOToWebTokens oauth.AppInitiatedSSOToWebTokenStore
+	OfflineGrants              oauth.OfflineGrantStore
+	AccessGrantService         oauth.AppInitiatedSSOToWebTokenAccessGrantService
+	OfflineGrantService        oauth.AppInitiatedSSOToWebTokenOfflineGrantService
 }
 
 type IssueAppInitiatedSSOToWebTokenResult struct {
@@ -50,13 +30,13 @@ type IssueAppInitiatedSSOToWebTokenOptions struct {
 	Scopes          []string
 }
 
-func (s *AppInitiatedSSOToWebTokenService) IssueAppInitiatedSSOToWebToken(
+func (s *AppInitiatedSSOToWebTokenServiceImpl) IssueAppInitiatedSSOToWebToken(
 	options *IssueAppInitiatedSSOToWebTokenOptions,
 ) (*IssueAppInitiatedSSOToWebTokenResult, error) {
 	now := s.Clock.NowUTC()
-	token := GenerateToken()
-	tokenHash := HashToken(token)
-	err := s.AppInitiatedSSOToWebTokens.CreateAppInitiatedSSOToWebToken(&AppInitiatedSSOToWebToken{
+	token := oauth.GenerateToken()
+	tokenHash := oauth.HashToken(token)
+	err := s.AppInitiatedSSOToWebTokens.CreateAppInitiatedSSOToWebToken(&oauth.AppInitiatedSSOToWebToken{
 		AppID:           options.AppID,
 		AuthorizationID: options.AuthorizationID,
 		ClientID:        options.ClientID,
@@ -64,7 +44,7 @@ func (s *AppInitiatedSSOToWebTokenService) IssueAppInitiatedSSOToWebToken(
 		Scopes:          options.Scopes,
 
 		CreatedAt: now,
-		ExpireAt:  now.Add(AppInitiatedSSOToWebTokenLifetime),
+		ExpireAt:  now.Add(oauth.AppInitiatedSSOToWebTokenLifetime),
 		TokenHash: tokenHash,
 	})
 	if err != nil {
@@ -75,21 +55,21 @@ func (s *AppInitiatedSSOToWebTokenService) IssueAppInitiatedSSOToWebToken(
 		Token:     token,
 		TokenHash: tokenHash,
 		TokenType: "Bearer",
-		ExpiresIn: int(AppInitiatedSSOToWebTokenLifetime.Seconds()),
+		ExpiresIn: int(oauth.AppInitiatedSSOToWebTokenLifetime.Seconds()),
 	}, nil
 }
 
-func (s *AppInitiatedSSOToWebTokenService) ExchangeForAccessToken(
+func (s *AppInitiatedSSOToWebTokenServiceImpl) ExchangeForAccessToken(
 	client *config.OAuthClientConfig,
 	token string,
 ) (string, error) {
-	tokenHash := HashToken(token)
+	tokenHash := oauth.HashToken(token)
 	tokenModel, err := s.AppInitiatedSSOToWebTokens.GetAppInitiatedSSOToWebToken(tokenHash)
 	if err != nil {
 		return "", err
 	}
 	if tokenModel.ClientID != client.ClientID {
-		return "", ErrUnmatchedClient
+		return "", oauth.ErrUnmatchedClient
 	}
 
 	offlineGrant, err := s.OfflineGrants.GetOfflineGrant(tokenModel.OfflineGrantID)
@@ -111,7 +91,7 @@ func (s *AppInitiatedSSOToWebTokenService) ExchangeForAccessToken(
 		tokenModel.AuthorizationID,
 		offlineGrant.GetUserID(),
 		offlineGrant.ID,
-		GrantSessionKindOffline,
+		oauth.GrantSessionKindOffline,
 		newRefreshTokenResult.TokenHash,
 	)
 
@@ -120,13 +100,4 @@ func (s *AppInitiatedSSOToWebTokenService) ExchangeForAccessToken(
 	}
 
 	return result.Token, nil
-}
-
-type AppInitiatedSSOToWebTokenOfflineGrantService interface {
-	CreateNewRefreshToken(
-		grant *OfflineGrant,
-		clientID string,
-		scopes []string,
-		authorizationID string,
-	) (*CreateNewRefreshTokenResult, *OfflineGrant, error)
 }

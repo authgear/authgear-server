@@ -687,6 +687,7 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 		Clock:          clockClock,
 		IDPSessions:    idpsessionProvider,
 		ClientResolver: oauthclientResolver,
+		OfflineGrants:  redisStore,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,

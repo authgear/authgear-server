@@ -198,6 +198,21 @@ func (mr *MockOfflineGrantStoreMockRecorder) AccessWithID(id, accessEvent, expir
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AccessWithID", reflect.TypeOf((*MockOfflineGrantStore)(nil).AccessWithID), id, accessEvent, expireAt)
 }
 
+// AddOfflineGrantRefreshToken mocks base method.
+func (m *MockOfflineGrantStore) AddOfflineGrantRefreshToken(grantID string, expireAt time.Time, tokenHash, clientID string, scopes []string, authorizationID string) (*OfflineGrant, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddOfflineGrantRefreshToken", grantID, expireAt, tokenHash, clientID, scopes, authorizationID)
+	ret0, _ := ret[0].(*OfflineGrant)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddOfflineGrantRefreshToken indicates an expected call of AddOfflineGrantRefreshToken.
+func (mr *MockOfflineGrantStoreMockRecorder) AddOfflineGrantRefreshToken(grantID, expireAt, tokenHash, clientID, scopes, authorizationID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddOfflineGrantRefreshToken", reflect.TypeOf((*MockOfflineGrantStore)(nil).AddOfflineGrantRefreshToken), grantID, expireAt, tokenHash, clientID, scopes, authorizationID)
+}
+
 // CreateOfflineGrant mocks base method.
 func (m *MockOfflineGrantStore) CreateOfflineGrant(offlineGrant *OfflineGrant, expireAt time.Time) error {
 	m.ctrl.T.Helper()
@@ -602,4 +617,19 @@ func (m *MockAppInitiatedSSOToWebTokenStore) CreateAppInitiatedSSOToWebToken(arg
 func (mr *MockAppInitiatedSSOToWebTokenStoreMockRecorder) CreateAppInitiatedSSOToWebToken(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAppInitiatedSSOToWebToken", reflect.TypeOf((*MockAppInitiatedSSOToWebTokenStore)(nil).CreateAppInitiatedSSOToWebToken), arg0)
+}
+
+// GetAppInitiatedSSOToWebToken mocks base method.
+func (m *MockAppInitiatedSSOToWebTokenStore) GetAppInitiatedSSOToWebToken(tokenHash string) (*AppInitiatedSSOToWebToken, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAppInitiatedSSOToWebToken", tokenHash)
+	ret0, _ := ret[0].(*AppInitiatedSSOToWebToken)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAppInitiatedSSOToWebToken indicates an expected call of GetAppInitiatedSSOToWebToken.
+func (mr *MockAppInitiatedSSOToWebTokenStoreMockRecorder) GetAppInitiatedSSOToWebToken(tokenHash interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAppInitiatedSSOToWebToken", reflect.TypeOf((*MockAppInitiatedSSOToWebTokenStore)(nil).GetAppInitiatedSSOToWebToken), tokenHash)
 }
