@@ -454,20 +454,24 @@ func (h *AuthorizationHandler) doHandle(
 		return resp, nil
 	}
 
-	// TODO(DEV-1402): Handle offlinegrant
 	// Handle prompt=none
-	var idpSession session.ResolvedSession
-	if s := session.GetSession(h.Context); s != nil && s.SessionType() == session.TypeIdentityProvider {
-		idpSession = s
+	var resolvedSession session.ResolvedSession
+	if s := session.GetSession(h.Context); s != nil {
+		resolvedSession = s
 	}
-	if idpSession == nil || (idToken != nil && idpSession.GetAuthenticationInfo().UserID != idToken.Subject()) {
+	if resolvedSession == nil || (idToken != nil && resolvedSession.GetAuthenticationInfo().UserID != idToken.Subject()) {
 		return nil, protocol.NewError("login_required", "authentication required")
 	}
 
-	authenticationInfo := idpSession.GetAuthenticationInfo()
+	authenticationInfo := resolvedSession.GetAuthenticationInfo()
 	autoGrantAuthz := client.IsFirstParty()
 
-	result, err := h.finish(redirectURI, r, idpSession.SessionID(), authenticationInfo, idTokenHintSID, nil, autoGrantAuthz)
+	idpSessionID := ""
+	if resolvedSession.SessionType() == session.TypeIdentityProvider {
+		idpSessionID = resolvedSession.SessionID()
+	}
+
+	result, err := h.finish(redirectURI, r, idpSessionID, authenticationInfo, idTokenHintSID, nil, autoGrantAuthz)
 	if err != nil {
 		if errors.Is(err, oauth.ErrAuthorizationNotFound) {
 			return nil, protocol.NewError("access_denied", "authorization required")
@@ -624,7 +628,6 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 	}
 	idTokenHintSID := uiInfoByProduct.IDTokenHintSID
 
-	// TODO(DEV-1402): Handle offlinegrant
 	var idpSessionID string
 	if s := session.GetSession(h.Context); s != nil && s.SessionType() == session.TypeIdentityProvider {
 		idpSessionID = s.SessionID()
