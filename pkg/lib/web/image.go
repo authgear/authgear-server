@@ -40,10 +40,12 @@ var preferredExtensions = map[string]string{
 var imageRegex = regexp.MustCompile(`^static/([a-zA-Z0-9-]+)/(.+)\.(png|jpe|jpeg|jpg|gif)$`)
 
 type ImageDescriptor struct {
-	Name string
+	Name      string
+	SizeLimit int
 }
 
 var _ resource.Descriptor = ImageDescriptor{}
+var _ resource.SizeLimitDescriptor = ImageDescriptor{}
 
 func (a ImageDescriptor) MatchResource(path string) (*resource.Match, bool) {
 	matches := imageRegex.FindStringSubmatch(path)
@@ -302,4 +304,8 @@ func (a ImageDescriptor) viewByPath(resources []resource.ResourceFile, path stri
 		Path: p,
 		Data: bytes,
 	}, nil
+}
+
+func (a ImageDescriptor) GetSizeLimit() int {
+	return a.SizeLimit
 }
