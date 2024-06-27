@@ -94,14 +94,15 @@ func NewAuthorizationHandlerLogger(lf *log.Factory) AuthorizationHandlerLogger {
 }
 
 type AuthorizationHandler struct {
-	Context    context.Context
-	AppID      config.AppID
-	Config     *config.OAuthConfig
-	HTTPConfig *config.HTTPConfig
-	HTTPProto  httputil.HTTPProto
-	HTTPOrigin httputil.HTTPOrigin
-	AppDomains config.AppDomains
-	Logger     AuthorizationHandlerLogger
+	Context               context.Context
+	AppID                 config.AppID
+	Config                *config.OAuthConfig
+	AccountDeletionConfig *config.AccountDeletionConfig
+	HTTPConfig            *config.HTTPConfig
+	HTTPProto             httputil.HTTPProto
+	HTTPOrigin            httputil.HTTPOrigin
+	AppDomains            config.AppDomains
+	Logger                AuthorizationHandlerLogger
 
 	UIURLBuilder               UIURLBuilder
 	UIInfoResolver             UIInfoResolver
@@ -592,6 +593,11 @@ func (h *AuthorizationHandler) validateRequest(
 
 	switch r.ResponseType() {
 	case SettingsActonResponseType:
+		if r.SettingsAction() == "delete_account" {
+			if !h.AccountDeletionConfig.ScheduledByEndUserEnabled {
+				return protocol.NewError("invalid_request", "account deletion by end user is disabled")
+			}
+		}
 		fallthrough
 	case CodeResponseType:
 		if client.IsPublic() {
