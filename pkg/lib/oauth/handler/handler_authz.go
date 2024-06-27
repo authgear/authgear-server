@@ -485,8 +485,19 @@ func (h *AuthorizationHandler) doHandleAppInitiatedSSOToWeb(
 	if err != nil {
 		return nil, protocol.NewError("invalid_grant", "invalid x_app_initiated_sso_to_web_token")
 	}
-	// TODO(DEV-1406): Put the access token into cookie
-	return nil, nil
+	cookie := h.Cookies.ValueCookie(session.AppAccessTokenCookieDef, accessToken)
+
+	resp := protocol.AuthorizationResponse{}
+	state := r.State()
+	if state != "" {
+		resp.State(r.State())
+	}
+	return authorizationResultCode{
+		RedirectURI:  redirectURI,
+		ResponseMode: r.ResponseMode(),
+		Response:     resp,
+		Cookies:      []*http.Cookie{cookie},
+	}, nil
 
 }
 
