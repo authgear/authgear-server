@@ -11,6 +11,11 @@
   * [Listen for change with Websocket](#listen-for-change-with-websocket)
 - [Reference on input and output](#reference-on-input-and-output)
   * [type: signup; action.type: identify](#type-signup-actiontype-identify)
+    + [Bot protection](#bot-protection)
+      - [Bot protection input](#bot-protection-input)
+      - [Bot protection input; type: cloudflare](#bot-protection-input-type-cloudflare)
+      - [Bot protection input; type: recaptchav2](#bot-protection-input-type-recaptchav2)
+      - [Bot protection error](#bot-protection-error)
     + [identification: email](#identification-email)
     + [identification: phone](#identification-phone)
     + [identification: username](#identification-username)
@@ -18,6 +23,7 @@
     + [type: signup; action.type: identify; data.type: account_linking_identification_data](#type-signup-actiontype-identify-datatype-account_linking_identification_data)
   * [type: signup; action.type: verify](#type-signup-actiontype-verify)
   * [type: signup; action.type: create_authenticator](#type-signup-actiontype-create_authenticator)
+    + [Bot protection](#bot-protection-1)
     + [authentication: primary_password](#authentication-primary_password)
     + [authentication: primary_oob_otp_email](#authentication-primary_oob_otp_email)
     + [authentication: primary_oob_otp_sms](#authentication-primary_oob_otp_sms)
@@ -29,6 +35,7 @@
   * [type: signup; action.type: prompt_create_passkey](#type-signup-actiontype-prompt_create_passkey)
   * [type: login; action.type: identify](#type-login-actiontype-identify)
   * [type: login; action.type: authenticate](#type-login-actiontype-authenticate)
+    + [Bot protection](#bot-protection-2)
     + [authentication: primary_password](#authentication-primary_password-1)
     + [authentication: primary_oob_otp_email](#authentication-primary_oob_otp_email-1)
     + [authentication: primary_oob_otp_sms](#authentication-primary_oob_otp_sms-1)
@@ -41,6 +48,7 @@
   * [type: login; action.type: prompt_create_passkey](#type-login-actiontype-prompt_create_passkey)
   * [type: signup_login; action.type: identify](#type-signup_login-actiontype-identify)
   * [type: account_recovery; action.type: identify](#type-account_recovery-actiontype-identify)
+    + [Bot protection](#bot-protection-3)
     + [identification: email](#identification-email-1)
     + [identification: phone](#identification-phone-1)
   * [type: account_recovery; action.type: select_destination](#type-account_recovery-actiontype-select_destination)
@@ -235,7 +243,13 @@ When you are in this step of this flow, you will see a response like the followi
             "identification": "email"
           },
           {
-            "identification": "phone"
+            "identification": "phone",
+            "bot_protection": {
+              "enabled": true,
+              "provider": {
+                "type": "cloudflare"
+              }
+            }
           },
           {
             "identification": "oauth",
@@ -251,6 +265,65 @@ When you are in this step of this flow, you will see a response like the followi
         ]
       }
     }
+  }
+}
+```
+
+### Bot protection
+
+Each option may contain the key `bot_protection`.
+
+The shape of `bot_protection`:
+
+```json
+{
+  "enabled": true,
+  "provider": {
+    "type": "recaptchav3"
+  }
+}
+```
+
+- `enabled`: If it is true, then selecting this option requires performing Captcha challenge first.
+- `provider.type`: You use this to determine which client side library and which client side credentials to use.
+
+#### Bot protection input
+
+To pass a bot protection input, pass an input of the following shape:
+
+```json
+{
+  "bot_protection": {
+    "type": "cloudflare",
+    "response": { ... }
+  }
+}
+```
+
+- `bot_protection.type`: The type of the bot protection provider.
+
+Other fields are provider-specific.
+
+#### Bot protection input; type: cloudflare
+
+- `bot_protection.response`: The response provided by the Turnstile client-side library.
+
+#### Bot protection input; type: recaptchav2
+
+- `bot_protection.response`: The response provided by the reCAPTCHA v2 client-side library.
+
+#### Bot protection error
+
+When you submit an input without performing Captcha challenge, you will receive the following error.
+
+```json
+{
+  "error": {
+    "name": "Forbidden",
+    "reason": "BotProtectionRequired",
+    "message': "bot protection required",
+    "code": 403,
+    "info": {}
   }
 }
 ```
@@ -678,6 +751,14 @@ Or this response if you are setting up 2FA.
   }
 }
 ```
+
+### Bot protection
+
+Each option may contain the key `bot_protection`.
+
+If this key is present, then bot protection is enabled.
+
+See [Bot protection](#bot-protection) for details.
 
 ### authentication: primary_password
 
@@ -1263,6 +1344,14 @@ Or this response if you are performing secondary authentication.
 }
 ```
 
+### Bot protection
+
+Each option may contain the key `bot_protection`.
+
+If this key is present, then bot protection is enabled.
+
+See [Bot protection](#bot-protection) for details.
+
 ### authentication: primary_password
 
 The presence of this means you can sign in with primary password.
@@ -1690,6 +1779,14 @@ When you are in this step of this flow, you will see a response like the followi
   }
 }
 ```
+
+### Bot protection
+
+Each option may contain the key `bot_protection`.
+
+If this key is present, then bot protection is enabled.
+
+See [Bot protection](#bot-protection) for details.
 
 ### identification: email
 
