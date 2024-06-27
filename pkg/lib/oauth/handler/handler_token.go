@@ -175,6 +175,7 @@ type AppInitiatedSSOToWebTokenService interface {
 	) (*IssueAppInitiatedSSOToWebTokenResult, error)
 	ExchangeForAccessToken(
 		client *config.OAuthClientConfig,
+		sessionID string,
 		token string,
 	) (string, error)
 }
