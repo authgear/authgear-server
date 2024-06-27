@@ -103,6 +103,15 @@ func (s *Store) unmarshalAppSessionToken(data []byte) (*oauth.AppSessionToken, e
 	return &t, nil
 }
 
+func (s *Store) unmarshalAppInitiatedSSOToWebToken(data []byte) (*oauth.AppInitiatedSSOToWebToken, error) {
+	var t oauth.AppInitiatedSSOToWebToken
+	err := json.Unmarshal(data, &t)
+	if err != nil {
+		return nil, err
+	}
+	return &t, nil
+}
+
 func (s *Store) save(conn *goredis.Conn, key string, value interface{}, expireAt time.Time, ifNotExists bool) error {
 	ctx := context.Background()
 	data, err := json.Marshal(value)
@@ -645,4 +654,27 @@ func (s *Store) CreateAppInitiatedSSOToWebToken(token *oauth.AppInitiatedSSOToWe
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
 		return s.save(conn, appInitiatedSSOToWebTokenKey(token.AppID, token.TokenHash), token, token.ExpireAt, true)
 	})
+}
+
+func (s *Store) GetAppInitiatedSSOToWebToken(tokenHash string) (*oauth.AppInitiatedSSOToWebToken, error) {
+	t := &oauth.AppInitiatedSSOToWebToken{}
+
+	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+		data, err := s.loadData(conn, appInitiatedSSOToWebTokenKey(string(s.AppID), tokenHash))
+		if err != nil {
+			return err
+		}
+
+		t, err = s.unmarshalAppInitiatedSSOToWebToken(data)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return t, nil
 }

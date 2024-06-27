@@ -52,3 +52,9 @@ var AppSessionTokenCookieDef = &httputil.CookieDef{
 	Path:       "/",
 	SameSite:   http.SameSiteLaxMode,
 }
+
+var AppAccessTokenCookieDef = &httputil.CookieDef{
+	NameSuffix: "app_access_token",
+	Path:       "/",
+	SameSite:   http.SameSiteLaxMode,
+}

@@ -26,9 +26,10 @@ import (
 //go:generate mockgen -source=handler_authz.go -destination=handler_authz_mock_test.go -package handler_test
 
 const (
-	CodeResponseType          = "code"
-	NoneResponseType          = "none"
-	SettingsActonResponseType = "urn:authgear:params:oauth:response-type:settings-action"
+	CodeResponseType                      = "code"
+	NoneResponseType                      = "none"
+	SettingsActonResponseType             = "urn:authgear:params:oauth:response-type:settings-action"
+	AppInitiatedSSOToWebTokenResponseType = "urn:authgear:params:oauth:response-type:app_initiated_sso_to_web token"
 )
 
 // whitelistedResponseTypes is a list of response types that would be always allowed
@@ -104,18 +105,19 @@ type AuthorizationHandler struct {
 	AppDomains            config.AppDomains
 	Logger                AuthorizationHandlerLogger
 
-	UIURLBuilder               UIURLBuilder
-	UIInfoResolver             UIInfoResolver
-	Authorizations             AuthorizationService
-	ValidateScopes             ScopesValidator
-	AppSessionTokenService     AppSessionTokenService
-	AuthenticationInfoService  AuthenticationInfoService
-	Clock                      clock.Clock
-	Cookies                    CookieManager
-	OAuthSessionService        OAuthSessionService
-	CodeGrantService           CodeGrantService
-	SettingsActionGrantService SettingsActionGrantService
-	ClientResolver             OAuthClientResolver
+	UIURLBuilder                     UIURLBuilder
+	UIInfoResolver                   UIInfoResolver
+	Authorizations                   AuthorizationService
+	ValidateScopes                   ScopesValidator
+	AppSessionTokenService           AppSessionTokenService
+	AuthenticationInfoService        AuthenticationInfoService
+	Clock                            clock.Clock
+	Cookies                          CookieManager
+	OAuthSessionService              OAuthSessionService
+	CodeGrantService                 CodeGrantService
+	SettingsActionGrantService       SettingsActionGrantService
+	ClientResolver                   OAuthClientResolver
+	AppInitiatedSSOToWebTokenService oauth.AppInitiatedSSOToWebTokenService
 }
 
 func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.Result {
@@ -377,6 +379,10 @@ func (h *AuthorizationHandler) doHandle(
 		return nil, err
 	}
 
+	if r.ResponseType() == AppInitiatedSSOToWebTokenResponseType {
+		return h.doHandleAppInitiatedSSOToWeb(redirectURI, client, r)
+	}
+
 	err := h.ValidateScopes(client, r.Scope())
 	if err != nil {
 		return nil, err
@@ -469,6 +475,20 @@ func (h *AuthorizationHandler) doHandle(
 		return nil, err
 	}
 	return result, nil
+}
+
+func (h *AuthorizationHandler) doHandleAppInitiatedSSOToWeb(
+	redirectURI *url.URL,
+	client *config.OAuthClientConfig,
+	r protocol.AuthorizationRequest,
+) (httputil.Result, error) {
+	accessToken, err := h.AppInitiatedSSOToWebTokenService.ExchangeForAccessToken(client, r.AppInitiatedSSOToWebToken())
+	if err != nil {
+		return nil, protocol.NewError("invalid_grant", "invalid x_app_initiated_sso_to_web_token")
+	}
+	// TODO(DEV-1406): Put the access token into cookie
+	return nil, nil
+
 }
 
 func (h *AuthorizationHandler) finish(
@@ -570,6 +590,8 @@ func (h *AuthorizationHandler) validateRequest(
 	r protocol.AuthorizationRequest,
 ) error {
 	ok := false
+	// FIXME(tung): The response type should be parsed as space-delimited values,
+	// and the order of values does not matters [rfc6749]
 	for _, respType := range whitelistedResponseTypes {
 		if respType == r.ResponseType() {
 			ok = true
@@ -578,10 +600,6 @@ func (h *AuthorizationHandler) validateRequest(
 	}
 	if !ok {
 		return protocol.NewError("unauthorized_client", "response type is not allowed for this client")
-	}
-
-	if len(r.Scope()) == 0 {
-		return protocol.NewError("invalid_request", "scope is required")
 	}
 
 	if slice.ContainsString(r.Prompt(), "none") {
@@ -593,6 +611,13 @@ func (h *AuthorizationHandler) validateRequest(
 		}
 	}
 
+	requireScope := func() error {
+		if len(r.Scope()) == 0 {
+			return protocol.NewError("invalid_request", "scope is required")
+		}
+		return nil
+	}
+
 	switch r.ResponseType() {
 	case SettingsActonResponseType:
 		if r.SettingsAction() == "delete_account" {
@@ -602,6 +627,9 @@ func (h *AuthorizationHandler) validateRequest(
 		}
 		fallthrough
 	case CodeResponseType:
+		if err := requireScope(); err != nil {
+			return err
+		}
 		if client.IsPublic() {
 			if r.CodeChallenge() == "" {
 				return protocol.NewError("invalid_request", "PKCE code challenge is required for public clients")
@@ -611,7 +639,22 @@ func (h *AuthorizationHandler) validateRequest(
 			return protocol.NewError("invalid_request", "only 'S256' PKCE transform is supported")
 		}
 	case NoneResponseType:
-		break
+		if err := requireScope(); err != nil {
+			return err
+		}
+	case AppInitiatedSSOToWebTokenResponseType:
+		if len(r.Prompt()) != 1 || r.Prompt()[0] != "none" {
+			return protocol.NewError("invalid_request", "only 'prompt=none' is supported when using app-initiated-sso-to-web")
+		}
+		if idTokenHint, ok := r.IDTokenHint(); !ok || idTokenHint == "" {
+			return protocol.NewError("invalid_request", "id_token_hint is required when using app-initiated-sso-to-web")
+		}
+		if r.AppInitiatedSSOToWebToken() == "" {
+			return protocol.NewError("invalid_request", "x_app_initiated_sso_to_web_token is required when using app-initiated-sso-to-web")
+		}
+		if r.ResponseMode() != "cookie" {
+			return protocol.NewError("invalid_request", "only 'response_mode=cookie' is supported when using app-initiated-sso-to-web")
+		}
 	default:
 		return protocol.NewError("unsupported_response_type", "only 'code' response type is supported")
 	}
