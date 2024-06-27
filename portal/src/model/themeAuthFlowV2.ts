@@ -165,6 +165,7 @@ abstract class AbstractStyle<T> {
   abstract acceptDeclaration(declaration: Declaration): boolean;
   abstract acceptCssAstVisitor(visitor: CssAstVisitor): void;
   abstract getValue(): T;
+  abstract setValue(value: T): void;
 }
 
 abstract class StyleProperty<T> extends AbstractStyle<T> {
@@ -189,6 +190,10 @@ abstract class StyleProperty<T> extends AbstractStyle<T> {
 
   getValue(): T {
     return this.value;
+  }
+
+  setValue(value: T): void {
+    this.value = value;
   }
 
   abstract getCSSValue(): string;
@@ -302,7 +307,7 @@ export class SpaceStyleProperty extends StyleProperty<string> {
 type StyleProperties<T> = {
   [K in keyof T]: AbstractStyle<T[K] | null>;
 };
-export class StyleGroup<T> extends AbstractStyle<T> {
+export class StyleGroup<T extends object> extends AbstractStyle<T> {
   styles: StyleProperties<T>;
 
   constructor(styles: StyleProperties<T>) {
@@ -327,10 +332,17 @@ export class StyleGroup<T> extends AbstractStyle<T> {
   getValue(): T {
     const value: Record<string, unknown> = {};
     for (const [name, style] of Object.entries(this.styles)) {
-      const s = style as AbstractStyle<T>;
+      const s = style as AbstractStyle<unknown>;
       value[name] = s.getValue();
     }
     return value as T;
+  }
+
+  setValue(value: T): void {
+    for (const [k, v] of Object.entries(value)) {
+      const style = (this.styles as any)[k] as AbstractStyle<T>;
+      style.setValue(v);
+    }
   }
 }
 
@@ -387,7 +399,7 @@ export class CustomisableThemeStyleGroup extends StyleGroup<CustomisableTheme> {
   }
 }
 
-export class StyleCssVisitor<T> extends CssNodeVisitor {
+export class StyleCssVisitor<T extends object> extends CssNodeVisitor {
   private ruleSelector: string;
 
   private styleGroup: StyleGroup<T>;
@@ -441,7 +453,7 @@ export class CssAstVisitor {
     this.root.append(this.rule);
   }
 
-  visitStyleGroup<T>(styleGroup: StyleGroup<T>): void {
+  visitStyleGroup<T extends object>(styleGroup: StyleGroup<T>): void {
     for (const style of Object.values(styleGroup.styles)) {
       const s = style as AbstractStyle<T>;
       s.acceptCssAstVisitor(this);
