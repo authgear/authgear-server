@@ -30,6 +30,7 @@ type AppInitiatedSSOToWebTokenService struct {
 	AppInitiatedSSOToWebTokens AppInitiatedSSOToWebTokenStore
 	OfflineGrants              OfflineGrantStore
 	AccessGrantService         AccessGrantService
+	OfflineGrantService        OfflineGrantService
 }
 
 type IssueAppInitiatedSSOToWebTokenResult struct {
@@ -94,6 +95,14 @@ func (s *AppInitiatedSSOToWebTokenService) ExchangeForAccessToken(
 		return "", err
 	}
 
+	newRefreshTokenResult, newOfflineGrant, err := s.OfflineGrantService.CreateNewRefreshToken(
+		offlineGrant, tokenModel.ClientID, tokenModel.Scopes, tokenModel.AuthorizationID,
+	)
+	if err != nil {
+		return "", err
+	}
+	offlineGrant = newOfflineGrant
+
 	result, err := s.AccessGrantService.IssueAccessGrant(
 		client,
 		tokenModel.Scopes,
@@ -101,8 +110,7 @@ func (s *AppInitiatedSSOToWebTokenService) ExchangeForAccessToken(
 		offlineGrant.GetUserID(),
 		offlineGrant.ID,
 		GrantSessionKindOffline,
-		// TODO(DEV-1406): Create a new refresh token
-		"",
+		newRefreshTokenResult.TokenHash,
 	)
 
 	if err != nil {

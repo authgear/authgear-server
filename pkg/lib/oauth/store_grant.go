@@ -32,6 +32,14 @@ type OfflineGrantStore interface {
 	UpdateOfflineGrantApp2AppDeviceKey(id string, newKey string, expireAt time.Time) (*OfflineGrant, error)
 	UpdateOfflineGrantDeviceSecretHash(grantID string, newDeviceSecretHash string, expireAt time.Time) (*OfflineGrant, error)
 	RemoveOfflineGrantRefreshTokens(grantID string, tokenHashes []string, expireAt time.Time) (*OfflineGrant, error)
+	AddOfflineGrantRefreshToken(
+		grantID string,
+		expireAt time.Time,
+		tokenHash string,
+		clientID string,
+		scopes []string,
+		authorizationID string,
+	) (*OfflineGrant, error)
 
 	ListOfflineGrants(userID string) ([]*OfflineGrant, error)
 	ListClientOfflineGrants(clientID string, userID string) ([]*OfflineGrant, error)
