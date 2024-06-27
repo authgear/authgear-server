@@ -15,7 +15,7 @@ func init() {
 }
 
 // IntentBotProtection (MilestoneFlowBotProtection)
-//   NodeDidVerifyBotProtection (MilestoneDidVerifyBotProtection)
+//   NodeDidPerformBotProtectionVerification (MilestoneDidPerformBotProtectionVerification)
 
 type IntentBotProtection struct {
 	OneOfJSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
@@ -33,9 +33,9 @@ func (*IntentBotProtection) MilestoneFlowBotProtection() {
 }
 
 func (i *IntentBotProtection) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	// The last node is NodeDidVerifyBotProtection
-	// So if MilestoneDidVerifyBotProtection is found, this intent has finished
-	_, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneDidVerifyBotProtection](flows)
+	// The last node is NodeDidPerformBotProtectionVerification
+	// So if MilestoneDidPerformBotProtectionVerification is found, this intent has finished
+	_, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneDidPerformBotProtectionVerification](flows)
 	if ok {
 		return nil, authflow.ErrEOF
 	}
@@ -56,11 +56,11 @@ func (i *IntentBotProtection) ReactTo(ctx context.Context, deps *authflow.Depend
 	switch {
 	// TODO: confirm failed/service unavailable count as DidVerify? -- assume only fail count as DidVerify for now
 	case errors.Is(err, botprotection.ErrVerificationFailed):
-		return authflow.NewNodeSimple(&NodeDidVerifyBotProtection{}), authflow.ErrBotProtectionVerificationFailed
+		return authflow.NewNodeSimple(&NodeDidPerformBotProtectionVerification{}), authflow.ErrBotProtectionVerificationFailed
 	case errors.Is(err, botprotection.ErrVerificationServiceUnavailable):
 		return nil, authflow.ErrBotProtectionVerificationServiceUnavailable
 	case errors.Is(err, nil):
-		return authflow.NewNodeSimple(&NodeDidVerifyBotProtection{}), authflow.ErrBotProtectionVerificationSuccess
+		return authflow.NewNodeSimple(&NodeDidPerformBotProtectionVerification{}), authflow.ErrBotProtectionVerificationSuccess
 	default:
 		// unexpected error
 		return nil, err

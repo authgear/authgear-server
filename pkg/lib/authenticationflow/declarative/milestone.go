@@ -292,9 +292,9 @@ type MilestonePromptCreatePasskey interface {
 }
 
 // For IntentBotProtection to check if itself has finished
-type MilestoneDidVerifyBotProtection interface {
+type MilestoneDidPerformBotProtectionVerification interface {
 	authflow.Milestone
-	MilestoneDidVerifyBotProtection()
+	MilestoneDidPerformBotProtectionVerification()
 }
 
 // To prevent spawning multiple IntentBotProtection
