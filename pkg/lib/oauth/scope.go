@@ -19,7 +19,7 @@ const DeviceSSOScope = "device_sso"
 func SessionScopes(s session.ResolvedSession) []string {
 	switch s := s.(type) {
 	case *idpsession.IDPSession:
-		return []string{FullAccessScope}
+		return []string{FullAccessScope, AppInitiatedSSOToWebScope}
 	case *OfflineGrantSession:
 		return s.Scopes
 	default:
