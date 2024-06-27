@@ -459,6 +459,10 @@ func (h *AuthorizationHandler) doHandle(
 	if s := session.GetSession(h.Context); s != nil {
 		resolvedSession = s
 	}
+	// Ignore any session that is not allow to be used here
+	if !oauth.ContainsAllScopes(oauth.SessionScopes(resolvedSession), []string{oauth.AppInitiatedSSOToWebScope}) {
+		resolvedSession = nil
+	}
 	if resolvedSession == nil || (idToken != nil && resolvedSession.GetAuthenticationInfo().UserID != idToken.Subject()) {
 		return nil, protocol.NewError("login_required", "authentication required")
 	}
