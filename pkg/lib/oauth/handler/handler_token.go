@@ -75,6 +75,8 @@ const AppSessionTokenDuration = duration.Short
 // whitelistedGrantTypes is a list of grant types that would be always allowed
 // to all clients.
 var whitelistedGrantTypes = []string{
+	AuthorizationCodeGrantType,
+	RefreshTokenGrantType,
 	AnonymousRequestGrantType,
 	BiometricRequestGrantType,
 	App2AppRequestGrantType,
@@ -240,9 +242,6 @@ func (h *TokenHandler) doHandle(
 	}
 
 	allowedGrantTypes := client.GrantTypes
-	if len(allowedGrantTypes) == 0 {
-		allowedGrantTypes = []string{AuthorizationCodeGrantType}
-	}
 	allowedGrantTypes = append(allowedGrantTypes, whitelistedGrantTypes...)
 
 	ok := false
