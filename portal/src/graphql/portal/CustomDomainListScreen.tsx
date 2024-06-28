@@ -107,6 +107,32 @@ function constructConfig(
   });
 }
 
+interface RedirectURLFormState {
+  postLoginURL: string;
+  postLogoutURL: string;
+}
+
+function constructRedirectURLFormState(
+  config: PortalAPIAppConfig
+): RedirectURLFormState {
+  return {
+    postLoginURL: config.ui?.default_redirect_uri ?? "",
+    postLogoutURL: config.ui?.default_post_logout_redirect_uri ?? "",
+  };
+}
+function constructConfigFromRedirectURLFormState(
+  config: PortalAPIAppConfig,
+  _initialState: RedirectURLFormState,
+  currentState: RedirectURLFormState
+): PortalAPIAppConfig {
+  return produce(config, (config) => {
+    config.ui ??= {};
+    config.ui.default_redirect_uri = currentState.postLoginURL;
+    config.ui.default_post_logout_redirect_uri = currentState.postLogoutURL;
+    clearEmptyObject(config);
+  });
+}
+
 function makeDomainListColumn(renderToString: (messageID: string) => string) {
   return [
     {
@@ -476,6 +502,7 @@ const UpdatePublicOriginDialog: React.VFC<UpdatePublicOriginDialogProps> =
 interface CustomDomainListContentProps {
   domains: Domain[];
   appConfigForm: AppConfigFormModel<FormState>;
+  redirectURLForm: AppConfigFormModel<RedirectURLFormState>;
   featureConfig?: CustomDomainFeatureConfig;
 }
 
@@ -714,6 +741,11 @@ const CustomDomainListScreen: React.VFC = function CustomDomainListScreen() {
   } = useDomainsQuery(appID);
 
   const form = useAppConfigForm({ appID, constructFormState, constructConfig });
+  const redirectURLForm = useAppConfigForm({
+    appID,
+    constructFormState: constructRedirectURLFormState,
+    constructConfig: constructConfigFromRedirectURLFormState,
+  });
 
   const featureConfig = useAppFeatureConfigQuery(appID);
 
@@ -762,6 +794,7 @@ const CustomDomainListScreen: React.VFC = function CustomDomainListScreen() {
       <CustomDomainListContent
         domains={domains ?? []}
         appConfigForm={form}
+        redirectURLForm={redirectURLForm}
         featureConfig={featureConfig.effectiveFeatureConfig?.custom_domain}
       />
     </>
