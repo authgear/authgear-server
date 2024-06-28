@@ -35,17 +35,16 @@ const BorderRadius: React.VFC<BorderRadiusProps> = function BorderRadius(
 
   const [radiusValue, setRadiusValue] = useState(() => {
     if (value.type !== "rounded") {
-      return "";
+      return "0";
     }
     return value.radius;
   });
 
   useEffect(() => {
     if (value.type !== "rounded") {
-      setRadiusValue("");
-    } else {
-      setRadiusValue(value.radius);
+      return;
     }
+    setRadiusValue(value.radius);
   }, [value, radiusValue]);
 
   const onSelectOption = useCallback(
@@ -53,7 +52,7 @@ const BorderRadius: React.VFC<BorderRadiusProps> = function BorderRadius(
       if (option.value === "rounded") {
         onChange({
           type: option.value,
-          radius: "0",
+          radius: radiusValue,
         });
       } else {
         onChange({
@@ -61,7 +60,7 @@ const BorderRadius: React.VFC<BorderRadiusProps> = function BorderRadius(
         });
       }
     },
-    [onChange]
+    [radiusValue, onChange]
   );
 
   const onBorderRadiusChange = useCallback(
