@@ -692,7 +692,7 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
       <ScreenLayoutScrollView>
         <ScreenContent>
           <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-          <Widget className={cn(styles.widget, styles.controlGroup)}>
+          <Widget className={cn(styles.widget)}>
             <Text block={true}>
               <FormattedMessage id="CustomDomainListScreen.desc" />
             </Text>
