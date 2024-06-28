@@ -57,6 +57,7 @@ import ErrorRenderer from "../../ErrorRenderer";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import TextField from "../../TextField";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
+import { nullishCoalesce, or_ } from "../../util/operators";
 
 function getOriginFromDomain(domain: string): string {
   // assume domain has no scheme
@@ -758,27 +759,33 @@ const CustomDomainListScreen: React.VFC = function CustomDomainListScreen() {
     navigate(".", { replace: true });
   }, [navigate]);
 
-  if (fetchingDomains || form.isLoading || featureConfig.loading) {
+  const isloading = or_(
+    fetchingDomains,
+    form.isLoading,
+    featureConfig.loading,
+    redirectURLForm.isLoading
+  );
+
+  const error = nullishCoalesce(
+    fetchDomainsError,
+    featureConfig.error,
+    form.loadError,
+    redirectURLForm.loadError
+  );
+
+  const retry = useCallback(() => {
+    refetchDomains().catch((e) => console.error(e));
+    featureConfig.refetch().catch((e) => console.error(e));
+    form.reload();
+    redirectURLForm.reload();
+  }, [featureConfig, refetchDomains, form, redirectURLForm]);
+
+  if (isloading) {
     return <ShowLoading />;
   }
 
-  if (fetchDomainsError) {
-    return <ShowError error={fetchDomainsError} onRetry={refetchDomains} />;
-  }
-
-  if (form.loadError) {
-    return <ShowError error={form.loadError} onRetry={form.reload} />;
-  }
-
-  if (featureConfig.error) {
-    return (
-      <ShowError
-        error={featureConfig.error}
-        onRetry={() => {
-          featureConfig.refetch().finally(() => {});
-        }}
-      />
-    );
+  if (error) {
+    return <ShowError error={error} onRetry={retry} />;
   }
 
   return (
