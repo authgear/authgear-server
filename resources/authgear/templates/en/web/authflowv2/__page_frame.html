@@ -36,8 +36,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 {{ define "widget" }}
   <div class="widget">
-    {{ template "page-content" . }}
-    {{ template "authflowv2/__lockout.html" . }}
-    {{ template "authflowv2/__watermark.html" . }}
+    <div class="widget-content">
+      {{ template "page-content" . }}
+      {{ template "authflowv2/__lockout.html" . }}
+      {{ template "authflowv2/__watermark.html" . }}
+    </div>
   </div>
 {{ end }}

@@ -16,18 +16,30 @@
 
   .widget {
     width: var(--widget__width);
-    max-width: var(--widget__max-width);
     border-radius: var(--widget__border-radius);
     border: var(--widget__border);
     box-shadow: var(--widget__box-shadow);
     background-color: var(--widget__bg-color);
-    @apply flex flex-col;
-    @apply relative;
     @apply px-6 pt-8 pb-10;
+    @apply flex flex-col;
+  }
+
+  .widget-content {
+    @apply relative;
+    @apply h-full;
+    @apply flex flex-col;
+    @apply self-center;
+    max-width: var(--widget__max-width);
   }
 
   :root:not([alignment-content]) .widget {
     /* This rule is to prevent ui shifting before the attribute added */
     @apply invisible;
+  }
+
+  @media (min-width: theme("screens.tablet")) {
+    .widget {
+      max-width: var(--widget__max-width);
+    }
   }
 }
