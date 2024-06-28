@@ -933,10 +933,6 @@
   "UISettingsScreen.customer-support-link-description": "This link can lead users to your custom support",
   "UISettingsScreen.default-client-uri-label": "Back to Your App Link",
   "UISettingsScreen.default-client-uri-description": "If this link is provided, a Back to Your App link will be shown in the settings.",
-  "UISettingsScreen.default-redirect-uri-label": "Post Login Link",
-  "UISettingsScreen.default-redirect-uri-description": "If this link is provided, the user will be redirected after login with non-OAuth flow.",
-  "UISettingsScreen.default-post-logout-redirect-uri-label": "Post Logout Link",
-  "UISettingsScreen.default-post-logout-redirect-uri-description": "If this link is provided, the user will be redirected after logout with non-OAuth flow.",
 
   "UISettingsScreen.branding.title": "Authgear branding",
   "UISettingsScreen.branding.disable-authgear-logo.label": "Display Authgear logo in Login and Signup page",
