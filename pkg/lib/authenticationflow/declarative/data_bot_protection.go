@@ -24,14 +24,19 @@ func NewBotProtectionData(t config.BotProtectionProviderType) *BotProtectionData
 }
 
 func GetBotProtectionData(authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) *BotProtectionData {
-	if authflowCfg == nil || appCfg == nil || !appCfg.Enabled || appCfg.Provider == nil {
+	if authflowCfg == nil {
 		return nil
 	}
+	// appCfg as optional parameter
+	if appCfg != nil && (!appCfg.Enabled || appCfg.Provider == nil) {
+		return nil
+	}
+
 	switch authflowCfg.Mode {
 	case config.AuthenticationFlowBotProtectionModeNever:
 		break
 	case config.AuthenticationFlowBotProtectionModeAlways:
-		return NewBotProtectionData(appCfg.Provider.Type)
+		return NewBotProtectionData(authflowCfg.Provider.Type)
 	}
 	return nil
 }
