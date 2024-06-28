@@ -59,8 +59,14 @@ import TextField from "../../TextField";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import WidgetTitle from "../../WidgetTitle";
 import { useId } from "../../hook/useId";
-import { FormContainerBase } from "../../FormContainerBase";
+import {
+  FormContainerBase,
+  useFormContainerBaseContext,
+} from "../../FormContainerBase";
 import { nullishCoalesce, or_ } from "../../util/operators";
+import { FormErrorMessageBar } from "../../FormErrorMessageBar";
+import PrimaryButton from "../../PrimaryButton";
+import FormTextField from "../../FormTextField";
 
 function getOriginFromDomain(domain: string): string {
   // assume domain has no scheme
@@ -129,11 +135,11 @@ function constructConfigFromRedirectURLFormState(
   _initialState: RedirectURLFormState,
   currentState: RedirectURLFormState
 ): PortalAPIAppConfig {
-  return produce(config, (config) => {
-    config.ui ??= {};
-    config.ui.default_redirect_uri = currentState.postLoginURL;
-    config.ui.default_post_logout_redirect_uri = currentState.postLogoutURL;
-    clearEmptyObject(config);
+  return produce(config, (draft) => {
+    draft.ui ??= {};
+    draft.ui.default_redirect_uri = currentState.postLoginURL || undefined;
+    draft.ui.default_post_logout_redirect_uri =
+      currentState.postLogoutURL || undefined;
   });
 }
 
@@ -505,6 +511,7 @@ const UpdatePublicOriginDialog: React.VFC<UpdatePublicOriginDialogProps> =
 
 interface RedirectURLTextFieldProps {
   className?: string;
+  fieldName: string;
   label: NonNullable<React.ReactNode>;
   description: NonNullable<React.ReactNode>;
   value: string;
@@ -512,7 +519,8 @@ interface RedirectURLTextFieldProps {
 }
 const RedirectURLTextField: React.VFC<RedirectURLTextFieldProps> =
   function RedirectURLTextField(props) {
-    const { className, label, description, value, onChangeValue } = props;
+    const { fieldName, className, label, description, value, onChangeValue } =
+      props;
     const id = useId();
     const onChange = useCallback(
       (_e: React.FormEvent<any>, value?: string) => {
@@ -526,8 +534,10 @@ const RedirectURLTextField: React.VFC<RedirectURLTextFieldProps> =
         <Text className={cn("mt-2.5")} block={true}>
           {description}
         </Text>
-        <TextField
+        <FormTextField
           id={id}
+          fieldName={fieldName}
+          parentJSONPointer="/ui"
           className={cn("mt-2.5")}
           value={value}
           onChange={onChange}
@@ -543,6 +553,8 @@ interface RedirectURLFormProps {
 const RedirectURLForm: React.VFC<RedirectURLFormProps> =
   function RedirectURLForm(props) {
     const { className, redirectURLForm } = props;
+
+    const { canSave, onSubmit } = useFormContainerBaseContext();
 
     const onChangePostLoginURL = useCallback(
       (url: string) => {
@@ -567,12 +579,13 @@ const RedirectURLForm: React.VFC<RedirectURLFormProps> =
     );
 
     return (
-      <div className={className}>
+      <form className={className} onSubmit={onSubmit}>
         <WidgetTitle>
           <FormattedMessage id="CustomDomainListScreen.redirectURLSection.title" />
         </WidgetTitle>
         <RedirectURLTextField
           className={cn("mt-4")}
+          fieldName="default_redirect_uri"
           label={
             <FormattedMessage id="CustomDomainListScreen.redirectURLSection.input.postLoginURL.label" />
           }
@@ -584,6 +597,7 @@ const RedirectURLForm: React.VFC<RedirectURLFormProps> =
         />
         <RedirectURLTextField
           className={cn("mt-4")}
+          fieldName="default_post_logout_redirect_uri"
           label={
             <FormattedMessage id="CustomDomainListScreen.redirectURLSection.input.postLogoutURL.label" />
           }
@@ -593,7 +607,13 @@ const RedirectURLForm: React.VFC<RedirectURLFormProps> =
           value={redirectURLForm.state.postLogoutURL}
           onChangeValue={onChangePostLogoutURL}
         />
-      </div>
+        <PrimaryButton
+          className={cn("mt-12")}
+          type="submit"
+          disabled={!canSave}
+          text={<FormattedMessage id="save" />}
+        ></PrimaryButton>
+      </form>
     );
   };
 
@@ -893,20 +913,23 @@ const CustomDomainListScreen: React.VFC = function CustomDomainListScreen() {
 
   return (
     <>
-      {isVerifySuccessMessageVisible ? (
-        <MessageBar
-          messageBarType={MessageBarType.success}
-          onDismiss={dismissVerifySuccessMessageBar}
-        >
-          <FormattedMessage id="CustomDomainListScreen.verify-success-message" />
-        </MessageBar>
-      ) : null}
-      <CustomDomainListContent
-        domains={domains ?? []}
-        appConfigForm={form}
-        redirectURLForm={redirectURLForm}
-        featureConfig={featureConfig.effectiveFeatureConfig?.custom_domain}
-      />
+      <FormContainerBase form={redirectURLForm}>
+        {isVerifySuccessMessageVisible ? (
+          <MessageBar
+            messageBarType={MessageBarType.success}
+            onDismiss={dismissVerifySuccessMessageBar}
+          >
+            <FormattedMessage id="CustomDomainListScreen.verify-success-message" />
+          </MessageBar>
+        ) : null}
+        <FormErrorMessageBar></FormErrorMessageBar>
+        <CustomDomainListContent
+          domains={domains ?? []}
+          appConfigForm={form}
+          redirectURLForm={redirectURLForm}
+          featureConfig={featureConfig.effectiveFeatureConfig?.custom_domain}
+        />
+      </FormContainerBase>
     </>
   );
 };
