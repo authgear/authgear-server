@@ -30,6 +30,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
@@ -122,6 +123,9 @@ type TokenHandler struct {
 	CodeGrantService         CodeGrantService
 	ClientResolver           OAuthClientResolver
 	UIInfoResolver           UIInfoResolver
+
+	RemoteIP        httputil.RemoteIP
+	UserAgentString httputil.UserAgentString
 }
 
 // TODO: Write some tests
@@ -438,6 +442,9 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, err
 	}
 
+	accessEvent := access.NewEvent(h.Clock.NowUTC(), h.RemoteIP, h.UserAgentString)
+	offlineGrant.AccessInfo.LastAccess = accessEvent
+
 	resp, err := h.issueTokensForRefreshToken(client, offlineGrant, authz)
 	if err != nil {
 		return nil, err
@@ -451,7 +458,8 @@ func (h *TokenHandler) handleRefreshToken(
 	if err != nil {
 		return nil, err
 	}
-	_, err = h.OfflineGrants.UpdateOfflineGrantDeviceInfo(offlineGrant.ID, deviceInfo, expiry)
+
+	_, err = h.OfflineGrants.AccessOfflineGrantAndUpdateDeviceInfo(offlineGrant.ID, accessEvent, deviceInfo, expiry)
 	if err != nil {
 		return nil, err
 	}
