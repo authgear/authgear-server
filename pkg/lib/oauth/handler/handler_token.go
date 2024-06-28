@@ -86,6 +86,7 @@ var whitelistedGrantTypes = []string{
 }
 
 type IDTokenIssuer interface {
+	Iss() string
 	IssueIDToken(opts oidc.IssueIDTokenOptions) (token string, err error)
 	VerifyIDTokenWithoutClient(idToken string) (token jwt.Token, err error)
 }
@@ -674,8 +675,8 @@ func (h *TokenHandler) handleAppInitiatedSSOToWebToken(
 	if err != nil {
 		return nil, protocol.NewError("invalid_request", "subject_token is not a valid id token")
 	}
-	if idToken.Issuer() != r.Audience() {
-		return nil, protocol.NewError("invalid_request", "invalid audience")
+	if idToken.Issuer() != h.IDTokenIssuer.Iss() {
+		return nil, protocol.NewError("invalid_request", fmt.Sprintf("expected audience to be %v", h.IDTokenIssuer.Iss()))
 	}
 	session, ok, err := h.resolveIDTokenSession(idToken)
 	if err != nil {
