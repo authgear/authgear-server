@@ -42,6 +42,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
+//go:generate mockgen -source=handler_token.go -destination=handler_token_mock_test.go -package handler_test
+
 const (
 	AnonymousRequestGrantType = "urn:authgear:params:oauth:grant-type:anonymous-request"
 	BiometricRequestGrantType = "urn:authgear:params:oauth:grant-type:biometric-request"
@@ -128,7 +130,6 @@ type TokenHandler struct {
 	UserAgentString httputil.UserAgentString
 }
 
-// TODO: Write some tests
 func (h *TokenHandler) Handle(rw http.ResponseWriter, req *http.Request, r protocol.TokenRequest) httputil.Result {
 	client := resolveClient(h.ClientResolver, r)
 	if client == nil {
