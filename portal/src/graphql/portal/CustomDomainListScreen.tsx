@@ -57,6 +57,7 @@ import ErrorRenderer from "../../ErrorRenderer";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import TextField from "../../TextField";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
+import { useId } from "../../hook/useId";
 import { nullishCoalesce, or_ } from "../../util/operators";
 
 function getOriginFromDomain(domain: string): string {
@@ -500,6 +501,38 @@ const UpdatePublicOriginDialog: React.VFC<UpdatePublicOriginDialogProps> =
     );
   };
 
+interface RedirectURLTextFieldProps {
+  className?: string;
+  label: NonNullable<React.ReactNode>;
+  description: NonNullable<React.ReactNode>;
+  value: string;
+  onChangeValue: (value: string) => void;
+}
+const RedirectURLTextField: React.VFC<RedirectURLTextFieldProps> =
+  function RedirectURLTextField(props) {
+    const { className, label, description, value, onChangeValue } = props;
+    const id = useId();
+    const onChange = useCallback(
+      (_e: React.FormEvent<any>, value?: string) => {
+        onChangeValue(value ?? "");
+      },
+      [onChangeValue]
+    );
+    return (
+      <div className={className}>
+        <label htmlFor={id}>{label}</label>
+        <Text className={cn("mt-2.5")} block={true}>
+          {description}
+        </Text>
+        <TextField
+          id={id}
+          className={cn("mt-2.5")}
+          value={value}
+          onChange={onChange}
+        />
+      </div>
+    );
+  };
 interface CustomDomainListContentProps {
   domains: Domain[];
   appConfigForm: AppConfigFormModel<FormState>;
