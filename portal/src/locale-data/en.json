@@ -156,7 +156,6 @@
   "ScreenNav.external-oauth": "Social / Enterprise Login",
   "ScreenNav.login-methods": "Login Methods",
   "ScreenNav.client-applications": "Applications",
-  "ScreenNav.ui-settings": "UI Settings",
   "ScreenNav.localization": "Email/SMS Templates",
   "ScreenNav.branding": "Branding",
   "ScreenNav.design": "Design",
@@ -913,7 +912,7 @@
   "DesignScreen.configuration.authgearBranding.disableAuthgearLogo.label": "Display Authgear logo in Sign in and Sign up page",
   "DesignScreen.configuration.fallback": "Leave unset to fallback to primary language settings - {fallbackLanguage}",
 
-  "UISettingsScreen.title": "UI Settings",
+  "UISettingsScreen.title": "Design",
   "UISettingsScreen.description": "Authgear comes with some simple styling for your login and signup page. You can customize the look and feel here.",
   "UISettingsScreen.favicon-title": "Favicon",
   "UISettingsScreen.favicon-description": "Upload a 32x32 pixel JPEG, PNG or GIF file below 100 KB",

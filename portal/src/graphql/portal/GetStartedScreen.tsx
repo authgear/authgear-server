@@ -18,7 +18,7 @@ import {
   ScreenNavQueryDocument,
 } from "./query/screenNavQuery.generated";
 import { usePortalClient } from "./apollo";
-import { TutorialStatusData, UIImplementation } from "../../types";
+import { TutorialStatusData } from "../../types";
 import {
   SkipAppTutorialMutationMutation,
   SkipAppTutorialMutationMutationVariables,
@@ -61,7 +61,6 @@ interface MakeCardSpecsOptions {
   numberOfClients: number;
   tutorialStatusData: TutorialStatusData;
   userTotalCount: number;
-  authUIImplementation: UIImplementation;
 }
 
 function useCardSpecs(options: MakeCardSpecsOptions): CardSpec[] {
@@ -71,7 +70,6 @@ function useCardSpecs(options: MakeCardSpecsOptions): CardSpec[] {
     numberOfClients,
     tutorialStatusData,
     userTotalCount,
-    authUIImplementation,
   } = options;
 
   const { generateTesterToken } = useGenerateTesterTokenMutation(appID);
@@ -106,17 +104,14 @@ function useCardSpecs(options: MakeCardSpecsOptions): CardSpec[] {
     () => ({
       key: "customize_ui",
       iconSrc: iconCustomize,
-      internalHref:
-        authUIImplementation === "authflowv2"
-          ? "~/branding/design"
-          : "~/branding/ui-settings",
+      internalHref: "~/branding/design",
       onClick: (_e) => {
         capture("getStarted.clicked-customize");
       },
       canSkip: false,
       isDone: tutorialStatusData.progress["customize_ui"] === true,
     }),
-    [authUIImplementation, tutorialStatusData.progress, capture]
+    [tutorialStatusData.progress, capture]
   );
 
   // Special handling for apps with applications.
@@ -420,7 +415,6 @@ interface GetStartedScreenContentProps {
   numberOfClients: number;
   tutorialStatusData: TutorialStatusData;
   userTotalCount: number;
-  authUIImplementation: UIImplementation;
 }
 
 function GetStartedScreenContent(props: GetStartedScreenContentProps) {
@@ -434,7 +428,6 @@ function GetStartedScreenContent(props: GetStartedScreenContentProps) {
     numberOfClients,
     tutorialStatusData,
     userTotalCount,
-    authUIImplementation,
   } = props;
 
   const client = usePortalClient();
@@ -502,7 +495,6 @@ function GetStartedScreenContent(props: GetStartedScreenContentProps) {
     numberOfClients,
     tutorialStatusData,
     userTotalCount,
-    authUIImplementation,
   });
 
   return (
@@ -572,9 +564,6 @@ export default function GetStartedScreen(): React.ReactElement {
       loading={loading}
       publicOrigin={effectiveAppConfig.http?.public_origin ?? ""}
       numberOfClients={effectiveAppConfig.oauth?.clients?.length ?? 0}
-      authUIImplementation={
-        effectiveAppConfig.ui?.implementation ?? "interaction"
-      }
       tutorialStatusData={tutorialStatusData}
       userTotalCount={queryResult0.data?.users?.totalCount ?? 0}
     />
