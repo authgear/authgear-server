@@ -1,5 +1,6 @@
 import { Controller } from "@hotwired/stimulus";
 import { PreviewableResourceController } from "./previewable-resource";
+import { injectCSSAttrs } from "./cssattrs";
 
 interface PreviewCustomisationMessage {
   cssVars: Record<string, string>;
@@ -84,5 +85,7 @@ export class InlinePreviewController extends Controller {
       const outlet = keyToPreviewableResourceController[key];
       outlet?.setValue(value);
     }
+
+    injectCSSAttrs(document.documentElement);
   };
 }
