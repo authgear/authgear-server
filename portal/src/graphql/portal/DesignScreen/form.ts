@@ -45,6 +45,7 @@ import {
   getColorFromString,
   themeRulesStandardCreator,
 } from "@fluentui/react";
+import { nullishCoalesce, or_ } from "../../../util/operators";
 
 const LOCALE_BASED_RESOUCE_DEFINITIONS = [
   RESOURCE_TRANSLATION_JSON,
@@ -491,26 +492,31 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
 
   const designForm = useMemo(
     (): BranchDesignForm => ({
-      isLoading:
-        configForm.isLoading ||
-        resourceForm.isLoading ||
-        backgroundImageResourceForm.isLoading,
-      isUpdating:
-        configForm.isUpdating ||
-        resourceForm.isUpdating ||
-        backgroundImageResourceForm.isUpdating,
-      isDirty:
-        configForm.isDirty ||
-        resourceForm.isDirty ||
-        backgroundImageResourceForm.isDirty,
-      loadError:
-        configForm.loadError ??
-        resourceForm.loadError ??
-        backgroundImageResourceForm.loadError,
-      updateError:
-        configForm.updateError ??
-        resourceForm.updateError ??
-        backgroundImageResourceForm.updateError,
+      isLoading: or_(
+        configForm.isLoading,
+        resourceForm.isLoading,
+        backgroundImageResourceForm.isLoading
+      ),
+      isUpdating: or_(
+        configForm.isUpdating,
+        resourceForm.isUpdating,
+        backgroundImageResourceForm.isUpdating
+      ),
+      isDirty: or_(
+        configForm.isDirty,
+        resourceForm.isDirty,
+        backgroundImageResourceForm.isDirty
+      ),
+      loadError: nullishCoalesce(
+        configForm.loadError,
+        resourceForm.loadError,
+        backgroundImageResourceForm.loadError
+      ),
+      updateError: nullishCoalesce(
+        configForm.updateError,
+        resourceForm.updateError,
+        backgroundImageResourceForm.updateError
+      ),
       state,
       reload: () => {
         configForm.reload();
