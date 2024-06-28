@@ -57,7 +57,9 @@ import ErrorRenderer from "../../ErrorRenderer";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import TextField from "../../TextField";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
+import WidgetTitle from "../../WidgetTitle";
 import { useId } from "../../hook/useId";
+import { FormContainerBase } from "../../FormContainerBase";
 import { nullishCoalesce, or_ } from "../../util/operators";
 
 function getOriginFromDomain(domain: string): string {
@@ -533,6 +535,68 @@ const RedirectURLTextField: React.VFC<RedirectURLTextFieldProps> =
       </div>
     );
   };
+
+interface RedirectURLFormProps {
+  className?: string;
+  redirectURLForm: AppConfigFormModel<RedirectURLFormState>;
+}
+const RedirectURLForm: React.VFC<RedirectURLFormProps> =
+  function RedirectURLForm(props) {
+    const { className, redirectURLForm } = props;
+
+    const onChangePostLoginURL = useCallback(
+      (url: string) => {
+        redirectURLForm.setState((prev) =>
+          produce(prev, (draft) => {
+            draft.postLoginURL = url;
+          })
+        );
+      },
+      [redirectURLForm]
+    );
+
+    const onChangePostLogoutURL = useCallback(
+      (url: string) => {
+        redirectURLForm.setState((prev) =>
+          produce(prev, (draft) => {
+            draft.postLogoutURL = url;
+          })
+        );
+      },
+      [redirectURLForm]
+    );
+
+    return (
+      <div className={className}>
+        <WidgetTitle>
+          <FormattedMessage id="CustomDomainListScreen.redirectURLSection.title" />
+        </WidgetTitle>
+        <RedirectURLTextField
+          className={cn("mt-4")}
+          label={
+            <FormattedMessage id="CustomDomainListScreen.redirectURLSection.input.postLoginURL.label" />
+          }
+          description={
+            <FormattedMessage id="CustomDomainListScreen.redirectURLSection.input.postLoginURL.description" />
+          }
+          value={redirectURLForm.state.postLoginURL}
+          onChangeValue={onChangePostLoginURL}
+        />
+        <RedirectURLTextField
+          className={cn("mt-4")}
+          label={
+            <FormattedMessage id="CustomDomainListScreen.redirectURLSection.input.postLogoutURL.label" />
+          }
+          description={
+            <FormattedMessage id="CustomDomainListScreen.redirectURLSection.input.postLogoutURL.description" />
+          }
+          value={redirectURLForm.state.postLogoutURL}
+          onChangeValue={onChangePostLogoutURL}
+        />
+      </div>
+    );
+  };
+
 interface CustomDomainListContentProps {
   domains: Domain[];
   appConfigForm: AppConfigFormModel<FormState>;
@@ -554,6 +618,7 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
         updateError,
       },
       featureConfig,
+      redirectURLForm,
     } = props;
 
     const { renderToString } = useContext(Context);
@@ -741,6 +806,11 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
               onRenderDetailsHeader={renderDomainListHeader}
             />
           </div>
+          <Separator className={cn(styles.widget)} />
+          <RedirectURLForm
+            className={cn(styles.widget)}
+            redirectURLForm={redirectURLForm}
+          />
 
           <DeleteDomainDialog
             domain={deleteDomainDialogData.domain}
