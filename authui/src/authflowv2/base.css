@@ -166,6 +166,7 @@
   /* Alignment */
   :root {
     --alignment-logo: center; /* center / start / end / hidden */
+    --alignment-card: center; /* center / start / end */
     --alignment-content: center; /* center / start / end */
   }
 }

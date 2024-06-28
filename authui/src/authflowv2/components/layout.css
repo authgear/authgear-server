@@ -1,9 +1,5 @@
 @layer components {
   :root {
-    --layout-flex-align-items: center;
-    --layout-padding-left: 0;
-    --layout-padding-right: 0;
-
     --layout__bg-color: var(--color-bg-base);
     --layout__bg_position: center;
     --layout__bg_repeat: no-repeat;
@@ -37,7 +33,17 @@
 
   @media (min-width: theme("screens.tablet")) {
     .layout--default {
-      align-items: var(--layout-flex-align-items);
+      :root[alignment-card="start"] & {
+        @apply items-start;
+      }
+
+      :root[alignment-card="center"] & {
+        @apply items-center;
+      }
+
+      :root[alignment-card="end"] & {
+        @apply items-end;
+      }
     }
 
     .layout__header--default,
@@ -49,8 +55,13 @@
 
   @media (min-width: theme("screens.desktop")) {
     .layout--default {
-      padding-left: var(--layout-padding-left);
-      padding-right: var(--layout-padding-right);
+      :root[alignment-card="start"] & {
+        @apply pl-60;
+      }
+
+      :root[alignment-card="end"] & {
+        @apply pr-60;
+      }
     }
   }
 }
