@@ -20,6 +20,7 @@ import {
   MessageBar,
   MessageBarType,
   SelectionMode,
+  Separator,
   Text,
   VerticalDivider,
 } from "@fluentui/react";
@@ -52,7 +53,6 @@ import {
 } from "../../hook/useAppConfigForm";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import ScreenContent from "../../ScreenContent";
-import Widget from "../../Widget";
 import ErrorRenderer from "../../ErrorRenderer";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import TextField from "../../TextField";
@@ -692,7 +692,7 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
       <ScreenLayoutScrollView>
         <ScreenContent>
           <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-          <Widget className={cn(styles.widget)}>
+          <div className={cn(styles.widget)}>
             <Text block={true}>
               <FormattedMessage id="CustomDomainListScreen.desc" />
             </Text>
@@ -706,7 +706,7 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
               onRenderItemColumn={renderDomainListColumn}
               onRenderDetailsHeader={renderDomainListHeader}
             />
-          </Widget>
+          </div>
 
           <DeleteDomainDialog
             domain={deleteDomainDialogData.domain}
