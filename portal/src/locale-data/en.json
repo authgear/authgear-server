@@ -156,7 +156,6 @@
   "ScreenNav.external-oauth": "Social / Enterprise Login",
   "ScreenNav.login-methods": "Login Methods",
   "ScreenNav.client-applications": "Applications",
-  "ScreenNav.ui-settings": "UI Settings",
   "ScreenNav.localization": "Email/SMS Templates",
   "ScreenNav.branding": "Branding",
   "ScreenNav.design": "Design",
@@ -913,7 +912,7 @@
   "DesignScreen.configuration.authgearBranding.disableAuthgearLogo.label": "Display Authgear logo in Sign in and Sign up page",
   "DesignScreen.configuration.fallback": "Leave unset to fallback to primary language settings - {fallbackLanguage}",
 
-  "UISettingsScreen.title": "UI Settings",
+  "UISettingsScreen.title": "Design",
   "UISettingsScreen.description": "Authgear comes with some simple styling for your login and signup page. You can customize the look and feel here.",
   "UISettingsScreen.favicon-title": "Favicon",
   "UISettingsScreen.favicon-description": "Upload a 32x32 pixel JPEG, PNG or GIF file below 100 KB",
@@ -937,7 +936,7 @@
   "UISettingsScreen.branding.disable-authgear-logo.label": "Display Authgear logo in Login and Signup page",
 
   "LocalizationConfigurationScreen.title": "Email/SMS Templates",
-  "LocalizationConfigurationScreen.description": "Update template contents and localizations.",
+  "LocalizationConfigurationScreen.description": "Change Email/SMS templates content for different languages",
   "LocalizationConfigurationScreen.template-content-title": "Update Template Contents",
   "LocalizationConfigurationScreen.forgot-password-link.title": "Reset Password by Link",
   "LocalizationConfigurationScreen.forgot-password-code.title": "Reset Password by OTP",
@@ -946,6 +945,7 @@
   "LocalizationConfigurationScreen.passwordless-via-sms.title": "Passwordless via SMS",
 
   "CustomTextConfigurationScreen.title": "Custom Text",
+  "CustomTextConfigurationScreen.description": "Customize the text in the AuthUI for different languages",
 
   "LanguagesConfigurationScreen.title": "Languages",
   "LanguagesConfigurationScreen.selectPrimaryLanguageWidget.title": "Primary language",

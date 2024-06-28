@@ -431,32 +431,16 @@ const AppRoot: React.VFC = function AppRoot() {
           <Route path="branding">
             <Route
               index={true}
+              element={<Navigate to="design" replace={true} />}
+            />
+            <Route
+              path="design"
               element={
-                <Navigate
-                  to={useAuthUIV2 ? "design" : "ui-settings"}
-                  replace={true}
-                />
+                <Suspense fallback={<ShowLoading />}>
+                  {useAuthUIV2 ? <DesignScreen /> : <UISettingsScreen />}
+                </Suspense>
               }
             />
-            {useAuthUIV2 ? (
-              <Route
-                path="design"
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <DesignScreen />
-                  </Suspense>
-                }
-              />
-            ) : (
-              <Route
-                path="ui-settings"
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <UISettingsScreen />
-                  </Suspense>
-                }
-              />
-            )}
             <Route
               path="localization"
               element={

@@ -20,7 +20,6 @@ import { useAppFeatureConfigQuery } from "./graphql/portal/query/appFeatureConfi
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 import styles from "./ScreenNav.module.css";
 import ExternalLink from "./ExternalLink";
-import { useAppAndSecretConfigQuery } from "./graphql/portal/query/appAndSecretConfigQuery";
 
 function getStyles(props: INavStyleProps) {
   return {
@@ -125,7 +124,6 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
       id: appID,
     },
   });
-  const { effectiveAppConfig } = useAppAndSecretConfigQuery(appID);
   const { effectiveFeatureConfig } = useAppFeatureConfigQuery(appID);
 
   const app =
@@ -143,8 +141,6 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
     }
     return false;
   }, [effectiveFeatureConfig]);
-
-  const useAuthUIV2 = effectiveAppConfig?.ui?.implementation === "authflowv2";
 
   const label = renderToString("ScreenNav.label");
 
@@ -259,19 +255,11 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         textKey: "ScreenNav.branding",
         urlPrefix: `/project/${appID}/branding`,
         children: [
-          ...[
-            useAuthUIV2
-              ? {
-                  type: "link" as const,
-                  textKey: "ScreenNav.design",
-                  url: `/project/${appID}/branding/design`,
-                }
-              : {
-                  type: "link" as const,
-                  textKey: "ScreenNav.ui-settings",
-                  url: `/project/${appID}/branding/ui-settings`,
-                },
-          ],
+          {
+            type: "link" as const,
+            textKey: "ScreenNav.design",
+            url: `/project/${appID}/branding/design`,
+          },
           {
             type: "link" as const,
             textKey: "ScreenNav.localization",
@@ -380,7 +368,6 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
 
     return links;
   }, [
-    useAuthUIV2,
     mobileView,
     skippedTutorial,
     appID,

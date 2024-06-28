@@ -23,6 +23,7 @@ import {
 import FormContainer from "../../FormContainer";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
+import ScreenDescription from "../../ScreenDescription";
 import ManageLanguageWidget from "./ManageLanguageWidget";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import EditTemplatesWidget, {
@@ -258,9 +259,14 @@ const CustomTextConfigurationScreen: React.VFC =
               "col-span-8",
               "tablet:col-span-full",
               "flex",
-              "justify-end"
+              "items-center",
+              "justify-between",
+              "gap-x-2"
             )}
           >
+            <ScreenDescription>
+              <FormattedMessage id="CustomTextConfigurationScreen.description" />
+            </ScreenDescription>
             <ManageLanguageWidget
               showLabel={false}
               existingLanguages={initialSupportedLanguages}
