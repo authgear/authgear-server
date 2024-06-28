@@ -36,6 +36,8 @@ export const enum CSSVariable {
   LayoutBackgroundColor = "--layout__bg-color",
   LayoutBackgroundImage = "--layout__bg-image",
   PrimaryButtonBackgroundColor = "--primary-btn__bg-color",
+  PrimaryButtonBackgroundColorHover = "--primary-btn__bg-color--hover",
+  PrimaryButtonBackgroundColorActive = "--primary-btn__bg-color--active",
   PrimaryButtonTextColor = "--primary-btn__text-color",
   PrimaryButtonBorderRadius = "--primary-btn__border-radius",
   InputFiledBorderRadius = "--input__border-radius",
@@ -69,6 +71,8 @@ export type BorderRadiusStyle =
 
 export interface ButtonStyle {
   backgroundColor: CSSColor;
+  backgroundColorActive: CSSColor;
+  backgroundColorHover: CSSColor;
   labelColor: CSSColor;
   borderRadius: BorderRadiusStyle;
 }
@@ -109,6 +113,8 @@ export const DEFAULT_LIGHT_THEME: CustomisableTheme = {
   },
   primaryButton: {
     backgroundColor: "#176df3",
+    backgroundColorActive: "#1151b8",
+    backgroundColorHover: "#1151b8",
     labelColor: "#ffffff",
     borderRadius: {
       type: "rounded",
@@ -135,6 +141,8 @@ export const DEFAULT_DARK_THEME: CustomisableTheme = {
   },
   primaryButton: {
     backgroundColor: "#176df3",
+    backgroundColorActive: "#235dba",
+    backgroundColorHover: "#235dba",
     labelColor: "#1c1c1e",
     borderRadius: {
       type: "rounded",
@@ -357,6 +365,14 @@ export class CustomisableThemeStyleGroup extends StyleGroup<CustomisableTheme> {
         backgroundColor: new ColorStyleProperty(
           CSSVariable.PrimaryButtonBackgroundColor,
           value.primaryButton.backgroundColor
+        ),
+        backgroundColorActive: new ColorStyleProperty(
+          CSSVariable.PrimaryButtonBackgroundColorActive,
+          value.primaryButton.backgroundColorActive
+        ),
+        backgroundColorHover: new ColorStyleProperty(
+          CSSVariable.PrimaryButtonBackgroundColorHover,
+          value.primaryButton.backgroundColorHover
         ),
         labelColor: new ColorStyleProperty(
           CSSVariable.PrimaryButtonTextColor,

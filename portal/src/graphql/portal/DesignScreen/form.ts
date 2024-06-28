@@ -39,6 +39,12 @@ import { ErrorParseRule } from "../../../error/parse";
 import { useAppFeatureConfigQuery } from "../query/appFeatureConfigQuery";
 import { makeImageSizeTooLargeErrorRule } from "../../../error/resources";
 import { nonNullable } from "../../../util/types";
+import {
+  BaseSlots,
+  ThemeGenerator,
+  getColorFromString,
+  themeRulesStandardCreator,
+} from "@fluentui/react";
 
 const LOCALE_BASED_RESOUCE_DEFINITIONS = [
   RESOURCE_TRANSLATION_JSON,
@@ -515,6 +521,22 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
             draft.primaryButton.backgroundColor = backgroundColor;
+            const themeRules = themeRulesStandardCreator();
+            const color = getColorFromString(backgroundColor);
+            if (color == null) {
+              return;
+            }
+            ThemeGenerator.insureSlots(themeRules, false);
+            ThemeGenerator.setSlot(
+              themeRules[BaseSlots[BaseSlots.primaryColor]],
+              color,
+              false,
+              true,
+              true
+            );
+            const json = ThemeGenerator.getThemeAsJson(themeRules);
+            draft.primaryButton.backgroundColorActive = json.themeDark;
+            draft.primaryButton.backgroundColorHover = json.themeDark;
           });
         });
       },

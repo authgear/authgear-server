@@ -46,6 +46,8 @@ describe("StyleCssVisitor", () => {
     --layout-padding-left: 0;
     --layout-padding-right: 0,;
     --primary-btn__bg-color: #176df3;
+    --primary-btn__bg-color--active: #1151b8;
+    --primary-btn__bg-color--hover: #1151b8;
     --primary-btn__text-color: #ffffff;
     --primary-btn__border-radius: 0.875em;
     --input__border-radius: 0.875em;
@@ -68,6 +70,8 @@ describe("StyleCssVisitor", () => {
       },
       primaryButton: {
         backgroundColor: "#176df3",
+        backgroundColorActive: "#1151b8",
+        backgroundColorHover: "#1151b8",
         labelColor: "#ffffff",
         borderRadius: {
           type: "rounded",
@@ -114,6 +118,8 @@ describe("CssAstVisitor", () => {
       },
       primaryButton: {
         backgroundColor: "#176df3",
+        backgroundColorActive: "#235dba",
+        backgroundColorHover: "#235dba",
         labelColor: "#1c1c1e",
         borderRadius: {
           type: "rounded",
@@ -134,6 +140,8 @@ describe("CssAstVisitor", () => {
     --layout__bg-color: #1c1c1e;
     --alignment-card: center;
     --primary-btn__bg-color: #176df3;
+    --primary-btn__bg-color--active: #235dba;
+    --primary-btn__bg-color--hover: #235dba;
     --primary-btn__text-color: #1c1c1e;
     --primary-btn__border-radius: 0.875em;
     --input__border-radius: 0.875em;
