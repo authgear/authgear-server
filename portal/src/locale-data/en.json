@@ -937,7 +937,7 @@
   "UISettingsScreen.branding.disable-authgear-logo.label": "Display Authgear logo in Login and Signup page",
 
   "LocalizationConfigurationScreen.title": "Email/SMS Templates",
-  "LocalizationConfigurationScreen.description": "Update template contents and localizations.",
+  "LocalizationConfigurationScreen.description": "Change Email/SMS templates content for different languages",
   "LocalizationConfigurationScreen.template-content-title": "Update Template Contents",
   "LocalizationConfigurationScreen.forgot-password-link.title": "Reset Password by Link",
   "LocalizationConfigurationScreen.forgot-password-code.title": "Reset Password by OTP",
