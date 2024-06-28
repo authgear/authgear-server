@@ -42,7 +42,7 @@ describe("StyleCssVisitor", () => {
   it("should parse authui stylesheet", () => {
     const authuiStyleSheet = `:root {
     --layout__bg-color: #ffffff;
-    --layout-flex-align-items: center;
+    --alignment-card: center;
     --layout-padding-left: 0;
     --layout-padding-right: 0,;
     --primary-btn__bg-color: #176df3;
@@ -65,8 +65,6 @@ describe("StyleCssVisitor", () => {
       },
       card: {
         alignment: "center",
-        leftMargin: "0",
-        rightMargin: "0,",
       },
       primaryButton: {
         backgroundColor: "#176df3",
@@ -113,8 +111,6 @@ describe("CssAstVisitor", () => {
       },
       card: {
         alignment: "center",
-        leftMargin: "0",
-        rightMargin: "0,",
       },
       primaryButton: {
         backgroundColor: "#176df3",
@@ -136,9 +132,7 @@ describe("CssAstVisitor", () => {
     });
     const expectedStyleSheet = `:root {
     --layout__bg-color: #1c1c1e;
-    --layout-flex-align-items: center;
-    --layout-padding-left: 0;
-    --layout-padding-right: 0,;
+    --alignment-card: center;
     --primary-btn__bg-color: #176df3;
     --primary-btn__text-color: #1c1c1e;
     --primary-btn__border-radius: 0.875em;

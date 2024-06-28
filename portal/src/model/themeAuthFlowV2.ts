@@ -32,9 +32,7 @@ export function selectByTheme<T>(option: { [t in Theme]: T }, theme: Theme): T {
 }
 
 export const enum CSSVariable {
-  LayoutFixAlignItems = "--layout-flex-align-items",
-  LayoutPaddingLeft = "--layout-padding-left",
-  LayoutPaddingRight = "--layout-padding-right",
+  AlignmentCard = "--alignment-card",
   LayoutBackgroundColor = "--layout__bg-color",
   LayoutBackgroundImage = "--layout__bg-image",
   PrimaryButtonBackgroundColor = "--primary-btn__bg-color",
@@ -79,11 +77,8 @@ export interface PageStyle {
   backgroundColor: CSSColor;
 }
 
-export const CardAlignedSideDefaultSpacing = "15rem";
 export interface CardStyle {
   alignment: Alignment;
-  leftMargin: string;
-  rightMargin: string;
 }
 
 export interface InputFieldStyle {
@@ -111,8 +106,6 @@ export const DEFAULT_LIGHT_THEME: CustomisableTheme = {
   },
   card: {
     alignment: "center",
-    leftMargin: "0",
-    rightMargin: "0,",
   },
   primaryButton: {
     backgroundColor: "#176df3",
@@ -139,8 +132,6 @@ export const DEFAULT_DARK_THEME: CustomisableTheme = {
   },
   card: {
     alignment: "center",
-    leftMargin: "0",
-    rightMargin: "0,",
   },
   primaryButton: {
     backgroundColor: "#176df3",
@@ -218,10 +209,10 @@ export class ColorStyleProperty extends StyleProperty<string> {
 export class AlignItemsStyleProperty extends StyleProperty<Alignment> {
   protected setWithRawValue(rawValue: string): void {
     switch (rawValue) {
-      case "flex-start":
+      case "start":
         this.value = "start";
         break;
-      case "flex-end":
+      case "end":
         this.value = "end";
         break;
       default:
@@ -237,9 +228,9 @@ export class AlignItemsStyleProperty extends StyleProperty<Alignment> {
   getCSSValue(): string {
     switch (this.value) {
       case "start":
-        return "flex-start";
+        return "start";
       case "end":
-        return "flex-end";
+        return "end";
       case "center":
         return "center";
       default:
@@ -357,16 +348,8 @@ export class CustomisableThemeStyleGroup extends StyleGroup<CustomisableTheme> {
       }),
       card: new StyleGroup({
         alignment: new AlignItemsStyleProperty(
-          CSSVariable.LayoutFixAlignItems,
+          CSSVariable.AlignmentCard,
           value.card.alignment
-        ),
-        leftMargin: new SpaceStyleProperty(
-          CSSVariable.LayoutPaddingLeft,
-          value.card.leftMargin
-        ),
-        rightMargin: new SpaceStyleProperty(
-          CSSVariable.LayoutPaddingRight,
-          value.card.rightMargin
         ),
       }),
 
