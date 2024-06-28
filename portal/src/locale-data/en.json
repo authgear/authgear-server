@@ -946,6 +946,7 @@
   "LocalizationConfigurationScreen.passwordless-via-sms.title": "Passwordless via SMS",
 
   "CustomTextConfigurationScreen.title": "Custom Text",
+  "CustomTextConfigurationScreen.description": "Customize the text in the AuthUI for different languages",
 
   "LanguagesConfigurationScreen.title": "Languages",
   "LanguagesConfigurationScreen.selectPrimaryLanguageWidget.title": "Primary language",
