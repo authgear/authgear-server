@@ -637,17 +637,17 @@ func (h *TokenHandler) verifyIDTokenDeviceSecretHash(offlineGrant *oauth.Offline
 	deviceSecretHash := oauth.HashToken(deviceSecret)
 	dsHashInterface, ok := idToken.Get(string(model.ClaimDeviceSecretHash))
 	if !ok {
-		err = fmt.Errorf("ds_hash does not exist")
+		err = protocol.NewError("invalid_grant", "expected ds_hash to be present in id token (subject_token)")
 	}
 	dsHash, ok := dsHashInterface.(string)
 	if !ok {
-		err = fmt.Errorf("ds_hash is not string")
+		err = protocol.NewError("invalid_grant", "expected ds_hash to be a string")
 	}
 	if subtle.ConstantTimeCompare([]byte(dsHash), []byte(deviceSecretHash)) != 1 {
-		err = fmt.Errorf("ds_hash does not match")
+		err = protocol.NewError("invalid_grant", "the hash of device_secret (actor_token) does not match ds_hash in id token (subject_token)")
 	}
 	if subtle.ConstantTimeCompare([]byte(offlineGrant.DeviceSecretHash), []byte(deviceSecretHash)) != 1 {
-		err = fmt.Errorf("invalid device secret")
+		err = protocol.NewError("invalid_grant", "the device_secret (actor_token) does not bind to the session")
 	}
 	return err
 }
@@ -657,22 +657,22 @@ func (h *TokenHandler) handleAppInitiatedSSOToWebToken(
 	r protocol.TokenRequest,
 ) (protocol.TokenResponse, error) {
 	if r.ActorTokenType() != DeviceSecretTokenType {
-		return nil, protocol.NewError("invalid_request", "actor_token_type not supported")
+		protocol.NewError("invalid_request", fmt.Sprintf("expected actor_token_type = %v", DeviceSecretTokenType))
 	}
 	if r.SubjectTokenType() != IDTokenTokenType {
-		return nil, protocol.NewError("invalid_request", "subject_token_type not supported")
+		return nil, protocol.NewError("invalid_request", fmt.Sprintf("expected subject_token_type = %v", IDTokenTokenType))
 	}
 	if r.ActorToken() == "" {
-		return nil, protocol.NewError("invalid_request", "invalid actor_token")
+		return nil, protocol.NewError("invalid_request", "actor_token is required")
 	}
 	if r.SubjectToken() == "" {
-		return nil, protocol.NewError("invalid_request", "invalid subject_token")
+		return nil, protocol.NewError("invalid_request", "subject_token is required")
 	}
 
 	deviceSecret := r.ActorToken()
 	idToken, err := h.IDTokenIssuer.VerifyIDTokenWithoutClient(r.SubjectToken())
 	if err != nil {
-		return nil, protocol.NewError("invalid_request", "invalid subject_token")
+		return nil, protocol.NewError("invalid_request", "subject_token is not a valid id token")
 	}
 	if idToken.Issuer() != r.Audience() {
 		return nil, protocol.NewError("invalid_request", "invalid audience")
@@ -682,7 +682,7 @@ func (h *TokenHandler) handleAppInitiatedSSOToWebToken(
 		return nil, err
 	}
 	if !ok {
-		return nil, protocol.NewError("invalid_grant", "invalid session")
+		return nil, protocol.NewError("invalid_grant", "sid in id token (subject_token) is invalid")
 	}
 
 	var isAllowed bool = false
@@ -697,12 +697,12 @@ func (h *TokenHandler) handleAppInitiatedSSOToWebToken(
 		scopes = offlineGrant.GetScopes(offlineGrant.InitialClientID)
 	}
 	if !isAllowed {
-		return nil, protocol.NewError("invalid_grant", "operation not allowed")
+		return nil, protocol.NewError("invalid_grant", "app-initiated-sso-to-web is not allowed for this session")
 	}
 
 	err = h.verifyIDTokenDeviceSecretHash(offlineGrant, idToken, deviceSecret)
 	if err != nil {
-		return nil, protocol.NewError("invalid_grant", "invalid device secret")
+		return nil, err
 	}
 
 	requestedScopes := r.Scope()
