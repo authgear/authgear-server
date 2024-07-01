@@ -18,29 +18,41 @@ func TestInputSchemaStepIdentify(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(string(bytes), ShouldEqualJSON, expected)
 		}
-
+		var varTrue = true
+		dummyBotProtection := &BotProtectionData{
+			Enabled: &varTrue,
+			Provider: &BotProtectionDataProvider{
+				Type: config.BotProtectionProviderTypeCloudflare,
+			},
+		}
 		test(&InputSchemaStepIdentify{
 			Options: []IdentificationOption{
 				{
 					Identification: config.AuthenticationFlowIdentificationEmail,
+					BotProtection:  dummyBotProtection,
 				},
 				{
 					Identification: config.AuthenticationFlowIdentificationPhone,
+					BotProtection:  dummyBotProtection,
 				},
 				{
 					Identification: config.AuthenticationFlowIdentificationUsername,
+					BotProtection:  dummyBotProtection,
 				},
 				{
 					Identification: config.AuthenticationFlowIdentificationOAuth,
 					Alias:          "google",
+					BotProtection:  dummyBotProtection,
 				},
 				{
 					Identification: config.AuthenticationFlowIdentificationOAuth,
 					Alias:          "wechat_mobile",
 					WechatAppType:  wechat.AppTypeMobile,
+					BotProtection:  dummyBotProtection,
 				},
 				{
 					Identification: config.AuthenticationFlowIdentificationPasskey,
+					BotProtection:  dummyBotProtection,
 				},
 			},
 		}, `
@@ -48,6 +60,47 @@ func TestInputSchemaStepIdentify(t *testing.T) {
     "oneOf": [
         {
             "properties": {
+                "bot_protection": {
+                    "allOf": [
+                        {
+                            "if": {
+                                "properties": {
+                                    "type": {
+                                        "enum": [
+                                            "cloudflare",
+                                            "recaptchav2"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "type"
+                                ]
+                            },
+                            "then": {
+                                "required": [
+                                    "response",
+                                    "type"
+                                ]
+                            }
+                        }
+                    ],
+                    "properties": {
+                        "response": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "enum": [
+                                "cloudflare",
+                                "recaptchav2"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "type"
+                    ],
+                    "type": "object"
+                },
                 "identification": {
                     "const": "email"
                 },
@@ -57,11 +110,53 @@ func TestInputSchemaStepIdentify(t *testing.T) {
             },
             "required": [
                 "identification",
-                "login_id"
+                "login_id",
+                "bot_protection"
             ]
         },
         {
             "properties": {
+                "bot_protection": {
+                    "allOf": [
+                        {
+                            "if": {
+                                "properties": {
+                                    "type": {
+                                        "enum": [
+                                            "cloudflare",
+                                            "recaptchav2"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "type"
+                                ]
+                            },
+                            "then": {
+                                "required": [
+                                    "response",
+                                    "type"
+                                ]
+                            }
+                        }
+                    ],
+                    "properties": {
+                        "response": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "enum": [
+                                "cloudflare",
+                                "recaptchav2"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "type"
+                    ],
+                    "type": "object"
+                },
                 "identification": {
                     "const": "phone"
                 },
@@ -71,11 +166,53 @@ func TestInputSchemaStepIdentify(t *testing.T) {
             },
             "required": [
                 "identification",
-                "login_id"
+                "login_id",
+                "bot_protection"
             ]
         },
         {
             "properties": {
+                "bot_protection": {
+                    "allOf": [
+                        {
+                            "if": {
+                                "properties": {
+                                    "type": {
+                                        "enum": [
+                                            "cloudflare",
+                                            "recaptchav2"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "type"
+                                ]
+                            },
+                            "then": {
+                                "required": [
+                                    "response",
+                                    "type"
+                                ]
+                            }
+                        }
+                    ],
+                    "properties": {
+                        "response": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "enum": [
+                                "cloudflare",
+                                "recaptchav2"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "type"
+                    ],
+                    "type": "object"
+                },
                 "identification": {
                     "const": "username"
                 },
@@ -85,7 +222,8 @@ func TestInputSchemaStepIdentify(t *testing.T) {
             },
             "required": [
                 "identification",
-                "login_id"
+                "login_id",
+                "bot_protection"
             ]
         },
         {
@@ -94,6 +232,47 @@ func TestInputSchemaStepIdentify(t *testing.T) {
                     "const": "google",
                     "type": "string"
                 },
+                                "bot_protection": {
+                    "allOf": [
+                        {
+                            "if": {
+                                "properties": {
+                                    "type": {
+                                        "enum": [
+                                            "cloudflare",
+                                            "recaptchav2"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "type"
+                                ]
+                            },
+                            "then": {
+                                "required": [
+                                    "response",
+                                    "type"
+                                ]
+                            }
+                        }
+                    ],
+                    "properties": {
+                        "response": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "enum": [
+                                "cloudflare",
+                                "recaptchav2"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "type"
+                    ],
+                    "type": "object"
+                },
                 "identification": {
                     "const": "oauth"
                 },
@@ -109,7 +288,8 @@ func TestInputSchemaStepIdentify(t *testing.T) {
             "required": [
                 "identification",
                 "redirect_uri",
-                "alias"
+                "alias",
+                "bot_protection"
             ]
         },
         {
@@ -118,6 +298,47 @@ func TestInputSchemaStepIdentify(t *testing.T) {
                     "const": "wechat_mobile",
                     "type": "string"
                 },
+                "bot_protection": {
+                    "allOf": [
+                        {
+                            "if": {
+                                "properties": {
+                                    "type": {
+                                        "enum": [
+                                            "cloudflare",
+                                            "recaptchav2"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "type"
+                                ]
+                            },
+                            "then": {
+                                "required": [
+                                    "response",
+                                    "type"
+                                ]
+                            }
+                        }
+                    ],
+                    "properties": {
+                        "response": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "enum": [
+                                "cloudflare",
+                                "recaptchav2"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "type"
+                    ],
+                    "type": "object"
+                },
                 "identification": {
                     "const": "oauth"
                 },
@@ -133,7 +354,8 @@ func TestInputSchemaStepIdentify(t *testing.T) {
             "required": [
                 "identification",
                 "redirect_uri",
-                "alias"
+                "alias",
+                "bot_protection"
             ]
         },
         {
@@ -188,13 +410,55 @@ func TestInputSchemaStepIdentify(t *testing.T) {
                     ],
                     "type": "object"
                 },
+                                "bot_protection": {
+                    "allOf": [
+                        {
+                            "if": {
+                                "properties": {
+                                    "type": {
+                                        "enum": [
+                                            "cloudflare",
+                                            "recaptchav2"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "type"
+                                ]
+                            },
+                            "then": {
+                                "required": [
+                                    "response",
+                                    "type"
+                                ]
+                            }
+                        }
+                    ],
+                    "properties": {
+                        "response": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "enum": [
+                                "cloudflare",
+                                "recaptchav2"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "type"
+                    ],
+                    "type": "object"
+                },
                 "identification": {
                     "const": "passkey"
                 }
             },
             "required": [
                 "identification",
-                "assertion_response"
+                "assertion_response",
+                "bot_protection"
             ]
         }
     ],

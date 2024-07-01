@@ -74,3 +74,14 @@ func NewIdentificationOptionPasskey(requestOptions *model.WebAuthnRequestOptions
 		RequestOptions: requestOptions,
 	}
 }
+
+func (i *IdentificationOption) isBotProtectionRequired() bool {
+	if i.BotProtection == nil {
+		return false
+	}
+	if i.BotProtection.Enabled != nil && *i.BotProtection.Enabled && i.BotProtection.Provider != nil && i.BotProtection.Provider.Type != "" {
+		return true
+	}
+
+	return false
+}
