@@ -46,6 +46,10 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 			oneOf = append(oneOf, b)
 		}
 
+		setRequired := func() {
+			b.Required(required...)
+		}
+
 		switch option.Identification {
 		case config.AuthenticationFlowIdentificationIDToken:
 			requireString("id_token")
@@ -81,6 +85,13 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 		default:
 			break
 		}
+
+		if option.isBotProtectionRequired() {
+			// bot_protection is required.
+			required = append(required, "bot_protection")
+			b.Properties().Property("bot_protection", NewInputTakeBotProtectionSchemaBuilder())
+			setRequired()
+		}
 	}
 
 	b := validation.SchemaBuilder{}.
@@ -112,6 +123,8 @@ type InputStepIdentify struct {
 	Alias        string `json:"alias,omitempty"`
 	RedirectURI  string `json:"redirect_uri,omitempty"`
 	ResponseMode string `json:"response_mode,omitempty"`
+
+	BotProtection *InputTakeBotProtection `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &InputStepIdentify{}
@@ -119,6 +132,7 @@ var _ inputTakeIdentificationMethod = &InputStepIdentify{}
 var _ inputTakeIDToken = &InputStepIdentify{}
 var _ inputTakeLoginID = &InputStepIdentify{}
 var _ inputTakeOAuthAuthorizationRequest = &InputStepIdentify{}
+var _ inputTakeBotProtection = &InputStepIdentify{}
 
 func (*InputStepIdentify) Input() {}
 
@@ -144,4 +158,22 @@ func (i *InputStepIdentify) GetOAuthRedirectURI() string {
 
 func (i *InputStepIdentify) GetOAuthResponseMode() string {
 	return i.ResponseMode
+}
+
+func (i *InputStepIdentify) GetBotProtectionProvider() *InputTakeBotProtection {
+	return i.BotProtection
+}
+
+func (i *InputStepIdentify) GetBotProtectionProviderType() config.BotProtectionProviderType {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Type
+}
+
+func (i *InputStepIdentify) GetBotProtectionProviderResponse() string {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Response
 }
