@@ -14,9 +14,8 @@ authgear.yaml:
         keys:
         - type: email
 before:
-  - type: custom_sql
-    custom_sql:
-      path: totp_user.sql
+  - type: user_import
+    user_import: users.json
 steps:
 
   - action: "create"
@@ -45,7 +44,7 @@ steps:
     input: |
       {
         "identification": "email",
-        "login_id": "signup@example.com"
+        "login_id": "totplogin@example.com"
       }
     output:
       result: |
