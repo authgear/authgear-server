@@ -47,15 +47,34 @@ func (n *IntentUseIdentityLoginID) CanReactTo(ctx context.Context, deps *authflo
 	if err != nil {
 		return nil, err
 	}
+
+	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, flowRootObject, n.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
+
 	return &InputSchemaTakeLoginID{
-		FlowRootObject: flowRootObject,
-		JSONPointer:    n.JSONPointer,
+		FlowRootObject:          flowRootObject,
+		JSONPointer:             n.JSONPointer,
+		IsBotProtectionRequired: isBotProtectionRequired,
 	}, nil
 }
 
 func (n *IntentUseIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	var inputTakeLoginID inputTakeLoginID
 	if authflow.AsInput(input, &inputTakeLoginID) {
+		var bpSpecialErr error
+		bpRequired, err := IsNodeBotProtectionRequired(ctx, deps, flows, n.JSONPointer)
+		if err != nil {
+			return nil, err
+		}
+		if bpRequired {
+			token := inputTakeLoginID.(inputTakeBotProtection).GetBotProtectionProviderResponse()
+			bpSpecialErr, err = HandleBotProtection(ctx, deps, token)
+			if err != nil {
+				return nil, err
+			}
+		}
 		loginID := inputTakeLoginID.GetLoginID()
 		spec := &identity.Spec{
 			Type: model.IdentityTypeLoginID,
@@ -76,7 +95,7 @@ func (n *IntentUseIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.D
 			return nil, err
 		}
 
-		return authflow.NewNodeSimple(n), nil
+		return authflow.NewNodeSimple(n), bpSpecialErr
 	}
 
 	return nil, authflow.ErrIncompatibleInput
