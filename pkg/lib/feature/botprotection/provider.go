@@ -27,6 +27,9 @@ func (p *Provider) Verify(token string) error {
 	if !p.Config.Enabled || p.Config.Provider == nil {
 		return fmt.Errorf("bot_protection provider not configured")
 	}
+	if token == "" {
+		return fmt.Errorf("empty token for bot_protection")
+	}
 
 	switch p.Config.Provider.Type {
 	case config.BotProtectionProviderTypeCloudflare:
