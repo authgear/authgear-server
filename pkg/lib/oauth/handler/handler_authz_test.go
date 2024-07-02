@@ -11,8 +11,10 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -63,6 +65,8 @@ func TestAuthorizationHandler(t *testing.T) {
 		cookieManager := &mockCookieManager{}
 		oauthSessionService := &mockOAuthSessionService{}
 		clientResolver := &mockClientResolver{}
+		appInitiatedSSOToWebTokenService := NewMockAppInitiatedSSOToWebTokenService(ctrl)
+		idTokenIssuer := NewMockIDTokenIssuer(ctrl)
 
 		appID := config.AppID("app-id")
 		h := &handler.AuthorizationHandler{
@@ -85,7 +89,9 @@ func TestAuthorizationHandler(t *testing.T) {
 				CodeGenerator: func() string { return "authz-code" },
 				CodeGrants:    codeGrantStore,
 			},
-			ClientResolver: clientResolver,
+			ClientResolver:                   clientResolver,
+			AppInitiatedSSOToWebTokenService: appInitiatedSSOToWebTokenService,
+			IDTokenIssuer:                    idTokenIssuer,
 		}
 		handle := func(r protocol.AuthorizationRequest) *httptest.ResponseRecorder {
 			result := h.Handle(r)
@@ -443,6 +449,68 @@ func TestAuthorizationHandler(t *testing.T) {
 
 					So(codeGrantStore.grants, ShouldBeEmpty)
 				})
+			})
+		})
+
+		Convey("app-initiated-sso-to-web", func() {
+			mockedClient := &config.OAuthClientConfig{
+				ClientID:      "client-id",
+				RedirectURIs:  []string{"https://example.com/"},
+				ResponseTypes: []string{"none", "urn:authgear:params:oauth:response-type:app_initiated_sso_to_web token"},
+			}
+			clientResolver.ClientConfig = mockedClient
+
+			Convey("exchange for access token in cookie", func() {
+				testOfflineGrantID := "TEST_OFFLINE_GRANT_ID"
+				testOfflineGrant := &oauth.OfflineGrant{
+					ID: testOfflineGrantID,
+				}
+				testSID := oidc.EncodeSID(testOfflineGrant)
+
+				testAppInititatedSSOToWebToken := "TEST_APP_INITIATED_SSO_TO_WEB_TOKEN"
+				testIDToken := "TEST_ID_TOKEN"
+
+				testVerifiedIDToken := jwt.New()
+				testVerifiedIDToken.Set(string(model.ClaimSID), testSID)
+
+				idTokenIssuer.EXPECT().VerifyIDTokenWithoutClient(testIDToken).
+					Times(1).
+					Return(testVerifiedIDToken, nil)
+
+				testAccessToken := "TEST_ACCESS_TOKEN"
+
+				appInitiatedSSOToWebTokenService.EXPECT().ExchangeForAccessToken(
+					mockedClient,
+					testOfflineGrantID,
+					testAppInititatedSSOToWebToken,
+				).
+					Times(1).
+					Return(testAccessToken, nil)
+
+				req := protocol.AuthorizationRequest{
+					"client_id":                        "client-id",
+					"response_type":                    "urn:authgear:params:oauth:response-type:app_initiated_sso_to_web token",
+					"x_app_initiated_sso_to_web_token": testAppInititatedSSOToWebToken,
+					"prompt":                           "none",
+					"response_mode":                    "cookie",
+					"state":                            "my-state",
+					"redirect_uri":                     "https://example.com/",
+					"id_token_hint":                    testIDToken,
+				}
+
+				resp := handle(req)
+				So(resp.Result().StatusCode, ShouldEqual, 200)
+				So(resp.Body.String(), ShouldEqual, redirectHTML(
+					"https://example.com/?state=my-state",
+				))
+				cookieSet := false
+				for _, cookie := range resp.Result().Cookies() {
+					if cookie.Name == "app_access_token" && cookie.Value == testAccessToken {
+						cookieSet = true
+					}
+				}
+				So(cookieSet, ShouldEqual, true)
+
 			})
 		})
 	})
