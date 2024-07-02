@@ -1,0 +1,208 @@
+name: Account Recovery then Login
+authgear.yaml:
+  override: |
+    authentication_flow:
+      account_recovery_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: email
+            on_failure: ignore
+            steps:
+              - type: select_destination
+                allowed_channels:
+                  - channel: email
+                    otp_form: link
+          - identification: phone
+            on_failure: ignore
+            steps:
+              - type: select_destination
+                allowed_channels:
+                  - channel: sms
+                    otp_form: code
+        - type: verify_account_recovery_code
+        - type: reset_password
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+- action: "create"
+  input: |
+    {
+      "type": "account_recovery",
+      "name": "default"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "account_recovery",
+        "name": "default",
+        "action": {
+          "type": "identify",
+          "data": {
+            "type": "account_recovery_identification_data",
+            "options": [
+              "[[arrayof]]",
+              {
+                "identification": "[[string]]"
+              }
+            ]
+          }
+        }
+      }
+
+- action: input
+  input: |
+    {
+      "identification": "email",
+      "login_id": "e2e_recovery_email@example.com"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "account_recovery",
+        "name": "default",
+        "action": {
+          "type": "select_destination",
+          "data": {
+            "type": "account_recovery_select_destination_data",
+            "options": [
+              "[[arrayof]]",
+              {
+                "masked_display_name": "[[string]]",
+                "channel": "email",
+                "otp_form": "link"
+              }
+            ]
+          }
+        }
+      }
+
+- action: input
+  input: |
+    {
+      "index": 0
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "account_recovery",
+        "name": "default",
+        "action": {
+          "type": "verify_account_recovery_code",
+          "data": {
+            "type": "account_recovery_verify_code_data",
+            "masked_display_name": "[[string]]",
+            "channel": "email",
+            "otp_form": "link",
+            "code_length": 32,
+            "can_resend_at": "[[string]]"
+          }
+        }
+      }
+- action: input
+  input: |
+    {
+      "account_recovery_code": "{{ linkOTPCode "email" "e2e_recovery_email@example.com" }}"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "account_recovery",
+        "name": "default",
+        "action": {
+          "type": "reset_password",
+          "data": {
+              "password_policy": {
+                "history": {
+                  "enabled": false
+                },
+                "minimum_length": 8
+              },
+              "type": "new_password_data"
+            }
+        }
+      }
+
+- action: input
+  input: |
+    {
+      "new_password": "Abcd1234Abcd1234!"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "account_recovery",
+        "name": "default",
+        "action": {
+          "type": "finished"
+        }
+      }
+
+- action: create
+  input: |
+    {
+      "type": "login",
+      "name": "default"
+    }
+  output:
+    result: |
+      {
+        "state_token": "[[string]]",
+        "type": "login",
+        "name": "default",
+        "action": {
+          "type": "identify",
+          "data": {
+            "type": "identification_data",
+            "options": [
+              "[[arrayof]]",
+              {
+                "identification": "[[string]]"
+              }
+            ]
+          }
+        }
+      }
+
+- action: input
+  input: |
+    {
+      "identification": "email",
+      "login_id": "e2e_recovery_email@example.com"
+    }
+  output:
+    result: |
+      {
+        "action": {
+          "type": "authenticate",
+          "data": {
+            "options": [
+              "[[arrayof]]",
+              {
+                "authentication": "[[string]]"
+              }
+            ],
+            "type": "authentication_data"
+          }
+        }
+      }
+- action: input
+  input: |
+    {
+      "authentication": "primary_password",
+      "password": "Abcd1234Abcd1234!"
+    }
+  output:
+    result: |
+      {
+        "action": {
+          "type": "finished"
+        }
+      }

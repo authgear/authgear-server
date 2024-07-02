@@ -77,10 +77,11 @@ var _ = TestCaseSchema.Add("Step", `
 	"additionalProperties": false,
 	"properties": {
 		"name": { "type": "string" },
-		"action": { "type": "string", "enum": ["create", "input", "oauth_redirect"] },
+		"action": { "type": "string", "enum": ["create", "input", "oauth_redirect", "generate_totp_code"] },
 		"input": { "type": "string" },
 		"to": { "type": "string" },
 		"redirect_uri": { "type": "string" },
+		"totp_secret": { "type": "string" },
 		"output": { "$ref": "#/$defs/Output" }
 	},
 	"allOf": [
@@ -113,7 +114,17 @@ var _ = TestCaseSchema.Add("Step", `
             "then": {
                 "required": ["to", "redirect_uri"]
             }
-        }
+        },
+				{
+				  "if": {
+							"properties": {
+									"action": { "const": "generate_totp_code" }
+							}
+					},
+					"then": {
+							"required": ["totp_secret"]
+					}
+				}
     ]
 }
 `)
@@ -129,15 +140,19 @@ type Step struct {
 	To          string `json:"to"`
 	RedirectURI string `json:"redirect_uri"`
 
+	// `action` == "generate_totp_code"
+	TOTPSecret string `json:"totp_secret"`
+
 	Output *Output `json:"output"`
 }
 
 type StepAction string
 
 const (
-	StepActionCreate        StepAction = "create"
-	StepActionInput         StepAction = "input"
-	StepActionOAuthRedirect StepAction = "oauth_redirect"
+	StepActionCreate           StepAction = "create"
+	StepActionInput            StepAction = "input"
+	StepActionOAuthRedirect    StepAction = "oauth_redirect"
+	StepActionGenerateTOTPCode StepAction = "generate_totp_code"
 )
 
 var _ = TestCaseSchema.Add("Output", `

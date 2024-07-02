@@ -1,0 +1,68 @@
+name: SignupLogin with existing user should switch to login flow
+authgear.yaml:
+  override: |
+    authentication_flow:
+      signup_login_flows:
+      - name: default
+        steps:
+        - name: signup_login_identify
+          type: identify
+          one_of:
+          - identification: email
+            signup_flow: default
+            login_flow: default
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup_login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "signup_login",
+          "name": "default",
+          "action": {
+              "type": "identify",
+              "data": {
+                  "type": "identification_data",
+                  "options": [
+                    "[[arrayof]]",
+                    {
+                      "identification": "[[string]]"
+                    }
+                  ]
+              }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "login",
+          "name": "default",
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "type": "authentication_data",
+              "options": [
+                  "[[arrayof]]",
+                  {
+                      "authentication": "[[string]]"
+                  }
+              ]
+            }
+          }
+        }
+  

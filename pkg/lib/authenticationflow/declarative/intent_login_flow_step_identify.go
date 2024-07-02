@@ -16,15 +16,15 @@ func init() {
 }
 
 // IntentLoginFlowStepIdentify
-//   NodeUseIdentityLoginID (MilestoneIdentificationMethod, MilestoneFlowUseIdentity)
-//   NodeDoUseIdentity (MilestoneDoUseIdentity)
+//   IntentUseIdentityLoginID (MilestoneIdentificationMethod, MilestoneFlowUseIdentity)
+//     NodeDoUseIdentity (MilestoneDoUseIdentity)
 //
 //   IntentOAuth (MilestoneIdentificationMethod, MilestoneFlowUseIdentity)
 //     NodeOAuth
 //     NodeDoUseIdentity (MilestoneDoUseIdentity)
 //
-//   NodeUseIdentityPasskey (MilestoneIdentificationMethod, MilestoneFlowUseIdentity)
-//   NodeDoUseIdentityPasskey (MilestoneDoUseIdentity)
+//   IntentUseIdentityPasskey (MilestoneIdentificationMethod, MilestoneFlowUseIdentity)
+//     NodeDoUseIdentityPasskey (MilestoneDoUseIdentity)
 
 type IntentLoginFlowStepIdentify struct {
 	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
@@ -152,7 +152,7 @@ func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *authflo
 			case config.AuthenticationFlowIdentificationPhone:
 				fallthrough
 			case config.AuthenticationFlowIdentificationUsername:
-				return authflow.NewNodeSimple(&NodeUseIdentityLoginID{
+				return authflow.NewSubFlow(&IntentUseIdentityLoginID{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					Identification: identification,
 				}), nil
@@ -162,7 +162,7 @@ func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *authflo
 					Identification: identification,
 				}), nil
 			case config.AuthenticationFlowIdentificationPasskey:
-				return authflow.NewNodeSimple(&NodeUseIdentityPasskey{
+				return authflow.NewSubFlow(&IntentUseIdentityPasskey{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					Identification: identification,
 				}), nil

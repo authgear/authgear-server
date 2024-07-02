@@ -12,30 +12,34 @@ import (
 )
 
 func init() {
-	authflow.RegisterNode(&NodeUseAccountRecoveryIdentity{})
+	authflow.RegisterIntent(&IntentUseAccountRecoveryIdentity{})
 }
 
-type NodeUseAccountRecoveryIdentity struct {
+type IntentUseAccountRecoveryIdentity struct {
 	JSONPointer    jsonpointer.T                                                   `json:"json_pointer,omitempty"`
 	Identification config.AuthenticationFlowAccountRecoveryIdentification          `json:"identification,omitempty"`
 	OnFailure      config.AuthenticationFlowAccountRecoveryIdentificationOnFailure `json:"on_failure,omitempty"`
 }
 
-var _ authflow.NodeSimple = &NodeUseAccountRecoveryIdentity{}
-var _ authflow.Milestone = &NodeUseAccountRecoveryIdentity{}
-var _ MilestoneDoUseAccountRecoveryIdentificationMethod = &NodeUseAccountRecoveryIdentity{}
-var _ authflow.InputReactor = &NodeUseAccountRecoveryIdentity{}
+var _ authflow.Intent = &IntentUseAccountRecoveryIdentity{}
+var _ authflow.Milestone = &IntentUseAccountRecoveryIdentity{}
+var _ MilestoneDoUseAccountRecoveryIdentificationMethod = &IntentUseAccountRecoveryIdentity{}
+var _ authflow.InputReactor = &IntentUseAccountRecoveryIdentity{}
 
-func (*NodeUseAccountRecoveryIdentity) Kind() string {
-	return "NodeUseAccountRecoveryIdentity"
+func (*IntentUseAccountRecoveryIdentity) Kind() string {
+	return "IntentUseAccountRecoveryIdentity"
 }
 
-func (*NodeUseAccountRecoveryIdentity) Milestone() {}
-func (n *NodeUseAccountRecoveryIdentity) MilestoneDoUseAccountRecoveryIdentificationMethod() config.AuthenticationFlowAccountRecoveryIdentification {
+func (*IntentUseAccountRecoveryIdentity) Milestone() {}
+func (n *IntentUseAccountRecoveryIdentity) MilestoneDoUseAccountRecoveryIdentificationMethod() config.AuthenticationFlowAccountRecoveryIdentification {
 	return n.Identification
 }
 
-func (n *NodeUseAccountRecoveryIdentity) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+func (n *IntentUseAccountRecoveryIdentity) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	_, _, recovered := authflow.FindMilestoneInCurrentFlow[MilestoneDoUseAccountRecoveryIdentity](flows)
+	if recovered {
+		return nil, authflow.ErrEOF
+	}
 	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
 	if err != nil {
 		return nil, err
@@ -46,7 +50,7 @@ func (n *NodeUseAccountRecoveryIdentity) CanReactTo(ctx context.Context, deps *a
 	}, nil
 }
 
-func (n *NodeUseAccountRecoveryIdentity) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (n *IntentUseAccountRecoveryIdentity) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	var inputTakeLoginID inputTakeLoginID
 	if authflow.AsInput(input, &inputTakeLoginID) {
 		loginID := inputTakeLoginID.GetLoginID()

@@ -22,6 +22,20 @@ func init() {
 	authflow.RegisterIntent(&IntentSignupFlowStepCreateAuthenticator{})
 }
 
+// IntentSignupFlowStepCreateAuthenticator
+//
+//   IntentCreateAuthenticatorPassword (MilestoneFlowCreateAuthenticator, MilestoneAuthenticationMethod)
+//     NodeDoCreateAuthenticator (MilestoneDoCreateAuthenticator)
+//
+//   IntentCreateAuthenticatorOOBOTP (MilestoneFlowCreateAuthenticator, MilestoneAuthenticationMethod)
+//     IntentVerifyClaim (MilestoneVerifyClaim)
+//       NodeVerifyClaim
+//     NodeDoCreateAuthenticator (MilestoneDoCreateAuthenticator)
+//     NodeDidSelectAuthenticator (MilestoneDidSelectAuthenticator)
+//
+//   IntentCreateAuthenticatorTOTP (MilestoneFlowCreateAuthenticator, MilestoneAuthenticationMethod)
+//     NodeDoCreateAuthenticator (MilestoneDoCreateAuthenticator)
+
 type IntentSignupFlowStepCreateAuthenticatorData struct {
 	TypedData
 	Options []CreateAuthenticatorOption `json:"options,omitempty"`
@@ -171,7 +185,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) ReactTo(ctx context.Context, d
 			case config.AuthenticationFlowAuthenticationPrimaryPassword:
 				fallthrough
 			case config.AuthenticationFlowAuthenticationSecondaryPassword:
-				return authflow.NewNodeSimple(&NodeCreateAuthenticatorPassword{
+				return authflow.NewSubFlow(&IntentCreateAuthenticatorPassword{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
@@ -192,7 +206,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) ReactTo(ctx context.Context, d
 					Authentication: authentication,
 				}), nil
 			case config.AuthenticationFlowAuthenticationSecondaryTOTP:
-				node, err := NewNodeCreateAuthenticatorTOTP(deps, &NodeCreateAuthenticatorTOTP{
+				intent, err := NewIntentCreateAuthenticatorTOTP(deps, &IntentCreateAuthenticatorTOTP{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
@@ -200,7 +214,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) ReactTo(ctx context.Context, d
 				if err != nil {
 					return nil, err
 				}
-				return authflow.NewNodeSimple(node), nil
+				return authflow.NewSubFlow(intent), nil
 			}
 		}
 		return nil, authflow.ErrIncompatibleInput

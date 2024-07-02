@@ -18,8 +18,8 @@ func init() {
 }
 
 // IntentPromoteFlowStepIdentify
-//   NodePromoteIdentityLoginID (MilestoneIdentificationMethod, MilestoneFlowCreateIdentity)
-//   NodeDoCreateIdentity (MilestoneDoCreateIdentity)
+//   IntentPromoteIdentityLoginID (MilestoneIdentificationMethod, MilestoneFlowCreateIdentity)
+//     NodeDoCreateIdentity (MilestoneDoCreateIdentity)
 //
 //   IntentPromoteIdentityOAuth (MilestoneIdentificationMethod, MilestoneFlowCreateIdentity)
 //     NodePromoteIdentityOAuth
@@ -180,7 +180,7 @@ func (i *IntentPromoteFlowStepIdentify) ReactTo(ctx context.Context, deps *authf
 			case config.AuthenticationFlowIdentificationPhone:
 				fallthrough
 			case config.AuthenticationFlowIdentificationUsername:
-				return authflow.NewNodeSimple(&NodePromoteIdentityLoginID{
+				return authflow.NewSubFlow(&IntentPromoteIdentityLoginID{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Identification: identification,

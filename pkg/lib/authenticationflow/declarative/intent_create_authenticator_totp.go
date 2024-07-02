@@ -19,39 +19,39 @@ import (
 )
 
 func init() {
-	authflow.RegisterNode(&NodeCreateAuthenticatorTOTP{})
+	authflow.RegisterIntent(&IntentCreateAuthenticatorTOTP{})
 }
 
-type NodeCreateAuthenticatorTOTPData struct {
+type IntentCreateAuthenticatorTOTPData struct {
 	TypedData
 	Secret     string `json:"secret"`
 	OTPAuthURI string `json:"otpauth_uri"`
 }
 
-func NewNodeCreateAuthenticatorTOTPData(d NodeCreateAuthenticatorTOTPData) NodeCreateAuthenticatorTOTPData {
+func NewIntentCreateAuthenticatorTOTPData(d IntentCreateAuthenticatorTOTPData) IntentCreateAuthenticatorTOTPData {
 	d.Type = DataTypeCreateTOTPData
 	return d
 }
 
-var _ authflow.Data = NodeCreateAuthenticatorTOTPData{}
+var _ authflow.Data = IntentCreateAuthenticatorTOTPData{}
 
-func (m NodeCreateAuthenticatorTOTPData) Data() {}
+func (m IntentCreateAuthenticatorTOTPData) Data() {}
 
-type NodeCreateAuthenticatorTOTP struct {
+type IntentCreateAuthenticatorTOTP struct {
 	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
 	UserID         string                                  `json:"user_id,omitempty"`
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
 	Authenticator  *authenticator.Info                     `json:"authenticator,omitempty"`
 }
 
-var _ authflow.NodeSimple = &NodeCreateAuthenticatorTOTP{}
-var _ authflow.Milestone = &NodeCreateAuthenticatorTOTP{}
-var _ MilestoneAuthenticationMethod = &NodeCreateAuthenticatorTOTP{}
-var _ MilestoneFlowCreateAuthenticator = &NodeCreateAuthenticatorTOTP{}
-var _ authflow.InputReactor = &NodeCreateAuthenticatorTOTP{}
-var _ authflow.DataOutputer = &NodeCreateAuthenticatorTOTP{}
+var _ authflow.Intent = &IntentCreateAuthenticatorTOTP{}
+var _ authflow.Milestone = &IntentCreateAuthenticatorTOTP{}
+var _ MilestoneAuthenticationMethod = &IntentCreateAuthenticatorTOTP{}
+var _ MilestoneFlowCreateAuthenticator = &IntentCreateAuthenticatorTOTP{}
+var _ authflow.InputReactor = &IntentCreateAuthenticatorTOTP{}
+var _ authflow.DataOutputer = &IntentCreateAuthenticatorTOTP{}
 
-func NewNodeCreateAuthenticatorTOTP(deps *authflow.Dependencies, n *NodeCreateAuthenticatorTOTP) (*NodeCreateAuthenticatorTOTP, error) {
+func NewIntentCreateAuthenticatorTOTP(deps *authflow.Dependencies, n *IntentCreateAuthenticatorTOTP) (*IntentCreateAuthenticatorTOTP, error) {
 	authenticatorKind := n.authenticatorKind()
 
 	isDefault, err := authenticatorIsDefault(deps, n.UserID, authenticatorKind)
@@ -82,19 +82,23 @@ func NewNodeCreateAuthenticatorTOTP(deps *authflow.Dependencies, n *NodeCreateAu
 	return n, nil
 }
 
-func (*NodeCreateAuthenticatorTOTP) Kind() string {
-	return "NodeCreateAuthenticatorTOTP"
+func (*IntentCreateAuthenticatorTOTP) Kind() string {
+	return "IntentCreateAuthenticatorTOTP"
 }
 
-func (*NodeCreateAuthenticatorTOTP) Milestone() {}
-func (*NodeCreateAuthenticatorTOTP) MilestoneFlowCreateAuthenticator(flows authflow.Flows) (MilestoneDoCreateAuthenticator, authflow.Flows, bool) {
+func (*IntentCreateAuthenticatorTOTP) Milestone() {}
+func (*IntentCreateAuthenticatorTOTP) MilestoneFlowCreateAuthenticator(flows authflow.Flows) (MilestoneDoCreateAuthenticator, authflow.Flows, bool) {
 	return authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateAuthenticator](flows)
 }
-func (n *NodeCreateAuthenticatorTOTP) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
+func (n *IntentCreateAuthenticatorTOTP) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
 	return n.Authentication
 }
 
-func (n *NodeCreateAuthenticatorTOTP) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+func (n *IntentCreateAuthenticatorTOTP) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	_, _, created := authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateAuthenticator](flows)
+	if created {
+		return nil, authflow.ErrEOF
+	}
 	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
 	if err != nil {
 		return nil, err
@@ -106,7 +110,7 @@ func (n *NodeCreateAuthenticatorTOTP) CanReactTo(ctx context.Context, deps *auth
 	}, nil
 }
 
-func (n *NodeCreateAuthenticatorTOTP) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (n *IntentCreateAuthenticatorTOTP) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	var inputSetupTOTP inputSetupTOTP
 	if authflow.AsInput(input, &inputSetupTOTP) {
 		_, err := deps.Authenticators.VerifyWithSpec(n.Authenticator, &authenticator.Spec{
@@ -132,7 +136,7 @@ func (n *NodeCreateAuthenticatorTOTP) ReactTo(ctx context.Context, deps *authflo
 	return nil, authflow.ErrIncompatibleInput
 }
 
-func (n *NodeCreateAuthenticatorTOTP) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
+func (n *IntentCreateAuthenticatorTOTP) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
 	secret := n.Authenticator.TOTP.Secret
 
 	issuer := deps.HTTPOrigin
@@ -151,13 +155,13 @@ func (n *NodeCreateAuthenticatorTOTP) OutputData(ctx context.Context, deps *auth
 	}
 	otpauthURI := totp.GetURI(opts).String()
 
-	return NewNodeCreateAuthenticatorTOTPData(NodeCreateAuthenticatorTOTPData{
+	return NewIntentCreateAuthenticatorTOTPData(IntentCreateAuthenticatorTOTPData{
 		Secret:     secret,
 		OTPAuthURI: otpauthURI,
 	}), nil
 }
 
-func (n *NodeCreateAuthenticatorTOTP) authenticatorKind() model.AuthenticatorKind {
+func (n *IntentCreateAuthenticatorTOTP) authenticatorKind() model.AuthenticatorKind {
 	switch n.Authentication {
 	case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 		return model.AuthenticatorKindSecondary

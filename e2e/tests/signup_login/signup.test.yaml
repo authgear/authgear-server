@@ -1,0 +1,60 @@
+name: SignupLogin with non-existing user should switch to signup flow
+authgear.yaml:
+  override: |
+    authentication_flow:
+      signup_login_flows:
+      - name: default
+        steps:
+        - name: signup_login_identify
+          type: identify
+          one_of:
+          - identification: email
+            signup_flow: default
+            login_flow: default
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup_login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "signup_login",
+          "name": "default",
+          "action": {
+              "type": "identify",
+              "data": {
+                  "type": "identification_data",
+                  "options": [
+                    "[[arrayof]]",
+                    {
+                      "identification": "[[string]]"
+                    }
+                  ]
+              }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "idontexist@example.com"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "signup",
+          "name": "default",
+          "action": {
+              "type": "verify",
+              "data": {
+                  "type": "verify_oob_otp_data",
+                  "channel": "email"
+              }
+          }
+        }
+  
