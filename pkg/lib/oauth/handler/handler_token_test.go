@@ -83,6 +83,7 @@ func TestTokenHandler(t *testing.T) {
 		}
 
 		Convey("token exchange: app-initiated-sso-to-web-token", func() {
+			// nolint:gosec
 			testDeviceSecret := "TEST_DEVICE_SECRET"
 			testOfflineGrantID := "TEST_SESSION_ID"
 			testIdToken := "TEST_ID_TOKEN"
@@ -126,6 +127,7 @@ func TestTokenHandler(t *testing.T) {
 				AnyTimes().
 				Return(testAuthz, nil)
 
+			// nolint:gosec
 			expectedAppInitiatedSSOToWebToken := "TEST_APP_INITIATED_SSO_TO_WEB_TOKEN"
 			expectedAppInitiatedSSOToWebTokenHash := oauth.HashToken(expectedAppInitiatedSSOToWebToken)
 			expectedAppInitiatedSSOToWebTokenType := "Bearer"
