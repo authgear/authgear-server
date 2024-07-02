@@ -102,6 +102,8 @@ check-tidy:
 	$(MAKE) generate-twemoji-icons
 	$(MAKE) generate-material-icons
 	go mod tidy
+	# We wanted to run the following, but that requires SSH, which does not work for running CI for PRs.
+	# (cd custombuild && go mod tidy)
 	git status --porcelain | grep '.*'; test $$? -eq 1
 
 .PHONY: build-image
