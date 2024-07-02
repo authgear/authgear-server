@@ -35,21 +35,6 @@ type AppInitiatedSSOToWebTokenAccessGrantService interface {
 	) (*IssueAccessGrantResult, error)
 }
 
-type IssueAppInitiatedSSOToWebTokenResult struct {
-	Token     string
-	TokenHash string
-	TokenType string
-	ExpiresIn int
-}
-
-type IssueAppInitiatedSSOToWebTokenOptions struct {
-	AppID           string
-	ClientID        string
-	OfflineGrantID  string
-	AuthorizationID string
-	Scopes          []string
-}
-
 type AppInitiatedSSOToWebTokenOfflineGrantService interface {
 	CreateNewRefreshToken(
 		grant *OfflineGrant,
