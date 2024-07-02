@@ -663,7 +663,7 @@ func (h *TokenHandler) handleAppInitiatedSSOToWebToken(
 	r protocol.TokenRequest,
 ) (protocol.TokenResponse, error) {
 	if r.ActorTokenType() != DeviceSecretTokenType {
-		protocol.NewError("invalid_request", fmt.Sprintf("expected actor_token_type = %v", DeviceSecretTokenType))
+		return nil, protocol.NewError("invalid_request", fmt.Sprintf("expected actor_token_type = %v", DeviceSecretTokenType))
 	}
 	if r.SubjectTokenType() != IDTokenTokenType {
 		return nil, protocol.NewError("invalid_request", fmt.Sprintf("expected subject_token_type = %v", IDTokenTokenType))
