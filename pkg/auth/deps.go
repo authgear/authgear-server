@@ -73,6 +73,7 @@ var DependencySet = wire.NewSet(
 
 	wire.Bind(new(webapp.SessionMiddlewareOAuthSessionService), new(*oauthsession.StoreRedis)),
 	wire.Bind(new(webapp.SessionMiddlewareUIInfoResolver), new(*oidc.UIInfoResolver)),
+	wire.Bind(new(handlerwebapp.SettingsDeleteAccountSuccessUIInfoResolver), new(*oidc.UIInfoResolver)),
 	wire.Bind(new(webapp.UIInfoResolver), new(*oidc.UIInfoResolver)),
 	wire.Bind(new(webapp.GraphService), new(*interaction.Service)),
 	wire.Bind(new(webapp.CookieManager), new(*httputil.CookieManager)),
@@ -101,7 +102,8 @@ var DependencySet = wire.NewSet(
 
 	wire.Bind(new(handlerwebapp.SelectAccountAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 	wire.Bind(new(handlerwebappauthflowv2.SelectAccountAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
-
+	wire.Bind(new(handlerwebapp.SettingsDeleteAccountSuccessAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
+	wire.Bind(new(handlerwebapp.SettingsDeleteAccountAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 	wire.Bind(new(handlerwebapp.SetupTOTPEndpointsProvider), new(*endpoints.Endpoints)),
 	wire.Bind(new(handlerwebapp.OAuthEntrypointEndpointsProvider), new(*endpoints.Endpoints)),
 	wire.Bind(new(handlerwebapp.ConfirmTerminateOtherSessionsEndpointsProvider), new(*endpoints.Endpoints)),
@@ -174,6 +176,7 @@ var DependencySet = wire.NewSet(
 	handlerwebapp.DependencySet,
 	wire.Bind(new(handlerwebapp.AuthflowControllerOAuthClientResolver), new(*oauthclient.Resolver)),
 	wire.Bind(new(handlerwebapp.AuthflowControllerSessionStore), new(*webapp.SessionStoreRedis)),
+	wire.Bind(new(handlerwebapp.SettingsDeleteAccountSessionStore), new(*webapp.SessionStoreRedis)),
 	wire.Bind(new(handlerwebapp.SettingsAuthenticatorService), new(*authenticatorservice.Service)),
 	wire.Bind(new(handlerwebapp.SettingsMFAService), new(*mfa.Service)),
 	wire.Bind(new(handlerwebapp.SettingsIdentityService), new(*identityservice.Service)),
@@ -183,6 +186,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.SettingsProfileEditStdAttrsService), new(*featurestdattrs.Service)),
 	wire.Bind(new(handlerwebapp.SettingsProfileEditCustomAttrsService), new(*featurecustomattrs.Service)),
 	wire.Bind(new(handlerwebapp.SettingsDeleteAccountUserService), new(*facade.UserFacade)),
+	wire.Bind(new(handlerwebapp.SettingsDeleteAccountOAuthSessionService), new(*oauthsession.StoreRedis)),
 	wire.Bind(new(handlerwebapp.SettingsAuthorizationService), new(*oauth.AuthorizationService)),
 	wire.Bind(new(handlerwebapp.SettingsSessionListingService), new(*sessionlisting.SessionListingService)),
 	wire.Bind(new(handlerwebapp.EnterLoginIDService), new(*identityservice.Service)),

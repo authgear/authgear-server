@@ -265,6 +265,7 @@ func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
 type UIURLBuilderAuthUIEndpointsProvider interface {
 	OAuthEntrypointURL() *url.URL
 	SettingsChangePasswordURL() *url.URL
+	SettingsDeleteAccountURL() *url.URL
 }
 
 type UIURLBuilder struct {
@@ -317,6 +318,26 @@ func (b *UIURLBuilder) BuildSettingsActionURL(client *config.OAuthClientConfig, 
 	switch r.SettingsAction() {
 	case "change_password":
 		endpoint := b.Endpoints.SettingsChangePasswordURL()
+		q := endpoint.Query()
+		q.Set(queryNameOAuthSessionID, e.ID)
+		q.Set("client_id", r.ClientID())
+		q.Set("redirect_uri", r.RedirectURI())
+		if r.ColorScheme() != "" {
+			q.Set("x_color_scheme", r.ColorScheme())
+		}
+		if len(r.UILocales()) > 0 {
+			q.Set("ui_locales", strings.Join(r.UILocales(), " "))
+		}
+		if r.State() != "" {
+			q.Set("state", r.State())
+		}
+		if r.XState() != "" {
+			q.Set("x_state", r.XState())
+		}
+		endpoint.RawQuery = q.Encode()
+		return endpoint, nil
+	case "delete_account":
+		endpoint := b.Endpoints.SettingsDeleteAccountURL()
 		q := endpoint.Query()
 		q.Set(queryNameOAuthSessionID, e.ID)
 		q.Set("client_id", r.ClientID())
