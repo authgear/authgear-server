@@ -22,13 +22,20 @@ func (r TokenRequest) JWT() string                 { return r["jwt"] }
 func (r TokenRequest) App2AppDeviceKeyJWT() string { return r["x_app2app_device_key_jwt"] }
 func (r TokenRequest) ClientSecret() string        { return r["client_secret"] }
 func (r TokenRequest) Scope() []string             { return parseSpaceDelimitedString(r["scope"]) }
+func (r TokenRequest) RequestedTokenType() string  { return r["requested_token_type"] }
+func (r TokenRequest) Audience() string            { return r["audience"] }
+func (r TokenRequest) SubjectTokenType() string    { return r["subject_token_type"] }
+func (r TokenRequest) SubjectToken() string        { return r["subject_token"] }
+func (r TokenRequest) ActorTokenType() string      { return r["actor_token_type"] }
+func (r TokenRequest) ActorToken() string          { return r["actor_token"] }
 
-func (r TokenResponse) AccessToken(v string)  { r["access_token"] = v }
-func (r TokenResponse) TokenType(v string)    { r["token_type"] = v }
-func (r TokenResponse) ExpiresIn(v int)       { r["expires_in"] = v }
-func (r TokenResponse) RefreshToken(v string) { r["refresh_token"] = v }
-func (r TokenResponse) DeviceSecret(v string) { r["device_secret"] = v }
-func (r TokenResponse) Scope(v string)        { r["scope"] = v }
+func (r TokenResponse) AccessToken(v string)     { r["access_token"] = v }
+func (r TokenResponse) TokenType(v string)       { r["token_type"] = v }
+func (r TokenResponse) IssuedTokenType(v string) { r["issued_token_type"] = v }
+func (r TokenResponse) ExpiresIn(v int)          { r["expires_in"] = v }
+func (r TokenResponse) RefreshToken(v string)    { r["refresh_token"] = v }
+func (r TokenResponse) DeviceSecret(v string)    { r["device_secret"] = v }
+func (r TokenResponse) Scope(v string)           { r["scope"] = v }
 
 // OIDC extension
 

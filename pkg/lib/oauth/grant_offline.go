@@ -291,22 +291,38 @@ func (g *OfflineGrant) HasValidTokens() bool {
 	return len(g.RefreshTokens) > 0
 }
 
-func (g *OfflineGrant) HasAllScope(clientID string, requiredScopes []string) bool {
-	clientScopes := map[string]interface{}{}
+func (g *OfflineGrant) getScopesSet(clientID string) map[string]struct{} {
+	clientScopes := map[string]struct{}{}
 
 	if g.InitialClientID == clientID {
 		for _, scope := range g.Deprecated_Scopes {
-			clientScopes[scope] = scope
+			clientScopes[scope] = struct{}{}
 		}
 	}
 
 	for _, token := range g.RefreshTokens {
 		if token.ClientID == clientID {
 			for _, scope := range token.Scopes {
-				clientScopes[scope] = scope
+				clientScopes[scope] = struct{}{}
 			}
 		}
 	}
+
+	return clientScopes
+}
+
+func (g *OfflineGrant) GetScopes(clientID string) []string {
+	clientScopes := g.getScopesSet(clientID)
+
+	result := []string{}
+	for scope := range clientScopes {
+		result = append(result, scope)
+	}
+	return result
+}
+
+func (g *OfflineGrant) HasAllScopes(clientID string, requiredScopes []string) bool {
+	clientScopes := g.getScopesSet(clientID)
 
 	hasAll := true
 
