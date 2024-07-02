@@ -169,10 +169,15 @@ type TokenHandlerTokenService interface {
 	IssueDeviceSecret(resp protocol.TokenResponse) (deviceSecretHash string)
 }
 
+type AppInitiatedSSOToWebTokenService interface {
+	IssueAppInitiatedSSOToWebToken(
+		options *oauth.IssueAppInitiatedSSOToWebTokenOptions,
+	) (*oauth.IssueAppInitiatedSSOToWebTokenResult, error)
+}
+
 type TokenHandler struct {
 	Context                context.Context
 	AppID                  config.AppID
-	Config                 *config.OAuthConfig
 	AppDomains             config.AppDomains
 	HTTPProto              httputil.HTTPProto
 	HTTPOrigin             httputil.HTTPOrigin
@@ -188,7 +193,7 @@ type TokenHandler struct {
 	OfflineGrants                    TokenHandlerOfflineGrantStore
 	AppSessionTokens                 TokenHandlerAppSessionTokenStore
 	OfflineGrantService              TokenHandlerOfflineGrantService
-	AppInitiatedSSOToWebTokenService oauth.AppInitiatedSSOToWebTokenService
+	AppInitiatedSSOToWebTokenService AppInitiatedSSOToWebTokenService
 	Graphs                           GraphService
 	IDTokenIssuer                    IDTokenIssuer
 	Clock                            clock.Clock

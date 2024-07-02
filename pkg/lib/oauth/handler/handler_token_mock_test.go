@@ -46,6 +46,20 @@ func (m *MockIDTokenIssuer) EXPECT() *MockIDTokenIssuerMockRecorder {
 	return m.recorder
 }
 
+// Iss mocks base method.
+func (m *MockIDTokenIssuer) Iss() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Iss")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// Iss indicates an expected call of Iss.
+func (mr *MockIDTokenIssuerMockRecorder) Iss() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Iss", reflect.TypeOf((*MockIDTokenIssuer)(nil).Iss))
+}
+
 // IssueIDToken mocks base method.
 func (m *MockIDTokenIssuer) IssueIDToken(opts oidc.IssueIDTokenOptions) (string, error) {
 	m.ctrl.T.Helper()
@@ -683,4 +697,42 @@ func (m *MockTokenHandlerTokenService) ParseRefreshToken(token string) (*oauth.A
 func (mr *MockTokenHandlerTokenServiceMockRecorder) ParseRefreshToken(token interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ParseRefreshToken", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).ParseRefreshToken), token)
+}
+
+// MockAppInitiatedSSOToWebTokenService is a mock of AppInitiatedSSOToWebTokenService interface.
+type MockAppInitiatedSSOToWebTokenService struct {
+	ctrl     *gomock.Controller
+	recorder *MockAppInitiatedSSOToWebTokenServiceMockRecorder
+}
+
+// MockAppInitiatedSSOToWebTokenServiceMockRecorder is the mock recorder for MockAppInitiatedSSOToWebTokenService.
+type MockAppInitiatedSSOToWebTokenServiceMockRecorder struct {
+	mock *MockAppInitiatedSSOToWebTokenService
+}
+
+// NewMockAppInitiatedSSOToWebTokenService creates a new mock instance.
+func NewMockAppInitiatedSSOToWebTokenService(ctrl *gomock.Controller) *MockAppInitiatedSSOToWebTokenService {
+	mock := &MockAppInitiatedSSOToWebTokenService{ctrl: ctrl}
+	mock.recorder = &MockAppInitiatedSSOToWebTokenServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAppInitiatedSSOToWebTokenService) EXPECT() *MockAppInitiatedSSOToWebTokenServiceMockRecorder {
+	return m.recorder
+}
+
+// IssueAppInitiatedSSOToWebToken mocks base method.
+func (m *MockAppInitiatedSSOToWebTokenService) IssueAppInitiatedSSOToWebToken(options *oauth.IssueAppInitiatedSSOToWebTokenOptions) (*oauth.IssueAppInitiatedSSOToWebTokenResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IssueAppInitiatedSSOToWebToken", options)
+	ret0, _ := ret[0].(*oauth.IssueAppInitiatedSSOToWebTokenResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IssueAppInitiatedSSOToWebToken indicates an expected call of IssueAppInitiatedSSOToWebToken.
+func (mr *MockAppInitiatedSSOToWebTokenServiceMockRecorder) IssueAppInitiatedSSOToWebToken(options interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueAppInitiatedSSOToWebToken", reflect.TypeOf((*MockAppInitiatedSSOToWebTokenService)(nil).IssueAppInitiatedSSOToWebToken), options)
 }

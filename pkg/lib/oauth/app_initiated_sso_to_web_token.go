@@ -29,7 +29,7 @@ type AppInitiatedSSOToWebTokenService struct {
 	AppInitiatedSSOToWebTokens AppInitiatedSSOToWebTokenStore
 }
 
-type issueAppInitiatedSSOToWebTokenResult struct {
+type IssueAppInitiatedSSOToWebTokenResult struct {
 	Token     string
 	TokenHash string
 	TokenType string
@@ -46,7 +46,7 @@ type IssueAppInitiatedSSOToWebTokenOptions struct {
 
 func (s *AppInitiatedSSOToWebTokenService) IssueAppInitiatedSSOToWebToken(
 	options *IssueAppInitiatedSSOToWebTokenOptions,
-) (*issueAppInitiatedSSOToWebTokenResult, error) {
+) (*IssueAppInitiatedSSOToWebTokenResult, error) {
 	now := s.Clock.NowUTC()
 	token := GenerateToken()
 	tokenHash := HashToken(token)
@@ -65,7 +65,7 @@ func (s *AppInitiatedSSOToWebTokenService) IssueAppInitiatedSSOToWebToken(
 		return nil, err
 	}
 
-	return &issueAppInitiatedSSOToWebTokenResult{
+	return &IssueAppInitiatedSSOToWebTokenResult{
 		Token:     token,
 		TokenHash: tokenHash,
 		TokenType: "Bearer",
