@@ -149,9 +149,9 @@ func TestTokenHandler(t *testing.T) {
 				Return(testOfflineGrant, nil)
 			sid := oidc.EncodeSID(testOfflineGrant)
 			mockIdToken := jwt.New()
-			mockIdToken.Set("iss", origin)
-			mockIdToken.Set("sid", sid)
-			mockIdToken.Set("ds_hash", dsHash)
+			_ = mockIdToken.Set("iss", origin)
+			_ = mockIdToken.Set("sid", sid)
+			_ = mockIdToken.Set("ds_hash", dsHash)
 			idTokenIssuer.EXPECT().VerifyIDTokenWithoutClient(testIdToken).
 				Return(mockIdToken, nil).
 				Times(1)
