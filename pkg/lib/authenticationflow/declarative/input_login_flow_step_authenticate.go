@@ -60,6 +60,9 @@ func (i *InputSchemaLoginFlowStepAuthenticate) SchemaBuilder() validation.Schema
 				)
 			}
 		}
+		setRequired := func() {
+			b.Required(required...)
+		}
 
 		setRequiredAndAppendOneOf := func() {
 			b.Required(required...)
@@ -103,6 +106,12 @@ func (i *InputSchemaLoginFlowStepAuthenticate) SchemaBuilder() validation.Schema
 		default:
 			break
 		}
+		if option.isBotProtectionRequired() {
+			// bot_protection is required.
+			required = append(required, "bot_protection")
+			b.Properties().Property("bot_protection", NewInputTakeBotProtectionSchemaBuilder())
+			setRequired()
+		}
 	}
 
 	b := validation.SchemaBuilder{}.
@@ -139,6 +148,7 @@ type InputLoginFlowStepAuthenticate struct {
 	RecoveryCode       string                                  `json:"recovery_code,omitempty"`
 	Index              int                                     `json:"index,omitempty"`
 	Channel            model.AuthenticatorOOBChannel           `json:"channel,omitempty"`
+	BotProtection      *InputTakeBotProtection                 `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &InputLoginFlowStepAuthenticate{}
@@ -149,6 +159,7 @@ var _ inputTakeTOTP = &InputLoginFlowStepAuthenticate{}
 var _ inputTakeRecoveryCode = &InputLoginFlowStepAuthenticate{}
 var _ inputTakeAuthenticationOptionIndex = &InputLoginFlowStepAuthenticate{}
 var _ inputTakeOOBOTPChannel = &InputLoginFlowStepAuthenticate{}
+var _ inputTakeBotProtection = &InputLoginFlowStepAuthenticate{}
 
 func (*InputLoginFlowStepAuthenticate) Input() {}
 
@@ -178,4 +189,22 @@ func (i *InputLoginFlowStepAuthenticate) GetIndex() int {
 
 func (i *InputLoginFlowStepAuthenticate) GetChannel() model.AuthenticatorOOBChannel {
 	return i.Channel
+}
+
+func (i *InputLoginFlowStepAuthenticate) GetBotProtectionProvider() *InputTakeBotProtection {
+	return i.BotProtection
+}
+
+func (i *InputLoginFlowStepAuthenticate) GetBotProtectionProviderType() config.BotProtectionProviderType {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Type
+}
+
+func (i *InputLoginFlowStepAuthenticate) GetBotProtectionProviderResponse() string {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Response
 }
