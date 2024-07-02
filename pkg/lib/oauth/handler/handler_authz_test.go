@@ -467,11 +467,12 @@ func TestAuthorizationHandler(t *testing.T) {
 				}
 				testSID := oidc.EncodeSID(testOfflineGrant)
 
+				// nolint:gosec
 				testAppInititatedSSOToWebToken := "TEST_APP_INITIATED_SSO_TO_WEB_TOKEN"
 				testIDToken := "TEST_ID_TOKEN"
 
 				testVerifiedIDToken := jwt.New()
-				testVerifiedIDToken.Set(string(model.ClaimSID), testSID)
+				_ = testVerifiedIDToken.Set(string(model.ClaimSID), testSID)
 
 				idTokenIssuer.EXPECT().VerifyIDTokenWithoutClient(testIDToken).
 					Times(1).

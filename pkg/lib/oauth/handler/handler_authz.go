@@ -27,9 +27,10 @@ import (
 //go:generate mockgen -source=handler_authz.go -destination=handler_authz_mock_test.go -package handler_test
 
 const (
-	CodeResponseType                      = "code"
-	NoneResponseType                      = "none"
-	SettingsActonResponseType             = "urn:authgear:params:oauth:response-type:settings-action"
+	CodeResponseType          = "code"
+	NoneResponseType          = "none"
+	SettingsActonResponseType = "urn:authgear:params:oauth:response-type:settings-action"
+	// nolint:gosec
 	AppInitiatedSSOToWebTokenResponseType = "urn:authgear:params:oauth:response-type:app_initiated_sso_to_web token"
 )
 
@@ -639,6 +640,25 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 	return h.finish(redirectURI, r, idpSessionID, authenticationInfo, idTokenHintSID, []*http.Cookie{}, grantAuthz)
 }
 
+func (h *AuthorizationHandler) validateAppInitiatedSSOToWebTokenRequest(
+	client *config.OAuthClientConfig,
+	r protocol.AuthorizationRequest,
+) error {
+	if len(r.Prompt()) != 1 || r.Prompt()[0] != "none" {
+		return protocol.NewError("invalid_request", "only 'prompt=none' is supported when using app-initiated-sso-to-web")
+	}
+	if idTokenHint, ok := r.IDTokenHint(); !ok || idTokenHint == "" {
+		return protocol.NewError("invalid_request", "id_token_hint is required when using app-initiated-sso-to-web")
+	}
+	if r.AppInitiatedSSOToWebToken() == "" {
+		return protocol.NewError("invalid_request", "x_app_initiated_sso_to_web_token is required when using app-initiated-sso-to-web")
+	}
+	if r.ResponseMode() != "cookie" {
+		return protocol.NewError("invalid_request", "only 'response_mode=cookie' is supported when using app-initiated-sso-to-web")
+	}
+	return nil
+}
+
 func (h *AuthorizationHandler) validateRequest(
 	client *config.OAuthClientConfig,
 	r protocol.AuthorizationRequest,
@@ -692,17 +712,8 @@ func (h *AuthorizationHandler) validateRequest(
 			return err
 		}
 	case AppInitiatedSSOToWebTokenResponseType:
-		if len(r.Prompt()) != 1 || r.Prompt()[0] != "none" {
-			return protocol.NewError("invalid_request", "only 'prompt=none' is supported when using app-initiated-sso-to-web")
-		}
-		if idTokenHint, ok := r.IDTokenHint(); !ok || idTokenHint == "" {
-			return protocol.NewError("invalid_request", "id_token_hint is required when using app-initiated-sso-to-web")
-		}
-		if r.AppInitiatedSSOToWebToken() == "" {
-			return protocol.NewError("invalid_request", "x_app_initiated_sso_to_web_token is required when using app-initiated-sso-to-web")
-		}
-		if r.ResponseMode() != "cookie" {
-			return protocol.NewError("invalid_request", "only 'response_mode=cookie' is supported when using app-initiated-sso-to-web")
+		if err := h.validateAppInitiatedSSOToWebTokenRequest(client, r); err != nil {
+			return err
 		}
 	default:
 		return protocol.NewError("unsupported_response_type", "only 'code' response type is supported")
