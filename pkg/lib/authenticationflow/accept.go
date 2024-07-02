@@ -7,14 +7,19 @@ import (
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/feature/botprotection"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
+type AcceptResult struct {
+	BotProtectionVerificationResult *BotProtectionVerificationResult `json:"bot_protection,omitempty"`
+}
+
 // Accept executes the flow to the deepest using input.
 // In addition to the errors caused by intents and nodes,
 // ErrEOF and ErrNoChange can be returned.
-func Accept(ctx context.Context, deps *Dependencies, flows Flows, rawMessage json.RawMessage) (err error) {
+func Accept(ctx context.Context, deps *Dependencies, flows Flows, rawMessage json.RawMessage) (*AcceptResult, error) {
 	return accept(ctx, deps, flows, func(inputSchema InputSchema) (Input, error) {
 		if rawMessage != nil && inputSchema != nil {
 			input, err := inputSchema.MakeInput(rawMessage)
@@ -27,13 +32,14 @@ func Accept(ctx context.Context, deps *Dependencies, flows Flows, rawMessage jso
 	})
 }
 
-func AcceptSyntheticInput(ctx context.Context, deps *Dependencies, flows Flows, syntheticInput Input) (err error) {
+func AcceptSyntheticInput(ctx context.Context, deps *Dependencies, flows Flows, syntheticInput Input) (result *AcceptResult, err error) {
 	return accept(ctx, deps, flows, func(inputSchema InputSchema) (Input, error) {
 		return syntheticInput, nil
 	})
 }
 
-func accept(ctx context.Context, deps *Dependencies, flows Flows, inputFn func(inputSchema InputSchema) (Input, error)) (err error) {
+// nolint: gocognit
+func accept(ctx context.Context, deps *Dependencies, flows Flows, inputFn func(inputSchema InputSchema) (Input, error)) (result *AcceptResult, err error) {
 	var changed bool
 	defer func() {
 		if changed {
@@ -106,6 +112,49 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, inputFn func(i
 
 			// We have to stop and return here because this edge will react to this input indefinitely.
 			return
+		}
+
+		// Handle err == ErrBotProtectionVerificationFailed
+		if errors.Is(err, ErrBotProtectionVerificationFailed) {
+			err = nil
+			// We still consider the flow has something changes.
+			changed = true
+
+			return &AcceptResult{
+				BotProtectionVerificationResult: &BotProtectionVerificationResult{
+					Outcome: BotProtectionVerificationOutcomeFailed,
+				}}, botprotection.ErrVerificationFailed
+		}
+
+		// Handle err == ErrBotProtectionVerificationServiceUnavailable
+		if errors.Is(err, ErrBotProtectionVerificationServiceUnavailable) {
+			err = nil
+			// We still consider the flow has something changes.
+			changed = true
+			return &AcceptResult{
+				BotProtectionVerificationResult: &BotProtectionVerificationResult{
+					Outcome: BotProtectionVerificationOutcomeFailed,
+				}}, botprotection.ErrVerificationServiceUnavailable
+		}
+
+		if errors.Is(err, ErrBotProtectionVerificationSuccess) {
+			uw, isJoinedError := err.(interface{ Unwrap() []error })
+			if isJoinedError {
+				errs := uw.Unwrap()
+				// make err become first non-ErrBotProtectionVerificationSuccess error
+				for _, _err := range errs {
+					if !errors.Is(_err, ErrBotProtectionVerificationSuccess) {
+						err = _err
+						break
+					}
+				}
+			} else {
+				err = nil
+			}
+			result = &AcceptResult{
+				BotProtectionVerificationResult: &BotProtectionVerificationResult{
+					Outcome: BotProtectionVerificationOutcomeVerified,
+				}}
 		}
 
 		// Handle other error.

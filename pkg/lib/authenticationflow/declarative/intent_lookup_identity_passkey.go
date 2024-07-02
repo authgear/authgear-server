@@ -3,6 +3,7 @@ package declarative
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
@@ -44,10 +45,15 @@ func (n *IntentLookupIdentityPasskey) CanReactTo(ctx context.Context, deps *auth
 	if err != nil {
 		return nil, err
 	}
+	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, flowRootObject, n.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
 
 	return &InputSchemaTakePasskeyAssertionResponse{
-		FlowRootObject: flowRootObject,
-		JSONPointer:    n.JSONPointer,
+		FlowRootObject:          flowRootObject,
+		JSONPointer:             n.JSONPointer,
+		IsBotProtectionRequired: isBotProtectionRequired,
 	}, nil
 }
 
@@ -65,6 +71,21 @@ func (n *IntentLookupIdentityPasskey) ReactTo(ctx context.Context, deps *authflo
 
 	var inputAssertionResponse inputTakePasskeyAssertionResponse
 	if authflow.AsInput(input, &inputAssertionResponse) {
+		var bpSpecialErr error
+		var botProtection *InputTakeBotProtection
+		bpRequired, err := IsNodeBotProtectionRequired(ctx, deps, flows, n.JSONPointer)
+		if err != nil {
+			return nil, err
+		}
+		if bpRequired {
+			inputBP, _ := inputAssertionResponse.(inputTakeBotProtection)
+			token := inputBP.GetBotProtectionProviderResponse()
+			botProtection = inputBP.GetBotProtectionProvider()
+			bpSpecialErr, err = HandleBotProtection(ctx, deps, token)
+			if err != nil {
+				return nil, err
+			}
+		}
 		assertionResponse := inputAssertionResponse.GetAssertionResponse()
 		assertionResponseBytes, err := json.Marshal(assertionResponse)
 		if err != nil {
@@ -74,6 +95,7 @@ func (n *IntentLookupIdentityPasskey) ReactTo(ctx context.Context, deps *authflo
 		syntheticInput := &SyntheticInputPasskey{
 			Identification:    n.SyntheticInput.Identification,
 			AssertionResponse: assertionResponse,
+			BotProtection:     botProtection,
 		}
 
 		spec := &identity.Spec{
@@ -95,13 +117,13 @@ func (n *IntentLookupIdentityPasskey) ReactTo(ctx context.Context, deps *authflo
 		}
 
 		// login
-		return nil, &authflow.ErrorSwitchFlow{
+		return nil, errors.Join(bpSpecialErr, &authflow.ErrorSwitchFlow{
 			FlowReference: authflow.FlowReference{
 				Type: authflow.FlowTypeLogin,
 				Name: oneOf.LoginFlow,
 			},
 			SyntheticInput: syntheticInput,
-		}
+		})
 	}
 
 	return nil, authflow.ErrIncompatibleInput

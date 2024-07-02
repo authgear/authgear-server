@@ -71,6 +71,7 @@ func (n *NodeLookupIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.De
 			RedirectURI:    n.SyntheticInput.RedirectURI,
 			ResponseMode:   n.SyntheticInput.ResponseMode,
 			IdentitySpec:   spec,
+			BotProtection:  n.SyntheticInput.BotProtection,
 		}
 
 		_, err = findExactOneIdentityInfo(deps, spec)

@@ -10,22 +10,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-var InputTakeLoginIDSchemaBuilder validation.SchemaBuilder
-
-func init() {
-	InputTakeLoginIDSchemaBuilder = validation.SchemaBuilder{}.
-		Type(validation.TypeObject).
-		Required("login_id")
-
-	InputTakeLoginIDSchemaBuilder.Properties().Property(
-		"login_id",
-		validation.SchemaBuilder{}.Type(validation.TypeString),
-	)
-}
-
 type InputSchemaTakeLoginID struct {
-	JSONPointer    jsonpointer.T
-	FlowRootObject config.AuthenticationFlowObject
+	JSONPointer             jsonpointer.T
+	FlowRootObject          config.AuthenticationFlowObject
+	IsBotProtectionRequired bool
 }
 
 var _ authflow.InputSchema = &InputSchemaTakeLoginID{}
@@ -38,8 +26,19 @@ func (i *InputSchemaTakeLoginID) GetFlowRootObject() config.AuthenticationFlowOb
 	return i.FlowRootObject
 }
 
-func (*InputSchemaTakeLoginID) SchemaBuilder() validation.SchemaBuilder {
-	return InputTakeLoginIDSchemaBuilder
+func (i *InputSchemaTakeLoginID) SchemaBuilder() validation.SchemaBuilder {
+	inputTakeLoginIDSchemaBuilder := validation.SchemaBuilder{}.
+		Type(validation.TypeObject).
+		Required("login_id")
+
+	inputTakeLoginIDSchemaBuilder.Properties().Property(
+		"login_id",
+		validation.SchemaBuilder{}.Type(validation.TypeString),
+	)
+	if i.IsBotProtectionRequired {
+		inputTakeLoginIDSchemaBuilder = AddBotProtectionToExistingSchemaBuilder(inputTakeLoginIDSchemaBuilder)
+	}
+	return inputTakeLoginIDSchemaBuilder
 }
 
 func (i *InputSchemaTakeLoginID) MakeInput(rawMessage json.RawMessage) (authflow.Input, error) {
@@ -52,14 +51,34 @@ func (i *InputSchemaTakeLoginID) MakeInput(rawMessage json.RawMessage) (authflow
 }
 
 type InputTakeLoginID struct {
-	LoginID string `json:"login_id"`
+	LoginID       string                  `json:"login_id"`
+	BotProtection *InputTakeBotProtection `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &InputTakeLoginID{}
 var _ inputTakeLoginID = &InputTakeLoginID{}
+var _ inputTakeBotProtection = &InputTakeLoginID{}
 
 func (*InputTakeLoginID) Input() {}
 
 func (i *InputTakeLoginID) GetLoginID() string {
 	return i.LoginID
+}
+
+func (i *InputTakeLoginID) GetBotProtectionProvider() *InputTakeBotProtection {
+	return i.BotProtection
+}
+
+func (i *InputTakeLoginID) GetBotProtectionProviderType() config.BotProtectionProviderType {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Type
+}
+
+func (i *InputTakeLoginID) GetBotProtectionProviderResponse() string {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Response
 }

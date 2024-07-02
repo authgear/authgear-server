@@ -70,7 +70,7 @@ func NewIntentAccountRecoveryFlowStepIdentify(ctx context.Context, deps *authflo
 		case config.AuthenticationFlowAccountRecoveryIdentificationEmail:
 			fallthrough
 		case config.AuthenticationFlowAccountRecoveryIdentificationPhone:
-			c := AccountRecoveryIdentificationOption{Identification: b.Identification}
+			c := AccountRecoveryIdentificationOption{Identification: b.Identification, BotProtection: GetBotProtectionData(b.GetBotProtectionConfig(), deps.Config.BotProtection)}
 			options = append(options, c)
 		}
 	}

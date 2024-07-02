@@ -46,6 +46,7 @@ type Store interface {
 	CreateSession(session *Session) error
 	GetSession(flowID string) (*Session, error)
 	DeleteSession(session *Session) error
+	UpdateSession(session *Session) error
 
 	CreateFlow(flow *Flow) error
 	GetFlowByStateToken(stateToken string) (*Flow, error)
@@ -172,7 +173,7 @@ func (s *Service) createNewFlow(ctx context.Context, session *Session, publicFlo
 
 	// Feed an nil input to the flow to let it proceed.
 	var rawMessage json.RawMessage
-	err = Accept(ctx, s.Deps, NewFlows(flow), rawMessage)
+	acceptResult, err := Accept(ctx, s.Deps, NewFlows(flow), rawMessage)
 	// As a special case, we do not treat ErrNoChange as error because
 	// Not every flow can react to nil input.
 	if errors.Is(err, ErrNoChange) {
@@ -181,6 +182,14 @@ func (s *Service) createNewFlow(ctx context.Context, session *Session, publicFlo
 	isEOF := errors.Is(err, ErrEOF)
 	if err != nil && !isEOF {
 		return
+	}
+
+	if acceptResult != nil && acceptResult.BotProtectionVerificationResult != nil {
+		session.SetBotProtectionVerificationResult(acceptResult.BotProtectionVerificationResult)
+		err = s.Store.UpdateSession(session)
+		if err != nil {
+			return
+		}
 	}
 
 	// err is nil or err is ErrEOF.
@@ -456,10 +465,18 @@ func (s *Service) feedInput(ctx context.Context, session *Session, stateToken st
 		return
 	}
 
-	err = Accept(ctx, s.Deps, NewFlows(flow), rawMessage)
+	acceptResult, err := Accept(ctx, s.Deps, NewFlows(flow), rawMessage)
 	isEOF := errors.Is(err, ErrEOF)
 	if err != nil && !isEOF {
 		return
+	}
+
+	if acceptResult != nil && acceptResult.BotProtectionVerificationResult != nil {
+		session.SetBotProtectionVerificationResult(acceptResult.BotProtectionVerificationResult)
+		err = s.Store.UpdateSession(session)
+		if err != nil {
+			return
+		}
 	}
 
 	// err is nil or err is ErrEOF.
@@ -492,10 +509,18 @@ func (s *Service) feedSyntheticInput(ctx context.Context, session *Session, stat
 		return
 	}
 
-	err = AcceptSyntheticInput(ctx, s.Deps, NewFlows(flow), syntheticInput)
+	acceptResult, err := AcceptSyntheticInput(ctx, s.Deps, NewFlows(flow), syntheticInput)
 	isEOF := errors.Is(err, ErrEOF)
 	if err != nil && !isEOF {
 		return
+	}
+
+	if acceptResult != nil && acceptResult.BotProtectionVerificationResult != nil {
+		session.SetBotProtectionVerificationResult(acceptResult.BotProtectionVerificationResult)
+		err = s.Store.UpdateSession(session)
+		if err != nil {
+			return
+		}
 	}
 
 	// err is nil or err is ErrEOF.

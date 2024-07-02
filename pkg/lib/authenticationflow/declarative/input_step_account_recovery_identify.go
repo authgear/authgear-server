@@ -43,6 +43,9 @@ func (i *InputSchemaStepAccountRecoveryIdentify) SchemaBuilder() validation.Sche
 			b.Required(required...)
 			oneOf = append(oneOf, b)
 		}
+		setRequired := func() {
+			b.Required(required...)
+		}
 
 		switch option.Identification {
 		case config.AuthenticationFlowAccountRecoveryIdentificationEmail:
@@ -53,6 +56,12 @@ func (i *InputSchemaStepAccountRecoveryIdentify) SchemaBuilder() validation.Sche
 			setRequiredAndAppendOneOf()
 		default:
 			break
+		}
+		if option.isBotProtectionRequired() {
+			// bot_protection is required.
+			required = append(required, "bot_protection")
+			b.Properties().Property("bot_protection", NewInputTakeBotProtectionSchemaBuilder())
+			setRequired()
 		}
 	}
 

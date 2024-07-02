@@ -60,6 +60,10 @@ func (i *InputSchemaReauthFlowStepAuthenticate) SchemaBuilder() validation.Schem
 			}
 		}
 
+		setRequired := func() {
+			b.Required(required...)
+		}
+
 		setRequiredAndAppendOneOf := func() {
 			b.Required(required...)
 			oneOf = append(oneOf, b)
@@ -98,6 +102,12 @@ func (i *InputSchemaReauthFlowStepAuthenticate) SchemaBuilder() validation.Schem
 			setRequiredAndAppendOneOf()
 		default:
 			break
+		}
+		if option.isBotProtectionRequired() {
+			// bot_protection is required.
+			required = append(required, "bot_protection")
+			b.Properties().Property("bot_protection", NewInputTakeBotProtectionSchemaBuilder())
+			setRequired()
 		}
 	}
 

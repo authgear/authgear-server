@@ -57,6 +57,16 @@ func (o *AuthenticateOption) ToOutput() AuthenticateOptionForOutput {
 	}
 }
 
+func (o *AuthenticateOption) isBotProtectionRequired() bool {
+	if o.BotProtection == nil {
+		return false
+	}
+	if o.BotProtection.Enabled != nil && *o.BotProtection.Enabled && o.BotProtection.Provider != nil && o.BotProtection.Provider.Type != "" {
+		return true
+	}
+	return false
+}
+
 func NewAuthenticateOptionRecoveryCode(authflowBotProtectionCfg *config.AuthenticationFlowBotProtection, appBotProtectionConfig *config.BotProtectionConfig) AuthenticateOption {
 	return AuthenticateOption{
 		Authentication: config.AuthenticationFlowAuthenticationRecoveryCode,
