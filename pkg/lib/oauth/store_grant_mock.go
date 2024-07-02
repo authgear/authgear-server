@@ -605,6 +605,21 @@ func (m *MockAppInitiatedSSOToWebTokenStore) EXPECT() *MockAppInitiatedSSOToWebT
 	return m.recorder
 }
 
+// ConsumeAppInitiatedSSOToWebToken mocks base method.
+func (m *MockAppInitiatedSSOToWebTokenStore) ConsumeAppInitiatedSSOToWebToken(tokenHash string) (*AppInitiatedSSOToWebToken, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ConsumeAppInitiatedSSOToWebToken", tokenHash)
+	ret0, _ := ret[0].(*AppInitiatedSSOToWebToken)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ConsumeAppInitiatedSSOToWebToken indicates an expected call of ConsumeAppInitiatedSSOToWebToken.
+func (mr *MockAppInitiatedSSOToWebTokenStoreMockRecorder) ConsumeAppInitiatedSSOToWebToken(tokenHash interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumeAppInitiatedSSOToWebToken", reflect.TypeOf((*MockAppInitiatedSSOToWebTokenStore)(nil).ConsumeAppInitiatedSSOToWebToken), tokenHash)
+}
+
 // CreateAppInitiatedSSOToWebToken mocks base method.
 func (m *MockAppInitiatedSSOToWebTokenStore) CreateAppInitiatedSSOToWebToken(arg0 *AppInitiatedSSOToWebToken) error {
 	m.ctrl.T.Helper()
@@ -617,19 +632,4 @@ func (m *MockAppInitiatedSSOToWebTokenStore) CreateAppInitiatedSSOToWebToken(arg
 func (mr *MockAppInitiatedSSOToWebTokenStoreMockRecorder) CreateAppInitiatedSSOToWebToken(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAppInitiatedSSOToWebToken", reflect.TypeOf((*MockAppInitiatedSSOToWebTokenStore)(nil).CreateAppInitiatedSSOToWebToken), arg0)
-}
-
-// GetAppInitiatedSSOToWebToken mocks base method.
-func (m *MockAppInitiatedSSOToWebTokenStore) GetAppInitiatedSSOToWebToken(tokenHash string) (*AppInitiatedSSOToWebToken, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAppInitiatedSSOToWebToken", tokenHash)
-	ret0, _ := ret[0].(*AppInitiatedSSOToWebToken)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAppInitiatedSSOToWebToken indicates an expected call of GetAppInitiatedSSOToWebToken.
-func (mr *MockAppInitiatedSSOToWebTokenStoreMockRecorder) GetAppInitiatedSSOToWebToken(tokenHash interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAppInitiatedSSOToWebToken", reflect.TypeOf((*MockAppInitiatedSSOToWebTokenStore)(nil).GetAppInitiatedSSOToWebToken), tokenHash)
 }
