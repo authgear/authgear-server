@@ -1269,7 +1269,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	config := appContext.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	oAuthConfig := appConfig.OAuth
 	appDomains := appContext.Domains
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -1302,6 +1301,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	userAgentString := deps.ProvideUserAgentString(request)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -1366,7 +1366,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		OfflineGrantService: oauthOfflineGrantService,
 		OfflineGrantStore:   store,
 	}
-	appInitiatedSSOToWebTokenService := oauth2.AppInitiatedSSOToWebTokenService{
+	appInitiatedSSOToWebTokenService := &oauth2.AppInitiatedSSOToWebTokenService{
 		Clock:                      clockClock,
 		AppInitiatedSSOToWebTokens: store,
 	}
@@ -2120,7 +2120,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	tokenHandler := &handler.TokenHandler{
 		Context:                          contextContext,
 		AppID:                            appID,
-		Config:                           oAuthConfig,
 		AppDomains:                       appDomains,
 		HTTPProto:                        httpProto,
 		HTTPOrigin:                       httpOrigin,
@@ -4106,7 +4105,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	config := appContext.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	oAuthConfig := appConfig.OAuth
 	appDomains := appContext.Domains
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -4139,6 +4137,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	userAgentString := deps.ProvideUserAgentString(request)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -4203,7 +4202,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		OfflineGrantService: oauthOfflineGrantService,
 		OfflineGrantStore:   store,
 	}
-	appInitiatedSSOToWebTokenService := oauth2.AppInitiatedSSOToWebTokenService{
+	appInitiatedSSOToWebTokenService := &oauth2.AppInitiatedSSOToWebTokenService{
 		Clock:                      clockClock,
 		AppInitiatedSSOToWebTokens: store,
 	}
@@ -4957,7 +4956,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	tokenHandler := &handler.TokenHandler{
 		Context:                          contextContext,
 		AppID:                            appID,
-		Config:                           oAuthConfig,
 		AppDomains:                       appDomains,
 		HTTPProto:                        httpProto,
 		HTTPOrigin:                       httpOrigin,
@@ -65546,7 +65544,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		OfflineGrantService: oauthOfflineGrantService,
 		OfflineGrantStore:   redisStore,
 	}
-	appInitiatedSSOToWebTokenService := oauth2.AppInitiatedSSOToWebTokenService{
+	appInitiatedSSOToWebTokenService := &oauth2.AppInitiatedSSOToWebTokenService{
 		Clock:                      clockClock,
 		AppInitiatedSSOToWebTokens: redisStore,
 	}
@@ -65586,7 +65584,6 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 	tokenHandler := &handler.TokenHandler{
 		Context:                          contextContext,
 		AppID:                            appID,
-		Config:                           oAuthConfig,
 		AppDomains:                       appDomains,
 		HTTPProto:                        httpProto,
 		HTTPOrigin:                       httpOrigin,
