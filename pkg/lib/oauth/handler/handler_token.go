@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
 
@@ -30,6 +31,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
@@ -40,6 +42,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/pkce"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
+
+//go:generate mockgen -source=handler_token.go -destination=handler_token_mock_test.go -package handler_test
 
 const (
 	AnonymousRequestGrantType = "urn:authgear:params:oauth:grant-type:anonymous-request"
@@ -93,6 +97,54 @@ func NewTokenHandlerLogger(lf *log.Factory) TokenHandlerLogger {
 	return TokenHandlerLogger{lf.New("oauth-token")}
 }
 
+type TokenHandlerCodeGrantStore interface {
+	GetCodeGrant(codeHash string) (*oauth.CodeGrant, error)
+	DeleteCodeGrant(*oauth.CodeGrant) error
+}
+
+type TokenHandlerSettingsActionGrantStore interface {
+	GetSettingsActionGrant(codeHash string) (*oauth.SettingsActionGrant, error)
+	DeleteSettingsActionGrant(*oauth.SettingsActionGrant) error
+}
+
+type TokenHandlerOfflineGrantStore interface {
+	GetOfflineGrant(id string) (*oauth.OfflineGrant, error)
+	DeleteOfflineGrant(*oauth.OfflineGrant) error
+
+	AccessOfflineGrantAndUpdateDeviceInfo(id string, accessEvent access.Event, deviceInfo map[string]interface{}, expireAt time.Time) (*oauth.OfflineGrant, error)
+	UpdateOfflineGrantAuthenticatedAt(id string, authenticatedAt time.Time, expireAt time.Time) (*oauth.OfflineGrant, error)
+	UpdateOfflineGrantApp2AppDeviceKey(id string, newKey string, expireAt time.Time) (*oauth.OfflineGrant, error)
+
+	ListOfflineGrants(userID string) ([]*oauth.OfflineGrant, error)
+	ListClientOfflineGrants(clientID string, userID string) ([]*oauth.OfflineGrant, error)
+}
+
+type TokenHandlerAppSessionTokenStore interface {
+	CreateAppSessionToken(*oauth.AppSessionToken) error
+}
+
+type TokenHandlerOfflineGrantService interface {
+	ComputeOfflineGrantExpiry(session *oauth.OfflineGrant) (expiry time.Time, err error)
+}
+
+type TokenHandlerTokenService interface {
+	ParseRefreshToken(token string) (*oauth.Authorization, *oauth.OfflineGrant, error)
+	IssueAccessGrant(
+		client *config.OAuthClientConfig,
+		scopes []string,
+		authzID string,
+		userID string,
+		sessionID string,
+		sessionKind oauth.GrantSessionKind,
+		resp protocol.TokenResponse,
+	) error
+	IssueOfflineGrant(
+		client *config.OAuthClientConfig,
+		opts IssueOfflineGrantOptions,
+		resp protocol.TokenResponse,
+	) (*oauth.OfflineGrant, error)
+}
+
 type TokenHandler struct {
 	Context                context.Context
 	AppID                  config.AppID
@@ -106,15 +158,15 @@ type TokenHandler struct {
 	Logger                 TokenHandlerLogger
 
 	Authorizations           AuthorizationService
-	CodeGrants               oauth.CodeGrantStore
-	SettingsActionGrantStore oauth.SettingsActionGrantStore
-	OfflineGrants            oauth.OfflineGrantStore
-	AppSessionTokens         oauth.AppSessionTokenStore
-	OfflineGrantService      oauth.OfflineGrantService
+	CodeGrants               TokenHandlerCodeGrantStore
+	SettingsActionGrantStore TokenHandlerSettingsActionGrantStore
+	OfflineGrants            TokenHandlerOfflineGrantStore
+	AppSessionTokens         TokenHandlerAppSessionTokenStore
+	OfflineGrantService      TokenHandlerOfflineGrantService
 	Graphs                   GraphService
 	IDTokenIssuer            IDTokenIssuer
 	Clock                    clock.Clock
-	TokenService             TokenService
+	TokenService             TokenHandlerTokenService
 	Events                   EventService
 	SessionManager           SessionManager
 	App2App                  App2AppService
@@ -122,9 +174,11 @@ type TokenHandler struct {
 	CodeGrantService         CodeGrantService
 	ClientResolver           OAuthClientResolver
 	UIInfoResolver           UIInfoResolver
+
+	RemoteIP        httputil.RemoteIP
+	UserAgentString httputil.UserAgentString
 }
 
-// TODO: Write some tests
 func (h *TokenHandler) Handle(rw http.ResponseWriter, req *http.Request, r protocol.TokenRequest) httputil.Result {
 	client := resolveClient(h.ClientResolver, r)
 	if client == nil {
@@ -438,6 +492,9 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, err
 	}
 
+	accessEvent := access.NewEvent(h.Clock.NowUTC(), h.RemoteIP, h.UserAgentString)
+	offlineGrant.AccessInfo.LastAccess = accessEvent
+
 	resp, err := h.issueTokensForRefreshToken(client, offlineGrant, authz)
 	if err != nil {
 		return nil, err
@@ -451,7 +508,8 @@ func (h *TokenHandler) handleRefreshToken(
 	if err != nil {
 		return nil, err
 	}
-	_, err = h.OfflineGrants.UpdateOfflineGrantDeviceInfo(offlineGrant.ID, deviceInfo, expiry)
+
+	_, err = h.OfflineGrants.AccessOfflineGrantAndUpdateDeviceInfo(offlineGrant.ID, accessEvent, deviceInfo, expiry)
 	if err != nil {
 		return nil, err
 	}
