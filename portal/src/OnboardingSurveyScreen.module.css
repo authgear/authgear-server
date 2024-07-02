@@ -44,7 +44,8 @@
 }
 
 .CompoundChoiceButton {
-  @apply max-w-[368px] mobile:max-w-[410px];
+  /* CompoundButton has max-width by default, so we need to reset it to none. */
+  @apply max-w-[none] desktop:max-w-[368px];
   min-height: 118px;
   height: 100%;
   padding: 25px;
