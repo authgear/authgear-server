@@ -53,6 +53,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/messaging"
 	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
@@ -324,6 +325,10 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oauth.AppSessionTokenStore), new(*oauthredis.Store)),
 		wire.Bind(new(oauth.AppSessionStore), new(*oauthredis.Store)),
 		wire.Bind(new(oauth.SettingsActionGrantStore), new(*oauthredis.Store)),
+		wire.Bind(new(handler.TokenHandlerCodeGrantStore), new(*oauthredis.Store)),
+		wire.Bind(new(handler.TokenHandlerSettingsActionGrantStore), new(*oauthredis.Store)),
+		wire.Bind(new(handler.TokenHandlerOfflineGrantStore), new(*oauthredis.Store)),
+		wire.Bind(new(handler.TokenHandlerAppSessionTokenStore), new(*oauthredis.Store)),
 
 		oauth.DependencySet,
 		wire.Bind(new(session.AccessTokenSessionResolver), new(*oauth.Resolver)),
@@ -331,6 +336,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(facade.OAuthSessionManager), new(*oauth.SessionManager)),
 		wire.Bind(new(oauthhandler.AppSessionTokenService), new(*oauth.AppSessionTokenService)),
 		wire.Bind(new(sessionlisting.OfflineGrantService), new(*oauth.OfflineGrantService)),
+		wire.Bind(new(handler.TokenHandlerOfflineGrantService), new(*oauth.OfflineGrantService)),
 		wire.Value(oauthhandler.TokenGenerator(oauth.GenerateToken)),
 		wire.Bind(new(oauthhandler.AuthorizationService), new(*oauth.AuthorizationService)),
 		wire.Bind(new(interaction.OfflineGrantStore), new(*oauthredis.Store)),

@@ -1352,6 +1352,12 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:               clockClock,
 		OAuthSessionManager: sessionManager,
 	}
+	oauthOfflineGrantService := &oauth2.OfflineGrantService{
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    provider,
+		ClientResolver: resolver,
+	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
@@ -2057,7 +2063,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Events:     eventService,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
-	tokenService := handler.TokenService{
+	tokenService := &handler.TokenService{
 		RemoteIP:            remoteIP,
 		UserAgentString:     userAgentString,
 		AppID:               appID,
@@ -2114,7 +2120,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SettingsActionGrantStore: store,
 		OfflineGrants:            store,
 		AppSessionTokens:         store,
-		OfflineGrantService:      offlineGrantService,
+		OfflineGrantService:      oauthOfflineGrantService,
 		Graphs:                   interactionService,
 		IDTokenIssuer:            idTokenIssuer,
 		Clock:                    clockClock,
@@ -2126,6 +2132,8 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		CodeGrantService:         codeGrantService,
 		ClientResolver:           resolver,
 		UIInfoResolver:           uiInfoResolver,
+		RemoteIP:                 remoteIP,
+		UserAgentString:          userAgentString,
 	}
 	oauthTokenHandler := &oauth.TokenHandler{
 		Logger:       tokenHandlerLogger,
@@ -4171,6 +4179,12 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:               clockClock,
 		OAuthSessionManager: sessionManager,
 	}
+	oauthOfflineGrantService := &oauth2.OfflineGrantService{
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    provider,
+		ClientResolver: resolver,
+	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
@@ -4876,7 +4890,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Events:     eventService,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
-	tokenService := handler.TokenService{
+	tokenService := &handler.TokenService{
 		RemoteIP:            remoteIP,
 		UserAgentString:     userAgentString,
 		AppID:               appID,
@@ -4933,7 +4947,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		SettingsActionGrantStore: store,
 		OfflineGrants:            store,
 		AppSessionTokens:         store,
-		OfflineGrantService:      offlineGrantService,
+		OfflineGrantService:      oauthOfflineGrantService,
 		Graphs:                   interactionService,
 		IDTokenIssuer:            idTokenIssuer,
 		Clock:                    clockClock,
@@ -4945,6 +4959,8 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		CodeGrantService:         codeGrantService,
 		ClientResolver:           resolver,
 		UIInfoResolver:           uiInfoResolver,
+		RemoteIP:                 remoteIP,
+		UserAgentString:          userAgentString,
 	}
 	appSessionTokenHandler := &oauth.AppSessionTokenHandler{
 		Database:         handle,
@@ -65352,6 +65368,12 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		Clock:               clockClock,
 		OAuthSessionManager: sessionManager,
 	}
+	oauthOfflineGrantService := &oauth2.OfflineGrantService{
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
+	}
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
 		Secrets:    oAuthKeyMaterials,
 		Clock:      clockClock,
@@ -65360,7 +65382,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		Events:     eventService,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
-	tokenService := handler.TokenService{
+	tokenService := &handler.TokenService{
 		RemoteIP:            remoteIP,
 		UserAgentString:     userAgentString,
 		AppID:               appID,
@@ -65400,7 +65422,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		SettingsActionGrantStore: redisStore,
 		OfflineGrants:            redisStore,
 		AppSessionTokens:         redisStore,
-		OfflineGrantService:      offlineGrantService,
+		OfflineGrantService:      oauthOfflineGrantService,
 		Graphs:                   interactionService,
 		IDTokenIssuer:            idTokenIssuer,
 		Clock:                    clockClock,
@@ -65412,12 +65434,8 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		CodeGrantService:         codeGrantService,
 		ClientResolver:           oauthclientResolver,
 		UIInfoResolver:           uiInfoResolver,
-	}
-	oauthOfflineGrantService := &oauth2.OfflineGrantService{
-		OAuthConfig:    oAuthConfig,
-		Clock:          clockClock,
-		IDPSessions:    idpsessionProvider,
-		ClientResolver: oauthclientResolver,
+		RemoteIP:                 remoteIP,
+		UserAgentString:          userAgentString,
 	}
 	appSessionTokenService := &oauth2.AppSessionTokenService{
 		AppSessions:         redisStore,
