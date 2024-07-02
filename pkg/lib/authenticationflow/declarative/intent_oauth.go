@@ -66,10 +66,16 @@ func (i *IntentOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencie
 
 		oauthOptions := NewIdentificationOptionsOAuth(deps.Config.Identity.OAuth, deps.FeatureConfig.Identity.OAuth.Providers, authflowCfg, deps.Config.BotProtection)
 
+		isBotProtectionRequired, err := IsBotProtectionRequired(ctx, flowRootObject, i.JSONPointer)
+		if err != nil {
+			return nil, err
+		}
+
 		return &InputSchemaTakeOAuthAuthorizationRequest{
-			FlowRootObject: flowRootObject,
-			JSONPointer:    i.JSONPointer,
-			OAuthOptions:   oauthOptions,
+			FlowRootObject:          flowRootObject,
+			JSONPointer:             i.JSONPointer,
+			OAuthOptions:            oauthOptions,
+			IsBotProtectionRequired: isBotProtectionRequired,
 		}, nil
 	}
 	return nil, authflow.ErrEOF
@@ -79,6 +85,18 @@ func (i *IntentOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, 
 	if len(flows.Nearest.Nodes) == 0 {
 		var inputOAuth inputTakeOAuthAuthorizationRequest
 		if authflow.AsInput(input, &inputOAuth) {
+			var bpSpecialErr error
+			bpRequired, err := IsNodeBotProtectionRequired(ctx, deps, flows, i.JSONPointer)
+			if err != nil {
+				return nil, err
+			}
+			if bpRequired {
+				token := inputOAuth.(inputTakeBotProtection).GetBotProtectionProviderResponse()
+				bpSpecialErr, err = HandleBotProtection(ctx, deps, token)
+				if err != nil {
+					return nil, err
+				}
+			}
 			alias := inputOAuth.GetOAuthAlias()
 			redirectURI := inputOAuth.GetOAuthRedirectURI()
 			responseMode := inputOAuth.GetOAuthResponseMode()
@@ -89,7 +107,7 @@ func (i *IntentOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, 
 				Alias:        alias,
 				RedirectURI:  redirectURI,
 				ResponseMode: responseMode,
-			}), nil
+			}), bpSpecialErr
 		}
 	}
 	return nil, authflow.ErrIncompatibleInput
