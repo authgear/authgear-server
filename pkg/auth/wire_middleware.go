@@ -111,7 +111,7 @@ func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	))
 }
 
-func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httproute.Middleware {
+func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*session.Middleware)),

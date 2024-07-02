@@ -103,6 +103,15 @@ func (s *Store) unmarshalAppSessionToken(data []byte) (*oauth.AppSessionToken, e
 	return &t, nil
 }
 
+func (s *Store) unmarshalAppInitiatedSSOToWebToken(data []byte) (*oauth.AppInitiatedSSOToWebToken, error) {
+	var t oauth.AppInitiatedSSOToWebToken
+	err := json.Unmarshal(data, &t)
+	if err != nil {
+		return nil, err
+	}
+	return &t, nil
+}
+
 func (s *Store) save(conn *goredis.Conn, key string, value interface{}, expireAt time.Time, ifNotExists bool) error {
 	ctx := context.Background()
 	data, err := json.Marshal(value)
@@ -411,6 +420,47 @@ func (s *Store) UpdateOfflineGrantDeviceSecretHash(grantID string, newDeviceSecr
 	return grant, nil
 }
 
+func (s *Store) AddOfflineGrantRefreshToken(
+	grantID string,
+	expireAt time.Time,
+	tokenHash string,
+	clientID string,
+	scopes []string,
+	authorizationID string,
+) (*oauth.OfflineGrant, error) {
+	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
+	mutex := s.Redis.NewMutex(mutexName)
+	err := mutex.LockContext(s.Context)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_, _ = mutex.UnlockContext(s.Context)
+	}()
+
+	grant, err := s.GetOfflineGrant(grantID)
+	if err != nil {
+		return nil, err
+	}
+
+	now := s.Clock.NowUTC()
+	newRefreshToken := oauth.OfflineGrantRefreshToken{
+		TokenHash:       tokenHash,
+		ClientID:        clientID,
+		CreatedAt:       now,
+		Scopes:          scopes,
+		AuthorizationID: authorizationID,
+	}
+
+	grant.RefreshTokens = append(grant.RefreshTokens, newRefreshToken)
+	err = s.updateOfflineGrant(grant, expireAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return grant, nil
+}
+
 func (s *Store) RemoveOfflineGrantRefreshTokens(grantID string, tokenHashes []string, expireAt time.Time) (*oauth.OfflineGrant, error) {
 	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
 	mutex := s.Redis.NewMutex(mutexName)
@@ -645,4 +695,28 @@ func (s *Store) CreateAppInitiatedSSOToWebToken(token *oauth.AppInitiatedSSOToWe
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
 		return s.save(conn, appInitiatedSSOToWebTokenKey(token.AppID, token.TokenHash), token, token.ExpireAt, true)
 	})
+}
+
+func (s *Store) ConsumeAppInitiatedSSOToWebToken(tokenHash string) (*oauth.AppInitiatedSSOToWebToken, error) {
+	t := &oauth.AppInitiatedSSOToWebToken{}
+
+	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+		key := appInitiatedSSOToWebTokenKey(string(s.AppID), tokenHash)
+		data, err := s.loadData(conn, key)
+		if err != nil {
+			return err
+		}
+
+		t, err = s.unmarshalAppInitiatedSSOToWebToken(data)
+		if err != nil {
+			return err
+		}
+
+		return s.del(conn, key)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return t, nil
 }

@@ -40,7 +40,6 @@ type Middleware struct {
 	Database                   *appdb.Handle
 	Logger                     MiddlewareLogger
 	MeterService               MeterService
-	IDPSessionOnly             bool
 }
 
 func (m *Middleware) Handle(next http.Handler) http.Handler {
@@ -109,16 +108,10 @@ func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (s Resolve
 func (m *Middleware) resolveSession(rw http.ResponseWriter, r *http.Request) (ResolvedSession, error) {
 	isInvalid := false
 
-	var resolvers []Resolver
-	if m.IDPSessionOnly {
-		// For some routes, only idp session is accepted. e.g. authz endpoint, continue screen, consent screen...
-		resolvers = []Resolver{m.IDPSessionResolver}
-	} else {
-		// Access token in header/App session token in cookie takes priority over IDP session in cookie
-		// If both the app session and IDP session exist in the cookie
-		// Middleware will read the app session first, so SDK will always open the correct settings page
-		resolvers = []Resolver{m.AccessTokenSessionResolver, m.IDPSessionResolver}
-	}
+	// Access token in header/App session token in cookie takes priority over IDP session in cookie
+	// If both the app session and IDP session exist in the cookie
+	// Middleware will read the app session first, so SDK will always open the correct settings page
+	resolvers := []Resolver{m.AccessTokenSessionResolver, m.IDPSessionResolver}
 
 	for _, resolver := range resolvers {
 		session, err := resolver.Resolve(rw, r)

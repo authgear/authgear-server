@@ -32,6 +32,8 @@ type TokenService struct {
 	GenerateToken       TokenGenerator
 	Clock               clock.Clock
 	Users               TokenHandlerUserFacade
+
+	AccessGrantService oauth.AccessGrantService
 }
 
 func (s *TokenService) IssueOfflineGrant(
@@ -120,33 +122,16 @@ func (s *TokenService) IssueAccessGrant(
 	refreshTokenHash string,
 	resp protocol.TokenResponse,
 ) error {
-	token := s.GenerateToken()
-	now := s.Clock.NowUTC()
-
-	accessGrant := &oauth.AccessGrant{
-		AppID:            string(s.AppID),
-		AuthorizationID:  authzID,
-		SessionID:        sessionID,
-		SessionKind:      sessionKind,
-		CreatedAt:        now,
-		ExpireAt:         now.Add(client.AccessTokenLifetime.Duration()),
-		Scopes:           scopes,
-		TokenHash:        oauth.HashToken(token),
-		RefreshTokenHash: refreshTokenHash,
-	}
-	err := s.AccessGrants.CreateAccessGrant(accessGrant)
+	result, err := s.AccessGrantService.IssueAccessGrant(
+		client, scopes, authzID, userID, sessionID, sessionKind, refreshTokenHash,
+	)
 	if err != nil {
 		return err
 	}
 
-	at, err := s.AccessTokenIssuer.EncodeAccessToken(client, accessGrant, userID, token)
-	if err != nil {
-		return err
-	}
-
-	resp.TokenType("Bearer")
-	resp.AccessToken(at)
-	resp.ExpiresIn(int(client.AccessTokenLifetime))
+	resp.TokenType(result.TokenType)
+	resp.AccessToken(result.Token)
+	resp.ExpiresIn(result.ExpiresIn)
 	return nil
 }
 

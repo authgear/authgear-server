@@ -768,6 +768,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		IDPSessions:    idpsessionProvider,
 		ClientResolver: oauthclientResolver,
+		OfflineGrants:  redisStore,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -1024,6 +1025,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		IDPSessions:    idpsessionProvider,
 		ClientResolver: oauthclientResolver,
+		OfflineGrants:  redisStore,
 	}
 	authorizationService := &oauth2.AuthorizationService{
 		AppID:               appID,
@@ -1052,6 +1054,19 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Events:     eventService,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
+	oauthAccessTokenEncoding := oauth2.AccessTokenEncoding{
+		Secrets:    oAuthKeyMaterials,
+		Clock:      clockClock,
+		UserClaims: idTokenIssuer,
+		BaseURL:    endpointsEndpoints,
+		Events:     eventService,
+	}
+	accessGrantService := oauth2.AccessGrantService{
+		AppID:             appID,
+		AccessGrants:      redisStore,
+		AccessTokenIssuer: oauthAccessTokenEncoding,
+		Clock:             clockClock,
+	}
 	tokenService := &handler.TokenService{
 		RemoteIP:            remoteIP,
 		UserAgentString:     userAgentString,
@@ -1066,6 +1081,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		GenerateToken:       tokenGenerator,
 		Clock:               clockClock,
 		Users:               userQueries,
+		AccessGrantService:  accessGrantService,
 	}
 	oAuthFacade := &facade2.OAuthFacade{
 		Config:              oAuthConfig,

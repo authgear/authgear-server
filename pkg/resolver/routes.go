@@ -9,7 +9,7 @@ import (
 )
 
 func newAllSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	return newSessionMiddleware(p, false)
+	return newSessionMiddleware(p)
 }
 
 func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *httproute.Router {

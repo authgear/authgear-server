@@ -90,6 +90,9 @@ func (r AuthorizationRequest) SSOEnabled() bool {
 func (r AuthorizationRequest) ColorScheme() string        { return r["x_color_scheme"] }
 func (r AuthorizationRequest) OAuthProviderAlias() string { return r["x_oauth_provider_alias"] }
 func (r AuthorizationRequest) SettingsAction() string     { return r["x_settings_action"] }
+func (r AuthorizationRequest) AppInitiatedSSOToWebToken() string {
+	return r["x_app_initiated_sso_to_web_token"]
+}
 
 type AuthorizationResponse map[string]string
 

@@ -90,7 +90,10 @@ func (m *mockCookieManager) ClearCookie(def *httputil.CookieDef) *http.Cookie {
 }
 
 func (m *mockCookieManager) ValueCookie(def *httputil.CookieDef, value string) *http.Cookie {
-	return &http.Cookie{}
+	return &http.Cookie{
+		Name:  def.NameSuffix,
+		Value: value,
+	}
 }
 
 type mockClientResolver struct {

@@ -78,6 +78,8 @@ func WriteResponse(w http.ResponseWriter, r *http.Request, redirectURI *url.URL,
 		HTMLRedirect(w, r, urlutil.WithQueryParamsAdded(redirectURI, response).String())
 	case "fragment":
 		HTMLRedirect(w, r, urlutil.WithQueryParamsSetToFragment(redirectURI, response).String())
+	case "cookie":
+		HTMLRedirect(w, r, urlutil.WithQueryParamsAdded(redirectURI, response).String())
 	case "form_post":
 		FormPost(w, r, redirectURI, response)
 	default:

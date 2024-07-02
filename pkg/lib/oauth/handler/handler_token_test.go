@@ -172,7 +172,7 @@ func TestTokenHandler(t *testing.T) {
 			expectedAppInitiatedSSOToWebTokenType := "Bearer"
 			expectedAppInitiatedSSOToWebTokenExpiresIn := 1234
 
-			issueAppInitiatedSSOToWebTokenResult := &oauth.IssueAppInitiatedSSOToWebTokenResult{
+			issueAppInitiatedSSOToWebTokenResult := &handler.IssueAppInitiatedSSOToWebTokenResult{
 				Token:     expectedAppInitiatedSSOToWebToken,
 				TokenHash: expectedAppInitiatedSSOToWebTokenHash,
 				TokenType: expectedAppInitiatedSSOToWebTokenType,
@@ -180,7 +180,7 @@ func TestTokenHandler(t *testing.T) {
 			}
 			appInitiatedSSOToWebTokenService.EXPECT().
 				// TODO: Implement a stricter matcher
-				IssueAppInitiatedSSOToWebToken(gomock.AssignableToTypeOf((*oauth.IssueAppInitiatedSSOToWebTokenOptions)(nil))).
+				IssueAppInitiatedSSOToWebToken(gomock.AssignableToTypeOf((*handler.IssueAppInitiatedSSOToWebTokenOptions)(nil))).
 				Times(1).
 				Return(issueAppInitiatedSSOToWebTokenResult, nil)
 

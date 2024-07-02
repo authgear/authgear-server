@@ -50,7 +50,8 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Re
 	// Here we want to try the next resolve function iff the outcome is (nil, nil).
 	funcs := []func(*http.Request) (session.ResolvedSession, error){
 		re.resolveHeader,
-		re.resolveCookie,
+		re.resolveAppSessionCookie,
+		re.resolveAccessTokenCookie,
 	}
 
 	for _, f := range funcs {
@@ -66,33 +67,8 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Re
 	return nil, nil
 }
 
-func (re *Resolver) resolveHeader(r *http.Request) (session.ResolvedSession, error) {
-	token := parseAuthorizationHeader(r)
-	if token == "" {
-		// No bearer token in Authorization header. Simply proceed.
-		return nil, nil
-	}
-
-	tok, isHash, err := re.AccessTokenDecoder.DecodeAccessToken(token)
-	if err != nil {
-		return nil, session.ErrInvalidSession
-	}
-
-	var tokenHash string
-	if isHash {
-		tokenHash = tok
-	} else {
-		tokenHash = HashToken(token)
-	}
-
-	grant, err := re.AccessGrants.GetAccessGrant(tokenHash)
-	if errors.Is(err, ErrGrantNotFound) {
-		return nil, session.ErrInvalidSession
-	} else if err != nil {
-		return nil, err
-	}
-
-	_, err = re.Authorizations.GetByID(grant.AuthorizationID)
+func (re *Resolver) resolveByAccessGrant(grant *AccessGrant) (session.ResolvedSession, error) {
+	_, err := re.Authorizations.GetByID(grant.AuthorizationID)
 	if errors.Is(err, ErrAuthorizationNotFound) {
 		// Authorization does not exists (e.g. revoked)
 		return nil, session.ErrInvalidSession
@@ -138,7 +114,52 @@ func (re *Resolver) resolveHeader(r *http.Request) (session.ResolvedSession, err
 	return authSession, nil
 }
 
-func (re *Resolver) resolveCookie(r *http.Request) (session.ResolvedSession, error) {
+func (re *Resolver) resolveHeader(r *http.Request) (session.ResolvedSession, error) {
+	token := parseAuthorizationHeader(r)
+	if token == "" {
+		// No bearer token in Authorization header. Simply proceed.
+		return nil, nil
+	}
+
+	tok, isHash, err := re.AccessTokenDecoder.DecodeAccessToken(token)
+	if err != nil {
+		return nil, session.ErrInvalidSession
+	}
+
+	var tokenHash string
+	if isHash {
+		tokenHash = tok
+	} else {
+		tokenHash = HashToken(token)
+	}
+
+	grant, err := re.AccessGrants.GetAccessGrant(tokenHash)
+	if errors.Is(err, ErrGrantNotFound) {
+		return nil, session.ErrInvalidSession
+	} else if err != nil {
+		return nil, err
+	}
+
+	return re.resolveByAccessGrant(grant)
+}
+
+func (re *Resolver) resolveAccessTokenCookie(r *http.Request) (session.ResolvedSession, error) {
+	cookie, err := re.Cookies.GetCookie(r, session.AppAccessTokenCookieDef)
+	if err != nil {
+		// No access token cookie. Simply proceed.
+		return nil, nil
+	}
+	grant, err := re.AccessGrants.GetAccessGrant(HashToken(cookie.Value))
+	if errors.Is(err, ErrGrantNotFound) {
+		return nil, session.ErrInvalidSession
+	} else if err != nil {
+		return nil, err
+	}
+
+	return re.resolveByAccessGrant(grant)
+}
+
+func (re *Resolver) resolveAppSessionCookie(r *http.Request) (session.ResolvedSession, error) {
 	cookie, err := re.Cookies.GetCookie(r, session.AppSessionTokenCookieDef)
 	if err != nil {
 		// No session cookie. Simply proceed.
