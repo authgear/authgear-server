@@ -10,6 +10,8 @@ type SentryDSN string
 
 type AuthUISentryDSN string
 
+type AuthUIWindowMessageAllowedOrigins []string
+
 type ImagesCDNHost string
 
 type WebAppCDNHost string
@@ -56,6 +58,8 @@ type EnvironmentConfig struct {
 	SentryDSN SentryDSN `envconfig:"SENTRY_DSN"`
 	// AuthUISentryDSN sets the sentry DSN for auth ui.
 	AuthUISentryDSN AuthUISentryDSN `envconfig:"AUTH_UI_SENTRY_DSN"`
+	// Origins that are allowd to post message to authui
+	AuthUIWindowMessageAllowedOrigins AuthUIWindowMessageAllowedOrigins `envconfig:"AUTH_UI_WINDOW_MESSAGE_ALLOWED_ORIGINS"`
 	// GlobalDatabase configures the global database
 	GlobalDatabase GlobalDatabaseCredentialsEnvironmentConfig `envconfig:"DATABASE"`
 	// AuditDatabase configures the audit database

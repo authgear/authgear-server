@@ -9,13 +9,17 @@ import {
   CssAstVisitor,
   CustomisableTheme,
   CustomisableThemeStyleGroup,
+  DEFAULT_DARK_THEME,
   DEFAULT_LIGHT_THEME,
   StyleCssVisitor,
-  ThemeTargetSelector,
+  Theme,
+  getThemeTargetSelector,
+  selectByTheme,
 } from "../../../model/themeAuthFlowV2";
 import {
   RESOURCE_APP_BACKGROUND_IMAGE,
   RESOURCE_APP_LOGO,
+  RESOURCE_AUTHGEAR_AUTHFLOW_V2_DARK_THEME_CSS,
   RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS,
   RESOURCE_FAVICON,
   RESOURCE_TRANSLATION_JSON,
@@ -35,6 +39,12 @@ import { ErrorParseRule } from "../../../error/parse";
 import { useAppFeatureConfigQuery } from "../query/appFeatureConfigQuery";
 import { makeImageSizeTooLargeErrorRule } from "../../../error/resources";
 import { nonNullable } from "../../../util/types";
+import {
+  BaseSlots,
+  ThemeGenerator,
+  getColorFromString,
+  themeRulesStandardCreator,
+} from "@fluentui/react";
 
 const LOCALE_BASED_RESOUCE_DEFINITIONS = [
   RESOURCE_TRANSLATION_JSON,
@@ -45,10 +55,17 @@ const LOCALE_BASED_RESOUCE_DEFINITIONS = [
 
 const THEME_RESOURCE_DEFINITIONS = [
   RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS,
+  RESOURCE_AUTHGEAR_AUTHFLOW_V2_DARK_THEME_CSS,
 ];
 
 const LightThemeResourceSpecifier = {
   def: RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS,
+  locale: null,
+  extension: null,
+};
+
+const DarkThemeResourceSpecifier = {
+  def: RESOURCE_AUTHGEAR_AUTHFLOW_V2_DARK_THEME_CSS,
   locale: null,
   extension: null,
 };
@@ -64,6 +81,8 @@ interface ResourcesFormState {
   appLogoBase64EncodedData: string | null;
   faviconBase64EncodedData: string | null;
   backgroundImageBase64EncodedData: string | null;
+  customisableLightTheme: CustomisableTheme;
+  customisableDarkTheme: CustomisableTheme;
   customisableTheme: CustomisableTheme;
 
   urls: {
@@ -77,7 +96,7 @@ interface FeatureConfig {
   whiteLabelingDisabled: boolean;
 }
 
-const enum TranslationKey {
+export const enum TranslationKey {
   AppName = "app.name",
   PrivacyPolicy = "privacy-policy-link",
   TermsOfService = "terms-of-service-link",
@@ -86,6 +105,7 @@ const enum TranslationKey {
 
 export type BranchDesignFormState = {
   selectedLanguage: LanguageTag;
+  theme: Theme;
 } & ConfigFormState &
   ResourcesFormState &
   FeatureConfig;
@@ -178,6 +198,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
     constructFormState: constructConfigFormState,
     constructConfig: constructConfigFromFormState,
   });
+  const [selectedTheme] = useState(Theme.Light);
   const [selectedLanguage, setSelectedLanguage] = useState(
     configForm.state.fallbackLanguage
   );
@@ -238,19 +259,38 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       return imageResouece.nullableValue;
     };
 
-    const lightTheme = (() => {
-      const lightThemeResource =
-        resourceForm.state.resources[specifierId(LightThemeResourceSpecifier)];
-      if (lightThemeResource?.nullableValue == null) {
-        return DEFAULT_LIGHT_THEME;
+    const getTheme = (theme: Theme): CustomisableTheme => {
+      const themeResource =
+        resourceForm.state.resources[
+          specifierId(
+            selectByTheme(
+              {
+                [Theme.Light]: LightThemeResourceSpecifier,
+                [Theme.Dark]: DarkThemeResourceSpecifier,
+              },
+              theme
+            )
+          )
+        ];
+      if (themeResource?.nullableValue == null) {
+        return selectByTheme(
+          {
+            [Theme.Light]: DEFAULT_LIGHT_THEME,
+            [Theme.Dark]: DEFAULT_DARK_THEME,
+          },
+          theme
+        );
       }
-      const root = parseCSS(lightThemeResource.nullableValue);
+      const root = parseCSS(themeResource.nullableValue);
       const styleCSSVisitor = new StyleCssVisitor(
-        ThemeTargetSelector.Light,
+        getThemeTargetSelector(theme),
         new CustomisableThemeStyleGroup()
       );
       return styleCSSVisitor.getStyle(root);
-    })();
+    };
+
+    const lightTheme = getTheme(Theme.Light);
+    const darkTheme = getTheme(Theme.Dark);
 
     return {
       appName: getValueFromTranslationJSON(TranslationKey.AppName),
@@ -259,7 +299,15 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       backgroundImageBase64EncodedData: getValueFromImageResource(
         RESOURCE_APP_BACKGROUND_IMAGE
       ),
-      customisableTheme: lightTheme,
+      customisableTheme: selectByTheme(
+        {
+          [Theme.Light]: lightTheme,
+          [Theme.Dark]: darkTheme,
+        },
+        selectedTheme
+      ),
+      customisableLightTheme: lightTheme,
+      customisableDarkTheme: darkTheme,
 
       urls: {
         privacyPolicy: getValueFromTranslationJSON(
@@ -273,7 +321,12 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         ),
       },
     };
-  }, [resourceForm, selectedLanguage, configForm.state.fallbackLanguage]);
+  }, [
+    resourceForm,
+    selectedLanguage,
+    configForm.state.fallbackLanguage,
+    selectedTheme,
+  ]);
 
   const resourceMutator = useMemo(() => {
     return {
@@ -350,28 +403,30 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         const newState = updater(resourcesState.customisableTheme);
         resourceForm.setState((s) => {
           return produce(s, (draft) => {
-            const lightThemeResourceSpecifier = {
-              def: RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS,
-              locale: null,
-              extension: null,
-            };
-            const lightThemeResource = draft.resources[
-              specifierId(lightThemeResourceSpecifier)
+            const resourceSpecifier = selectByTheme(
+              {
+                [Theme.Light]: LightThemeResourceSpecifier,
+                [Theme.Dark]: DarkThemeResourceSpecifier,
+              },
+              selectedTheme
+            );
+            const themeResource = draft.resources[
+              specifierId(resourceSpecifier)
             ] ?? {
-              specifier: lightThemeResourceSpecifier,
-              path: expandSpecifier(lightThemeResourceSpecifier),
+              specifier: resourceSpecifier,
+              path: expandSpecifier(resourceSpecifier),
             };
-            lightThemeResource.nullableValue = (() => {
+
+            themeResource.nullableValue = (() => {
               const cssAstVisitor = new CssAstVisitor(
-                ThemeTargetSelector.Light
+                getThemeTargetSelector(selectedTheme)
               );
               const styleGroup = new CustomisableThemeStyleGroup(newState);
               styleGroup.acceptCssAstVisitor(cssAstVisitor);
               return cssAstVisitor.getCSS().toResult().css;
             })();
 
-            draft.resources[specifierId(lightThemeResourceSpecifier)] =
-              lightThemeResource;
+            draft.resources[specifierId(resourceSpecifier)] = themeResource;
           });
         });
       },
@@ -380,11 +435,13 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
     resourcesState,
     resourceForm,
     selectedLanguage,
+    selectedTheme,
     configForm.state.fallbackLanguage,
   ]);
 
   const state: BranchDesignFormState = useMemo(
     () => ({
+      theme: selectedTheme,
       selectedLanguage,
       ...configForm.state,
       ...resourcesState,
@@ -393,6 +450,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         false,
     }),
     [
+      selectedTheme,
       selectedLanguage,
       configForm.state,
       resourcesState,
@@ -445,14 +503,14 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       setCardAlignment: (alignment: Alignment) => {
         resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
-            draft.cardAlignment = alignment;
+            draft.card.alignment = alignment;
           });
         });
       },
       setBackgroundColor: (backgroundColor: CSSColor) => {
         resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
-            draft.backgroundColor = backgroundColor;
+            draft.page.backgroundColor = backgroundColor;
           });
         });
       },
@@ -463,6 +521,22 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
             draft.primaryButton.backgroundColor = backgroundColor;
+            const themeRules = themeRulesStandardCreator();
+            const color = getColorFromString(backgroundColor);
+            if (color == null) {
+              return;
+            }
+            ThemeGenerator.insureSlots(themeRules, false);
+            ThemeGenerator.setSlot(
+              themeRules[BaseSlots[BaseSlots.primaryColor]],
+              color,
+              false,
+              true,
+              true
+            );
+            const json = ThemeGenerator.getThemeAsJson(themeRules);
+            draft.primaryButton.backgroundColorActive = json.themeDark;
+            draft.primaryButton.backgroundColorHover = json.themeDark;
           });
         });
       },

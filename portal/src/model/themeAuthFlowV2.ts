@@ -7,8 +7,42 @@ import {
   CssRuleNodeWrapper,
 } from "../util/cssVisitor";
 
+export enum Theme {
+  Light = "light",
+  Dark = "dark",
+}
+
 export const enum ThemeTargetSelector {
   Light = ":root",
+  Dark = ":root.dark",
+}
+export function getThemeTargetSelector(theme: Theme): ThemeTargetSelector {
+  switch (theme) {
+    case Theme.Light:
+      return ThemeTargetSelector.Light;
+    case Theme.Dark:
+      return ThemeTargetSelector.Dark;
+    default:
+      return ThemeTargetSelector.Light;
+  }
+}
+
+export function selectByTheme<T>(option: { [t in Theme]: T }, theme: Theme): T {
+  return option[theme];
+}
+
+export const enum CSSVariable {
+  AlignmentCard = "--alignment-card",
+  LayoutBackgroundColor = "--layout__bg-color",
+  LayoutBackgroundImage = "--layout__bg-image",
+  PrimaryButtonBackgroundColor = "--primary-btn__bg-color",
+  PrimaryButtonBackgroundColorHover = "--primary-btn__bg-color--hover",
+  PrimaryButtonBackgroundColorActive = "--primary-btn__bg-color--active",
+  PrimaryButtonTextColor = "--primary-btn__text-color",
+  PrimaryButtonBorderRadius = "--primary-btn__border-radius",
+  InputFiledBorderRadius = "--input__border-radius",
+  LinkColor = "--body-text__link-color",
+  WatermarkDisplay = "--watermark-display",
 }
 
 export type CSSColor = string;
@@ -37,8 +71,18 @@ export type BorderRadiusStyle =
 
 export interface ButtonStyle {
   backgroundColor: CSSColor;
+  backgroundColorActive: CSSColor;
+  backgroundColorHover: CSSColor;
   labelColor: CSSColor;
   borderRadius: BorderRadiusStyle;
+}
+
+export interface PageStyle {
+  backgroundColor: CSSColor;
+}
+
+export interface CardStyle {
+  alignment: Alignment;
 }
 
 export interface InputFieldStyle {
@@ -49,38 +93,70 @@ export interface LinkStyle {
   color: CSSColor;
 }
 
-export interface CustomisableTheme {
-  cardAlignment: Alignment;
-  backgroundColor: CSSColor;
+export const WatermarkEnabledDisplay = "inline-block";
+export const WatermarkDisabledDisplay = "hidden";
 
+export interface CustomisableTheme {
+  page: PageStyle;
+  card: CardStyle;
   primaryButton: ButtonStyle;
   inputField: InputFieldStyle;
-
   link: LinkStyle;
 }
 
 export const DEFAULT_LIGHT_THEME: CustomisableTheme = {
-  cardAlignment: "center",
-  backgroundColor: "#ffffff",
-
+  page: {
+    backgroundColor: "#ffffff",
+  },
+  card: {
+    alignment: "center",
+  },
   primaryButton: {
     backgroundColor: "#176df3",
+    backgroundColorActive: "#1151b8",
+    backgroundColorHover: "#1151b8",
     labelColor: "#ffffff",
     borderRadius: {
       type: "rounded",
       radius: "0.875em",
     },
   },
-
   inputField: {
     borderRadius: {
       type: "rounded",
       radius: "0.875em",
     },
   },
-
   link: {
     color: "#176df3",
+  },
+};
+
+export const DEFAULT_DARK_THEME: CustomisableTheme = {
+  page: {
+    backgroundColor: "#1c1c1e",
+  },
+  card: {
+    alignment: "center",
+  },
+  primaryButton: {
+    backgroundColor: "#176df3",
+    backgroundColorActive: "#235dba",
+    backgroundColorHover: "#235dba",
+    labelColor: "#1c1c1e",
+    borderRadius: {
+      type: "rounded",
+      radius: "0.875em",
+    },
+  },
+  inputField: {
+    borderRadius: {
+      type: "rounded",
+      radius: "0.875em",
+    },
+  },
+  link: {
+    color: "#2f7bf4",
   },
 };
 
@@ -88,6 +164,7 @@ abstract class AbstractStyle<T> {
   abstract acceptDeclaration(declaration: Declaration): boolean;
   abstract acceptCssAstVisitor(visitor: CssAstVisitor): void;
   abstract getValue(): T;
+  abstract setValue(value: T): void;
 }
 
 abstract class StyleProperty<T> extends AbstractStyle<T> {
@@ -106,7 +183,7 @@ abstract class StyleProperty<T> extends AbstractStyle<T> {
     if (declaration.prop !== this.propertyName) {
       return false;
     }
-    this.setWithRawValue(declaration.value);
+    this.setWithRawValue(declaration.value.trim());
     return true;
   }
 
@@ -114,12 +191,18 @@ abstract class StyleProperty<T> extends AbstractStyle<T> {
     return this.value;
   }
 
-  abstract getCSSValue(): string | number;
+  setValue(value: T): void {
+    this.value = value;
+  }
+
+  abstract getCSSValue(): string;
 }
 
 export class ColorStyleProperty extends StyleProperty<string> {
   protected setWithRawValue(rawValue: string): void {
-    this.value = rawValue;
+    if (rawValue) {
+      this.value = rawValue;
+    }
   }
 
   acceptCssAstVisitor(visitor: CssAstVisitor): void {
@@ -134,10 +217,10 @@ export class ColorStyleProperty extends StyleProperty<string> {
 export class AlignItemsStyleProperty extends StyleProperty<Alignment> {
   protected setWithRawValue(rawValue: string): void {
     switch (rawValue) {
-      case "flex-start":
+      case "start":
         this.value = "start";
         break;
-      case "flex-end":
+      case "end":
         this.value = "end";
         break;
       default:
@@ -153,9 +236,9 @@ export class AlignItemsStyleProperty extends StyleProperty<Alignment> {
   getCSSValue(): string {
     switch (this.value) {
       case "start":
-        return "flex-start";
+        return "start";
       case "end":
-        return "flex-end";
+        return "end";
       case "center":
         return "center";
       default:
@@ -206,10 +289,24 @@ export class BorderRadiusStyleProperty extends StyleProperty<BorderRadiusStyle> 
   }
 }
 
+export class SpaceStyleProperty extends StyleProperty<string> {
+  protected setWithRawValue(rawValue: string): void {
+    this.value = rawValue;
+  }
+
+  acceptCssAstVisitor(visitor: CssAstVisitor): void {
+    visitor.visitSpaceStyleProperty(this);
+  }
+
+  getCSSValue(): string {
+    return this.value;
+  }
+}
+
 type StyleProperties<T> = {
   [K in keyof T]: AbstractStyle<T[K] | null>;
 };
-export class StyleGroup<T> extends AbstractStyle<T> {
+export class StyleGroup<T extends object> extends AbstractStyle<T> {
   styles: StyleProperties<T>;
 
   constructor(styles: StyleProperties<T>) {
@@ -234,58 +331,74 @@ export class StyleGroup<T> extends AbstractStyle<T> {
   getValue(): T {
     const value: Record<string, unknown> = {};
     for (const [name, style] of Object.entries(this.styles)) {
-      const s = style as AbstractStyle<T>;
+      const s = style as AbstractStyle<unknown>;
       value[name] = s.getValue();
     }
     return value as T;
+  }
+
+  setValue(value: T): void {
+    for (const [k, v] of Object.entries(value)) {
+      const style = (this.styles as any)[k] as AbstractStyle<T>;
+      style.setValue(v);
+    }
   }
 }
 
 export class CustomisableThemeStyleGroup extends StyleGroup<CustomisableTheme> {
   constructor(value: CustomisableTheme = DEFAULT_LIGHT_THEME) {
     super({
-      cardAlignment: new AlignItemsStyleProperty(
-        "--layout-flex-align-items",
-        value.cardAlignment
-      ),
-      backgroundColor: new ColorStyleProperty(
-        "-—widget__bg-color",
-        value.backgroundColor
-      ),
+      page: new StyleGroup({
+        backgroundColor: new ColorStyleProperty(
+          CSSVariable.LayoutBackgroundColor,
+          value.page.backgroundColor
+        ),
+      }),
+      card: new StyleGroup({
+        alignment: new AlignItemsStyleProperty(
+          CSSVariable.AlignmentCard,
+          value.card.alignment
+        ),
+      }),
 
       primaryButton: new StyleGroup({
         backgroundColor: new ColorStyleProperty(
-          "-—primary-btn__bg-color",
+          CSSVariable.PrimaryButtonBackgroundColor,
           value.primaryButton.backgroundColor
         ),
+        backgroundColorActive: new ColorStyleProperty(
+          CSSVariable.PrimaryButtonBackgroundColorActive,
+          value.primaryButton.backgroundColorActive
+        ),
+        backgroundColorHover: new ColorStyleProperty(
+          CSSVariable.PrimaryButtonBackgroundColorHover,
+          value.primaryButton.backgroundColorHover
+        ),
         labelColor: new ColorStyleProperty(
-          "—-primary-btn__text-color",
+          CSSVariable.PrimaryButtonTextColor,
           value.primaryButton.labelColor
         ),
         borderRadius: new BorderRadiusStyleProperty(
-          "—-primary-btn__border-radius",
+          CSSVariable.PrimaryButtonBorderRadius,
           value.primaryButton.borderRadius
         ),
       }),
 
       inputField: new StyleGroup({
         borderRadius: new BorderRadiusStyleProperty(
-          "--input__border-radius",
+          CSSVariable.InputFiledBorderRadius,
           value.inputField.borderRadius
         ),
       }),
 
       link: new StyleGroup({
-        color: new ColorStyleProperty(
-          "--body-text__link-color",
-          value.link.color
-        ),
+        color: new ColorStyleProperty(CSSVariable.LinkColor, value.link.color),
       }),
     });
   }
 }
 
-export class StyleCssVisitor<T> extends CssNodeVisitor {
+export class StyleCssVisitor<T extends object> extends CssNodeVisitor {
   private ruleSelector: string;
 
   private styleGroup: StyleGroup<T>;
@@ -339,7 +452,7 @@ export class CssAstVisitor {
     this.root.append(this.rule);
   }
 
-  visitStyleGroup<T>(styleGroup: StyleGroup<T>): void {
+  visitStyleGroup<T extends object>(styleGroup: StyleGroup<T>): void {
     for (const style of Object.values(styleGroup.styles)) {
       const s = style as AbstractStyle<T>;
       s.acceptCssAstVisitor(this);
@@ -360,16 +473,26 @@ export class CssAstVisitor {
     this.visitorStyleProperty(styleProperty);
   }
 
+  visitSpaceStyleProperty(styleProperty: SpaceStyleProperty): void {
+    this.visitorStyleProperty(styleProperty);
+  }
+
   visitorStyleProperty<T>(styleProperty: StyleProperty<T>): void {
     this.rule.append(
       new Declaration({
         prop: styleProperty.propertyName,
-        value: String(styleProperty.getCSSValue()),
+        value: styleProperty.getCSSValue(),
       })
     );
   }
 
   getCSS(): Root {
     return this.root;
+  }
+
+  getDeclarations(): Declaration[] {
+    return this.rule.nodes.filter(
+      (n): n is Declaration => n instanceof Declaration
+    );
   }
 }

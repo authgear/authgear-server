@@ -10,6 +10,7 @@
 <meta name="x-cldr-locale" content="{{ $.ResolvedCLDRLocale }}">
 <meta name="x-color-scheme" content="{{ $.ColorScheme }}">
 <meta name="x-sentry-dsn" content="{{ $.AuthUISentryDSN }}">
+<meta name="x-window-message-allowed-origins" content="{{ $.AuthUIWindowMessageAllowedOrigins }}">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- Tell Turbo not to use stale page for application visit -->
 <!-- See https://turbo.hotwired.dev/handbook/building#opting-out-of-caching -->
@@ -22,6 +23,23 @@
 
 <!-- Our CSS have to override styles in authflowv2/__generated_asset.html -->
 {{ template "authflowv2/__generated_asset.html" . }}
+
+{{ $appBackgroundImage := call $.StaticAssetURL "app-background-image" }}
+{{ $appBackgroundImageDark := call $.StaticAssetURL "app-background-image-dark" }}
+<style>
+:root {
+{{ if $appBackgroundImage }}
+  --layout__bg-image: url("{{ $appBackgroundImage }}");
+{{ else }}
+  --layout__bg-image: ;
+{{ end }}
+}
+{{ if $appBackgroundImageDark }}
+:root.dark {
+  --layout__bg-image: url("{{ $appBackgroundImageDark }}");
+}
+{{ end }}
+</style>
 {{ if call $.HasAppSpecificAsset "authgear-authflowv2-light-theme.css" }}
 <link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-authflowv2-light-theme.css" }}">
 {{ end }}

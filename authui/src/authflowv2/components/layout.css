@@ -1,15 +1,29 @@
 @layer components {
+  :root {
+    --layout__bg-color: var(--color-bg-base);
+    --layout__bg_position: center;
+    --layout__bg_repeat: no-repeat;
+    --layout__bg_size: cover;
+  }
+
+  :root.dark {
+    --layout__bg-color: var(--color-bg-base);
+    --layout__bg-image: ;
+  }
+
   .layout--default {
     @apply flex flex-col flex-1-0-auto;
     @apply items-center justify-start;
 
-    background-color: var(--color-bg-base);
+    background-color: var(--layout__bg-color);
+    background-image: var(--layout__bg-image);
+    background-repeat: var(--layout__bg_repeat);
+    background-position: var(--layout__bg_position);
+    background-size: var(--layout__bg_size);
   }
 
   .layout--default .widget {
     @apply flex-1-0-auto;
-
-    background-color: var(--color-bg-base);
   }
 
   .layout__header--default,
@@ -18,10 +32,36 @@
   }
 
   @media (min-width: theme("screens.tablet")) {
+    .layout--default {
+      :root[alignment-card="start"] & {
+        @apply items-start;
+      }
+
+      :root[alignment-card="center"] & {
+        @apply items-center;
+      }
+
+      :root[alignment-card="end"] & {
+        @apply items-end;
+      }
+    }
+
     .layout__header--default,
     .layout__footer--default {
       @apply flex-1;
       max-height: 160px;
+    }
+  }
+
+  @media (min-width: theme("screens.desktop")) {
+    .layout--default {
+      :root[alignment-card="start"] & {
+        @apply pl-60;
+      }
+
+      :root[alignment-card="end"] & {
+        @apply pr-60;
+      }
     }
   }
 }

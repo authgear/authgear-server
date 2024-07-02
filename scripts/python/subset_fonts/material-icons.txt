@@ -36,6 +36,7 @@ iframe
 image
 info
 input
+key
 key_vertical
 keyboard
 label
@@ -93,6 +94,7 @@ sms
 source
 square
 start
+store
 style
 support
 switch
@@ -103,6 +105,7 @@ toc
 token
 transform
 translate
+try
 update
 visibility
 visibility_off

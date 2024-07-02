@@ -4,9 +4,13 @@
 <html
   lang="{{ $.ResolvedLanguageTag }}"
   dir="{{ $.HTMLDir }}"
-  data-controller="format-date-relative"
+  data-controller="format-date-relative inline-preview"
   data-dark-theme-enabled="{{ $.DarkThemeEnabled }}"
-  data-inline-preview="{{ $.InlinePreview }}">
+  data-watermark-enabled={{ $.WatermarkEnabled }}
+  data-inline-preview="{{ $.InlinePreview }}"
+  data-inline-preview-previewable-resource-outlet=".translated-message,.brand-logo"
+  data-inline-preview-is-inline-preview-value="{{ $.InlinePreview }}"
+  >
 {{ template "authflowv2/__html_head.html" . }}
 
 {{ $lockedUntil := "" }}
@@ -18,6 +22,8 @@
   data-controller="prevent-double-tap xhr-submit-form lockout restore-form loading authflow-passkey-error"
   data-restore-form-json-value="{{ $.FormJSON }}"
   data-action="dblclick->prevent-double-tap#action"
+  data-inline-preview-previewable-resource-outlet=".translated-message,.brand-logo"
+  data-inline-preview-is-inline-preview-value="{{ $.InlinePreview }}"
   data-lockout-format-date-relative-outlet="[data-controller='format-date-relative']"
   data-lockout-lock-until-value="{{ $lockedUntil }}"
   data-lockout-action-button-selector-value="[data-action-button]">

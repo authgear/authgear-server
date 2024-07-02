@@ -1,5 +1,6 @@
 const cssVarsToAttrs = {
   "--alignment-logo": "alignment-logo",
+  "--alignment-card": "alignment-card",
   "--alignment-content": "alignment-content",
 };
 
