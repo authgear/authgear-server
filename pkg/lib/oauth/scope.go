@@ -7,7 +7,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
-	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 )
 
 const FullAccessScope = "https://authgear.com/scopes/full-access"
@@ -17,11 +16,12 @@ const OfflineAccess = "offline_access"
 const DeviceSSOScope = "device_sso"
 
 func SessionScopes(s session.ResolvedSession) []string {
-	switch s := s.(type) {
-	case *idpsession.IDPSession:
+	switch s.SessionType() {
+	case session.TypeIdentityProvider:
 		return []string{FullAccessScope, AppInitiatedSSOToWebScope}
-	case *OfflineGrantSession:
-		return s.Scopes
+	case session.TypeOfflineGrant:
+		ss := s.(*OfflineGrantSession)
+		return ss.Scopes
 	default:
 		panic("oauth: unexpected session type")
 	}
