@@ -29,6 +29,7 @@ import { Alignment, AllAlignments } from "../../../model/themeAuthFlowV2";
 
 import ScreenTitle from "../../../ScreenTitle";
 import ManageLanguageWidget from "../ManageLanguageWidget";
+import FormTextField from "../../../FormTextField";
 import TextField from "../../../TextField";
 import DefaultButton from "../../../DefaultButton";
 import Toggle from "../../../Toggle";
@@ -331,6 +332,65 @@ const InputConfiguration: React.VFC<InputConfigurationProps> =
     );
   };
 
+interface DefaultClientURIConfigurationProps {
+  designForm: BranchDesignForm;
+}
+const DefaultClientURIConfiguration: React.VFC<DefaultClientURIConfigurationProps> =
+  function DefaultClientURIConfiguration(props) {
+    const { designForm } = props;
+    const { renderToString } = useContext(MFContext);
+    const [uri, setURI] = useState(() => designForm.state.defaultClientURI);
+    const [enabled, setEnabled] = useState(
+      () => designForm.state.defaultClientURI !== ""
+    );
+    const onChangeEnableClientURI = useCallback(
+      (_: React.MouseEvent, checked?: boolean) => {
+        const enabled_ = checked ?? false;
+        if (enabled_) {
+          designForm.setDefaultClientURI(uri);
+        } else {
+          designForm.setDefaultClientURI("");
+        }
+        setEnabled(enabled_);
+      },
+      [uri, designForm]
+    );
+
+    const onChangeURI = useCallback(
+      (_: React.FormEvent<any>, value?: string) => {
+        if (value == null) {
+          return;
+        }
+        setURI(value);
+        designForm.setDefaultClientURI(value);
+      },
+      [designForm]
+    );
+
+    return (
+      <ConfigurationGroup labelKey="DesignScreen.configuration.defaultClientURI.label">
+        <ConfigurationDescription labelKey="DesignScreen.configuration.defaultClientURI.description" />
+        <Toggle
+          checked={enabled}
+          onChange={onChangeEnableClientURI}
+          label={renderToString(
+            "DesignScreen.configuration.defaultClientURI.enable.description"
+          )}
+          inlineLabel={true}
+          disabled={designForm.state.whiteLabelingDisabled}
+        />
+        <FormTextField
+          fieldName="default_client_uri"
+          parentJSONPointer="/ui"
+          disabled={!enabled}
+          placeholder="https://example.com"
+          value={uri}
+          onChange={onChangeURI}
+        />
+      </ConfigurationGroup>
+    );
+  };
+
 interface AuthgearBrandingConfigurationProps {
   appID: string;
   designForm: BranchDesignForm;
@@ -412,6 +472,8 @@ const ConfigurationPanel: React.VFC<ConfigurationPanelProps> =
         <LinkConfiguration designForm={designForm} />
         <Separator />
         <InputConfiguration designForm={designForm} />
+        <Separator />
+        <DefaultClientURIConfiguration designForm={designForm} />
         <Separator />
         <AuthgearBrandingConfiguration appID={appID} designForm={designForm} />
       </div>
