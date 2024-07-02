@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -22,12 +23,22 @@ func ConfigureSettingsDeleteAccountSuccessRoute(route httproute.Route) httproute
 		WithPathPattern("/settings/delete_account/success")
 }
 
+type SettingsDeleteAccountSuccessUIInfoResolver interface {
+	SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string
+}
+
+type SettingsDeleteAccountSuccessAuthenticationInfoService interface {
+	Get(entryID string) (entry *authenticationinfo.Entry, err error)
+}
+
 type SettingsDeleteAccountSuccessHandler struct {
-	ControllerFactory ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	Renderer          Renderer
-	AccountDeletion   *config.AccountDeletionConfig
-	Clock             clock.Clock
+	ControllerFactory         ControllerFactory
+	BaseViewModel             *viewmodels.BaseViewModeler
+	Renderer                  Renderer
+	AccountDeletion           *config.AccountDeletionConfig
+	Clock                     clock.Clock
+	UIInfoResolver            SettingsDeleteAccountSuccessUIInfoResolver
+	AuthenticationInfoService SettingsDeleteAccountSuccessAuthenticationInfoService
 }
 
 func (h *SettingsDeleteAccountSuccessHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -68,10 +79,17 @@ func (h *SettingsDeleteAccountSuccessHandler) ServeHTTP(w http.ResponseWriter, r
 
 	ctrl.PostAction("", func() error {
 		redirectURI := ""
-		if webSession != nil && webSession.OAuthSessionID != "" {
+		if webSession != nil && webSession.RedirectURI != "" {
 			// delete account triggered by sdk via settings action
 			// redirect to oauth callback
 			redirectURI = webSession.RedirectURI
+			if authInfoID, ok := webSession.Extra["authentication_info_id"].(string); ok {
+				authInfo, err := h.AuthenticationInfoService.Get(authInfoID)
+				if err != nil {
+					return err
+				}
+				redirectURI = h.UIInfoResolver.SetAuthenticationInfoInQuery(redirectURI, authInfo)
+			}
 		}
 
 		result := webapp.Result{

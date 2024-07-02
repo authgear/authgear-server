@@ -52893,14 +52893,17 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Coordinator:  coordinator,
 	}
 	settingsDeleteAccountHandler := &webapp.SettingsDeleteAccountHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		Renderer:          responseRenderer,
-		AccountDeletion:   accountDeletionConfig,
-		Clock:             clockClock,
-		Users:             userFacade,
-		Cookies:           cookieManager,
-		OAuthSessions:     oauthsessionStoreRedis,
+		ControllerFactory:         controllerFactory,
+		BaseViewModel:             baseViewModeler,
+		Renderer:                  responseRenderer,
+		AccountDeletion:           accountDeletionConfig,
+		Clock:                     clockClock,
+		Users:                     userFacade,
+		Cookies:                   cookieManager,
+		OAuthSessions:             oauthsessionStoreRedis,
+		Sessions:                  sessionStoreRedis,
+		SessionCookie:             sessionCookieDef,
+		AuthenticationInfoService: authenticationinfoStoreRedis,
 	}
 	return settingsDeleteAccountHandler
 }
@@ -53786,11 +53789,13 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		ControllerDeps: controllerDeps,
 	}
 	settingsDeleteAccountSuccessHandler := &webapp.SettingsDeleteAccountSuccessHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		Renderer:          responseRenderer,
-		AccountDeletion:   accountDeletionConfig,
-		Clock:             clockClock,
+		ControllerFactory:         controllerFactory,
+		BaseViewModel:             baseViewModeler,
+		Renderer:                  responseRenderer,
+		AccountDeletion:           accountDeletionConfig,
+		Clock:                     clockClock,
+		UIInfoResolver:            uiInfoResolver,
+		AuthenticationInfoService: authenticationinfoStoreRedis,
 	}
 	return settingsDeleteAccountSuccessHandler
 }

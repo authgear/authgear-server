@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -40,15 +41,28 @@ type SettingsDeleteAccountOAuthSessionService interface {
 	Save(entry *oauthsession.Entry) error
 }
 
+type SettingsDeleteAccountSessionStore interface {
+	Create(session *webapp.Session) (err error)
+	Delete(id string) (err error)
+	Update(session *webapp.Session) (err error)
+}
+
+type SettingsDeleteAccountAuthenticationInfoService interface {
+	Save(entry *authenticationinfo.Entry) (err error)
+}
+
 type SettingsDeleteAccountHandler struct {
-	ControllerFactory ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	Renderer          Renderer
-	AccountDeletion   *config.AccountDeletionConfig
-	Clock             clock.Clock
-	Users             SettingsDeleteAccountUserService
-	Cookies           CookieManager
-	OAuthSessions     SettingsDeleteAccountOAuthSessionService
+	ControllerFactory         ControllerFactory
+	BaseViewModel             *viewmodels.BaseViewModeler
+	Renderer                  Renderer
+	AccountDeletion           *config.AccountDeletionConfig
+	Clock                     clock.Clock
+	Users                     SettingsDeleteAccountUserService
+	Cookies                   CookieManager
+	OAuthSessions             SettingsDeleteAccountOAuthSessionService
+	Sessions                  SettingsDeleteAccountSessionStore
+	SessionCookie             webapp.SessionCookieDef
+	AuthenticationInfoService SettingsDeleteAccountAuthenticationInfoService
 }
 
 func (h *SettingsDeleteAccountHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -106,11 +120,20 @@ func (h *SettingsDeleteAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		}
 
 		if webSession != nil && webSession.OAuthSessionID != "" {
-			// TODO: you need to call AuthenticationInfoService.Save(n.AuthenticationInfoEntry)
-			// So that when we return to oauth2, there is a authentication info.
-
 			// delete account triggered by sdk via settings action
 			// handle settings action result here
+
+			authInfoEntry := authenticationinfo.NewEntry(currentSession.GetAuthenticationInfo(), webSession.OAuthSessionID)
+			err := h.AuthenticationInfoService.Save(authInfoEntry)
+			if err != nil {
+				return err
+			}
+			webSession.Extra["authentication_info_id"] = authInfoEntry.ID
+			err = h.Sessions.Update(webSession)
+			if err != nil {
+				return err
+			}
+
 			entry, err := h.OAuthSessions.Get(webSession.OAuthSessionID)
 			if err != nil {
 				return err
