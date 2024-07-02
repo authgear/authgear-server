@@ -64,7 +64,10 @@ export class InlinePreviewController extends Controller {
     }
     const el = this.element as HTMLElement;
     for (const [name, value] of Object.entries(customisationMessage.cssVars)) {
-      el.style.setProperty(name, value);
+      const currentStyle = el.style.getPropertyValue(name);
+      if (currentStyle !== value) {
+        el.style.setProperty(name, value);
+      }
     }
 
     const keyToPreviewableResourceController: Partial<
