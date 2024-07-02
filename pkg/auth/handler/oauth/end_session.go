@@ -23,7 +23,7 @@ func NewEndSessionHandlerLogger(lf *log.Factory) EndSessionHandlerLogger {
 }
 
 type ProtocolEndSessionHandler interface {
-	Handle(session.Session, protocol.EndSessionRequest, *http.Request, http.ResponseWriter) error
+	Handle(session.ResolvedSession, protocol.EndSessionRequest, *http.Request, http.ResponseWriter) error
 }
 
 type EndSessionHandler struct {

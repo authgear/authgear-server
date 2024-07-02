@@ -148,6 +148,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oidc.IDTokenHintResolverSessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(interaction.SessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(workflow.IDPSessionService), new(*idpsession.Provider)),
+		wire.Bind(new(oauth.IDPSessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(authenticationflow.IDPSessionService), new(*idpsession.Provider)),
 		wire.Bind(new(sessionlisting.IDPSessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(facade.IDPSessionManager), new(*idpsession.Manager)),
@@ -324,6 +325,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oauth.OfflineGrantStore), new(*oauthredis.Store)),
 		wire.Bind(new(oauth.AppSessionTokenStore), new(*oauthredis.Store)),
 		wire.Bind(new(oauth.AppSessionStore), new(*oauthredis.Store)),
+		wire.Bind(new(oauth.AppInitiatedSSOToWebTokenStore), new(*oauthredis.Store)),
 		wire.Bind(new(oauth.SettingsActionGrantStore), new(*oauthredis.Store)),
 		wire.Bind(new(handler.TokenHandlerCodeGrantStore), new(*oauthredis.Store)),
 		wire.Bind(new(handler.TokenHandlerSettingsActionGrantStore), new(*oauthredis.Store)),
@@ -343,6 +345,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(workflow.OfflineGrantStore), new(*oauthredis.Store)),
 		wire.Bind(new(authenticationflow.OfflineGrantStore), new(*oauthredis.Store)),
 		wire.Bind(new(oidc.UIInfoResolverPromptResolver), new(*oauth.PromptResolver)),
+		wire.Bind(new(oauthhandler.AppInitiatedSSOToWebTokenService), new(*oauth.AppInitiatedSSOToWebTokenService)),
 
 		oauthhandler.DependencySet,
 

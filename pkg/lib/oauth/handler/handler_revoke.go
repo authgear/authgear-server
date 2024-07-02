@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"crypto/subtle"
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -10,8 +9,8 @@ import (
 )
 
 type SessionManager interface {
-	RevokeWithEvent(session session.Session, isTermination bool, isAdminAPI bool) error
-	RevokeWithoutEvent(session session.Session) error
+	RevokeWithEvent(session session.SessionBase, isTermination bool, isAdminAPI bool) error
+	RevokeWithoutEvent(session session.SessionBase) error
 }
 
 type RevokeHandler struct {
@@ -37,7 +36,7 @@ func (h *RevokeHandler) revokeOfflineGrant(token, grantID string) error {
 	}
 
 	tokenHash := oauth.HashToken(token)
-	if subtle.ConstantTimeCompare([]byte(tokenHash), []byte(offlineGrant.TokenHash)) != 1 {
+	if !offlineGrant.MatchHash(tokenHash) {
 		return nil
 	}
 

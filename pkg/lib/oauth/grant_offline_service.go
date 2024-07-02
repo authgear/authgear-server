@@ -54,7 +54,7 @@ func (s *OfflineGrantService) IsValid(session *OfflineGrant) (bool, time.Time, e
 }
 
 func (s *OfflineGrantService) ComputeOfflineGrantExpiry(session *OfflineGrant) (expiry time.Time, err error) {
-	clientConfig := s.ClientResolver.ResolveClient(session.ClientID)
+	clientConfig := s.ClientResolver.ResolveClient(session.InitialClientID)
 
 	if clientConfig == nil {
 		err = ErrGrantNotFound

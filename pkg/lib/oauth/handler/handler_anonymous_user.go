@@ -149,10 +149,10 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 	}
 
 	// TODO(oauth): allow specifying scopes for anonymous user signup
-	scopes := []string{"openid", oauth.FullAccessScope}
+	scopes := []string{"openid", oauth.OfflineAccess, oauth.FullAccessScope}
 
 	if refreshToken != "" {
-		authz, grant, err := h.TokenService.ParseRefreshToken(refreshToken)
+		authz, grant, refreshTokenHash, err := h.TokenService.ParseRefreshToken(refreshToken)
 		if errors.Is(err, ErrInvalidRefreshToken) {
 			return nil, apierrors.NewInvalid("invalid refresh token")
 		} else if err != nil {
@@ -169,7 +169,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 
 		resp := protocol.TokenResponse{}
 		err = h.TokenService.IssueAccessGrant(client, scopes, authz.ID, authz.UserID,
-			grant.ID, oauth.GrantSessionKindOffline, resp)
+			grant.ID, oauth.GrantSessionKindOffline, refreshTokenHash, resp)
 		if err != nil {
 			return nil, err
 		}
@@ -207,13 +207,13 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		DeviceInfo:         nil,
 		SSOEnabled:         false,
 	}
-	offlineGrant, err := h.TokenService.IssueOfflineGrant(client, opts, resp)
+	offlineGrant, tokenHash, err := h.TokenService.IssueOfflineGrant(client, opts, resp)
 	if err != nil {
 		return nil, err
 	}
 
 	err = h.TokenService.IssueAccessGrant(client, scopes, authz.ID, authz.UserID,
-		offlineGrant.ID, oauth.GrantSessionKindOffline, resp)
+		offlineGrant.ID, oauth.GrantSessionKindOffline, tokenHash, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -282,7 +282,7 @@ func (h *AnonymousUserHandler) IssuePromotionCode(
 			err = ErrUnauthenticated
 			return
 		}
-		authz, _, e := h.TokenService.ParseRefreshToken(refreshToken)
+		authz, _, _, e := h.TokenService.ParseRefreshToken(refreshToken)
 		var oauthError *protocol.OAuthProtocolError
 		if errors.As(e, &oauthError) {
 			err = apierrors.NewForbidden(oauthError.Error())

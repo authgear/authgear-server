@@ -99,6 +99,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	// TODO(DEV-1402): Handle offlinegrant
 	idpSession := session.GetSession(r.Context())
 	webSession := webapp.GetSession(r.Context())
 

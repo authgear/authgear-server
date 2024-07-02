@@ -11,7 +11,7 @@ type PromptResolver struct {
 	Clock clock.Clock
 }
 
-func (r *PromptResolver) ResolvePrompt(req protocol.AuthorizationRequest, sidSession session.Session) (prompt []string) {
+func (r *PromptResolver) ResolvePrompt(req protocol.AuthorizationRequest, sidSession session.ListableSession) (prompt []string) {
 	prompt = req.Prompt()
 	if maxAge, ok := req.MaxAge(); ok {
 		impliesPromptLogin := false

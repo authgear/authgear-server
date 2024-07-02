@@ -28,7 +28,7 @@ func (m *Manager) ClearCookie() []*http.Cookie {
 	}
 }
 
-func (m *Manager) Get(id string) (session.Session, error) {
+func (m *Manager) Get(id string) (session.ListableSession, error) {
 	s, err := m.Store.Get(id)
 	if errors.Is(err, ErrSessionNotFound) {
 		return nil, session.ErrSessionNotFound
@@ -38,7 +38,7 @@ func (m *Manager) Get(id string) (session.Session, error) {
 	return s, nil
 }
 
-func (m *Manager) Delete(session session.Session) error {
+func (m *Manager) Delete(session session.ListableSession) error {
 	err := m.Store.Delete(session.(*IDPSession))
 	if err != nil {
 		return fmt.Errorf("failed to invalidate session: %w", err)
@@ -46,26 +46,26 @@ func (m *Manager) Delete(session session.Session) error {
 	return nil
 }
 
-func (m *Manager) List(userID string) ([]session.Session, error) {
+func (m *Manager) List(userID string) ([]session.ListableSession, error) {
 	storedSessions, err := m.Store.List(userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list sessions: %w", err)
 	}
 
-	var sessions []session.Session
+	var sessions []session.ListableSession
 	for _, session := range storedSessions {
 		sessions = append(sessions, session)
 	}
 	return sessions, nil
 }
 
-func (m *Manager) TerminateAllExcept(userID string, currentSession session.Session) ([]session.Session, error) {
+func (m *Manager) TerminateAllExcept(userID string, currentSession session.ResolvedSession) ([]session.ListableSession, error) {
 	sessions, err := m.Store.List(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	deletedSessions := []session.Session{}
+	deletedSessions := []session.ListableSession{}
 	for _, ss := range sessions {
 		if currentSession != nil && ss.IsSameSSOGroup(currentSession) {
 			continue

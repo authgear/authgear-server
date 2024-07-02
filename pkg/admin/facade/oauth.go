@@ -24,7 +24,7 @@ type OAuthTokenService interface {
 		client *config.OAuthClientConfig,
 		opts handler.IssueOfflineGrantOptions,
 		resp protocol.TokenResponse,
-	) (*oauth.OfflineGrant, error)
+	) (offlineGrant *oauth.OfflineGrant, tokenHash string, err error)
 	IssueAccessGrant(
 		client *config.OAuthClientConfig,
 		scopes []string,
@@ -32,6 +32,7 @@ type OAuthTokenService interface {
 		userID string,
 		sessionID string,
 		sessionKind oauth.GrantSessionKind,
+		refreshTokenHash string,
 		resp protocol.TokenResponse,
 	) error
 }
@@ -49,10 +50,10 @@ type OAuthFacade struct {
 	OAuthClientResolver OAuthClientResolver
 }
 
-func (f *OAuthFacade) CreateSession(clientID string, userID string) (session.Session, protocol.TokenResponse, error) {
+func (f *OAuthFacade) CreateSession(clientID string, userID string) (session.ListableSession, protocol.TokenResponse, error) {
 	scopes := []string{
 		"openid",
-		"offline_access",
+		oauth.OfflineAccess,
 		oauth.FullAccessScope,
 	}
 	authenticationInfo := authenticationinfo.T{
@@ -92,7 +93,7 @@ func (f *OAuthFacade) CreateSession(clientID string, userID string) (session.Ses
 	}
 
 	resp := protocol.TokenResponse{}
-	offlineGrant, err := f.Tokens.IssueOfflineGrant(client, offlineGrantOpts, resp)
+	offlineGrant, tokenHash, err := f.Tokens.IssueOfflineGrant(client, offlineGrantOpts, resp)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -104,6 +105,7 @@ func (f *OAuthFacade) CreateSession(clientID string, userID string) (session.Ses
 		authz.UserID,
 		offlineGrant.ID,
 		oauth.GrantSessionKindOffline,
+		tokenHash,
 		resp,
 	)
 	if err != nil {

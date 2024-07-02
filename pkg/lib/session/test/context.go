@@ -27,6 +27,8 @@ func NewMockSession() *MockSession {
 	}
 }
 
+func (m MockSession) Session() {}
+
 func (m MockSession) SessionID() string { return m.ID }
 
 func (m MockSession) SessionType() session.Type { return m.Type }
@@ -78,10 +80,10 @@ func (s *MockSession) SSOGroupIDPSessionID() string {
 	return ""
 }
 
-func (s *MockSession) IsSameSSOGroup(ss session.Session) bool {
+func (s *MockSession) IsSameSSOGroup(ss session.ListableSession) bool {
 	return false
 }
 
-func (s *MockSession) Equal(ss session.Session) bool {
+func (s *MockSession) Equal(ss session.ListableSession) bool {
 	return false
 }

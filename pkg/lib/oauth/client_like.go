@@ -21,7 +21,7 @@ type OAuthClientResolver interface {
 	ResolveClient(clientID string) *config.OAuthClientConfig
 }
 
-func SessionClientLike(s session.Session, clientResolver OAuthClientResolver) *ClientLike {
+func SessionClientLike(s session.ResolvedSession, clientResolver OAuthClientResolver) *ClientLike {
 	scopes := SessionScopes(s)
 	switch s := s.(type) {
 	case *idpsession.IDPSession:
@@ -30,7 +30,7 @@ func SessionClientLike(s session.Session, clientResolver OAuthClientResolver) *C
 			PIIAllowedInIDToken: false,
 			Scopes:              scopes,
 		}
-	case *OfflineGrant:
+	case *OfflineGrantSession:
 		client := clientResolver.ResolveClient(s.ClientID)
 		if client == nil {
 			return ClientLikeNotFound

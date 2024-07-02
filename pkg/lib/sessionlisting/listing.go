@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
-	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
 
 //go:generate mockgen -source=listing.go -destination=listing_mock_test.go -package sessionlisting_test
@@ -41,8 +40,8 @@ type SessionListingService struct {
 	OfflineGrants OfflineGrantService
 }
 
-func (s *SessionListingService) FilterForDisplay(sessions []session.Session, currentSession session.Session) ([]*Session, error) {
-	sess := make([]session.Session, len(sessions))
+func (s *SessionListingService) FilterForDisplay(sessions []session.ListableSession, currentSession session.ResolvedSession) ([]*Session, error) {
+	sess := make([]session.ListableSession, len(sessions))
 	copy(sess, sessions)
 	sortSessions(sess)
 
@@ -56,11 +55,10 @@ func (s *SessionListingService) FilterForDisplay(sessions []session.Session, cur
 		}
 	}
 
-	// construct third-party app client id set
-	thirdPartyClientIDSet := make(setutil.Set[string])
+	thirdPartyClientIDs := []string{}
 	for _, c := range s.OAuthConfig.Clients {
 		if c.IsThirdParty() {
-			thirdPartyClientIDSet[c.ClientID] = struct{}{}
+			thirdPartyClientIDs = append(thirdPartyClientIDs, c.ClientID)
 		}
 	}
 
@@ -68,8 +66,7 @@ func (s *SessionListingService) FilterForDisplay(sessions []session.Session, cur
 	idpSessionToDisplayNameMap := map[string]string{}
 
 	for _, offlineGrant := range offlineGrants {
-		// remove third-party app refresh token
-		if _, ok := thirdPartyClientIDSet[offlineGrant.ClientID]; ok {
+		if offlineGrant.IsOnlyUsedInClientIDs(thirdPartyClientIDs) {
 			continue
 		}
 
@@ -126,7 +123,7 @@ func (s *SessionListingService) FilterForDisplay(sessions []session.Session, cur
 	return result, nil
 }
 
-func sortSessions(sessions []session.Session) {
+func sortSessions(sessions []session.ListableSession) {
 	sort.Slice(sessions, func(i, j int) bool {
 		a := time.Time{}
 		if accessInfo := sessions[i].GetAccessInfo(); accessInfo != nil {

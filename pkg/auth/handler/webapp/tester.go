@@ -94,7 +94,7 @@ type TesterHandler struct {
 }
 
 var TesterScopes = []string{
-	"openid", "offline_access", oauth.FullAccessScope,
+	"openid", oauth.OfflineAccess, oauth.FullAccessScope,
 }
 
 type TesterState struct {

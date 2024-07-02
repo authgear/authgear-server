@@ -1019,11 +1019,19 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Events:             eventService,
 	}
+	oauthOfflineGrantService := &oauth2.OfflineGrantService{
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
+	}
 	authorizationService := &oauth2.AuthorizationService{
 		AppID:               appID,
 		Store:               authorizationStore,
 		Clock:               clockClock,
 		OAuthSessionManager: sessionManager,
+		OfflineGrantService: oauthOfflineGrantService,
+		OfflineGrantStore:   redisStore,
 	}
 	authorizationFacade := &facade2.AuthorizationFacade{
 		Authorizations: authorizationService,
@@ -1066,12 +1074,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Tokens:              tokenService,
 		Clock:               clockClock,
 		OAuthClientResolver: oauthclientResolver,
-	}
-	oauthOfflineGrantService := &oauth2.OfflineGrantService{
-		OAuthConfig:    oAuthConfig,
-		Clock:          clockClock,
-		IDPSessions:    idpsessionProvider,
-		ClientResolver: oauthclientResolver,
 	}
 	sessionListingService := &sessionlisting.SessionListingService{
 		OAuthConfig:   oAuthConfig,
