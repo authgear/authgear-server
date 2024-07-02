@@ -13,6 +13,7 @@ import (
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	configtest "github.com/authgear/authgear-server/pkg/lib/config/test"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/resource"
@@ -69,6 +70,11 @@ func TestManager(t *testing.T) {
 			secretConfigYAML, _ := yaml.Marshal(cfg.SecretConfig)
 			_ = afero.WriteFile(appFs, "authgear.yaml", appConfigYAML, 0666)
 			_ = afero.WriteFile(appFs, "authgear.secrets.yaml", secretConfigYAML, 0666)
+
+			resource.RegisterResource(web.ImageDescriptor{
+				Name:      "myimage",
+				SizeLimit: 100 * 1024,
+			})
 		}()
 
 		Convey("validate new config without crash", func() {
@@ -78,11 +84,21 @@ func TestManager(t *testing.T) {
 		})
 
 		Convey("validate file size", func() {
-			_, err := applyUpdates([]appresource.Update{{
-				Path: "authgear.yaml",
-				Data: []byte("id: " + string(make([]byte, 1024*1024))),
-			}})
-			So(err, ShouldBeError, `invalid resource 'authgear.yaml': too large (1048580 > 102400)`)
+			Convey("validate file with default size limit", func() {
+				_, err := applyUpdates([]appresource.Update{{
+					Path: "authgear.yaml",
+					Data: []byte("id: " + string(make([]byte, 1024*1024))),
+				}})
+				So(err, ShouldBeError, `invalid resource 'authgear.yaml': too large (1048580 > 102400)`)
+			})
+
+			Convey("validate file with specified size limit", func() {
+				_, err := applyUpdates([]appresource.Update{{
+					Path: "static/en/myimage.png",
+					Data: make([]byte, 500*1024),
+				}})
+				So(err, ShouldBeError, `invalid resource 'static/en/myimage.png': too large (512000 > 102400)`)
+			})
 		})
 
 		Convey("validate configuration YAML", func() {

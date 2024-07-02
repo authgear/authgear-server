@@ -119,15 +119,6 @@ func (m *Manager) ReadAppFile(desc resource.Descriptor, view resource.AppFileVie
 }
 
 func (m *Manager) ApplyUpdates(appID string, updates []Update) ([]*resource.ResourceFile, error) {
-	// Validate file size.
-	for _, f := range updates {
-		if len(f.Data) > ConfigFileMaxSize {
-			message := fmt.Sprintf("invalid resource '%s': too large (%v > %v)", f.Path, len(f.Data), ConfigFileMaxSize)
-			err := ResouceTooLarge.NewWithInfo(message, apierrors.Details{"size": len(f.Data), "max_size": ConfigFileMaxSize, "path": f.Path})
-			return nil, err
-		}
-	}
-
 	// Construct new resource manager.
 	newManager, files, err := m.applyUpdates(appID, m.AppFS, updates)
 	if err != nil {
@@ -315,6 +306,17 @@ func (m *Manager) applyUpdates(appID string, appFs resource.Fs, updates []Update
 		desc, ok := manager.Resolve(u.Path)
 		if !ok {
 			err = fmt.Errorf("invalid resource '%s': unknown resource path", resrc.Location.Path)
+			return nil, nil, err
+		}
+
+		// Validate file size
+		sizeLimit := ConfigFileMaxSize
+		if sizeLimitDescriptor, ok := desc.(resource.SizeLimitDescriptor); ok {
+			sizeLimit = sizeLimitDescriptor.GetSizeLimit()
+		}
+		if len(u.Data) > sizeLimit {
+			message := fmt.Sprintf("invalid resource '%s': too large (%v > %v)", u.Path, len(u.Data), sizeLimit)
+			err := ResouceTooLarge.NewWithInfo(message, apierrors.Details{"size": len(u.Data), "max_size": sizeLimit, "path": u.Path})
 			return nil, nil, err
 		}
 
