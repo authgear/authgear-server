@@ -138,7 +138,19 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, inputFn func(i
 		}
 
 		if errors.Is(err, ErrBotProtectionVerificationSuccess) {
-			err = nil
+			uw, isJoinedError := err.(interface{ Unwrap() []error })
+			if isJoinedError {
+				errs := uw.Unwrap()
+				// make err become first non-ErrBotProtectionVerificationSuccess error
+				for _, _err := range errs {
+					if !errors.Is(_err, ErrBotProtectionVerificationSuccess) {
+						err = _err
+						break
+					}
+				}
+			} else {
+				err = nil
+			}
 			result = &AcceptResult{
 				BotProtectionVerificationResult: &BotProtectionVerificationResult{
 					Outcome: BotProtectionVerificationOutcomeVerified,
