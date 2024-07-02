@@ -44,7 +44,7 @@
 }
 
 .CompoundChoiceButton {
-  max-width: 368px;
+  @apply max-w-[368px] mobile:max-w-[410px];
   min-height: 118px;
   height: 100%;
   padding: 25px;
