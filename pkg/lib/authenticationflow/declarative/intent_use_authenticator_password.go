@@ -51,16 +51,33 @@ func (n *IntentUseAuthenticatorPassword) CanReactTo(ctx context.Context, deps *a
 	if err != nil {
 		return nil, err
 	}
+	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, flowRootObject, n.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
 
 	return &InputSchemaTakePassword{
-		FlowRootObject: flowRootObject,
-		JSONPointer:    n.JSONPointer,
+		FlowRootObject:          flowRootObject,
+		JSONPointer:             n.JSONPointer,
+		IsBotProtectionRequired: isBotProtectionRequired,
 	}, nil
 }
 
 func (i *IntentUseAuthenticatorPassword) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	var inputTakePassword inputTakePassword
 	if authflow.AsInput(input, &inputTakePassword) {
+		var bpSpecialErr error
+		bpRequired, err := IsNodeBotProtectionRequired(ctx, deps, flows, i.JSONPointer)
+		if err != nil {
+			return nil, err
+		}
+		if bpRequired {
+			token := inputTakePassword.(inputTakeBotProtection).GetBotProtectionProviderResponse()
+			bpSpecialErr, err = HandleBotProtection(ctx, deps, token)
+			if err != nil {
+				return nil, err
+			}
+		}
 		as, err := deps.Authenticators.List(
 			i.UserID,
 			authenticator.KeepKind(i.Authentication.AuthenticatorKind()),
@@ -106,7 +123,7 @@ func (i *IntentUseAuthenticatorPassword) ReactTo(ctx context.Context, deps *auth
 			PasswordChangeRequired: verifyResult.Password.RequireUpdate(),
 			PasswordChangeReason:   reason,
 			JSONPointer:            i.JSONPointer,
-		}), nil
+		}), bpSpecialErr
 	}
 
 	return nil, authflow.ErrIncompatibleInput
