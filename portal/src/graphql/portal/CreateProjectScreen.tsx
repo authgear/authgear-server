@@ -13,7 +13,11 @@ import { useCreateAppMutation } from "./mutations/createAppMutation";
 import { useAppListQuery } from "./query/appListQuery";
 import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 import { useSimpleForm } from "../../hook/useSimpleForm";
-import { randomProjectName } from "../../util/projectname";
+import {
+  randomProjectName,
+  getRandom32BitsNumber,
+  maskNumber,
+} from "../../util/projectname";
 import PrimaryButton from "../../PrimaryButton";
 
 interface FormState {
@@ -71,6 +75,14 @@ function processCompanyName(companyName: string): string {
     .toLowerCase();
 }
 
+function addRandomNumberSuffix(intermediateProjectName: string): string {
+  return (
+    intermediateProjectName +
+    "-" +
+    maskNumber(getRandom32BitsNumber(), 0, 10).toString()
+  );
+}
+
 function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
   const { numberOfApps } = props;
   const navigate = useNavigate();
@@ -89,8 +101,11 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
   const defaultState = useMemo(() => {
     const typedState: LocationState | null = state as LocationState | null;
     const defaultState = makeDefaultState();
-    if (typedState)
-      defaultState.appID = processCompanyName(typedState.company_name);
+    if (typedState) {
+      const intermediateName = processCompanyName(typedState.company_name);
+      if (intermediateName !== "")
+        defaultState.appID = addRandomNumberSuffix(intermediateName);
+    }
     return defaultState;
   }, [state]);
 

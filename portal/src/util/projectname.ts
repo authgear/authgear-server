@@ -5,7 +5,7 @@ function determineWord(index: number): string {
   return wordlist[index];
 }
 
-function getRandom32BitsNumber(): number {
+export function getRandom32BitsNumber(): number {
   const randomBuffer = new Uint32Array(1);
   window.crypto.getRandomValues(randomBuffer);
   return randomBuffer[0];
