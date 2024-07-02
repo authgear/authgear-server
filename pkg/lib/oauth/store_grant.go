@@ -4,7 +4,10 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
+	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 )
+
+//go:generate mockgen -source=store_grant.go -destination=store_grant_mock.go -package oauth
 
 type CodeGrantStore interface {
 	GetCodeGrant(codeHash string) (*CodeGrant, error)
@@ -34,6 +37,10 @@ type OfflineGrantStore interface {
 	ListClientOfflineGrants(clientID string, userID string) ([]*OfflineGrant, error)
 }
 
+type IDPSessionProvider interface {
+	Get(id string) (*idpsession.IDPSession, error)
+}
+
 type AccessGrantStore interface {
 	GetAccessGrant(tokenHash string) (*AccessGrant, error)
 	CreateAccessGrant(*AccessGrant) error
@@ -50,4 +57,8 @@ type AppSessionTokenStore interface {
 	GetAppSessionToken(tokenHash string) (*AppSessionToken, error)
 	CreateAppSessionToken(*AppSessionToken) error
 	DeleteAppSessionToken(*AppSessionToken) error
+}
+
+type AppInitiatedSSOToWebTokenStore interface {
+	CreateAppInitiatedSSOToWebToken(*AppInitiatedSSOToWebToken) error
 }
