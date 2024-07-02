@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jwt"
@@ -42,6 +43,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/pkce"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
+
+//go:generate mockgen -source=handler_token.go -destination=handler_token_mock_test.go -package handler_test
 
 const (
 	AuthorizationCodeGrantType = "authorization_code"
@@ -114,10 +117,24 @@ func NewTokenHandlerLogger(lf *log.Factory) TokenHandlerLogger {
 	return TokenHandlerLogger{lf.New("oauth-token")}
 }
 
+// For generating mock of oauth.OfflineGrantStore
+type OAuthOfflineGrantStore interface {
+	oauth.OfflineGrantStore
+}
+
+type AppInitiatedSSOToWebTokenService interface {
+	IssueAppInitiatedSSOToWebToken(
+		options *oauth.IssueAppInitiatedSSOToWebTokenOptions,
+	) (*oauth.IssueAppInitiatedSSOToWebTokenResult, error)
+}
+
+type OfflineGrantService interface {
+	ComputeOfflineGrantExpiry(session *oauth.OfflineGrant) (expiry time.Time, err error)
+}
+
 type TokenHandler struct {
 	Context                context.Context
 	AppID                  config.AppID
-	Config                 *config.OAuthConfig
 	AppDomains             config.AppDomains
 	HTTPProto              httputil.HTTPProto
 	HTTPOrigin             httputil.HTTPOrigin
@@ -132,8 +149,8 @@ type TokenHandler struct {
 	OfflineGrants                    oauth.OfflineGrantStore
 	IDPSessions                      oauth.IDPSessionProvider
 	AppSessionTokens                 oauth.AppSessionTokenStore
-	OfflineGrantService              oauth.OfflineGrantService
-	AppInitiatedSSOToWebTokenService oauth.AppInitiatedSSOToWebTokenService
+	OfflineGrantService              OfflineGrantService
+	AppInitiatedSSOToWebTokenService AppInitiatedSSOToWebTokenService
 	Graphs                           GraphService
 	IDTokenIssuer                    IDTokenIssuer
 	Clock                            clock.Clock

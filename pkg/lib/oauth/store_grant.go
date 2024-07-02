@@ -7,6 +7,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 )
 
+//go:generate mockgen -source=store_grant.go -destination=store_grant_mock.go -package oauth
+
 type CodeGrantStore interface {
 	GetCodeGrant(codeHash string) (*CodeGrant, error)
 	CreateCodeGrant(*CodeGrant) error
