@@ -74,8 +74,6 @@ interface ConfigFormState {
   watermarkDisabled: boolean;
 
   default_client_uri: string;
-  default_redirect_uri: string;
-  default_post_logout_redirect_uri: string;
 }
 
 interface FeatureConfigFormState {
@@ -104,16 +102,7 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     darkThemeDisabled: config.ui?.dark_theme_disabled ?? false,
     watermarkDisabled: config.ui?.watermark_disabled ?? false,
     default_client_uri: config.ui?.default_client_uri ?? "",
-    default_redirect_uri: config.ui?.default_redirect_uri ?? "",
-    default_post_logout_redirect_uri:
-      config.ui?.default_post_logout_redirect_uri ?? "",
   };
-}
-
-interface PropertyNames {
-  default_client_uri: string;
-  default_redirect_uri: string;
-  default_post_logout_redirect_uri: string;
 }
 
 function constructConfig(
@@ -130,18 +119,7 @@ function constructConfig(
     config.ui.dark_theme_disabled = currentState.darkThemeDisabled;
     config.ui.watermark_disabled = currentState.watermarkDisabled;
 
-    const propertyNames: (keyof PropertyNames)[] = [
-      "default_client_uri",
-      "default_redirect_uri",
-      "default_post_logout_redirect_uri",
-    ];
-
-    for (const propertyName of propertyNames) {
-      config.ui[propertyName] =
-        currentState[propertyName] === ""
-          ? undefined
-          : currentState[propertyName];
-    }
+    config.ui.default_client_uri = currentState.default_client_uri || undefined;
 
     clearEmptyObject(config);
   });
@@ -337,29 +315,20 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
       [state.selectedLanguage, state.fallbackLanguage, setState]
     );
 
-    const valueForState = useCallback(
-      (key: keyof PropertyNames) => {
-        return state[key];
-      },
-      [state]
-    );
-
-    const onChangeForState = useCallback(
-      (key: keyof PropertyNames) => {
-        return (
-          _e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
-          value?: string
-        ) => {
-          if (value == null) {
-            return;
-          }
-          setState((prev) => {
-            return {
-              ...prev,
-              [key]: value,
-            };
-          });
-        };
+    const onChangeDefaultClientURI = useCallback(
+      (
+        _e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
+        value?: string
+      ) => {
+        if (value == null) {
+          return;
+        }
+        setState((prev) => {
+          return {
+            ...prev,
+            default_client_uri: value,
+          };
+        });
       },
       [setState]
     );
@@ -666,28 +635,8 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             description={renderToString(
               "UISettingsScreen.default-client-uri-description"
             )}
-            value={valueForState("default_client_uri")}
-            onChange={onChangeForState("default_client_uri")}
-          />
-          <TextField
-            label={renderToString(
-              "UISettingsScreen.default-redirect-uri-label"
-            )}
-            description={renderToString(
-              "UISettingsScreen.default-redirect-uri-description"
-            )}
-            value={valueForState("default_redirect_uri")}
-            onChange={onChangeForState("default_redirect_uri")}
-          />
-          <TextField
-            label={renderToString(
-              "UISettingsScreen.default-post-logout-redirect-uri-label"
-            )}
-            description={renderToString(
-              "UISettingsScreen.default-post-logout-redirect-uri-description"
-            )}
-            value={valueForState("default_post_logout_redirect_uri")}
-            onChange={onChangeForState("default_post_logout_redirect_uri")}
+            value={state.default_client_uri}
+            onChange={onChangeDefaultClientURI}
           />
         </Widget>
         <Widget className={styles.widget}>
@@ -802,9 +751,6 @@ const UISettingsScreen: React.VFC = function UISettingsScreen() {
       darkThemeDisabled: config.state.darkThemeDisabled,
       watermarkDisabled: config.state.watermarkDisabled,
       default_client_uri: config.state.default_client_uri,
-      default_redirect_uri: config.state.default_redirect_uri,
-      default_post_logout_redirect_uri:
-        config.state.default_post_logout_redirect_uri,
       whiteLabelingDisabled:
         featureConfig.effectiveFeatureConfig?.ui?.white_labeling?.disabled ??
         false,
@@ -815,8 +761,6 @@ const UISettingsScreen: React.VFC = function UISettingsScreen() {
       config.state.darkThemeDisabled,
       config.state.watermarkDisabled,
       config.state.default_client_uri,
-      config.state.default_redirect_uri,
-      config.state.default_post_logout_redirect_uri,
       resources.state.resources,
       selectedLanguage,
       featureConfig.effectiveFeatureConfig?.ui?.white_labeling?.disabled,
@@ -839,9 +783,6 @@ const UISettingsScreen: React.VFC = function UISettingsScreen() {
           darkThemeDisabled: newState.darkThemeDisabled,
           watermarkDisabled: newState.watermarkDisabled,
           default_client_uri: newState.default_client_uri,
-          default_redirect_uri: newState.default_redirect_uri,
-          default_post_logout_redirect_uri:
-            newState.default_post_logout_redirect_uri,
         }));
         resources.setState(() => ({ resources: newState.resources }));
         setSelectedLanguage(newState.selectedLanguage);

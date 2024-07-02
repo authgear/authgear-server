@@ -857,6 +857,11 @@
   "CustomDomainListScreen.activate-domain-dialog.message": "Are you sure you want to activate {domain}? Only one domain can be active.",
   "CustomDomainListScreen.activate-domain-dialog.generic-error": "Failed to activate domain",
   "CustomDomainListScreen.verify-success-message": "Verified domain successfully",
+  "CustomDomainListScreen.redirectURLSection.title": "Default Redirect URLs",
+  "CustomDomainListScreen.redirectURLSection.input.postLoginURL.label": "Post-login link",
+  "CustomDomainListScreen.redirectURLSection.input.postLoginURL.description": "Users will be redirected after login if they visit the login page directly instead of through OAuth flow.",
+  "CustomDomainListScreen.redirectURLSection.input.postLogoutURL.label": "Post-logout link",
+  "CustomDomainListScreen.redirectURLSection.input.postLogoutURL.description": "Users will be redirected after logout if they visit the logout page directly.",
 
   "VerifyDomainScreen.title": "Verify Domain",
   "VerifyDomainScreen.desc-main": "Setup CNAME and add TXT record below to your DNS provider to verify your own {b, react, children{{domain}}}",
@@ -935,10 +940,6 @@
   "UISettingsScreen.customer-support-link-description": "This link can lead users to your custom support",
   "UISettingsScreen.default-client-uri-label": "Back to Your App Link",
   "UISettingsScreen.default-client-uri-description": "If this link is provided, a Back to Your App link will be shown in the settings.",
-  "UISettingsScreen.default-redirect-uri-label": "Post Login Link",
-  "UISettingsScreen.default-redirect-uri-description": "If this link is provided, the user will be redirected after login with non-OAuth flow.",
-  "UISettingsScreen.default-post-logout-redirect-uri-label": "Post Logout Link",
-  "UISettingsScreen.default-post-logout-redirect-uri-description": "If this link is provided, the user will be redirected after logout with non-OAuth flow.",
 
   "UISettingsScreen.branding.title": "Authgear branding",
   "UISettingsScreen.branding.disable-authgear-logo.label": "Display Authgear logo in Login and Signup page",
