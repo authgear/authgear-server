@@ -17,14 +17,22 @@ func TestInputSchemaStepAccountRecoveryIdentify(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(string(bytes), ShouldEqualJSON, expected)
 		}
-
+		var varTrue = true
+		dummyBotProtection := &BotProtectionData{
+			Enabled: &varTrue,
+			Provider: &BotProtectionDataProvider{
+				Type: config.BotProtectionProviderTypeCloudflare,
+			},
+		}
 		test(&InputSchemaStepAccountRecoveryIdentify{
 			Options: []AccountRecoveryIdentificationOption{
 				{
 					Identification: config.AuthenticationFlowAccountRecoveryIdentificationEmail,
+					BotProtection:  dummyBotProtection,
 				},
 				{
 					Identification: config.AuthenticationFlowAccountRecoveryIdentificationPhone,
+					BotProtection:  dummyBotProtection,
 				},
 			},
 		}, `
@@ -32,6 +40,47 @@ func TestInputSchemaStepAccountRecoveryIdentify(t *testing.T) {
     "oneOf": [
         {
             "properties": {
+                "bot_protection": {
+                    "allOf": [
+                        {
+                            "if": {
+                                "properties": {
+                                    "type": {
+                                        "enum": [
+                                            "cloudflare",
+                                            "recaptchav2"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "type"
+                                ]
+                            },
+                            "then": {
+                                "required": [
+                                    "response",
+                                    "type"
+                                ]
+                            }
+                        }
+                    ],
+                    "properties": {
+                        "response": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "enum": [
+                                "cloudflare",
+                                "recaptchav2"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "type"
+                    ],
+                    "type": "object"
+                },
                 "identification": {
                     "const": "email"
                 },
@@ -41,11 +90,53 @@ func TestInputSchemaStepAccountRecoveryIdentify(t *testing.T) {
             },
             "required": [
                 "identification",
-                "login_id"
+                "login_id",
+                "bot_protection"
             ]
         },
         {
             "properties": {
+                "bot_protection": {
+                    "allOf": [
+                        {
+                            "if": {
+                                "properties": {
+                                    "type": {
+                                        "enum": [
+                                            "cloudflare",
+                                            "recaptchav2"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "type"
+                                ]
+                            },
+                            "then": {
+                                "required": [
+                                    "response",
+                                    "type"
+                                ]
+                            }
+                        }
+                    ],
+                    "properties": {
+                        "response": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "enum": [
+                                "cloudflare",
+                                "recaptchav2"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "type"
+                    ],
+                    "type": "object"
+                },
                 "identification": {
                     "const": "phone"
                 },
@@ -55,7 +146,8 @@ func TestInputSchemaStepAccountRecoveryIdentify(t *testing.T) {
             },
             "required": [
                 "identification",
-                "login_id"
+                "login_id",
+                "bot_protection"
             ]
         }
     ],
