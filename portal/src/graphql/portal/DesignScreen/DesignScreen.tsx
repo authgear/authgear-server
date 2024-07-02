@@ -79,9 +79,12 @@ const OrganisationConfiguration: React.VFC<OrganisationConfigurationProps> =
           value={designForm.state.appName}
           onChange={onChange}
         />
-        <FallbackDescription
-          fallbackLanguage={designForm.state.fallbackLanguage}
-        />
+        {designForm.state.selectedLanguage !==
+        designForm.state.fallbackLanguage ? (
+          <FallbackDescription
+            fallbackLanguage={designForm.state.fallbackLanguage}
+          />
+        ) : null}
       </ConfigurationGroup>
     );
   };
@@ -99,9 +102,12 @@ const AppLogoConfiguration: React.VFC<AppLogoConfigurationProps> =
           base64EncodedData={designForm.state.appLogoBase64EncodedData}
           onChange={designForm.setAppLogo}
         />
-        <FallbackDescription
-          fallbackLanguage={designForm.state.fallbackLanguage}
-        />
+        {designForm.state.selectedLanguage !==
+        designForm.state.fallbackLanguage ? (
+          <FallbackDescription
+            fallbackLanguage={designForm.state.fallbackLanguage}
+          />
+        ) : null}
       </ConfigurationGroup>
     );
   };
@@ -119,9 +125,12 @@ const FaviconConfiguration: React.VFC<FaviconConfigurationProps> =
           base64EncodedData={designForm.state.faviconBase64EncodedData}
           onChange={designForm.setFavicon}
         />
-        <FallbackDescription
-          fallbackLanguage={designForm.state.fallbackLanguage}
-        />
+        {designForm.state.selectedLanguage !==
+        designForm.state.fallbackLanguage ? (
+          <FallbackDescription
+            fallbackLanguage={designForm.state.fallbackLanguage}
+          />
+        ) : null}
       </ConfigurationGroup>
     );
   };
