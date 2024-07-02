@@ -47,6 +47,8 @@ type ImageDescriptor struct {
 var _ resource.Descriptor = ImageDescriptor{}
 var _ resource.SizeLimitDescriptor = ImageDescriptor{}
 
+const defaultSizeLimit = 100 * 1024
+
 func (a ImageDescriptor) MatchResource(path string) (*resource.Match, bool) {
 	matches := imageRegex.FindStringSubmatch(path)
 	if len(matches) != 4 {
@@ -307,5 +309,8 @@ func (a ImageDescriptor) viewByPath(resources []resource.ResourceFile, path stri
 }
 
 func (a ImageDescriptor) GetSizeLimit() int {
+	if a.SizeLimit == 0 {
+		return defaultSizeLimit
+	}
 	return a.SizeLimit
 }
