@@ -73,7 +73,12 @@ func (n *IntentPromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authfl
 			return nil, err
 		}
 		if bpRequired {
-			token := inputTakeLoginID.(inputTakeBotProtection).GetBotProtectionProviderResponse()
+			var inputTakeBotProtection inputTakeBotProtection
+			if !authflow.AsInput(input, &inputTakeBotProtection) {
+				return nil, authflow.ErrIncompatibleInput
+			}
+
+			token := inputTakeBotProtection.GetBotProtectionProviderResponse()
 			bpSpecialErr, err = HandleBotProtection(ctx, deps, token)
 			if err != nil {
 				return nil, err

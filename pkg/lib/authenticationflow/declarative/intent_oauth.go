@@ -91,7 +91,12 @@ func (i *IntentOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, 
 				return nil, err
 			}
 			if bpRequired {
-				token := inputOAuth.(inputTakeBotProtection).GetBotProtectionProviderResponse()
+				var inputTakeBotProtection inputTakeBotProtection
+				if !authflow.AsInput(input, &inputTakeBotProtection) {
+					return nil, authflow.ErrIncompatibleInput
+				}
+
+				token := inputTakeBotProtection.GetBotProtectionProviderResponse()
 				bpSpecialErr, err = HandleBotProtection(ctx, deps, token)
 				if err != nil {
 					return nil, err
