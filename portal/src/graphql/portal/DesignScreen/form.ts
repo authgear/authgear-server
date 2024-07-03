@@ -74,6 +74,7 @@ interface ConfigFormState {
   supportedLanguages: LanguageTag[];
   fallbackLanguage: LanguageTag;
   showAuthgearLogo: boolean;
+  defaultClientURI: string;
 }
 
 interface ResourcesFormState {
@@ -150,6 +151,7 @@ export interface BranchDesignForm {
   setPrivacyPolicyLink: (url: string) => void;
   setTermsOfServiceLink: (url: string) => void;
   setCustomerSupportLink: (url: string) => void;
+  setDefaultClientURI: (url: string) => void;
 
   setDisplayAuthgearLogo: (disabled: boolean) => void;
 }
@@ -162,6 +164,7 @@ function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
       fallbackLanguage,
     ],
     showAuthgearLogo: !(config.ui?.watermark_disabled ?? false),
+    defaultClientURI: config.ui?.default_client_uri ?? "",
   };
 }
 
@@ -175,6 +178,7 @@ function constructConfigFromFormState(
       draft.ui = {};
     }
     draft.ui.watermark_disabled = !currentState.showAuthgearLogo;
+    draft.ui.default_client_uri = currentState.defaultClientURI || undefined;
   });
 }
 
@@ -638,6 +642,13 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         configForm.setState((prev) => {
           return produce(prev, (draft) => {
             draft.showAuthgearLogo = visible;
+          });
+        });
+      },
+      setDefaultClientURI: (uri: string) => {
+        configForm.setState((prev) => {
+          return produce(prev, (draft) => {
+            draft.defaultClientURI = uri;
           });
         });
       },
