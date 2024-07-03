@@ -33,13 +33,13 @@
     background-position: var(--widget__bg_position);
     background-size: var(--widget__bg_size);
     @apply flex flex-col;
-    @apply relative;
     @apply px-6 pt-8 pb-10;
   }
 
   .widget-content {
     @apply relative;
-    @apply h-full;
+    @apply h-full w-full;
+    @apply px-6;
     @apply flex flex-col;
     @apply self-center;
     max-width: var(--widget__max-width);
@@ -53,6 +53,11 @@
   @media (min-width: theme("screens.tablet")) {
     .widget {
       max-width: var(--widget__max-width);
+    }
+
+    .widget-content {
+      @apply self-stretch;
+      @apply px-0;
     }
   }
 }
