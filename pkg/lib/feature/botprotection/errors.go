@@ -4,6 +4,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
-var ErrVerificationFailed = apierrors.Forbidden.WithReason("ErrBotProtectionVerificationFailed").New("bot protection verification failed")
+var ErrVerificationFailed = apierrors.Forbidden.WithReason("BotProtectionVerificationFailed").New("bot protection verification failed")
 
-var ErrVerificationServiceUnavailable = apierrors.ServiceUnavailable.WithReason("ErrBotProtectionVerificationServiceUnavailable").New("bot protection service unavailable")
+var ErrVerificationServiceUnavailable = apierrors.ServiceUnavailable.WithReason("BotProtectionVerificationServiceUnavailable").New("bot protection service unavailable")
