@@ -10,22 +10,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-var InputSetupTOTPSchemaBuilder validation.SchemaBuilder
-
-func init() {
-	InputSetupTOTPSchemaBuilder = validation.SchemaBuilder{}.
-		Type(validation.TypeObject).
-		Required("code")
-
-	InputSetupTOTPSchemaBuilder.Properties().Property(
-		"code",
-		validation.SchemaBuilder{}.Type(validation.TypeString),
-	)
-}
-
 type InputSchemaSetupTOTP struct {
-	JSONPointer    jsonpointer.T
-	FlowRootObject config.AuthenticationFlowObject
+	JSONPointer             jsonpointer.T
+	FlowRootObject          config.AuthenticationFlowObject
+	IsBotProtectionRequired bool
 }
 
 var _ authflow.InputSchema = &InputSchemaSetupTOTP{}
@@ -38,8 +26,21 @@ func (i *InputSchemaSetupTOTP) GetFlowRootObject() config.AuthenticationFlowObje
 	return i.FlowRootObject
 }
 
-func (*InputSchemaSetupTOTP) SchemaBuilder() validation.SchemaBuilder {
-	return InputSetupTOTPSchemaBuilder
+func (i *InputSchemaSetupTOTP) SchemaBuilder() validation.SchemaBuilder {
+	inputSetupTOTPSchemaBuilder := validation.SchemaBuilder{}.
+		Type(validation.TypeObject).
+		Required("code")
+
+	inputSetupTOTPSchemaBuilder.Properties().Property(
+		"code",
+		validation.SchemaBuilder{}.Type(validation.TypeString),
+	)
+
+	if i.IsBotProtectionRequired {
+		inputSetupTOTPSchemaBuilder = AddBotProtectionToExistingSchemaBuilder(inputSetupTOTPSchemaBuilder)
+	}
+
+	return inputSetupTOTPSchemaBuilder
 }
 
 func (i *InputSchemaSetupTOTP) MakeInput(rawMessage json.RawMessage) (authflow.Input, error) {
@@ -52,14 +53,34 @@ func (i *InputSchemaSetupTOTP) MakeInput(rawMessage json.RawMessage) (authflow.I
 }
 
 type InputSetupTOTP struct {
-	Code string `json:"code,omitempty"`
+	Code          string                  `json:"code,omitempty"`
+	BotProtection *InputTakeBotProtection `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &InputSetupTOTP{}
 var _ inputSetupTOTP = &InputSetupTOTP{}
+var _ inputTakeBotProtection = &InputSetupTOTP{}
 
 func (*InputSetupTOTP) Input() {}
 
 func (i *InputSetupTOTP) GetCode() string {
 	return i.Code
+}
+
+func (i *InputSetupTOTP) GetBotProtectionProvider() *InputTakeBotProtection {
+	return i.BotProtection
+}
+
+func (i *InputSetupTOTP) GetBotProtectionProviderType() config.BotProtectionProviderType {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Type
+}
+
+func (i *InputSetupTOTP) GetBotProtectionProviderResponse() string {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Response
 }

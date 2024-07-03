@@ -104,16 +104,38 @@ func (n *IntentCreateAuthenticatorTOTP) CanReactTo(ctx context.Context, deps *au
 		return nil, err
 	}
 
+	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, flowRootObject, n.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
 	return &InputSchemaSetupTOTP{
-		JSONPointer:    n.JSONPointer,
-		FlowRootObject: flowRootObject,
+		JSONPointer:             n.JSONPointer,
+		FlowRootObject:          flowRootObject,
+		IsBotProtectionRequired: isBotProtectionRequired,
 	}, nil
 }
 
 func (n *IntentCreateAuthenticatorTOTP) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	var inputSetupTOTP inputSetupTOTP
 	if authflow.AsInput(input, &inputSetupTOTP) {
-		_, err := deps.Authenticators.VerifyWithSpec(n.Authenticator, &authenticator.Spec{
+		var bpSpecialErr error
+		bpRequired, err := IsNodeBotProtectionRequired(ctx, deps, flows, n.JSONPointer)
+		if err != nil {
+			return nil, err
+		}
+		if bpRequired {
+			var inputTakeBotProtection inputTakeBotProtection
+			if !authflow.AsInput(input, &inputTakeBotProtection) {
+				return nil, authflow.ErrIncompatibleInput
+			}
+
+			token := inputTakeBotProtection.GetBotProtectionProviderResponse()
+			bpSpecialErr, err = HandleBotProtection(ctx, deps, token)
+			if err != nil {
+				return nil, err
+			}
+		}
+		_, err = deps.Authenticators.VerifyWithSpec(n.Authenticator, &authenticator.Spec{
 			TOTP: &authenticator.TOTPSpec{
 				Code: inputSetupTOTP.GetCode(),
 			},
@@ -130,7 +152,7 @@ func (n *IntentCreateAuthenticatorTOTP) ReactTo(ctx context.Context, deps *authf
 
 		return authflow.NewNodeSimple(&NodeDoCreateAuthenticator{
 			Authenticator: n.Authenticator,
-		}), nil
+		}), bpSpecialErr
 	}
 
 	return nil, authflow.ErrIncompatibleInput
