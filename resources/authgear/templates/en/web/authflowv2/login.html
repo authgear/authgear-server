@@ -54,15 +54,15 @@
   {{ $clientName := or $.ClientName "null" }}
 
   <div class="flex-1-0-auto">
-    <div class="flex flex-col gap-4">
+    <div class="flex flex-col">
       {{ template "authflowv2/__header.html" . }}
-      <h1 class="screen-title">
+      <h1 class="screen-title mt-8">
         {{ template "v2-login-title" (dict
           "AppName" $appName
           "ClientName" $clientName)
         }}
       </h1>
-      <h2 class="screen-description">
+      <h2 class="screen-description mt-4">
         {{ template "v2-login-subtitle" (dict
           "AppName" $appName
           "ClientName" $clientName)

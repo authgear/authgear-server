@@ -13,10 +13,10 @@
   {{ else if eq .State "matched" }}
     <div class="screen-icon-layout flex-1-0-auto">
       <i class="screen-icon material-icons">check_circle</i>
-      <h1 class="screen-title">
+      <h1 class="screen-title mt-2">
         {{ template "v2-verify-login-link-approved-title" }}
       </h1>
-      <p class="screen-description">
+      <p class="screen-description mt-4">
         {{ template "v2-verify-login-link-approved-description" (dict "AppOrClientName" $appName) }}
       </p>
       {{ template "authflowv2/__alert_message.html"

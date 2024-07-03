@@ -10,11 +10,11 @@
 {{ if $.WechatRedirectURI }}
 
 <div class="screen-action-layout flex-1-0-auto">
-  <header class="flex flex-col gap-4">
+  <header class="flex flex-col mt-2">
     <h1 class="screen-title">
       {{ template "v2-wechat-auth-page-title" }}
     </h1>
-    <h2 class="screen-description">
+    <h2 class="screen-description mt-4">
       {{ template "v2-wechat-auth-page-app-description" }}
     </h2>
     {{ template "authflowv2/__alert_message.html"
@@ -62,11 +62,11 @@
 {{ else }}
 
 <div class="screen-action-layout flex-1-0-auto">
-  <header class="flex flex-col gap-4">
+  <header class="flex flex-col mt-2">
     <h1 class="screen-title">
       {{ template "v2-wechat-auth-page-title" }}
     </h1>
-    <h2 class="screen-description">
+    <h2 class="screen-description mt-4">
       {{ template "v2-wechat-auth-page-with-qr-code-description" }}
     </h2>
   </header>

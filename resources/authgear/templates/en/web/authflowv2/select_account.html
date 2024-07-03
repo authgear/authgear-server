@@ -4,7 +4,7 @@
 <form class="screen-icon-layout flex-1-0-auto" method="post" novalidate>
   {{ $.CSRFField }}
   <i class="screen-icon material-icons">account_circle</i>
-  <header class="flex flex-col gap-4">
+  <header class="flex flex-col mt-2">
     <h1 class="screen-title">
       {{ if $.ClientName }}
         {{ template "v2-select-account-title" (dict "AppOrClientName" $.ClientName) }}
@@ -13,7 +13,7 @@
         {{ template "v2-select-account-title" (dict "AppOrClientName" $appName) }}
       {{ end }}
     </h1>
-    <p class="screen-description">
+    <p class="screen-description mt-4">
       {{ template "v2-select-account-description" (merge (dict) $.UserProfile (dict "IdentityDisplayName" $.IdentityDisplayName)) }}
     </p>
     {{ template "authflowv2/__alert_message.html"

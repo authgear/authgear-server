@@ -9,12 +9,12 @@
   {{ end }}
 
   <div class="flex flex-col gap-y-8 flex-1-0-auto">
-    <div class="flex flex-col gap-y-4">
+    <div class="flex flex-col">
       {{ template "authflowv2/__header.html" . }}
-      <h1 class="screen-title">
+      <h1 class="screen-title mt-8">
         {{ template "v2-enter-totp-title" }}
       </h1>
-      <h2 class="screen-description">
+      <h2 class="screen-description mt-4">
         {{ if eq $.FlowType "reauth" }}
           {{ template "v2-enter-totp-description-reauth" . }}
         {{ else }}

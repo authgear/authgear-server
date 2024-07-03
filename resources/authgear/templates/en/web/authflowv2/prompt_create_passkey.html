@@ -5,11 +5,11 @@
     data-controller="authflow-passkey-creation"
     data-authflow-passkey-creation-options-value="{{ $.CreationOptionsJSON }}">
     <i class="material-icons screen-icon">encrypted</i>
-    <header class="flex flex-col gap-4">
+    <header class="flex flex-col mt-2">
       <h1 class="screen-title">
         {{ template "v2-prompt-create-passkey-title" }}
       </h1>
-      <p class="screen-description">
+      <p class="screen-description mt-4">
         {{ template "v2-prompt-create-passkey-description" }}
       </p>
       {{ template "authflowv2/__alert_message.html"

@@ -3,12 +3,12 @@
 
   <div class="screen-icon-layout flex-1-0-auto">
     <i class="material-icons screen-icon">account_circle_off</i>
-    <header class="flex flex-col gap-4">
+    <header class="flex flex-col mt-2">
       <h1 class="screen-title">
         {{ template "v2-error-disabled-user-title" }}
       </h1>
       {{- if $.Error }}
-        <h2 class="screen-description">
+        <h2 class="screen-description mt-4">
           {{- if eq .Error.reason "DisabledUser" }}
             {{- if $.Error.info.reason }}
               {{ template "v2-error-disabled-user-subtitle" }}

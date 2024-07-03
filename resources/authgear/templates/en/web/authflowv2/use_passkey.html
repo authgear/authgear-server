@@ -3,11 +3,11 @@
 
   <div class="screen-icon-layout screen-icon-layout--compact flex-1-0-auto">
     <i class="screen-icon material-icons">passkey</i>
-    <header class="flex flex-col gap-4">
+    <header class="flex flex-col mt-2">
       <h1 class="screen-title">
         {{ template "v2-use-passkey-title" }}
       </h1>
-      <p class="screen-description">
+      <p class="screen-description mt-4">
         {{ if eq $.FlowType "reauth" }}
           {{ template "v2-use-passkey-description-reauth" }}
         {{ else }}

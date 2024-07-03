@@ -1,6 +1,7 @@
 @layer components {
   :root {
-    --brand-logo__height: 4rem;
+    --brand-logo__height: 2.5rem;
+    --brand-logo__max-width: 350px;
   }
 
   .brand-logo__container {
@@ -24,6 +25,7 @@
   }
   .brand-logo {
     height: var(--brand-logo__height);
+    max-width: var(--brand-logo__max-width);
   }
   .brand-logo.dark {
     @apply hidden;

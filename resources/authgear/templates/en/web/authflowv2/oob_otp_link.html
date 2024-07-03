@@ -3,12 +3,12 @@
 {{- if eq $.StateQuery "matched" }}
   <form id="next-form" class="screen-icon-layout flex-1-0-auto" method="post" novalidate>
     <i class="screen-icon material-icons">check_circle</i>
-    <header class="flex flex-col gap-4">
+    <header class="flex flex-col mt-2">
       <h1 class="screen-title">
         {{ template "v2-login-link-otp-matched-title" }}
       </h1>
 
-      <p class="screen-description">
+      <p class="screen-description mt-4">
         {{ template "v2-login-link-otp-matched-description" }}
       </p>
       {{ template "authflowv2/__alert_message.html"
@@ -43,12 +43,12 @@
 <div class="screen-icon-layout screen-icon-layout--compact flex-1-0-auto">
 
 <i class="screen-icon material-icons">forward_to_inbox</i>
-<header class="flex flex-col gap-4">
+<header class="flex flex-col mt-2">
   <h1 class="screen-title">
     {{ template "v2-login-link-otp-page-title" }}
   </h1>
 
-  <p class="screen-description">
+  <p class="screen-description mt-4">
     {{- if eq $.StateQuery "invalid_code" }}
       {{ template "v2-login-link-otp-invalid-code-description" }}
     {{- else }}
