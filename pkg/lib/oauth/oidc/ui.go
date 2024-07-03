@@ -284,6 +284,36 @@ func (b *UIURLBuilder) BuildAuthenticationURL(client *config.OAuthClientConfig, 
 		endpoint = b.Endpoints.OAuthEntrypointURL()
 	}
 
+	b.addToEndpoint(endpoint, r, e)
+	return endpoint, nil
+}
+
+func BuildCustomUIEndpoint(base string) (*url.URL, error) {
+	customUIURL, err := url.Parse(base)
+	if err != nil {
+		return nil, err
+	}
+
+	return customUIURL, nil
+}
+
+func (b *UIURLBuilder) BuildSettingsActionURL(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, e *oauthsession.Entry, redirectURI *url.URL) (*url.URL, error) {
+	var endpoint *url.URL
+	switch r.SettingsAction() {
+	case "change_password":
+		endpoint = b.Endpoints.SettingsChangePasswordURL()
+		b.addToEndpoint(endpoint, r, e)
+		return endpoint, nil
+	case "delete_account":
+		endpoint = b.Endpoints.SettingsDeleteAccountURL()
+		b.addToEndpoint(endpoint, r, e)
+		return endpoint, nil
+	default:
+		return nil, ErrInvalidSettingsAction.New("invalid settings action")
+	}
+}
+
+func (b *UIURLBuilder) addToEndpoint(endpoint *url.URL, r protocol.AuthorizationRequest, e *oauthsession.Entry) {
 	q := endpoint.Query()
 	q.Set(queryNameOAuthSessionID, e.ID)
 	q.Set("client_id", r.ClientID())
@@ -301,62 +331,4 @@ func (b *UIURLBuilder) BuildAuthenticationURL(client *config.OAuthClientConfig, 
 		q.Set("x_state", r.XState())
 	}
 	endpoint.RawQuery = q.Encode()
-
-	return endpoint, nil
-}
-
-func BuildCustomUIEndpoint(base string) (*url.URL, error) {
-	customUIURL, err := url.Parse(base)
-	if err != nil {
-		return nil, err
-	}
-
-	return customUIURL, nil
-}
-
-func (b *UIURLBuilder) BuildSettingsActionURL(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, e *oauthsession.Entry, redirectURI *url.URL) (*url.URL, error) {
-	switch r.SettingsAction() {
-	case "change_password":
-		endpoint := b.Endpoints.SettingsChangePasswordURL()
-		q := endpoint.Query()
-		q.Set(queryNameOAuthSessionID, e.ID)
-		q.Set("client_id", r.ClientID())
-		q.Set("redirect_uri", r.RedirectURI())
-		if r.ColorScheme() != "" {
-			q.Set("x_color_scheme", r.ColorScheme())
-		}
-		if len(r.UILocales()) > 0 {
-			q.Set("ui_locales", strings.Join(r.UILocales(), " "))
-		}
-		if r.State() != "" {
-			q.Set("state", r.State())
-		}
-		if r.XState() != "" {
-			q.Set("x_state", r.XState())
-		}
-		endpoint.RawQuery = q.Encode()
-		return endpoint, nil
-	case "delete_account":
-		endpoint := b.Endpoints.SettingsDeleteAccountURL()
-		q := endpoint.Query()
-		q.Set(queryNameOAuthSessionID, e.ID)
-		q.Set("client_id", r.ClientID())
-		q.Set("redirect_uri", r.RedirectURI())
-		if r.ColorScheme() != "" {
-			q.Set("x_color_scheme", r.ColorScheme())
-		}
-		if len(r.UILocales()) > 0 {
-			q.Set("ui_locales", strings.Join(r.UILocales(), " "))
-		}
-		if r.State() != "" {
-			q.Set("state", r.State())
-		}
-		if r.XState() != "" {
-			q.Set("x_state", r.XState())
-		}
-		endpoint.RawQuery = q.Encode()
-		return endpoint, nil
-	default:
-		return nil, ErrInvalidSettingsAction.New("invalid settings action")
-	}
 }
