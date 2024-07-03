@@ -10,26 +10,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-var InputTakeTOTPSchemaBuilder validation.SchemaBuilder
-
-func init() {
-	InputTakeTOTPSchemaBuilder = validation.SchemaBuilder{}.
-		Type(validation.TypeObject).
-		Required("code")
-
-	InputTakeTOTPSchemaBuilder.Properties().Property(
-		"code",
-		validation.SchemaBuilder{}.Type(validation.TypeString),
-	)
-	InputTakeTOTPSchemaBuilder.Properties().Property(
-		"request_device_token",
-		validation.SchemaBuilder{}.Type(validation.TypeBoolean),
-	)
-}
-
 type InputSchemaTakeTOTP struct {
-	JSONPointer    jsonpointer.T
-	FlowRootObject config.AuthenticationFlowObject
+	JSONPointer             jsonpointer.T
+	FlowRootObject          config.AuthenticationFlowObject
+	IsBotProtectionRequired bool
 }
 
 var _ authflow.InputSchema = &InputSchemaTakeTOTP{}
@@ -42,8 +26,24 @@ func (i *InputSchemaTakeTOTP) GetFlowRootObject() config.AuthenticationFlowObjec
 	return i.FlowRootObject
 }
 
-func (*InputSchemaTakeTOTP) SchemaBuilder() validation.SchemaBuilder {
-	return InputTakeTOTPSchemaBuilder
+func (i *InputSchemaTakeTOTP) SchemaBuilder() validation.SchemaBuilder {
+	inputTakeTOTPSchemaBuilder := validation.SchemaBuilder{}.
+		Type(validation.TypeObject).
+		Required("code")
+
+	inputTakeTOTPSchemaBuilder.Properties().Property(
+		"code",
+		validation.SchemaBuilder{}.Type(validation.TypeString),
+	)
+	inputTakeTOTPSchemaBuilder.Properties().Property(
+		"request_device_token",
+		validation.SchemaBuilder{}.Type(validation.TypeBoolean),
+	)
+
+	if i.IsBotProtectionRequired {
+		inputTakeTOTPSchemaBuilder = AddBotProtectionToExistingSchemaBuilder(inputTakeTOTPSchemaBuilder)
+	}
+	return inputTakeTOTPSchemaBuilder
 }
 
 func (i *InputSchemaTakeTOTP) MakeInput(rawMessage json.RawMessage) (authflow.Input, error) {
@@ -56,13 +56,15 @@ func (i *InputSchemaTakeTOTP) MakeInput(rawMessage json.RawMessage) (authflow.In
 }
 
 type InputTakeTOTP struct {
-	Code               string `json:"code,omitempty"`
-	RequestDeviceToken bool   `json:"request_device_token,omitempty"`
+	Code               string                  `json:"code,omitempty"`
+	RequestDeviceToken bool                    `json:"request_device_token,omitempty"`
+	BotProtection      *InputTakeBotProtection `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &InputTakeTOTP{}
 var _ inputTakeTOTP = &InputTakeTOTP{}
 var _ inputDeviceTokenRequested = &InputTakeTOTP{}
+var _ inputTakeBotProtection = &InputTakeTOTP{}
 
 func (*InputTakeTOTP) Input() {}
 
@@ -72,4 +74,22 @@ func (i *InputTakeTOTP) GetCode() string {
 
 func (i *InputTakeTOTP) GetDeviceTokenRequested() bool {
 	return i.RequestDeviceToken
+}
+
+func (i *InputTakeTOTP) GetBotProtectionProvider() *InputTakeBotProtection {
+	return i.BotProtection
+}
+
+func (i *InputTakeTOTP) GetBotProtectionProviderType() config.BotProtectionProviderType {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Type
+}
+
+func (i *InputTakeTOTP) GetBotProtectionProviderResponse() string {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Response
 }
