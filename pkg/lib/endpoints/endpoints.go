@@ -128,6 +128,10 @@ func (e *Endpoints) SettingsChangePasswordURL() *url.URL {
 	return e.urlOf("settings/change_password")
 }
 
+func (e *Endpoints) SettingsDeleteAccountURL() *url.URL {
+	return e.urlOf("settings/delete_account")
+}
+
 func (e *Endpoints) SSOCallbackURL(alias string) *url.URL {
 	u := e.SSOCallbackEndpointURL()
 	u.Path = path.Join(u.Path, url.PathEscape(alias))

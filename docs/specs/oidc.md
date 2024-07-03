@@ -236,7 +236,7 @@ Supported values: `login`, `signup`
 
 When it is specified, the user will be redirected to the corresponding auth ui pages of the settings action. After completing the action, the user will be redirected back to the app through redirect URI.
 
-Supported values: `change_password`.
+Supported values: `change_password`, `delete_account`.
 
 ### x_authentication_flow_group
 

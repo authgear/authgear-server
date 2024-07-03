@@ -49,7 +49,7 @@ type UIInfoResolver interface {
 
 type UIURLBuilder interface {
 	BuildAuthenticationURL(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, e *oauthsession.Entry) (*url.URL, error)
-	BuildSettingsActionURL(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, e *oauthsession.Entry, redirectURI *url.URL) (*url.URL, error)
+	BuildSettingsActionURL(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, e *oauthsession.Entry) (*url.URL, error)
 }
 
 type AppSessionTokenService interface {
@@ -94,14 +94,15 @@ func NewAuthorizationHandlerLogger(lf *log.Factory) AuthorizationHandlerLogger {
 }
 
 type AuthorizationHandler struct {
-	Context    context.Context
-	AppID      config.AppID
-	Config     *config.OAuthConfig
-	HTTPConfig *config.HTTPConfig
-	HTTPProto  httputil.HTTPProto
-	HTTPOrigin httputil.HTTPOrigin
-	AppDomains config.AppDomains
-	Logger     AuthorizationHandlerLogger
+	Context               context.Context
+	AppID                 config.AppID
+	Config                *config.OAuthConfig
+	AccountDeletionConfig *config.AccountDeletionConfig
+	HTTPConfig            *config.HTTPConfig
+	HTTPProto             httputil.HTTPProto
+	HTTPOrigin            httputil.HTTPOrigin
+	AppDomains            config.AppDomains
+	Logger                AuthorizationHandlerLogger
 
 	UIURLBuilder               UIURLBuilder
 	UIInfoResolver             UIInfoResolver
@@ -391,7 +392,7 @@ func (h *AuthorizationHandler) doHandle(
 	}
 
 	if r.ResponseType() == string(SettingsActonResponseType) {
-		redirectURI, err = h.UIURLBuilder.BuildSettingsActionURL(client, r, oauthSessionEntry, redirectURI)
+		redirectURI, err = h.UIURLBuilder.BuildSettingsActionURL(client, r, oauthSessionEntry)
 		if err != nil {
 			return nil, err
 		}
@@ -592,6 +593,11 @@ func (h *AuthorizationHandler) validateRequest(
 
 	switch r.ResponseType() {
 	case SettingsActonResponseType:
+		if r.SettingsAction() == "delete_account" {
+			if !h.AccountDeletionConfig.ScheduledByEndUserEnabled {
+				return protocol.NewError("invalid_request", "account deletion by end user is disabled")
+			}
+		}
 		fallthrough
 	case CodeResponseType:
 		if client.IsPublic() {
