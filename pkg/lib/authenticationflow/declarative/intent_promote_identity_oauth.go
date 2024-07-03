@@ -66,6 +66,23 @@ func (i *IntentPromoteIdentityOAuth) ReactTo(ctx context.Context, deps *authflow
 	if len(flows.Nearest.Nodes) == 0 {
 		var inputOAuth inputTakeOAuthAuthorizationRequest
 		if authflow.AsInput(input, &inputOAuth) {
+			var bpSpecialErr error
+			bpRequired, err := IsNodeBotProtectionRequired(ctx, deps, flows, i.JSONPointer)
+			if err != nil {
+				return nil, err
+			}
+			if bpRequired {
+				var inputTakeBotProtection inputTakeBotProtection
+				if !authflow.AsInput(input, &inputTakeBotProtection) {
+					return nil, authflow.ErrIncompatibleInput
+				}
+
+				token := inputTakeBotProtection.GetBotProtectionProviderResponse()
+				bpSpecialErr, err = HandleBotProtection(ctx, deps, token)
+				if err != nil {
+					return nil, err
+				}
+			}
 			alias := inputOAuth.GetOAuthAlias()
 			redirectURI := inputOAuth.GetOAuthRedirectURI()
 			responseMode := inputOAuth.GetOAuthResponseMode()
@@ -84,7 +101,7 @@ func (i *IntentPromoteIdentityOAuth) ReactTo(ctx context.Context, deps *authflow
 				Alias:          alias,
 				RedirectURI:    redirectURI,
 				ResponseMode:   responseMode,
-			}), nil
+			}), bpSpecialErr
 		}
 	}
 	return nil, authflow.ErrIncompatibleInput
