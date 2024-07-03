@@ -119,20 +119,11 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, inputFn func(i
 		if errors.As(err, &errBotProtectionVerification) {
 			switch errBotProtectionVerification.Status {
 			case ErrorBotProtectionVerificationStatusSuccess:
-				uw, isJoinedError := err.(interface{ Unwrap() []error })
-				if isJoinedError {
-					errs := uw.Unwrap()
-					// make err become first non-ErrBotProtectionVerificationSuccess error
+				_, notMatched := errorutil.Partition(err, func(err error) bool {
 					var _errBPV *ErrorBotProtectionVerification
-					for _, _err := range errs {
-						if !errors.As(_err, &_errBPV) {
-							err = _err
-							break
-						}
-					}
-				} else {
-					err = nil
-				}
+					return errors.As(err, &_errBPV) && _errBPV.Status == ErrorBotProtectionVerificationStatusSuccess
+				})
+				err = notMatched
 				result = &AcceptResult{
 					BotProtectionVerificationResult: &BotProtectionVerificationResult{
 						Outcome: BotProtectionVerificationOutcomeVerified,
