@@ -84,6 +84,9 @@ func (n *IntentUseIdentityPasskey) ReactTo(ctx context.Context, deps *authflow.D
 			if err != nil {
 				return nil, err
 			}
+			if !IsBotProtectionSpecialErrorSuccess(bpSpecialErr) {
+				return nil, bpSpecialErr
+			}
 		}
 		assertionResponse := inputAssertionResponse.GetAssertionResponse()
 		assertionResponseBytes, err := json.Marshal(assertionResponse)

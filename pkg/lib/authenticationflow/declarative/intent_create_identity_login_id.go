@@ -91,6 +91,9 @@ func (n *IntentCreateIdentityLoginID) ReactTo(ctx context.Context, deps *authflo
 			if err != nil {
 				return nil, err
 			}
+			if !IsBotProtectionSpecialErrorSuccess(bpSpecialErr) {
+				return nil, bpSpecialErr
+			}
 		}
 
 		loginID := inputTakeLoginID.GetLoginID()

@@ -124,3 +124,11 @@ func VerifyBotProtection(ctx context.Context, deps *authflow.Dependencies, token
 		return nil, err
 	}
 }
+
+func IsBotProtectionSpecialErrorSuccess(bpSpecialErr error) bool {
+	var errBotProtectionVerification *authflow.ErrorBotProtectionVerification
+	if errors.As(bpSpecialErr, &errBotProtectionVerification) {
+		return errBotProtectionVerification.Status == authflow.ErrorBotProtectionVerificationStatusSuccess
+	}
+	return false
+}

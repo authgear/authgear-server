@@ -83,6 +83,9 @@ func (n *IntentPromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authfl
 			if err != nil {
 				return nil, err
 			}
+			if !IsBotProtectionSpecialErrorSuccess(bpSpecialErr) {
+				return nil, bpSpecialErr
+			}
 		}
 		loginID := inputTakeLoginID.GetLoginID()
 		specForLookup := &identity.Spec{

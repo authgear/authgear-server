@@ -134,6 +134,9 @@ func (n *IntentCreateAuthenticatorTOTP) ReactTo(ctx context.Context, deps *authf
 			if err != nil {
 				return nil, err
 			}
+			if !IsBotProtectionSpecialErrorSuccess(bpSpecialErr) {
+				return nil, bpSpecialErr
+			}
 		}
 		_, err = deps.Authenticators.VerifyWithSpec(n.Authenticator, &authenticator.Spec{
 			TOTP: &authenticator.TOTPSpec{

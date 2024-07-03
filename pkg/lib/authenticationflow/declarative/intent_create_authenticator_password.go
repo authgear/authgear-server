@@ -81,6 +81,9 @@ func (i *IntentCreateAuthenticatorPassword) ReactTo(ctx context.Context, deps *a
 			if err != nil {
 				return nil, err
 			}
+			if !IsBotProtectionSpecialErrorSuccess(bpSpecialErr) {
+				return nil, bpSpecialErr
+			}
 		}
 		authenticatorKind := i.Authentication.AuthenticatorKind()
 		newPassword := inputTakeNewPassword.GetNewPassword()
