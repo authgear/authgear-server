@@ -22,8 +22,8 @@ var AuthgearDarkThemeCSS = resource.RegisterResource(CSSDescriptor{
 var AppLogo = resource.RegisterResource(ImageDescriptor{Name: "app_logo"})
 var AppLogoDark = resource.RegisterResource(ImageDescriptor{Name: "app_logo_dark"})
 var Favicon = resource.RegisterResource(ImageDescriptor{Name: "favicon"})
-var AppBackgroundImage = resource.RegisterResource(ImageDescriptor{Name: "app_background_image"})
-var AppBackgroundImageDark = resource.RegisterResource(ImageDescriptor{Name: "app_background_image_dark"})
+var AppBackgroundImage = resource.RegisterResource(ImageDescriptor{Name: "app_background_image", SizeLimit: 500 * 1024})
+var AppBackgroundImageDark = resource.RegisterResource(ImageDescriptor{Name: "app_background_image_dark", SizeLimit: 500 * 1024})
 
 var AuthgearAuthflowV2LightThemeCSS = resource.RegisterResource(CSSDescriptor{
 	Path: path.Join(AppAssetsURLDirname, "authgear-authflowv2-light-theme.css"),

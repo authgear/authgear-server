@@ -341,3 +341,13 @@ func TestTemplateResource(t *testing.T) {
 		})
 	})
 }
+
+func TestImageSizeLimit(t *testing.T) {
+	Convey("ImageDescriptor size limit", t, func() {
+		image := web.ImageDescriptor{
+			Name:      "image",
+			SizeLimit: 100 * 1024 * 1024,
+		}
+		So(image.GetSizeLimit(), ShouldEqual, 100*1024*1024)
+	})
+}
