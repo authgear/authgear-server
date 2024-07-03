@@ -95,10 +95,6 @@ func (h *SettingsDeleteAccountSuccessHandler) ServeHTTP(w http.ResponseWriter, r
 		result := webapp.Result{
 			RedirectURI: redirectURI,
 		}
-
-		// You will now see error=login_required&error_description=authentication+required
-		// This is because the user was disabled and the original session was invalidated.
-		// You need to save authentication info before the session was invalidated in settings_delete_account.go
 		result.WriteResponse(w, r)
 		return nil
 	})
