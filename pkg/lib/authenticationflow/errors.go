@@ -29,18 +29,6 @@ var ErrNoChange = errors.New("no change")
 // This error originates from CanReactTo and will be propagated to public API.
 var ErrEOF = errors.New("eof")
 
-// ErrBotProtectionVerificationFailed means bot-protection verification failed.
-// This error can only be returned by IntentBotProtection ReactTo.
-var ErrBotProtectionVerificationFailed = errors.New("bot-protection verification failed")
-
-// ErrBotProtectionVerificationSuccess means bot-protection verification success.
-// This error can only be returned by IntentBotProtection ReactTo.
-var ErrBotProtectionVerificationSuccess = errors.New("bot-protection verification success")
-
-// ErrBotProtectionVerificationServiceUnavailable means bot-protection verification service is unavailable.
-// This error can only be returned by IntentBotProtection ReactTo.
-var ErrBotProtectionVerificationServiceUnavailable = errors.New("bot-protection verification service unavailable")
-
 var ErrFlowNotFound = apierrors.NotFound.WithReason("AuthenticationFlowNotFound").New("flow not found")
 
 var ErrFlowNotAllowed = apierrors.Forbidden.WithReason("AuthenticationFlowNotAllowed").New("flow not allowed")
@@ -73,3 +61,32 @@ type ErrorRewriteFlow struct {
 func (e *ErrorRewriteFlow) Error() string {
 	return fmt.Sprintf("rewrite flow: %v", e.Intent.Kind())
 }
+
+// ErrorBotProtectionVerification is a special error for interrupting the flow in case of failed or service-unavailable
+type ErrorBotProtectionVerification struct {
+	Status ErrorBotProtectionVerificationStatus
+}
+
+func (e *ErrorBotProtectionVerification) Error() string {
+	return fmt.Sprintf("bot protection verification status: %v", e.Status)
+}
+
+type ErrorBotProtectionVerificationStatus string
+
+const (
+	ErrorBotProtectionVerificationStatusFailed             ErrorBotProtectionVerificationStatus = "failed"
+	ErrorBotProtectionVerificationStatusSuccess            ErrorBotProtectionVerificationStatus = "success"
+	ErrorBotProtectionVerificationStatusServiceUnavailable ErrorBotProtectionVerificationStatus = "service-unavailable"
+)
+
+var (
+	ErrorBotProtectionVerificationFailed *ErrorBotProtectionVerification = &ErrorBotProtectionVerification{
+		Status: ErrorBotProtectionVerificationStatusFailed,
+	}
+	ErrorBotProtectionVerificationSuccess *ErrorBotProtectionVerification = &ErrorBotProtectionVerification{
+		Status: ErrorBotProtectionVerificationStatusSuccess,
+	}
+	ErrorBotProtectionVerificationServiceUnavailable *ErrorBotProtectionVerification = &ErrorBotProtectionVerification{
+		Status: ErrorBotProtectionVerificationStatusServiceUnavailable,
+	}
+)

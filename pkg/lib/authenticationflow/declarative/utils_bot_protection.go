@@ -97,12 +97,12 @@ func HandleExistingBotProtectionVerificationResult(ctx context.Context, deps *au
 	fmt.Printf("pkong# existing: %v\n", r)
 	switch r.Outcome {
 	case authflow.BotProtectionVerificationOutcomeVerified:
-		return authflow.ErrBotProtectionVerificationSuccess, nil
+		return authflow.ErrorBotProtectionVerificationSuccess, nil
 	case authflow.BotProtectionVerificationOutcomeServiceUnavailable:
 		// retry
 		return VerifyBotProtection(ctx, deps, token)
 	case authflow.BotProtectionVerificationOutcomeFailed:
-		return authflow.ErrBotProtectionVerificationFailed, nil
+		return authflow.ErrorBotProtectionVerificationFailed, nil
 	default:
 		panic("unrecognised verification result in context")
 	}
@@ -114,11 +114,11 @@ func VerifyBotProtection(ctx context.Context, deps *authflow.Dependencies, token
 
 	switch {
 	case errors.Is(err, botprotection.ErrVerificationFailed):
-		return authflow.ErrBotProtectionVerificationFailed, nil
+		return authflow.ErrorBotProtectionVerificationFailed, nil
 	case errors.Is(err, botprotection.ErrVerificationServiceUnavailable):
-		return authflow.ErrBotProtectionVerificationServiceUnavailable, nil
+		return authflow.ErrorBotProtectionVerificationServiceUnavailable, nil
 	case errors.Is(err, nil):
-		return authflow.ErrBotProtectionVerificationSuccess, nil
+		return authflow.ErrorBotProtectionVerificationSuccess, nil
 	default:
 		// unexpected error
 		return nil, err

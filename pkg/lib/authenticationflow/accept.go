@@ -114,47 +114,50 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, inputFn func(i
 			return
 		}
 
-		// Handle err == ErrBotProtectionVerificationFailed
-		if errors.Is(err, ErrBotProtectionVerificationFailed) {
-			err = nil
-			// We still consider the flow has something changes.
-			changed = true
-
-			return &AcceptResult{
-				BotProtectionVerificationResult: &BotProtectionVerificationResult{
-					Outcome: BotProtectionVerificationOutcomeFailed,
-				}}, botprotection.ErrVerificationFailed
-		}
-
-		// Handle err == ErrBotProtectionVerificationServiceUnavailable
-		if errors.Is(err, ErrBotProtectionVerificationServiceUnavailable) {
-			err = nil
-			// We still consider the flow has something changes.
-			changed = true
-			return &AcceptResult{
-				BotProtectionVerificationResult: &BotProtectionVerificationResult{
-					Outcome: BotProtectionVerificationOutcomeFailed,
-				}}, botprotection.ErrVerificationServiceUnavailable
-		}
-
-		if errors.Is(err, ErrBotProtectionVerificationSuccess) {
-			uw, isJoinedError := err.(interface{ Unwrap() []error })
-			if isJoinedError {
-				errs := uw.Unwrap()
-				// make err become first non-ErrBotProtectionVerificationSuccess error
-				for _, _err := range errs {
-					if !errors.Is(_err, ErrBotProtectionVerificationSuccess) {
-						err = _err
-						break
+		// Handle ErrBotProtectionVerification
+		var errBotProtectionVerification *ErrorBotProtectionVerification
+		if errors.As(err, &errBotProtectionVerification) {
+			switch errBotProtectionVerification.Status {
+			case ErrorBotProtectionVerificationStatusSuccess:
+				uw, isJoinedError := err.(interface{ Unwrap() []error })
+				if isJoinedError {
+					errs := uw.Unwrap()
+					// make err become first non-ErrBotProtectionVerificationSuccess error
+					var _errBPV *ErrorBotProtectionVerification
+					for _, _err := range errs {
+						if !errors.As(_err, &_errBPV) {
+							err = _err
+							break
+						}
 					}
+				} else {
+					err = nil
 				}
-			} else {
+				result = &AcceptResult{
+					BotProtectionVerificationResult: &BotProtectionVerificationResult{
+						Outcome: BotProtectionVerificationOutcomeVerified,
+					}}
+			case ErrorBotProtectionVerificationStatusFailed:
+				err = nil
+				// We still consider the flow has something changes.
+				changed = true
+
+				return &AcceptResult{
+					BotProtectionVerificationResult: &BotProtectionVerificationResult{
+						Outcome: BotProtectionVerificationOutcomeFailed,
+					}}, botprotection.ErrVerificationFailed
+			case ErrorBotProtectionVerificationStatusServiceUnavailable:
+				err = nil
+				// We still consider the flow has something changes.
+				changed = true
+				return &AcceptResult{
+					BotProtectionVerificationResult: &BotProtectionVerificationResult{
+						Outcome: BotProtectionVerificationOutcomeFailed,
+					}}, botprotection.ErrVerificationServiceUnavailable
+			default:
+				// do nothing if unrecognized status
 				err = nil
 			}
-			result = &AcceptResult{
-				BotProtectionVerificationResult: &BotProtectionVerificationResult{
-					Outcome: BotProtectionVerificationOutcomeVerified,
-				}}
 		}
 
 		// Handle other error.
