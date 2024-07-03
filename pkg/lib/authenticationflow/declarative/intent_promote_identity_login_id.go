@@ -64,6 +64,7 @@ func (n *IntentPromoteIdentityLoginID) CanReactTo(ctx context.Context, deps *aut
 	}, nil
 }
 
+// nolint:gocognit
 func (n *IntentPromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	var inputTakeLoginID inputTakeLoginID
 	if authflow.AsInput(input, &inputTakeLoginID) {
