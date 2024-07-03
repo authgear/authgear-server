@@ -297,7 +297,7 @@ func BuildCustomUIEndpoint(base string) (*url.URL, error) {
 	return customUIURL, nil
 }
 
-func (b *UIURLBuilder) BuildSettingsActionURL(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, e *oauthsession.Entry, redirectURI *url.URL) (*url.URL, error) {
+func (b *UIURLBuilder) BuildSettingsActionURL(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, e *oauthsession.Entry) (*url.URL, error) {
 	var endpoint *url.URL
 	switch r.SettingsAction() {
 	case "change_password":

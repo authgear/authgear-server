@@ -49,7 +49,7 @@ type UIInfoResolver interface {
 
 type UIURLBuilder interface {
 	BuildAuthenticationURL(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, e *oauthsession.Entry) (*url.URL, error)
-	BuildSettingsActionURL(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, e *oauthsession.Entry, redirectURI *url.URL) (*url.URL, error)
+	BuildSettingsActionURL(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, e *oauthsession.Entry) (*url.URL, error)
 }
 
 type AppSessionTokenService interface {
@@ -392,7 +392,7 @@ func (h *AuthorizationHandler) doHandle(
 	}
 
 	if r.ResponseType() == string(SettingsActonResponseType) {
-		redirectURI, err = h.UIURLBuilder.BuildSettingsActionURL(client, r, oauthSessionEntry, redirectURI)
+		redirectURI, err = h.UIURLBuilder.BuildSettingsActionURL(client, r, oauthSessionEntry)
 		if err != nil {
 			return nil, err
 		}
