@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/lib/feature/botprotection"
+	"github.com/authgear/authgear-server/pkg/lib/botprotection"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )

@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/botprotection"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -19,8 +18,8 @@ type Provider struct {
 	RemoteIP          httputil.RemoteIP
 	Config            *config.BotProtectionConfig
 	Logger            ProviderLogger
-	CloudflareClient  *botprotection.CloudflareClient
-	RecaptchaV2Client *botprotection.RecaptchaV2Client
+	CloudflareClient  *CloudflareClient
+	RecaptchaV2Client *RecaptchaV2Client
 }
 
 func (p *Provider) Verify(token string) error {

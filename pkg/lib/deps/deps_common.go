@@ -28,11 +28,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/botprotection"
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
-	"github.com/authgear/authgear-server/pkg/lib/feature/botprotection"
 	"github.com/authgear/authgear-server/pkg/lib/feature/captcha"
 	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
@@ -44,7 +44,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 
-	infrabotprotection "github.com/authgear/authgear-server/pkg/lib/infra/botprotection"
 	deprecated_infracaptcha "github.com/authgear/authgear-server/pkg/lib/infra/captcha"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
@@ -466,10 +465,6 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		messaging.DependencySet,
 		wire.Bind(new(otp.Sender), new(*messaging.Sender)),
-	),
-
-	wire.NewSet(
-		infrabotprotection.DependencySet,
 	),
 
 	wire.NewSet(
