@@ -34,6 +34,11 @@ func (i *InputSchemaSignupFlowStepCreateAuthenticator) SchemaBuilder() validatio
 		b := validation.SchemaBuilder{}
 		required := []string{"authentication"}
 		b.Properties().Property("authentication", validation.SchemaBuilder{}.Const(branch.Authentication))
+		if IsConfigBotProtectionReqired(branch.GetBotProtectionConfig(), nil) {
+			required = append(required, "bot_protection")
+			b.Properties().Property("bot_protection", NewInputTakeBotProtectionSchemaBuilder())
+			b.Required(required...)
+		}
 
 		switch branch.Authentication {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
