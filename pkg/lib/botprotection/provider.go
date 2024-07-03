@@ -1,6 +1,7 @@
 package botprotection
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -44,17 +45,14 @@ func (p *Provider) verifyTokenByCloudflare(token string) error {
 	if p.CloudflareClient == nil {
 		return fmt.Errorf("missing cloudflare credential")
 	}
-	result, err := p.CloudflareClient.Verify(token, string(p.RemoteIP))
+	successResp, err := p.CloudflareClient.Verify(token, string(p.RemoteIP))
 	if err != nil {
+		p.Logger.WithField("cloudflare verification error:", err)
 		return err
 	}
-	if !*result.Success {
-		p.Logger.WithField("cloudflare verification error-codes:", result.ErrorCodes)
-		isServiceUnavailable := p.CloudflareClient.IsServiceUnavailable(result)
-		if isServiceUnavailable {
-			return ErrVerificationServiceUnavailable
-		}
-		return ErrVerificationFailed
+	if successResp == nil {
+		err = fmt.Errorf("cloudflare no error but no success response")
+		return errors.Join(err, ErrVerificationFailed)
 	}
 	return nil
 }
@@ -64,17 +62,14 @@ func (p *Provider) verifyTokenByRecaptchaV2(token string) error {
 		return fmt.Errorf("missing recaptchaV2 credentials")
 	}
 
-	result, err := p.RecaptchaV2Client.Verify(token, string(p.RemoteIP))
+	successResp, err := p.RecaptchaV2Client.Verify(token, string(p.RemoteIP))
 	if err != nil {
+		p.Logger.WithField("recaptchav2 verification error:", err)
 		return err
 	}
-	if !*result.Success {
-		p.Logger.WithField("cloudflare verification error-codes:", result.ErrorCodes)
-		isServiceUnavailable := p.RecaptchaV2Client.IsServiceUnavailable(result)
-		if isServiceUnavailable {
-			return ErrVerificationServiceUnavailable
-		}
-		return ErrVerificationFailed
+	if successResp == nil {
+		err = fmt.Errorf("recaptchav2 no error but no success response")
+		return errors.Join(err, ErrVerificationFailed)
 	}
 
 	return nil
