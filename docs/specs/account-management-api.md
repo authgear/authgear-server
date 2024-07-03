@@ -4,8 +4,8 @@ Account Management API is an API for account management on behalf of the end use
 
 Account Management API supports the following operations:
 
-- [Manage identification methods](#manage-identification-methods)
-  - [List identification methods](#list-identification-methods)
+- [Manage identifications](#manage-identifications)
+  - [List identifications](#list-identifications)
   - [Add a new email, with verification](#add-a-new-email-with-verification)
   - [Add a new phone number, with verification](#add-a-new-phone-number-with-verification)
   - [Add a new username](#add-a-new-username)
@@ -21,8 +21,8 @@ Account Management API supports the following operations:
   - [Update an email, with verification](#update-an-email-with-verification)
   - [Update a phone number, with verification](#update-a-phone-number-with-verification)
   - [Update a username](#update-a-username)
-- Manage authentication methods
-  - List authentication methods, and recovery codes.
+- Manage authentications
+  - List authentications, and recovery codes.
   - Change the primary password
   - Change the secondary password
   - Remove the secondary password
@@ -45,9 +45,9 @@ Account Management API supports the following operations:
   - [Verify OTP](#verify-otp)
   - [Resend OTP](#resend-otp)
 
-## Manage identification methods
+## Manage identifications
 
-### List identification methods
+### List identifications
 
 `GET /api/v1/account/identification`
 
@@ -56,7 +56,7 @@ Response
 ```json
 {
   "result": {
-    "identification_methods": [
+    "identifications": [
       {
         "identification": "email",
         "login_id": "user@example.com",
