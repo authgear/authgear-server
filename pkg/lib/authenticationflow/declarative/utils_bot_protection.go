@@ -3,7 +3,6 @@ package declarative
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
@@ -84,7 +83,6 @@ func ShouldExistingResultBypassBotProtectionRequirement(ctx context.Context) boo
 
 func HandleBotProtection(ctx context.Context, deps *authflow.Dependencies, token string) (bpSpecialErr error, err error) {
 	existingResult := authflow.GetBotProtectionVerificationResult(ctx)
-	fmt.Printf("pkong# HandleBotProtection: existingResult %v \n", existingResult)
 	if existingResult != nil {
 
 		return HandleExistingBotProtectionVerificationResult(ctx, deps, token, existingResult)
@@ -93,8 +91,6 @@ func HandleBotProtection(ctx context.Context, deps *authflow.Dependencies, token
 }
 
 func HandleExistingBotProtectionVerificationResult(ctx context.Context, deps *authflow.Dependencies, token string, r *authflow.BotProtectionVerificationResult) (bpSpecialErr error, err error) {
-	fmt.Printf("pkong# Calling existing ...\n")
-	fmt.Printf("pkong# existing: %v\n", r)
 	switch r.Outcome {
 	case authflow.BotProtectionVerificationOutcomeVerified:
 		return authflow.ErrorBotProtectionVerificationSuccess, nil
@@ -109,7 +105,6 @@ func HandleExistingBotProtectionVerificationResult(ctx context.Context, deps *au
 
 }
 func VerifyBotProtection(ctx context.Context, deps *authflow.Dependencies, token string) (bpSpecialErr error, err error) {
-	fmt.Printf("pkong# Calling verify ...\n")
 	err = deps.BotProtection.Verify(token)
 
 	switch {
