@@ -1,0 +1,101 @@
+name: Login with Bot Protection - Authenticate - OOBOTP - Verification Success
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - oob_otp_email
+    identity:
+      login_id:
+        keys:
+        - type: email
+    bot_protection:
+      enabled: true
+      provider:
+        type: cloudflare
+        site_key: dummy
+    authentication_flow:
+      login_flows:
+      - name: f1
+        steps:
+        - name: login_identify
+          type: identify
+          one_of:
+          - identification: email
+            steps:
+            - name: authenticate_primary_email
+              type: authenticate
+              one_of:
+              - authentication: primary_oob_otp_email
+                bot_protection:
+                  mode: always
+                  provider:
+                    type: cloudflare
+                target_step: login_identify
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "f1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "bplogin_authn_oobotp@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "authentication": "primary_oob_otp_email",
+                  "bot_protection": {
+                    "enabled": true,
+                    "provider": {
+                      "type": "cloudflare"
+                    }
+                  }
+                }
+              ],
+              "type": "authentication_data"
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "authentication": "primary_oob_otp_email",
+        "index": 0,
+        "bot_protection": {
+          "type": "cloudflare",
+          "response": "pass"
+        }
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate",
+            "authentication": "primary_oob_otp_email",
+            "data": {
+              "type": "verify_oob_otp_data"
+            }
+          }
+        }

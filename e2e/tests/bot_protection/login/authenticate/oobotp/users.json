@@ -1,0 +1,13 @@
+{
+  "identifier": "email",
+  "records": [
+    {
+      "email": "bplogin_authn_oobotp@example.com",
+
+      "password": {
+        "type": "bcrypt",
+        "password_hash": "$2y$10$ze9h.zFQCg9ew9X4orQE2OkuLJZvTDs/YwOuptGkzkiFvwsES16hK"
+      }
+    }
+  ]
+}
