@@ -15,6 +15,7 @@ import (
 	"github.com/google/martian/httpspec"
 	"github.com/google/martian/mitm"
 
+	"github.com/authgear/authgear-server/e2e/cmd/proxy/mockbotprotection"
 	"github.com/authgear/authgear-server/e2e/cmd/proxy/mockoidc"
 	"github.com/authgear/authgear-server/e2e/cmd/proxy/modifier"
 	"github.com/authgear/authgear-server/pkg/util/debug"
@@ -33,13 +34,27 @@ func main() {
 	}
 	defer oidcmanager.Shutdown()
 
-	ln, err := net.Listen("tcp", "127.0.0.1:8081")
+	lnOidc, err := net.Listen("tcp", "127.0.0.1:8081")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	oidcmanager.Start(ln)
+	oidcmanager.Start(lnOidc)
 	log.Println("Mock OIDC manager listening on", oidcmanager.Server.Addr)
+
+	// Setup BotProtection manager server
+	botProtectonManager, err := mockbotprotection.NewMockBotProtectionManager()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer botProtectonManager.Shutdown()
+
+	lnBotProtecton, err := net.Listen("tcp", "127.0.0.1:8082")
+	if err != nil {
+		log.Fatal(err)
+	}
+	botProtectonManager.Start(lnBotProtecton)
+	log.Println("Mock BotProtection manager listening on", botProtectonManager.Server.Addr)
 
 	// Setup proxy to override OIDC endpoints
 	proxy := martian.NewProxy()
