@@ -154,6 +154,8 @@
       {{ template "authflowv2/__error_account" . }}
     {{ else if eq .Error.reason "MismatchedUser" }}
       <span>{{ template "error-developer-reauthentication" }}</span>
+    {{ else if eq .Error.reason "NoAuthenticator" }}
+      <span>{{ template "error-no-authenticator" }}</span>
     {{ else if eq .Error.reason "InvariantViolated" }}
       {{ $cause := .Error.info.cause }}
       {{ if (eq $cause.kind "RemoveLastIdentity") }}
@@ -167,8 +169,6 @@
           {{ template "error-duplicated-authenticator" (dict "AuthenticatorType"
           $cause.AuthenticatorType) }}
         </span>
-      {{ else if (eq $cause.kind "NoAuthenticator") }}
-        <span>{{ template "error-no-authenticator" }}</span>
       {{ else }}
         <span>{{ .Error.message }}</span>
       {{ end }}
