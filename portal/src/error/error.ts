@@ -1,5 +1,4 @@
 import { APIValidationError } from "./validation";
-import { APIInvariantViolationError } from "./invariant";
 import { APIPasswordPolicyViolatedError } from "./password";
 import { APIForbiddenError } from "./forbidden";
 import {
@@ -99,6 +98,11 @@ export interface APIRemoveLastIdentityError {
   reason: "RemoveLastIdentity";
 }
 
+export interface APIDuplicatedAuthenticatorError {
+  errorName: string;
+  reason: "DuplicatedAuthenticator";
+}
+
 export type APIError = { message?: string } & (
   | NetworkError
   | RequestEntityTooLargeError
@@ -110,7 +114,6 @@ export type APIError = { message?: string } & (
   | WebHookDeliveryTimeoutError
   | WebHookInvalidResponseError
   | APIValidationError
-  | APIInvariantViolationError
   | APIPasswordPolicyViolatedError
   | APIForbiddenError
   | APIDuplicatedDomainError
@@ -139,6 +142,7 @@ export type APIError = { message?: string } & (
   | APIDuplicatedIdentityError
   | APIRemoveLastPrimaryAuthenticatorError
   | APIRemoveLastIdentityError
+  | APIDuplicatedAuthenticatorError
 );
 
 export function isAPIError(value: unknown): value is APIError {

@@ -165,14 +165,8 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
       <li>{{ template "error-remove-last-secondary-authenticator" }}</li>
     {{ else if eq .Error.reason "RemoveLastIdentity" }}
       <li>{{ template "error-remove-last-identity" }}</li>
-    {{ else if eq .Error.reason "InvariantViolated" }}
-      {{ $cause := .Error.info.cause }}
-      {{ if (eq $cause.kind "DuplicatedAuthenticator") }}
-        <li>{{ template "error-duplicated-authenticator" (dict "AuthenticatorType" $cause.AuthenticatorType) }}
-       </li>
-      {{ else }}
-        <li>{{ .Error.message }}</li>
-      {{ end }}
+    {{ else if eq .Error.reason "DuplicatedAuthenticator" }}
+      <li>{{ template "error-duplicated-authenticator" (dict "AuthenticatorType" $info.AuthenticatorType) }}
     {{ else if eq .Error.reason "InvalidVerificationCode" }}
     <li>
       {{ template "error-verification-code-invalid" }}

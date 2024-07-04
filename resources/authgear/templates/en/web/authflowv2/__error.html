@@ -162,16 +162,10 @@
       <span>{{ template "error-remove-last-secondary-authenticator" }}</span>
     {{ else if eq .Error.reason "RemoveLastIdentity" }}
       <span>{{ template "error-remove-last-identity" }}</span>
-    {{ else if eq .Error.reason "InvariantViolated" }}
-      {{ $cause := .Error.info.cause }}
-      {{ if (eq $cause.kind "DuplicatedAuthenticator") }}
-        <span>
-          {{ template "error-duplicated-authenticator" (dict "AuthenticatorType"
-          $cause.AuthenticatorType) }}
-        </span>
-      {{ else }}
-        <span>{{ .Error.message }}</span>
-      {{ end }}
+    {{ else if eq .Error.reason "DuplicatedAuthenticator" }}
+      <span>
+        {{ template "error-duplicated-authenticator" (dict "AuthenticatorType" $info.AuthenticatorType) }}
+      </span>
     {{ else if eq .Error.reason "InvalidVerificationCode" }}
       <span>
         {{ template "v2-error-verification-code-invalid" }}

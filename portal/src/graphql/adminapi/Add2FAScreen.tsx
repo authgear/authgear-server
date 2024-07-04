@@ -28,10 +28,7 @@ import { useCreateAuthenticatorMutation } from "./mutations/createAuthenticatorM
 import { AuthenticatorKind, AuthenticatorType } from "./globalTypes.generated";
 import FormTextField from "../../FormTextField";
 import PasswordField from "../../PasswordField";
-import {
-  ErrorParseRule,
-  makeInvariantViolatedErrorParseRule,
-} from "../../error/parse";
+import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 
 interface FieldContextValue {
   effectiveAppConfig?: PortalAPIAppConfig;
@@ -66,7 +63,7 @@ function PhoneField(props: { onChange: (value: string) => void }) {
 
   const errorRules: ErrorParseRule[] = useMemo(
     () => [
-      makeInvariantViolatedErrorParseRule(
+      makeReasonErrorParseRule(
         "DuplicatedAuthenticator",
         "Add2FAScreen.error.duplicated-phone-number"
       ),
@@ -101,7 +98,7 @@ function EmailField(props: {
 
   const errorRules: ErrorParseRule[] = useMemo(
     () => [
-      makeInvariantViolatedErrorParseRule(
+      makeReasonErrorParseRule(
         "DuplicatedAuthenticator",
         "Add2FAScreen.error.duplicated-email"
       ),

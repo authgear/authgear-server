@@ -10,14 +10,10 @@ import (
 var ErrAuthenticatorNotFound = errors.New("authenticator not found")
 
 func NewErrDuplicatedAuthenticator(typ model.AuthenticatorType) error {
-	return apierrors.Invalid.WithReason("InvariantViolated").
-		NewWithCause(
-			"duplicated authenticator",
-			apierrors.MapCause{
-				CauseKind: "DuplicatedAuthenticator",
-				Data: map[string]interface{}{
-					"AuthenticatorType": string(typ),
-				},
-			},
-		)
+	return apierrors.Invalid.WithReason("DuplicatedAuthenticator").NewWithInfo(
+		"duplicated authenticator",
+		apierrors.Details{
+			"AuthenticatorType": string(typ),
+		},
+	)
 }
