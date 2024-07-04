@@ -255,7 +255,7 @@ func (h *AnonymousUserHandler) runSignupAnonymousUserGraph(
 		return nil, apierrors.NewInvalid("anonymous user disallowed")
 	} else if errors.Is(err, api.ErrInvalidCredentials) {
 		// invalid_grant
-		return nil, apierrors.NewInvalid(api.InvalidCredentials.Reason)
+		return nil, err
 	} else if err != nil {
 		return nil, err
 	}
