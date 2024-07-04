@@ -400,6 +400,18 @@ const LanguagesConfigurationScreen: React.VFC =
       };
     }, [renderToString]);
 
+    const sortedLanguages = useMemo(() => {
+      const sortLanguage = (a: LanguageTag, b: LanguageTag) => {
+        return pageContextValue
+          .getLanguageDisplayText(a)
+          .localeCompare(pageContextValue.getLanguageDisplayText(b));
+      };
+      return {
+        availableLanguages: [...availableLanguages].sort(sortLanguage),
+        builtinLanguages: [...builtinLanguages].sort(sortLanguage),
+      };
+    }, [pageContextValue, availableLanguages, builtinLanguages]);
+
     return (
       <PageContext.Provider value={pageContextValue}>
         <FormContainer form={appConfigForm} canSave={true}>
@@ -409,7 +421,7 @@ const LanguagesConfigurationScreen: React.VFC =
             </ScreenTitle>
             <SelectPrimaryLanguageSection
               className={styles.pageSection}
-              availableLanguages={availableLanguages}
+              availableLanguages={sortedLanguages.availableLanguages}
               primaryLanguage={appConfigForm.state.fallbackLanguage}
               onChangePrimaryLanguage={onChangePrimaryLanguage}
             />
@@ -417,8 +429,8 @@ const LanguagesConfigurationScreen: React.VFC =
             <SupportedLanguagesSection
               className={styles.pageSection}
               primaryLanguage={appConfigForm.state.fallbackLanguage}
-              builtinLanguages={builtinLanguages}
-              availableLanguages={availableLanguages}
+              builtinLanguages={sortedLanguages.builtinLanguages}
+              availableLanguages={sortedLanguages.availableLanguages}
               supportedLanguages={appConfigForm.state.supportedLanguages}
               onToggleSupportedLanguage={onToggleSupportedLanguage}
             />
