@@ -54,27 +54,29 @@
   {{ $clientName := or $.ClientName "null" }}
 
   <div class="flex-1-0-auto">
-    <div class="flex flex-col gap-4">
+    <div class="screen-logo-layout">
       {{ template "authflowv2/__header.html" . }}
-      <h1 class="screen-title">
-        {{ template "v2-login-title" (dict
-          "AppName" $appName
-          "ClientName" $clientName)
-        }}
-      </h1>
-      <h2 class="screen-description">
-        {{ template "v2-login-subtitle" (dict
-          "AppName" $appName
-          "ClientName" $clientName)
-        }}
-      </h2>
-      {{ template "authflowv2/__alert_message.html"
-        (dict
+      <div class="screen-title-description">
+        <h1 class="screen-title">
+          {{ template "v2-login-title" (dict
+            "AppName" $appName
+            "ClientName" $clientName)
+          }}
+        </h1>
+        <h2 class="screen-description">
+          {{ template "v2-login-subtitle" (dict
+            "AppName" $appName
+            "ClientName" $clientName)
+          }}
+        </h2>
+        {{ template "authflowv2/__alert_message.html"
+          (dict
           "Type" "error"
           "Classname" "mt-4"
           "Message" $oauth_error_message
-        )
-      }}
+          )
+        }}
+      </div>
     </div>
 
     <!-- We don't need to retore the auth form in inline preview mode -->
