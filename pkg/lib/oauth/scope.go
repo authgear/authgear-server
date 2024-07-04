@@ -16,6 +16,9 @@ const OfflineAccess = "offline_access"
 const DeviceSSOScope = "device_sso"
 
 func SessionScopes(s session.ResolvedSession) []string {
+	if s == nil {
+		return []string{}
+	}
 	switch s.SessionType() {
 	case session.TypeIdentityProvider:
 		return []string{FullAccessScope, AppInitiatedSSOToWebScope}
