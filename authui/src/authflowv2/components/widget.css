@@ -33,7 +33,7 @@
     background-position: var(--widget__bg_position);
     background-size: var(--widget__bg_size);
     @apply flex flex-col;
-    @apply px-6 pt-8 pb-10;
+    @apply px-6 pt-6 pb-10;
   }
 
   .widget-content {
