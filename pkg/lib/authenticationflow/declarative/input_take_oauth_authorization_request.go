@@ -62,10 +62,10 @@ func (i *InputSchemaTakeOAuthAuthorizationRequest) MakeInput(rawMessage json.Raw
 }
 
 type InputTakeOAuthAuthorizationRequest struct {
-	Alias         string                  `json:"alias"`
-	RedirectURI   string                  `json:"redirect_uri"`
-	ResponseMode  string                  `json:"response_mode,omitempty"`
-	BotProtection *InputTakeBotProtection `json:"bot_protection,omitempty"`
+	Alias         string                      `json:"alias"`
+	RedirectURI   string                      `json:"redirect_uri"`
+	ResponseMode  string                      `json:"response_mode,omitempty"`
+	BotProtection *InputTakeBotProtectionBody `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &InputTakeOAuthAuthorizationRequest{}
@@ -86,7 +86,7 @@ func (i *InputTakeOAuthAuthorizationRequest) GetOAuthResponseMode() string {
 	return i.ResponseMode
 }
 
-func (i *InputTakeOAuthAuthorizationRequest) GetBotProtectionProvider() *InputTakeBotProtection {
+func (i *InputTakeOAuthAuthorizationRequest) GetBotProtectionProvider() *InputTakeBotProtectionBody {
 	return i.BotProtection
 }
 

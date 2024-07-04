@@ -135,7 +135,7 @@ type inputNodePromptCreatePasskey interface {
 }
 
 type inputTakeBotProtection interface {
-	GetBotProtectionProvider() *InputTakeBotProtection
+	GetBotProtectionProvider() *InputTakeBotProtectionBody
 	GetBotProtectionProviderType() config.BotProtectionProviderType
 	GetBotProtectionProviderResponse() string
 }

@@ -53,8 +53,8 @@ func (i *InputSchemaSetupTOTP) MakeInput(rawMessage json.RawMessage) (authflow.I
 }
 
 type InputSetupTOTP struct {
-	Code          string                  `json:"code,omitempty"`
-	BotProtection *InputTakeBotProtection `json:"bot_protection,omitempty"`
+	Code          string                      `json:"code,omitempty"`
+	BotProtection *InputTakeBotProtectionBody `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &InputSetupTOTP{}
@@ -67,7 +67,7 @@ func (i *InputSetupTOTP) GetCode() string {
 	return i.Code
 }
 
-func (i *InputSetupTOTP) GetBotProtectionProvider() *InputTakeBotProtection {
+func (i *InputSetupTOTP) GetBotProtectionProvider() *InputTakeBotProtectionBody {
 	return i.BotProtection
 }
 

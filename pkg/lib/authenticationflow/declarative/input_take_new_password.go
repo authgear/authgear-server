@@ -52,8 +52,8 @@ func (i *InputSchemaTakeNewPassword) MakeInput(rawMessage json.RawMessage) (auth
 }
 
 type InputTakeNewPassword struct {
-	NewPassword   string                  `json:"new_password,omitempty"`
-	BotProtection *InputTakeBotProtection `json:"bot_protection,omitempty"`
+	NewPassword   string                      `json:"new_password,omitempty"`
+	BotProtection *InputTakeBotProtectionBody `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &InputTakeNewPassword{}
@@ -66,7 +66,7 @@ func (i *InputTakeNewPassword) GetNewPassword() string {
 	return i.NewPassword
 }
 
-func (i *InputTakeNewPassword) GetBotProtectionProvider() *InputTakeBotProtection {
+func (i *InputTakeNewPassword) GetBotProtectionProvider() *InputTakeBotProtectionBody {
 	return i.BotProtection
 }
 

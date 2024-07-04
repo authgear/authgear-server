@@ -36,7 +36,7 @@ func (i *InputSchemaSignupFlowStepCreateAuthenticator) SchemaBuilder() validatio
 		b.Properties().Property("authentication", validation.SchemaBuilder{}.Const(branch.Authentication))
 		if IsConfigBotProtectionReqired(branch.GetBotProtectionConfig(), nil) {
 			required = append(required, "bot_protection")
-			b.Properties().Property("bot_protection", NewInputTakeBotProtectionSchemaBuilder())
+			b.Properties().Property("bot_protection", InputTakeBotProtectionBodySchemaBuilder)
 			b.Required(required...)
 		}
 

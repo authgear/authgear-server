@@ -89,7 +89,7 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 		if option.isBotProtectionRequired() {
 			// bot_protection is required.
 			required = append(required, "bot_protection")
-			b.Properties().Property("bot_protection", NewInputTakeBotProtectionSchemaBuilder())
+			b.Properties().Property("bot_protection", InputTakeBotProtectionBodySchemaBuilder)
 			setRequired()
 		}
 	}
@@ -124,7 +124,7 @@ type InputStepIdentify struct {
 	RedirectURI  string `json:"redirect_uri,omitempty"`
 	ResponseMode string `json:"response_mode,omitempty"`
 
-	BotProtection *InputTakeBotProtection `json:"bot_protection,omitempty"`
+	BotProtection *InputTakeBotProtectionBody `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &InputStepIdentify{}
@@ -160,7 +160,7 @@ func (i *InputStepIdentify) GetOAuthResponseMode() string {
 	return i.ResponseMode
 }
 
-func (i *InputStepIdentify) GetBotProtectionProvider() *InputTakeBotProtection {
+func (i *InputStepIdentify) GetBotProtectionProvider() *InputTakeBotProtectionBody {
 	return i.BotProtection
 }
 

@@ -79,7 +79,7 @@ func (i *InputSchemaTakePasskeyAssertionResponse) MakeInput(rawMessage json.RawM
 
 type InputTakePasskeyAssertionResponse struct {
 	AssertionResponse *protocol.CredentialAssertionResponse `json:"assertion_response,omitempty"`
-	BotProtection     *InputTakeBotProtection               `json:"bot_protection,omitempty"`
+	BotProtection     *InputTakeBotProtectionBody           `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &InputTakePasskeyAssertionResponse{}
@@ -92,7 +92,7 @@ func (i *InputTakePasskeyAssertionResponse) GetAssertionResponse() *protocol.Cre
 	return i.AssertionResponse
 }
 
-func (i *InputTakePasskeyAssertionResponse) GetBotProtectionProvider() *InputTakeBotProtection {
+func (i *InputTakePasskeyAssertionResponse) GetBotProtectionProvider() *InputTakeBotProtectionBody {
 	return i.BotProtection
 }
 

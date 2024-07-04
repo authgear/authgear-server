@@ -56,9 +56,9 @@ func (i *InputSchemaTakeTOTP) MakeInput(rawMessage json.RawMessage) (authflow.In
 }
 
 type InputTakeTOTP struct {
-	Code               string                  `json:"code,omitempty"`
-	RequestDeviceToken bool                    `json:"request_device_token,omitempty"`
-	BotProtection      *InputTakeBotProtection `json:"bot_protection,omitempty"`
+	Code               string                      `json:"code,omitempty"`
+	RequestDeviceToken bool                        `json:"request_device_token,omitempty"`
+	BotProtection      *InputTakeBotProtectionBody `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &InputTakeTOTP{}
@@ -76,7 +76,7 @@ func (i *InputTakeTOTP) GetDeviceTokenRequested() bool {
 	return i.RequestDeviceToken
 }
 
-func (i *InputTakeTOTP) GetBotProtectionProvider() *InputTakeBotProtection {
+func (i *InputTakeTOTP) GetBotProtectionProvider() *InputTakeBotProtectionBody {
 	return i.BotProtection
 }
 

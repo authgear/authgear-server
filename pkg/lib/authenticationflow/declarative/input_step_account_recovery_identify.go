@@ -60,7 +60,7 @@ func (i *InputSchemaStepAccountRecoveryIdentify) SchemaBuilder() validation.Sche
 		if option.isBotProtectionRequired() {
 			// bot_protection is required.
 			required = append(required, "bot_protection")
-			b.Properties().Property("bot_protection", NewInputTakeBotProtectionSchemaBuilder())
+			b.Properties().Property("bot_protection", InputTakeBotProtectionBodySchemaBuilder)
 			setRequired()
 		}
 	}

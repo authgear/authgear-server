@@ -68,7 +68,7 @@ func (i *IntentLookupIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.
 		var inputOAuth inputTakeOAuthAuthorizationRequest
 		if authflow.AsInput(input, &inputOAuth) {
 			var bpSpecialErr error
-			var botProtection *InputTakeBotProtection
+			var botProtection *InputTakeBotProtectionBody
 			bpRequired, err := IsNodeBotProtectionRequired(ctx, deps, flows, i.JSONPointer)
 			if err != nil {
 				return nil, err

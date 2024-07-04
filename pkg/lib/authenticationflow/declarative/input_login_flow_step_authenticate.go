@@ -109,7 +109,7 @@ func (i *InputSchemaLoginFlowStepAuthenticate) SchemaBuilder() validation.Schema
 		if option.isBotProtectionRequired() {
 			// bot_protection is required.
 			required = append(required, "bot_protection")
-			b.Properties().Property("bot_protection", NewInputTakeBotProtectionSchemaBuilder())
+			b.Properties().Property("bot_protection", InputTakeBotProtectionBodySchemaBuilder)
 			setRequired()
 		}
 	}
@@ -148,7 +148,7 @@ type InputLoginFlowStepAuthenticate struct {
 	RecoveryCode       string                                  `json:"recovery_code,omitempty"`
 	Index              int                                     `json:"index,omitempty"`
 	Channel            model.AuthenticatorOOBChannel           `json:"channel,omitempty"`
-	BotProtection      *InputTakeBotProtection                 `json:"bot_protection,omitempty"`
+	BotProtection      *InputTakeBotProtectionBody             `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &InputLoginFlowStepAuthenticate{}
@@ -191,7 +191,7 @@ func (i *InputLoginFlowStepAuthenticate) GetChannel() model.AuthenticatorOOBChan
 	return i.Channel
 }
 
-func (i *InputLoginFlowStepAuthenticate) GetBotProtectionProvider() *InputTakeBotProtection {
+func (i *InputLoginFlowStepAuthenticate) GetBotProtectionProvider() *InputTakeBotProtectionBody {
 	return i.BotProtection
 }
 

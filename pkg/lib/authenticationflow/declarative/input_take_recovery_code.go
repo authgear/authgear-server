@@ -55,9 +55,9 @@ func (i *InputSchemaTakeRecoveryCode) MakeInput(rawMessage json.RawMessage) (aut
 }
 
 type InputTakeRecoveryCode struct {
-	RecoveryCode       string                  `json:"recovery_code,omitempty"`
-	RequestDeviceToken bool                    `json:"request_device_token,omitempty"`
-	BotProtection      *InputTakeBotProtection `json:"bot_protection,omitempty"`
+	RecoveryCode       string                      `json:"recovery_code,omitempty"`
+	RequestDeviceToken bool                        `json:"request_device_token,omitempty"`
+	BotProtection      *InputTakeBotProtectionBody `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &InputTakeRecoveryCode{}
@@ -75,7 +75,7 @@ func (i *InputTakeRecoveryCode) GetDeviceTokenRequested() bool {
 	return i.RequestDeviceToken
 }
 
-func (i *InputTakeRecoveryCode) GetBotProtectionProvider() *InputTakeBotProtection {
+func (i *InputTakeRecoveryCode) GetBotProtectionProvider() *InputTakeBotProtectionBody {
 	return i.BotProtection
 }
 

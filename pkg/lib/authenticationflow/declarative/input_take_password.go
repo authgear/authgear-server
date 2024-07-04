@@ -55,9 +55,9 @@ func (i *InputSchemaTakePassword) MakeInput(rawMessage json.RawMessage) (authflo
 }
 
 type InputTakePassword struct {
-	Password           string                  `json:"password,omitempty"`
-	RequestDeviceToken bool                    `json:"request_device_token,omitempty"`
-	BotProtection      *InputTakeBotProtection `json:"bot_protection,omitempty"`
+	Password           string                      `json:"password,omitempty"`
+	RequestDeviceToken bool                        `json:"request_device_token,omitempty"`
+	BotProtection      *InputTakeBotProtectionBody `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &InputTakePassword{}
@@ -75,7 +75,7 @@ func (i *InputTakePassword) GetDeviceTokenRequested() bool {
 	return i.RequestDeviceToken
 }
 
-func (i *InputTakePassword) GetBotProtectionProvider() *InputTakeBotProtection {
+func (i *InputTakePassword) GetBotProtectionProvider() *InputTakeBotProtectionBody {
 	return i.BotProtection
 }
 

@@ -72,7 +72,7 @@ func (n *IntentLookupIdentityPasskey) ReactTo(ctx context.Context, deps *authflo
 	var inputAssertionResponse inputTakePasskeyAssertionResponse
 	if authflow.AsInput(input, &inputAssertionResponse) {
 		var bpSpecialErr error
-		var botProtection *InputTakeBotProtection
+		var botProtection *InputTakeBotProtectionBody
 		bpRequired, err := IsNodeBotProtectionRequired(ctx, deps, flows, n.JSONPointer)
 		if err != nil {
 			return nil, err

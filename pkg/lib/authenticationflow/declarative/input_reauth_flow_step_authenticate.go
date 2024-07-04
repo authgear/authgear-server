@@ -106,7 +106,7 @@ func (i *InputSchemaReauthFlowStepAuthenticate) SchemaBuilder() validation.Schem
 		if option.isBotProtectionRequired() {
 			// bot_protection is required.
 			required = append(required, "bot_protection")
-			b.Properties().Property("bot_protection", NewInputTakeBotProtectionSchemaBuilder())
+			b.Properties().Property("bot_protection", InputTakeBotProtectionBodySchemaBuilder)
 			setRequired()
 		}
 	}

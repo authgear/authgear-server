@@ -10,7 +10,7 @@ import (
 type SyntheticInputPasskey struct {
 	Identification    config.AuthenticationFlowIdentification `json:"identification,omitempty"`
 	AssertionResponse *protocol.CredentialAssertionResponse   `json:"assertion_response,omitempty"`
-	BotProtection     *InputTakeBotProtection                 `json:"bot_protection,omitempty"`
+	BotProtection     *InputTakeBotProtectionBody             `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &SyntheticInputPasskey{}
@@ -28,7 +28,7 @@ func (i *SyntheticInputPasskey) GetAssertionResponse() *protocol.CredentialAsser
 	return i.AssertionResponse
 }
 
-func (i *SyntheticInputPasskey) GetBotProtectionProvider() *InputTakeBotProtection {
+func (i *SyntheticInputPasskey) GetBotProtectionProvider() *InputTakeBotProtectionBody {
 	return i.BotProtection
 }
 

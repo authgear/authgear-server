@@ -51,8 +51,8 @@ func (i *InputSchemaTakeLoginID) MakeInput(rawMessage json.RawMessage) (authflow
 }
 
 type InputTakeLoginID struct {
-	LoginID       string                  `json:"login_id"`
-	BotProtection *InputTakeBotProtection `json:"bot_protection,omitempty"`
+	LoginID       string                      `json:"login_id"`
+	BotProtection *InputTakeBotProtectionBody `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &InputTakeLoginID{}
@@ -65,7 +65,7 @@ func (i *InputTakeLoginID) GetLoginID() string {
 	return i.LoginID
 }
 
-func (i *InputTakeLoginID) GetBotProtectionProvider() *InputTakeBotProtection {
+func (i *InputTakeLoginID) GetBotProtectionProvider() *InputTakeBotProtectionBody {
 	return i.BotProtection
 }
 

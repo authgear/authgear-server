@@ -13,7 +13,7 @@ type SyntheticInputOAuth struct {
 	RedirectURI    string                                  `json:"redirect_uri,omitempty"`
 	ResponseMode   string                                  `json:"response_mode,omitempty"`
 	IdentitySpec   *identity.Spec                          `json:"identity_spec,omitempty"`
-	BotProtection  *InputTakeBotProtection                 `json:"bot_protection,omitempty"`
+	BotProtection  *InputTakeBotProtectionBody             `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &SyntheticInputOAuth{}
@@ -48,7 +48,7 @@ func (i *SyntheticInputOAuth) GetIdentitySpec() *identity.Spec {
 	return i.IdentitySpec
 }
 
-func (i *SyntheticInputOAuth) GetBotProtectionProvider() *InputTakeBotProtection {
+func (i *SyntheticInputOAuth) GetBotProtectionProvider() *InputTakeBotProtectionBody {
 	return i.BotProtection
 }
 
