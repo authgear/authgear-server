@@ -51,10 +51,7 @@ import { formatDatetime } from "../../util/formatDatetime";
 import { extractRawID } from "../../util/graphql";
 
 import styles from "./UserDetailsScreen.module.css";
-import {
-  makeReasonErrorParseRule,
-  makeInvariantViolatedErrorParseRule,
-} from "../../error/parse";
+import { makeReasonErrorParseRule } from "../../error/parse";
 import { IdentityType } from "./globalTypes.generated";
 import AnonymizeUserDialog from "./AnonymizeUserDialog";
 import UserDetailsScreenGroupListContainer from "../../components/roles-and-groups/list/UserDetailsScreenGroupListContainer";
@@ -80,7 +77,7 @@ interface FormState {
 }
 
 const ERROR_RULES = [
-  makeInvariantViolatedErrorParseRule(
+  makeReasonErrorParseRule(
     "RemoveLastIdentity",
     "errors.invariant.remove-last-identity"
   ),

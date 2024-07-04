@@ -53,3 +53,4 @@ var ErrAnonymousUserAddIdentity = apierrors.Invalid.WithReason(AnonymousUserAddI
 
 var ErrRemoveLastPrimaryAuthenticator = apierrors.Invalid.WithReason("RemoveLastPrimaryAuthenticator").New("cannot remove the last primary authenticator")
 var ErrRemoveLastSecondaryAuthenticator = apierrors.Invalid.WithReason("RemoveLastSecondaryAuthenticator").New("cannot remove the last secondary authenticator")
+var ErrRemoveLastIdentity = apierrors.Invalid.WithReason("RemoveLastIdentity").New("cannot remove the last identity")

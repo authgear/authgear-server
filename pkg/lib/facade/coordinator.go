@@ -257,11 +257,7 @@ func (c *Coordinator) IdentityDelete(is *identity.Info) error {
 		identity.KeepIdentifiable,
 	)
 	if len(remaining) <= 0 {
-		return api.NewInvariantViolated(
-			"RemoveLastIdentity",
-			"cannot remove last identity",
-			nil,
-		)
+		return api.ErrRemoveLastIdentity
 	}
 
 	// Allow deleting anonymous identity, even if the remaining identities don't have an applicable authenticator
