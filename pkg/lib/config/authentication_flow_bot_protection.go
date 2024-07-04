@@ -6,7 +6,8 @@ var _ = Schema.Add("AuthenticationFlowBotProtection", `
 	"additionalProperties": false,
 	"required": ["mode"],
 	"properties": {
-		"mode": { "type": "string", "enum": ["never", "always"] }
+		"mode": { "type": "string", "enum": ["never", "always"] },
+		"provider": { "$ref": "#/$defs/AuthenticationFlowBotProtectionProvider" }
 	},
 	"allOf": [
 		{
@@ -19,10 +20,7 @@ var _ = Schema.Add("AuthenticationFlowBotProtection", `
 				}
 			},
 			"then": {
-				"required": ["provider"],
-				"properties": {
-					"provider": { "$ref": "#/$defs/AuthenticationFlowBotProtectionProvider" }
-				}
+				"required": ["provider"]
 			}
 		}
 	]

@@ -104,7 +104,6 @@ part: AuthenticationFlowLoginFlow
 name: bot-protection-provider-missing-type
 error: |-
   invalid value:
-  /steps/0/one_of/0/bot_protection/provider: 
   /steps/0/one_of/0/bot_protection/provider: required
     map[actual:[nickname] expected:[type] missing:[type]]
   /steps/0/one_of/0/bot_protection/provider/nickname: 
