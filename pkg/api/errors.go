@@ -5,8 +5,7 @@ import (
 )
 
 var (
-	InvalidCredentials = apierrors.Unauthorized.WithReason("InvalidCredentials")
-	InvariantViolated  = apierrors.Invalid.WithReason("InvariantViolated")
+	InvariantViolated = apierrors.Invalid.WithReason("InvariantViolated")
 )
 
 func NewInvariantViolated(cause string, msg string, data map[string]interface{}) error {
@@ -27,7 +26,10 @@ var ErrIdentityNotFound = apierrors.NotFound.WithReason("IdentityNotFound").New(
 var DuplicatedIdentity = apierrors.AlreadyExists.WithReason("DuplicatedIdentity")
 var ErrDuplicatedIdentity = DuplicatedIdentity.New("identity already exist")
 
-var ErrInvalidCredentials = InvalidCredentials.New("invalid credentials")
+const InvalidCredentialsReason = "InvalidCredentials"
+
+var ErrInvalidCredentials = apierrors.Unauthorized.WithReason(InvalidCredentialsReason).New("invalid credentials")
+
 var ErrOAuthProviderNotFound = apierrors.NotFound.WithReason("OAuthProviderNotFound").New("oauth provider not found")
 var ErrIdentityModifyDisabled = apierrors.Forbidden.WithReason("IdentityModifyDisabled").New("identity modification disabled")
 var ErrMismatchedUser = apierrors.InternalError.WithReason("MismatchedUser").New("mismatched user")
