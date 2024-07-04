@@ -12,23 +12,20 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-// https://developers.google.com/recaptcha/docs/verify
-const (
-	Recaptchav2VerifyEndpoint string = "https://www.google.com/recaptcha/api/siteverify"
-)
-
 type RecaptchaV2Client struct {
-	HTTPClient  *http.Client
-	Credentials *config.BotProtectionProviderCredentials
+	HTTPClient     *http.Client
+	Credentials    *config.BotProtectionProviderCredentials
+	VerifyEndpoint string
 }
 
-func NewRecaptchaV2Client(c *config.BotProtectionProviderCredentials) *RecaptchaV2Client {
+func NewRecaptchaV2Client(c *config.BotProtectionProviderCredentials, e *config.EnvironmentConfig) *RecaptchaV2Client {
 	if c == nil {
 		return nil
 	}
 	return &RecaptchaV2Client{
-		HTTPClient:  httputil.NewExternalClient(60 * time.Second),
-		Credentials: c,
+		HTTPClient:     httputil.NewExternalClient(60 * time.Second),
+		VerifyEndpoint: e.BotProtectionConfig.RecaptchaV2Endpoint,
+		Credentials:    c,
 	}
 }
 
@@ -41,7 +38,7 @@ func (c *RecaptchaV2Client) Verify(token string, remoteip string) (*RecaptchaV2S
 		formValues.Add("remoteip", remoteip)
 	}
 
-	resp, err := c.HTTPClient.PostForm(Recaptchav2VerifyEndpoint, formValues)
+	resp, err := c.HTTPClient.PostForm(c.VerifyEndpoint, formValues)
 
 	if err != nil {
 		return nil, errors.Join(err, ErrVerificationFailed)

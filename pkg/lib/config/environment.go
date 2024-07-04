@@ -71,6 +71,8 @@ type EnvironmentConfig struct {
 	// RedisConfig configures the redis connection config
 	RedisConfig RedisEnvironmentConfig `envconfig:"REDIS_CONFIG"`
 
+	BotProtectionConfig BotProtectionEnvironmentConfig `envconfig:"BOT_PROTECTION"`
+
 	ImagesCDNHost ImagesCDNHost `envconfig:"IMAGES_CDN_HOST"`
 	WebAppCDNHost WebAppCDNHost `envconfig:"WEB_APP_CDN_HOST"`
 

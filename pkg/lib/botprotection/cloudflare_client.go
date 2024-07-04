@@ -14,22 +14,21 @@ import (
 )
 
 // https://developers.cloudflare.com/turnstile/get-started/server-side-validation/
-const (
-	CloudflareVerifyEndpoint string = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
-)
 
 type CloudflareClient struct {
-	HTTPClient  *http.Client
-	Credentials *config.BotProtectionProviderCredentials
+	HTTPClient     *http.Client
+	Credentials    *config.BotProtectionProviderCredentials
+	VerifyEndpoint string
 }
 
-func NewCloudflareClient(c *config.BotProtectionProviderCredentials) *CloudflareClient {
+func NewCloudflareClient(c *config.BotProtectionProviderCredentials, e *config.EnvironmentConfig) *CloudflareClient {
 	if c == nil {
 		return nil
 	}
 	return &CloudflareClient{
-		HTTPClient:  httputil.NewExternalClient(60 * time.Second),
-		Credentials: c,
+		HTTPClient:     httputil.NewExternalClient(60 * time.Second),
+		Credentials:    c,
+		VerifyEndpoint: e.BotProtectionConfig.CloudflareEndpoint,
 	}
 }
 
@@ -42,7 +41,7 @@ func (c *CloudflareClient) Verify(token string, remoteip string) (*CloudflareTur
 		formValues.Add("remoteip", remoteip)
 	}
 
-	resp, err := c.HTTPClient.PostForm(CloudflareVerifyEndpoint, formValues)
+	resp, err := c.HTTPClient.PostForm(c.VerifyEndpoint, formValues)
 
 	if err != nil {
 		return nil, errors.Join(err, ErrVerificationFailed)
