@@ -257,7 +257,7 @@ func (c *Coordinator) IdentityDelete(is *identity.Info) error {
 		identity.KeepIdentifiable,
 	)
 	if len(remaining) <= 0 {
-		return NewInvariantViolated(
+		return api.NewInvariantViolated(
 			"RemoveLastIdentity",
 			"cannot remove last identity",
 			nil,
@@ -285,7 +285,7 @@ func (c *Coordinator) IdentityDelete(is *identity.Info) error {
 				}
 			}
 			if !ok {
-				return NewInvariantViolated(
+				return api.NewInvariantViolated(
 					"RemoveLastPrimaryAuthenticator",
 					"cannot remove last primary authenticator for identity",
 					map[string]interface{}{"identity_id": i.ID},
