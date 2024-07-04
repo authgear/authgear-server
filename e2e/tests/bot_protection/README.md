@@ -61,3 +61,25 @@ Passkey will need to implement reverse of [`webauthncose.VerifySignature`](https
     - [x] totp
 - [x] account_recovery_flow
   - [x] identify
+
+## Mocking Verification
+For convenience, we use some magic phrases for imitating captcha verification success/failed/service unavailable
+
+### Cloudflare Turnstile
+#### Usage
+Set `bot_protection.response` as magic word
+
+| Magic Word          | Effect                                   |
+|---------------------|------------------------------------------|
+| pass                | Always passes                            |
+| service-unavailable | Always fail with `internal-error`        |
+| (Any other string)  | Always fail with `invalid-input-response`|
+
+### Recaptcha V2
+#### Usage
+Set `bot_protection.response` as magic word
+
+| Magic Word          | Effect                                   |
+|---------------------|------------------------------------------|
+| pass                | Always passes                            |
+| (Any other string)  | Always fail with `invalid-input-response`|
