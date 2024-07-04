@@ -44,11 +44,7 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 	}
 
 	if !enabled {
-		return nil, api.NewInvariantViolated(
-			"AnonymousUserDisallowed",
-			"anonymous users are not allowed",
-			nil,
-		)
+		return nil, api.ErrAnonymousUserDisallowed
 	}
 
 	if input.SignUpAnonymousUserWithoutKey() {

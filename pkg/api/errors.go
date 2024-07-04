@@ -38,3 +38,7 @@ var ErrNoAuthenticator = apierrors.InternalError.WithReason("NoAuthenticator").N
 var ChangePasswordFailed = apierrors.Invalid.WithReason("ChangePasswordFailed")
 var ErrNoPassword = ChangePasswordFailed.NewWithCause("the user does not have a password", apierrors.StringCause("NoPassword"))
 var ErrPasswordReused = ChangePasswordFailed.NewWithCause("password reused", apierrors.StringCause("PasswordReused"))
+
+const AnonymousUserDisallowedReason = "AnonymousUserDisallowed"
+
+var ErrAnonymousUserDisallowed = apierrors.Invalid.WithReason(AnonymousUserDisallowedReason).New("anonymous user is not enabled in this project")
