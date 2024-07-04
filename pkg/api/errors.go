@@ -4,10 +4,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
-var (
-	InvariantViolated = apierrors.Invalid.WithReason("InvariantViolated")
-)
-
 var UserNotFound = apierrors.NotFound.WithReason("UserNotFound")
 
 var ErrUserNotFound = UserNotFound.New("user not found")
