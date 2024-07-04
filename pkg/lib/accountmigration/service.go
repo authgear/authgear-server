@@ -15,7 +15,7 @@ type Service struct {
 
 func (s *Service) Run(migrationTokenString string) (*HookResponse, error) {
 	if s.Config.URL == "" {
-		return nil, InvalidConfiguration.New("missing account migration hook config")
+		return nil, fmt.Errorf("missing account migration hook config")
 	}
 
 	u, err := url.Parse(s.Config.URL)

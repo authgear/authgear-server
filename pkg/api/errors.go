@@ -5,9 +5,8 @@ import (
 )
 
 var (
-	InvalidConfiguration = apierrors.InternalError.WithReason("InvalidConfiguration")
-	InvalidCredentials   = apierrors.Unauthorized.WithReason("InvalidCredentials")
-	InvariantViolated    = apierrors.Invalid.WithReason("InvariantViolated")
+	InvalidCredentials = apierrors.Unauthorized.WithReason("InvalidCredentials")
+	InvariantViolated  = apierrors.Invalid.WithReason("InvariantViolated")
 )
 
 func NewInvariantViolated(cause string, msg string, data map[string]interface{}) error {

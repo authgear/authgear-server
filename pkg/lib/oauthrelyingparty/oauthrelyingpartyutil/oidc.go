@@ -42,7 +42,7 @@ func FetchOIDCDiscoveryDocument(client *http.Client, endpoint string) (*OIDCDisc
 	}
 
 	if resp.StatusCode == http.StatusNotFound {
-		return nil, InvalidConfiguration.New(fmt.Sprintf("failed to fetch OIDC discovery document with HTTP status code 404: %s", endpoint))
+		return nil, fmt.Errorf("failed to fetch OIDC discovery document with HTTP status code 404: %v", endpoint)
 	}
 
 	if resp.StatusCode != http.StatusOK {

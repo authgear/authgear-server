@@ -161,7 +161,7 @@ func (Wechat) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthrel
 	var userID string
 	if is_sandbox_account {
 		if accessTokenResp.UnionID() != "" {
-			err = oauthrelyingpartyutil.InvalidConfiguration.New("invalid is_sandbox_account config, WeChat sandbox account should not have union id")
+			err = fmt.Errorf("wechat: invalid is_sandbox_account config: WeChat sandbox account should not have union id")
 			return
 		}
 		userID = accessTokenResp.OpenID()
@@ -171,7 +171,7 @@ func (Wechat) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthrel
 
 	if userID == "" {
 		// this may happen if developer misconfigure is_sandbox_account, e.g. sandbox account doesn't have union id
-		err = oauthrelyingpartyutil.InvalidConfiguration.New("invalid is_sandbox_account config, missing user id in wechat token response")
+		err = fmt.Errorf("wechat: invalid is_sandbox_account config: missing user id in wechat token response")
 		return
 	}
 

@@ -3,7 +3,6 @@ package nodes
 import (
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -192,7 +191,7 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 	// Here we check if the configuration is non-sense.
 	types := *n.AuthenticationConfig.PrimaryAuthenticators
 	if len(types) == 0 {
-		return nil, api.InvalidConfiguration.New("identity requires primary authenticator but none is enabled")
+		return nil, fmt.Errorf("identity requires primary authenticator but none is enabled")
 	}
 
 	// 3. Find out whether the identity has the preferred primary authenticator.
@@ -280,7 +279,7 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 	if len(edges) == 0 {
 		// A new authenticator is required, but no authenticator can be created:
 		// Configuration is invalid.
-		return nil, api.InvalidConfiguration.New("no primary authenticator can be created for identity")
+		return nil, fmt.Errorf("no primary authenticator can be created for identity")
 	}
 
 	interaction.SortAuthenticators(
