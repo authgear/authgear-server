@@ -285,11 +285,7 @@ func (c *Coordinator) IdentityDelete(is *identity.Info) error {
 				}
 			}
 			if !ok {
-				return api.NewInvariantViolated(
-					"RemoveLastPrimaryAuthenticator",
-					"cannot remove last primary authenticator for identity",
-					map[string]interface{}{"identity_id": i.ID},
-				)
+				return api.ErrRemoveLastPrimaryAuthenticator
 			}
 		}
 	}

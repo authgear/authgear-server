@@ -89,6 +89,11 @@ export interface APIDuplicatedIdentityError {
   reason: "DuplicatedIdentity";
 }
 
+export interface APIRemoveLastPrimaryAuthenticatorError {
+  errorName: string;
+  reason: "RemoveLastPrimaryAuthenticator";
+}
+
 export type APIError = { message?: string } & (
   | NetworkError
   | RequestEntityTooLargeError
@@ -127,6 +132,7 @@ export type APIError = { message?: string } & (
   | APIRoleDuplicateKeyError
   | APIGroupDuplicateKeyError
   | APIDuplicatedIdentityError
+  | APIRemoveLastPrimaryAuthenticatorError
 );
 
 export function isAPIError(value: unknown): value is APIError {

@@ -50,3 +50,5 @@ var ErrBiometricDisallowed = apierrors.Invalid.WithReason(BiometricDisallowedRea
 const AnonymousUserAddIdentityReason = "AnonymousUserAddIdentity"
 
 var ErrAnonymousUserAddIdentity = apierrors.Invalid.WithReason(AnonymousUserAddIdentityReason).New("anonymous user cannot add identity")
+
+var ErrRemoveLastPrimaryAuthenticator = apierrors.Invalid.WithReason("RemoveLastPrimaryAuthenticator").New("cannot remove the last primary authenticator")

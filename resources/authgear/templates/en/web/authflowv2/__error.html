@@ -156,12 +156,12 @@
       <span>{{ template "error-developer-reauthentication" }}</span>
     {{ else if eq .Error.reason "NoAuthenticator" }}
       <span>{{ template "error-no-authenticator" }}</span>
+    {{ else if eq .Error.reason "RemoveLastPrimaryAuthenticator" }}
+      <span>{{ template "error-remove-last-primary-authenticator" }}</span>
     {{ else if eq .Error.reason "InvariantViolated" }}
       {{ $cause := .Error.info.cause }}
       {{ if (eq $cause.kind "RemoveLastIdentity") }}
         <span>{{ template "error-remove-last-identity" }}</span>
-      {{ else if (eq $cause.kind "RemoveLastPrimaryAuthenticator") }}
-        <span>{{ template "error-remove-last-primary-authenticator" }}</span>
       {{ else if (eq $cause.kind "RemoveLastSecondaryAuthenticator") }}
         <span>{{ template "error-remove-last-secondary-authenticator" }}</span>
       {{ else if (eq $cause.kind "DuplicatedAuthenticator") }}

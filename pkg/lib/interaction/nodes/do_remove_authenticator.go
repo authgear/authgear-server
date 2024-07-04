@@ -61,11 +61,7 @@ func (n *NodeDoRemoveAuthenticator) GetEffects() ([]interaction.Effect, error) {
 				for _, i := range is {
 					primaryAuths := authenticator.ApplyFilters(as, authenticator.KeepPrimaryAuthenticatorOfIdentity(i))
 					if len(primaryAuths) == 1 && primaryAuths[0].ID == n.Authenticator.ID {
-						return api.NewInvariantViolated(
-							"RemoveLastPrimaryAuthenticator",
-							"cannot remove last primary authenticator for identity",
-							map[string]interface{}{"identity_id": i.ID},
-						)
+						return api.ErrRemoveLastPrimaryAuthenticator
 					}
 				}
 
