@@ -1,0 +1,121 @@
+name: Login with Bot Protection - Authenticate - TOTP - Verification Success
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+      secondary_authenticators:
+      - totp
+      secondary_authentication_mode: required
+    identity:
+      login_id:
+        keys:
+        - type: email
+    bot_protection:
+      enabled: true
+      provider:
+        type: cloudflare
+        site_key: dummy
+    authentication_flow:
+      login_flows:
+      - name: f1
+        steps:
+        - name: login_identify
+          type: identify
+          one_of:
+          - identification: email
+            steps:
+            - name: authenticate_primary_email
+              type: authenticate
+              one_of:
+              - authentication: primary_password
+                steps:
+                - name: authenticate_secondary_email
+                  type: authenticate
+                  one_of:
+                  - authentication: secondary_totp
+                    bot_protection:
+                      mode: always
+                      provider:
+                        type: cloudflare
+                  - authentication: recovery_code
+                  - authentication: device_token
+                - type: change_password
+                  target_step: authenticate_primary_email
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "f1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "bplogin_authn_totp@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "data": {
+                "type": "authentication_data",
+                "options": [
+                    "[[arrayof]]",
+                    {
+                        "authentication": "secondary_totp",
+                        "bot_protection": {
+                          "enabled": true,
+                          "provider": {
+                            "type": "cloudflare"
+                          }
+                        }
+                    }
+                ]
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "authentication": "secondary_totp",
+        "code": "{{ generateTOTPCode "3I526Y3Y7GSXO34RTFEEFXCJM6Y4VZXR" }}",
+        "bot_protection": {
+          "type": "cloudflare",
+          "response": "pass"
+        }
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+    
