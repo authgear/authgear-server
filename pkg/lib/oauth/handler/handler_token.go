@@ -708,7 +708,7 @@ func (h *TokenHandler) handleAppInitiatedSSOToWebToken(
 		scopes = offlineGrant.GetScopes(offlineGrant.InitialClientID)
 	}
 	if !isAllowed {
-		return nil, protocol.NewError("invalid_grant", "app-initiated-sso-to-web is not allowed for this session")
+		return nil, protocol.NewError("insufficient_scope", "app-initiated-sso-to-web is not allowed for this session")
 	}
 
 	err = h.verifyIDTokenDeviceSecretHash(offlineGrant, idToken, deviceSecret)
