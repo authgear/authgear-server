@@ -155,6 +155,8 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
       {{ end }}
     {{ else if eq .Error.reason "DuplicatedIdentity" }}
       {{ template "__error_account" . }}
+    {{ else if eq .Error.reason "MismatchedUser" }}
+      <li>{{ template "error-developer-reauthentication" }}</li>
     {{ else if eq .Error.reason "InvariantViolated" }}
       {{ $cause := .Error.info.cause }}
       {{ if (eq $cause.kind "RemoveLastIdentity") }}
@@ -166,8 +168,6 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
       {{ else if (eq $cause.kind "DuplicatedAuthenticator") }}
         <li>{{ template "error-duplicated-authenticator" (dict "AuthenticatorType" $cause.AuthenticatorType) }}
        </li>
-      {{ else if (eq $cause.kind "MismatchedUser") }}
-        <li>{{ template "error-developer-reauthentication" }}</li>
       {{ else if (eq $cause.kind "NoAuthenticator") }}
         <li>{{ template "error-no-authenticator" }}</li>
       {{ else }}
