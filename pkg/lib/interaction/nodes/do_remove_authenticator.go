@@ -79,11 +79,7 @@ func (n *NodeDoRemoveAuthenticator) GetEffects() ([]interaction.Effect, error) {
 					len(secondaries) == 1 && secondaries[0].ID == n.Authenticator.ID
 
 				if cannotRemove {
-					return api.NewInvariantViolated(
-						"RemoveLastSecondaryAuthenticator",
-						"cannot remove last secondary authenticator",
-						nil,
-					)
+					return api.ErrRemoveLastSecondaryAuthenticator
 				}
 			}
 
