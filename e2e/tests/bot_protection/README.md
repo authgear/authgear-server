@@ -1,6 +1,15 @@
 # E2E Tests - Bot Protection
 All e2e tests related to bot protection.
 
+## Table of Contents
+- [Context](#context)
+- [Non-coverage](#non-coverage)
+  * [Justification](#justification)
+- [Coverage](#coverage)
+- [Mocking Verification](#mocking-verification)
+  * [Cloudflare Turnstile](#cloudflare-turnstile)
+  * [Recaptcha V2](#recaptcha-v2)
+
 ## Context
 
 > Bot protection is supported only in the following step types:
