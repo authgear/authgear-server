@@ -397,7 +397,7 @@ func (h *TokenHandler) rotateDeviceSecret(
 	return offlineGrant, nil
 }
 
-func (h *TokenHandler) rotateDeviceSecretIfNeeded(
+func (h *TokenHandler) rotateDeviceSecretIfDeviceSecretIsPresentAndValid(
 	deviceSecret string,
 	authorizedScopes []string,
 	offlineGrant *oauth.OfflineGrant,
@@ -413,10 +413,10 @@ func (h *TokenHandler) rotateDeviceSecretIfNeeded(
 		return offlineGrant, false, nil
 	}
 
-	return h.rotateDeviceSecretIfPossible(authorizedScopes, offlineGrant, resp)
+	return h.rotateDeviceSecretIfSufficientScope(authorizedScopes, offlineGrant, resp)
 }
 
-func (h *TokenHandler) rotateDeviceSecretIfPossible(
+func (h *TokenHandler) rotateDeviceSecretIfSufficientScope(
 	authorizedScopes []string,
 	offlineGrant *oauth.OfflineGrant,
 	resp protocol.TokenResponse) (*oauth.OfflineGrant, bool, error) {
@@ -1322,7 +1322,7 @@ func (h *TokenHandler) handleIDToken(
 	var deviceSecretHash string
 	offlineGrantSession, ok := s.(*oauth.OfflineGrantSession)
 	if ok {
-		offlineGrant, _, err := h.rotateDeviceSecretIfNeeded(
+		offlineGrant, _, err := h.rotateDeviceSecretIfDeviceSecretIsPresentAndValid(
 			r.DeviceSecret(),
 			offlineGrantSession.Scopes,
 			offlineGrantSession.OfflineGrant,
@@ -1455,7 +1455,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 				}
 
 				// Rotate device_secret
-				offlineGrant, _, err = h.rotateDeviceSecretIfPossible(scopes, offlineGrant, resp)
+				offlineGrant, _, err = h.rotateDeviceSecretIfSufficientScope(scopes, offlineGrant, resp)
 				if err != nil {
 					return nil, err
 				}
@@ -1613,7 +1613,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 
 	resp := protocol.TokenResponse{}
 
-	offlineGrant, _, err := h.rotateDeviceSecretIfPossible(
+	offlineGrant, _, err := h.rotateDeviceSecretIfSufficientScope(
 		offlineGrantSession.Scopes,
 		offlineGrantSession.OfflineGrant,
 		resp)
