@@ -3,6 +3,7 @@
 @import "./components/screen-title.css";
 @import "./components/screen-description.css";
 @import "./components/screen-title-description.css";
+@import "./components/screen-logo-layout.css";
 @import "./components/screen-action-layout.css";
 @import "./components/screen-actions.css";
 @import "./components/primary-button.css";
