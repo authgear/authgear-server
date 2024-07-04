@@ -2,8 +2,8 @@ package latte
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
@@ -62,7 +62,7 @@ func (i *IntentVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.Depen
 	}
 
 	if status == nil || !status.IsVerifiable() {
-		return nil, api.ErrClaimNotVerifiable
+		return nil, fmt.Errorf("claim is not verifiable")
 	}
 
 	if status.Verified || (i.IsFromSignUp && !status.RequiredToVerifyOnCreation) {
@@ -100,7 +100,7 @@ func (i *IntentVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.Depen
 	}
 
 	if node == nil {
-		return nil, api.ErrClaimNotVerifiable
+		return nil, fmt.Errorf("claim is not verifiable")
 	}
 
 	kind := node.otpKind(deps)

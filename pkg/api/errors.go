@@ -34,7 +34,6 @@ var ErrOAuthProviderNotFound = apierrors.NotFound.WithReason("OAuthProviderNotFo
 var ErrIdentityModifyDisabled = apierrors.Forbidden.WithReason("IdentityModifyDisabled").New("identity modification disabled")
 var ErrMismatchedUser = apierrors.InternalError.WithReason("MismatchedUser").New("mismatched user")
 var ErrNoAuthenticator = apierrors.InternalError.WithReason("NoAuthenticator").New("no authenticator")
-var ErrClaimNotVerifiable = NewInvariantViolated("ClaimNotVerifiable", "claim not verifiable", nil)
 
 var ChangePasswordFailed = apierrors.Invalid.WithReason("ChangePasswordFailed")
 var ErrNoPassword = ChangePasswordFailed.NewWithCause("the user does not have a password", apierrors.StringCause("NoPassword"))
