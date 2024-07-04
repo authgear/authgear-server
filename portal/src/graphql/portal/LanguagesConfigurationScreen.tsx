@@ -112,7 +112,7 @@ const Section: React.VFC<PropsWithChildren<SectionProps>> = function Section(
 
 interface SelectPrimaryLanguageWidgetProps {
   className?: string;
-  availableLanguages: LanguageTag[];
+  supportedLanguages: LanguageTag[];
   primaryLanguage: LanguageTag;
   onChangePrimaryLanguage: (language: LanguageTag) => void;
 }
@@ -120,7 +120,7 @@ const SelectPrimaryLanguageSection: React.VFC<SelectPrimaryLanguageWidgetProps> 
   function SelectPrimaryLanguageSection(props) {
     const {
       className,
-      availableLanguages,
+      supportedLanguages,
       primaryLanguage,
       onChangePrimaryLanguage,
     } = props;
@@ -129,7 +129,7 @@ const SelectPrimaryLanguageSection: React.VFC<SelectPrimaryLanguageWidgetProps> 
 
     const [searchValue, setSearchValue] = useState("");
     const dropdownOptions: IDropdownOption[] = useMemo(() => {
-      const filteredLanguages = availableLanguages.filter(
+      const filteredLanguages = supportedLanguages.filter(
         (lang) =>
           lang.toLowerCase().includes(searchValue.toLowerCase()) ||
           getLanguageDisplayText(lang)
@@ -140,7 +140,7 @@ const SelectPrimaryLanguageSection: React.VFC<SelectPrimaryLanguageWidgetProps> 
         key: lang,
         text: getLanguageDisplayText(lang),
       }));
-    }, [availableLanguages, searchValue, getLanguageDisplayText]);
+    }, [supportedLanguages, searchValue, getLanguageDisplayText]);
 
     const selectedOption = useMemo(() => {
       return dropdownOptions.find((option) => option.key === primaryLanguage);
@@ -421,8 +421,8 @@ const LanguagesConfigurationScreen: React.VFC =
             </ScreenTitle>
             <SelectPrimaryLanguageSection
               className={styles.pageSection}
-              availableLanguages={sortedLanguages.availableLanguages}
               primaryLanguage={appConfigForm.state.fallbackLanguage}
+              supportedLanguages={appConfigForm.state.supportedLanguages}
               onChangePrimaryLanguage={onChangePrimaryLanguage}
             />
             <HorizontalDivider className={cn(styles.pageSection, "my-8")} />
