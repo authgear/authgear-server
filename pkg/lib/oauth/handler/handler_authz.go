@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 
@@ -732,7 +733,7 @@ func (h *AuthorizationHandler) validateRequest(
 			return err
 		}
 	default:
-		return protocol.NewError("unsupported response_type: %v", responseType.Raw)
+		return protocol.NewError("unsupported_response_type", fmt.Sprintf("response_type: %v is not supported", responseType.Raw))
 	}
 
 	if r.SSOEnabled() && client != nil && client.MaxConcurrentSession == 1 {
