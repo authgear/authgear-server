@@ -41,11 +41,7 @@ func (e *EdgeUseIdentityBiometric) Instantiate(ctx *interaction.Context, graph *
 	}
 
 	if !enabled {
-		return nil, api.NewInvariantViolated(
-			"BiometricDisallowed",
-			"biometric is not allowed",
-			nil,
-		)
+		return nil, api.ErrBiometricDisallowed
 	}
 
 	jwt := input.GetBiometricRequestToken()

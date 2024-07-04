@@ -723,9 +723,8 @@ func (h *TokenHandler) handleBiometricSetup(
 		return graph, nil
 	})
 
-	if apierrors.IsKind(err, api.InvariantViolated) &&
-		apierrors.AsAPIError(err).HasCause("BiometricDisallowed") {
-		return nil, protocol.NewError("unauthorized_client", "BiometricDisallowed")
+	if errors.Is(err, api.ErrBiometricDisallowed) {
+		return nil, protocol.NewError("unauthorized_client", api.BiometricDisallowedReason)
 	} else if apierrors.IsKind(err, api.InvariantViolated) &&
 		apierrors.AsAPIError(err).HasCause("AnonymousUserAddIdentity") {
 		return nil, protocol.NewError("unauthorized_client", "AnonymousUserAddIdentity")
@@ -779,9 +778,8 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		return graph, nil
 	})
 
-	if apierrors.IsKind(err, api.InvariantViolated) &&
-		apierrors.AsAPIError(err).HasCause("BiometricDisallowed") {
-		return nil, protocol.NewError("unauthorized_client", "BiometricDisallowed")
+	if errors.Is(err, api.ErrBiometricDisallowed) {
+		return nil, protocol.NewError("unauthorized_client", api.BiometricDisallowedReason)
 	} else if errors.Is(err, api.ErrInvalidCredentials) {
 		return nil, protocol.NewError("invalid_grant", api.InvalidCredentialsReason)
 	} else if err != nil {

@@ -42,3 +42,7 @@ var ErrPasswordReused = ChangePasswordFailed.NewWithCause("password reused", api
 const AnonymousUserDisallowedReason = "AnonymousUserDisallowed"
 
 var ErrAnonymousUserDisallowed = apierrors.Invalid.WithReason(AnonymousUserDisallowedReason).New("anonymous user is not enabled in this project")
+
+const BiometricDisallowedReason = "BiometricDisallowed"
+
+var ErrBiometricDisallowed = apierrors.Invalid.WithReason(BiometricDisallowedReason).New("biometric login is not enabled in this project")
