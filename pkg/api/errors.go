@@ -30,7 +30,7 @@ var ErrDuplicatedIdentity = DuplicatedIdentity.New("identity already exist")
 
 var ErrInvalidCredentials = InvalidCredentials.New("invalid credentials")
 var ErrOAuthProviderNotFound = apierrors.NotFound.WithReason("OAuthProviderNotFound").New("oauth provider not found")
-var ErrIdentityModifyDisabled = NewInvariantViolated("IdentityModifyDisabled", "identity modification disabled", nil)
+var ErrIdentityModifyDisabled = apierrors.Forbidden.WithReason("IdentityModifyDisabled").New("identity modification disabled")
 var ErrMismatchedUser = NewInvariantViolated("MismatchedUser", "mismatched user", nil)
 var ErrNoAuthenticator = NewInvariantViolated("NoAuthenticator", "no authenticator", nil)
 var ErrClaimNotVerifiable = NewInvariantViolated("ClaimNotVerifiable", "claim not verifiable", nil)
