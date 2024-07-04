@@ -21,6 +21,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/wechat"
 )
@@ -267,17 +268,23 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 			}
 			return webapp.MakeURL(u, path, outQuery).String()
 		},
-		ForgotPasswordEnabled:             *m.ForgotPassword.Enabled,
-		PublicSignupDisabled:              m.Authentication.PublicSignupDisabled,
-		PageLoadedAt:                      int(now),
-		FlashMessageType:                  m.FlashMessage.Pop(r, rw),
-		ResolvedLanguageTag:               resolvedLanguageTag,
-		ResolvedCLDRLocale:                locale,
-		HTMLDir:                           htmlDir,
-		GoogleTagManagerContainerID:       m.GoogleTagManager.ContainerID,
-		HasThirdPartyClient:               hasThirdPartyApp,
-		AuthUISentryDSN:                   string(m.AuthUISentryDSN),
-		AuthUIWindowMessageAllowedOrigins: strings.Join(m.AuthUIWindowMessageAllowedOrigins, ","),
+		ForgotPasswordEnabled:       *m.ForgotPassword.Enabled,
+		PublicSignupDisabled:        m.Authentication.PublicSignupDisabled,
+		PageLoadedAt:                int(now),
+		FlashMessageType:            m.FlashMessage.Pop(r, rw),
+		ResolvedLanguageTag:         resolvedLanguageTag,
+		ResolvedCLDRLocale:          locale,
+		HTMLDir:                     htmlDir,
+		GoogleTagManagerContainerID: m.GoogleTagManager.ContainerID,
+		HasThirdPartyClient:         hasThirdPartyApp,
+		AuthUISentryDSN:             string(m.AuthUISentryDSN),
+		AuthUIWindowMessageAllowedOrigins: func() string {
+			requestProto := httputil.GetProto(r, bool(m.TrustProxy))
+			processedAllowedOrgins := slice.Map(m.AuthUIWindowMessageAllowedOrigins, func(origin string) string {
+				return composeAuthUIWindowMessageAllowedOrigin(origin, requestProto)
+			})
+			return strings.Join(processedAllowedOrgins, ",")
+		}(),
 		LogUnknownError: func(err map[string]interface{}) string {
 			if err != nil {
 				m.Logger.WithFields(err).Errorf("unknown error: %v", err)
@@ -325,4 +332,16 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 	model.ShouldFocusInput = model.Error == nil && model.FlashMessageType == ""
 
 	return model
+}
+
+// Assume allowed origin is either host or a real origin
+func composeAuthUIWindowMessageAllowedOrigin(allowedOrigin string, proto string) string {
+	if strings.HasPrefix(allowedOrigin, "http://") || strings.HasPrefix(allowedOrigin, "https://") {
+		return allowedOrigin
+	}
+	u := url.URL{
+		Scheme: proto,
+		Host:   allowedOrigin,
+	}
+	return u.String()
 }
