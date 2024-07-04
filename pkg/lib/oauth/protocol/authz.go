@@ -8,9 +8,11 @@ import (
 type AuthorizationRequest map[string]string
 
 // OAuth 2.0
-func (r AuthorizationRequest) ClientID() string     { return r["client_id"] }
-func (r AuthorizationRequest) RedirectURI() string  { return r["redirect_uri"] }
-func (r AuthorizationRequest) ResponseType() string { return r["response_type"] }
+func (r AuthorizationRequest) ClientID() string    { return r["client_id"] }
+func (r AuthorizationRequest) RedirectURI() string { return r["redirect_uri"] }
+func (r AuthorizationRequest) ResponseType() ResponseType {
+	return ParseResponseType(r["response_type"])
+}
 func (r AuthorizationRequest) ResponseMode() string { return r["response_mode"] }
 func (r AuthorizationRequest) Scope() []string      { return parseSpaceDelimitedString(r["scope"]) }
 func (r AuthorizationRequest) State() string        { return r["state"] }
