@@ -1,7 +1,8 @@
 package nodes
 
 import (
-	"github.com/authgear/authgear-server/pkg/api"
+	"fmt"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -32,11 +33,7 @@ func (e *EdgeRemoveIdentity) Instantiate(ctx *interaction.Context, graph *intera
 	}
 
 	if info.UserID != graph.MustGetUserID() {
-		return nil, api.NewInvariantViolated(
-			"IdentityNotBelongToUser",
-			"identity does not belong to the user",
-			nil,
-		)
+		return nil, fmt.Errorf("identity does not belong to the user")
 	}
 
 	return &NodeRemoveIdentity{

@@ -2,9 +2,9 @@ package facade
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/admin/model"
-	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -84,12 +84,12 @@ func (f *UserFacade) Create(identityDef model.IdentityDef, password string) (str
 	if errors.As(err, &errInputRequired) {
 		switch graph.CurrentNode().(type) {
 		case *nodes.NodeCreateAuthenticatorBegin:
-			// TODO(interaction): better interpretation of input required error?
-			return "", api.NewInvariantViolated(
-				"PasswordRequired",
-				"password is required",
-				nil,
-			)
+			// When we revamp the creation of user, we will allow
+			// creating user without password.
+			// The current implementation of portal knows when to require
+			// password, so this error should not happen.
+			// When this really happens, the portal has programming error.
+			return "", fmt.Errorf("password is required to create user")
 		}
 	}
 	if err != nil {
