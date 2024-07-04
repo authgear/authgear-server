@@ -500,19 +500,19 @@ func (h *AuthorizationHandler) doHandleAppInitiatedSSOToWeb(
 	}
 	idToken, err := h.IDTokenIssuer.VerifyIDTokenWithoutClient(idTokenHint)
 	if err != nil {
-		return nil, protocol.NewError("invalid_grant", "invalid id_token_hint")
+		return nil, protocol.NewError("invalid_request", "invalid id_token_hint")
 	}
 	var sidInt interface{}
 	if sidInt, ok = idToken.Get(string(model.ClaimSID)); !ok {
-		return nil, protocol.NewError("invalid_grant", "required sid in id_token_hint")
+		return nil, protocol.NewError("invalid_request", "required sid in id_token_hint")
 	}
 	var sid string
 	if sid, ok = sidInt.(string); !ok {
-		return nil, protocol.NewError("invalid_grant", "sid is not a string in id_token_hint")
+		return nil, protocol.NewError("invalid_request", "sid is not a string in id_token_hint")
 	}
 	_, sessionID, ok := oidc.DecodeSID(sid)
 	if !ok {
-		return nil, protocol.NewError("invalid_grant", "invalid sid format id_token_hint")
+		return nil, protocol.NewError("invalid_request", "invalid sid format id_token_hint")
 	}
 
 	accessToken, err := h.AppInitiatedSSOToWebTokenService.ExchangeForAccessToken(
@@ -521,14 +521,14 @@ func (h *AuthorizationHandler) doHandleAppInitiatedSSOToWeb(
 		r.AppInitiatedSSOToWebToken(),
 	)
 	if err != nil {
-		if err == oauth.ErrUnmatchedClient {
-			return nil, protocol.NewError("invalid_grant", "incorrect client_id")
+		if errors.Is(err, oauth.ErrUnmatchedClient) {
+			return nil, protocol.NewError("invalid_request", "incorrect client_id")
 		}
-		if err == oauth.ErrUnmatchedSession {
-			return nil, protocol.NewError("invalid_grant", "incorrect sid in id_token_hint")
+		if errors.Is(err, oauth.ErrUnmatchedSession) {
+			return nil, protocol.NewError("invalid_request", "incorrect sid in id_token_hint")
 		}
-		if err == oauth.ErrGrantNotFound {
-			return nil, protocol.NewError("invalid_grant", "invalid x_app_initiated_sso_to_web_token")
+		if errors.Is(err, oauth.ErrGrantNotFound) {
+			return nil, protocol.NewError("invalid_request", "invalid x_app_initiated_sso_to_web_token")
 		}
 		return nil, err
 	}
@@ -722,7 +722,7 @@ func (h *AuthorizationHandler) validateRequest(
 			return err
 		}
 	default:
-		return protocol.NewError("unsupported_response_type", "only 'code' response type is supported")
+		return protocol.NewError("unsupported response_type: %v", r.ResponseType())
 	}
 
 	if r.SSOEnabled() && client != nil && client.MaxConcurrentSession == 1 {
