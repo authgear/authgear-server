@@ -8,6 +8,4 @@ export interface APIInvariantViolationError {
   reason: "InvariantViolated";
 }
 
-export type InvariantViolatedErrorInfoCauseKind =
-  | "RemoveLastIdentity"
-  | "DuplicatedIdentity";
+export type InvariantViolatedErrorInfoCauseKind = "RemoveLastIdentity";

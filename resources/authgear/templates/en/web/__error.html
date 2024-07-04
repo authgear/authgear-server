@@ -153,6 +153,8 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
       {{ else }}
         <li>{{ template "error-developer-email-required" }}</li>
       {{ end }}
+    {{ else if eq .Error.reason "DuplicatedIdentity" }}
+      {{ template "__error_account" . }}
     {{ else if eq .Error.reason "InvariantViolated" }}
       {{ $cause := .Error.info.cause }}
       {{ if (eq $cause.kind "RemoveLastIdentity") }}
@@ -161,8 +163,6 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
         <li>{{ template "error-remove-last-primary-authenticator" }}</li>
       {{ else if (eq $cause.kind "RemoveLastSecondaryAuthenticator") }}
         <li>{{ template "error-remove-last-secondary-authenticator" }}</li>
-      {{ else if (eq $cause.kind "DuplicatedIdentity") }}
-        {{ template "__error_account" . }}
       {{ else if (eq $cause.kind "DuplicatedAuthenticator") }}
         <li>{{ template "error-duplicated-authenticator" (dict "AuthenticatorType" $cause.AuthenticatorType) }}
        </li>

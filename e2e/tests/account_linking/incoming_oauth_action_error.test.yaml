@@ -80,10 +80,7 @@ steps:
     output:
       error: |
         {
-          "reason": "InvariantViolated",
-          "info": {
-            "cause": {
-              "kind": "DuplicatedIdentity"
-            }
-          }
+          "name": "AlreadyExists",
+          "code": 409,
+          "reason": "DuplicatedIdentity"
         }

@@ -24,7 +24,9 @@ var UserNotFound = apierrors.NotFound.WithReason("UserNotFound")
 
 var ErrUserNotFound = UserNotFound.New("user not found")
 var ErrIdentityNotFound = apierrors.NotFound.WithReason("IdentityNotFound").New("identity not found")
-var ErrDuplicatedIdentity = NewInvariantViolated("DuplicatedIdentity", "identity already exists", nil)
+
+var DuplicatedIdentity = apierrors.AlreadyExists.WithReason("DuplicatedIdentity")
+var ErrDuplicatedIdentity = DuplicatedIdentity.New("identity already exist")
 
 var ErrInvalidCredentials = InvalidCredentials.New("invalid credentials")
 var ErrOAuthProviderNotFound = apierrors.NotFound.WithReason("OAuthProviderNotFound").New("oauth provider not found")

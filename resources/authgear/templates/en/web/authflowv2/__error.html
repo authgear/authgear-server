@@ -150,6 +150,8 @@
       {{ else }}
         <span>{{ template "error-developer-email-required" }}</span>
       {{ end }}
+    {{ else if eq .Error.reason "DuplicatedIdentity" }}
+      {{ template "authflowv2/__error_account" . }}
     {{ else if eq .Error.reason "InvariantViolated" }}
       {{ $cause := .Error.info.cause }}
       {{ if (eq $cause.kind "RemoveLastIdentity") }}
@@ -158,8 +160,6 @@
         <span>{{ template "error-remove-last-primary-authenticator" }}</span>
       {{ else if (eq $cause.kind "RemoveLastSecondaryAuthenticator") }}
         <span>{{ template "error-remove-last-secondary-authenticator" }}</span>
-      {{ else if (eq $cause.kind "DuplicatedIdentity") }}
-        {{ template "authflowv2/__error_account" . }}
       {{ else if (eq $cause.kind "DuplicatedAuthenticator") }}
         <span>
           {{ template "error-duplicated-authenticator" (dict "AuthenticatorType"

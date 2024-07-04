@@ -9,15 +9,12 @@ import FormTextField from "../../FormTextField";
 import IdentityForm from "./IdentityForm";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-import {
-  ErrorParseRule,
-  makeInvariantViolatedErrorParseRule,
-} from "../../error/parse";
+import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 
 import styles from "./UsernameScreen.module.css";
 
 const errorRules: ErrorParseRule[] = [
-  makeInvariantViolatedErrorParseRule(
+  makeReasonErrorParseRule(
     "DuplicatedIdentity",
     "UsernameScreen.error.duplicated-username"
   ),

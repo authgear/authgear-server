@@ -246,7 +246,7 @@ func (s *UserImportService) ImportRecordInTxn(ctx context.Context, detail *Detai
 func (s *UserImportService) checkIdentityDuplicate(ctx context.Context, info *identity.Info) (err error) {
 	dupe, err := s.Identities.CheckDuplicated(info)
 	if errors.Is(err, identity.ErrIdentityAlreadyExists) {
-		err = api.NewInvariantViolated("DuplicatedIdentity", "identity already exists", map[string]interface{}{
+		err = api.DuplicatedIdentity.NewWithInfo("identity already exists", map[string]interface{}{
 			"login_id": dupe.LoginID.LoginID,
 		})
 		return

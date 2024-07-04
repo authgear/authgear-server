@@ -23,10 +23,7 @@ import {
   PasswordPolicyConfig,
   PortalAPIAppConfig,
 } from "../../types";
-import {
-  ErrorParseRule,
-  makeInvariantViolatedErrorParseRule,
-} from "../../error/parse";
+import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
 import FormTextField from "../../FormTextField";
 import FormContainer from "../../FormContainer";
@@ -139,7 +136,7 @@ function getEnabledLoginIDTypes(
 }
 
 const errorRules: ErrorParseRule[] = [
-  makeInvariantViolatedErrorParseRule(
+  makeReasonErrorParseRule(
     "DuplicatedIdentity",
     "AddUserScreen.error.duplicated-identity"
   ),
