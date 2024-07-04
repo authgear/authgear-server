@@ -27,18 +27,28 @@ import (
 //go:generate mockgen -source=handler_authz.go -destination=handler_authz_mock_test.go -package handler_test
 
 const (
-	CodeResponseType          = "code"
-	NoneResponseType          = "none"
-	SettingsActonResponseType = "urn:authgear:params:oauth:response-type:settings-action"
+	CodeResponseTypeElement          = "code"
+	NoneResponseTypeElement          = "none"
+	TokenResponseTypeElement         = "token"
+	SettingsActonResponseTypeElement = "urn:authgear:params:oauth:response-type:settings-action"
 	// nolint:gosec
-	AppInitiatedSSOToWebTokenResponseType = "urn:authgear:params:oauth:response-type:app_initiated_sso_to_web token"
+	AppInitiatedSSOToWebResponseTypeElement = "urn:authgear:params:oauth:response-type:app_initiated_sso_to_web"
+)
+
+var (
+	CodeResponseType                      = protocol.NewResponseType([]string{CodeResponseTypeElement})
+	NoneResponseType                      = protocol.NewResponseType([]string{NoneResponseTypeElement})
+	TokenResponseType                     = protocol.NewResponseType([]string{TokenResponseTypeElement})
+	SettingsActonResponseType             = protocol.NewResponseType([]string{SettingsActonResponseTypeElement})
+	AppInitiatedSSOToWebTokenResponseType = protocol.NewResponseType([]string{AppInitiatedSSOToWebResponseTypeElement, TokenResponseTypeElement})
 )
 
 // whitelistedResponseTypes is a list of response types that would be always allowed
 // to all clients.
-var whitelistedResponseTypes = []string{
+var whitelistedResponseTypes = []protocol.ResponseType{
 	CodeResponseType,
 	NoneResponseType,
+	TokenResponseType,
 	SettingsActonResponseType,
 	AppInitiatedSSOToWebTokenResponseType,
 }
@@ -382,7 +392,7 @@ func (h *AuthorizationHandler) doHandle(
 		return nil, err
 	}
 
-	if r.ResponseType() == AppInitiatedSSOToWebTokenResponseType {
+	if r.ResponseType().Equal(AppInitiatedSSOToWebTokenResponseType) {
 		return h.doHandleAppInitiatedSSOToWeb(redirectURI, client, r)
 	}
 
@@ -400,7 +410,7 @@ func (h *AuthorizationHandler) doHandle(
 		return nil, err
 	}
 
-	if r.ResponseType() == string(SettingsActonResponseType) {
+	if r.ResponseType().Equal(SettingsActonResponseType) {
 		redirectURI, err = h.UIURLBuilder.BuildSettingsActionURL(client, r, oauthSessionEntry, redirectURI)
 		if err != nil {
 			return nil, err
@@ -576,20 +586,21 @@ func (h *AuthorizationHandler) finish(
 	}
 
 	resp := protocol.AuthorizationResponse{}
-	switch r.ResponseType() {
-	case SettingsActonResponseType:
+	responseType := r.ResponseType()
+	switch {
+	case responseType.Equal(SettingsActonResponseType):
 		err = h.generateSettingsActionResponse(redirectURI.String(), idpSessionID, authenticationInfo, idTokenHintSID, r, authz, resp)
 		if err != nil {
 			return nil, err
 		}
 
-	case CodeResponseType:
+	case responseType.Equal(CodeResponseType):
 		err = h.generateCodeResponse(redirectURI.String(), idpSessionID, authenticationInfo, idTokenHintSID, r, authz, resp)
 		if err != nil {
 			return nil, err
 		}
 
-	case NoneResponseType:
+	case responseType.Equal(NoneResponseType):
 		break
 
 	default:
@@ -664,10 +675,9 @@ func (h *AuthorizationHandler) validateRequest(
 	r protocol.AuthorizationRequest,
 ) error {
 	ok := false
-	// FIXME(tung): The response type should be parsed as space-delimited values,
-	// and the order of values does not matters [rfc6749]
+	responseType := r.ResponseType()
 	for _, respType := range whitelistedResponseTypes {
-		if respType == r.ResponseType() {
+		if respType.Equal(responseType) {
 			ok = true
 			break
 		}
@@ -692,10 +702,10 @@ func (h *AuthorizationHandler) validateRequest(
 		return nil
 	}
 
-	switch r.ResponseType() {
-	case SettingsActonResponseType:
+	switch {
+	case responseType.Equal(SettingsActonResponseType):
 		fallthrough
-	case CodeResponseType:
+	case responseType.Equal(CodeResponseType):
 		if err := requireScope(); err != nil {
 			return err
 		}
@@ -707,16 +717,16 @@ func (h *AuthorizationHandler) validateRequest(
 		if r.CodeChallenge() != "" && r.CodeChallengeMethod() != pkce.CodeChallengeMethodS256 {
 			return protocol.NewError("invalid_request", "only 'S256' PKCE transform is supported")
 		}
-	case NoneResponseType:
+	case responseType.Equal(NoneResponseType):
 		if err := requireScope(); err != nil {
 			return err
 		}
-	case AppInitiatedSSOToWebTokenResponseType:
+	case responseType.Equal(AppInitiatedSSOToWebTokenResponseType):
 		if err := h.validateAppInitiatedSSOToWebTokenRequest(client, r); err != nil {
 			return err
 		}
 	default:
-		return protocol.NewError("unsupported response_type: %v", r.ResponseType())
+		return protocol.NewError("unsupported response_type: %v", responseType.Raw)
 	}
 
 	if r.SSOEnabled() && client != nil && client.MaxConcurrentSession == 1 {
