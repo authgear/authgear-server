@@ -1,0 +1,57 @@
+name: Account Recovery with Bot Protection - Identify - Verification Fail
+authgear.yaml:
+  override: |
+    bot_protection:
+      enabled: true
+      provider:
+        type: cloudflare
+        site_key: dummy
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "account_recovery",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "bot_protection": {
+                    "enabled": true,
+                    "provider": {
+                      "type": "cloudflare"
+                    }
+                  },
+                  "identification": "[[string]]"
+                }
+              ]
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "botprotectionlogin@example.com",
+        "bot_protection": {
+          "type": "cloudflare",
+          "response": "fail"
+        }
+      }
+    output:
+      error: |
+        {
+          "name": "Forbidden",
+          "reason": "BotProtectionVerificationFailed",
+          "message": "bot protection verification failed",
+          "code": 403
+        }
