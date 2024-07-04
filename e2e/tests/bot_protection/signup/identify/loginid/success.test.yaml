@@ -1,0 +1,59 @@
+name: Signup with Bot Protection - Identify - LoginID - Verification Success
+authgear.yaml:
+  override: |
+    bot_protection:
+      enabled: true
+      provider:
+        type: cloudflare
+        site_key: dummy
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "bot_protection": {
+                    "enabled": true,
+                    "provider": {
+                      "type": "cloudflare"
+                    }
+                  },
+                  "identification": "[[string]]"
+                }
+              ]
+            }
+          }
+        }
+  - action: "input"
+    input: |
+      {
+        "identification": "email",
+        "login_id": "signup@example.com",
+        "bot_protection": {
+          "type": "cloudflare",
+          "response": "pass"
+        }
+      }
+    output: 
+      result: |
+        {
+          "type": "signup",
+          "action": {
+            "type": "verify",
+            "data": {
+              "channel": "email",
+              "otp_form": "code",
+              "type": "verify_oob_otp_data"
+            }
+          }
+        }
