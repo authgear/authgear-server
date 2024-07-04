@@ -112,7 +112,7 @@ const Section: React.VFC<PropsWithChildren<SectionProps>> = function Section(
 
 interface SelectPrimaryLanguageWidgetProps {
   className?: string;
-  availableLanguages: LanguageTag[];
+  supportedLanguages: LanguageTag[];
   primaryLanguage: LanguageTag;
   onChangePrimaryLanguage: (language: LanguageTag) => void;
 }
@@ -120,7 +120,7 @@ const SelectPrimaryLanguageSection: React.VFC<SelectPrimaryLanguageWidgetProps> 
   function SelectPrimaryLanguageSection(props) {
     const {
       className,
-      availableLanguages,
+      supportedLanguages,
       primaryLanguage,
       onChangePrimaryLanguage,
     } = props;
@@ -129,7 +129,7 @@ const SelectPrimaryLanguageSection: React.VFC<SelectPrimaryLanguageWidgetProps> 
 
     const [searchValue, setSearchValue] = useState("");
     const dropdownOptions: IDropdownOption[] = useMemo(() => {
-      const filteredLanguages = availableLanguages.filter(
+      const filteredLanguages = supportedLanguages.filter(
         (lang) =>
           lang.toLowerCase().includes(searchValue.toLowerCase()) ||
           getLanguageDisplayText(lang)
@@ -140,7 +140,7 @@ const SelectPrimaryLanguageSection: React.VFC<SelectPrimaryLanguageWidgetProps> 
         key: lang,
         text: getLanguageDisplayText(lang),
       }));
-    }, [availableLanguages, searchValue, getLanguageDisplayText]);
+    }, [supportedLanguages, searchValue, getLanguageDisplayText]);
 
     const selectedOption = useMemo(() => {
       return dropdownOptions.find((option) => option.key === primaryLanguage);
@@ -400,6 +400,18 @@ const LanguagesConfigurationScreen: React.VFC =
       };
     }, [renderToString]);
 
+    const sortedLanguages = useMemo(() => {
+      const sortLanguage = (a: LanguageTag, b: LanguageTag) => {
+        return pageContextValue
+          .getLanguageDisplayText(a)
+          .localeCompare(pageContextValue.getLanguageDisplayText(b));
+      };
+      return {
+        availableLanguages: [...availableLanguages].sort(sortLanguage),
+        builtinLanguages: [...builtinLanguages].sort(sortLanguage),
+      };
+    }, [pageContextValue, availableLanguages, builtinLanguages]);
+
     return (
       <PageContext.Provider value={pageContextValue}>
         <FormContainer form={appConfigForm} canSave={true}>
@@ -409,16 +421,16 @@ const LanguagesConfigurationScreen: React.VFC =
             </ScreenTitle>
             <SelectPrimaryLanguageSection
               className={styles.pageSection}
-              availableLanguages={availableLanguages}
               primaryLanguage={appConfigForm.state.fallbackLanguage}
+              supportedLanguages={appConfigForm.state.supportedLanguages}
               onChangePrimaryLanguage={onChangePrimaryLanguage}
             />
             <HorizontalDivider className={cn(styles.pageSection, "my-8")} />
             <SupportedLanguagesSection
               className={styles.pageSection}
               primaryLanguage={appConfigForm.state.fallbackLanguage}
-              builtinLanguages={builtinLanguages}
-              availableLanguages={availableLanguages}
+              builtinLanguages={sortedLanguages.builtinLanguages}
+              availableLanguages={sortedLanguages.availableLanguages}
               supportedLanguages={appConfigForm.state.supportedLanguages}
               onToggleSupportedLanguage={onToggleSupportedLanguage}
             />

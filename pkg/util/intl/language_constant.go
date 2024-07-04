@@ -1,14 +1,48 @@
 package intl
 
+import "sort"
+
+func init() {
+	BuiltinLanguages = append(ManuallyLocalizedLanguages, MachineLocalizedLanguages...)
+	sort.Strings(BuiltinLanguages)
+}
+
 // BuiltinBaseLanguage is the default language. It is english.
 // Default templates and translation are written in english.
 const BuiltinBaseLanguage = "en"
 
 // BuiltinLanguages are the languages we have localization.
-var BuiltinLanguages = []string{
+var BuiltinLanguages []string
+
+// ManuallyLocalizedLanguages are the languages we do localization manually.
+var ManuallyLocalizedLanguages = []string{
 	"en",
 	"zh-HK",
 	"zh-TW",
+}
+
+// MachineLocalizedLanguages are the languages localized by AI.
+var MachineLocalizedLanguages = []string{
+	"de",
+	"el",
+	"es",
+	"es-419",
+	"es-ES",
+	"fil",
+	"fr",
+	"id",
+	"it",
+	"ja",
+	"ko",
+	"ms",
+	"nl",
+	"pl",
+	"pt",
+	"pt-BR",
+	"pt-PT",
+	"th",
+	"vi",
+	"zh-CN",
 }
 
 // AvailableLanguages are the languages we recognize.
