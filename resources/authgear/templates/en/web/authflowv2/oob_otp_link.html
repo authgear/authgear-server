@@ -3,7 +3,7 @@
 {{- if eq $.StateQuery "matched" }}
   <form id="next-form" class="screen-icon-layout flex-1-0-auto" method="post" novalidate>
     <i class="screen-icon material-icons">check_circle</i>
-    <header class="flex flex-col gap-4">
+    <header class="screen-title-description">
       <h1 class="screen-title">
         {{ template "v2-login-link-otp-matched-title" }}
       </h1>
@@ -43,7 +43,7 @@
 <div class="screen-icon-layout screen-icon-layout--compact flex-1-0-auto">
 
 <i class="screen-icon material-icons">forward_to_inbox</i>
-<header class="flex flex-col gap-4">
+<header class="screen-title-description">
   <h1 class="screen-title">
     {{ template "v2-login-link-otp-page-title" }}
   </h1>
