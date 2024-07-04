@@ -46,3 +46,7 @@ var ErrAnonymousUserDisallowed = apierrors.Invalid.WithReason(AnonymousUserDisal
 const BiometricDisallowedReason = "BiometricDisallowed"
 
 var ErrBiometricDisallowed = apierrors.Invalid.WithReason(BiometricDisallowedReason).New("biometric login is not enabled in this project")
+
+const AnonymousUserAddIdentityReason = "AnonymousUserAddIdentity"
+
+var ErrAnonymousUserAddIdentity = apierrors.Invalid.WithReason(AnonymousUserAddIdentityReason).New("anonymous user cannot add identity")

@@ -77,11 +77,7 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 			}
 
 			if n.Identity.Type == model.IdentityTypeBiometric && user.IsAnonymous {
-				return api.NewInvariantViolated(
-					"AnonymousUserAddIdentity",
-					"anonymous user cannot add identity",
-					nil,
-				)
+				return api.ErrAnonymousUserAddIdentity
 			}
 
 			if existing, err := ctx.Identities.CheckDuplicated(n.Identity); err != nil {

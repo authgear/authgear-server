@@ -725,9 +725,8 @@ func (h *TokenHandler) handleBiometricSetup(
 
 	if errors.Is(err, api.ErrBiometricDisallowed) {
 		return nil, protocol.NewError("unauthorized_client", api.BiometricDisallowedReason)
-	} else if apierrors.IsKind(err, api.InvariantViolated) &&
-		apierrors.AsAPIError(err).HasCause("AnonymousUserAddIdentity") {
-		return nil, protocol.NewError("unauthorized_client", "AnonymousUserAddIdentity")
+	} else if errors.Is(err, api.ErrAnonymousUserAddIdentity) {
+		return nil, protocol.NewError("unauthorized_client", api.AnonymousUserAddIdentityReason)
 	} else if errors.Is(err, api.ErrInvalidCredentials) {
 		return nil, protocol.NewError("invalid_grant", api.InvalidCredentialsReason)
 	} else if err != nil {
