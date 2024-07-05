@@ -682,6 +682,22 @@ func (mr *MockTokenHandlerTokenServiceMockRecorder) IssueOfflineGrant(client, op
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueOfflineGrant", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).IssueOfflineGrant), client, opts, resp)
 }
 
+// IssueRefreshTokenForOfflineGrant mocks base method.
+func (m *MockTokenHandlerTokenService) IssueRefreshTokenForOfflineGrant(offlineGrantID string, client *config.OAuthClientConfig, opts handler.IssueOfflineGrantRefreshTokenOptions, resp protocol.TokenResponse) (*oauth.OfflineGrant, string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IssueRefreshTokenForOfflineGrant", offlineGrantID, client, opts, resp)
+	ret0, _ := ret[0].(*oauth.OfflineGrant)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// IssueRefreshTokenForOfflineGrant indicates an expected call of IssueRefreshTokenForOfflineGrant.
+func (mr *MockTokenHandlerTokenServiceMockRecorder) IssueRefreshTokenForOfflineGrant(offlineGrantID, client, opts, resp interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueRefreshTokenForOfflineGrant", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).IssueRefreshTokenForOfflineGrant), offlineGrantID, client, opts, resp)
+}
+
 // ParseRefreshToken mocks base method.
 func (m *MockTokenHandlerTokenService) ParseRefreshToken(token string) (*oauth.Authorization, *oauth.OfflineGrant, string, error) {
 	m.ctrl.T.Helper()
