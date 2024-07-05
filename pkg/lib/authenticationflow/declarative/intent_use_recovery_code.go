@@ -79,9 +79,6 @@ func (n *IntentUseRecoveryCode) ReactTo(ctx context.Context, deps *authflow.Depe
 			if err != nil {
 				return nil, err
 			}
-			if !IsBotProtectionSpecialErrorSuccess(bpSpecialErr) {
-				return nil, bpSpecialErr
-			}
 		}
 		recoveryCode := inputTakeRecoveryCode.GetRecoveryCode()
 

@@ -79,9 +79,6 @@ func (n *IntentUseIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.D
 			if err != nil {
 				return nil, err
 			}
-			if !IsBotProtectionSpecialErrorSuccess(bpSpecialErr) {
-				return nil, bpSpecialErr
-			}
 		}
 		loginID := inputTakeLoginID.GetLoginID()
 		spec := &identity.Spec{

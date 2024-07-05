@@ -82,9 +82,6 @@ func (i *IntentUseAuthenticatorPassword) ReactTo(ctx context.Context, deps *auth
 			if err != nil {
 				return nil, err
 			}
-			if !IsBotProtectionSpecialErrorSuccess(bpSpecialErr) {
-				return nil, bpSpecialErr
-			}
 		}
 		as, err := deps.Authenticators.List(
 			i.UserID,

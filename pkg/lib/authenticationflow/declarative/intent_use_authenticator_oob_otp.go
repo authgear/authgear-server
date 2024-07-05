@@ -2,6 +2,7 @@ package declarative
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
@@ -96,25 +97,22 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authfl
 				if err != nil {
 					return nil, err
 				}
-				if !IsBotProtectionSpecialErrorSuccess(bpSpecialErr) {
-					return nil, bpSpecialErr
-				}
 			}
 			index := inputTakeAuthenticationOptionIndex.GetIndex()
 			info, isNew, err := n.pickAuthenticator(deps, n.Options, index)
 			if err != nil {
-				return nil, err
+				return nil, errors.Join(bpSpecialErr, err)
 			}
 
 			if isNew {
 				return authflow.NewNodeSimple(&NodeDoJustInTimeCreateAuthenticator{
 					Authenticator: info,
-				}), nil
+				}), bpSpecialErr
 			}
 
 			return authflow.NewNodeSimple(&NodeDidSelectAuthenticator{
 				Authenticator: info,
-			}), nil
+			}), bpSpecialErr
 		}
 	case !claimVerified:
 		info := m.MilestoneDidSelectAuthenticator()

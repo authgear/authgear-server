@@ -84,10 +84,17 @@ func ShouldExistingResultBypassBotProtectionRequirement(ctx context.Context) boo
 func HandleBotProtection(ctx context.Context, deps *authflow.Dependencies, token string) (bpSpecialErr error, err error) {
 	existingResult := authflow.GetBotProtectionVerificationResult(ctx)
 	if existingResult != nil {
-
-		return HandleExistingBotProtectionVerificationResult(ctx, deps, token, existingResult)
+		bpSpecialErr, err = HandleExistingBotProtectionVerificationResult(ctx, deps, token, existingResult)
+	} else {
+		bpSpecialErr, err = VerifyBotProtection(ctx, deps, token)
 	}
-	return VerifyBotProtection(ctx, deps, token)
+
+	if isBotProtectionSpecialErrorSuccess(bpSpecialErr) {
+		return bpSpecialErr, err
+	}
+
+	// fail
+	return nil, errors.Join(bpSpecialErr, err)
 }
 
 func HandleExistingBotProtectionVerificationResult(ctx context.Context, deps *authflow.Dependencies, token string, r *authflow.BotProtectionVerificationResult) (bpSpecialErr error, err error) {
@@ -120,7 +127,7 @@ func VerifyBotProtection(ctx context.Context, deps *authflow.Dependencies, token
 	}
 }
 
-func IsBotProtectionSpecialErrorSuccess(bpSpecialErr error) bool {
+func isBotProtectionSpecialErrorSuccess(bpSpecialErr error) bool {
 	var errBotProtectionVerification *authflow.ErrorBotProtectionVerification
 	if errors.As(bpSpecialErr, &errBotProtectionVerification) {
 		return errBotProtectionVerification.Status == authflow.ErrorBotProtectionVerificationStatusSuccess
