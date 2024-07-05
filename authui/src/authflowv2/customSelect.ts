@@ -344,7 +344,7 @@ export class CustomSelectController extends Controller {
   renderTrigger() {
     const option =
       this.optionsValue.find((option) => option.value === this.value) ??
-      this.optionsValue.at(0);
+      this.optionsValue[0];
 
     if (!option) {
       return;
