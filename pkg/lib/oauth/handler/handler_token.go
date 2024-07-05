@@ -1284,7 +1284,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 
 	code, _, err := h.CodeGrantService.CreateCodeGrant(&CreateCodeGrantOptions{
 		Authorization:        authz,
-		IDPSessionID:         originalOfflineGrant.IDPSessionID,
+		IDPSessionID:         originalOfflineGrant.SSOGroupIDPSessionID(),
 		AuthenticationInfo:   info,
 		IDTokenHintSID:       "",
 		RedirectURI:          redirectURI.String(),

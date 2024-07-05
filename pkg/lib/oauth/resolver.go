@@ -222,11 +222,9 @@ func (re *Resolver) accessOfflineGrant(offlineGrant *OfflineGrant, accessEvent a
 	// When accessing the offline grant, also access its idp session
 	// Access the idp session first, since the idp session expiry will be updated
 	// sso enabled offline grant expiry depends on its idp session
-	if offlineGrant.SSOEnabled {
-		if offlineGrant.IDPSessionID == "" {
-			return nil, session.ErrInvalidSession
-		}
-		_, err := re.Sessions.AccessWithID(offlineGrant.IDPSessionID, accessEvent)
+	if offlineGrant.SSOGroupIDPSessionID() != "" {
+		idpSessionID := offlineGrant.SSOGroupIDPSessionID()
+		_, err := re.Sessions.AccessWithID(idpSessionID, accessEvent)
 		if errors.Is(err, idpsession.ErrSessionNotFound) {
 			return nil, session.ErrInvalidSession
 		} else if err != nil {

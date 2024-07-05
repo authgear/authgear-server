@@ -38,12 +38,9 @@ func (s *OfflineGrantService) IsValid(session *OfflineGrant) (bool, time.Time, e
 	}
 
 	now := s.Clock.NowUTC()
-	if session.SSOEnabled {
-		if session.IDPSessionID == "" {
-			return false, now, nil
-		}
-
-		idp, err := s.IDPSessions.Get(session.IDPSessionID)
+	if session.SSOGroupIDPSessionID() != "" {
+		idpSessionID := session.SSOGroupIDPSessionID()
+		idp, err := s.IDPSessions.Get(idpSessionID)
 		if err != nil {
 			if errors.Is(err, idpsession.ErrSessionNotFound) {
 				return false, now, nil
