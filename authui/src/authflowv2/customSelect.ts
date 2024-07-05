@@ -342,9 +342,9 @@ export class CustomSelectController extends Controller {
   }
 
   renderTrigger() {
-    const option: SearchSelectOption | undefined =
-      this.optionsValue.find((option) => option.value === this.value) ??
-      this.optionsValue[0];
+    const option =
+      this.optionsValue.find((option) => option.value === this.value) ?? 
+      this.optionsValue[0] as (SearchSelectOption | undefined);
 
     if (!option) {
       return;
