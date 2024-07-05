@@ -1,0 +1,115 @@
+name: Signup with Bot Protection - Create Authenticator - OOBOTP - Verification Success
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - oob_otp_email
+    identity:
+      login_id:
+        keys:
+        - type: email
+    bot_protection:
+      enabled: true
+      provider:
+        type: cloudflare
+        site_key: dummy-site-key
+    authentication_flow:
+      signup_flows:
+      - name: f1
+        steps:
+        - name: signup_identify
+          type: identify
+          one_of:
+          - identification: email
+            steps:
+            - target_step: signup_identify
+              type: verify
+            - name: authenticate_primary_email
+              type: create_authenticator
+              one_of:
+              - authentication: primary_oob_otp_email
+                bot_protection:
+                  mode: always
+                  provider:
+                    type: cloudflare
+                target_step: signup_identify
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "f1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "bpsignup_create_email@example.com"
+      }
+    output:
+      result: |
+        { 
+          "action": {
+            "type": "verify",
+            "data": {
+              "channel": "email",
+              "code_length": 6,
+              "masked_claim_value": "bpsignup_c***********@example.com",
+              "otp_form": "code",
+              "type": "verify_oob_otp_data"
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "code": "111111"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "authentication": "primary_oob_otp_email",
+                  "bot_protection": {
+                    "enabled": true,
+                    "provider": {
+                      "type": "cloudflare"
+                    }
+                  }
+                }
+              ],
+              "type": "create_authenticator_data"
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "authentication": "primary_oob_otp_email",
+        "index": 0,
+        "bot_protection": {
+          "type": "cloudflare",
+          "response": "pass"
+        }
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
