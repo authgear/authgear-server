@@ -166,6 +166,12 @@ type TokenHandlerTokenService interface {
 		opts IssueOfflineGrantOptions,
 		resp protocol.TokenResponse,
 	) (offlineGrant *oauth.OfflineGrant, tokenHash string, err error)
+	IssueRefreshTokenForOfflineGrant(
+		offlineGrantID string,
+		client *config.OAuthClientConfig,
+		opts IssueOfflineGrantRefreshTokenOptions,
+		resp protocol.TokenResponse,
+	) (offlineGrant *oauth.OfflineGrant, tokenHash string, err error)
 	IssueDeviceSecret(resp protocol.TokenResponse) (deviceSecretHash string)
 }
 
@@ -1282,9 +1288,16 @@ func (h *TokenHandler) handleApp2AppRequest(
 		artificialAuthorizationRequest["x_sso_enabled"] = "true"
 	}
 
+	originalIDPSessionID := originalOfflineGrant.IDPSessionID
+	var sessionType session.Type = ""
+	if originalIDPSessionID != "" {
+		sessionType = session.TypeIdentityProvider
+	}
+
 	code, _, err := h.CodeGrantService.CreateCodeGrant(&CreateCodeGrantOptions{
 		Authorization:        authz,
-		IDPSessionID:         originalOfflineGrant.IDPSessionID,
+		SessionType:          sessionType,
+		SessionID:            originalIDPSessionID,
 		AuthenticationInfo:   info,
 		IDTokenHintSID:       "",
 		RedirectURI:          redirectURI.String(),
@@ -1485,22 +1498,36 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		Scopes:             scopes,
 		AuthorizationID:    authz.ID,
 		AuthenticationInfo: info,
-		IDPSessionID:       code.IDPSessionID,
+		IDPSessionID:       code.SessionID,
 		DeviceInfo:         deviceInfo,
 		SSOEnabled:         code.AuthorizationRequest.SSOEnabled(),
 		App2AppDeviceKey:   app2appDevicePublicKey,
 		IssueDeviceSecret:  issueDeviceToken,
 	}
 	if issueRefreshToken {
-		offlineGrant, tokenHash, err := h.issueOfflineGrant(
-			client,
-			code.AuthenticationInfo.UserID,
-			resp,
-			opts,
-			true)
-		if err != nil {
-			return nil, err
+		var offlineGrant *oauth.OfflineGrant
+		var tokenHash string
+		var err error
+		switch code.SessionType {
+		case session.TypeOfflineGrant:
+			offlineGrant, tokenHash, err = h.TokenService.IssueRefreshTokenForOfflineGrant(code.SessionID, client, IssueOfflineGrantRefreshTokenOptions{
+				Scopes:          scopes,
+				AuthorizationID: authz.ID,
+			}, resp)
+		case session.TypeIdentityProvider:
+			fallthrough
+		default:
+			offlineGrant, tokenHash, err = h.issueOfflineGrant(
+				client,
+				code.AuthenticationInfo.UserID,
+				resp,
+				opts,
+				true)
+			if err != nil {
+				return nil, err
+			}
 		}
+
 		sid = oidc.EncodeSID(offlineGrant)
 		accessTokenSessionID = offlineGrant.ID
 		accessTokenSessionKind = oauth.GrantSessionKindOffline
@@ -1644,18 +1671,6 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 	}
 
 	return resp, nil
-}
-
-type IssueOfflineGrantOptions struct {
-	AuthenticationInfo authenticationinfo.T
-	Scopes             []string
-	AuthorizationID    string
-	IDPSessionID       string
-	DeviceInfo         map[string]interface{}
-	IdentityID         string
-	SSOEnabled         bool
-	App2AppDeviceKey   jwk.Key
-	IssueDeviceSecret  bool
 }
 
 func (h *TokenHandler) IssueAppSessionToken(refreshToken string) (string, *oauth.AppSessionToken, error) {

@@ -293,7 +293,7 @@ func TestAuthorizationHandler(t *testing.T) {
 					So(codeGrantStore.grants[0], ShouldResemble, oauth.CodeGrant{
 						AppID:           "app-id",
 						AuthorizationID: authorization.ID,
-						IDPSessionID:    "session-id",
+						SessionID:       "session-id",
 						AuthenticationInfo: authenticationinfo.T{
 							UserID: "user-id",
 						},
@@ -345,7 +345,7 @@ func TestAuthorizationHandler(t *testing.T) {
 					So(codeGrantStore.grants[0], ShouldResemble, oauth.CodeGrant{
 						AppID:           "app-id",
 						AuthorizationID: "authz-id",
-						IDPSessionID:    "session-id",
+						SessionID:       "session-id",
 						AuthenticationInfo: authenticationinfo.T{
 							UserID: "user-id",
 						},
