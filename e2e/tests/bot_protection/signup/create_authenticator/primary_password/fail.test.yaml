@@ -1,0 +1,94 @@
+name: Signup with Bot Protection - Create Authenticator - Password - Verification Fail
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+    identity:
+      login_id:
+        keys:
+        - type: username
+    bot_protection:
+      enabled: true
+      provider:
+        type: cloudflare
+        site_key: dummy-site-key
+    authentication_flow:
+      signup_flows:
+      - name: f1
+        steps:
+        - name: signup_identify
+          type: identify
+          one_of:
+          - identification: username
+            steps:
+            - name: authenticate_primary_username
+              type: create_authenticator
+              one_of:
+              - authentication: primary_password
+                bot_protection:
+                  mode: always
+                  provider: 
+                    type: cloudflare
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "f1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "bpsignup_create_pw"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "authentication": "primary_password",
+                  "bot_protection": {
+                    "enabled": true,
+                    "provider": {
+                      "type": "cloudflare"
+                    }
+                  }
+                }
+              ],
+              "type": "create_authenticator_data"
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "new_password":   "password",
+        "bot_protection": {
+          "type": "cloudflare",
+          "response": "fail"
+        }
+      }
+    output:
+      error: |
+        {
+          "name": "Forbidden",
+          "reason": "BotProtectionVerificationFailed",
+          "message": "bot protection verification failed",
+          "code": 403
+        }
