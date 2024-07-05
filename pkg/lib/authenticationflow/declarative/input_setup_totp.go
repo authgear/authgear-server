@@ -11,9 +11,8 @@ import (
 )
 
 type InputSchemaSetupTOTP struct {
-	JSONPointer             jsonpointer.T
-	FlowRootObject          config.AuthenticationFlowObject
-	IsBotProtectionRequired bool
+	JSONPointer    jsonpointer.T
+	FlowRootObject config.AuthenticationFlowObject
 }
 
 var _ authflow.InputSchema = &InputSchemaSetupTOTP{}
@@ -36,10 +35,6 @@ func (i *InputSchemaSetupTOTP) SchemaBuilder() validation.SchemaBuilder {
 		validation.SchemaBuilder{}.Type(validation.TypeString),
 	)
 
-	if i.IsBotProtectionRequired {
-		inputSetupTOTPSchemaBuilder = AddBotProtectionToExistingSchemaBuilder(inputSetupTOTPSchemaBuilder)
-	}
-
 	return inputSetupTOTPSchemaBuilder
 }
 
@@ -53,34 +48,14 @@ func (i *InputSchemaSetupTOTP) MakeInput(rawMessage json.RawMessage) (authflow.I
 }
 
 type InputSetupTOTP struct {
-	Code          string                      `json:"code,omitempty"`
-	BotProtection *InputTakeBotProtectionBody `json:"bot_protection,omitempty"`
+	Code string `json:"code,omitempty"`
 }
 
 var _ authflow.Input = &InputSetupTOTP{}
 var _ inputSetupTOTP = &InputSetupTOTP{}
-var _ inputTakeBotProtection = &InputSetupTOTP{}
 
 func (*InputSetupTOTP) Input() {}
 
 func (i *InputSetupTOTP) GetCode() string {
 	return i.Code
-}
-
-func (i *InputSetupTOTP) GetBotProtectionProvider() *InputTakeBotProtectionBody {
-	return i.BotProtection
-}
-
-func (i *InputSetupTOTP) GetBotProtectionProviderType() config.BotProtectionProviderType {
-	if i.BotProtection == nil {
-		return ""
-	}
-	return i.BotProtection.Type
-}
-
-func (i *InputSetupTOTP) GetBotProtectionProviderResponse() string {
-	if i.BotProtection == nil {
-		return ""
-	}
-	return i.BotProtection.Response
 }

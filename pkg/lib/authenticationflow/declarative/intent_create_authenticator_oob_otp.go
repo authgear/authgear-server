@@ -2,7 +2,6 @@ package declarative
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
@@ -87,26 +86,14 @@ func (n *IntentCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *
 
 	switch {
 	case !authenticatorSelected:
-		isBotProtectionRequired, err := IsBotProtectionRequired(ctx, flowRootObject, n.JSONPointer)
-		if err != nil {
-			return nil, err
-		}
-
 		// If target step is specified, we do not need input to react.
 		if targetStepName != "" {
-			if !isBotProtectionRequired {
-				return nil, nil
-			}
-			return &InputSchemaTakeBotProtection{
-				FlowRootObject: flowRootObject,
-				JSONPointer:    n.JSONPointer,
-			}, nil
+			return nil, nil
 		}
 
 		return &InputSchemaTakeOOBOTPTarget{
-			FlowRootObject:          flowRootObject,
-			JSONPointer:             n.JSONPointer,
-			IsBotProtectionRequired: isBotProtectionRequired,
+			FlowRootObject: flowRootObject,
+			JSONPointer:    n.JSONPointer,
 		}, nil
 	case shouldVerifyInThisFlow && !claimVerifiedInThisFlow:
 		// Verify the claim
@@ -119,7 +106,6 @@ func (n *IntentCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *
 	}
 }
 
-// nolint:gocognit
 func (n *IntentCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	rootObject, err := findFlowRootObjectInFlow(deps, flows)
 	if err != nil {
@@ -153,43 +139,21 @@ func (n *IntentCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *aut
 
 	switch {
 	case !authenticatorSelected:
-		var bpSpecialErr error
-		bpRequired, err := IsNodeBotProtectionRequired(ctx, deps, flows, n.JSONPointer)
-		if err != nil {
-			return nil, err
-		}
-		if bpRequired {
-			var inputTakeBotProtection inputTakeBotProtection
-			if !authflow.AsInput(input, &inputTakeBotProtection) {
-				return nil, authflow.ErrIncompatibleInput
-			}
-
-			token := inputTakeBotProtection.GetBotProtectionProviderResponse()
-			bpSpecialErr, err = HandleBotProtection(ctx, deps, token)
-			if err != nil {
-				return nil, err
-			}
-			if !IsBotProtectionSpecialErrorSuccess(bpSpecialErr) {
-				return nil, bpSpecialErr
-			}
-		}
 		if targetStepName != "" {
 			oobOTPTarget, _, err := getCreateAuthenticatorOOBOTPTargetFromTargetStep(ctx, deps, flows, targetStepName)
 			if err != nil {
-				return nil, errors.Join(bpSpecialErr, err)
+				return nil, err
 			}
 			if oobOTPTarget == "" {
 				panic(fmt.Errorf("unexpected: oob otp target is empty"))
 			}
-			node, err := n.newDidSelectAuthenticatorNode(deps, oobOTPTarget)
-			return node, errors.Join(bpSpecialErr, err)
+			return n.newDidSelectAuthenticatorNode(deps, oobOTPTarget)
 		}
 
 		var inputTakeOOBOTPTarget inputTakeOOBOTPTarget
 		if authflow.AsInput(input, &inputTakeOOBOTPTarget) {
 			oobOTPTarget := inputTakeOOBOTPTarget.GetTarget()
-			node, err := n.newDidSelectAuthenticatorNode(deps, oobOTPTarget)
-			return node, errors.Join(bpSpecialErr, err)
+			return n.newDidSelectAuthenticatorNode(deps, oobOTPTarget)
 		}
 	case shouldVerifyInThisFlow && !claimVerifiedInThisFlow:
 		info := m.MilestoneDidSelectAuthenticator()

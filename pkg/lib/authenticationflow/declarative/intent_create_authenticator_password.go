@@ -50,41 +50,15 @@ func (n *IntentCreateAuthenticatorPassword) CanReactTo(ctx context.Context, deps
 		return nil, err
 	}
 
-	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, flowRootObject, n.JSONPointer)
-	if err != nil {
-		return nil, err
-	}
-
 	return &InputSchemaTakeNewPassword{
-		FlowRootObject:          flowRootObject,
-		JSONPointer:             n.JSONPointer,
-		IsBotProtectionRequired: isBotProtectionRequired,
+		FlowRootObject: flowRootObject,
+		JSONPointer:    n.JSONPointer,
 	}, nil
 }
 
 func (i *IntentCreateAuthenticatorPassword) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	var inputTakeNewPassword inputTakeNewPassword
 	if authflow.AsInput(input, &inputTakeNewPassword) {
-		var bpSpecialErr error
-		bpRequired, err := IsNodeBotProtectionRequired(ctx, deps, flows, i.JSONPointer)
-		if err != nil {
-			return nil, err
-		}
-		if bpRequired {
-			var inputTakeBotProtection inputTakeBotProtection
-			if !authflow.AsInput(input, &inputTakeBotProtection) {
-				return nil, authflow.ErrIncompatibleInput
-			}
-
-			token := inputTakeBotProtection.GetBotProtectionProviderResponse()
-			bpSpecialErr, err = HandleBotProtection(ctx, deps, token)
-			if err != nil {
-				return nil, err
-			}
-			if !IsBotProtectionSpecialErrorSuccess(bpSpecialErr) {
-				return nil, bpSpecialErr
-			}
-		}
 		authenticatorKind := i.Authentication.AuthenticatorKind()
 		newPassword := inputTakeNewPassword.GetNewPassword()
 		isDefault, err := authenticatorIsDefault(deps, i.UserID, authenticatorKind)
@@ -110,7 +84,7 @@ func (i *IntentCreateAuthenticatorPassword) ReactTo(ctx context.Context, deps *a
 
 		return authflow.NewNodeSimple(&NodeDoCreateAuthenticator{
 			Authenticator: info,
-		}), bpSpecialErr
+		}), nil
 	}
 
 	return nil, authflow.ErrIncompatibleInput

@@ -15,7 +15,6 @@ All e2e tests related to bot protection.
 > Bot protection is supported only in the following step types:
 
     identify in signup, promote, login, signup_login, and account_recovery.
-    create_authenticator in signup and promote.
     authenticate in login and reauth.
 
 Referenced from [Bot Protection Spec](../../../docs/specs/botprobot-protection.md)
@@ -36,15 +35,10 @@ Passkey will need to implement reverse of [`webauthncose.VerifySignature`](https
   - [x] identify
     - [x] loginid
     - [x] oauth
-  - [x] create_authenticator
-    - [x] password
-    - [x] oobotp
-    - [x] totp
 - [ ] promote flow
   - [ ] identify
     - [ ] loginid
     - [ ] oauth
-  - [ ] create_authenticator (same as signupflow > create_authenticator)
 - [x] login flow
   - [x] identify
     - [x] loginid
