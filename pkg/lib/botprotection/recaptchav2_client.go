@@ -13,6 +13,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
+const (
+	RecaptchaV2VerifyEndpoint string = "https://www.google.com/recaptcha/api/siteverify"
+)
+
 type RecaptchaV2Client struct {
 	HTTPClient     *http.Client
 	Credentials    *config.BotProtectionProviderCredentials
@@ -23,9 +27,13 @@ func NewRecaptchaV2Client(c *config.BotProtectionProviderCredentials, e *config.
 	if c == nil {
 		return nil
 	}
+	ept := RecaptchaV2VerifyEndpoint
+	if e.End2EndBotProtection.RecaptchaV2Endpoint != "" {
+		ept = e.End2EndBotProtection.RecaptchaV2Endpoint
+	}
 	return &RecaptchaV2Client{
 		HTTPClient:     httputil.NewExternalClient(60 * time.Second),
-		VerifyEndpoint: e.BotProtectionConfig.RecaptchaV2Endpoint,
+		VerifyEndpoint: ept,
 		Credentials:    c,
 	}
 }

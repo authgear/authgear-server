@@ -14,6 +14,9 @@ import (
 )
 
 // https://developers.cloudflare.com/turnstile/get-started/server-side-validation/
+const (
+	CloudflareTurnstileVerifyEndpoint string = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+)
 
 type CloudflareClient struct {
 	HTTPClient     *http.Client
@@ -25,10 +28,14 @@ func NewCloudflareClient(c *config.BotProtectionProviderCredentials, e *config.E
 	if c == nil {
 		return nil
 	}
+	verifyEndpoint := CloudflareTurnstileVerifyEndpoint
+	if e.End2EndBotProtection.CloudflareEndpoint != "" {
+		verifyEndpoint = e.End2EndBotProtection.CloudflareEndpoint
+	}
 	return &CloudflareClient{
 		HTTPClient:     httputil.NewExternalClient(60 * time.Second),
 		Credentials:    c,
-		VerifyEndpoint: e.BotProtectionConfig.CloudflareEndpoint,
+		VerifyEndpoint: verifyEndpoint,
 	}
 }
 

@@ -71,8 +71,6 @@ type EnvironmentConfig struct {
 	// RedisConfig configures the redis connection config
 	RedisConfig RedisEnvironmentConfig `envconfig:"REDIS_CONFIG"`
 
-	BotProtectionConfig BotProtectionEnvironmentConfig `envconfig:"BOT_PROTECTION"`
-
 	ImagesCDNHost ImagesCDNHost `envconfig:"IMAGES_CDN_HOST"`
 	WebAppCDNHost WebAppCDNHost `envconfig:"WEB_APP_CDN_HOST"`
 
@@ -94,4 +92,6 @@ type EnvironmentConfig struct {
 	End2EndHTTPProxy string `envconfig:"E2E_HTTP_PROXY"`
 	// End2EndTLSCACertFile sets additional CA certificate for end-to-end tests
 	End2EndTLSCACertFile string `envconfig:"E2E_TLS_CA_CERT_FILE"`
+	// End2EndBotProtection sets mocked endpoints for bot protection providers verification
+	End2EndBotProtection End2EndBotProtectionEnvironmentConfig `envconfig:"E2E_BOT_PROTECTION"`
 }
