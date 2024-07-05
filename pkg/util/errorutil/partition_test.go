@@ -2,6 +2,7 @@ package errorutil_test
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -15,6 +16,7 @@ func TestPartition(t *testing.T) {
 		matched, notMatched := errorutil.Partition(errA, func(err error) bool { return errors.Is(err, errA) })
 		So(errors.Is(matched, errA), ShouldBeTrue)
 		So(errors.Is(notMatched, errA), ShouldBeFalse)
+		So(notMatched, ShouldBeNil)
 	})
 
 	Convey("should return (matched=nil, unmatched=provided error) for non-joined single error with non-matching predicate", t, func() {
@@ -22,6 +24,7 @@ func TestPartition(t *testing.T) {
 		errNotA := errors.New("not a")
 		matched, notMatched := errorutil.Partition(errA, func(err error) bool { return errors.Is(err, errNotA) })
 		So(errors.Is(matched, errA), ShouldBeFalse)
+		So(matched, ShouldBeNil)
 		So(errors.Is(notMatched, errA), ShouldBeTrue)
 	})
 
@@ -104,12 +107,13 @@ func TestPartition(t *testing.T) {
 
 		joined := errors.Join(errA, errB, errC, errD, errE, errF) // Note order here is A,B,C,D,E,F
 		_, notMatched := errorutil.Partition(joined, func(err error) bool {
-			return errors.Is(err, errA)
+			return errors.Is(err, errC)
 		})
 
-		uw, ok := notMatched.(interface{ Unwrap() []error })
-		So(ok, ShouldBeTrue)
-		notMatchedErrs := uw.Unwrap()
-		So(notMatchedErrs, ShouldResemble, []error{errB, errC, errD, errE, errF}) // Note order here is B,C,D,E,F
+		var unwrapVisitHistory strings.Builder
+		errorutil.Unwrap(notMatched, func(err error) {
+			unwrapVisitHistory.WriteString(err.Error())
+		})
+		So(unwrapVisitHistory.String(), ShouldEqual, "abdef")
 	})
 }
