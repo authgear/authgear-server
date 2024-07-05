@@ -1,0 +1,5 @@
+@layer components {
+  .screen-title-description {
+    @apply flex flex-col gap-4;
+  }
+}

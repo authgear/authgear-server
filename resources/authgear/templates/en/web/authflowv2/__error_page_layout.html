@@ -1,7 +1,7 @@
 {{- define "authflowv2/__error_page_layout.html" }}
 <div class="screen-icon-layout flex-1-0-auto" >
   <i class="material-icons screen-icon">error</i>
-  <header class="flex flex-col gap-4">
+  <header class="screen-title-description">
     <h1 class="screen-title">{{ .Title }}</h1>
     {{ if .ErrorMessage }}
       <div class="screen-description">

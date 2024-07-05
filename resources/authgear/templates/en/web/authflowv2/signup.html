@@ -30,42 +30,44 @@
   {{ $clientName := or $.ClientName "null" }}
 
   <div class="flex-1-0-auto">
-  <div class="flex flex-col gap-4">
-    {{ template "authflowv2/__header.html" . }}
-    <h1 class="screen-title">
-      {{ if eq $.UIVariant "signup_login" }}
-        {{ template "v2-signup-login-title" (dict
-          "AppName" $appName
-          "ClientName" $clientName)
+    <div class="screen-logo-layout">
+      {{ template "authflowv2/__header.html" . }}
+      <div class="screen-title-description">
+        <h1 class="screen-title">
+          {{ if eq $.UIVariant "signup_login" }}
+            {{ template "v2-signup-login-title" (dict
+              "AppName" $appName
+              "ClientName" $clientName)
+            }}
+          {{ else }}
+            {{ template "v2-signup-title" (dict
+              "AppName" $appName
+              "ClientName" $clientName)
+            }}
+          {{ end }}
+        </h1>
+        <h2 class="screen-description">
+          {{ if eq $.UIVariant "signup_login" }}
+            {{ template "v2-signup-login-subtitle" (dict
+              "AppName" $appName
+              "ClientName" $clientName)
+            }}
+          {{ else }}
+            {{ template "v2-signup-subtitle" (dict
+              "AppName" $appName
+              "ClientName" $clientName)
+            }}
+          {{ end }}
+        </h2>
+        {{ template "authflowv2/__alert_message.html"
+          (dict
+            "Type" "error"
+            "Classname" "mt-4"
+            "Message" $oauth_error_message
+          )
         }}
-      {{ else }}
-        {{ template "v2-signup-title" (dict
-          "AppName" $appName
-          "ClientName" $clientName)
-        }}
-      {{ end }}
-    </h1>
-    <h2 class="screen-description">
-      {{ if eq $.UIVariant "signup_login" }}
-        {{ template "v2-signup-login-subtitle" (dict
-          "AppName" $appName
-          "ClientName" $clientName)
-        }}
-      {{ else }}
-        {{ template "v2-signup-subtitle" (dict
-          "AppName" $appName
-          "ClientName" $clientName)
-        }}
-      {{ end }}
-    </h2>
-    {{ template "authflowv2/__alert_message.html"
-      (dict
-        "Type" "error"
-        "Classname" "mt-4"
-        "Message" $oauth_error_message
-      )
-    }}
-  </div>
+      </div>
+    </div>
 
   <!-- We don't need to retore the auth form in inline preview mode -->
   <!-- retain-form-form will try to access session store, which is not allowed -->

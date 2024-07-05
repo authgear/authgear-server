@@ -10,7 +10,7 @@
 {{ if $.WechatRedirectURI }}
 
 <div class="screen-action-layout flex-1-0-auto">
-  <header class="flex flex-col gap-4">
+  <header class="screen-title-description">
     <h1 class="screen-title">
       {{ template "v2-wechat-auth-page-title" }}
     </h1>
@@ -62,7 +62,7 @@
 {{ else }}
 
 <div class="screen-action-layout flex-1-0-auto">
-  <header class="flex flex-col gap-4">
+  <header class="screen-title-description">
     <h1 class="screen-title">
       {{ template "v2-wechat-auth-page-title" }}
     </h1>
