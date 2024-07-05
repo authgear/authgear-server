@@ -629,6 +629,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Clock:          clock,
 		IDPSessions:    idpsessionProvider,
 		ClientResolver: oauthclientResolver,
+		OfflineGrants:  redisStore,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,

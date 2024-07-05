@@ -171,8 +171,13 @@ type TokenHandlerTokenService interface {
 
 type AppInitiatedSSOToWebTokenService interface {
 	IssueAppInitiatedSSOToWebToken(
-		options *oauth.IssueAppInitiatedSSOToWebTokenOptions,
-	) (*oauth.IssueAppInitiatedSSOToWebTokenResult, error)
+		options *IssueAppInitiatedSSOToWebTokenOptions,
+	) (*IssueAppInitiatedSSOToWebTokenResult, error)
+	ExchangeForAccessToken(
+		client *config.OAuthClientConfig,
+		sessionID string,
+		token string,
+	) (string, error)
 }
 
 type TokenHandler struct {
@@ -392,7 +397,26 @@ func (h *TokenHandler) rotateDeviceSecret(
 	return offlineGrant, nil
 }
 
-func (h *TokenHandler) rotateDeviceSecretIfNeeded(
+func (h *TokenHandler) rotateDeviceSecretIfDeviceSecretIsPresentAndValid(
+	deviceSecret string,
+	authorizedScopes []string,
+	offlineGrant *oauth.OfflineGrant,
+	resp protocol.TokenResponse,
+) (*oauth.OfflineGrant, bool, error) {
+	if deviceSecret == "" {
+		// If device secret is not provided in the request, do not rotate
+		return offlineGrant, false, nil
+	}
+
+	if subtle.ConstantTimeCompare([]byte(oauth.HashToken(deviceSecret)), []byte(offlineGrant.DeviceSecretHash)) != 1 {
+		// If the provided device sercet is invalid, do not rotate
+		return offlineGrant, false, nil
+	}
+
+	return h.rotateDeviceSecretIfSufficientScope(authorizedScopes, offlineGrant, resp)
+}
+
+func (h *TokenHandler) rotateDeviceSecretIfSufficientScope(
 	authorizedScopes []string,
 	offlineGrant *oauth.OfflineGrant,
 	resp protocol.TokenResponse) (*oauth.OfflineGrant, bool, error) {
@@ -703,7 +727,7 @@ func (h *TokenHandler) handleAppInitiatedSSOToWebToken(
 		scopes = offlineGrant.GetScopes(offlineGrant.InitialClientID)
 	}
 	if !isAllowed {
-		return nil, protocol.NewError("invalid_grant", "app-initiated-sso-to-web is not allowed for this session")
+		return nil, protocol.NewError("insufficient_scope", "app-initiated-sso-to-web is not allowed for this session")
 	}
 
 	err = h.verifyIDTokenDeviceSecretHash(offlineGrant, idToken, deviceSecret)
@@ -728,7 +752,7 @@ func (h *TokenHandler) handleAppInitiatedSSOToWebToken(
 		return nil, err
 	}
 
-	options := &oauth.IssueAppInitiatedSSOToWebTokenOptions{
+	options := &IssueAppInitiatedSSOToWebTokenOptions{
 		AppID:           string(h.AppID),
 		AuthorizationID: authz.ID,
 		ClientID:        client.ClientID,
@@ -1298,7 +1322,8 @@ func (h *TokenHandler) handleIDToken(
 	var deviceSecretHash string
 	offlineGrantSession, ok := s.(*oauth.OfflineGrantSession)
 	if ok {
-		offlineGrant, _, err := h.rotateDeviceSecretIfNeeded(
+		offlineGrant, _, err := h.rotateDeviceSecretIfDeviceSecretIsPresentAndValid(
+			r.DeviceSecret(),
 			offlineGrantSession.Scopes,
 			offlineGrantSession.OfflineGrant,
 			resp,
@@ -1430,7 +1455,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 				}
 
 				// Rotate device_secret
-				offlineGrant, _, err = h.rotateDeviceSecretIfNeeded(scopes, offlineGrant, resp)
+				offlineGrant, _, err = h.rotateDeviceSecretIfSufficientScope(scopes, offlineGrant, resp)
 				if err != nil {
 					return nil, err
 				}
@@ -1588,7 +1613,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 
 	resp := protocol.TokenResponse{}
 
-	offlineGrant, _, err := h.rotateDeviceSecretIfNeeded(
+	offlineGrant, _, err := h.rotateDeviceSecretIfSufficientScope(
 		offlineGrantSession.Scopes,
 		offlineGrantSession.OfflineGrant,
 		resp)

@@ -3,10 +3,12 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -26,17 +28,30 @@ import (
 //go:generate mockgen -source=handler_authz.go -destination=handler_authz_mock_test.go -package handler_test
 
 const (
-	CodeResponseType          = "code"
-	NoneResponseType          = "none"
-	SettingsActonResponseType = "urn:authgear:params:oauth:response-type:settings-action"
+	CodeResponseTypeElement          = "code"
+	NoneResponseTypeElement          = "none"
+	TokenResponseTypeElement         = "token"
+	SettingsActonResponseTypeElement = "urn:authgear:params:oauth:response-type:settings-action"
+	// nolint:gosec
+	AppInitiatedSSOToWebResponseTypeElement = "urn:authgear:params:oauth:response-type:app_initiated_sso_to_web"
+)
+
+var (
+	CodeResponseType                      = protocol.NewResponseType([]string{CodeResponseTypeElement})
+	NoneResponseType                      = protocol.NewResponseType([]string{NoneResponseTypeElement})
+	TokenResponseType                     = protocol.NewResponseType([]string{TokenResponseTypeElement})
+	SettingsActonResponseType             = protocol.NewResponseType([]string{SettingsActonResponseTypeElement})
+	AppInitiatedSSOToWebTokenResponseType = protocol.NewResponseType([]string{AppInitiatedSSOToWebResponseTypeElement, TokenResponseTypeElement})
 )
 
 // whitelistedResponseTypes is a list of response types that would be always allowed
 // to all clients.
-var whitelistedResponseTypes = []string{
+var whitelistedResponseTypes = []protocol.ResponseType{
 	CodeResponseType,
 	NoneResponseType,
+	TokenResponseType,
 	SettingsActonResponseType,
+	AppInitiatedSSOToWebTokenResponseType,
 }
 
 const CodeGrantValidDuration = duration.Short
@@ -104,18 +119,20 @@ type AuthorizationHandler struct {
 	AppDomains            config.AppDomains
 	Logger                AuthorizationHandlerLogger
 
-	UIURLBuilder               UIURLBuilder
-	UIInfoResolver             UIInfoResolver
-	Authorizations             AuthorizationService
-	ValidateScopes             ScopesValidator
-	AppSessionTokenService     AppSessionTokenService
-	AuthenticationInfoService  AuthenticationInfoService
-	Clock                      clock.Clock
-	Cookies                    CookieManager
-	OAuthSessionService        OAuthSessionService
-	CodeGrantService           CodeGrantService
-	SettingsActionGrantService SettingsActionGrantService
-	ClientResolver             OAuthClientResolver
+	UIURLBuilder                     UIURLBuilder
+	UIInfoResolver                   UIInfoResolver
+	Authorizations                   AuthorizationService
+	ValidateScopes                   ScopesValidator
+	AppSessionTokenService           AppSessionTokenService
+	AuthenticationInfoService        AuthenticationInfoService
+	Clock                            clock.Clock
+	Cookies                          CookieManager
+	OAuthSessionService              OAuthSessionService
+	CodeGrantService                 CodeGrantService
+	SettingsActionGrantService       SettingsActionGrantService
+	ClientResolver                   OAuthClientResolver
+	AppInitiatedSSOToWebTokenService AppInitiatedSSOToWebTokenService
+	IDTokenIssuer                    IDTokenIssuer
 }
 
 func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.Result {
@@ -377,6 +394,10 @@ func (h *AuthorizationHandler) doHandle(
 		return nil, err
 	}
 
+	if r.ResponseType().Equal(AppInitiatedSSOToWebTokenResponseType) {
+		return h.doHandleAppInitiatedSSOToWeb(redirectURI, client, r)
+	}
+
 	err := h.ValidateScopes(client, r.Scope())
 	if err != nil {
 		return nil, err
@@ -391,7 +412,7 @@ func (h *AuthorizationHandler) doHandle(
 		return nil, err
 	}
 
-	if r.ResponseType() == string(SettingsActonResponseType) {
+	if r.ResponseType().Equal(SettingsActonResponseType) {
 		redirectURI, err = h.UIURLBuilder.BuildSettingsActionURL(client, r, oauthSessionEntry)
 		if err != nil {
 			return nil, err
@@ -445,20 +466,28 @@ func (h *AuthorizationHandler) doHandle(
 		return resp, nil
 	}
 
-	// TODO(DEV-1402): Handle offlinegrant
 	// Handle prompt=none
-	var idpSession session.ResolvedSession
-	if s := session.GetSession(h.Context); s != nil && s.SessionType() == session.TypeIdentityProvider {
-		idpSession = s
+	var resolvedSession session.ResolvedSession
+	if s := session.GetSession(h.Context); s != nil {
+		resolvedSession = s
 	}
-	if idpSession == nil || (idToken != nil && idpSession.GetAuthenticationInfo().UserID != idToken.Subject()) {
+	// Ignore any session that is not allow to be used here
+	if !oauth.ContainsAllScopes(oauth.SessionScopes(resolvedSession), []string{oauth.AppInitiatedSSOToWebScope}) {
+		resolvedSession = nil
+	}
+	if resolvedSession == nil || (idToken != nil && resolvedSession.GetAuthenticationInfo().UserID != idToken.Subject()) {
 		return nil, protocol.NewError("login_required", "authentication required")
 	}
 
-	authenticationInfo := idpSession.GetAuthenticationInfo()
+	authenticationInfo := resolvedSession.GetAuthenticationInfo()
 	autoGrantAuthz := client.IsFirstParty()
 
-	result, err := h.finish(redirectURI, r, idpSession.SessionID(), authenticationInfo, idTokenHintSID, nil, autoGrantAuthz)
+	idpSessionID := ""
+	if resolvedSession.SessionType() == session.TypeIdentityProvider {
+		idpSessionID = resolvedSession.SessionID()
+	}
+
+	result, err := h.finish(redirectURI, r, idpSessionID, authenticationInfo, idTokenHintSID, nil, autoGrantAuthz)
 	if err != nil {
 		if errors.Is(err, oauth.ErrAuthorizationNotFound) {
 			return nil, protocol.NewError("access_denied", "authorization required")
@@ -469,6 +498,65 @@ func (h *AuthorizationHandler) doHandle(
 		return nil, err
 	}
 	return result, nil
+}
+
+func (h *AuthorizationHandler) doHandleAppInitiatedSSOToWeb(
+	redirectURI *url.URL,
+	client *config.OAuthClientConfig,
+	r protocol.AuthorizationRequest,
+) (httputil.Result, error) {
+	idTokenHint, ok := r.IDTokenHint()
+	if !ok {
+		panic("cannot get id_token_hint, the request should be validated")
+	}
+	idToken, err := h.IDTokenIssuer.VerifyIDTokenWithoutClient(idTokenHint)
+	if err != nil {
+		return nil, protocol.NewError("invalid_request", "invalid id_token_hint")
+	}
+	var sidInt interface{}
+	if sidInt, ok = idToken.Get(string(model.ClaimSID)); !ok {
+		return nil, protocol.NewError("invalid_request", "required sid in id_token_hint")
+	}
+	var sid string
+	if sid, ok = sidInt.(string); !ok {
+		return nil, protocol.NewError("invalid_request", "sid is not a string in id_token_hint")
+	}
+	_, sessionID, ok := oidc.DecodeSID(sid)
+	if !ok {
+		return nil, protocol.NewError("invalid_request", "invalid sid format id_token_hint")
+	}
+
+	accessToken, err := h.AppInitiatedSSOToWebTokenService.ExchangeForAccessToken(
+		client,
+		sessionID,
+		r.AppInitiatedSSOToWebToken(),
+	)
+	if err != nil {
+		if errors.Is(err, oauth.ErrUnmatchedClient) {
+			return nil, protocol.NewError("invalid_request", "incorrect client_id")
+		}
+		if errors.Is(err, oauth.ErrUnmatchedSession) {
+			return nil, protocol.NewError("invalid_request", "incorrect sid in id_token_hint")
+		}
+		if errors.Is(err, oauth.ErrGrantNotFound) {
+			return nil, protocol.NewError("invalid_request", "invalid x_app_initiated_sso_to_web_token")
+		}
+		return nil, err
+	}
+	cookie := h.Cookies.ValueCookie(session.AppAccessTokenCookieDef, accessToken)
+
+	resp := protocol.AuthorizationResponse{}
+	state := r.State()
+	if state != "" {
+		resp.State(r.State())
+	}
+	return authorizationResultCode{
+		RedirectURI:  redirectURI,
+		ResponseMode: r.ResponseMode(),
+		Response:     resp,
+		Cookies:      []*http.Cookie{cookie},
+	}, nil
+
 }
 
 func (h *AuthorizationHandler) finish(
@@ -500,20 +588,21 @@ func (h *AuthorizationHandler) finish(
 	}
 
 	resp := protocol.AuthorizationResponse{}
-	switch r.ResponseType() {
-	case SettingsActonResponseType:
+	responseType := r.ResponseType()
+	switch {
+	case responseType.Equal(SettingsActonResponseType):
 		err = h.generateSettingsActionResponse(redirectURI.String(), idpSessionID, authenticationInfo, idTokenHintSID, r, authz, resp)
 		if err != nil {
 			return nil, err
 		}
 
-	case CodeResponseType:
+	case responseType.Equal(CodeResponseType):
 		err = h.generateCodeResponse(redirectURI.String(), idpSessionID, authenticationInfo, idTokenHintSID, r, authz, resp)
 		if err != nil {
 			return nil, err
 		}
 
-	case NoneResponseType:
+	case responseType.Equal(NoneResponseType):
 		break
 
 	default:
@@ -556,7 +645,6 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 	}
 	idTokenHintSID := uiInfoByProduct.IDTokenHintSID
 
-	// TODO(DEV-1402): Handle offlinegrant
 	var idpSessionID string
 	if s := session.GetSession(h.Context); s != nil && s.SessionType() == session.TypeIdentityProvider {
 		idpSessionID = s.SessionID()
@@ -565,23 +653,39 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 	return h.finish(redirectURI, r, idpSessionID, authenticationInfo, idTokenHintSID, []*http.Cookie{}, grantAuthz)
 }
 
+func (h *AuthorizationHandler) validateAppInitiatedSSOToWebTokenRequest(
+	client *config.OAuthClientConfig,
+	r protocol.AuthorizationRequest,
+) error {
+	if len(r.Prompt()) != 1 || r.Prompt()[0] != "none" {
+		return protocol.NewError("invalid_request", "only 'prompt=none' is supported when using app-initiated-sso-to-web")
+	}
+	if idTokenHint, ok := r.IDTokenHint(); !ok || idTokenHint == "" {
+		return protocol.NewError("invalid_request", "id_token_hint is required when using app-initiated-sso-to-web")
+	}
+	if r.AppInitiatedSSOToWebToken() == "" {
+		return protocol.NewError("invalid_request", "x_app_initiated_sso_to_web_token is required when using app-initiated-sso-to-web")
+	}
+	if r.ResponseMode() != "cookie" {
+		return protocol.NewError("invalid_request", "only 'response_mode=cookie' is supported when using app-initiated-sso-to-web")
+	}
+	return nil
+}
+
 func (h *AuthorizationHandler) validateRequest(
 	client *config.OAuthClientConfig,
 	r protocol.AuthorizationRequest,
 ) error {
 	ok := false
+	responseType := r.ResponseType()
 	for _, respType := range whitelistedResponseTypes {
-		if respType == r.ResponseType() {
+		if respType.Equal(responseType) {
 			ok = true
 			break
 		}
 	}
 	if !ok {
 		return protocol.NewError("unauthorized_client", "response type is not allowed for this client")
-	}
-
-	if len(r.Scope()) == 0 {
-		return protocol.NewError("invalid_request", "scope is required")
 	}
 
 	if slice.ContainsString(r.Prompt(), "none") {
@@ -593,15 +697,25 @@ func (h *AuthorizationHandler) validateRequest(
 		}
 	}
 
-	switch r.ResponseType() {
-	case SettingsActonResponseType:
+	requireScope := func() error {
+		if len(r.Scope()) == 0 {
+			return protocol.NewError("invalid_request", "scope is required")
+		}
+		return nil
+	}
+
+	switch {
+	case responseType.Equal(SettingsActonResponseType):
 		if r.SettingsAction() == "delete_account" {
 			if !h.AccountDeletionConfig.ScheduledByEndUserEnabled {
 				return protocol.NewError("invalid_request", "account deletion by end user is disabled")
 			}
 		}
 		fallthrough
-	case CodeResponseType:
+	case responseType.Equal(CodeResponseType):
+		if err := requireScope(); err != nil {
+			return err
+		}
 		if client.IsPublic() {
 			if r.CodeChallenge() == "" {
 				return protocol.NewError("invalid_request", "PKCE code challenge is required for public clients")
@@ -610,10 +724,16 @@ func (h *AuthorizationHandler) validateRequest(
 		if r.CodeChallenge() != "" && r.CodeChallengeMethod() != pkce.CodeChallengeMethodS256 {
 			return protocol.NewError("invalid_request", "only 'S256' PKCE transform is supported")
 		}
-	case NoneResponseType:
-		break
+	case responseType.Equal(NoneResponseType):
+		if err := requireScope(); err != nil {
+			return err
+		}
+	case responseType.Equal(AppInitiatedSSOToWebTokenResponseType):
+		if err := h.validateAppInitiatedSSOToWebTokenRequest(client, r); err != nil {
+			return err
+		}
 	default:
-		return protocol.NewError("unsupported_response_type", "only 'code' response type is supported")
+		return protocol.NewError("unsupported_response_type", fmt.Sprintf("response_type: %v is not supported", responseType.Raw))
 	}
 
 	if r.SSOEnabled() && client != nil && client.MaxConcurrentSession == 1 {
