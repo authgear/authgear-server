@@ -117,19 +117,19 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, inputFn func(i
 		// Handle ErrBotProtectionVerification
 		var errBotProtectionVerification *ErrorBotProtectionVerification
 		if errors.As(err, &errBotProtectionVerification) {
+			_, notMatched := errorutil.Partition(err, func(err error) bool {
+				var _errBPV *ErrorBotProtectionVerification
+				return errors.As(err, &_errBPV) && _errBPV.Status == ErrorBotProtectionVerificationStatusSuccess
+			})
+			err = notMatched
+
 			switch errBotProtectionVerification.Status {
 			case ErrorBotProtectionVerificationStatusSuccess:
-				_, notMatched := errorutil.Partition(err, func(err error) bool {
-					var _errBPV *ErrorBotProtectionVerification
-					return errors.As(err, &_errBPV) && _errBPV.Status == ErrorBotProtectionVerificationStatusSuccess
-				})
-				err = notMatched
 				result = &AcceptResult{
 					BotProtectionVerificationResult: &BotProtectionVerificationResult{
 						Outcome: BotProtectionVerificationOutcomeVerified,
 					}}
 			case ErrorBotProtectionVerificationStatusFailed:
-				err = nil
 				// We still consider the flow has something changes.
 				changed = true
 
@@ -146,8 +146,8 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, inputFn func(i
 						Outcome: BotProtectionVerificationOutcomeFailed,
 					}}, botprotection.ErrVerificationServiceUnavailable
 			default:
-				// do nothing if unrecognized status
-				err = nil
+				// unrecognized status
+				panic("unrecognized bot protection special error status in accept loop")
 			}
 		}
 
