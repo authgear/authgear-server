@@ -121,10 +121,10 @@ Bot protection is supported in the following flow types:
 Bot protection is supported only in the following step types:
 
 - `identify` in `signup`, `promote`, `login`, `signup_login`, and `account_recovery`.
-- `create_authenticator` in `signup` and `promote`.
 - `authenticate` in `login` and `reauth`.
 
-We can see that all supported step types have branches.
+Note that the step type `create_authenticator` in `signup` and `promote` does not support bot protection.
+Bot protection should be configured at a previous step, for example `identify`.
 
 To enable bot protection in a branch, add `bot_protection` to the branch.
 
