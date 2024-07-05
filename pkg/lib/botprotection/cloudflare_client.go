@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -32,7 +32,7 @@ func NewCloudflareClient(c *config.BotProtectionProviderCredentials, e *config.E
 	}
 }
 
-func (c *CloudflareClient) Verify(token string, remoteip string) (*CloudflareTurnstileSuccessResponse, error) {
+func (c *CloudflareClient) Verify(token string, remoteip string) (*CloudflareTurnstileResponse, error) {
 	formValues := url.Values{}
 	formValues.Add("secret", c.Credentials.SecretKey)
 	formValues.Add("response", token)
@@ -44,40 +44,41 @@ func (c *CloudflareClient) Verify(token string, remoteip string) (*CloudflareTur
 	resp, err := c.HTTPClient.PostForm(c.VerifyEndpoint, formValues)
 
 	if err != nil {
-		return nil, errors.Join(err, ErrVerificationFailed)
+		return nil, errors.Join(ErrVerificationServiceUnavailable, err)
+	}
+	defer resp.Body.Close()
+
+	httpBodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, errors.Join(ErrVerificationServiceUnavailable, fmt.Errorf("failed to read response body: %w", err))
 	}
 
-	respBody := &CloudflareTurnstileRawResponse{}
-	err = json.NewDecoder(resp.Body).Decode(&respBody)
+	respBody := &CloudflareTurnstileResponse{}
+	err = json.Unmarshal(httpBodyBytes, &respBody)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal JSON: %w", err) // internal server error
+	}
 
-	if err != nil || respBody.Success == nil {
-		err := errors.Join(
-			fmt.Errorf("unrecognised response body from cloudflare turnstile"),
-			err,
-			ErrVerificationFailed,
-		)
-		return nil, errors.Join(err, ErrVerificationFailed)
+	if respBody.Success == nil {
+		return nil, fmt.Errorf("unexpected response body: %v", string(httpBodyBytes)) // internal server error
 	}
 
 	if *respBody.Success {
-		return &CloudflareTurnstileSuccessResponse{
-			ChallengeTs: respBody.ChallengeTs,
-			Hostname:    respBody.Hostname,
-			Action:      respBody.Action,
-			CData:       respBody.CData,
-		}, nil
+		return respBody, nil
 	}
 
 	// failed
-	failedResp := &CloudflareTurnstileErrorResponse{
-		ErrorCodes: respBody.ErrorCodes,
+	if len(respBody.ErrorCodes) == 0 {
+		return nil, ErrVerificationFailed // fail without error codes if empty
 	}
-	err = errors.New(failedResp.Error())
-	for _, errCode := range CloudFlareTurnstileServiceUnavailableErrorCodes {
-		if strings.Contains(failedResp.Error(), string(errCode)) {
-			return nil, errors.Join(ErrVerificationServiceUnavailable, err)
+
+	for _, suErrCode := range CloudFlareTurnstileServiceUnavailableErrorCodes {
+		for _, errCode := range respBody.ErrorCodes {
+			if errCode == suErrCode {
+				return nil, errors.Join(ErrVerificationServiceUnavailable, respBody)
+			}
 		}
 	}
 
-	return nil, errors.Join(err, ErrVerificationFailed)
+	return nil, errors.Join(ErrVerificationFailed, respBody)
 }

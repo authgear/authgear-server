@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"time"
@@ -29,7 +30,7 @@ func NewRecaptchaV2Client(c *config.BotProtectionProviderCredentials, e *config.
 	}
 }
 
-func (c *RecaptchaV2Client) Verify(token string, remoteip string) (*RecaptchaV2SuccessResponse, error) {
+func (c *RecaptchaV2Client) Verify(token string, remoteip string) (*RecaptchaV2Response, error) {
 	formValues := url.Values{}
 	formValues.Add("secret", c.Credentials.SecretKey)
 	formValues.Add("response", token)
@@ -41,34 +42,33 @@ func (c *RecaptchaV2Client) Verify(token string, remoteip string) (*RecaptchaV2S
 	resp, err := c.HTTPClient.PostForm(c.VerifyEndpoint, formValues)
 
 	if err != nil {
-		return nil, errors.Join(err, ErrVerificationFailed)
+		return nil, errors.Join(ErrVerificationServiceUnavailable, err)
+	}
+	defer resp.Body.Close()
+
+	httpBodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, errors.Join(ErrVerificationServiceUnavailable, fmt.Errorf("failed to read response body: %w", err))
 	}
 
-	respBody := &RecaptchaV2RawResponse{}
-	err = json.NewDecoder(resp.Body).Decode(&respBody)
+	respBody := &RecaptchaV2Response{}
+	err = json.Unmarshal(httpBodyBytes, &respBody)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal JSON: %w", err) // internal server error
+	}
 
-	if err != nil || respBody.Success == nil {
-		err := errors.Join(
-			fmt.Errorf("unrecognised response body from recaptchav2"),
-			err,
-			ErrVerificationFailed,
-		)
-		return nil, err
+	if respBody.Success == nil {
+		return nil, fmt.Errorf("unexpected response body: %v", string(httpBodyBytes)) // internal server error
 	}
 
 	if *respBody.Success {
-		return &RecaptchaV2SuccessResponse{
-			ChallengeTs: respBody.ChallengeTs,
-			Hostname:    respBody.Hostname,
-		}, nil
+		return respBody, nil
 	}
 
 	// failed
-	failedResp := &RecaptchaV2ErrorResponse{
-		ErrorCodes: respBody.ErrorCodes,
+	if len(respBody.ErrorCodes) == 0 {
+		return nil, ErrVerificationFailed // fail without error codes if empty
 	}
-	return nil, errors.Join(
-		errors.New(failedResp.Error()),
-		ErrVerificationFailed,
-	)
+
+	return nil, errors.Join(ErrVerificationFailed, respBody)
 }

@@ -6,35 +6,22 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
-// raw API response from cloudflare turnstile, which is not visible to consumer of this API client
-type CloudflareTurnstileRawResponse struct {
-	Success *bool `json:"success,omitempty"`
+// raw API response from cloudflare turnstile
+type CloudflareTurnstileResponse struct {
+	Success *bool `json:"success,omitempty,omitempty"`
 
 	// non-empty if Success == false, empty if Success == true
-	ErrorCodes []CloudflareTurnstileErrorCode `json:"error-codes"`
+	ErrorCodes []CloudflareTurnstileErrorCode `json:"error-codes,omitempty"`
 
 	// specific to Success == true
-	ChallengeTs string `json:"challenge_ts"` // ISO timestamp for the time the challenge was solved.
-	Hostname    string `json:"hostname"`     // hostname for which the challenge was served.
-	Action      string `json:"action"`       // customer widget identifier passed to the widget on the client side.
-	CData       string `json:"cdata"`        // customer data passed to the widget on the client side.
-}
-
-// parsed success response
-type CloudflareTurnstileSuccessResponse struct {
-	ChallengeTs string `json:"challenge_ts"` // ISO timestamp for the time the challenge was solved.
-	Hostname    string `json:"hostname"`     // hostname for which the challenge was served.
-	Action      string `json:"action"`       // customer widget identifier passed to the widget on the client side.
-	CData       string `json:"cdata"`        // customer data passed to the widget on the client side.
-}
-
-// parsed error response
-type CloudflareTurnstileErrorResponse struct {
-	ErrorCodes []CloudflareTurnstileErrorCode `json:"error-codes"`
+	ChallengeTs string `json:"challenge_ts,omitempty"` // ISO timestamp for the time the challenge was solved.
+	Hostname    string `json:"hostname,omitempty"`     // hostname for which the challenge was served.
+	Action      string `json:"action,omitempty"`       // customer widget identifier passed to the widget on the client side.
+	CData       string `json:"cdata,omitempty"`        // customer data passed to the widget on the client side.
 }
 
 // returns a comma separated string of error codes
-func (e *CloudflareTurnstileErrorResponse) Error() string {
+func (e *CloudflareTurnstileResponse) Error() string {
 	errorCodeStrings := slice.Map(e.ErrorCodes, func(c CloudflareTurnstileErrorCode) string {
 		return string(c)
 	})
