@@ -672,6 +672,7 @@ func (h *AuthorizationHandler) validateAppInitiatedSSOToWebTokenRequest(
 	return nil
 }
 
+// nolint:gocognit
 func (h *AuthorizationHandler) validateRequest(
 	client *config.OAuthClientConfig,
 	r protocol.AuthorizationRequest,
