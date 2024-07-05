@@ -21,6 +21,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	sessiontest "github.com/authgear/authgear-server/pkg/lib/session/test"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
@@ -293,6 +294,7 @@ func TestAuthorizationHandler(t *testing.T) {
 					So(codeGrantStore.grants[0], ShouldResemble, oauth.CodeGrant{
 						AppID:           "app-id",
 						AuthorizationID: authorization.ID,
+						SessionType:     session.TypeIdentityProvider,
 						SessionID:       "session-id",
 						AuthenticationInfo: authenticationinfo.T{
 							UserID: "user-id",
@@ -345,6 +347,7 @@ func TestAuthorizationHandler(t *testing.T) {
 					So(codeGrantStore.grants[0], ShouldResemble, oauth.CodeGrant{
 						AppID:           "app-id",
 						AuthorizationID: "authz-id",
+						SessionType:     session.TypeIdentityProvider,
 						SessionID:       "session-id",
 						AuthenticationInfo: authenticationinfo.T{
 							UserID: "user-id",
