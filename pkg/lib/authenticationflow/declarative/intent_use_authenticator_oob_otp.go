@@ -56,10 +56,13 @@ func (n *IntentUseAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *aut
 
 	switch {
 	case !authenticatorSelected:
+		shouldBypassBotProtection := ShouldExistingResultBypassBotProtectionRequirement(ctx)
 		return &InputSchemaUseAuthenticatorOOBOTP{
-			FlowRootObject: flowRootObject,
-			JSONPointer:    n.JSONPointer,
-			Options:        n.Options,
+			FlowRootObject:            flowRootObject,
+			JSONPointer:               n.JSONPointer,
+			Options:                   n.Options,
+			ShouldBypassBotProtection: shouldBypassBotProtection,
+			BotProtectionCfg:          deps.Config.BotProtection,
 		}, nil
 	case !claimVerified:
 		// Verify the claim

@@ -43,6 +43,7 @@ type InputSchemaTakePasskeyAssertionResponse struct {
 	JSONPointer             jsonpointer.T
 	FlowRootObject          config.AuthenticationFlowObject
 	IsBotProtectionRequired bool
+	BotProtectionCfg        *config.BotProtectionConfig
 }
 
 var _ authflow.InputSchema = &InputSchemaTakePasskeyAssertionResponse{}
@@ -62,7 +63,7 @@ func (i *InputSchemaTakePasskeyAssertionResponse) SchemaBuilder() validation.Sch
 	inputSchemaTakePasskeyAssertionResponseSchemaBuilder.Properties().Property("assertion_response", passkeyAssertionResponseSchemaBuilder)
 
 	if i.IsBotProtectionRequired {
-		inputSchemaTakePasskeyAssertionResponseSchemaBuilder = AddBotProtectionToExistingSchemaBuilder(inputSchemaTakePasskeyAssertionResponseSchemaBuilder)
+		inputSchemaTakePasskeyAssertionResponseSchemaBuilder = AddBotProtectionToExistingSchemaBuilder(inputSchemaTakePasskeyAssertionResponseSchemaBuilder, i.BotProtectionCfg)
 	}
 
 	return inputSchemaTakePasskeyAssertionResponseSchemaBuilder

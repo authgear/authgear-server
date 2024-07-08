@@ -61,6 +61,7 @@ func (n *IntentUseAuthenticatorTOTP) CanReactTo(ctx context.Context, deps *authf
 		JSONPointer:             n.JSONPointer,
 		FlowRootObject:          flowRootObject,
 		IsBotProtectionRequired: isBotProtectionRequired,
+		BotProtectionCfg:        deps.Config.BotProtection,
 	}, nil
 }
 

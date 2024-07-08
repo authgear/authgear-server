@@ -54,6 +54,7 @@ func (n *IntentLookupIdentityPasskey) CanReactTo(ctx context.Context, deps *auth
 		FlowRootObject:          flowRootObject,
 		JSONPointer:             n.JSONPointer,
 		IsBotProtectionRequired: isBotProtectionRequired,
+		BotProtectionCfg:        deps.Config.BotProtection,
 	}, nil
 }
 

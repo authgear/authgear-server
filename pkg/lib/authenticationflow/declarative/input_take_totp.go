@@ -14,6 +14,7 @@ type InputSchemaTakeTOTP struct {
 	JSONPointer             jsonpointer.T
 	FlowRootObject          config.AuthenticationFlowObject
 	IsBotProtectionRequired bool
+	BotProtectionCfg        *config.BotProtectionConfig
 }
 
 var _ authflow.InputSchema = &InputSchemaTakeTOTP{}
@@ -40,8 +41,8 @@ func (i *InputSchemaTakeTOTP) SchemaBuilder() validation.SchemaBuilder {
 		validation.SchemaBuilder{}.Type(validation.TypeBoolean),
 	)
 
-	if i.IsBotProtectionRequired {
-		inputTakeTOTPSchemaBuilder = AddBotProtectionToExistingSchemaBuilder(inputTakeTOTPSchemaBuilder)
+	if i.IsBotProtectionRequired && i.BotProtectionCfg != nil {
+		inputTakeTOTPSchemaBuilder = AddBotProtectionToExistingSchemaBuilder(inputTakeTOTPSchemaBuilder, i.BotProtectionCfg)
 	}
 	return inputTakeTOTPSchemaBuilder
 }

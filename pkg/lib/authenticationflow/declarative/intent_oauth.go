@@ -76,6 +76,7 @@ func (i *IntentOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencie
 			JSONPointer:             i.JSONPointer,
 			OAuthOptions:            oauthOptions,
 			IsBotProtectionRequired: isBotProtectionRequired,
+			BotProtectionCfg:        deps.Config.BotProtection,
 		}, nil
 	}
 	return nil, authflow.ErrEOF

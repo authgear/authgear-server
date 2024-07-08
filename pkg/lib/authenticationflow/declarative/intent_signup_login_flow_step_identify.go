@@ -90,6 +90,7 @@ func (i *IntentSignupLoginFlowStepIdentify) CanReactTo(ctx context.Context, deps
 			JSONPointer:               i.JSONPointer,
 			Options:                   i.Options,
 			ShouldBypassBotProtection: shouldBypassBotProtection,
+			BotProtectionCfg:          deps.Config.BotProtection,
 		}, nil
 	}
 

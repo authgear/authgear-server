@@ -14,6 +14,7 @@ type InputSchemaTakePassword struct {
 	JSONPointer             jsonpointer.T
 	FlowRootObject          config.AuthenticationFlowObject
 	IsBotProtectionRequired bool
+	BotProtectionCfg        *config.BotProtectionConfig
 }
 
 var _ authflow.InputSchema = &InputSchemaTakePassword{}
@@ -39,8 +40,8 @@ func (i *InputSchemaTakePassword) SchemaBuilder() validation.SchemaBuilder {
 		"request_device_token",
 		validation.SchemaBuilder{}.Type(validation.TypeBoolean),
 	)
-	if i.IsBotProtectionRequired {
-		inputTakePasswordSchemaBuilder = AddBotProtectionToExistingSchemaBuilder(inputTakePasswordSchemaBuilder)
+	if i.IsBotProtectionRequired && i.BotProtectionCfg != nil {
+		inputTakePasswordSchemaBuilder = AddBotProtectionToExistingSchemaBuilder(inputTakePasswordSchemaBuilder, i.BotProtectionCfg)
 	}
 	return inputTakePasswordSchemaBuilder
 }

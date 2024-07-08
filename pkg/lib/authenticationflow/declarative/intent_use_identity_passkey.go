@@ -62,6 +62,7 @@ func (n *IntentUseIdentityPasskey) CanReactTo(ctx context.Context, deps *authflo
 		FlowRootObject:          flowRootObject,
 		JSONPointer:             n.JSONPointer,
 		IsBotProtectionRequired: isBotProtectionRequired,
+		BotProtectionCfg:        deps.Config.BotProtection,
 	}, nil
 }
 

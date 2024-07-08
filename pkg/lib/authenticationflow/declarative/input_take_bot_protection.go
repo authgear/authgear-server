@@ -10,32 +10,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-var InputTakeBotProtectionSchemaBuilder validation.SchemaBuilder
-var InputTakeBotProtectionBodySchemaBuilder validation.SchemaBuilder
-
-func init() {
-	InputTakeBotProtectionBodySchemaBuilder = validation.SchemaBuilder{}.Type(validation.TypeObject)
-	InputTakeBotProtectionBodySchemaBuilder.Required("type")
-	InputTakeBotProtectionBodySchemaBuilder.Properties().Property("type", validation.SchemaBuilder{}.Type(validation.TypeString).Enum(config.BotProtectionProviderTypeCloudflare, config.BotProtectionProviderTypeRecaptchaV2))
-	InputTakeBotProtectionBodySchemaBuilder.Properties().Property("response", validation.SchemaBuilder{}.Type(validation.TypeString))
-
-	// require "response" if type is in {"cloudflare", "recaptchav2"}
-	allOf := validation.SchemaBuilder{}
-	if_ := validation.SchemaBuilder{}
-	if_.Properties().Property("type", validation.SchemaBuilder{}.Enum(config.BotProtectionProviderTypeCloudflare, config.BotProtectionProviderTypeRecaptchaV2))
-	if_.Required("type")
-	then_ := validation.SchemaBuilder{}
-	then_.Required("response", "type")
-	allOf.If(if_).Then(then_)
-
-	InputTakeBotProtectionBodySchemaBuilder.AllOf(allOf)
-	InputTakeBotProtectionSchemaBuilder = validation.SchemaBuilder{}.Type(validation.TypeObject)
-	InputTakeBotProtectionSchemaBuilder = AddBotProtectionToExistingSchemaBuilder(InputTakeBotProtectionSchemaBuilder)
-}
-
 type InputSchemaTakeBotProtection struct {
-	JSONPointer    jsonpointer.T
-	FlowRootObject config.AuthenticationFlowObject
+	JSONPointer      jsonpointer.T
+	FlowRootObject   config.AuthenticationFlowObject
+	BotProtectionCfg *config.BotProtectionConfig
 }
 
 var _ authflow.InputSchema = &InputSchemaTakeBotProtection{}
@@ -48,8 +26,10 @@ func (i *InputSchemaTakeBotProtection) GetFlowRootObject() config.Authentication
 	return i.FlowRootObject
 }
 
-func (*InputSchemaTakeBotProtection) SchemaBuilder() validation.SchemaBuilder {
-	return InputTakeBotProtectionSchemaBuilder
+func (i *InputSchemaTakeBotProtection) SchemaBuilder() validation.SchemaBuilder {
+	b := validation.SchemaBuilder{}.Type(validation.TypeObject)
+	b = AddBotProtectionToExistingSchemaBuilder(b, i.BotProtectionCfg)
+	return b
 }
 
 func (i *InputSchemaTakeBotProtection) MakeInput(rawMessage json.RawMessage) (authflow.Input, error) {
@@ -94,8 +74,30 @@ type InputTakeBotProtectionBody struct {
 	Response string `json:"response,omitempty"`
 }
 
-func AddBotProtectionToExistingSchemaBuilder(sb validation.SchemaBuilder) validation.SchemaBuilder {
+func NewBotProtectionBodySchemaBuilder(bpCfg *config.BotProtectionConfig) validation.SchemaBuilder {
+	if bpCfg == nil || bpCfg.Provider == nil || bpCfg.Provider.Type == "" {
+		panic("invalid bot protection config")
+	}
+
+	targetProviderType := bpCfg.Provider.Type
+	b := validation.SchemaBuilder{}.Type(validation.TypeObject)
+	b.Required("type")
+	b.Properties().Property("type", validation.SchemaBuilder{}.Const(targetProviderType))
+
+	switch targetProviderType {
+	case config.BotProtectionProviderTypeCloudflare:
+		b.Properties().Property("response", validation.SchemaBuilder{}.Type(validation.TypeString))
+		b.AddRequired("response")
+	case config.BotProtectionProviderTypeRecaptchaV2:
+		b.Properties().Property("response", validation.SchemaBuilder{}.Type(validation.TypeString))
+		b.AddRequired("response")
+	}
+
+	return b
+}
+
+func AddBotProtectionToExistingSchemaBuilder(sb validation.SchemaBuilder, bpCfg *config.BotProtectionConfig) validation.SchemaBuilder {
 	sb.AddRequired("bot_protection")
-	sb.Properties().Property(("bot_protection"), InputTakeBotProtectionBodySchemaBuilder)
+	sb.Properties().Property(("bot_protection"), NewBotProtectionBodySchemaBuilder(bpCfg))
 	return sb
 }

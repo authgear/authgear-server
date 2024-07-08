@@ -154,6 +154,7 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 			Options:                   i.Options,
 			DeviceTokenEnabled:        deviceTokenEnabled,
 			ShouldBypassBotProtection: shouldBypassBotProtection,
+			BotProtectionCfg:          deps.Config.BotProtection,
 		}, nil
 	case !authenticated:
 		// This branch is only reached when there is a programming error.

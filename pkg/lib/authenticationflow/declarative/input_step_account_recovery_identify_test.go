@@ -24,7 +24,14 @@ func TestInputSchemaStepAccountRecoveryIdentify(t *testing.T) {
 				Type: config.BotProtectionProviderTypeCloudflare,
 			},
 		}
+		var dummyBotProtectionCfg = &config.BotProtectionConfig{
+			Enabled: true,
+			Provider: &config.BotProtectionProvider{
+				Type: config.BotProtectionProviderTypeCloudflare,
+			},
+		}
 		test(&InputSchemaStepAccountRecoveryIdentify{
+			BotProtectionCfg: dummyBotProtectionCfg,
 			Options: []AccountRecoveryIdentificationOption{
 				{
 					Identification: config.AuthenticationFlowAccountRecoveryIdentificationEmail,
@@ -41,43 +48,17 @@ func TestInputSchemaStepAccountRecoveryIdentify(t *testing.T) {
         {
             "properties": {
                 "bot_protection": {
-                    "allOf": [
-                        {
-                            "if": {
-                                "properties": {
-                                    "type": {
-                                        "enum": [
-                                            "cloudflare",
-                                            "recaptchav2"
-                                        ]
-                                    }
-                                },
-                                "required": [
-                                    "type"
-                                ]
-                            },
-                            "then": {
-                                "required": [
-                                    "response",
-                                    "type"
-                                ]
-                            }
-                        }
-                    ],
                     "properties": {
                         "response": {
                             "type": "string"
                         },
                         "type": {
-                            "enum": [
-                                "cloudflare",
-                                "recaptchav2"
-                            ],
-                            "type": "string"
+                            "const": "cloudflare"
                         }
                     },
                     "required": [
-                        "type"
+                        "type",
+                        "response"
                     ],
                     "type": "object"
                 },
@@ -97,43 +78,17 @@ func TestInputSchemaStepAccountRecoveryIdentify(t *testing.T) {
         {
             "properties": {
                 "bot_protection": {
-                    "allOf": [
-                        {
-                            "if": {
-                                "properties": {
-                                    "type": {
-                                        "enum": [
-                                            "cloudflare",
-                                            "recaptchav2"
-                                        ]
-                                    }
-                                },
-                                "required": [
-                                    "type"
-                                ]
-                            },
-                            "then": {
-                                "required": [
-                                    "response",
-                                    "type"
-                                ]
-                            }
-                        }
-                    ],
                     "properties": {
                         "response": {
                             "type": "string"
                         },
                         "type": {
-                            "enum": [
-                                "cloudflare",
-                                "recaptchav2"
-                            ],
-                            "type": "string"
+                            "const": "cloudflare"
                         }
                     },
                     "required": [
-                        "type"
+                        "type",
+                        "response"
                     ],
                     "type": "object"
                 },

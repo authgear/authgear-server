@@ -91,6 +91,7 @@ func (i *IntentReauthFlowStepAuthenticate) CanReactTo(ctx context.Context, deps 
 			JSONPointer:               i.JSONPointer,
 			Options:                   i.Options,
 			ShouldBypassBotProtection: shouldBypassBotProtection,
+			BotProtectionCfg:          deps.Config.BotProtection,
 		}, nil
 	case !authenticated:
 		// This branch is only reached when there is a programming error.

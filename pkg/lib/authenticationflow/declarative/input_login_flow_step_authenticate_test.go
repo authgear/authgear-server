@@ -280,7 +280,14 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
 					Type: config.BotProtectionProviderTypeCloudflare,
 				},
 			}
+			var dummyBotProtectionCfg = &config.BotProtectionConfig{
+				Enabled: true,
+				Provider: &config.BotProtectionProvider{
+					Type: config.BotProtectionProviderTypeCloudflare,
+				},
+			}
 			test((&InputSchemaLoginFlowStepAuthenticate{
+				BotProtectionCfg: dummyBotProtectionCfg,
 				Options: []AuthenticateOption{
 					{
 						Authentication: config.AuthenticationFlowAuthenticationPrimaryPassword,
@@ -339,43 +346,17 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                     "const": "primary_password"
                 },
                 "bot_protection": {
-                    "allOf": [
-                        {
-                        "if": {
-                            "properties": {
-                            "type": {
-                                "enum": [
-                                "cloudflare",
-                                "recaptchav2"
-                                ]
-                            }
-                            },
-                            "required": [
-                            "type"
-                            ]
-                        },
-                        "then": {
-                            "required": [
-                            "response",
-                            "type"
-                            ]
-                        }
-                        }
-                    ],
                     "properties": {
                         "response": {
-                        "type": "string"
+                            "type": "string"
                         },
                         "type": {
-                        "enum": [
-                            "cloudflare",
-                            "recaptchav2"
-                        ],
-                        "type": "string"
+                            "const": "cloudflare"
                         }
                     },
                     "required": [
-                        "type"
+                        "type",
+                        "response"
                     ],
                     "type": "object"
                 },
@@ -445,43 +426,17 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                     "const": "primary_passkey"
                 },
                 "bot_protection": {
-                    "allOf": [
-                        {
-                        "if": {
-                            "properties": {
-                            "type": {
-                                "enum": [
-                                "cloudflare",
-                                "recaptchav2"
-                                ]
-                            }
-                            },
-                            "required": [
-                            "type"
-                            ]
-                        },
-                        "then": {
-                            "required": [
-                            "response",
-                            "type"
-                            ]
-                        }
-                        }
-                    ],
                     "properties": {
                         "response": {
-                        "type": "string"
+                            "type": "string"
                         },
                         "type": {
-                        "enum": [
-                            "cloudflare",
-                            "recaptchav2"
-                        ],
-                        "type": "string"
+                            "const": "cloudflare"
                         }
                     },
                     "required": [
-                        "type"
+                        "type",
+                        "response"
                     ],
                     "type": "object"
                 }
@@ -498,43 +453,17 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                     "const": "secondary_password"
                 },
                 "bot_protection": {
-                    "allOf": [
-                        {
-                        "if": {
-                            "properties": {
-                            "type": {
-                                "enum": [
-                                "cloudflare",
-                                "recaptchav2"
-                                ]
-                            }
-                            },
-                            "required": [
-                            "type"
-                            ]
-                        },
-                        "then": {
-                            "required": [
-                            "response",
-                            "type"
-                            ]
-                        }
-                        }
-                    ],
                     "properties": {
                         "response": {
-                        "type": "string"
+                            "type": "string"
                         },
                         "type": {
-                        "enum": [
-                            "cloudflare",
-                            "recaptchav2"
-                        ],
-                        "type": "string"
+                            "const": "cloudflare"
                         }
                     },
                     "required": [
-                        "type"
+                        "type",
+                        "response"
                     ],
                     "type": "object"
                 },
@@ -554,43 +483,17 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                     "const": "secondary_totp"
                 },
                 "bot_protection": {
-                    "allOf": [
-                        {
-                        "if": {
-                            "properties": {
-                            "type": {
-                                "enum": [
-                                "cloudflare",
-                                "recaptchav2"
-                                ]
-                            }
-                            },
-                            "required": [
-                            "type"
-                            ]
-                        },
-                        "then": {
-                            "required": [
-                            "response",
-                            "type"
-                            ]
-                        }
-                        }
-                    ],
                     "properties": {
                         "response": {
-                        "type": "string"
+                            "type": "string"
                         },
                         "type": {
-                        "enum": [
-                            "cloudflare",
-                            "recaptchav2"
-                        ],
-                        "type": "string"
+                            "const": "cloudflare"
                         }
                     },
                     "required": [
-                        "type"
+                        "type",
+                        "response"
                     ],
                     "type": "object"
                 },
@@ -610,43 +513,17 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                     "const": "primary_oob_otp_email"
                 },
                 "bot_protection": {
-                    "allOf": [
-                        {
-                        "if": {
-                            "properties": {
-                            "type": {
-                                "enum": [
-                                "cloudflare",
-                                "recaptchav2"
-                                ]
-                            }
-                            },
-                            "required": [
-                            "type"
-                            ]
-                        },
-                        "then": {
-                            "required": [
-                            "response",
-                            "type"
-                            ]
-                        }
-                        }
-                    ],
                     "properties": {
                         "response": {
-                        "type": "string"
+                            "type": "string"
                         },
                         "type": {
-                        "enum": [
-                            "cloudflare",
-                            "recaptchav2"
-                        ],
-                        "type": "string"
+                            "const": "cloudflare"
                         }
                     },
                     "required": [
-                        "type"
+                        "type",
+                        "response"
                     ],
                     "type": "object"
                 },
@@ -667,43 +544,17 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                     "const": "primary_oob_otp_sms"
                 },
                 "bot_protection": {
-                    "allOf": [
-                        {
-                        "if": {
-                            "properties": {
-                            "type": {
-                                "enum": [
-                                "cloudflare",
-                                "recaptchav2"
-                                ]
-                            }
-                            },
-                            "required": [
-                            "type"
-                            ]
-                        },
-                        "then": {
-                            "required": [
-                            "response",
-                            "type"
-                            ]
-                        }
-                        }
-                    ],
                     "properties": {
                         "response": {
-                        "type": "string"
+                            "type": "string"
                         },
                         "type": {
-                        "enum": [
-                            "cloudflare",
-                            "recaptchav2"
-                        ],
-                        "type": "string"
+                            "const": "cloudflare"
                         }
                     },
                     "required": [
-                        "type"
+                        "type",
+                        "response"
                     ],
                     "type": "object"
                 },
@@ -724,43 +575,17 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                     "const": "secondary_oob_otp_email"
                 },
                 "bot_protection": {
-                    "allOf": [
-                        {
-                        "if": {
-                            "properties": {
-                            "type": {
-                                "enum": [
-                                "cloudflare",
-                                "recaptchav2"
-                                ]
-                            }
-                            },
-                            "required": [
-                            "type"
-                            ]
-                        },
-                        "then": {
-                            "required": [
-                            "response",
-                            "type"
-                            ]
-                        }
-                        }
-                    ],
                     "properties": {
                         "response": {
-                        "type": "string"
+                            "type": "string"
                         },
                         "type": {
-                        "enum": [
-                            "cloudflare",
-                            "recaptchav2"
-                        ],
-                        "type": "string"
+                            "const": "cloudflare"
                         }
                     },
                     "required": [
-                        "type"
+                        "type",
+                        "response"
                     ],
                     "type": "object"
                 },
@@ -781,43 +606,17 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                     "const": "secondary_oob_otp_sms"
                 },
                 "bot_protection": {
-                    "allOf": [
-                        {
-                        "if": {
-                            "properties": {
-                            "type": {
-                                "enum": [
-                                "cloudflare",
-                                "recaptchav2"
-                                ]
-                            }
-                            },
-                            "required": [
-                            "type"
-                            ]
-                        },
-                        "then": {
-                            "required": [
-                            "response",
-                            "type"
-                            ]
-                        }
-                        }
-                    ],
                     "properties": {
                         "response": {
-                        "type": "string"
+                            "type": "string"
                         },
                         "type": {
-                        "enum": [
-                            "cloudflare",
-                            "recaptchav2"
-                        ],
-                        "type": "string"
+                            "const": "cloudflare"
                         }
                     },
                     "required": [
-                        "type"
+                        "type",
+                        "response"
                     ],
                     "type": "object"
                 },
@@ -838,43 +637,17 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                     "const": "recovery_code"
                 },
                 "bot_protection": {
-                    "allOf": [
-                        {
-                        "if": {
-                            "properties": {
-                            "type": {
-                                "enum": [
-                                "cloudflare",
-                                "recaptchav2"
-                                ]
-                            }
-                            },
-                            "required": [
-                            "type"
-                            ]
-                        },
-                        "then": {
-                            "required": [
-                            "response",
-                            "type"
-                            ]
-                        }
-                        }
-                    ],
                     "properties": {
                         "response": {
-                        "type": "string"
+                            "type": "string"
                         },
                         "type": {
-                        "enum": [
-                            "cloudflare",
-                            "recaptchav2"
-                        ],
-                        "type": "string"
+                            "const": "cloudflare"
                         }
                     },
                     "required": [
-                        "type"
+                        "type",
+                        "response"
                     ],
                     "type": "object"
                 },
@@ -900,7 +673,14 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
 					Type: config.BotProtectionProviderTypeCloudflare,
 				},
 			}
+			var dummyBotProtectionCfg = &config.BotProtectionConfig{
+				Enabled: true,
+				Provider: &config.BotProtectionProvider{
+					Type: config.BotProtectionProviderTypeCloudflare,
+				},
+			}
 			test((&InputSchemaLoginFlowStepAuthenticate{
+				BotProtectionCfg: dummyBotProtectionCfg,
 				Options: []AuthenticateOption{
 					{
 						Authentication: config.AuthenticationFlowAuthenticationPrimaryPassword,
@@ -1021,43 +801,17 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                     "const": "primary_passkey"
                 },
                 "bot_protection": {
-                    "allOf": [
-                        {
-                        "if": {
-                            "properties": {
-                            "type": {
-                                "enum": [
-                                "cloudflare",
-                                "recaptchav2"
-                                ]
-                            }
-                            },
-                            "required": [
-                            "type"
-                            ]
-                        },
-                        "then": {
-                            "required": [
-                            "response",
-                            "type"
-                            ]
-                        }
-                        }
-                    ],
                     "properties": {
                         "response": {
-                        "type": "string"
+                            "type": "string"
                         },
                         "type": {
-                        "enum": [
-                            "cloudflare",
-                            "recaptchav2"
-                        ],
-                        "type": "string"
+                            "const": "cloudflare"
                         }
                     },
                     "required": [
-                        "type"
+                        "type",
+                        "response"
                     ],
                     "type": "object"
                 }
@@ -1074,43 +828,17 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                     "const": "secondary_password"
                 },
                 "bot_protection": {
-                    "allOf": [
-                        {
-                        "if": {
-                            "properties": {
-                            "type": {
-                                "enum": [
-                                "cloudflare",
-                                "recaptchav2"
-                                ]
-                            }
-                            },
-                            "required": [
-                            "type"
-                            ]
-                        },
-                        "then": {
-                            "required": [
-                            "response",
-                            "type"
-                            ]
-                        }
-                        }
-                    ],
                     "properties": {
                         "response": {
-                        "type": "string"
+                            "type": "string"
                         },
                         "type": {
-                        "enum": [
-                            "cloudflare",
-                            "recaptchav2"
-                        ],
-                        "type": "string"
+                            "const": "cloudflare"
                         }
                     },
                     "required": [
-                        "type"
+                        "type",
+                        "response"
                     ],
                     "type": "object"
                 },
@@ -1130,43 +858,17 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                     "const": "secondary_totp"
                 },
                 "bot_protection": {
-                    "allOf": [
-                        {
-                        "if": {
-                            "properties": {
-                            "type": {
-                                "enum": [
-                                "cloudflare",
-                                "recaptchav2"
-                                ]
-                            }
-                            },
-                            "required": [
-                            "type"
-                            ]
-                        },
-                        "then": {
-                            "required": [
-                            "response",
-                            "type"
-                            ]
-                        }
-                        }
-                    ],
                     "properties": {
                         "response": {
-                        "type": "string"
+                            "type": "string"
                         },
                         "type": {
-                        "enum": [
-                            "cloudflare",
-                            "recaptchav2"
-                        ],
-                        "type": "string"
+                            "const": "cloudflare"
                         }
                     },
                     "required": [
-                        "type"
+                        "type",
+                        "response"
                     ],
                     "type": "object"
                 },
@@ -1186,43 +888,17 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                     "const": "primary_oob_otp_email"
                 },
                 "bot_protection": {
-                    "allOf": [
-                        {
-                        "if": {
-                            "properties": {
-                            "type": {
-                                "enum": [
-                                "cloudflare",
-                                "recaptchav2"
-                                ]
-                            }
-                            },
-                            "required": [
-                            "type"
-                            ]
-                        },
-                        "then": {
-                            "required": [
-                            "response",
-                            "type"
-                            ]
-                        }
-                        }
-                    ],
                     "properties": {
                         "response": {
-                        "type": "string"
+                            "type": "string"
                         },
                         "type": {
-                        "enum": [
-                            "cloudflare",
-                            "recaptchav2"
-                        ],
-                        "type": "string"
+                            "const": "cloudflare"
                         }
                     },
                     "required": [
-                        "type"
+                        "type",
+                        "response"
                     ],
                     "type": "object"
                 },
@@ -1243,43 +919,17 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                     "const": "primary_oob_otp_sms"
                 },
                 "bot_protection": {
-                    "allOf": [
-                        {
-                        "if": {
-                            "properties": {
-                            "type": {
-                                "enum": [
-                                "cloudflare",
-                                "recaptchav2"
-                                ]
-                            }
-                            },
-                            "required": [
-                            "type"
-                            ]
-                        },
-                        "then": {
-                            "required": [
-                            "response",
-                            "type"
-                            ]
-                        }
-                        }
-                    ],
                     "properties": {
                         "response": {
-                        "type": "string"
+                            "type": "string"
                         },
                         "type": {
-                        "enum": [
-                            "cloudflare",
-                            "recaptchav2"
-                        ],
-                        "type": "string"
+                            "const": "cloudflare"
                         }
                     },
                     "required": [
-                        "type"
+                        "type",
+                        "response"
                     ],
                     "type": "object"
                 },
@@ -1300,43 +950,17 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                     "const": "secondary_oob_otp_email"
                 },
                 "bot_protection": {
-                    "allOf": [
-                        {
-                        "if": {
-                            "properties": {
-                            "type": {
-                                "enum": [
-                                "cloudflare",
-                                "recaptchav2"
-                                ]
-                            }
-                            },
-                            "required": [
-                            "type"
-                            ]
-                        },
-                        "then": {
-                            "required": [
-                            "response",
-                            "type"
-                            ]
-                        }
-                        }
-                    ],
                     "properties": {
                         "response": {
-                        "type": "string"
+                            "type": "string"
                         },
                         "type": {
-                        "enum": [
-                            "cloudflare",
-                            "recaptchav2"
-                        ],
-                        "type": "string"
+                            "const": "cloudflare"
                         }
                     },
                     "required": [
-                        "type"
+                        "type",
+                        "response"
                     ],
                     "type": "object"
                 },
@@ -1357,43 +981,17 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                     "const": "secondary_oob_otp_sms"
                 },
                 "bot_protection": {
-                    "allOf": [
-                        {
-                        "if": {
-                            "properties": {
-                            "type": {
-                                "enum": [
-                                "cloudflare",
-                                "recaptchav2"
-                                ]
-                            }
-                            },
-                            "required": [
-                            "type"
-                            ]
-                        },
-                        "then": {
-                            "required": [
-                            "response",
-                            "type"
-                            ]
-                        }
-                        }
-                    ],
                     "properties": {
                         "response": {
-                        "type": "string"
+                            "type": "string"
                         },
                         "type": {
-                        "enum": [
-                            "cloudflare",
-                            "recaptchav2"
-                        ],
-                        "type": "string"
+                            "const": "cloudflare"
                         }
                     },
                     "required": [
-                        "type"
+                        "type",
+                        "response"
                     ],
                     "type": "object"
                 },

@@ -53,10 +53,16 @@ func (i *IntentPromoteIdentityOAuth) CanReactTo(ctx context.Context, deps *authf
 		}
 		oauthOptions := NewIdentificationOptionsOAuth(deps.Config.Identity.OAuth, deps.FeatureConfig.Identity.OAuth.Providers, authflowCfg, deps.Config.BotProtection)
 
+		isBotProtectionRequired, err := IsBotProtectionRequired(ctx, flowRootObject, i.JSONPointer)
+		if err != nil {
+			return nil, err
+		}
 		return &InputSchemaTakeOAuthAuthorizationRequest{
-			FlowRootObject: flowRootObject,
-			JSONPointer:    i.JSONPointer,
-			OAuthOptions:   oauthOptions,
+			FlowRootObject:          flowRootObject,
+			JSONPointer:             i.JSONPointer,
+			OAuthOptions:            oauthOptions,
+			IsBotProtectionRequired: isBotProtectionRequired,
+			BotProtectionCfg:        deps.Config.BotProtection,
 		}, nil
 	}
 	return nil, authflow.ErrEOF

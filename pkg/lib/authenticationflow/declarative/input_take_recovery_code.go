@@ -14,6 +14,7 @@ type InputSchemaTakeRecoveryCode struct {
 	JSONPointer             jsonpointer.T
 	FlowRootObject          config.AuthenticationFlowObject
 	IsBotProtectionRequired bool
+	BotProtectionCfg        *config.BotProtectionConfig
 }
 
 var _ authflow.InputSchema = &InputSchemaTakeRecoveryCode{}
@@ -39,8 +40,8 @@ func (i *InputSchemaTakeRecoveryCode) SchemaBuilder() validation.SchemaBuilder {
 		"request_device_token",
 		validation.SchemaBuilder{}.Type(validation.TypeBoolean),
 	)
-	if i.IsBotProtectionRequired {
-		inputTakeRecoveryCodeSchemaBuilder = AddBotProtectionToExistingSchemaBuilder(inputTakeRecoveryCodeSchemaBuilder)
+	if i.IsBotProtectionRequired && i.BotProtectionCfg != nil {
+		inputTakeRecoveryCodeSchemaBuilder = AddBotProtectionToExistingSchemaBuilder(inputTakeRecoveryCodeSchemaBuilder, i.BotProtectionCfg)
 	}
 	return inputTakeRecoveryCodeSchemaBuilder
 }

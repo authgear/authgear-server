@@ -58,6 +58,7 @@ func (i *IntentLookupIdentityOAuth) CanReactTo(ctx context.Context, deps *authfl
 			JSONPointer:             i.JSONPointer,
 			OAuthOptions:            oauthOptions,
 			IsBotProtectionRequired: isBotProtectionRequired,
+			BotProtectionCfg:        deps.Config.BotProtection,
 		}, nil
 	}
 	return nil, authflow.ErrEOF

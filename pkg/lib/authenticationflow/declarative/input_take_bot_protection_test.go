@@ -5,12 +5,20 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func TestInputTakeBotProtection(t *testing.T) {
 	Convey("InputTakeBotProtectionBody", t, func() {
+		dummyBotProtectionCfg := &config.BotProtectionConfig{
+			Enabled: true,
+			Provider: &config.BotProtectionProvider{
+				Type: config.BotProtectionProviderTypeCloudflare,
+			},
+		}
 		test := func(expected string) {
-			b := InputTakeBotProtectionBodySchemaBuilder
+			b := NewBotProtectionBodySchemaBuilder(dummyBotProtectionCfg)
 			bytes, err := json.Marshal(b)
 			So(err, ShouldBeNil)
 			So(string(bytes), ShouldEqualJSON, expected)
@@ -18,103 +26,62 @@ func TestInputTakeBotProtection(t *testing.T) {
 
 		test(`
 {
-    "allOf": [
-        {
-            "if": {
-                "properties": {
-                    "type": {
-                        "enum": [
-                            "cloudflare",
-                            "recaptchav2"
-                        ]
-                    }
-                },
-                "required": [
-                    "type"
-                ]
-            },
-            "then": {
-                "required": [
-                    "response",
-                    "type"
-                ]
-            }
-        }
-    ],
     "properties": {
         "response": {
             "type": "string"
         },
         "type": {
-            "enum": [
-                "cloudflare",
-                "recaptchav2"
-            ],
-            "type": "string"
+            "const": "cloudflare"
         }
     },
     "required": [
-        "type"
+        "type",
+        "response"
     ],
     "type": "object"
 }
 `)
 	})
-	Convey("InputTakeBotProtection", t, func() {
-		test := func(expected string) {
-			b := InputTakeBotProtectionSchemaBuilder
+	Convey("InputSchemaTakeBotProtection", t, func() {
+		test := func(s *InputSchemaTakeBotProtection, expected string) {
+			b := s.SchemaBuilder()
 			bytes, err := json.Marshal(b)
 			So(err, ShouldBeNil)
 			So(string(bytes), ShouldEqualJSON, expected)
 		}
-		test(`
+		var dummyBotProtectionCfg = &config.BotProtectionConfig{
+			Enabled: true,
+			Provider: &config.BotProtectionProvider{
+				Type: config.BotProtectionProviderTypeCloudflare,
+			},
+		}
+
+		test(&InputSchemaTakeBotProtection{
+			BotProtectionCfg: dummyBotProtectionCfg,
+		}, `
 {
-    "type": "object",
-    "required": ["bot_protection"],
     "properties": {
         "bot_protection": {
-            "allOf": [
-                {
-                    "if": {
-                        "properties": {
-                            "type": {
-                                "enum": [
-                                    "cloudflare",
-                                    "recaptchav2"
-                                ]
-                            }
-                        },
-                        "required": [
-                            "type"
-                        ]
-                    },
-                    "then": {
-                        "required": [
-                            "response",
-                            "type"
-                        ]
-                    }
-                }
-            ],
             "properties": {
                 "response": {
                     "type": "string"
                 },
                 "type": {
-                    "enum": [
-                        "cloudflare",
-                        "recaptchav2"
-                    ],
-                    "type": "string"
+                    "const": "cloudflare"
                 }
             },
             "required": [
-                "type"
+                "type",
+                "response"
             ],
             "type": "object"
         }
-    }
+    },
+    "required": [
+        "bot_protection"
+    ],
+    "type": "object"
 }
-`)
+        `)
 	})
 }

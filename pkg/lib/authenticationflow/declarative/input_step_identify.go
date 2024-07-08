@@ -17,6 +17,7 @@ type InputSchemaStepIdentify struct {
 	FlowRootObject            config.AuthenticationFlowObject
 	Options                   []IdentificationOption
 	ShouldBypassBotProtection bool
+	BotProtectionCfg          *config.BotProtectionConfig
 }
 
 var _ authflow.InputSchema = &InputSchemaStepIdentify{}
@@ -43,7 +44,7 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 		}
 		requireBotProtection := func() {
 			required = append(required, "bot_protection")
-			b.Properties().Property("bot_protection", InputTakeBotProtectionBodySchemaBuilder)
+			b.Properties().Property("bot_protection", NewBotProtectionBodySchemaBuilder(i.BotProtectionCfg))
 		}
 
 		setRequiredAndAppendOneOf := func() {
@@ -51,7 +52,7 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 			oneOf = append(oneOf, b)
 		}
 
-		if !i.ShouldBypassBotProtection && option.isBotProtectionRequired() {
+		if !i.ShouldBypassBotProtection && i.BotProtectionCfg != nil && option.isBotProtectionRequired() {
 			requireBotProtection()
 		}
 

@@ -70,6 +70,7 @@ func (i *IntentReauthFlowStepIdentify) CanReactTo(ctx context.Context, deps *aut
 			JSONPointer:               i.JSONPointer,
 			Options:                   i.Options,
 			ShouldBypassBotProtection: shouldBypassBotProtection,
+			BotProtectionCfg:          deps.Config.BotProtection,
 		}, nil
 	case userIdentified && !nestedStepsHandled:
 		// Handle nested steps.

@@ -96,9 +96,10 @@ func (i *IntentAccountRecoveryFlowStepIdentify) CanReactTo(ctx context.Context, 
 			return nil, err
 		}
 		return &InputSchemaStepAccountRecoveryIdentify{
-			FlowRootObject: flowRootObject,
-			JSONPointer:    i.JSONPointer,
-			Options:        i.Options,
+			FlowRootObject:   flowRootObject,
+			JSONPointer:      i.JSONPointer,
+			Options:          i.Options,
+			BotProtectionCfg: deps.Config.BotProtection,
 		}, nil
 	}
 

@@ -17,6 +17,7 @@ type InputSchemaTakeOAuthAuthorizationRequest struct {
 	FlowRootObject          config.AuthenticationFlowObject
 	OAuthOptions            []IdentificationOption
 	IsBotProtectionRequired bool
+	BotProtectionCfg        *config.BotProtectionConfig
 }
 
 var _ authflow.InputSchema = &InputSchemaTakeOAuthAuthorizationRequest{}
@@ -46,8 +47,8 @@ func (i *InputSchemaTakeOAuthAuthorizationRequest) SchemaBuilder() validation.Sc
 	b.Properties().Property("alias", validation.SchemaBuilder{}.
 		Type(validation.TypeString).
 		Enum(enumValues...))
-	if i.IsBotProtectionRequired {
-		b = AddBotProtectionToExistingSchemaBuilder(b)
+	if i.IsBotProtectionRequired && i.BotProtectionCfg != nil {
+		b = AddBotProtectionToExistingSchemaBuilder(b, i.BotProtectionCfg)
 	}
 	return b
 }

@@ -61,6 +61,7 @@ func (n *IntentPromoteIdentityLoginID) CanReactTo(ctx context.Context, deps *aut
 		FlowRootObject:          flowRootObject,
 		JSONPointer:             n.JSONPointer,
 		IsBotProtectionRequired: isBotProtectionRequired,
+		BotProtectionCfg:        deps.Config.BotProtection,
 	}, nil
 }
 

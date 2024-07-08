@@ -57,6 +57,7 @@ func (n *IntentUseRecoveryCode) CanReactTo(ctx context.Context, deps *authflow.D
 		FlowRootObject:          flowRootObject,
 		JSONPointer:             n.JSONPointer,
 		IsBotProtectionRequired: isBotProtectionRequired,
+		BotProtectionCfg:        deps.Config.BotProtection,
 	}, nil
 }
 

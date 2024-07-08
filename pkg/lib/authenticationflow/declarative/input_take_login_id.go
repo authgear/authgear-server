@@ -14,6 +14,7 @@ type InputSchemaTakeLoginID struct {
 	JSONPointer             jsonpointer.T
 	FlowRootObject          config.AuthenticationFlowObject
 	IsBotProtectionRequired bool
+	BotProtectionCfg        *config.BotProtectionConfig
 }
 
 var _ authflow.InputSchema = &InputSchemaTakeLoginID{}
@@ -35,8 +36,8 @@ func (i *InputSchemaTakeLoginID) SchemaBuilder() validation.SchemaBuilder {
 		"login_id",
 		validation.SchemaBuilder{}.Type(validation.TypeString),
 	)
-	if i.IsBotProtectionRequired {
-		inputTakeLoginIDSchemaBuilder = AddBotProtectionToExistingSchemaBuilder(inputTakeLoginIDSchemaBuilder)
+	if i.IsBotProtectionRequired && i.BotProtectionCfg != nil {
+		inputTakeLoginIDSchemaBuilder = AddBotProtectionToExistingSchemaBuilder(inputTakeLoginIDSchemaBuilder, i.BotProtectionCfg)
 	}
 	return inputTakeLoginIDSchemaBuilder
 }
