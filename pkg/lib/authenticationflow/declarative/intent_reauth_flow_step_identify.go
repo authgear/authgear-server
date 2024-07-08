@@ -64,10 +64,12 @@ func (i *IntentReauthFlowStepIdentify) CanReactTo(ctx context.Context, deps *aut
 		if err != nil {
 			return nil, err
 		}
+		shouldBypassBotProtection := ShouldExistingResultBypassBotProtectionRequirement(ctx)
 		return &InputSchemaStepIdentify{
-			FlowRootObject: flowRootObject,
-			JSONPointer:    i.JSONPointer,
-			Options:        i.Options,
+			FlowRootObject:            flowRootObject,
+			JSONPointer:               i.JSONPointer,
+			Options:                   i.Options,
+			ShouldBypassBotProtection: shouldBypassBotProtection,
 		}, nil
 	case userIdentified && !nestedStepsHandled:
 		// Handle nested steps.

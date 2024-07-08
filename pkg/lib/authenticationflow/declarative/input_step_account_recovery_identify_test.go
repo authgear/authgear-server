@@ -90,8 +90,8 @@ func TestInputSchemaStepAccountRecoveryIdentify(t *testing.T) {
             },
             "required": [
                 "identification",
-                "login_id",
-                "bot_protection"
+                "bot_protection",
+                "login_id"
             ]
         },
         {
@@ -146,8 +146,8 @@ func TestInputSchemaStepAccountRecoveryIdentify(t *testing.T) {
             },
             "required": [
                 "identification",
-                "login_id",
-                "bot_protection"
+                "bot_protection",
+                "login_id"
             ]
         }
     ],

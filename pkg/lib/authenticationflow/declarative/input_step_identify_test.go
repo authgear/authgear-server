@@ -110,8 +110,8 @@ func TestInputSchemaStepIdentify(t *testing.T) {
             },
             "required": [
                 "identification",
-                "login_id",
-                "bot_protection"
+                "bot_protection",
+                "login_id"
             ]
         },
         {
@@ -166,8 +166,8 @@ func TestInputSchemaStepIdentify(t *testing.T) {
             },
             "required": [
                 "identification",
-                "login_id",
-                "bot_protection"
+                "bot_protection",
+                "login_id"
             ]
         },
         {
@@ -222,8 +222,8 @@ func TestInputSchemaStepIdentify(t *testing.T) {
             },
             "required": [
                 "identification",
-                "login_id",
-                "bot_protection"
+                "bot_protection",
+                "login_id"
             ]
         },
         {
@@ -287,9 +287,9 @@ func TestInputSchemaStepIdentify(t *testing.T) {
             },
             "required": [
                 "identification",
+                "bot_protection",
                 "redirect_uri",
-                "alias",
-                "bot_protection"
+                "alias"
             ]
         },
         {
@@ -353,9 +353,9 @@ func TestInputSchemaStepIdentify(t *testing.T) {
             },
             "required": [
                 "identification",
+                "bot_protection",
                 "redirect_uri",
-                "alias",
-                "bot_protection"
+                "alias"
             ]
         },
         {
@@ -457,8 +457,8 @@ func TestInputSchemaStepIdentify(t *testing.T) {
             },
             "required": [
                 "identification",
-                "assertion_response",
-                "bot_protection"
+                "bot_protection",
+                "assertion_response"
             ]
         }
     ],

@@ -13,9 +13,10 @@ import (
 )
 
 type InputSchemaStepIdentify struct {
-	JSONPointer    jsonpointer.T
-	FlowRootObject config.AuthenticationFlowObject
-	Options        []IdentificationOption
+	JSONPointer               jsonpointer.T
+	FlowRootObject            config.AuthenticationFlowObject
+	Options                   []IdentificationOption
+	ShouldBypassBotProtection bool
 }
 
 var _ authflow.InputSchema = &InputSchemaStepIdentify{}
@@ -40,14 +41,18 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 			required = append(required, key)
 			b.Properties().Property(key, validation.SchemaBuilder{}.Type(validation.TypeString))
 		}
+		requireBotProtection := func() {
+			required = append(required, "bot_protection")
+			b.Properties().Property("bot_protection", InputTakeBotProtectionBodySchemaBuilder)
+		}
 
 		setRequiredAndAppendOneOf := func() {
 			b.Required(required...)
 			oneOf = append(oneOf, b)
 		}
 
-		setRequired := func() {
-			b.Required(required...)
+		if !i.ShouldBypassBotProtection && option.isBotProtectionRequired() {
+			requireBotProtection()
 		}
 
 		switch option.Identification {
@@ -84,13 +89,6 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 			setRequiredAndAppendOneOf()
 		default:
 			break
-		}
-
-		if option.isBotProtectionRequired() {
-			// bot_protection is required.
-			required = append(required, "bot_protection")
-			b.Properties().Property("bot_protection", InputTakeBotProtectionBodySchemaBuilder)
-			setRequired()
 		}
 	}
 

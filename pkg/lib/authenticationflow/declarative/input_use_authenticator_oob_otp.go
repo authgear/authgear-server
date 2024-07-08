@@ -12,9 +12,10 @@ import (
 )
 
 type InputSchemaUseAuthenticatorOOBOTP struct {
-	JSONPointer    jsonpointer.T
-	FlowRootObject config.AuthenticationFlowObject
-	Options        []AuthenticateOption
+	JSONPointer               jsonpointer.T
+	FlowRootObject            config.AuthenticationFlowObject
+	Options                   []AuthenticateOption
+	ShouldBypassBotProtection bool
 }
 
 var _ authflow.InputSchema = &InputSchemaUseAuthenticatorOOBOTP{}
@@ -47,7 +48,7 @@ func (i *InputSchemaUseAuthenticatorOOBOTP) SchemaBuilder() validation.SchemaBui
 		default:
 			break
 		}
-		if option.isBotProtectionRequired() {
+		if !i.ShouldBypassBotProtection && option.isBotProtectionRequired() {
 			b = AddBotProtectionToExistingSchemaBuilder(b)
 		}
 	}

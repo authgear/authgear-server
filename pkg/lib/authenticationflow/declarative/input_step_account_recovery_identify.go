@@ -11,9 +11,10 @@ import (
 )
 
 type InputSchemaStepAccountRecoveryIdentify struct {
-	JSONPointer    jsonpointer.T
-	FlowRootObject config.AuthenticationFlowObject
-	Options        []AccountRecoveryIdentificationOption
+	JSONPointer               jsonpointer.T
+	FlowRootObject            config.AuthenticationFlowObject
+	Options                   []AccountRecoveryIdentificationOption
+	ShouldBypassBotProtection bool
 }
 
 var _ authflow.InputSchema = &InputSchemaStepAccountRecoveryIdentify{}
@@ -38,13 +39,18 @@ func (i *InputSchemaStepAccountRecoveryIdentify) SchemaBuilder() validation.Sche
 			required = append(required, key)
 			b.Properties().Property(key, validation.SchemaBuilder{}.Type(validation.TypeString))
 		}
+		requireBotProtection := func() {
+			required = append(required, "bot_protection")
+			b.Properties().Property("bot_protection", InputTakeBotProtectionBodySchemaBuilder)
+		}
 
 		setRequiredAndAppendOneOf := func() {
 			b.Required(required...)
 			oneOf = append(oneOf, b)
 		}
-		setRequired := func() {
-			b.Required(required...)
+
+		if !i.ShouldBypassBotProtection && option.isBotProtectionRequired() {
+			requireBotProtection()
 		}
 
 		switch option.Identification {
@@ -56,12 +62,6 @@ func (i *InputSchemaStepAccountRecoveryIdentify) SchemaBuilder() validation.Sche
 			setRequiredAndAppendOneOf()
 		default:
 			break
-		}
-		if option.isBotProtectionRequired() {
-			// bot_protection is required.
-			required = append(required, "bot_protection")
-			b.Properties().Property("bot_protection", InputTakeBotProtectionBodySchemaBuilder)
-			setRequired()
 		}
 	}
 
