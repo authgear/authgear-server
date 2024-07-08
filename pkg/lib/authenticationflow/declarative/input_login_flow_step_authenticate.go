@@ -13,10 +13,11 @@ import (
 )
 
 type InputSchemaLoginFlowStepAuthenticate struct {
-	JSONPointer        jsonpointer.T
-	FlowRootObject     config.AuthenticationFlowObject
-	Options            []AuthenticateOption
-	DeviceTokenEnabled bool
+	JSONPointer               jsonpointer.T
+	FlowRootObject            config.AuthenticationFlowObject
+	Options                   []AuthenticateOption
+	DeviceTokenEnabled        bool
+	ShouldBypassBotProtection bool
 }
 
 var _ authflow.InputSchema = &InputSchemaLoginFlowStepAuthenticate{}
@@ -51,6 +52,11 @@ func (i *InputSchemaLoginFlowStepAuthenticate) SchemaBuilder() validation.Schema
 				Const(index),
 			)
 		}
+		requireBotProtection := func() {
+			required = append(required, "bot_protection")
+			b.Properties().Property("bot_protection", InputTakeBotProtectionBodySchemaBuilder)
+
+		}
 		mayRequireChannel := func() {
 			if len(option.Channels) > 1 {
 				required = append(required, "channel")
@@ -60,13 +66,13 @@ func (i *InputSchemaLoginFlowStepAuthenticate) SchemaBuilder() validation.Schema
 				)
 			}
 		}
-		setRequired := func() {
-			b.Required(required...)
-		}
-
 		setRequiredAndAppendOneOf := func() {
 			b.Required(required...)
 			oneOf = append(oneOf, b)
+		}
+
+		if !i.ShouldBypassBotProtection && option.isBotProtectionRequired() {
+			requireBotProtection()
 		}
 
 		switch option.Authentication {
@@ -105,12 +111,6 @@ func (i *InputSchemaLoginFlowStepAuthenticate) SchemaBuilder() validation.Schema
 			setRequiredAndAppendOneOf()
 		default:
 			break
-		}
-		if option.isBotProtectionRequired() {
-			// bot_protection is required.
-			required = append(required, "bot_protection")
-			b.Properties().Property("bot_protection", InputTakeBotProtectionBodySchemaBuilder)
-			setRequired()
 		}
 	}
 

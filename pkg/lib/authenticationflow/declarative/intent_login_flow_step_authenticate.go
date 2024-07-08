@@ -146,12 +146,14 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 			return nil, api.ErrNoAuthenticator
 		}
 
+		shouldBypassBotProtection := ShouldExistingResultBypassBotProtectionRequirement(ctx)
 		// Let the input to select which authentication method to use.
 		return &InputSchemaLoginFlowStepAuthenticate{
-			FlowRootObject:     flowRootObject,
-			JSONPointer:        i.JSONPointer,
-			Options:            i.Options,
-			DeviceTokenEnabled: deviceTokenEnabled,
+			FlowRootObject:            flowRootObject,
+			JSONPointer:               i.JSONPointer,
+			Options:                   i.Options,
+			DeviceTokenEnabled:        deviceTokenEnabled,
+			ShouldBypassBotProtection: shouldBypassBotProtection,
 		}, nil
 	case !authenticated:
 		// This branch is only reached when there is a programming error.
