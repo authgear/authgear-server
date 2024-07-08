@@ -49,7 +49,7 @@
     .layout__header--default,
     .layout__footer--default {
       @apply flex-1;
-      min-height: 24px;
+      min-height: 20px;
       max-height: 160px;
     }
   }
