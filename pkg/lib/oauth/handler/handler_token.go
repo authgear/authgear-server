@@ -1514,6 +1514,9 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 				Scopes:          scopes,
 				AuthorizationID: authz.ID,
 			}, resp)
+			if err != nil {
+				return nil, err
+			}
 		case session.TypeIdentityProvider:
 			fallthrough
 		default:
