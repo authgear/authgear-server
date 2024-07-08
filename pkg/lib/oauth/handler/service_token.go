@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/lestrrat-go/jwx/v2/jwk"
+
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -14,7 +16,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
-	"github.com/lestrrat-go/jwx/v2/jwk"
 )
 
 var ErrInvalidRefreshToken = protocol.NewError("invalid_grant", "invalid refresh token")
