@@ -31,6 +31,7 @@
     data-text-field-target="inputContainer"
   >
     <input
+      class="input"
       form="{{ $.FormName }}"
       type="text"
       name="{{ or $.InputName "x_code" }}"
@@ -45,7 +46,7 @@
       {{ if $.Disabled }}disabled{{ end }}
     />
     <div data-otp-input-target="digitsContainer" class="otp-input__digits-container">
-      <div class="otp-input__digit"></div>
+
     </div>
   </div>
 
