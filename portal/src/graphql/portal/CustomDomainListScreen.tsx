@@ -512,8 +512,8 @@ const UpdatePublicOriginDialog: React.VFC<UpdatePublicOriginDialogProps> =
 interface RedirectURLTextFieldProps {
   className?: string;
   fieldName: string;
-  label: NonNullable<React.ReactNode>;
-  description: NonNullable<React.ReactNode>;
+  label: string;
+  description: string;
   value: string;
   onChangeValue: (value: string) => void;
 }
@@ -530,15 +530,13 @@ const RedirectURLTextField: React.VFC<RedirectURLTextFieldProps> =
     );
     return (
       <div className={className}>
-        <label htmlFor={id}>{label}</label>
-        <Text className={cn("mt-2.5")} block={true}>
-          {description}
-        </Text>
         <FormTextField
           id={id}
           fieldName={fieldName}
           parentJSONPointer="/ui"
           className={cn("mt-2.5")}
+          label={label}
+          description={description}
           value={value}
           onChange={onChange}
         />
@@ -553,6 +551,7 @@ interface RedirectURLFormProps {
 const RedirectURLForm: React.VFC<RedirectURLFormProps> =
   function RedirectURLForm(props) {
     const { className, redirectURLForm } = props;
+    const { renderToString } = useContext(Context);
 
     const { canSave, onSubmit } = useFormContainerBaseContext();
 
@@ -586,24 +585,24 @@ const RedirectURLForm: React.VFC<RedirectURLFormProps> =
         <RedirectURLTextField
           className={cn("mt-4")}
           fieldName="default_redirect_uri"
-          label={
-            <FormattedMessage id="CustomDomainListScreen.redirectURLSection.input.postLoginURL.label" />
-          }
-          description={
-            <FormattedMessage id="CustomDomainListScreen.redirectURLSection.input.postLoginURL.description" />
-          }
+          label={renderToString(
+            "CustomDomainListScreen.redirectURLSection.input.postLoginURL.label"
+          )}
+          description={renderToString(
+            "CustomDomainListScreen.redirectURLSection.input.postLoginURL.description"
+          )}
           value={redirectURLForm.state.postLoginURL}
           onChangeValue={onChangePostLoginURL}
         />
         <RedirectURLTextField
           className={cn("mt-4")}
           fieldName="default_post_logout_redirect_uri"
-          label={
-            <FormattedMessage id="CustomDomainListScreen.redirectURLSection.input.postLogoutURL.label" />
-          }
-          description={
-            <FormattedMessage id="CustomDomainListScreen.redirectURLSection.input.postLogoutURL.description" />
-          }
+          label={renderToString(
+            "CustomDomainListScreen.redirectURLSection.input.postLogoutURL.label"
+          )}
+          description={renderToString(
+            "CustomDomainListScreen.redirectURLSection.input.postLogoutURL.description"
+          )}
           value={redirectURLForm.state.postLogoutURL}
           onChangeValue={onChangePostLogoutURL}
         />
