@@ -1,0 +1,78 @@
+name: Should reject mis-matching bot protection provider in `input` vs `authgear.yaml`
+authgear.yaml:
+# Note here provider is `cloudflare`
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+    identity:
+      login_id:
+        keys:
+        - type: email
+    bot_protection:
+      enabled: true
+      provider:
+        type: cloudflare
+        site_key: dummy
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "bot_protection": {
+                    "enabled": true,
+                    "provider": {
+                      "type": "cloudflare"
+                    }
+                  },
+                  "identification": "[[string]]"
+                }
+              ]
+            }
+          }
+        }
+  - action: input
+# Note here provider is `recaptchav2`
+    input: |
+      {
+        "identification": "email",
+        "login_id": "signup@example.com",
+        "bot_protection": {
+          "type": "recaptchav2",
+          "response": "pass"
+        }
+      }
+    output:
+      error: |
+        {
+          "name": "Invalid",
+          "reason": "ValidationFailed",
+          "message": "invalid value",
+          "code": 400,
+          "info": {
+            "causes": [
+              "[[arrayof]]",
+              {
+                "details": {
+                  "actual": "recaptchav2",
+                  "expected": "cloudflare"
+                },
+                "kind": "const",
+                "location": "/bot_protection/type"
+              }
+            ]
+          }
+        }
