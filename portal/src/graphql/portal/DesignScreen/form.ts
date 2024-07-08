@@ -226,11 +226,9 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
 
   const backgroundImageSpecifiers = useMemo(() => {
     const specifiers: ResourceSpecifier[] = [];
-    for (const locale of configForm.state.supportedLanguages) {
-      specifiers.push(...expandDef(RESOURCE_APP_BACKGROUND_IMAGE, locale));
-    }
+    specifiers.push(...expandDef(RESOURCE_APP_BACKGROUND_IMAGE, ""));
     return specifiers;
-  }, [configForm.state.supportedLanguages]);
+  }, []);
 
   const resourceForm = useResourceForm(appID, specifiers);
   const backgroundImageResourceForm = useResourceForm(
