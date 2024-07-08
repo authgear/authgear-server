@@ -815,7 +815,10 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
               <FormattedMessage id="CustomDomainListScreen.desc" />
             </Text>
             {customDomainDisabled ? (
-              <FeatureDisabledMessageBar messageID="FeatureConfig.custom-domain.disabled" />
+              <FeatureDisabledMessageBar
+                className="mt-4"
+                messageID="FeatureConfig.custom-domain.disabled"
+              />
             ) : null}
             <DetailsList
               columns={domainListColumns}
