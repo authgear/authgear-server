@@ -342,6 +342,276 @@ func TestTemplateResource(t *testing.T) {
 	})
 }
 
+func TestNonLocaleAwareImageDescriptor(t *testing.T) {
+	Convey("NonLocaleAwareImageDescriptor EffectiveResource", t, func() {
+		fsA := afero.NewMemMapFs()
+		fsB := afero.NewMemMapFs()
+		r := &resource.Registry{}
+		manager := resource.NewManager(r, []resource.Fs{
+			resource.LeveledAferoFs{Fs: fsA, FsLevel: resource.FsLevelBuiltin},
+			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
+		})
+
+		img := web.NonLocaleAwareImageDescriptor{
+			Name: "myimage",
+		}
+		r.Register(img)
+
+		writeFile := func(fs afero.Fs, ext string, data []byte) {
+			_ = fs.MkdirAll("static/", 0777)
+			_ = afero.WriteFile(fs, "static/myimage"+ext, data, 0666)
+		}
+
+		read := func(view resource.View) (asset *web.StaticAsset, err error) {
+			result, err := manager.Read(img, view)
+			if err != nil {
+				return
+			}
+
+			asset = result.(*web.StaticAsset)
+			return
+		}
+
+		makeImage := func(c color.Color) image.Image {
+			i := image.NewRGBA(image.Rect(0, 0, 1, 1))
+			i.Set(0, 0, c)
+			return i
+		}
+
+		encodePNG := func(i image.Image) ([]byte, error) {
+			var buf bytes.Buffer
+			err := png.Encode(&buf, i)
+			if err != nil {
+				return nil, err
+			}
+			return buf.Bytes(), nil
+		}
+
+		pngA, err := encodePNG(makeImage(color.RGBA{255, 0, 0, 255}))
+		So(err, ShouldBeNil)
+
+		pngB, err := encodePNG(makeImage(color.RGBA{0, 255, 0, 255}))
+		So(err, ShouldBeNil)
+
+		So(pngA, ShouldNotResemble, pngB)
+
+		Convey("it should return single resource", func() {
+			writeFile(fsA, ".png", pngA)
+
+			asset, err := read(resource.EffectiveResource{
+				PreferredTags: []string{"zh", "en"},
+				DefaultTag:    "en",
+				SupportedTags: []string{"zh", "en"},
+			})
+			So(err, ShouldBeNil)
+			So(asset.Path, ShouldEqual, "static/myimage.png")
+			So(asset.Data, ShouldResemble, pngA)
+		})
+
+		Convey("it should use more specific resource", func() {
+			writeFile(fsA, ".png", pngA)
+			writeFile(fsB, ".png", pngB)
+
+			asset, err := read(resource.EffectiveResource{
+				DefaultTag:    "en",
+				SupportedTags: []string{"en"},
+			})
+			So(err, ShouldBeNil)
+			So(asset.Path, ShouldEqual, "static/myimage.png")
+			So(asset.Data, ShouldResemble, pngB)
+		})
+
+		Convey("it should not fail when fallback is not en", func() {
+			writeFile(fsA, ".png", pngA)
+
+			asset, err := read(resource.EffectiveResource{
+				DefaultTag:    "zh",
+				SupportedTags: []string{"zh"},
+			})
+			So(err, ShouldBeNil)
+			So(asset.Path, ShouldEqual, "static/myimage.png")
+			So(asset.Data, ShouldResemble, pngA)
+		})
+
+		Convey("it should disallow duplicate resource", func() {
+			writeFile(fsA, ".png", pngA)
+			writeFile(fsB, ".png", pngB)
+			writeFile(fsB, ".jpg", pngB)
+
+			_, err := read(resource.ValidateResource{})
+			So(err, ShouldBeError, "duplicate resource: [static/myimage.jpg static/myimage.png]")
+		})
+	})
+
+	Convey("NonLocaleAwareImageDescriptor EffectiveFile", t, func() {
+		fsA := afero.NewMemMapFs()
+		fsB := afero.NewMemMapFs()
+		r := &resource.Registry{}
+		manager := resource.NewManager(r, []resource.Fs{
+			resource.LeveledAferoFs{Fs: fsA, FsLevel: resource.FsLevelBuiltin},
+			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
+		})
+
+		img := web.NonLocaleAwareImageDescriptor{
+			Name: "myimage",
+		}
+		r.Register(img)
+
+		writeFile := func(fs afero.Fs, ext string, data []byte) {
+			_ = fs.MkdirAll("static/", 0777)
+			_ = afero.WriteFile(fs, "static/myimage"+ext, data, 0666)
+		}
+
+		read := func(view resource.View) (b []byte, err error) {
+			result, err := manager.Read(img, view)
+			if err != nil {
+				return
+			}
+
+			b = result.([]byte)
+			return
+		}
+
+		makeImage := func(c color.Color) image.Image {
+			i := image.NewRGBA(image.Rect(0, 0, 1, 1))
+			i.Set(0, 0, c)
+			return i
+		}
+
+		encodePNG := func(i image.Image) ([]byte, error) {
+			var buf bytes.Buffer
+			err := png.Encode(&buf, i)
+			if err != nil {
+				return nil, err
+			}
+			return buf.Bytes(), nil
+		}
+
+		pngA, err := encodePNG(makeImage(color.RGBA{255, 0, 0, 255}))
+		So(err, ShouldBeNil)
+
+		pngB, err := encodePNG(makeImage(color.RGBA{0, 255, 0, 255}))
+		So(err, ShouldBeNil)
+
+		So(pngA, ShouldNotResemble, pngB)
+
+		Convey("it should return single resource", func() {
+			writeFile(fsA, ".png", pngA)
+
+			data, err := read(resource.EffectiveFile{
+				Path: "static/myimage.png",
+			})
+			So(err, ShouldBeNil)
+			So(data, ShouldResemble, pngA)
+
+			_, err = read(resource.EffectiveFile{
+				Path: "static/myimage.jpg",
+			})
+			So(err, ShouldBeError, "specified resource is not configured")
+		})
+
+		Convey("it should return resource with specific path", func() {
+			writeFile(fsA, ".jpg", pngA)
+			writeFile(fsA, ".png", pngB)
+
+			data, err := read(resource.EffectiveFile{
+				Path: "static/myimage.png",
+			})
+			So(err, ShouldBeNil)
+			So(data, ShouldResemble, pngB)
+
+			data, err = read(resource.EffectiveFile{
+				Path: "static/myimage.jpg",
+			})
+			So(err, ShouldBeNil)
+			So(data, ShouldResemble, pngA)
+		})
+
+		Convey("it should use more specific resource", func() {
+			writeFile(fsA, ".png", pngA)
+			writeFile(fsB, ".png", pngB)
+
+			data, err := read(resource.EffectiveFile{
+				Path: "static/myimage.png",
+			})
+			So(err, ShouldBeNil)
+			So(data, ShouldResemble, pngB)
+		})
+	})
+
+	Convey("NonLocaleAwareImageDescriptor AppFile", t, func() {
+		fsA := afero.NewMemMapFs()
+		fsB := afero.NewMemMapFs()
+		r := &resource.Registry{}
+		manager := resource.NewManager(r, []resource.Fs{
+			resource.LeveledAferoFs{Fs: fsA, FsLevel: resource.FsLevelBuiltin},
+			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
+		})
+
+		img := web.NonLocaleAwareImageDescriptor{
+			Name: "myimage",
+		}
+		r.Register(img)
+
+		writeFile := func(fs afero.Fs, ext string, data []byte) {
+			_ = fs.MkdirAll("static/", 0777)
+			_ = afero.WriteFile(fs, "static/myimage"+ext, data, 0666)
+		}
+
+		read := func(view resource.View) (b []byte, err error) {
+			result, err := manager.Read(img, view)
+			if err != nil {
+				return
+			}
+
+			b = result.([]byte)
+			return
+		}
+
+		makeImage := func(c color.Color) image.Image {
+			i := image.NewRGBA(image.Rect(0, 0, 1, 1))
+			i.Set(0, 0, c)
+			return i
+		}
+
+		encodePNG := func(i image.Image) ([]byte, error) {
+			var buf bytes.Buffer
+			err := png.Encode(&buf, i)
+			if err != nil {
+				return nil, err
+			}
+			return buf.Bytes(), nil
+		}
+
+		pngA, err := encodePNG(makeImage(color.RGBA{255, 0, 0, 255}))
+		So(err, ShouldBeNil)
+
+		pngB, err := encodePNG(makeImage(color.RGBA{0, 255, 0, 255}))
+		So(err, ShouldBeNil)
+
+		So(pngA, ShouldNotResemble, pngB)
+
+		Convey("not found", func() {
+			writeFile(fsA, ".png", pngA)
+
+			_, err := read(resource.AppFile{
+				Path: "static/myimage.png",
+			})
+			So(err, ShouldBeError, "specified resource is not configured")
+		})
+
+		Convey("found", func() {
+			writeFile(fsB, ".png", pngB)
+
+			data, err := read(resource.AppFile{
+				Path: "static/myimage.png",
+			})
+			So(err, ShouldBeNil)
+			So(data, ShouldResemble, pngB)
+		})
+	})
+}
+
 func TestImageSizeLimit(t *testing.T) {
 	Convey("LocaleAwareImageDescriptor size limit", t, func() {
 		image := web.LocaleAwareImageDescriptor{
