@@ -488,10 +488,12 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
   const errorRules: ErrorParseRule[] = useMemo(
     () => [
       makeImageSizeTooLargeErrorRule(
-        Object.values(resourceForm.state.resources).filter(nonNullable)
+        Object.values(resourceForm.state.resources)
+          .concat(Object.values(backgroundImageResourceForm.state.resources))
+          .filter(nonNullable)
       ),
     ],
-    [resourceForm.state.resources]
+    [resourceForm.state.resources, backgroundImageResourceForm.state.resources]
   );
 
   const designForm = useMemo(

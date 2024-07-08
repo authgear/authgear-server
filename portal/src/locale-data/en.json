@@ -107,7 +107,7 @@
   "errors.password-policy.password-reused": "Password cannot be reused, please check password policies below",
   "errors.password-policy.containing-excluded-keywords": "Password contains excluded keywords, please check password policies below",
   "errors.password-policy.unknown": "Password is invalid; please check password policies",
-  "errors.resource-too-large": "The {resourceType, select, favicon{favicon } app_logo{app logo } app_logo_dark{app logo } other{}}file size is too large. Please upload a JPG, PNG or GIF file smaller than {maxSize} KB.",
+  "errors.resource-too-large": "The {resourceType, select, favicon{favicon } app_logo{app logo } app_logo_dark{app logo } app_background_image{background image } other{}}file size is too large. Please upload a JPG, PNG or GIF file smaller than {maxSize} KB.",
   "errors.webhook.disallowed": "Operation is disallowed by one of your hook. Raw info: {code, react, children{{info}}}",
   "errors.webhook.timeout": "Operation is disallowed because the hook delivery resulted in a timeout. Make sure your hooks return a valid response in reasonable time.",
   "errors.webhook.invalid-response": "Operation is disallowed because one of your hook returned an invalid response. See {DocLink, react, href{https://docs.authgear.com/integrate/events-hooks} children{the documentation}} for details.",

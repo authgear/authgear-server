@@ -24,7 +24,10 @@ export interface APIUnsupportedImageFileError {
   };
 }
 
-export const ImageMaxSizeInKB = 100;
+const DefaultImageMaxSizeInKB = 100;
+const imageTypeMaxSizeInKB: Partial<Record<string, number>> = {
+  app_background_image: 500,
+};
 
 export function makeImageSizeTooLargeErrorRule(
   resources: Resource[]
@@ -63,7 +66,8 @@ export function makeImageSizeTooLargeErrorRule(
           {
             messageID: "errors.resource-too-large",
             arguments: {
-              maxSize: ImageMaxSizeInKB,
+              maxSize:
+                imageTypeMaxSizeInKB[resourceType] ?? DefaultImageMaxSizeInKB,
               resourceType,
             },
           },
