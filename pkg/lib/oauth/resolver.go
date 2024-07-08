@@ -67,8 +67,27 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Re
 	return nil, nil
 }
 
-func (re *Resolver) resolveByAccessGrant(grant *AccessGrant) (session.ResolvedSession, error) {
-	_, err := re.Authorizations.GetByID(grant.AuthorizationID)
+func (re *Resolver) resolveAccessToken(token string) (session.ResolvedSession, error) {
+	tok, isHash, err := re.AccessTokenDecoder.DecodeAccessToken(token)
+	if err != nil {
+		return nil, session.ErrInvalidSession
+	}
+
+	var tokenHash string
+	if isHash {
+		tokenHash = tok
+	} else {
+		tokenHash = HashToken(token)
+	}
+
+	grant, err := re.AccessGrants.GetAccessGrant(tokenHash)
+	if errors.Is(err, ErrGrantNotFound) {
+		return nil, session.ErrInvalidSession
+	} else if err != nil {
+		return nil, err
+	}
+
+	_, err = re.Authorizations.GetByID(grant.AuthorizationID)
 	if errors.Is(err, ErrAuthorizationNotFound) {
 		// Authorization does not exists (e.g. revoked)
 		return nil, session.ErrInvalidSession
@@ -121,26 +140,7 @@ func (re *Resolver) resolveHeader(r *http.Request) (session.ResolvedSession, err
 		return nil, nil
 	}
 
-	tok, isHash, err := re.AccessTokenDecoder.DecodeAccessToken(token)
-	if err != nil {
-		return nil, session.ErrInvalidSession
-	}
-
-	var tokenHash string
-	if isHash {
-		tokenHash = tok
-	} else {
-		tokenHash = HashToken(token)
-	}
-
-	grant, err := re.AccessGrants.GetAccessGrant(tokenHash)
-	if errors.Is(err, ErrGrantNotFound) {
-		return nil, session.ErrInvalidSession
-	} else if err != nil {
-		return nil, err
-	}
-
-	return re.resolveByAccessGrant(grant)
+	return re.resolveAccessToken(token)
 }
 
 func (re *Resolver) resolveAccessTokenCookie(r *http.Request) (session.ResolvedSession, error) {
@@ -149,14 +149,8 @@ func (re *Resolver) resolveAccessTokenCookie(r *http.Request) (session.ResolvedS
 		// No access token cookie. Simply proceed.
 		return nil, nil
 	}
-	grant, err := re.AccessGrants.GetAccessGrant(HashToken(cookie.Value))
-	if errors.Is(err, ErrGrantNotFound) {
-		return nil, session.ErrInvalidSession
-	} else if err != nil {
-		return nil, err
-	}
 
-	return re.resolveByAccessGrant(grant)
+	return re.resolveAccessToken(cookie.Value)
 }
 
 func (re *Resolver) resolveAppSessionCookie(r *http.Request) (session.ResolvedSession, error) {

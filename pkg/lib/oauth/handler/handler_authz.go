@@ -482,12 +482,10 @@ func (h *AuthorizationHandler) doHandle(
 	authenticationInfo := resolvedSession.GetAuthenticationInfo()
 	autoGrantAuthz := client.IsFirstParty()
 
-	idpSessionID := ""
-	if resolvedSession.SessionType() == session.TypeIdentityProvider {
-		idpSessionID = resolvedSession.SessionID()
-	}
+	sessionType := resolvedSession.SessionType()
+	sessionID := resolvedSession.SessionID()
 
-	result, err := h.finish(redirectURI, r, idpSessionID, authenticationInfo, idTokenHintSID, nil, autoGrantAuthz)
+	result, err := h.finish(redirectURI, r, sessionType, sessionID, authenticationInfo, idTokenHintSID, nil, autoGrantAuthz)
 	if err != nil {
 		if errors.Is(err, oauth.ErrAuthorizationNotFound) {
 			return nil, protocol.NewError("access_denied", "authorization required")
@@ -562,7 +560,8 @@ func (h *AuthorizationHandler) doHandleAppInitiatedSSOToWeb(
 func (h *AuthorizationHandler) finish(
 	redirectURI *url.URL,
 	r protocol.AuthorizationRequest,
-	idpSessionID string,
+	sessionType session.Type,
+	sessionID string,
 	authenticationInfo authenticationinfo.T,
 	idTokenHintSID string,
 	cookies []*http.Cookie,
@@ -591,13 +590,17 @@ func (h *AuthorizationHandler) finish(
 	responseType := r.ResponseType()
 	switch {
 	case responseType.Equal(SettingsActonResponseType):
+		idpSessionID := ""
+		if sessionType == session.TypeIdentityProvider {
+			idpSessionID = sessionID
+		}
 		err = h.generateSettingsActionResponse(redirectURI.String(), idpSessionID, authenticationInfo, idTokenHintSID, r, authz, resp)
 		if err != nil {
 			return nil, err
 		}
 
 	case responseType.Equal(CodeResponseType):
-		err = h.generateCodeResponse(redirectURI.String(), idpSessionID, authenticationInfo, idTokenHintSID, r, authz, resp)
+		err = h.generateCodeResponse(redirectURI.String(), sessionType, sessionID, authenticationInfo, idTokenHintSID, r, authz, resp)
 		if err != nil {
 			return nil, err
 		}
@@ -645,12 +648,14 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 	}
 	idTokenHintSID := uiInfoByProduct.IDTokenHintSID
 
-	var idpSessionID string
-	if s := session.GetSession(h.Context); s != nil && s.SessionType() == session.TypeIdentityProvider {
-		idpSessionID = s.SessionID()
+	sessionID := ""
+	var sessionType session.Type = ""
+	if s := session.GetSession(h.Context); s != nil {
+		sessionID = s.SessionID()
+		sessionType = s.SessionType()
 	}
 
-	return h.finish(redirectURI, r, idpSessionID, authenticationInfo, idTokenHintSID, []*http.Cookie{}, grantAuthz)
+	return h.finish(redirectURI, r, sessionType, sessionID, authenticationInfo, idTokenHintSID, []*http.Cookie{}, grantAuthz)
 }
 
 func (h *AuthorizationHandler) validateAppInitiatedSSOToWebTokenRequest(
@@ -746,7 +751,8 @@ func (h *AuthorizationHandler) validateRequest(
 
 func (h *AuthorizationHandler) generateCodeResponse(
 	redirectURI string,
-	idpSessionID string,
+	sessionType session.Type,
+	sessionID string,
 	authenticationInfo authenticationinfo.T,
 	idTokenHintSID string,
 	r protocol.AuthorizationRequest,
@@ -755,7 +761,8 @@ func (h *AuthorizationHandler) generateCodeResponse(
 ) error {
 	code, _, err := h.CodeGrantService.CreateCodeGrant(&CreateCodeGrantOptions{
 		Authorization:        authz,
-		IDPSessionID:         idpSessionID,
+		SessionType:          sessionType,
+		SessionID:            sessionID,
 		AuthenticationInfo:   authenticationInfo,
 		IDTokenHintSID:       idTokenHintSID,
 		RedirectURI:          redirectURI,

@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/lestrrat-go/jwx/v2/jwk"
+
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -16,6 +19,23 @@ import (
 )
 
 var ErrInvalidRefreshToken = protocol.NewError("invalid_grant", "invalid refresh token")
+
+type IssueOfflineGrantOptions struct {
+	AuthenticationInfo authenticationinfo.T
+	Scopes             []string
+	AuthorizationID    string
+	IDPSessionID       string
+	DeviceInfo         map[string]interface{}
+	IdentityID         string
+	SSOEnabled         bool
+	App2AppDeviceKey   jwk.Key
+	IssueDeviceSecret  bool
+}
+
+type IssueOfflineGrantRefreshTokenOptions struct {
+	Scopes          []string
+	AuthorizationID string
+}
 
 type TokenService struct {
 	RemoteIP        httputil.RemoteIP
@@ -110,6 +130,32 @@ func (s *TokenService) IssueOfflineGrant(
 		resp.RefreshToken(oauth.EncodeRefreshToken(token, offlineGrant.ID))
 	}
 	return offlineGrant, tokenHash, nil
+}
+
+func (s *TokenService) IssueRefreshTokenForOfflineGrant(
+	offlineGrantID string,
+	client *config.OAuthClientConfig,
+	opts IssueOfflineGrantRefreshTokenOptions,
+	resp protocol.TokenResponse,
+) (offlineGrant *oauth.OfflineGrant, tokenHash string, err error) {
+	offlineGrant, err = s.OfflineGrants.GetOfflineGrant(offlineGrantID)
+	if err != nil {
+		return nil, "", err
+	}
+
+	newRefreshTokenResult, newOfflineGrant, err := s.OfflineGrantService.CreateNewRefreshToken(
+		offlineGrant, client.ClientID, opts.Scopes, opts.AuthorizationID,
+	)
+	if err != nil {
+		return nil, "", err
+	}
+	offlineGrant = newOfflineGrant
+
+	if resp != nil {
+		resp.RefreshToken(oauth.EncodeRefreshToken(newRefreshTokenResult.Token, offlineGrant.ID))
+	}
+
+	return newOfflineGrant, newRefreshTokenResult.TokenHash, nil
 }
 
 func (s *TokenService) IssueAccessGrant(
