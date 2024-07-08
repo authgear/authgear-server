@@ -64,6 +64,11 @@ Passkey will need to implement reverse of [`webauthncose.VerifySignature`](https
     - [x] totp
 - [x] account_recovery_flow
   - [x] identify
+- [ ] general
+  - [ ] should not require bot protection if previous steps already have `success` verification
+  - [ ] should reject bot protection provider not aligned to `authgear.yaml` `bot_protection.provider`
+      For example, if `authgear.yaml` has `cloudflare` configured, but input has `recaptchav2`, should reject on json schema validation
+  
 
 ## Mocking Verification
 For convenience, we use some magic phrases for imitating captcha verification success/failed/service unavailable
