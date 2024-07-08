@@ -111,15 +111,15 @@ export class OtpInputController extends Controller {
 
     for (let i = 0; i < this.maxLength; i++) {
       let textContent = this.value.slice(i, i + 1) || "";
-      let className = this.isSpanSelected(i)
-        ? "otp-input__digit otp-input__digit--focus"
-        : "otp-input__digit";
+      const classes = this.isSpanSelected(i)
+        ? ["otp-input__digit", "otp-input__digit--focus"]
+        : ["otp-input__digit"];
 
       const isLastDigit = i < this.value.length - 1;
       const isBlurred = this.inputTarget !== document.activeElement;
       if (textContent && (isLastDigit || isBlurred)) {
         textContent = " ";
-        className += " otp-input__digit--masked";
+        classes.push("otp-input__digit--masked");
       }
 
       this.inputTarget.style.letterSpacing = `calc(${this.inputTarget.offsetWidth}px / ${this.maxLength})`;
@@ -133,7 +133,7 @@ export class OtpInputController extends Controller {
       }
 
       span.textContent = textContent;
-      span.className = className;
+      span.className = classes.join(" ");
     }
   };
 }
