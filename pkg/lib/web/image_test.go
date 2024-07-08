@@ -32,7 +32,7 @@ func TestExtensionsByType(t *testing.T) {
 }
 
 func TestTemplateResource(t *testing.T) {
-	Convey("ImageDescriptor EffectiveResource", t, func() {
+	Convey("LocaleAwareImageDescriptor EffectiveResource", t, func() {
 		fsA := afero.NewMemMapFs()
 		fsB := afero.NewMemMapFs()
 		r := &resource.Registry{}
@@ -41,7 +41,7 @@ func TestTemplateResource(t *testing.T) {
 			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
 		})
 
-		img := web.ImageDescriptor{
+		img := web.LocaleAwareImageDescriptor{
 			Name: "myimage",
 		}
 		r.Register(img)
@@ -168,7 +168,7 @@ func TestTemplateResource(t *testing.T) {
 		})
 	})
 
-	Convey("ImageDescriptor EffectiveFile", t, func() {
+	Convey("LocaleAwareImageDescriptor EffectiveFile", t, func() {
 		fsA := afero.NewMemMapFs()
 		fsB := afero.NewMemMapFs()
 		r := &resource.Registry{}
@@ -177,7 +177,7 @@ func TestTemplateResource(t *testing.T) {
 			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
 		})
 
-		img := web.ImageDescriptor{
+		img := web.LocaleAwareImageDescriptor{
 			Name: "myimage",
 		}
 		r.Register(img)
@@ -269,7 +269,7 @@ func TestTemplateResource(t *testing.T) {
 		})
 	})
 
-	Convey("ImageDescriptor AppFile", t, func() {
+	Convey("LocaleAwareImageDescriptor AppFile", t, func() {
 		fsA := afero.NewMemMapFs()
 		fsB := afero.NewMemMapFs()
 		r := &resource.Registry{}
@@ -278,7 +278,7 @@ func TestTemplateResource(t *testing.T) {
 			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
 		})
 
-		img := web.ImageDescriptor{
+		img := web.LocaleAwareImageDescriptor{
 			Name: "myimage",
 		}
 		r.Register(img)
@@ -343,8 +343,8 @@ func TestTemplateResource(t *testing.T) {
 }
 
 func TestImageSizeLimit(t *testing.T) {
-	Convey("ImageDescriptor size limit", t, func() {
-		image := web.ImageDescriptor{
+	Convey("LocaleAwareImageDescriptor size limit", t, func() {
+		image := web.LocaleAwareImageDescriptor{
 			Name:      "image",
 			SizeLimit: 100 * 1024 * 1024,
 		}

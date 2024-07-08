@@ -71,7 +71,7 @@ func TestManager(t *testing.T) {
 			_ = afero.WriteFile(appFs, "authgear.yaml", appConfigYAML, 0666)
 			_ = afero.WriteFile(appFs, "authgear.secrets.yaml", secretConfigYAML, 0666)
 
-			resource.RegisterResource(web.ImageDescriptor{
+			resource.RegisterResource(web.LocaleAwareImageDescriptor{
 				Name:      "myimage",
 				SizeLimit: 100 * 1024,
 			})

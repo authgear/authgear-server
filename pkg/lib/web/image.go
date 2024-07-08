@@ -37,20 +37,20 @@ var preferredExtensions = map[string]string{
 	"image/gif":  ".gif",
 }
 
-var imageRegex = regexp.MustCompile(`^static/([a-zA-Z0-9-]+)/(.+)\.(png|jpe|jpeg|jpg|gif)$`)
+var localeAwareImageRegex = regexp.MustCompile(`^static/([a-zA-Z0-9-]+)/(.+)\.(png|jpe|jpeg|jpg|gif)$`)
 
-type ImageDescriptor struct {
+type LocaleAwareImageDescriptor struct {
 	Name      string
 	SizeLimit int
 }
 
-var _ resource.Descriptor = ImageDescriptor{}
-var _ resource.SizeLimitDescriptor = ImageDescriptor{}
+var _ resource.Descriptor = LocaleAwareImageDescriptor{}
+var _ resource.SizeLimitDescriptor = LocaleAwareImageDescriptor{}
 
 const defaultSizeLimit = 100 * 1024
 
-func (a ImageDescriptor) MatchResource(path string) (*resource.Match, bool) {
-	matches := imageRegex.FindStringSubmatch(path)
+func (a LocaleAwareImageDescriptor) MatchResource(path string) (*resource.Match, bool) {
+	matches := localeAwareImageRegex.FindStringSubmatch(path)
 	if len(matches) != 4 {
 		return nil, false
 	}
@@ -63,7 +63,7 @@ func (a ImageDescriptor) MatchResource(path string) (*resource.Match, bool) {
 	return &resource.Match{LanguageTag: languageTag}, true
 }
 
-func (a ImageDescriptor) FindResources(fs resource.Fs) ([]resource.Location, error) {
+func (a LocaleAwareImageDescriptor) FindResources(fs resource.Fs) ([]resource.Location, error) {
 	staticDir, err := fs.Open("static")
 	if os.IsNotExist(err) {
 		return nil, nil
@@ -109,7 +109,7 @@ func (a ImageDescriptor) FindResources(fs resource.Fs) ([]resource.Location, err
 	return locations, nil
 }
 
-func (a ImageDescriptor) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
+func (a LocaleAwareImageDescriptor) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
 	switch view := rawView.(type) {
 	case resource.AppFileView:
 		return a.viewAppFile(resources, view)
@@ -124,7 +124,7 @@ func (a ImageDescriptor) ViewResources(resources []resource.ResourceFile, rawVie
 	}
 }
 
-func (a ImageDescriptor) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
+func (a LocaleAwareImageDescriptor) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
 	if len(data) > 0 {
 		typ := libmagic.MimeFromBytes(data)
 		_, ok := preferredExtensions[typ]
@@ -141,12 +141,12 @@ func (a ImageDescriptor) UpdateResource(_ context.Context, _ []resource.Resource
 	}, nil
 }
 
-func (a ImageDescriptor) viewValidateResource(resources []resource.ResourceFile, view resource.ValidateResourceView) (interface{}, error) {
+func (a LocaleAwareImageDescriptor) viewValidateResource(resources []resource.ResourceFile, view resource.ValidateResourceView) (interface{}, error) {
 	// Ensure there is at most one resource
 	// For each Fs and for each locale, remember how many paths we have seen.
 	seen := make(map[resource.Fs]map[string][]string)
 	for _, resrc := range resources {
-		languageTag := imageRegex.FindStringSubmatch(resrc.Location.Path)[1]
+		languageTag := localeAwareImageRegex.FindStringSubmatch(resrc.Location.Path)[1]
 		m, ok := seen[resrc.Location.Fs]
 		if !ok {
 			m = make(map[string][]string)
@@ -168,14 +168,14 @@ func (a ImageDescriptor) viewValidateResource(resources []resource.ResourceFile,
 	return nil, nil
 }
 
-func (a ImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (interface{}, error) {
+func (a LocaleAwareImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (interface{}, error) {
 	preferredLanguageTags := view.PreferredLanguageTags()
 	defaultLanguageTag := view.DefaultLanguageTag()
 
 	var fallbackImage *languageImage
 	images := make(map[resource.FsLevel]map[string]intlresource.LanguageItem)
 	extractLanguageTag := func(resrc resource.ResourceFile) string {
-		langTag := imageRegex.FindStringSubmatch(resrc.Location.Path)[1]
+		langTag := localeAwareImageRegex.FindStringSubmatch(resrc.Location.Path)[1]
 		return langTag
 	}
 	add := func(langTag string, resrc resource.ResourceFile) error {
@@ -247,7 +247,7 @@ func (a ImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile
 	}, nil
 }
 
-func (a ImageDescriptor) viewAppFile(resources []resource.ResourceFile, view resource.AppFileView) (interface{}, error) {
+func (a LocaleAwareImageDescriptor) viewAppFile(resources []resource.ResourceFile, view resource.AppFileView) (interface{}, error) {
 	path := view.AppFilePath()
 	var appResources []resource.ResourceFile
 	for _, resrc := range resources {
@@ -262,7 +262,7 @@ func (a ImageDescriptor) viewAppFile(resources []resource.ResourceFile, view res
 	return asset.Data, nil
 }
 
-func (a ImageDescriptor) viewEffectiveFile(resources []resource.ResourceFile, view resource.EffectiveFileView) (interface{}, error) {
+func (a LocaleAwareImageDescriptor) viewEffectiveFile(resources []resource.ResourceFile, view resource.EffectiveFileView) (interface{}, error) {
 	path := view.EffectiveFilePath()
 	asset, err := a.viewByPath(resources, path)
 	if err != nil {
@@ -271,8 +271,8 @@ func (a ImageDescriptor) viewEffectiveFile(resources []resource.ResourceFile, vi
 	return asset.Data, nil
 }
 
-func (a ImageDescriptor) viewByPath(resources []resource.ResourceFile, path string) (*StaticAsset, error) {
-	matches := imageRegex.FindStringSubmatch(path)
+func (a LocaleAwareImageDescriptor) viewByPath(resources []resource.ResourceFile, path string) (*StaticAsset, error) {
+	matches := localeAwareImageRegex.FindStringSubmatch(path)
 	if len(matches) < 4 {
 		return nil, resource.ErrResourceNotFound
 	}
@@ -282,7 +282,7 @@ func (a ImageDescriptor) viewByPath(resources []resource.ResourceFile, path stri
 	var found bool
 	var bytes []byte
 	for _, resrc := range resources {
-		m := imageRegex.FindStringSubmatch(resrc.Location.Path)
+		m := localeAwareImageRegex.FindStringSubmatch(resrc.Location.Path)
 		langTag := m[1]
 		extension := m[3]
 		if langTag == requestedLangTag && extension == requestedExtension {
@@ -308,7 +308,7 @@ func (a ImageDescriptor) viewByPath(resources []resource.ResourceFile, path stri
 	}, nil
 }
 
-func (a ImageDescriptor) GetSizeLimit() int {
+func (a LocaleAwareImageDescriptor) GetSizeLimit() int {
 	if a.SizeLimit == 0 {
 		return defaultSizeLimit
 	}
