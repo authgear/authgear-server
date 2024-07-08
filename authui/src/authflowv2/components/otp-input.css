@@ -53,17 +53,18 @@
     @apply relative;
     @apply w-full;
 
-    height: var(--otp-input__digit-height);
-
     input {
       @apply w-full;
-      @apply h-full;
-      @apply outline-none;
-      @apply selection:bg-white/0;
-      @apply caret-white/0;
-      /* iOS treats element with `opacity: 0` as not interactable, set text to transparent instead */
-      @apply text-transparent;
-      background-color: var(--otp-input__bg-color);
+
+      &.shadow {
+        height: var(--otp-input__digit-height);
+        @apply outline-none;
+        @apply selection:bg-white/0;
+        @apply caret-white/0;
+        /* iOS treats element with `opacity: 0` as not interactable, set text to transparent instead */
+        @apply text-transparent;
+        background-color: var(--otp-input__bg-color);
+      }
     }
   }
 
