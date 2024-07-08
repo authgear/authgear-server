@@ -70,7 +70,7 @@ For convenience, we use some magic phrases for imitating captcha verification su
 
 ### Cloudflare Turnstile
 #### Usage
-Set `bot_protection.response` as magic word
+Set input `bot_protection.response` as magic word
 
 | Magic Word          | Effect                                   |
 |---------------------|------------------------------------------|
@@ -80,7 +80,7 @@ Set `bot_protection.response` as magic word
 
 ### Recaptcha V2
 #### Usage
-Set `bot_protection.response` as magic word
+Set input `bot_protection.response` as magic word
 
 | Magic Word          | Effect                                   |
 |---------------------|------------------------------------------|
