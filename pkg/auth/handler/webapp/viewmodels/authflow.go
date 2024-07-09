@@ -43,6 +43,10 @@ type AuthflowViewModel struct {
 	LoginIDContextualType string
 
 	PasskeyRequestOptionsJSON string
+
+	BotProtectionRequired        bool
+	BotProtectionProviderType    string
+	BotProtectionProviderSiteKey string
 }
 
 type AuthflowViewModeler struct {
@@ -228,6 +232,14 @@ func (m *AuthflowViewModeler) NewWithAuthflow(f *authflow.FlowResponse, r *http.
 		NonPhoneLoginIDInputType: nonPhoneLoginIDInputType,
 		NonPhoneLoginIDType:      nonPhoneLoginIDType,
 		LoginIDContextualType:    loginIDContextualType,
+
+		// TODO: Inject bot protection values from flow response
+		BotProtectionRequired: true,
+		// BotProtectionProviderType:    "cloudflare",
+		BotProtectionProviderType: "recaptchav2",
+
+		// BotProtectionProviderSiteKey: "3x00000000000000000000FF",
+		BotProtectionProviderSiteKey: "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI",
 	}
 }
 
