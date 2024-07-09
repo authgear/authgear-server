@@ -84,6 +84,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 			newSessionMiddleware(),
 			httproute.MiddlewareFunc(httputil.NoStore),
 			p.Middleware(newWebAppWeChatRedirectURIMiddleware),
+			p.Middleware(newDPoPMiddleware),
 		)
 	}
 
