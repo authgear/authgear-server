@@ -165,14 +165,14 @@ export const RESOURCE_FAVICON: ResourceDefinition = {
 };
 
 export const RESOURCE_APP_BACKGROUND_IMAGE: ResourceDefinition = {
-  resourcePath: resourcePath`static/${"locale"}/app_background_image${"extension"}`,
+  resourcePath: resourcePath`static/app_background_image${"extension"}`,
   type: "binary",
   extensions: IMAGE_EXTENSIONS,
   optional: true,
 };
 
 export const RESOURCE_APP_BACKGROUND_IMAGE_DARK: ResourceDefinition = {
-  resourcePath: resourcePath`static/${"locale"}/app_background_image_dark${"extension"}`,
+  resourcePath: resourcePath`static/app_background_image_dark${"extension"}`,
   type: "binary",
   extensions: IMAGE_EXTENSIONS,
   optional: true,
