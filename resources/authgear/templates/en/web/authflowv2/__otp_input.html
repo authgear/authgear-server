@@ -23,58 +23,59 @@
 
 {{ define "authflowv2/__otp_input.html" }}
 <div
+  class="flex flex-col gap-4"
   data-controller="otp-input text-field"
   data-text-field-input-container-error-class-value="otp-input--error"
 >
-  <div
-    class="otp-input{{ if $.ErrorMessage }} otp-input--error{{ end }}"
-    data-text-field-target="inputContainer"
-  >
-    <input
-      class="input"
-      form="{{ $.FormName }}"
-      type="text"
-      name="{{ or $.InputName "x_code" }}"
-      inputmode="numeric"
-      autocomplete="one-time-code"
-      pattern="\d{{ $.CodeLength }}"
-      maxlength="{{ $.CodeLength }}"
-      autofocus=""
-      required
-      data-otp-input-target="input"
-      data-text-field-target="input"
-      {{ if $.Disabled }}disabled{{ end }}
-    />
-    <div data-otp-input-target="digitsContainer" class="otp-input__digits-container">
-
-    </div>
-  </div>
-
-  {{ if $.ErrorMessage }}
+  <div>
     <div
-      class="otp-input__error-message"
-      data-text-field-target="errorMessage"
+      class="otp-input{{ if $.ErrorMessage }} otp-input--error{{ end }}"
+      data-text-field-target="inputContainer"
     >
-      {{ $.ErrorMessage }}
+      <input
+        class="input"
+        form="{{ $.FormName }}"
+        type="text"
+        name="{{ or $.InputName "x_code" }}"
+        inputmode="numeric"
+        autocomplete="one-time-code"
+        pattern="\d{{ $.CodeLength }}"
+        maxlength="{{ $.CodeLength }}"
+        autofocus=""
+        required
+        data-otp-input-target="input"
+        data-text-field-target="input"
+        {{ if $.Disabled }}disabled{{ end }}
+      />
+      <div data-otp-input-target="digitsContainer" class="otp-input__digits-container"></div>
     </div>
-  {{ end }}
 
-  <button
-    form="{{ $.FormName }}"
-    class="hidden"
-    type="submit"
-    name="{{ or $.SubmitButtonName "x_action" }}"
-    value="{{ or $.SubmitButtonValue "submit" }}"
-    data-otp-input-target="submit"
-    data-authgear-event="{{ $.SubmitEvent }}"
-  ></button>
+    {{ if $.ErrorMessage }}
+      <div
+        class="otp-input__error-message"
+        data-text-field-target="errorMessage"
+      >
+        {{ $.ErrorMessage }}
+      </div>
+    {{ end }}
+
+    <button
+      form="{{ $.FormName }}"
+      class="hidden"
+      type="submit"
+      name="{{ or $.SubmitButtonName "x_action" }}"
+      value="{{ or $.SubmitButtonValue "submit" }}"
+      data-otp-input-target="submit"
+      data-authgear-event="{{ $.SubmitEvent }}"
+    ></button>
+  </div>
 
   {{ if not $.ResendButtonHidden }}
     <form method="post" novalidate>
       {{ $.CSRFField }}
       <button
         id="resend-button"
-        class="otp-input__resend-btn link-btn"
+        class="link-btn"
         type="submit"
         name="{{ or $.ResendButtonName "x_action" }}"
         value="{{ or $.ResendButtonValue "resend" }}"
