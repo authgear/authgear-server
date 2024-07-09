@@ -23,11 +23,18 @@ module.exports = {
       flex: {
         "1-0-auto": "1 0 auto",
       },
-      spacing: {
-        18: "4.5rem",
-      },
-      maxWidth: {
-        90: "90rem",
+      height: (theme) => theme("spacing"),
+      width: (theme) => theme("spacing"),
+      minHeight: (theme) => theme("spacing"),
+      maxHeight: (theme) => theme("spacing"),
+      minWidth: (theme) => theme("spacing"),
+      maxWidth: (theme) => theme("spacing"),
+      spacing: () => {
+        const spacing = {};
+        for (let i = 0; i <= 360; i += 0.5) {
+          spacing[i] = `${i * 0.25}rem`;
+        }
+        return spacing;
       },
     },
     screens: {
