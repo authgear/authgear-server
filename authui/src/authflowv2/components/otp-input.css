@@ -37,8 +37,6 @@
     --otp-input-error-message__font-weight: var(
       --typography-body-medium__font-weight
     );
-
-    --otp-input-resend-button-margin-top: 1rem;
   }
 
   :root.dark {
@@ -122,10 +120,6 @@
     line-height: var(--otp-input-error-message__line-height);
     letter-spacing: var(--otp-input-error-message__letter-spacing);
     font-weight: var(--otp-input-error-message__font-weight);
-  }
-
-  .otp-input__resend-btn {
-    margin-top: var(--otp-input-resend-button-margin-top);
   }
 
   .otp-input {
