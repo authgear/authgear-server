@@ -1,0 +1,7 @@
+{{ if $.BotProtectionRequired }}
+  {{ if (eq $.BotProtectionProviderType "cloudflare") }}
+    <script nonce="{{ $.CSPNonce }}" src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
+  {{ else if (eq $.BotProtectionProviderType "recaptchav2" )}}
+    <script nonce="{{ $.CSPNonce }}" src="https://www.google.com/recaptcha/api.js?onload=onLoadRecaptchaV2Callback&render=explicit" defer></script>
+  {{ end }}
+{{ end }}

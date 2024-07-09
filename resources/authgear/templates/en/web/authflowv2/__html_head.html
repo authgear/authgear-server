@@ -72,7 +72,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 {{ end }}
 <!-- End Google Tag Manager -->
 
-<script nonce="{{ $.CSPNonce }}" src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback" defer></script>
+{{ template "web/authflowv2/__load_bot_protection.html" . }}
 
 </head>
 {{ end }}
