@@ -27,15 +27,31 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 		dpopJwt := dpopHeader[0]
 		proof, err := m.DPoPProvider.ParseProof(dpopJwt)
 		if err != nil {
-			if apierrors.IsAPIError(err) {
-				apierr := apierrors.AsAPIError(err)
-				http.Error(rw, fmt.Sprintf("%s:%s", apierr.Reason, apierr.Message), apierr.Name.HTTPStatus())
-				return
-			} else {
-				panic(err)
-			}
+			m.handleError(rw, err)
+			return
 		}
+
+		if err := m.DPoPProvider.CompareHTM(proof, r.Method); err != nil {
+			m.handleError(rw, err)
+			return
+		}
+
+		if err := m.DPoPProvider.CompareHTU(proof, r.URL); err != nil {
+			m.handleError(rw, err)
+			return
+		}
+
 		WithDPoPProof(r.Context(), proof)
 
 	})
+}
+
+func (m *Middleware) handleError(rw http.ResponseWriter, err error) {
+	if apierrors.IsAPIError(err) {
+		apierr := apierrors.AsAPIError(err)
+		http.Error(rw, fmt.Sprintf("%s:%s", apierr.Reason, apierr.Message), apierr.Name.HTTPStatus())
+		return
+	} else {
+		panic(err)
+	}
 }

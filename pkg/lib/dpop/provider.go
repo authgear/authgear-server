@@ -4,6 +4,8 @@ import (
 	"crypto"
 	"encoding/base64"
 	"encoding/json"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -107,6 +109,11 @@ func (p *Provider) ParseProof(jwtStr string) (*DPoPProof, error) {
 		return nil, ErrInvalidJwtPayload
 	}
 
+	htuURI, err := url.Parse(htu)
+	if err != nil {
+		return nil, ErrInvalidHTU
+	}
+
 	thumbprint, err := key.Thumbprint(crypto.SHA256)
 	if err != nil {
 		panic(err)
@@ -117,7 +124,30 @@ func (p *Provider) ParseProof(jwtStr string) (*DPoPProof, error) {
 	return &DPoPProof{
 		JTI: jti,
 		HTM: htm,
-		HTU: htu,
+		HTU: htuURI,
 		JKT: jkt,
 	}, nil
+}
+
+func (p *Provider) CompareHTU(proof *DPoPProof, requestURI *url.URL) error {
+	if proof.HTU.Scheme != requestURI.Scheme {
+		return ErrUnmatchedURI
+	}
+	if proof.HTU.Opaque != requestURI.Opaque {
+		return ErrUnmatchedURI
+	}
+	if proof.HTU.Host != requestURI.Host {
+		return ErrUnmatchedURI
+	}
+	if proof.HTU.Path != requestURI.Path {
+		return ErrUnmatchedURI
+	}
+	return nil
+}
+
+func (p *Provider) CompareHTM(proof *DPoPProof, requestMethod string) error {
+	if strings.ToLower(proof.HTM) != strings.ToLower(requestMethod) {
+		return ErrUnmatchedMethod
+	}
+	return nil
 }
