@@ -48,6 +48,14 @@
 <link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-authflowv2-dark-theme.css" }}">
 {{ end }}
 {{ end }}
+{{/* This element reverts the visibility in widget.css */}}
+<noscript>
+  <style>
+    :root:not([alignment-content]) .widget {
+      visibility: visible;
+    }
+  </style>
+</noscript>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preload" href='{{ call $.GeneratedStaticAssetURL "material-symbols-outlined-subset.woff2" }}' as="font" crossorigin="anonymous">

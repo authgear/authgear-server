@@ -45,6 +45,7 @@
     max-width: var(--widget__max-width);
   }
 
+  /* In __html_head.html, there is a <noscript> element to revert this visibility. */
   :root:not([alignment-content]) .widget {
     /* This rule is to prevent ui shifting before the attribute added */
     @apply invisible;
