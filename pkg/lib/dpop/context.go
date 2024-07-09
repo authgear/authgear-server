@@ -7,7 +7,7 @@ type contextKeyType struct{}
 var contextKey = contextKeyType{}
 
 type contextValue struct {
-	DPoPJwt *DPoPJwt
+	DPoPProof *DPoPProof
 }
 
 func getContext(ctx context.Context) *contextValue {
@@ -15,19 +15,19 @@ func getContext(ctx context.Context) *contextValue {
 	return actx
 }
 
-func WithDPoPJwt(ctx context.Context, jwt *DPoPJwt) context.Context {
+func WithDPoPProof(ctx context.Context, proof *DPoPProof) context.Context {
 	actx := getContext(ctx)
 	if actx == nil {
 		actx = &contextValue{}
 	}
-	actx.DPoPJwt = jwt
+	actx.DPoPProof = proof
 	return context.WithValue(ctx, contextKey, actx)
 }
 
-func GetDPoPJwt(ctx context.Context) *DPoPJwt {
+func GetDPoPProof(ctx context.Context) *DPoPProof {
 	actx := getContext(ctx)
-	if actx == nil || actx.DPoPJwt == nil {
+	if actx == nil || actx.DPoPProof == nil {
 		return nil
 	}
-	return actx.DPoPJwt
+	return actx.DPoPProof
 }
