@@ -32,6 +32,7 @@ export class OtpInputController extends Controller {
     this.inputTarget.addEventListener("paste", this.handlePaste);
     this.inputTarget.addEventListener("focus", this.handleFocus);
     this.inputTarget.addEventListener("blur", this.handleBlur);
+    this.submitTarget.disabled = true;
     // element.selectionchange is NOT the same as document.selectionchange
     // element.selectionchange is an experimental technology.
     window.document.addEventListener(
@@ -61,6 +62,7 @@ export class OtpInputController extends Controller {
 
     const reachedMaxDigits = this.value.length === this.maxLength;
     if (reachedMaxDigits) {
+      this.submitTarget.disabled = false;
       this.submitTarget.click();
     }
 

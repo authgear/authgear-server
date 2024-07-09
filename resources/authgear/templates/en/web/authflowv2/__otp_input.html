@@ -59,15 +59,6 @@
       </div>
     {{ end }}
 
-    <button
-      form="{{ $.FormName }}"
-      class="hidden"
-      type="submit"
-      name="{{ or $.SubmitButtonName "x_action" }}"
-      value="{{ or $.SubmitButtonValue "submit" }}"
-      data-otp-input-target="submit"
-      data-authgear-event="{{ $.SubmitEvent }}"
-    ></button>
   </div>
 
   {{ if not $.ResendButtonHidden }}
@@ -90,5 +81,16 @@
       </button>
     </form>
   {{ end }}
+
+  <button
+    form="{{ $.FormName }}"
+    class="primary-btn w-full"
+    type="submit"
+    name="{{ or $.SubmitButtonName "x_action" }}"
+    value="{{ or $.SubmitButtonValue "submit" }}"
+    data-otp-input-target="submit"
+    data-authgear-event="{{ $.SubmitEvent }}"
+  > Next </button>
+
 </div>
 {{ end }}
