@@ -31,7 +31,7 @@ module.exports = {
       maxWidth: (theme) => theme("spacing"),
       spacing: () => {
         const spacing = {};
-        for (let i = 0; i <= 300; i += 0.5) {
+        for (let i = 0; i <= 360; i += 0.5) {
           spacing[i] = `${i * 0.25}rem`;
         }
         return spacing;
