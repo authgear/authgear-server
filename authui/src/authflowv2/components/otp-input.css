@@ -20,6 +20,8 @@
     /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
     --otp-input__digit-mask-size: 0.625rem;
 
+    --otp-input__dev-1511-color-transparent: transparent;
+
     --otp-input-error-message__margin-top: 0.5rem;
     --otp-input-error-message__text-color: var(--color-error);
     --otp-input-error-message__font-family: var(
@@ -61,6 +63,11 @@
         @apply caret-white/0;
         /* iOS treats element with `opacity: 0` as not interactable, set text to transparent instead */
         @apply text-transparent;
+        /* https://linear.app/authgear/issue/DEV-1511 */
+        /* When iOS autofills a code from SMS, the filled text will use -webkit-text-fill-color */
+        /* instead of color as text color, so we need to set both property to transparent. */
+        /* Simple transparent does not work on safari so we have to use var() here https://stackoverflow.com/questions/31289537/webkit-text-fill-color-transparent-not-working-in-safari-7-1-7  */
+        -webkit-text-fill-color: var(--otp-input__dev-1511-color-transparent);
         background-color: var(--otp-input__bg-color);
       }
     }
