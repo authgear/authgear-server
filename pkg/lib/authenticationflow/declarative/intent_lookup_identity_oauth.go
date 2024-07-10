@@ -77,17 +77,12 @@ func (i *IntentLookupIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.
 			alias := inputOAuth.GetOAuthAlias()
 			redirectURI := inputOAuth.GetOAuthRedirectURI()
 			responseMode := inputOAuth.GetOAuthResponseMode()
-			var botProtection *InputTakeBotProtectionBody
-			if inputBP, ok := inputOAuth.(inputTakeBotProtection); ok {
-				botProtection = inputBP.GetBotProtectionProvider()
-			}
 
 			syntheticInput := &InputStepIdentify{
 				Identification: i.SyntheticInput.Identification,
 				Alias:          alias,
 				RedirectURI:    redirectURI,
 				ResponseMode:   responseMode,
-				BotProtection:  botProtection,
 			}
 
 			return authflow.NewNodeSimple(&NodeLookupIdentityOAuth{

@@ -86,14 +86,9 @@ func (n *IntentLookupIdentityLoginID) ReactTo(ctx context.Context, deps *authflo
 			},
 		}
 
-		var botProtection *InputTakeBotProtectionBody
-		if inputBP, ok := inputTakeLoginID.(inputTakeBotProtection); ok {
-			botProtection = inputBP.GetBotProtectionProvider()
-		}
 		syntheticInput := &InputStepIdentify{
 			Identification: n.SyntheticInput.Identification,
 			LoginID:        loginID,
-			BotProtection:  botProtection,
 		}
 
 		_, err = findExactOneIdentityInfo(deps, spec)

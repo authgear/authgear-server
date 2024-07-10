@@ -82,15 +82,10 @@ func (n *IntentLookupIdentityPasskey) ReactTo(ctx context.Context, deps *authflo
 		if err != nil {
 			return nil, err
 		}
-		var botProtection *InputTakeBotProtectionBody
-		if inputBP, ok := inputAssertionResponse.(inputTakeBotProtection); ok {
-			botProtection = inputBP.GetBotProtectionProvider()
-		}
 
 		syntheticInput := &SyntheticInputPasskey{
 			Identification:    n.SyntheticInput.Identification,
 			AssertionResponse: assertionResponse,
-			BotProtection:     botProtection,
 		}
 
 		spec := &identity.Spec{
