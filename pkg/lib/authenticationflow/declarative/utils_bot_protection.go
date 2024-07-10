@@ -11,7 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-func IsConfigBotProtectionReqired(authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) bool {
+func isConfigBotProtectionRequired(authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) bool {
 	data := GetBotProtectionData(authflowCfg, appCfg)
 	return data != nil
 }
@@ -31,11 +31,11 @@ func IsNodeBotProtectionRequired(ctx context.Context, deps *authflow.Dependencie
 		return false, authflow.ErrInvalidJSONPointer
 	}
 
-	return IsConfigBotProtectionReqired(currentBranch.GetBotProtectionConfig(), deps.Config.BotProtection), nil
+	return isConfigBotProtectionRequired(currentBranch.GetBotProtectionConfig(), deps.Config.BotProtection), nil
 }
 
 func IsBotProtectionRequired(ctx context.Context, flowRootObject config.AuthenticationFlowObject, oneOfJSONPointer jsonpointer.T) (bool, error) {
-	required, err := IsInputBotProtectionRequired(flowRootObject, oneOfJSONPointer)
+	required, err := isInputBotProtectionRequired(flowRootObject, oneOfJSONPointer)
 	if err != nil {
 		return false, err
 	}
@@ -44,7 +44,7 @@ func IsBotProtectionRequired(ctx context.Context, flowRootObject config.Authenti
 	return required && !shouldExistingBypassRequired, nil
 }
 
-func IsInputBotProtectionRequired(flowRootObject config.AuthenticationFlowObject, oneOfJSONPointer jsonpointer.T) (bool, error) {
+func isInputBotProtectionRequired(flowRootObject config.AuthenticationFlowObject, oneOfJSONPointer jsonpointer.T) (bool, error) {
 	current, err := authflow.FlowObject(flowRootObject, oneOfJSONPointer)
 	if err != nil {
 		return false, err
@@ -61,7 +61,7 @@ func IsInputBotProtectionRequired(flowRootObject config.AuthenticationFlowObject
 		return false, nil
 	}
 
-	return IsConfigBotProtectionReqired(currentBranch.GetBotProtectionConfig(), nil), nil
+	return isConfigBotProtectionRequired(currentBranch.GetBotProtectionConfig(), nil), nil
 }
 
 func ShouldExistingResultBypassBotProtectionRequirement(ctx context.Context) bool {
@@ -84,9 +84,9 @@ func ShouldExistingResultBypassBotProtectionRequirement(ctx context.Context) boo
 func HandleBotProtection(ctx context.Context, deps *authflow.Dependencies, token string) (bpSpecialErr error, err error) {
 	existingResult := authflow.GetBotProtectionVerificationResult(ctx)
 	if existingResult != nil {
-		bpSpecialErr, err = HandleExistingBotProtectionVerificationResult(ctx, deps, token, existingResult)
+		bpSpecialErr, err = handleExistingBotProtectionVerificationResult(ctx, deps, token, existingResult)
 	} else {
-		bpSpecialErr, err = VerifyBotProtection(ctx, deps, token)
+		bpSpecialErr, err = verifyBotProtection(ctx, deps, token)
 	}
 
 	if isBotProtectionSpecialErrorSuccess(bpSpecialErr) {
@@ -97,13 +97,13 @@ func HandleBotProtection(ctx context.Context, deps *authflow.Dependencies, token
 	return nil, errors.Join(bpSpecialErr, err)
 }
 
-func HandleExistingBotProtectionVerificationResult(ctx context.Context, deps *authflow.Dependencies, token string, r *authflow.BotProtectionVerificationResult) (bpSpecialErr error, err error) {
+func handleExistingBotProtectionVerificationResult(ctx context.Context, deps *authflow.Dependencies, token string, r *authflow.BotProtectionVerificationResult) (bpSpecialErr error, err error) {
 	switch r.Outcome {
 	case authflow.BotProtectionVerificationOutcomeVerified:
 		return authflow.ErrorBotProtectionVerificationSuccess, nil
 	case authflow.BotProtectionVerificationOutcomeServiceUnavailable:
 		// retry
-		return VerifyBotProtection(ctx, deps, token)
+		return verifyBotProtection(ctx, deps, token)
 	case authflow.BotProtectionVerificationOutcomeFailed:
 		return authflow.ErrorBotProtectionVerificationFailed, nil
 	default:
@@ -111,7 +111,7 @@ func HandleExistingBotProtectionVerificationResult(ctx context.Context, deps *au
 	}
 
 }
-func VerifyBotProtection(ctx context.Context, deps *authflow.Dependencies, token string) (bpSpecialErr error, err error) {
+func verifyBotProtection(ctx context.Context, deps *authflow.Dependencies, token string) (bpSpecialErr error, err error) {
 	err = deps.BotProtection.Verify(token)
 
 	switch {
