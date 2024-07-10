@@ -44,6 +44,8 @@ export class OtpInputController extends Controller {
   }
 
   disconnect(): void {
+    this.inputTarget.classList.add("input");
+    this.inputTarget.classList.remove("with-js");
     this.inputTarget.removeEventListener("input", this.handleInput);
     this.inputTarget.removeEventListener("paste", this.handlePaste);
     this.inputTarget.removeEventListener("focus", this.handleFocus);
@@ -53,6 +55,7 @@ export class OtpInputController extends Controller {
       this.handleSelectionChange
     );
     document.removeEventListener("turbo:before-cache", this.beforeCache);
+    this.submitTarget.disabled = false;
   }
 
   _setValue = (value: string): void => {
