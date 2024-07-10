@@ -75,7 +75,7 @@ func (c *RecaptchaV2Client) Verify(token string, remoteip string) (*RecaptchaV2R
 
 	// failed
 	if len(respBody.ErrorCodes) == 0 {
-		return nil, ErrVerificationFailed // fail without error codes if empty
+		return nil, fmt.Errorf("unexpected response body: %v", string(httpBodyBytes)) // internal server error
 	}
 
 	return nil, errors.Join(ErrVerificationFailed, respBody)

@@ -76,7 +76,7 @@ func (c *CloudflareClient) Verify(token string, remoteip string) (*CloudflareTur
 
 	// failed
 	if len(respBody.ErrorCodes) == 0 {
-		return nil, ErrVerificationFailed // fail without error codes if empty
+		return nil, fmt.Errorf("unexpected response body: %v", string(httpBodyBytes)) // internal server error
 	}
 
 	for _, suErrCode := range CloudFlareTurnstileServiceUnavailableErrorCodes {
