@@ -19,8 +19,8 @@ type AcceptResult struct {
 // Accept executes the flow to the deepest using input.
 // In addition to the errors caused by intents and nodes,
 // ErrEOF and ErrNoChange can be returned.
-func Accept(ctx context.Context, deps *Dependencies, flows Flows, rawMessage json.RawMessage) (*AcceptResult, error) {
-	return accept(ctx, deps, flows, func(inputSchema InputSchema) (Input, error) {
+func Accept(makeCtx func() (context.Context, error), deps *Dependencies, flows Flows, rawMessage json.RawMessage) (*AcceptResult, error) {
+	return accept(makeCtx, deps, flows, func(inputSchema InputSchema) (Input, error) {
 		if rawMessage != nil && inputSchema != nil {
 			input, err := inputSchema.MakeInput(rawMessage)
 			if err != nil {
@@ -32,14 +32,14 @@ func Accept(ctx context.Context, deps *Dependencies, flows Flows, rawMessage jso
 	})
 }
 
-func AcceptSyntheticInput(ctx context.Context, deps *Dependencies, flows Flows, syntheticInput Input) (result *AcceptResult, err error) {
-	return accept(ctx, deps, flows, func(inputSchema InputSchema) (Input, error) {
+func AcceptSyntheticInput(makeCtx func() (context.Context, error), deps *Dependencies, flows Flows, syntheticInput Input) (result *AcceptResult, err error) {
+	return accept(makeCtx, deps, flows, func(inputSchema InputSchema) (Input, error) {
 		return syntheticInput, nil
 	})
 }
 
 // nolint: gocognit
-func accept(ctx context.Context, deps *Dependencies, flows Flows, inputFn func(inputSchema InputSchema) (Input, error)) (result *AcceptResult, err error) {
+func accept(makeCtx func() (context.Context, error), deps *Dependencies, flows Flows, inputFn func(inputSchema InputSchema) (Input, error)) (result *AcceptResult, err error) {
 	var changed bool
 	defer func() {
 		if changed {
@@ -50,7 +50,12 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, inputFn func(i
 		}
 	}()
 
+	var ctx context.Context
 	for {
+		ctx, err = makeCtx()
+		if err != nil {
+			return
+		}
 		var findInputReactorResult *FindInputReactorResult
 		findInputReactorResult, err = FindInputReactor(ctx, deps, flows)
 		if err != nil {

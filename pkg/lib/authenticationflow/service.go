@@ -109,15 +109,17 @@ func (s *Service) validateNewFlow(publicFlow PublicFlow, sessionOptions *Session
 }
 
 func (s *Service) createNewFlowWithSession(publicFlow PublicFlow, session *Session) (output *ServiceOutput, err error) {
-	ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps)
-	if err != nil {
-		return
+	makeCtx := func() (context.Context, error) {
+		ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps)
+		if err != nil {
+			return nil, err
+		}
+		return ctx, nil
 	}
-
 	var flow *Flow
 	var flowAction *FlowAction
 	err = s.Database.ReadOnly(func() error {
-		flow, flowAction, err = s.createNewFlow(ctx, session, publicFlow)
+		flow, flowAction, err = s.createNewFlow(makeCtx, session, publicFlow)
 		return err
 	})
 	isEOF := errors.Is(err, ErrEOF)
@@ -130,7 +132,7 @@ func (s *Service) createNewFlowWithSession(publicFlow PublicFlow, session *Sessi
 	var cookies []*http.Cookie
 	if isEOF {
 		err = s.Database.WithTx(func() error {
-			cookies, err = s.finishFlow(ctx, flow)
+			cookies, err = s.finishFlow(makeCtx, flow)
 			return err
 		})
 		if err != nil {
@@ -164,7 +166,7 @@ func (s *Service) createNewFlowWithSession(publicFlow PublicFlow, session *Sessi
 	return
 }
 
-func (s *Service) createNewFlow(ctx context.Context, session *Session, publicFlow PublicFlow) (flow *Flow, flowAction *FlowAction, err error) {
+func (s *Service) createNewFlow(makeCtx func() (context.Context, error), session *Session, publicFlow PublicFlow) (flow *Flow, flowAction *FlowAction, err error) {
 	flow = NewFlow(session.FlowID, publicFlow)
 
 	// A new flow does not have any nodes.
@@ -173,7 +175,14 @@ func (s *Service) createNewFlow(ctx context.Context, session *Session, publicFlo
 
 	// Feed an nil input to the flow to let it proceed.
 	var rawMessage json.RawMessage
-	acceptResult, err := Accept(ctx, s.Deps, NewFlows(flow), rawMessage)
+	acceptResult, err := Accept(makeCtx, s.Deps, NewFlows(flow), rawMessage)
+	if acceptResult != nil && acceptResult.BotProtectionVerificationResult != nil {
+		session.SetBotProtectionVerificationResult(acceptResult.BotProtectionVerificationResult)
+		updateSessionErr := s.Store.UpdateSession(session)
+		if updateSessionErr != nil {
+			return nil, nil, updateSessionErr
+		}
+	}
 	// As a special case, we do not treat ErrNoChange as error because
 	// Not every flow can react to nil input.
 	if errors.Is(err, ErrNoChange) {
@@ -184,22 +193,13 @@ func (s *Service) createNewFlow(ctx context.Context, session *Session, publicFlo
 		return
 	}
 
-	if acceptResult != nil && acceptResult.BotProtectionVerificationResult != nil {
-		session.SetBotProtectionVerificationResult(acceptResult.BotProtectionVerificationResult)
-		err = s.Store.UpdateSession(session)
-		if err != nil {
-			return
-		}
-	}
-
 	// err is nil or err is ErrEOF.
 	// We persist the flow state.
 	err = s.Store.CreateFlow(flow)
 	if err != nil {
 		return
 	}
-
-	flowAction, err = s.getFlowAction(ctx, session, flow)
+	flowAction, err = s.getFlowAction(makeCtx, session, flow)
 	if err != nil {
 		return
 	}
@@ -221,26 +221,33 @@ func (s *Service) Get(stateToken string) (output *ServiceOutput, err error) {
 		return
 	}
 
-	ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps)
-	if err != nil {
-		return
+	makeCtx := func() (context.Context, error) {
+		ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps)
+		if err != nil {
+			return nil, err
+		}
+		return ctx, err
 	}
 
 	err = s.Database.ReadOnly(func() error {
-		output, err = s.get(ctx, session, w)
+		output, err = s.get(makeCtx, session, w)
 		return err
 	})
 	return
 }
 
-func (s *Service) get(ctx context.Context, session *Session, w *Flow) (output *ServiceOutput, err error) {
+func (s *Service) get(makeCtx func() (context.Context, error), session *Session, w *Flow) (output *ServiceOutput, err error) {
+	ctx, err := makeCtx()
+	if err != nil {
+		return
+	}
 	// Apply the run-effects.
 	err = ApplyRunEffects(ctx, s.Deps, NewFlows(w))
 	if err != nil {
 		return
 	}
 
-	flowAction, err := s.getFlowAction(ctx, session, w)
+	flowAction, err := s.getFlowAction(makeCtx, session, w)
 	if err != nil {
 		return
 	}
@@ -276,14 +283,17 @@ func (s *Service) FeedInput(stateToken string, rawMessage json.RawMessage) (outp
 		return
 	}
 
-	ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps)
-	if err != nil {
-		return
+	makeCtx := func() (context.Context, error) {
+		ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps)
+		if err != nil {
+			return nil, err
+		}
+		return ctx, err
 	}
 
 	var flowAction *FlowAction
 	err = s.Database.ReadOnly(func() error {
-		flow, flowAction, err = s.feedInput(ctx, session, stateToken, rawMessage)
+		flow, flowAction, err = s.feedInput(makeCtx, session, stateToken, rawMessage)
 		return err
 	})
 
@@ -315,7 +325,7 @@ func (s *Service) FeedInput(stateToken string, rawMessage json.RawMessage) (outp
 	var cookies []*http.Cookie
 	if isEOF {
 		err = s.Database.WithTx(func() error {
-			cookies, err = s.finishFlow(ctx, flow)
+			cookies, err = s.finishFlow(makeCtx, flow)
 			return err
 		})
 		if err != nil {
@@ -360,14 +370,17 @@ func (s *Service) FeedSyntheticInput(stateToken string, syntheticInput Input) (o
 		return
 	}
 
-	ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps)
-	if err != nil {
-		return
+	makeCtx := func() (context.Context, error) {
+		ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps)
+		if err != nil {
+			return nil, err
+		}
+		return ctx, err
 	}
 
 	var flowAction *FlowAction
 	err = s.Database.ReadOnly(func() error {
-		flow, flowAction, err = s.feedSyntheticInput(ctx, session, stateToken, syntheticInput)
+		flow, flowAction, err = s.feedSyntheticInput(makeCtx, session, stateToken, syntheticInput)
 		return err
 	})
 
@@ -381,7 +394,7 @@ func (s *Service) FeedSyntheticInput(stateToken string, syntheticInput Input) (o
 	var cookies []*http.Cookie
 	if isEOF {
 		err = s.Database.WithTx(func() error {
-			cookies, err = s.finishFlow(ctx, flow)
+			cookies, err = s.finishFlow(makeCtx, flow)
 			return err
 		})
 		if err != nil {
@@ -453,30 +466,33 @@ func (s *Service) rewriteFlow(session *Session, errRewriteFlow *ErrorRewriteFlow
 	return s.FeedSyntheticInput(newFlow.StateToken, errRewriteFlow.SyntheticInput)
 }
 
-func (s *Service) feedInput(ctx context.Context, session *Session, stateToken string, rawMessage json.RawMessage) (flow *Flow, flowAction *FlowAction, err error) {
+func (s *Service) feedInput(makeCtx func() (context.Context, error), session *Session, stateToken string, rawMessage json.RawMessage) (flow *Flow, flowAction *FlowAction, err error) {
 	flow, err = s.Store.GetFlowByStateToken(stateToken)
 	if err != nil {
 		return
 	}
 
+	ctx, err := makeCtx()
+	if err != nil {
+		return
+	}
 	// Apply the run-effects.
 	err = ApplyRunEffects(ctx, s.Deps, NewFlows(flow))
 	if err != nil {
 		return
 	}
 
-	acceptResult, err := Accept(ctx, s.Deps, NewFlows(flow), rawMessage)
+	acceptResult, err := Accept(makeCtx, s.Deps, NewFlows(flow), rawMessage)
+	if acceptResult != nil && acceptResult.BotProtectionVerificationResult != nil {
+		session.SetBotProtectionVerificationResult(acceptResult.BotProtectionVerificationResult)
+		updateSessionErr := s.Store.UpdateSession(session)
+		if updateSessionErr != nil {
+			return nil, nil, updateSessionErr
+		}
+	}
 	isEOF := errors.Is(err, ErrEOF)
 	if err != nil && !isEOF {
 		return
-	}
-
-	if acceptResult != nil && acceptResult.BotProtectionVerificationResult != nil {
-		session.SetBotProtectionVerificationResult(acceptResult.BotProtectionVerificationResult)
-		err = s.Store.UpdateSession(session)
-		if err != nil {
-			return
-		}
 	}
 
 	// err is nil or err is ErrEOF.
@@ -486,7 +502,7 @@ func (s *Service) feedInput(ctx context.Context, session *Session, stateToken st
 		return
 	}
 
-	flowAction, err = s.getFlowAction(ctx, session, flow)
+	flowAction, err = s.getFlowAction(makeCtx, session, flow)
 	if err != nil {
 		return
 	}
@@ -497,30 +513,32 @@ func (s *Service) feedInput(ctx context.Context, session *Session, stateToken st
 	return
 }
 
-func (s *Service) feedSyntheticInput(ctx context.Context, session *Session, stateToken string, syntheticInput Input) (flow *Flow, flowAction *FlowAction, err error) {
+func (s *Service) feedSyntheticInput(makeCtx func() (context.Context, error), session *Session, stateToken string, syntheticInput Input) (flow *Flow, flowAction *FlowAction, err error) {
 	flow, err = s.Store.GetFlowByStateToken(stateToken)
 	if err != nil {
 		return
 	}
-
+	ctx, err := makeCtx()
+	if err != nil {
+		return
+	}
 	// Apply the run-effects.
 	err = ApplyRunEffects(ctx, s.Deps, NewFlows(flow))
 	if err != nil {
 		return
 	}
 
-	acceptResult, err := AcceptSyntheticInput(ctx, s.Deps, NewFlows(flow), syntheticInput)
+	acceptResult, err := AcceptSyntheticInput(makeCtx, s.Deps, NewFlows(flow), syntheticInput)
+	if acceptResult != nil && acceptResult.BotProtectionVerificationResult != nil {
+		session.SetBotProtectionVerificationResult(acceptResult.BotProtectionVerificationResult)
+		updateSessionErr := s.Store.UpdateSession(session)
+		if updateSessionErr != nil {
+			return nil, nil, updateSessionErr
+		}
+	}
 	isEOF := errors.Is(err, ErrEOF)
 	if err != nil && !isEOF {
 		return
-	}
-
-	if acceptResult != nil && acceptResult.BotProtectionVerificationResult != nil {
-		session.SetBotProtectionVerificationResult(acceptResult.BotProtectionVerificationResult)
-		err = s.Store.UpdateSession(session)
-		if err != nil {
-			return
-		}
 	}
 
 	// err is nil or err is ErrEOF.
@@ -530,7 +548,7 @@ func (s *Service) feedSyntheticInput(ctx context.Context, session *Session, stat
 		return
 	}
 
-	flowAction, err = s.getFlowAction(ctx, session, flow)
+	flowAction, err = s.getFlowAction(makeCtx, session, flow)
 	if err != nil {
 		return
 	}
@@ -541,7 +559,11 @@ func (s *Service) feedSyntheticInput(ctx context.Context, session *Session, stat
 	return
 }
 
-func (s *Service) finishFlow(ctx context.Context, flow *Flow) (cookies []*http.Cookie, err error) {
+func (s *Service) finishFlow(makeCtx func() (context.Context, error), flow *Flow) (cookies []*http.Cookie, err error) {
+	ctx, err := makeCtx()
+	if err != nil {
+		return
+	}
 	// When the flow is finished, we have the following things to do:
 	// 1. Apply all effects.
 	// 2. Collect cookies.
@@ -558,7 +580,11 @@ func (s *Service) finishFlow(ctx context.Context, flow *Flow) (cookies []*http.C
 	return
 }
 
-func (s *Service) getFlowAction(ctx context.Context, session *Session, flow *Flow) (flowAction *FlowAction, err error) {
+func (s *Service) getFlowAction(makeCtx func() (context.Context, error), session *Session, flow *Flow) (flowAction *FlowAction, err error) {
+	ctx, err := makeCtx()
+	if err != nil {
+		return nil, err
+	}
 	findInputReactorResult, err := FindInputReactor(ctx, s.Deps, NewFlows(flow))
 	if errors.Is(err, ErrEOF) {
 		redirectURI := session.RedirectURI
