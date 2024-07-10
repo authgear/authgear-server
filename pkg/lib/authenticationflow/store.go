@@ -133,6 +133,25 @@ func (s *StoreImpl) GetSession(flowID string) (*Session, error) {
 	return &session, err
 }
 
+func (s *StoreImpl) UpdateSession(session *Session) error {
+	bytes, err := json.Marshal(session)
+	if err != nil {
+		return err
+	}
+
+	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+		sessionKey := redisFlowSessionKey(s.AppID, session.FlowID)
+
+		ttl := Lifetime
+		_, err = conn.SetXX(s.Context, sessionKey, bytes, ttl).Result()
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
 func (s *StoreImpl) DeleteSession(session *Session) error {
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
 		sessionKey := redisFlowSessionKey(s.AppID, session.FlowID)

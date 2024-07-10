@@ -133,3 +133,9 @@ type inputNodePromptCreatePasskey interface {
 	IsCreationResponse() bool
 	GetCreationResponse() *protocol.CredentialCreationResponse
 }
+
+type inputTakeBotProtection interface {
+	GetBotProtectionProvider() *InputTakeBotProtectionBody
+	GetBotProtectionProviderType() config.BotProtectionProviderType
+	GetBotProtectionProviderResponse() string
+}

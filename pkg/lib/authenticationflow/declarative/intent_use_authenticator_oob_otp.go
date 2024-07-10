@@ -2,6 +2,7 @@ package declarative
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
@@ -55,10 +56,13 @@ func (n *IntentUseAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *aut
 
 	switch {
 	case !authenticatorSelected:
+		shouldBypassBotProtection := ShouldExistingResultBypassBotProtectionRequirement(ctx)
 		return &InputSchemaUseAuthenticatorOOBOTP{
-			FlowRootObject: flowRootObject,
-			JSONPointer:    n.JSONPointer,
-			Options:        n.Options,
+			FlowRootObject:            flowRootObject,
+			JSONPointer:               n.JSONPointer,
+			Options:                   n.Options,
+			ShouldBypassBotProtection: shouldBypassBotProtection,
+			BotProtectionCfg:          deps.Config.BotProtection,
 		}, nil
 	case !claimVerified:
 		// Verify the claim
@@ -80,21 +84,26 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authfl
 	case !authenticatorSelected:
 		var inputTakeAuthenticationOptionIndex inputTakeAuthenticationOptionIndex
 		if authflow.AsInput(input, &inputTakeAuthenticationOptionIndex) {
+			var bpSpecialErr error
+			bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input)
+			if err != nil {
+				return nil, err
+			}
 			index := inputTakeAuthenticationOptionIndex.GetIndex()
 			info, isNew, err := n.pickAuthenticator(deps, n.Options, index)
 			if err != nil {
-				return nil, err
+				return nil, errors.Join(bpSpecialErr, err)
 			}
 
 			if isNew {
 				return authflow.NewNodeSimple(&NodeDoJustInTimeCreateAuthenticator{
 					Authenticator: info,
-				}), nil
+				}), bpSpecialErr
 			}
 
 			return authflow.NewNodeSimple(&NodeDidSelectAuthenticator{
 				Authenticator: info,
-			}), nil
+			}), bpSpecialErr
 		}
 	case !claimVerified:
 		info := m.MilestoneDidSelectAuthenticator()

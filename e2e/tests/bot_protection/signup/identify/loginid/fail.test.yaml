@@ -1,0 +1,54 @@
+name: Signup with Bot Protection - Identify - LoginID - Verification Fail
+authgear.yaml:
+  override: |
+    bot_protection:
+      enabled: true
+      provider:
+        type: cloudflare
+        site_key: dummy
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "bot_protection": {
+                    "enabled": true,
+                    "provider": {
+                      "type": "cloudflare"
+                    }
+                  },
+                  "identification": "[[string]]"
+                }
+              ]
+            }
+          }
+        }
+  - action: "input"
+    input: |
+      {
+        "identification": "email",
+        "login_id": "signup@example.com",
+        "bot_protection": {
+          "type": "cloudflare",
+          "response": "fail"
+        }
+      }
+    output: 
+      error: |
+        {
+          "name": "Forbidden",
+          "reason": "BotProtectionVerificationFailed",
+          "message": "bot protection verification failed",
+          "code": 403
+        }

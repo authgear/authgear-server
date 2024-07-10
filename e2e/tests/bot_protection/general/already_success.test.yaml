@@ -1,0 +1,112 @@
+name: Should not require bot protection if previous steps already have success bot protection verification
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+    identity:
+      login_id:
+        keys:
+        - type: email
+    bot_protection:
+      enabled: true
+      provider:
+        type: cloudflare
+        site_key: dummy
+    authentication_flow:
+      login_flows:
+      - name: f1
+        steps:
+        - name: login_identify
+          type: identify
+          one_of:
+          - identification: email
+            bot_protection:
+              mode: always
+              provider:
+                type: cloudflare
+            steps:
+            - name: authenticate_primary_email
+              type: authenticate
+              one_of:
+              - authentication: primary_password
+                bot_protection:
+                  mode: always
+                  provider:
+                    type: cloudflare
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "f1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "bot_protection": {
+                    "enabled": true,
+                    "provider": {
+                      "type": "cloudflare"
+                    }
+                  },
+                  "identification": "[[string]]"
+                }
+              ]
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "bp_already_success@example.com",
+        "bot_protection": {
+          "type": "cloudflare",
+          "response": "pass"
+        }
+      }
+  # Note data.options do not have `bot_protection`
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "authentication": "primary_password"
+                }
+              ],
+              "type": "authentication_data"
+            }
+          }
+        }
+  - action: input
+#  Note bot protection is not required here even if `authgear.yaml` has `mode: always` configured.
+#  This is because previous `identify` step already has verification success
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"  
+      }
+
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }

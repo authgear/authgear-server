@@ -3,6 +3,7 @@ package declarative
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
@@ -44,10 +45,16 @@ func (n *IntentLookupIdentityPasskey) CanReactTo(ctx context.Context, deps *auth
 	if err != nil {
 		return nil, err
 	}
+	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, flowRootObject, n.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
 
 	return &InputSchemaTakePasskeyAssertionResponse{
-		FlowRootObject: flowRootObject,
-		JSONPointer:    n.JSONPointer,
+		FlowRootObject:          flowRootObject,
+		JSONPointer:             n.JSONPointer,
+		IsBotProtectionRequired: isBotProtectionRequired,
+		BotProtectionCfg:        deps.Config.BotProtection,
 	}, nil
 }
 
@@ -65,6 +72,11 @@ func (n *IntentLookupIdentityPasskey) ReactTo(ctx context.Context, deps *authflo
 
 	var inputAssertionResponse inputTakePasskeyAssertionResponse
 	if authflow.AsInput(input, &inputAssertionResponse) {
+		var bpSpecialErr error
+		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input)
+		if err != nil {
+			return nil, err
+		}
 		assertionResponse := inputAssertionResponse.GetAssertionResponse()
 		assertionResponseBytes, err := json.Marshal(assertionResponse)
 		if err != nil {
@@ -95,13 +107,13 @@ func (n *IntentLookupIdentityPasskey) ReactTo(ctx context.Context, deps *authflo
 		}
 
 		// login
-		return nil, &authflow.ErrorSwitchFlow{
+		return nil, errors.Join(bpSpecialErr, &authflow.ErrorSwitchFlow{
 			FlowReference: authflow.FlowReference{
 				Type: authflow.FlowTypeLogin,
 				Name: oneOf.LoginFlow,
 			},
 			SyntheticInput: syntheticInput,
-		}
+		})
 	}
 
 	return nil, authflow.ErrIncompatibleInput

@@ -70,7 +70,7 @@ func NewIntentAccountRecoveryFlowStepIdentify(ctx context.Context, deps *authflo
 		case config.AuthenticationFlowAccountRecoveryIdentificationEmail:
 			fallthrough
 		case config.AuthenticationFlowAccountRecoveryIdentificationPhone:
-			c := AccountRecoveryIdentificationOption{Identification: b.Identification}
+			c := AccountRecoveryIdentificationOption{Identification: b.Identification, BotProtection: GetBotProtectionData(b.GetBotProtectionConfig(), deps.Config.BotProtection)}
 			options = append(options, c)
 		}
 	}
@@ -95,10 +95,13 @@ func (i *IntentAccountRecoveryFlowStepIdentify) CanReactTo(ctx context.Context, 
 		if err != nil {
 			return nil, err
 		}
+		shouldBypassBotProtection := ShouldExistingResultBypassBotProtectionRequirement(ctx)
 		return &InputSchemaStepAccountRecoveryIdentify{
-			FlowRootObject: flowRootObject,
-			JSONPointer:    i.JSONPointer,
-			Options:        i.Options,
+			FlowRootObject:            flowRootObject,
+			JSONPointer:               i.JSONPointer,
+			Options:                   i.Options,
+			BotProtectionCfg:          deps.Config.BotProtection,
+			ShouldBypassBotProtection: shouldBypassBotProtection,
 		}, nil
 	}
 

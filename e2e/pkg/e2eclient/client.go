@@ -19,11 +19,12 @@ import (
 )
 
 type Client struct {
-	Context       context.Context
-	HTTPClient    *http.Client
-	OAuthClient   *http.Client
-	LocalEndpoint *url.URL
-	HTTPHost      httputil.HTTPHost
+	Context             context.Context
+	HTTPClient          *http.Client
+	OAuthClient         *http.Client
+	BotProtectionClient *http.Client
+	LocalEndpoint       *url.URL
+	HTTPHost            httputil.HTTPHost
 }
 
 func NewClient(ctx context.Context, mainListenAddr string, httpHost httputil.HTTPHost) *Client {
@@ -40,10 +41,12 @@ func NewClient(ctx context.Context, mainListenAddr string, httpHost httputil.HTT
 	// Prepare HTTP clients.
 	var httpClient = &http.Client{}
 	var oauthClient = &http.Client{}
+	var botProtectionClient = &http.Client{}
 
 	// Use go test -timeout instead of setting timeout here.
 	httpClient.Timeout = 0
 	oauthClient.Timeout = 0
+	botProtectionClient.Timeout = 0
 
 	// Intercept HTTP requests to the OAuth server.
 	caCertPool, err := x509.SystemCertPool()
@@ -76,11 +79,12 @@ func NewClient(ctx context.Context, mainListenAddr string, httpHost httputil.HTT
 	}
 
 	return &Client{
-		Context:       ctx,
-		HTTPClient:    httpClient,
-		OAuthClient:   oauthClient,
-		LocalEndpoint: localEndpointURL,
-		HTTPHost:      httpHost,
+		Context:             ctx,
+		HTTPClient:          httpClient,
+		OAuthClient:         oauthClient,
+		BotProtectionClient: botProtectionClient,
+		LocalEndpoint:       localEndpointURL,
+		HTTPHost:            httpHost,
 	}
 }
 

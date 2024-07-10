@@ -1,0 +1,56 @@
+name: Signup with Bot Protection - Identify - Missing Bot Protection Required Field
+authgear.yaml:
+  override: |
+    bot_protection:
+      enabled: true
+      provider:
+        type: cloudflare
+        site_key: dummy
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "bot_protection": {
+                    "enabled": true,
+                    "provider": {
+                      "type": "cloudflare"
+                    }
+                  },
+                  "identification": "[[string]]"
+                }
+              ]
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "signup@example.com",
+        "bot_protection": {
+          "invalid_field": "invalid_value"
+        }
+      }
+    output: 
+      error: |
+        {
+          "name": "Invalid",
+          "reason": "ValidationFailed",
+          "message": "invalid value",
+          "code": 400,
+          "info": {
+            "causes": "[[array]]"
+          }
+        }

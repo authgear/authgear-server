@@ -10,6 +10,18 @@ import (
 
 type AccountRecoveryIdentificationOption struct {
 	Identification config.AuthenticationFlowAccountRecoveryIdentification `json:"identification"`
+	BotProtection  *BotProtectionData                                     `json:"bot_protection,omitempty"`
+}
+
+func (i *AccountRecoveryIdentificationOption) isBotProtectionRequired() bool {
+	if i.BotProtection == nil {
+		return false
+	}
+	if i.BotProtection.Enabled != nil && *i.BotProtection.Enabled && i.BotProtection.Provider != nil && i.BotProtection.Provider.Type != "" {
+		return true
+	}
+
+	return false
 }
 
 type AccountRecoveryChannel string

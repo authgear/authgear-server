@@ -13,9 +13,11 @@ import (
 )
 
 type InputSchemaStepIdentify struct {
-	JSONPointer    jsonpointer.T
-	FlowRootObject config.AuthenticationFlowObject
-	Options        []IdentificationOption
+	JSONPointer               jsonpointer.T
+	FlowRootObject            config.AuthenticationFlowObject
+	Options                   []IdentificationOption
+	ShouldBypassBotProtection bool
+	BotProtectionCfg          *config.BotProtectionConfig
 }
 
 var _ authflow.InputSchema = &InputSchemaStepIdentify{}
@@ -40,10 +42,18 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 			required = append(required, key)
 			b.Properties().Property(key, validation.SchemaBuilder{}.Type(validation.TypeString))
 		}
+		requireBotProtection := func() {
+			required = append(required, "bot_protection")
+			b.Properties().Property("bot_protection", NewBotProtectionBodySchemaBuilder(i.BotProtectionCfg))
+		}
 
 		setRequiredAndAppendOneOf := func() {
 			b.Required(required...)
 			oneOf = append(oneOf, b)
+		}
+
+		if !i.ShouldBypassBotProtection && i.BotProtectionCfg != nil && option.isBotProtectionRequired() {
+			requireBotProtection()
 		}
 
 		switch option.Identification {
@@ -112,6 +122,8 @@ type InputStepIdentify struct {
 	Alias        string `json:"alias,omitempty"`
 	RedirectURI  string `json:"redirect_uri,omitempty"`
 	ResponseMode string `json:"response_mode,omitempty"`
+
+	BotProtection *InputTakeBotProtectionBody `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &InputStepIdentify{}
@@ -119,6 +131,7 @@ var _ inputTakeIdentificationMethod = &InputStepIdentify{}
 var _ inputTakeIDToken = &InputStepIdentify{}
 var _ inputTakeLoginID = &InputStepIdentify{}
 var _ inputTakeOAuthAuthorizationRequest = &InputStepIdentify{}
+var _ inputTakeBotProtection = &InputStepIdentify{}
 
 func (*InputStepIdentify) Input() {}
 
@@ -144,4 +157,22 @@ func (i *InputStepIdentify) GetOAuthRedirectURI() string {
 
 func (i *InputStepIdentify) GetOAuthResponseMode() string {
 	return i.ResponseMode
+}
+
+func (i *InputStepIdentify) GetBotProtectionProvider() *InputTakeBotProtectionBody {
+	return i.BotProtection
+}
+
+func (i *InputStepIdentify) GetBotProtectionProviderType() config.BotProtectionProviderType {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Type
+}
+
+func (i *InputStepIdentify) GetBotProtectionProviderResponse() string {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Response
 }

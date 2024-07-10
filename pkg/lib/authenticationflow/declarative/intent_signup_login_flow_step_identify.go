@@ -84,10 +84,13 @@ func (i *IntentSignupLoginFlowStepIdentify) CanReactTo(ctx context.Context, deps
 		if err != nil {
 			return nil, err
 		}
+		shouldBypassBotProtection := ShouldExistingResultBypassBotProtectionRequirement(ctx)
 		return &InputSchemaStepIdentify{
-			FlowRootObject: flowRootObject,
-			JSONPointer:    i.JSONPointer,
-			Options:        i.Options,
+			FlowRootObject:            flowRootObject,
+			JSONPointer:               i.JSONPointer,
+			Options:                   i.Options,
+			ShouldBypassBotProtection: shouldBypassBotProtection,
+			BotProtectionCfg:          deps.Config.BotProtection,
 		}, nil
 	}
 

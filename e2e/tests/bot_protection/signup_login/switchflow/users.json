@@ -1,0 +1,15 @@
+{
+  "identifier": "preferred_username",
+  "records": [
+    {
+      "preferred_username": "bp_signuplogin",
+
+      "name": "BP SignupLogin",
+
+      "password": {
+        "type": "bcrypt",
+        "password_hash": "$2y$10$/wLavnCmYGP/zzpw/mR1iOK5y5hGyrEFJtmaIbvFf9VA6l2O4NMKO"
+      }
+    }
+  ]
+}

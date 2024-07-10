@@ -12,9 +12,11 @@ import (
 )
 
 type InputSchemaUseAuthenticatorOOBOTP struct {
-	JSONPointer    jsonpointer.T
-	FlowRootObject config.AuthenticationFlowObject
-	Options        []AuthenticateOption
+	JSONPointer               jsonpointer.T
+	FlowRootObject            config.AuthenticationFlowObject
+	Options                   []AuthenticateOption
+	ShouldBypassBotProtection bool
+	BotProtectionCfg          *config.BotProtectionConfig
 }
 
 var _ authflow.InputSchema = &InputSchemaUseAuthenticatorOOBOTP{}
@@ -29,6 +31,8 @@ func (i *InputSchemaUseAuthenticatorOOBOTP) GetFlowRootObject() config.Authentic
 
 func (i *InputSchemaUseAuthenticatorOOBOTP) SchemaBuilder() validation.SchemaBuilder {
 	indice := []int{}
+	b := validation.SchemaBuilder{}.
+		Type(validation.TypeObject)
 	for index, option := range i.Options {
 		index := index
 		option := option
@@ -45,10 +49,10 @@ func (i *InputSchemaUseAuthenticatorOOBOTP) SchemaBuilder() validation.SchemaBui
 		default:
 			break
 		}
+		if !i.ShouldBypassBotProtection && i.BotProtectionCfg != nil && option.isBotProtectionRequired() {
+			b = AddBotProtectionToExistingSchemaBuilder(b, i.BotProtectionCfg)
+		}
 	}
-
-	b := validation.SchemaBuilder{}.
-		Type(validation.TypeObject)
 
 	b.Properties().Property("index", validation.SchemaBuilder{}.
 		Type(validation.TypeInteger).
@@ -68,14 +72,34 @@ func (i *InputSchemaUseAuthenticatorOOBOTP) MakeInput(rawMessage json.RawMessage
 }
 
 type InputUseAuthenticatorOOBOTP struct {
-	Index int `json:"index"`
+	Index         int                         `json:"index"`
+	BotProtection *InputTakeBotProtectionBody `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &InputUseAuthenticatorOOBOTP{}
 var _ inputTakeAuthenticationOptionIndex = &InputUseAuthenticatorOOBOTP{}
+var _ inputTakeBotProtection = &InputUseAuthenticatorOOBOTP{}
 
 func (*InputUseAuthenticatorOOBOTP) Input() {}
 
 func (i *InputUseAuthenticatorOOBOTP) GetIndex() int {
 	return i.Index
+}
+
+func (i *InputUseAuthenticatorOOBOTP) GetBotProtectionProvider() *InputTakeBotProtectionBody {
+	return i.BotProtection
+}
+
+func (i *InputUseAuthenticatorOOBOTP) GetBotProtectionProviderType() config.BotProtectionProviderType {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Type
+}
+
+func (i *InputUseAuthenticatorOOBOTP) GetBotProtectionProviderResponse() string {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Response
 }

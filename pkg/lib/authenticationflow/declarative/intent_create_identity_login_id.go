@@ -59,15 +59,29 @@ func (n *IntentCreateIdentityLoginID) CanReactTo(ctx context.Context, deps *auth
 	if err != nil {
 		return nil, err
 	}
+
+	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, flowRootObject, n.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
+
 	return &InputSchemaTakeLoginID{
-		FlowRootObject: flowRootObject,
-		JSONPointer:    n.JSONPointer,
+		FlowRootObject:          flowRootObject,
+		JSONPointer:             n.JSONPointer,
+		IsBotProtectionRequired: isBotProtectionRequired,
+		BotProtectionCfg:        deps.Config.BotProtection,
 	}, nil
 }
 
 func (n *IntentCreateIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	var inputTakeLoginID inputTakeLoginID
 	if authflow.AsInput(input, &inputTakeLoginID) {
+		var bpSpecialErr error
+		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input)
+		if err != nil {
+			return nil, err
+		}
+
 		loginID := inputTakeLoginID.GetLoginID()
 		spec := n.makeLoginIDSpec(loginID)
 
@@ -75,7 +89,7 @@ func (n *IntentCreateIdentityLoginID) ReactTo(ctx context.Context, deps *authflo
 			JSONPointer: n.JSONPointer,
 			UserID:      n.UserID,
 			Request:     NewCreateLoginIDIdentityRequest(spec),
-		}), nil
+		}), bpSpecialErr
 	}
 
 	return nil, authflow.ErrIncompatibleInput

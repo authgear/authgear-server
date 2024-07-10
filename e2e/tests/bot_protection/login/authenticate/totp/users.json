@@ -1,0 +1,21 @@
+{
+  "identifier": "email",
+  "records": [
+    {
+      "email": "bplogin_authn_totp@example.com",
+
+      "name": "TOTP login with bot protection",
+
+      "password": {
+        "type": "bcrypt",
+        "password_hash": "$2y$10$/wLavnCmYGP/zzpw/mR1iOK5y5hGyrEFJtmaIbvFf9VA6l2O4NMKO"
+      },
+
+      "mfa": {
+        "totp": {
+          "secret": "3I526Y3Y7GSXO34RTFEEFXCJM6Y4VZXR"
+        }
+      }
+    }
+  ]
+}

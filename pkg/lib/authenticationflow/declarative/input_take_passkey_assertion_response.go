@@ -11,7 +11,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-var InputSchemaTakePasskeyAssertionResponseSchemaBuilder validation.SchemaBuilder
 var passkeyAssertionResponseSchemaBuilder validation.SchemaBuilder
 
 func init() {
@@ -38,15 +37,13 @@ func init() {
 	b.Required("id", "type", "rawId", "response")
 
 	passkeyAssertionResponseSchemaBuilder = b
-
-	InputSchemaTakePasskeyAssertionResponseSchemaBuilder = validation.SchemaBuilder{}.Type(validation.TypeObject)
-	InputSchemaTakePasskeyAssertionResponseSchemaBuilder.Required("assertion_response")
-	InputSchemaTakePasskeyAssertionResponseSchemaBuilder.Properties().Property("assertion_response", passkeyAssertionResponseSchemaBuilder)
 }
 
 type InputSchemaTakePasskeyAssertionResponse struct {
-	JSONPointer    jsonpointer.T
-	FlowRootObject config.AuthenticationFlowObject
+	JSONPointer             jsonpointer.T
+	FlowRootObject          config.AuthenticationFlowObject
+	IsBotProtectionRequired bool
+	BotProtectionCfg        *config.BotProtectionConfig
 }
 
 var _ authflow.InputSchema = &InputSchemaTakePasskeyAssertionResponse{}
@@ -59,8 +56,17 @@ func (i *InputSchemaTakePasskeyAssertionResponse) GetFlowRootObject() config.Aut
 	return i.FlowRootObject
 }
 
-func (*InputSchemaTakePasskeyAssertionResponse) SchemaBuilder() validation.SchemaBuilder {
-	return InputSchemaTakePasskeyAssertionResponseSchemaBuilder
+func (i *InputSchemaTakePasskeyAssertionResponse) SchemaBuilder() validation.SchemaBuilder {
+
+	var inputSchemaTakePasskeyAssertionResponseSchemaBuilder = validation.SchemaBuilder{}.Type(validation.TypeObject)
+	inputSchemaTakePasskeyAssertionResponseSchemaBuilder.Required("assertion_response")
+	inputSchemaTakePasskeyAssertionResponseSchemaBuilder.Properties().Property("assertion_response", passkeyAssertionResponseSchemaBuilder)
+
+	if i.IsBotProtectionRequired {
+		inputSchemaTakePasskeyAssertionResponseSchemaBuilder = AddBotProtectionToExistingSchemaBuilder(inputSchemaTakePasskeyAssertionResponseSchemaBuilder, i.BotProtectionCfg)
+	}
+
+	return inputSchemaTakePasskeyAssertionResponseSchemaBuilder
 }
 
 func (i *InputSchemaTakePasskeyAssertionResponse) MakeInput(rawMessage json.RawMessage) (authflow.Input, error) {
@@ -74,13 +80,33 @@ func (i *InputSchemaTakePasskeyAssertionResponse) MakeInput(rawMessage json.RawM
 
 type InputTakePasskeyAssertionResponse struct {
 	AssertionResponse *protocol.CredentialAssertionResponse `json:"assertion_response,omitempty"`
+	BotProtection     *InputTakeBotProtectionBody           `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &InputTakePasskeyAssertionResponse{}
 var _ inputTakePasskeyAssertionResponse = &InputTakePasskeyAssertionResponse{}
+var _ inputTakeBotProtection = &InputTakePasskeyAssertionResponse{}
 
 func (*InputTakePasskeyAssertionResponse) Input() {}
 
 func (i *InputTakePasskeyAssertionResponse) GetAssertionResponse() *protocol.CredentialAssertionResponse {
 	return i.AssertionResponse
+}
+
+func (i *InputTakePasskeyAssertionResponse) GetBotProtectionProvider() *InputTakeBotProtectionBody {
+	return i.BotProtection
+}
+
+func (i *InputTakePasskeyAssertionResponse) GetBotProtectionProviderType() config.BotProtectionProviderType {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Type
+}
+
+func (i *InputTakePasskeyAssertionResponse) GetBotProtectionProviderResponse() string {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Response
 }

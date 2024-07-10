@@ -13,9 +13,11 @@ import (
 )
 
 type InputSchemaTakeOAuthAuthorizationRequest struct {
-	JSONPointer    jsonpointer.T
-	FlowRootObject config.AuthenticationFlowObject
-	OAuthOptions   []IdentificationOption
+	JSONPointer             jsonpointer.T
+	FlowRootObject          config.AuthenticationFlowObject
+	OAuthOptions            []IdentificationOption
+	IsBotProtectionRequired bool
+	BotProtectionCfg        *config.BotProtectionConfig
 }
 
 var _ authflow.InputSchema = &InputSchemaTakeOAuthAuthorizationRequest{}
@@ -45,6 +47,9 @@ func (i *InputSchemaTakeOAuthAuthorizationRequest) SchemaBuilder() validation.Sc
 	b.Properties().Property("alias", validation.SchemaBuilder{}.
 		Type(validation.TypeString).
 		Enum(enumValues...))
+	if i.IsBotProtectionRequired && i.BotProtectionCfg != nil {
+		b = AddBotProtectionToExistingSchemaBuilder(b, i.BotProtectionCfg)
+	}
 	return b
 }
 
@@ -58,13 +63,15 @@ func (i *InputSchemaTakeOAuthAuthorizationRequest) MakeInput(rawMessage json.Raw
 }
 
 type InputTakeOAuthAuthorizationRequest struct {
-	Alias        string `json:"alias"`
-	RedirectURI  string `json:"redirect_uri"`
-	ResponseMode string `json:"response_mode,omitempty"`
+	Alias         string                      `json:"alias"`
+	RedirectURI   string                      `json:"redirect_uri"`
+	ResponseMode  string                      `json:"response_mode,omitempty"`
+	BotProtection *InputTakeBotProtectionBody `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &InputTakeOAuthAuthorizationRequest{}
 var _ inputTakeOAuthAuthorizationRequest = &InputTakeOAuthAuthorizationRequest{}
+var _ inputTakeBotProtection = &InputTakeOAuthAuthorizationRequest{}
 
 func (*InputTakeOAuthAuthorizationRequest) Input() {}
 
@@ -78,4 +85,22 @@ func (i *InputTakeOAuthAuthorizationRequest) GetOAuthRedirectURI() string {
 
 func (i *InputTakeOAuthAuthorizationRequest) GetOAuthResponseMode() string {
 	return i.ResponseMode
+}
+
+func (i *InputTakeOAuthAuthorizationRequest) GetBotProtectionProvider() *InputTakeBotProtectionBody {
+	return i.BotProtection
+}
+
+func (i *InputTakeOAuthAuthorizationRequest) GetBotProtectionProviderType() config.BotProtectionProviderType {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Type
+}
+
+func (i *InputTakeOAuthAuthorizationRequest) GetBotProtectionProviderResponse() string {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Response
 }

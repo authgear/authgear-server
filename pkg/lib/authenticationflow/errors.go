@@ -61,3 +61,32 @@ type ErrorRewriteFlow struct {
 func (e *ErrorRewriteFlow) Error() string {
 	return fmt.Sprintf("rewrite flow: %v", e.Intent.Kind())
 }
+
+// ErrorBotProtectionVerification is a special error for interrupting the flow in case of failed or service-unavailable
+type ErrorBotProtectionVerification struct {
+	Status ErrorBotProtectionVerificationStatus
+}
+
+func (e *ErrorBotProtectionVerification) Error() string {
+	return fmt.Sprintf("bot protection verification status: %v", e.Status)
+}
+
+type ErrorBotProtectionVerificationStatus string
+
+const (
+	ErrorBotProtectionVerificationStatusFailed             ErrorBotProtectionVerificationStatus = "failed"
+	ErrorBotProtectionVerificationStatusSuccess            ErrorBotProtectionVerificationStatus = "success"
+	ErrorBotProtectionVerificationStatusServiceUnavailable ErrorBotProtectionVerificationStatus = "service-unavailable"
+)
+
+var (
+	ErrorBotProtectionVerificationFailed *ErrorBotProtectionVerification = &ErrorBotProtectionVerification{
+		Status: ErrorBotProtectionVerificationStatusFailed,
+	}
+	ErrorBotProtectionVerificationSuccess *ErrorBotProtectionVerification = &ErrorBotProtectionVerification{
+		Status: ErrorBotProtectionVerificationStatusSuccess,
+	}
+	ErrorBotProtectionVerificationServiceUnavailable *ErrorBotProtectionVerification = &ErrorBotProtectionVerification{
+		Status: ErrorBotProtectionVerificationStatusServiceUnavailable,
+	}
+)

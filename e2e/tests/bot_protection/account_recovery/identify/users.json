@@ -1,0 +1,15 @@
+{
+  "identifier": "preferred_username",
+  "records": [
+    {
+      "preferred_username": "e2e_account_recovery",
+      "email": "e2e_recovery_email@example.com",
+      "name": "account_recovery",
+
+      "password": {
+        "type": "bcrypt",
+        "password_hash": "$2y$10$/wLavnCmYGP/zzpw/mR1iOK5y5hGyrEFJtmaIbvFf9VA6l2O4NMKO"
+      }
+    }
+  ]
+}

@@ -2,6 +2,7 @@ package declarative
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
@@ -43,9 +44,16 @@ func (n *IntentLookupIdentityLoginID) CanReactTo(ctx context.Context, deps *auth
 	if err != nil {
 		return nil, err
 	}
+
+	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, flowRootObject, n.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
 	return &InputSchemaTakeLoginID{
-		FlowRootObject: flowRootObject,
-		JSONPointer:    n.JSONPointer,
+		FlowRootObject:          flowRootObject,
+		JSONPointer:             n.JSONPointer,
+		IsBotProtectionRequired: isBotProtectionRequired,
+		BotProtectionCfg:        deps.Config.BotProtection,
 	}, nil
 }
 
@@ -62,7 +70,14 @@ func (n *IntentLookupIdentityLoginID) ReactTo(ctx context.Context, deps *authflo
 	oneOf := n.oneOf(current)
 
 	var inputTakeLoginID inputTakeLoginID
+
 	if authflow.AsInput(input, &inputTakeLoginID) {
+		var bpSpecialErr error
+		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input)
+		if err != nil {
+			return nil, err
+		}
+
 		loginID := inputTakeLoginID.GetLoginID()
 		spec := &identity.Spec{
 			Type: model.IdentityTypeLoginID,
@@ -76,30 +91,30 @@ func (n *IntentLookupIdentityLoginID) ReactTo(ctx context.Context, deps *authflo
 			LoginID:        loginID,
 		}
 
-		_, err := findExactOneIdentityInfo(deps, spec)
+		_, err = findExactOneIdentityInfo(deps, spec)
 		if err != nil {
 			if apierrors.IsKind(err, api.UserNotFound) {
 				// signup
-				return nil, &authflow.ErrorSwitchFlow{
+				return nil, errors.Join(bpSpecialErr, &authflow.ErrorSwitchFlow{
 					FlowReference: authflow.FlowReference{
 						Type: authflow.FlowTypeSignup,
 						Name: oneOf.SignupFlow,
 					},
 					SyntheticInput: syntheticInput,
-				}
+				})
 			}
 			// general error
 			return nil, err
 		}
 
 		// login
-		return nil, &authflow.ErrorSwitchFlow{
+		return nil, errors.Join(bpSpecialErr, &authflow.ErrorSwitchFlow{
 			FlowReference: authflow.FlowReference{
 				Type: authflow.FlowTypeLogin,
 				Name: oneOf.LoginFlow,
 			},
 			SyntheticInput: syntheticInput,
-		}
+		})
 	}
 
 	return nil, authflow.ErrIncompatibleInput

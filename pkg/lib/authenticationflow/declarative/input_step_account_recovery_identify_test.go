@@ -17,14 +17,29 @@ func TestInputSchemaStepAccountRecoveryIdentify(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(string(bytes), ShouldEqualJSON, expected)
 		}
-
+		var varTrue = true
+		dummyBotProtection := &BotProtectionData{
+			Enabled: &varTrue,
+			Provider: &BotProtectionDataProvider{
+				Type: config.BotProtectionProviderTypeCloudflare,
+			},
+		}
+		var dummyBotProtectionCfg = &config.BotProtectionConfig{
+			Enabled: true,
+			Provider: &config.BotProtectionProvider{
+				Type: config.BotProtectionProviderTypeCloudflare,
+			},
+		}
 		test(&InputSchemaStepAccountRecoveryIdentify{
+			BotProtectionCfg: dummyBotProtectionCfg,
 			Options: []AccountRecoveryIdentificationOption{
 				{
 					Identification: config.AuthenticationFlowAccountRecoveryIdentificationEmail,
+					BotProtection:  dummyBotProtection,
 				},
 				{
 					Identification: config.AuthenticationFlowAccountRecoveryIdentificationPhone,
+					BotProtection:  dummyBotProtection,
 				},
 			},
 		}, `
@@ -32,6 +47,21 @@ func TestInputSchemaStepAccountRecoveryIdentify(t *testing.T) {
     "oneOf": [
         {
             "properties": {
+                "bot_protection": {
+                    "properties": {
+                        "response": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "const": "cloudflare"
+                        }
+                    },
+                    "required": [
+                        "type",
+                        "response"
+                    ],
+                    "type": "object"
+                },
                 "identification": {
                     "const": "email"
                 },
@@ -41,11 +71,27 @@ func TestInputSchemaStepAccountRecoveryIdentify(t *testing.T) {
             },
             "required": [
                 "identification",
+                "bot_protection",
                 "login_id"
             ]
         },
         {
             "properties": {
+                "bot_protection": {
+                    "properties": {
+                        "response": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "const": "cloudflare"
+                        }
+                    },
+                    "required": [
+                        "type",
+                        "response"
+                    ],
+                    "type": "object"
+                },
                 "identification": {
                     "const": "phone"
                 },
@@ -55,6 +101,7 @@ func TestInputSchemaStepAccountRecoveryIdentify(t *testing.T) {
             },
             "required": [
                 "identification",
+                "bot_protection",
                 "login_id"
             ]
         }

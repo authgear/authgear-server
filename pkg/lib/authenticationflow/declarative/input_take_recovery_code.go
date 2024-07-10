@@ -10,26 +10,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-var InputTakeRecoveryCodeSchemaBuilder validation.SchemaBuilder
-
-func init() {
-	InputTakeRecoveryCodeSchemaBuilder = validation.SchemaBuilder{}.
-		Type(validation.TypeObject).
-		Required("recovery_code")
-
-	InputTakeRecoveryCodeSchemaBuilder.Properties().Property(
-		"recovery_code",
-		validation.SchemaBuilder{}.Type(validation.TypeString),
-	)
-	InputTakeRecoveryCodeSchemaBuilder.Properties().Property(
-		"request_device_token",
-		validation.SchemaBuilder{}.Type(validation.TypeBoolean),
-	)
-}
-
 type InputSchemaTakeRecoveryCode struct {
-	JSONPointer    jsonpointer.T
-	FlowRootObject config.AuthenticationFlowObject
+	JSONPointer             jsonpointer.T
+	FlowRootObject          config.AuthenticationFlowObject
+	IsBotProtectionRequired bool
+	BotProtectionCfg        *config.BotProtectionConfig
 }
 
 var _ authflow.InputSchema = &InputSchemaTakeRecoveryCode{}
@@ -42,8 +27,23 @@ func (i *InputSchemaTakeRecoveryCode) GetFlowRootObject() config.AuthenticationF
 	return i.FlowRootObject
 }
 
-func (*InputSchemaTakeRecoveryCode) SchemaBuilder() validation.SchemaBuilder {
-	return InputTakeRecoveryCodeSchemaBuilder
+func (i *InputSchemaTakeRecoveryCode) SchemaBuilder() validation.SchemaBuilder {
+	inputTakeRecoveryCodeSchemaBuilder := validation.SchemaBuilder{}.
+		Type(validation.TypeObject).
+		Required("recovery_code")
+
+	inputTakeRecoveryCodeSchemaBuilder.Properties().Property(
+		"recovery_code",
+		validation.SchemaBuilder{}.Type(validation.TypeString),
+	)
+	inputTakeRecoveryCodeSchemaBuilder.Properties().Property(
+		"request_device_token",
+		validation.SchemaBuilder{}.Type(validation.TypeBoolean),
+	)
+	if i.IsBotProtectionRequired && i.BotProtectionCfg != nil {
+		inputTakeRecoveryCodeSchemaBuilder = AddBotProtectionToExistingSchemaBuilder(inputTakeRecoveryCodeSchemaBuilder, i.BotProtectionCfg)
+	}
+	return inputTakeRecoveryCodeSchemaBuilder
 }
 
 func (i *InputSchemaTakeRecoveryCode) MakeInput(rawMessage json.RawMessage) (authflow.Input, error) {
@@ -56,13 +56,15 @@ func (i *InputSchemaTakeRecoveryCode) MakeInput(rawMessage json.RawMessage) (aut
 }
 
 type InputTakeRecoveryCode struct {
-	RecoveryCode       string `json:"recovery_code,omitempty"`
-	RequestDeviceToken bool   `json:"request_device_token,omitempty"`
+	RecoveryCode       string                      `json:"recovery_code,omitempty"`
+	RequestDeviceToken bool                        `json:"request_device_token,omitempty"`
+	BotProtection      *InputTakeBotProtectionBody `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &InputTakeRecoveryCode{}
 var _ inputTakeRecoveryCode = &InputTakeRecoveryCode{}
 var _ inputDeviceTokenRequested = &InputTakeRecoveryCode{}
+var _ inputTakeBotProtection = &InputTakeRecoveryCode{}
 
 func (*InputTakeRecoveryCode) Input() {}
 
@@ -72,4 +74,22 @@ func (i *InputTakeRecoveryCode) GetRecoveryCode() string {
 
 func (i *InputTakeRecoveryCode) GetDeviceTokenRequested() bool {
 	return i.RequestDeviceToken
+}
+
+func (i *InputTakeRecoveryCode) GetBotProtectionProvider() *InputTakeBotProtectionBody {
+	return i.BotProtection
+}
+
+func (i *InputTakeRecoveryCode) GetBotProtectionProviderType() config.BotProtectionProviderType {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Type
+}
+
+func (i *InputTakeRecoveryCode) GetBotProtectionProviderResponse() string {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Response
 }

@@ -18,29 +18,48 @@ func TestInputSchemaStepIdentify(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(string(bytes), ShouldEqualJSON, expected)
 		}
-
+		var varTrue = true
+		dummyBotProtection := &BotProtectionData{
+			Enabled: &varTrue,
+			Provider: &BotProtectionDataProvider{
+				Type: config.BotProtectionProviderTypeCloudflare,
+			},
+		}
+		var dummyBotProtectionCfg = &config.BotProtectionConfig{
+			Enabled: true,
+			Provider: &config.BotProtectionProvider{
+				Type: config.BotProtectionProviderTypeCloudflare,
+			},
+		}
 		test(&InputSchemaStepIdentify{
+			BotProtectionCfg: dummyBotProtectionCfg,
 			Options: []IdentificationOption{
 				{
 					Identification: config.AuthenticationFlowIdentificationEmail,
+					BotProtection:  dummyBotProtection,
 				},
 				{
 					Identification: config.AuthenticationFlowIdentificationPhone,
+					BotProtection:  dummyBotProtection,
 				},
 				{
 					Identification: config.AuthenticationFlowIdentificationUsername,
+					BotProtection:  dummyBotProtection,
 				},
 				{
 					Identification: config.AuthenticationFlowIdentificationOAuth,
 					Alias:          "google",
+					BotProtection:  dummyBotProtection,
 				},
 				{
 					Identification: config.AuthenticationFlowIdentificationOAuth,
 					Alias:          "wechat_mobile",
 					WechatAppType:  wechat.AppTypeMobile,
+					BotProtection:  dummyBotProtection,
 				},
 				{
 					Identification: config.AuthenticationFlowIdentificationPasskey,
+					BotProtection:  dummyBotProtection,
 				},
 			},
 		}, `
@@ -48,6 +67,21 @@ func TestInputSchemaStepIdentify(t *testing.T) {
     "oneOf": [
         {
             "properties": {
+                "bot_protection": {
+                    "properties": {
+                        "response": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "const": "cloudflare"
+                        }
+                    },
+                    "required": [
+                        "type",
+                        "response"
+                    ],
+                    "type": "object"
+                },
                 "identification": {
                     "const": "email"
                 },
@@ -57,11 +91,27 @@ func TestInputSchemaStepIdentify(t *testing.T) {
             },
             "required": [
                 "identification",
+                "bot_protection",
                 "login_id"
             ]
         },
         {
             "properties": {
+                "bot_protection": {
+                    "properties": {
+                        "response": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "const": "cloudflare"
+                        }
+                    },
+                    "required": [
+                        "type",
+                        "response"
+                    ],
+                    "type": "object"
+                },
                 "identification": {
                     "const": "phone"
                 },
@@ -71,11 +121,27 @@ func TestInputSchemaStepIdentify(t *testing.T) {
             },
             "required": [
                 "identification",
+                "bot_protection",
                 "login_id"
             ]
         },
         {
             "properties": {
+                "bot_protection": {
+                    "properties": {
+                        "response": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "const": "cloudflare"
+                        }
+                    },
+                    "required": [
+                        "type",
+                        "response"
+                    ],
+                    "type": "object"
+                },
                 "identification": {
                     "const": "username"
                 },
@@ -85,6 +151,7 @@ func TestInputSchemaStepIdentify(t *testing.T) {
             },
             "required": [
                 "identification",
+                "bot_protection",
                 "login_id"
             ]
         },
@@ -93,6 +160,21 @@ func TestInputSchemaStepIdentify(t *testing.T) {
                 "alias": {
                     "const": "google",
                     "type": "string"
+                },
+                                "bot_protection": {
+                    "properties": {
+                        "response": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "const": "cloudflare"
+                        }
+                    },
+                    "required": [
+                        "type",
+                        "response"
+                    ],
+                    "type": "object"
                 },
                 "identification": {
                     "const": "oauth"
@@ -108,6 +190,7 @@ func TestInputSchemaStepIdentify(t *testing.T) {
             },
             "required": [
                 "identification",
+                "bot_protection",
                 "redirect_uri",
                 "alias"
             ]
@@ -118,6 +201,21 @@ func TestInputSchemaStepIdentify(t *testing.T) {
                     "const": "wechat_mobile",
                     "type": "string"
                 },
+                "bot_protection": {
+                    "properties": {
+                        "response": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "const": "cloudflare"
+                        }
+                    },
+                    "required": [
+                        "type",
+                        "response"
+                    ],
+                    "type": "object"
+                },
                 "identification": {
                     "const": "oauth"
                 },
@@ -132,6 +230,7 @@ func TestInputSchemaStepIdentify(t *testing.T) {
             },
             "required": [
                 "identification",
+                "bot_protection",
                 "redirect_uri",
                 "alias"
             ]
@@ -188,12 +287,28 @@ func TestInputSchemaStepIdentify(t *testing.T) {
                     ],
                     "type": "object"
                 },
+                                "bot_protection": {
+                    "properties": {
+                        "response": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "const": "cloudflare"
+                        }
+                    },
+                    "required": [
+                        "type",
+                        "response"
+                    ],
+                    "type": "object"
+                },
                 "identification": {
                     "const": "passkey"
                 }
             },
             "required": [
                 "identification",
+                "bot_protection",
                 "assertion_response"
             ]
         }

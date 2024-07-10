@@ -52,15 +52,27 @@ func (n *IntentUseAuthenticatorTOTP) CanReactTo(ctx context.Context, deps *authf
 		return nil, err
 	}
 
+	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, flowRootObject, n.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
+
 	return &InputSchemaTakeTOTP{
-		JSONPointer:    n.JSONPointer,
-		FlowRootObject: flowRootObject,
+		JSONPointer:             n.JSONPointer,
+		FlowRootObject:          flowRootObject,
+		IsBotProtectionRequired: isBotProtectionRequired,
+		BotProtectionCfg:        deps.Config.BotProtection,
 	}, nil
 }
 
 func (n *IntentUseAuthenticatorTOTP) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	var inputTakeTOTP inputTakeTOTP
 	if authflow.AsInput(input, &inputTakeTOTP) {
+		var bpSpecialErr error
+		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input)
+		if err != nil {
+			return nil, err
+		}
 		as, err := deps.Authenticators.List(
 			n.UserID,
 			authenticator.KeepKind(n.Authentication.AuthenticatorKind()),
@@ -96,7 +108,7 @@ func (n *IntentUseAuthenticatorTOTP) ReactTo(ctx context.Context, deps *authflow
 
 		return authflow.NewNodeSimple(&NodeDoUseAuthenticatorSimple{
 			Authenticator: info,
-		}), nil
+		}), bpSpecialErr
 	}
 
 	return nil, authflow.ErrIncompatibleInput

@@ -47,15 +47,28 @@ func (n *IntentUseRecoveryCode) CanReactTo(ctx context.Context, deps *authflow.D
 	if err != nil {
 		return nil, err
 	}
+
+	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, flowRootObject, n.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
+
 	return &InputSchemaTakeRecoveryCode{
-		FlowRootObject: flowRootObject,
-		JSONPointer:    n.JSONPointer,
+		FlowRootObject:          flowRootObject,
+		JSONPointer:             n.JSONPointer,
+		IsBotProtectionRequired: isBotProtectionRequired,
+		BotProtectionCfg:        deps.Config.BotProtection,
 	}, nil
 }
 
 func (n *IntentUseRecoveryCode) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	var inputTakeRecoveryCode inputTakeRecoveryCode
 	if authflow.AsInput(input, &inputTakeRecoveryCode) {
+		var bpSpecialErr error
+		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input)
+		if err != nil {
+			return nil, err
+		}
 		recoveryCode := inputTakeRecoveryCode.GetRecoveryCode()
 
 		rc, err := deps.MFA.VerifyRecoveryCode(n.UserID, recoveryCode)
@@ -65,7 +78,7 @@ func (n *IntentUseRecoveryCode) ReactTo(ctx context.Context, deps *authflow.Depe
 
 		return authflow.NewNodeSimple(&NodeDoConsumeRecoveryCode{
 			RecoveryCode: rc,
-		}), nil
+		}), bpSpecialErr
 	}
 
 	return nil, authflow.ErrIncompatibleInput

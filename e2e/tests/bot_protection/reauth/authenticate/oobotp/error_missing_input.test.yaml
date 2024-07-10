@@ -1,0 +1,77 @@
+name: Reauth with Bot Protection - Authenticate - OOBOTP - Missing Bot Protection Input
+authgear.yaml:
+  override: |
+    bot_protection:
+      enabled: true
+      provider:
+        type: cloudflare
+        site_key: dummy
+# Not using user imports because we need userID in generateIDToken
+before:
+  - type: custom_sql
+    custom_sql:
+      path: reauth_user_1.sql
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "reauth",
+        "name": "default"
+      }
+    output:
+    # Note bot protection is not supported in reauth > identify
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "id_token",
+        "id_token": "{{ generateIDToken "2a06e4bd-832f-4f14-a693-403470117f1f" }}"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "reauth",
+          "name": "default",
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "authentication": "[[string]]",
+                  "bot_protection": {
+                    "enabled": true,
+                    "provider": {
+                      "type": "cloudflare"
+                    }
+                  }
+                }
+              ],
+              "type": "authentication_data"
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "authentication": "primary_oob_otp_email",
+        "index": 1
+      }
+    output:
+      error: |
+        {
+          "name": "Invalid",
+          "reason": "ValidationFailed",
+          "message": "invalid value",
+          "code": 400,
+          "info": {
+            "causes": "[[array]]"
+          }
+        }
+      

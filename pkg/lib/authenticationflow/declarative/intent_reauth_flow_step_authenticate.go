@@ -83,11 +83,15 @@ func (i *IntentReauthFlowStepAuthenticate) CanReactTo(ctx context.Context, deps 
 			return nil, err
 		}
 
+		shouldBypassBotProtection := ShouldExistingResultBypassBotProtectionRequirement(ctx)
+
 		// Let the input to select which authentication method to use.
 		return &InputSchemaReauthFlowStepAuthenticate{
-			FlowRootObject: flowRootObject,
-			JSONPointer:    i.JSONPointer,
-			Options:        i.Options,
+			FlowRootObject:            flowRootObject,
+			JSONPointer:               i.JSONPointer,
+			Options:                   i.Options,
+			ShouldBypassBotProtection: shouldBypassBotProtection,
+			BotProtectionCfg:          deps.Config.BotProtection,
 		}, nil
 	case !authenticated:
 		// This branch is only reached when there is a programming error.
@@ -184,7 +188,7 @@ func (i *IntentReauthFlowStepAuthenticate) ReactTo(ctx context.Context, deps *au
 func (i *IntentReauthFlowStepAuthenticate) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
 	var options []AuthenticateOptionForOutput
 	for _, o := range i.Options {
-		options = append(options, o.ToOutput())
+		options = append(options, o.ToOutput(ctx))
 	}
 
 	return NewStepAuthenticateData(StepAuthenticateData{

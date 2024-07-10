@@ -10,19 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-var InputSetupTOTPSchemaBuilder validation.SchemaBuilder
-
-func init() {
-	InputSetupTOTPSchemaBuilder = validation.SchemaBuilder{}.
-		Type(validation.TypeObject).
-		Required("code")
-
-	InputSetupTOTPSchemaBuilder.Properties().Property(
-		"code",
-		validation.SchemaBuilder{}.Type(validation.TypeString),
-	)
-}
-
 type InputSchemaSetupTOTP struct {
 	JSONPointer    jsonpointer.T
 	FlowRootObject config.AuthenticationFlowObject
@@ -38,8 +25,17 @@ func (i *InputSchemaSetupTOTP) GetFlowRootObject() config.AuthenticationFlowObje
 	return i.FlowRootObject
 }
 
-func (*InputSchemaSetupTOTP) SchemaBuilder() validation.SchemaBuilder {
-	return InputSetupTOTPSchemaBuilder
+func (i *InputSchemaSetupTOTP) SchemaBuilder() validation.SchemaBuilder {
+	inputSetupTOTPSchemaBuilder := validation.SchemaBuilder{}.
+		Type(validation.TypeObject).
+		Required("code")
+
+	inputSetupTOTPSchemaBuilder.Properties().Property(
+		"code",
+		validation.SchemaBuilder{}.Type(validation.TypeString),
+	)
+
+	return inputSetupTOTPSchemaBuilder
 }
 
 func (i *InputSchemaSetupTOTP) MakeInput(rawMessage json.RawMessage) (authflow.Input, error) {

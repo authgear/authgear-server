@@ -52,16 +52,26 @@ func (n *IntentUseAuthenticatorPasskey) CanReactTo(ctx context.Context, deps *au
 	if err != nil {
 		return nil, err
 	}
-
+	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, flowRootObject, n.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
 	return &InputSchemaTakePasskeyAssertionResponse{
-		FlowRootObject: flowRootObject,
-		JSONPointer:    n.JSONPointer,
+		FlowRootObject:          flowRootObject,
+		JSONPointer:             n.JSONPointer,
+		IsBotProtectionRequired: isBotProtectionRequired,
+		BotProtectionCfg:        deps.Config.BotProtection,
 	}, nil
 }
 
 func (n *IntentUseAuthenticatorPasskey) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	var inputAssertionResponse inputTakePasskeyAssertionResponse
 	if authflow.AsInput(input, &inputAssertionResponse) {
+		var bpSpecialErr error
+		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input)
+		if err != nil {
+			return nil, err
+		}
 		assertionResponse := inputAssertionResponse.GetAssertionResponse()
 		assertionResponseBytes, err := json.Marshal(assertionResponse)
 		if err != nil {
@@ -101,7 +111,7 @@ func (n *IntentUseAuthenticatorPasskey) ReactTo(ctx context.Context, deps *authf
 			AssertionResponse: assertionResponseBytes,
 			Authenticator:     authenticatorInfo,
 			RequireUpdate:     verifyResult.Passkey,
-		}), nil
+		}), bpSpecialErr
 	}
 
 	return nil, authflow.ErrIncompatibleInput

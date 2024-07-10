@@ -1,0 +1,75 @@
+name: Reauth with Bot Protection - Authenticate - TOTP - Verification Success
+authgear.yaml:
+  override: |
+    bot_protection:
+      enabled: true
+      provider:
+        type: cloudflare
+        site_key: dummy
+before:
+  - type: custom_sql
+    custom_sql:
+      path: reauth_user_3.sql
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "reauth",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "id_token",
+        "id_token": "{{ generateIDToken "e29f554a-4c3a-45b9-9895-d458a9d205ee" }}"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "reauth",
+          "name": "default",
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "authentication": "[[string]]",
+                  "bot_protection": {
+                    "enabled": true,
+                    "provider": {
+                      "type": "cloudflare"
+                    }
+                  }
+                }
+              ],
+              "type": "authentication_data"
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "authentication": "secondary_totp",
+        "code": "{{ generateTOTPCode "3I526Y3Y7GSXO34RTFEEFXCJM6Y4VZXR" }}",
+        "bot_protection": {
+          "type": "cloudflare",
+          "response": "pass"
+        }
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+    

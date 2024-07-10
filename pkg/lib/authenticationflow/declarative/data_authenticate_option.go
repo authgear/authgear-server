@@ -1,6 +1,7 @@
 package declarative
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -46,7 +47,11 @@ type AuthenticateOption struct {
 	IdentityID string `json:"identity_id,omitempty"`
 }
 
-func (o *AuthenticateOption) ToOutput() AuthenticateOptionForOutput {
+func (o *AuthenticateOption) ToOutput(ctx context.Context) AuthenticateOptionForOutput {
+	shdBypassBotProtection := ShouldExistingResultBypassBotProtectionRequirement(ctx)
+	if shdBypassBotProtection {
+		o.BotProtection = nil
+	}
 	return AuthenticateOptionForOutput{
 		Authentication:    o.Authentication,
 		OTPForm:           o.OTPForm,
@@ -55,6 +60,16 @@ func (o *AuthenticateOption) ToOutput() AuthenticateOptionForOutput {
 		Channels:          o.Channels,
 		RequestOptions:    o.RequestOptions,
 	}
+}
+
+func (o *AuthenticateOption) isBotProtectionRequired() bool {
+	if o.BotProtection == nil {
+		return false
+	}
+	if o.BotProtection.Enabled != nil && *o.BotProtection.Enabled && o.BotProtection.Provider != nil && o.BotProtection.Provider.Type != "" {
+		return true
+	}
+	return false
 }
 
 func NewAuthenticateOptionRecoveryCode(authflowBotProtectionCfg *config.AuthenticationFlowBotProtection, appBotProtectionConfig *config.BotProtectionConfig) AuthenticateOption {

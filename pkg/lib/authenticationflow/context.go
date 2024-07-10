@@ -17,12 +17,12 @@ type contextKeyTypeBotProtectionVerificationResult struct{}
 var contextKeyBotProtectionVerificationResult = contextKeyTypeBotProtectionVerificationResult{}
 
 func GetBotProtectionVerificationResult(ctx context.Context) *BotProtectionVerificationResult {
-	result, ok := ctx.Value(contextKeyBotProtectionVerificationResult).(BotProtectionVerificationResult)
 
+	result, ok := ctx.Value(contextKeyBotProtectionVerificationResult).(*BotProtectionVerificationResult)
 	if !ok {
 		return nil
 	}
-	return &result
+	return result
 }
 
 type contextKeyTypeIDToken struct{}
