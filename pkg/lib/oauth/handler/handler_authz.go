@@ -33,7 +33,7 @@ const (
 	TokenResponseTypeElement         = "token"
 	SettingsActonResponseTypeElement = "urn:authgear:params:oauth:response-type:settings-action"
 	// nolint:gosec
-	PreAuthenticatedURLResponseTypeElement = "urn:authgear:params:oauth:response-type:pre-authentictated-url"
+	PreAuthenticatedURLResponseTypeElement = "urn:authgear:params:oauth:response-type:pre-authenticated-url"
 )
 
 var (
