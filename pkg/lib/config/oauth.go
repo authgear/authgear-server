@@ -140,7 +140,8 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"x_app2app_enabled": { "type": "boolean" },
 		"x_app2app_insecure_device_key_binding_enabled": { "type": "boolean" },
 		"x_authentication_flow_allowlist": { "$ref": "#/$defs/AuthenticationFlowAllowlist" },
-		"x_app_initiated_sso_to_web_enabled": { "type": "boolean" }
+		"x_pre_authenticated_url_enabled": { "type": "boolean" },
+		"x_pre_authenticated_url_allowed_origins": { "type": "array", "items": { "type": "string", "format": "http_origin" } }
 	},
 	"required": ["name", "client_id", "redirect_uris"],
 	"allOf": [
@@ -199,7 +200,8 @@ type OAuthClientConfig struct {
 	App2appEnabled                         bool                         `json:"x_app2app_enabled,omitempty"`
 	App2appInsecureDeviceKeyBindingEnabled bool                         `json:"x_app2app_insecure_device_key_binding_enabled,omitempty"`
 	AuthenticationFlowAllowlist            *AuthenticationFlowAllowlist `json:"x_authentication_flow_allowlist,omitempty"`
-	AppInitiatedSSOToWebEnabled            bool                         `json:"x_app_initiated_sso_to_web_enabled,omitempty"`
+	PreAuthenticatedURLEnabled             bool                         `json:"x_pre_authenticated_url_enabled,omitempty"`
+	PreAuthenticatedURLAllowedOrigins      []string                     `json:"x_pre_authenticated_url_allowed_origins,omitempty"`
 }
 
 var _ = Schema.Add("AuthenticationFlowAllowlist", `
