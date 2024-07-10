@@ -188,7 +188,7 @@ func (i *IntentReauthFlowStepAuthenticate) ReactTo(ctx context.Context, deps *au
 func (i *IntentReauthFlowStepAuthenticate) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
 	var options []AuthenticateOptionForOutput
 	for _, o := range i.Options {
-		options = append(options, o.ToOutput())
+		options = append(options, o.ToOutput(ctx))
 	}
 
 	return NewStepAuthenticateData(StepAuthenticateData{

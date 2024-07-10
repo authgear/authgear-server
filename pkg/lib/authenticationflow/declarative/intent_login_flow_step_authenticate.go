@@ -290,7 +290,7 @@ func (i *IntentLoginFlowStepAuthenticate) OutputData(ctx context.Context, deps *
 
 	options := []AuthenticateOptionForOutput{}
 	for _, o := range i.Options {
-		options = append(options, o.ToOutput())
+		options = append(options, o.ToOutput(ctx))
 	}
 
 	return NewStepAuthenticateData(StepAuthenticateData{

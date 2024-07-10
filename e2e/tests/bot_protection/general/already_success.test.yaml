@@ -77,6 +77,7 @@ steps:
           "response": "pass"
         }
       }
+  # Note data.options do not have `bot_protection`
     output:
       result: |
         {
@@ -86,13 +87,7 @@ steps:
               "options": [
                 "[[arrayof]]",
                 {
-                  "authentication": "primary_password",
-                  "bot_protection": {
-                    "enabled": true,
-                    "provider": {
-                      "type": "cloudflare"
-                    }
-                  }
+                  "authentication": "primary_password"
                 }
               ],
               "type": "authentication_data"
