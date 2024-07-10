@@ -95,11 +95,13 @@ func (i *IntentAccountRecoveryFlowStepIdentify) CanReactTo(ctx context.Context, 
 		if err != nil {
 			return nil, err
 		}
+		shouldBypassBotProtection := ShouldExistingResultBypassBotProtectionRequirement(ctx)
 		return &InputSchemaStepAccountRecoveryIdentify{
-			FlowRootObject:   flowRootObject,
-			JSONPointer:      i.JSONPointer,
-			Options:          i.Options,
-			BotProtectionCfg: deps.Config.BotProtection,
+			FlowRootObject:            flowRootObject,
+			JSONPointer:               i.JSONPointer,
+			Options:                   i.Options,
+			BotProtectionCfg:          deps.Config.BotProtection,
+			ShouldBypassBotProtection: shouldBypassBotProtection,
 		}, nil
 	}
 
