@@ -27,7 +27,7 @@ export class OtpInputController extends Controller {
 
   connect(): void {
     this.inputTarget.classList.remove("input");
-    this.inputTarget.classList.add("shadow");
+    this.inputTarget.classList.add("with-js");
     this.inputTarget.addEventListener("input", this.handleInput);
     this.inputTarget.addEventListener("paste", this.handlePaste);
     this.inputTarget.addEventListener("focus", this.handleFocus);

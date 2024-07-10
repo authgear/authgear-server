@@ -54,7 +54,7 @@
     input {
       @apply w-full;
 
-      &.shadow {
+      &.with-js {
         height: var(--otp-input__digit-height);
         @apply outline-none;
         @apply selection:bg-white/0;
