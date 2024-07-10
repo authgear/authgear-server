@@ -144,7 +144,12 @@ func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.
 		}
 	}
 
-	redirectURI, errResp := parseRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, r)
+	originWhitelist := []string{}
+	if r.ResponseType().Equal(PreAuthenticatedURLTokenResponseType) {
+		originWhitelist = client.PreAuthenticatedURLAllowedOrigins
+	}
+
+	redirectURI, errResp := parseRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, originWhitelist, r)
 	if errResp != nil {
 		return authorizationResultError{
 			ResponseMode: r.ResponseMode(),
@@ -370,7 +375,7 @@ func (h *AuthorizationHandler) prepareConsentRequest(req *http.Request) (*consen
 	// Restore uiparam into context.
 	uiparam.WithUIParam(h.Context, &uiParam)
 
-	redirectURI, errResp := parseRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, r)
+	redirectURI, errResp := parseRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, []string{}, r)
 	if errResp != nil {
 		err = protocol.NewErrorWithErrorResponse(errResp)
 		return nil, err
@@ -818,7 +823,7 @@ func (h *AuthorizationHandler) prepareConsentErrInvalidOAuthResponse(req *http.R
 	if oauthError.Type() == "invalid_request" && client != nil {
 		redirectURI, err := url.Parse(req.URL.Query().Get("redirect_uri"))
 		if err == nil {
-			err = validateRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, redirectURI)
+			err = validateRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, []string{}, redirectURI)
 			if err == nil {
 				resultErr.RedirectURI = redirectURI
 			}

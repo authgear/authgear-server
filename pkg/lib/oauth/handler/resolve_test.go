@@ -44,14 +44,14 @@ func TestParseRedirectURI(t *testing.T) {
 				RedirectURIs: []string{
 					"http://app.example.com/handle_auth",
 				},
-			}, httpProto, httpOrigin, whitelistedDomains, &mockOAuthRequestImpl{})
+			}, httpProto, httpOrigin, whitelistedDomains, []string{}, &mockOAuthRequestImpl{})
 
 			So(u.String(), ShouldResemble, "http://app.example.com/handle_auth")
 			So(err, ShouldBeNil)
 		})
 
 		Convey("should allow allowlisted redirect uri", func() {
-			u, err := parseRedirectURI(clientConfig, httpProto, httpOrigin, whitelistedDomains, &mockOAuthRequestImpl{
+			u, err := parseRedirectURI(clientConfig, httpProto, httpOrigin, whitelistedDomains, []string{}, &mockOAuthRequestImpl{
 				"com.example.myapp://host/path",
 			})
 
@@ -60,7 +60,7 @@ func TestParseRedirectURI(t *testing.T) {
 		})
 
 		Convey("should exact match", func() {
-			_, err := parseRedirectURI(clientConfig, httpProto, httpOrigin, whitelistedDomains, &mockOAuthRequestImpl{
+			_, err := parseRedirectURI(clientConfig, httpProto, httpOrigin, whitelistedDomains, []string{}, &mockOAuthRequestImpl{
 				"http://app.example.com/handle_auth/",
 			})
 
@@ -68,7 +68,7 @@ func TestParseRedirectURI(t *testing.T) {
 		})
 
 		Convey("should allow URIs at same origin as the authgear server", func() {
-			u, err := parseRedirectURI(clientConfig, httpProto, httpOrigin, whitelistedDomains, &mockOAuthRequestImpl{
+			u, err := parseRedirectURI(clientConfig, httpProto, httpOrigin, whitelistedDomains, []string{}, &mockOAuthRequestImpl{
 				"http://auth.example.com/settings",
 			})
 
@@ -77,7 +77,7 @@ func TestParseRedirectURI(t *testing.T) {
 		})
 
 		Convey("should allow URIs at same origin as the custom ui uri", func() {
-			u, err := parseRedirectURI(clientConfig, httpProto, httpOrigin, whitelistedDomains, &mockOAuthRequestImpl{
+			u, err := parseRedirectURI(clientConfig, httpProto, httpOrigin, whitelistedDomains, []string{}, &mockOAuthRequestImpl{
 				"http://authui.example.com/auth/complete",
 			})
 
@@ -86,14 +86,14 @@ func TestParseRedirectURI(t *testing.T) {
 		})
 
 		Convey("should allow URIs with domain in whitelist in same protocol", func() {
-			u1, err := parseRedirectURI(clientConfig, httpProto, httpOrigin, whitelistedDomains, &mockOAuthRequestImpl{
+			u1, err := parseRedirectURI(clientConfig, httpProto, httpOrigin, whitelistedDomains, []string{}, &mockOAuthRequestImpl{
 				"http://auth.example2.com/auth/complete",
 			})
 
 			So(u1.String(), ShouldResemble, "http://auth.example2.com/auth/complete")
 			So(err, ShouldBeNil)
 
-			u2, err := parseRedirectURI(clientConfig, httpProto, httpOrigin, whitelistedDomains, &mockOAuthRequestImpl{
+			u2, err := parseRedirectURI(clientConfig, httpProto, httpOrigin, whitelistedDomains, []string{}, &mockOAuthRequestImpl{
 				"http://auth.example3.com/auth/complete",
 			})
 
@@ -102,11 +102,22 @@ func TestParseRedirectURI(t *testing.T) {
 		})
 
 		Convey("should reject URIs not in the allowlist", func() {
-			_, err := parseRedirectURI(clientConfig, httpProto, httpOrigin, whitelistedDomains, &mockOAuthRequestImpl{
+			_, err := parseRedirectURI(clientConfig, httpProto, httpOrigin, whitelistedDomains, []string{}, &mockOAuthRequestImpl{
 				"http://unknown.com",
 			})
 
 			So(err, ShouldResemble, protocol.NewErrorResponse("invalid_request", "redirect URI is not allowed"))
+		})
+
+		Convey("should allow origins in allowlist", func() {
+			u, err := parseRedirectURI(clientConfig, httpProto, httpOrigin, []string{}, []string{
+				"http://anotheroriginexample.com",
+			}, &mockOAuthRequestImpl{
+				"http://anotheroriginexample.com/?q=test#test",
+			})
+
+			So(u.String(), ShouldResemble, "http://anotheroriginexample.com/?q=test#test")
+			So(err, ShouldBeNil)
 		})
 	})
 }

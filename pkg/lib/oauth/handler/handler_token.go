@@ -1216,7 +1216,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 		)
 	}
 
-	redirectURI, errResp := parseRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, r)
+	redirectURI, errResp := parseRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, []string{}, r)
 	if errResp != nil {
 		return nil, protocol.NewErrorWithErrorResponse(errResp)
 	}
