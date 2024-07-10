@@ -12,16 +12,20 @@ export class CloudflareTurnstileController extends Controller {
     theme: { type: String },
   };
 
+  static targets = ["widget", "tokenInput"];
+
   declare siteKeyValue: string;
   declare themeValue: string;
+  declare widgetTarget: HTMLDivElement;
+  declare tokenInputTarget: HTMLInputElement;
 
   connect() {
     window.turnstile.ready(() => {
-      window.turnstile.render(this.element, {
+      window.turnstile.render(this.widgetTarget, {
         sitekey: this.siteKeyValue,
         theme: this.themeValue,
-        callback: function (token: string) {
-          alert(`Challenge Success ${token}`);
+        callback: (token: string) => {
+          this.tokenInputTarget.value = token;
         },
       });
     });

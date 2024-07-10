@@ -13,16 +13,20 @@ export class RecaptchaV2Controller extends Controller {
     theme: { type: String },
   };
 
+  static targets = ["widget", "tokenInput"];
+
   declare siteKeyValue: string;
   declare themeValue: string;
+  declare readonly widgetTarget: HTMLDivElement;
+  declare readonly tokenInputTarget: HTMLInputElement;
 
   connect() {
     window.onLoadRecaptchaV2Callback = () => {
-      window.grecaptcha.render(this.element, {
+      window.grecaptcha.render(this.widgetTarget, {
         sitekey: this.siteKeyValue,
         theme: this.themeValue,
-        callback: function (token: string) {
-          alert(`Challenge Success ${token}`);
+        callback: (token: string) => {
+          this.tokenInputTarget.value = token;
         },
       });
     };
