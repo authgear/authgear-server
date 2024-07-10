@@ -46,7 +46,6 @@ func (p *Provider) verifyTokenByCloudflare(token string) error {
 	}
 	_, err := p.CloudflareClient.Verify(token, string(p.RemoteIP))
 	if err != nil {
-		p.Logger.WithField("cloudflare verification error:", err)
 		return err
 	}
 	return nil
@@ -59,7 +58,6 @@ func (p *Provider) verifyTokenByRecaptchaV2(token string) error {
 
 	_, err := p.RecaptchaV2Client.Verify(token, string(p.RemoteIP))
 	if err != nil {
-		p.Logger.WithField("recaptchav2 verification error:", err)
 		return err
 	}
 
