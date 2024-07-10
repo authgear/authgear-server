@@ -15,8 +15,8 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(TokenService), "*"),
 	wire.Struct(new(CodeGrantService), "*"),
 	wire.Struct(new(SettingsActionGrantService), "*"),
-	wire.Struct(new(AppInitiatedSSOToWebTokenServiceImpl), "*"),
-	wire.Bind(new(AppInitiatedSSOToWebTokenService), new(*AppInitiatedSSOToWebTokenServiceImpl)),
+	wire.Struct(new(PreAuthenticatedURLTokenServiceImpl), "*"),
+	wire.Bind(new(PreAuthenticatedURLTokenService), new(*PreAuthenticatedURLTokenServiceImpl)),
 	wire.Struct(new(ProxyRedirectHandler), "*"),
 	wire.Bind(new(TokenHandlerTokenService), new(*TokenService)),
 )

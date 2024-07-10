@@ -6,23 +6,23 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
-type AppInitiatedSSOToWebTokenServiceImpl struct {
+type PreAuthenticatedURLTokenServiceImpl struct {
 	Clock clock.Clock
 
-	AppInitiatedSSOToWebTokens oauth.AppInitiatedSSOToWebTokenStore
-	OfflineGrants              oauth.OfflineGrantStore
-	AccessGrantService         oauth.AppInitiatedSSOToWebTokenAccessGrantService
-	OfflineGrantService        oauth.AppInitiatedSSOToWebTokenOfflineGrantService
+	PreAuthenticatedURLTokens oauth.PreAuthenticatedURLTokenStore
+	OfflineGrants             oauth.OfflineGrantStore
+	AccessGrantService        oauth.PreAuthenticatedURLTokenAccessGrantService
+	OfflineGrantService       oauth.PreAuthenticatedURLTokenOfflineGrantService
 }
 
-type IssueAppInitiatedSSOToWebTokenResult struct {
+type IssuePreAuthenticatedURLTokenResult struct {
 	Token     string
 	TokenHash string
 	TokenType string
 	ExpiresIn int
 }
 
-type IssueAppInitiatedSSOToWebTokenOptions struct {
+type IssuePreAuthenticatedURLTokenOptions struct {
 	AppID           string
 	ClientID        string
 	OfflineGrantID  string
@@ -30,13 +30,13 @@ type IssueAppInitiatedSSOToWebTokenOptions struct {
 	Scopes          []string
 }
 
-func (s *AppInitiatedSSOToWebTokenServiceImpl) IssueAppInitiatedSSOToWebToken(
-	options *IssueAppInitiatedSSOToWebTokenOptions,
-) (*IssueAppInitiatedSSOToWebTokenResult, error) {
+func (s *PreAuthenticatedURLTokenServiceImpl) IssuePreAuthenticatedURLToken(
+	options *IssuePreAuthenticatedURLTokenOptions,
+) (*IssuePreAuthenticatedURLTokenResult, error) {
 	now := s.Clock.NowUTC()
 	token := oauth.GenerateToken()
 	tokenHash := oauth.HashToken(token)
-	err := s.AppInitiatedSSOToWebTokens.CreateAppInitiatedSSOToWebToken(&oauth.AppInitiatedSSOToWebToken{
+	err := s.PreAuthenticatedURLTokens.CreatePreAuthenticatedURLToken(&oauth.PreAuthenticatedURLToken{
 		AppID:           options.AppID,
 		AuthorizationID: options.AuthorizationID,
 		ClientID:        options.ClientID,
@@ -44,28 +44,28 @@ func (s *AppInitiatedSSOToWebTokenServiceImpl) IssueAppInitiatedSSOToWebToken(
 		Scopes:          options.Scopes,
 
 		CreatedAt: now,
-		ExpireAt:  now.Add(oauth.AppInitiatedSSOToWebTokenLifetime),
+		ExpireAt:  now.Add(oauth.PreAuthenticatedURLTokenLifetime),
 		TokenHash: tokenHash,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return &IssueAppInitiatedSSOToWebTokenResult{
+	return &IssuePreAuthenticatedURLTokenResult{
 		Token:     token,
 		TokenHash: tokenHash,
 		TokenType: "Bearer",
-		ExpiresIn: int(oauth.AppInitiatedSSOToWebTokenLifetime.Seconds()),
+		ExpiresIn: int(oauth.PreAuthenticatedURLTokenLifetime.Seconds()),
 	}, nil
 }
 
-func (s *AppInitiatedSSOToWebTokenServiceImpl) ExchangeForAccessToken(
+func (s *PreAuthenticatedURLTokenServiceImpl) ExchangeForAccessToken(
 	client *config.OAuthClientConfig,
 	sessionID string,
 	token string,
 ) (string, error) {
 	tokenHash := oauth.HashToken(token)
-	tokenModel, err := s.AppInitiatedSSOToWebTokens.ConsumeAppInitiatedSSOToWebToken(tokenHash)
+	tokenModel, err := s.PreAuthenticatedURLTokens.ConsumePreAuthenticatedURLToken(tokenHash)
 	if err != nil {
 		return "", err
 	}

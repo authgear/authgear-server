@@ -715,31 +715,31 @@ func (mr *MockTokenHandlerTokenServiceMockRecorder) ParseRefreshToken(token inte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ParseRefreshToken", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).ParseRefreshToken), token)
 }
 
-// MockAppInitiatedSSOToWebTokenService is a mock of AppInitiatedSSOToWebTokenService interface.
-type MockAppInitiatedSSOToWebTokenService struct {
+// MockPreAuthenticatedURLTokenService is a mock of PreAuthenticatedURLTokenService interface.
+type MockPreAuthenticatedURLTokenService struct {
 	ctrl     *gomock.Controller
-	recorder *MockAppInitiatedSSOToWebTokenServiceMockRecorder
+	recorder *MockPreAuthenticatedURLTokenServiceMockRecorder
 }
 
-// MockAppInitiatedSSOToWebTokenServiceMockRecorder is the mock recorder for MockAppInitiatedSSOToWebTokenService.
-type MockAppInitiatedSSOToWebTokenServiceMockRecorder struct {
-	mock *MockAppInitiatedSSOToWebTokenService
+// MockPreAuthenticatedURLTokenServiceMockRecorder is the mock recorder for MockPreAuthenticatedURLTokenService.
+type MockPreAuthenticatedURLTokenServiceMockRecorder struct {
+	mock *MockPreAuthenticatedURLTokenService
 }
 
-// NewMockAppInitiatedSSOToWebTokenService creates a new mock instance.
-func NewMockAppInitiatedSSOToWebTokenService(ctrl *gomock.Controller) *MockAppInitiatedSSOToWebTokenService {
-	mock := &MockAppInitiatedSSOToWebTokenService{ctrl: ctrl}
-	mock.recorder = &MockAppInitiatedSSOToWebTokenServiceMockRecorder{mock}
+// NewMockPreAuthenticatedURLTokenService creates a new mock instance.
+func NewMockPreAuthenticatedURLTokenService(ctrl *gomock.Controller) *MockPreAuthenticatedURLTokenService {
+	mock := &MockPreAuthenticatedURLTokenService{ctrl: ctrl}
+	mock.recorder = &MockPreAuthenticatedURLTokenServiceMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockAppInitiatedSSOToWebTokenService) EXPECT() *MockAppInitiatedSSOToWebTokenServiceMockRecorder {
+func (m *MockPreAuthenticatedURLTokenService) EXPECT() *MockPreAuthenticatedURLTokenServiceMockRecorder {
 	return m.recorder
 }
 
 // ExchangeForAccessToken mocks base method.
-func (m *MockAppInitiatedSSOToWebTokenService) ExchangeForAccessToken(client *config.OAuthClientConfig, sessionID, token string) (string, error) {
+func (m *MockPreAuthenticatedURLTokenService) ExchangeForAccessToken(client *config.OAuthClientConfig, sessionID, token string) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ExchangeForAccessToken", client, sessionID, token)
 	ret0, _ := ret[0].(string)
@@ -748,22 +748,22 @@ func (m *MockAppInitiatedSSOToWebTokenService) ExchangeForAccessToken(client *co
 }
 
 // ExchangeForAccessToken indicates an expected call of ExchangeForAccessToken.
-func (mr *MockAppInitiatedSSOToWebTokenServiceMockRecorder) ExchangeForAccessToken(client, sessionID, token interface{}) *gomock.Call {
+func (mr *MockPreAuthenticatedURLTokenServiceMockRecorder) ExchangeForAccessToken(client, sessionID, token interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExchangeForAccessToken", reflect.TypeOf((*MockAppInitiatedSSOToWebTokenService)(nil).ExchangeForAccessToken), client, sessionID, token)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExchangeForAccessToken", reflect.TypeOf((*MockPreAuthenticatedURLTokenService)(nil).ExchangeForAccessToken), client, sessionID, token)
 }
 
-// IssueAppInitiatedSSOToWebToken mocks base method.
-func (m *MockAppInitiatedSSOToWebTokenService) IssueAppInitiatedSSOToWebToken(options *handler.IssueAppInitiatedSSOToWebTokenOptions) (*handler.IssueAppInitiatedSSOToWebTokenResult, error) {
+// IssuePreAuthenticatedURLToken mocks base method.
+func (m *MockPreAuthenticatedURLTokenService) IssuePreAuthenticatedURLToken(options *handler.IssuePreAuthenticatedURLTokenOptions) (*handler.IssuePreAuthenticatedURLTokenResult, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IssueAppInitiatedSSOToWebToken", options)
-	ret0, _ := ret[0].(*handler.IssueAppInitiatedSSOToWebTokenResult)
+	ret := m.ctrl.Call(m, "IssuePreAuthenticatedURLToken", options)
+	ret0, _ := ret[0].(*handler.IssuePreAuthenticatedURLTokenResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// IssueAppInitiatedSSOToWebToken indicates an expected call of IssueAppInitiatedSSOToWebToken.
-func (mr *MockAppInitiatedSSOToWebTokenServiceMockRecorder) IssueAppInitiatedSSOToWebToken(options interface{}) *gomock.Call {
+// IssuePreAuthenticatedURLToken indicates an expected call of IssuePreAuthenticatedURLToken.
+func (mr *MockPreAuthenticatedURLTokenServiceMockRecorder) IssuePreAuthenticatedURLToken(options interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueAppInitiatedSSOToWebToken", reflect.TypeOf((*MockAppInitiatedSSOToWebTokenService)(nil).IssueAppInitiatedSSOToWebToken), options)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssuePreAuthenticatedURLToken", reflect.TypeOf((*MockPreAuthenticatedURLTokenService)(nil).IssuePreAuthenticatedURLToken), options)
 }

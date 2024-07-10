@@ -125,7 +125,7 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		session = nil
 	}
 	// Ignore any session that is not allow to be used here
-	if !oauth.ContainsAllScopes(oauth.SessionScopes(session), []string{oauth.AppInitiatedSSOToWebScope}) {
+	if !oauth.ContainsAllScopes(oauth.SessionScopes(session), []string{oauth.PreAuthenticatedURLScope}) {
 		session = nil
 	}
 

@@ -38,7 +38,7 @@ func TestTokenHandler(t *testing.T) {
 
 		authorizations := NewMockAuthorizationService(ctrl)
 
-		appInitiatedSSOToWebTokenService := NewMockAppInitiatedSSOToWebTokenService(ctrl)
+		preAuthenticatedURLService := NewMockPreAuthenticatedURLTokenService(ctrl)
 
 		appID := "testapp"
 
@@ -62,13 +62,13 @@ func TestTokenHandler(t *testing.T) {
 			RemoteIP:               "1.2.3.4",
 			UserAgentString:        "UA",
 
-			TokenService:                     tokenService,
-			ClientResolver:                   clientResolver,
-			Authorizations:                   authorizations,
-			OfflineGrants:                    offlineGrants,
-			OfflineGrantService:              offlineGrantService,
-			IDTokenIssuer:                    idTokenIssuer,
-			AppInitiatedSSOToWebTokenService: appInitiatedSSOToWebTokenService,
+			TokenService:                    tokenService,
+			ClientResolver:                  clientResolver,
+			Authorizations:                  authorizations,
+			OfflineGrants:                   offlineGrants,
+			OfflineGrantService:             offlineGrantService,
+			IDTokenIssuer:                   idTokenIssuer,
+			PreAuthenticatedURLTokenService: preAuthenticatedURLService,
 		}
 
 		handle := func(req *http.Request, r protocol.TokenRequest) *httptest.ResponseRecorder {
@@ -112,7 +112,7 @@ func TestTokenHandler(t *testing.T) {
 			})
 		})
 
-		Convey("token exchange: app-initiated-sso-to-web-token", func() {
+		Convey("token exchange: pre-authenticated-url-token", func() {
 			req, _ := http.NewRequest("POST", "/token", nil)
 			clientID1 := "client-id-1"
 			clientID2 := "client-id-2"
@@ -131,7 +131,7 @@ func TestTokenHandler(t *testing.T) {
 				"openid",
 				oauth.OfflineAccess,
 				oauth.DeviceSSOScope,
-				oauth.AppInitiatedSSOToWebScope,
+				oauth.PreAuthenticatedURLScope,
 			}
 			dsHash := oauth.HashToken(testDeviceSecret)
 			testOfflineGrant := &oauth.OfflineGrant{
@@ -167,22 +167,22 @@ func TestTokenHandler(t *testing.T) {
 				Return(testAuthz, nil)
 
 			// nolint:gosec
-			expectedAppInitiatedSSOToWebToken := "TEST_APP_INITIATED_SSO_TO_WEB_TOKEN"
-			expectedAppInitiatedSSOToWebTokenHash := oauth.HashToken(expectedAppInitiatedSSOToWebToken)
-			expectedAppInitiatedSSOToWebTokenType := "Bearer"
-			expectedAppInitiatedSSOToWebTokenExpiresIn := 1234
+			expectedPreAuthenticatedURLToken := "TEST_PRE_AUTHENTICATED_URL_TOKEN"
+			expectedPreAuthenticatedURLTokenHash := oauth.HashToken(expectedPreAuthenticatedURLToken)
+			expectedPreAuthenticatedURLTokenType := "Bearer"
+			expectedPreAuthenticatedURLTokenExpiresIn := 1234
 
-			issueAppInitiatedSSOToWebTokenResult := &handler.IssueAppInitiatedSSOToWebTokenResult{
-				Token:     expectedAppInitiatedSSOToWebToken,
-				TokenHash: expectedAppInitiatedSSOToWebTokenHash,
-				TokenType: expectedAppInitiatedSSOToWebTokenType,
-				ExpiresIn: expectedAppInitiatedSSOToWebTokenExpiresIn,
+			issuePreAuthenticatedURLTokenResult := &handler.IssuePreAuthenticatedURLTokenResult{
+				Token:     expectedPreAuthenticatedURLToken,
+				TokenHash: expectedPreAuthenticatedURLTokenHash,
+				TokenType: expectedPreAuthenticatedURLTokenType,
+				ExpiresIn: expectedPreAuthenticatedURLTokenExpiresIn,
 			}
-			appInitiatedSSOToWebTokenService.EXPECT().
+			preAuthenticatedURLService.EXPECT().
 				// TODO: Implement a stricter matcher
-				IssueAppInitiatedSSOToWebToken(gomock.AssignableToTypeOf((*handler.IssueAppInitiatedSSOToWebTokenOptions)(nil))).
+				IssuePreAuthenticatedURLToken(gomock.AssignableToTypeOf((*handler.IssuePreAuthenticatedURLTokenOptions)(nil))).
 				Times(1).
-				Return(issueAppInitiatedSSOToWebTokenResult, nil)
+				Return(issuePreAuthenticatedURLTokenResult, nil)
 
 			offlineGrantService.EXPECT().ComputeOfflineGrantExpiry(gomock.Any()).
 				AnyTimes().
@@ -203,7 +203,7 @@ func TestTokenHandler(t *testing.T) {
 			request := protocol.TokenRequest{
 				"client_id":            clientID1,
 				"grant_type":           "urn:ietf:params:oauth:grant-type:token-exchange",
-				"requested_token_type": "urn:authgear:params:oauth:token-type:app-initiated-sso-to-web-token",
+				"requested_token_type": "urn:authgear:params:oauth:token-type:pre-authenticated-url-token",
 				"audience":             "http://accounts.example.com",
 				"subject_token_type":   "urn:ietf:params:oauth:token-type:id_token",
 				"subject_token":        testIdToken,
@@ -217,12 +217,12 @@ func TestTokenHandler(t *testing.T) {
 			err := json.Unmarshal(resp.Body.Bytes(), &body)
 			So(err, ShouldBeNil)
 
-			So(body["access_token"], ShouldEqual, expectedAppInitiatedSSOToWebToken)
+			So(body["access_token"], ShouldEqual, expectedPreAuthenticatedURLToken)
 			So(body["device_secret"], ShouldEqual, newDeviceSecret)
-			So(body["expires_in"], ShouldEqual, expectedAppInitiatedSSOToWebTokenExpiresIn)
+			So(body["expires_in"], ShouldEqual, expectedPreAuthenticatedURLTokenExpiresIn)
 			So(body["id_token"], ShouldEqual, expectedNewIdToken)
-			So(body["issued_token_type"], ShouldEqual, "urn:authgear:params:oauth:token-type:app-initiated-sso-to-web-token")
-			So(body["token_type"], ShouldEqual, expectedAppInitiatedSSOToWebTokenType)
+			So(body["issued_token_type"], ShouldEqual, "urn:authgear:params:oauth:token-type:pre-authenticated-url-token")
+			So(body["token_type"], ShouldEqual, expectedPreAuthenticatedURLTokenType)
 		})
 	})
 }

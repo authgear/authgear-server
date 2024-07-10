@@ -63,7 +63,7 @@ const (
 
 const (
 	// nolint:gosec
-	AppInitiatedSSOToWebTokenTokenType = "urn:authgear:params:oauth:token-type:app-initiated-sso-to-web-token"
+	PreAuthenticatedURLTokenTokenType = "urn:authgear:params:oauth:token-type:pre-authenticated-url-token"
 	// nolint:gosec
 	IDTokenTokenType = "urn:ietf:params:oauth:token-type:id_token"
 	// nolint:gosec
@@ -175,10 +175,10 @@ type TokenHandlerTokenService interface {
 	IssueDeviceSecret(resp protocol.TokenResponse) (deviceSecretHash string)
 }
 
-type AppInitiatedSSOToWebTokenService interface {
-	IssueAppInitiatedSSOToWebToken(
-		options *IssueAppInitiatedSSOToWebTokenOptions,
-	) (*IssueAppInitiatedSSOToWebTokenResult, error)
+type PreAuthenticatedURLTokenService interface {
+	IssuePreAuthenticatedURLToken(
+		options *IssuePreAuthenticatedURLTokenOptions,
+	) (*IssuePreAuthenticatedURLTokenResult, error)
 	ExchangeForAccessToken(
 		client *config.OAuthClientConfig,
 		sessionID string,
@@ -197,25 +197,25 @@ type TokenHandler struct {
 	OAuthClientCredentials *config.OAuthClientCredentials
 	Logger                 TokenHandlerLogger
 
-	Authorizations                   AuthorizationService
-	CodeGrants                       TokenHandlerCodeGrantStore
-	SettingsActionGrantStore         TokenHandlerSettingsActionGrantStore
-	IDPSessions                      oauth.IDPSessionProvider
-	OfflineGrants                    TokenHandlerOfflineGrantStore
-	AppSessionTokens                 TokenHandlerAppSessionTokenStore
-	OfflineGrantService              TokenHandlerOfflineGrantService
-	AppInitiatedSSOToWebTokenService AppInitiatedSSOToWebTokenService
-	Graphs                           GraphService
-	IDTokenIssuer                    IDTokenIssuer
-	Clock                            clock.Clock
-	TokenService                     TokenHandlerTokenService
-	Events                           EventService
-	SessionManager                   SessionManager
-	App2App                          App2AppService
-	Challenges                       ChallengeProvider
-	CodeGrantService                 CodeGrantService
-	ClientResolver                   OAuthClientResolver
-	UIInfoResolver                   UIInfoResolver
+	Authorizations                  AuthorizationService
+	CodeGrants                      TokenHandlerCodeGrantStore
+	SettingsActionGrantStore        TokenHandlerSettingsActionGrantStore
+	IDPSessions                     oauth.IDPSessionProvider
+	OfflineGrants                   TokenHandlerOfflineGrantStore
+	AppSessionTokens                TokenHandlerAppSessionTokenStore
+	OfflineGrantService             TokenHandlerOfflineGrantService
+	PreAuthenticatedURLTokenService PreAuthenticatedURLTokenService
+	Graphs                          GraphService
+	IDTokenIssuer                   IDTokenIssuer
+	Clock                           clock.Clock
+	TokenService                    TokenHandlerTokenService
+	Events                          EventService
+	SessionManager                  SessionManager
+	App2App                         App2AppService
+	Challenges                      ChallengeProvider
+	CodeGrantService                CodeGrantService
+	ClientResolver                  OAuthClientResolver
+	UIInfoResolver                  UIInfoResolver
 
 	RemoteIP        httputil.RemoteIP
 	UserAgentString httputil.UserAgentString
@@ -622,8 +622,8 @@ func (h *TokenHandler) handleTokenExchange(
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
 	switch r.RequestedTokenType() {
-	case AppInitiatedSSOToWebTokenTokenType:
-		resp, err := h.handleAppInitiatedSSOToWebToken(client, r)
+	case PreAuthenticatedURLTokenTokenType:
+		resp, err := h.handlePreAuthenticatedURLToken(client, r)
 		if err != nil {
 			return nil, err
 		}
@@ -688,7 +688,7 @@ func (h *TokenHandler) verifyIDTokenDeviceSecretHash(offlineGrant *oauth.Offline
 	return err
 }
 
-func (h *TokenHandler) handleAppInitiatedSSOToWebToken(
+func (h *TokenHandler) handlePreAuthenticatedURLToken(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (protocol.TokenResponse, error) {
@@ -729,11 +729,11 @@ func (h *TokenHandler) handleAppInitiatedSSOToWebToken(
 		return nil, protocol.NewError("invalid_grant", "invalid session type")
 	case *oauth.OfflineGrant:
 		offlineGrant = session
-		isAllowed = offlineGrant.HasAllScopes(offlineGrant.InitialClientID, []string{oauth.AppInitiatedSSOToWebScope})
+		isAllowed = offlineGrant.HasAllScopes(offlineGrant.InitialClientID, []string{oauth.PreAuthenticatedURLScope})
 		scopes = offlineGrant.GetScopes(offlineGrant.InitialClientID)
 	}
 	if !isAllowed {
-		return nil, protocol.NewError("insufficient_scope", "app-initiated-sso-to-web is not allowed for this session")
+		return nil, protocol.NewError("insufficient_scope", "pre-authenticated url is not allowed for this session")
 	}
 
 	err = h.verifyIDTokenDeviceSecretHash(offlineGrant, idToken, deviceSecret)
@@ -758,14 +758,14 @@ func (h *TokenHandler) handleAppInitiatedSSOToWebToken(
 		return nil, err
 	}
 
-	options := &IssueAppInitiatedSSOToWebTokenOptions{
+	options := &IssuePreAuthenticatedURLTokenOptions{
 		AppID:           string(h.AppID),
 		AuthorizationID: authz.ID,
 		ClientID:        client.ClientID,
 		OfflineGrantID:  offlineGrant.ID,
 		Scopes:          scopes,
 	}
-	result, err := h.AppInitiatedSSOToWebTokenService.IssueAppInitiatedSSOToWebToken(options)
+	result, err := h.PreAuthenticatedURLTokenService.IssuePreAuthenticatedURLToken(options)
 	if err != nil {
 		return nil, err
 	}
@@ -774,7 +774,7 @@ func (h *TokenHandler) handleAppInitiatedSSOToWebToken(
 	// Return the token in access_token as specified by RFC8963
 	resp.AccessToken(result.Token)
 	resp.TokenType(result.TokenType)
-	resp.IssuedTokenType(AppInitiatedSSOToWebTokenTokenType)
+	resp.IssuedTokenType(PreAuthenticatedURLTokenTokenType)
 	resp.ExpiresIn(result.ExpiresIn)
 
 	offlineGrant, err = h.rotateDeviceSecret(

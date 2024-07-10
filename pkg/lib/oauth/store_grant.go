@@ -67,7 +67,7 @@ type AppSessionTokenStore interface {
 	DeleteAppSessionToken(*AppSessionToken) error
 }
 
-type AppInitiatedSSOToWebTokenStore interface {
-	CreateAppInitiatedSSOToWebToken(*AppInitiatedSSOToWebToken) error
-	ConsumeAppInitiatedSSOToWebToken(tokenHash string) (*AppInitiatedSSOToWebToken, error)
+type PreAuthenticatedURLTokenStore interface {
+	CreatePreAuthenticatedURLToken(*PreAuthenticatedURLToken) error
+	ConsumePreAuthenticatedURLToken(tokenHash string) (*PreAuthenticatedURLToken, error)
 }
