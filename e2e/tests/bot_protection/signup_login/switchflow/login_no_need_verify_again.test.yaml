@@ -1,0 +1,100 @@
+name: SignupLogin with Bot Protection - Should not need bot protection after verification success in signuplogin-identify
+authgear.yaml:
+  override: |
+    bot_protection:
+      enabled: true
+      provider:
+        type: cloudflare
+        site_key: dummy
+    authentication_flow:
+      login_flows:
+      - name: default
+        steps:
+        - name: login_identify
+          type: identify
+          one_of:
+          - identification: email
+            steps:
+            - name: authenticate_primary_email
+              type: authenticate
+              one_of:
+              - authentication: primary_password
+                bot_protection:
+                  mode: always
+                  provider:
+                    type: cloudflare
+# Note bot protection is required above
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup_login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "bot_protection": {
+                    "enabled": true,
+                    "provider": {
+                      "type": "cloudflare"
+                    }
+                  },
+                  "identification": "[[string]]"
+                }
+              ]
+            }
+          }
+        }
+  - action: "input"
+    input: |
+      {
+        "identification": "email",
+        "login_id": "bp_signuplogin",
+        "bot_protection": {
+          "type": "cloudflare",
+          "response": "pass"
+        }
+      }
+# Note bot protection is not required in below output
+    output: 
+      result: |
+        {
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "authentication": "primary_password"
+                }
+              ],
+              "type": "authentication_data"
+            }
+          }
+        }
+  - action: "input"
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+# Input w/o bot protection should pass
+    output:
+      result: |
+        {
+          "type": "login",
+          "name": "default",
+          "action": {
+            "type": "finished"
+          }
+        }
