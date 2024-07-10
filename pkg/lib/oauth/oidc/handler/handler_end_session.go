@@ -19,7 +19,7 @@ type WebAppURLsProvider interface {
 }
 
 type LogoutSessionManager interface {
-	Logout(session.Session, http.ResponseWriter) error
+	Logout(session.ResolvedSession, http.ResponseWriter) error
 }
 
 type CookieManager interface {
@@ -35,7 +35,7 @@ type EndSessionHandler struct {
 	Cookies          CookieManager
 }
 
-func (h *EndSessionHandler) Handle(s session.Session, req protocol.EndSessionRequest, r *http.Request, rw http.ResponseWriter) error {
+func (h *EndSessionHandler) Handle(s session.ResolvedSession, req protocol.EndSessionRequest, r *http.Request, rw http.ResponseWriter) error {
 	sameSiteStrict, err := h.Cookies.GetCookie(r, h.SessionCookieDef.SameSiteStrictDef)
 	if s != nil && err == nil && sameSiteStrict.Value == "true" {
 		// Logout directly.

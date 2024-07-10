@@ -15,11 +15,12 @@ func ValidateScopes(client *config.OAuthClientConfig, scopes []string) error {
 		}
 	}
 	hasOIDC := false
+	hasDeviceSSO := false
 	for _, s := range scopes {
 		if !IsScopeAllowed(s) {
 			return protocol.NewError("invalid_scope", "specified scope is not allowed")
 		}
-		if s == "offline_access" && !allowOfflineAccess {
+		if s == oauth.OfflineAccess && !allowOfflineAccess {
 			return protocol.NewError("invalid_scope", "offline access is not allowed for this client")
 		}
 		if s == oauth.FullAccessScope && !client.HasFullAccessScope() {
@@ -27,6 +28,19 @@ func ValidateScopes(client *config.OAuthClientConfig, scopes []string) error {
 		}
 		if s == "openid" {
 			hasOIDC = true
+		}
+		if s == oauth.DeviceSSOScope {
+			hasDeviceSSO = true
+		}
+		// TODO(tung): Validate if device_sso is allowed by client config
+		if s == oauth.DeviceSSOScope && !client.PreAuthenticatedURLEnabled {
+			return protocol.NewError("invalid_scope", "device_sso is not allowed for this client")
+		}
+		if s == oauth.PreAuthenticatedURLScope && !hasDeviceSSO {
+			return protocol.NewError("invalid_scope", "device_sso must be requested when using pre-authenticated url")
+		}
+		if s == oauth.PreAuthenticatedURLScope && !client.PreAuthenticatedURLEnabled {
+			return protocol.NewError("invalid_scope", "pre-authenticated url is not allowed for this client")
 		}
 	}
 	if !hasOIDC {
@@ -37,9 +51,11 @@ func ValidateScopes(client *config.OAuthClientConfig, scopes []string) error {
 
 var AllowedScopes = []string{
 	"openid",
-	"offline_access",
+	oauth.OfflineAccess,
 	oauth.FullAccessScope,
 	oauth.FullUserInfoScope,
+	oauth.PreAuthenticatedURLScope,
+	oauth.DeviceSSOScope,
 }
 
 func IsScopeAllowed(scope string) bool {

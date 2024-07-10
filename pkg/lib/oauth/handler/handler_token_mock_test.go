@@ -20,6 +20,7 @@ import (
 	access "github.com/authgear/authgear-server/pkg/lib/session/access"
 	gomock "github.com/golang/mock/gomock"
 	jwk "github.com/lestrrat-go/jwx/v2/jwk"
+	jwt "github.com/lestrrat-go/jwx/v2/jwt"
 )
 
 // MockIDTokenIssuer is a mock of IDTokenIssuer interface.
@@ -45,6 +46,20 @@ func (m *MockIDTokenIssuer) EXPECT() *MockIDTokenIssuerMockRecorder {
 	return m.recorder
 }
 
+// Iss mocks base method.
+func (m *MockIDTokenIssuer) Iss() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Iss")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// Iss indicates an expected call of Iss.
+func (mr *MockIDTokenIssuerMockRecorder) Iss() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Iss", reflect.TypeOf((*MockIDTokenIssuer)(nil).Iss))
+}
+
 // IssueIDToken mocks base method.
 func (m *MockIDTokenIssuer) IssueIDToken(opts oidc.IssueIDTokenOptions) (string, error) {
 	m.ctrl.T.Helper()
@@ -58,6 +73,21 @@ func (m *MockIDTokenIssuer) IssueIDToken(opts oidc.IssueIDTokenOptions) (string,
 func (mr *MockIDTokenIssuerMockRecorder) IssueIDToken(opts interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueIDToken", reflect.TypeOf((*MockIDTokenIssuer)(nil).IssueIDToken), opts)
+}
+
+// VerifyIDTokenWithoutClient mocks base method.
+func (m *MockIDTokenIssuer) VerifyIDTokenWithoutClient(idToken string) (jwt.Token, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VerifyIDTokenWithoutClient", idToken)
+	ret0, _ := ret[0].(jwt.Token)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// VerifyIDTokenWithoutClient indicates an expected call of VerifyIDTokenWithoutClient.
+func (mr *MockIDTokenIssuerMockRecorder) VerifyIDTokenWithoutClient(idToken interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyIDTokenWithoutClient", reflect.TypeOf((*MockIDTokenIssuer)(nil).VerifyIDTokenWithoutClient), idToken)
 }
 
 // MockAccessTokenIssuer is a mock of AccessTokenIssuer interface.
@@ -495,6 +525,21 @@ func (mr *MockTokenHandlerOfflineGrantStoreMockRecorder) UpdateOfflineGrantAuthe
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOfflineGrantAuthenticatedAt", reflect.TypeOf((*MockTokenHandlerOfflineGrantStore)(nil).UpdateOfflineGrantAuthenticatedAt), id, authenticatedAt, expireAt)
 }
 
+// UpdateOfflineGrantDeviceSecretHash mocks base method.
+func (m *MockTokenHandlerOfflineGrantStore) UpdateOfflineGrantDeviceSecretHash(grantID, newDeviceSecretHash string, expireAt time.Time) (*oauth.OfflineGrant, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateOfflineGrantDeviceSecretHash", grantID, newDeviceSecretHash, expireAt)
+	ret0, _ := ret[0].(*oauth.OfflineGrant)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateOfflineGrantDeviceSecretHash indicates an expected call of UpdateOfflineGrantDeviceSecretHash.
+func (mr *MockTokenHandlerOfflineGrantStoreMockRecorder) UpdateOfflineGrantDeviceSecretHash(grantID, newDeviceSecretHash, expireAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOfflineGrantDeviceSecretHash", reflect.TypeOf((*MockTokenHandlerOfflineGrantStore)(nil).UpdateOfflineGrantDeviceSecretHash), grantID, newDeviceSecretHash, expireAt)
+}
+
 // MockTokenHandlerAppSessionTokenStore is a mock of TokenHandlerAppSessionTokenStore interface.
 type MockTokenHandlerAppSessionTokenStore struct {
 	ctrl     *gomock.Controller
@@ -594,26 +639,41 @@ func (m *MockTokenHandlerTokenService) EXPECT() *MockTokenHandlerTokenServiceMoc
 }
 
 // IssueAccessGrant mocks base method.
-func (m *MockTokenHandlerTokenService) IssueAccessGrant(client *config.OAuthClientConfig, scopes []string, authzID, userID, sessionID string, sessionKind oauth.GrantSessionKind, resp protocol.TokenResponse) error {
+func (m *MockTokenHandlerTokenService) IssueAccessGrant(client *config.OAuthClientConfig, scopes []string, authzID, userID, sessionID string, sessionKind oauth.GrantSessionKind, refreshTokenHash string, resp protocol.TokenResponse) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IssueAccessGrant", client, scopes, authzID, userID, sessionID, sessionKind, resp)
+	ret := m.ctrl.Call(m, "IssueAccessGrant", client, scopes, authzID, userID, sessionID, sessionKind, refreshTokenHash, resp)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // IssueAccessGrant indicates an expected call of IssueAccessGrant.
-func (mr *MockTokenHandlerTokenServiceMockRecorder) IssueAccessGrant(client, scopes, authzID, userID, sessionID, sessionKind, resp interface{}) *gomock.Call {
+func (mr *MockTokenHandlerTokenServiceMockRecorder) IssueAccessGrant(client, scopes, authzID, userID, sessionID, sessionKind, refreshTokenHash, resp interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueAccessGrant", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).IssueAccessGrant), client, scopes, authzID, userID, sessionID, sessionKind, resp)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueAccessGrant", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).IssueAccessGrant), client, scopes, authzID, userID, sessionID, sessionKind, refreshTokenHash, resp)
+}
+
+// IssueDeviceSecret mocks base method.
+func (m *MockTokenHandlerTokenService) IssueDeviceSecret(resp protocol.TokenResponse) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IssueDeviceSecret", resp)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// IssueDeviceSecret indicates an expected call of IssueDeviceSecret.
+func (mr *MockTokenHandlerTokenServiceMockRecorder) IssueDeviceSecret(resp interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueDeviceSecret", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).IssueDeviceSecret), resp)
 }
 
 // IssueOfflineGrant mocks base method.
-func (m *MockTokenHandlerTokenService) IssueOfflineGrant(client *config.OAuthClientConfig, opts handler.IssueOfflineGrantOptions, resp protocol.TokenResponse) (*oauth.OfflineGrant, error) {
+func (m *MockTokenHandlerTokenService) IssueOfflineGrant(client *config.OAuthClientConfig, opts handler.IssueOfflineGrantOptions, resp protocol.TokenResponse) (*oauth.OfflineGrant, string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IssueOfflineGrant", client, opts, resp)
 	ret0, _ := ret[0].(*oauth.OfflineGrant)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // IssueOfflineGrant indicates an expected call of IssueOfflineGrant.
@@ -622,18 +682,88 @@ func (mr *MockTokenHandlerTokenServiceMockRecorder) IssueOfflineGrant(client, op
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueOfflineGrant", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).IssueOfflineGrant), client, opts, resp)
 }
 
+// IssueRefreshTokenForOfflineGrant mocks base method.
+func (m *MockTokenHandlerTokenService) IssueRefreshTokenForOfflineGrant(offlineGrantID string, client *config.OAuthClientConfig, opts handler.IssueOfflineGrantRefreshTokenOptions, resp protocol.TokenResponse) (*oauth.OfflineGrant, string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IssueRefreshTokenForOfflineGrant", offlineGrantID, client, opts, resp)
+	ret0, _ := ret[0].(*oauth.OfflineGrant)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// IssueRefreshTokenForOfflineGrant indicates an expected call of IssueRefreshTokenForOfflineGrant.
+func (mr *MockTokenHandlerTokenServiceMockRecorder) IssueRefreshTokenForOfflineGrant(offlineGrantID, client, opts, resp interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueRefreshTokenForOfflineGrant", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).IssueRefreshTokenForOfflineGrant), offlineGrantID, client, opts, resp)
+}
+
 // ParseRefreshToken mocks base method.
-func (m *MockTokenHandlerTokenService) ParseRefreshToken(token string) (*oauth.Authorization, *oauth.OfflineGrant, error) {
+func (m *MockTokenHandlerTokenService) ParseRefreshToken(token string) (*oauth.Authorization, *oauth.OfflineGrant, string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ParseRefreshToken", token)
 	ret0, _ := ret[0].(*oauth.Authorization)
 	ret1, _ := ret[1].(*oauth.OfflineGrant)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret2, _ := ret[2].(string)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
 }
 
 // ParseRefreshToken indicates an expected call of ParseRefreshToken.
 func (mr *MockTokenHandlerTokenServiceMockRecorder) ParseRefreshToken(token interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ParseRefreshToken", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).ParseRefreshToken), token)
+}
+
+// MockPreAuthenticatedURLTokenService is a mock of PreAuthenticatedURLTokenService interface.
+type MockPreAuthenticatedURLTokenService struct {
+	ctrl     *gomock.Controller
+	recorder *MockPreAuthenticatedURLTokenServiceMockRecorder
+}
+
+// MockPreAuthenticatedURLTokenServiceMockRecorder is the mock recorder for MockPreAuthenticatedURLTokenService.
+type MockPreAuthenticatedURLTokenServiceMockRecorder struct {
+	mock *MockPreAuthenticatedURLTokenService
+}
+
+// NewMockPreAuthenticatedURLTokenService creates a new mock instance.
+func NewMockPreAuthenticatedURLTokenService(ctrl *gomock.Controller) *MockPreAuthenticatedURLTokenService {
+	mock := &MockPreAuthenticatedURLTokenService{ctrl: ctrl}
+	mock.recorder = &MockPreAuthenticatedURLTokenServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockPreAuthenticatedURLTokenService) EXPECT() *MockPreAuthenticatedURLTokenServiceMockRecorder {
+	return m.recorder
+}
+
+// ExchangeForAccessToken mocks base method.
+func (m *MockPreAuthenticatedURLTokenService) ExchangeForAccessToken(client *config.OAuthClientConfig, sessionID, token string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ExchangeForAccessToken", client, sessionID, token)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ExchangeForAccessToken indicates an expected call of ExchangeForAccessToken.
+func (mr *MockPreAuthenticatedURLTokenServiceMockRecorder) ExchangeForAccessToken(client, sessionID, token interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExchangeForAccessToken", reflect.TypeOf((*MockPreAuthenticatedURLTokenService)(nil).ExchangeForAccessToken), client, sessionID, token)
+}
+
+// IssuePreAuthenticatedURLToken mocks base method.
+func (m *MockPreAuthenticatedURLTokenService) IssuePreAuthenticatedURLToken(options *handler.IssuePreAuthenticatedURLTokenOptions) (*handler.IssuePreAuthenticatedURLTokenResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IssuePreAuthenticatedURLToken", options)
+	ret0, _ := ret[0].(*handler.IssuePreAuthenticatedURLTokenResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IssuePreAuthenticatedURLToken indicates an expected call of IssuePreAuthenticatedURLToken.
+func (mr *MockPreAuthenticatedURLTokenServiceMockRecorder) IssuePreAuthenticatedURLToken(options interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssuePreAuthenticatedURLToken", reflect.TypeOf((*MockPreAuthenticatedURLTokenService)(nil).IssuePreAuthenticatedURLToken), options)
 }

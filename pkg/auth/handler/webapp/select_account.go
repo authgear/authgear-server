@@ -99,7 +99,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	idpSession := session.GetSession(r.Context())
+	session := session.GetSession(r.Context())
 	webSession := webapp.GetSession(r.Context())
 
 	oauthSessionID := ""
@@ -120,7 +120,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 	// When x_suppress_idp_session_cookie is true, ignore IDP session cookie.
 	if suppressIDPSessionCookie {
-		idpSession = nil
+		session = nil
 	}
 
 	continueWithCurrentAccount := func() error {
@@ -139,8 +139,8 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		}
 
 		// Write authentication info cookie
-		if idpSession != nil {
-			info := idpSession.GetAuthenticationInfo()
+		if session != nil {
+			info := session.GetAuthenticationInfo()
 			entry := authenticationinfo.NewEntry(info, oauthSessionID)
 			err := h.AuthenticationInfoService.Save(entry)
 			if err != nil {
@@ -206,7 +206,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		if userIDHint != "" {
 			if loginPrompt && canUseIntentReauthenticate {
 				gotoReauth()
-			} else if !loginPrompt && idpSession != nil && idpSession.GetAuthenticationInfo().UserID == userIDHint {
+			} else if !loginPrompt && session != nil && session.GetAuthenticationInfo().UserID == userIDHint {
 				// Continue without user interaction
 				// 1. UserIDHint present
 				// 2. IDP session present and the same as UserIDHint
@@ -235,12 +235,12 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		}
 
 		fromAuthzEndpoint := oauthSessionID != ""
-		if !fromAuthzEndpoint || idpSession == nil || loginPrompt {
+		if !fromAuthzEndpoint || session == nil || loginPrompt {
 			gotoSignupOrLogin()
 			return nil
 		}
 
-		data, err := h.GetData(r, w, idpSession.GetAuthenticationInfo().UserID)
+		data, err := h.GetData(r, w, session.GetAuthenticationInfo().UserID)
 		if err != nil {
 			return err
 		}

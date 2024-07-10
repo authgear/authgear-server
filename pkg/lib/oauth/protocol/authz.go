@@ -8,9 +8,11 @@ import (
 type AuthorizationRequest map[string]string
 
 // OAuth 2.0
-func (r AuthorizationRequest) ClientID() string     { return r["client_id"] }
-func (r AuthorizationRequest) RedirectURI() string  { return r["redirect_uri"] }
-func (r AuthorizationRequest) ResponseType() string { return r["response_type"] }
+func (r AuthorizationRequest) ClientID() string    { return r["client_id"] }
+func (r AuthorizationRequest) RedirectURI() string { return r["redirect_uri"] }
+func (r AuthorizationRequest) ResponseType() ResponseType {
+	return ParseResponseType(r["response_type"])
+}
 func (r AuthorizationRequest) ResponseMode() string { return r["response_mode"] }
 func (r AuthorizationRequest) Scope() []string      { return parseSpaceDelimitedString(r["scope"]) }
 func (r AuthorizationRequest) State() string        { return r["state"] }
@@ -90,6 +92,9 @@ func (r AuthorizationRequest) SSOEnabled() bool {
 func (r AuthorizationRequest) ColorScheme() string        { return r["x_color_scheme"] }
 func (r AuthorizationRequest) OAuthProviderAlias() string { return r["x_oauth_provider_alias"] }
 func (r AuthorizationRequest) SettingsAction() string     { return r["x_settings_action"] }
+func (r AuthorizationRequest) PreAuthenticatedURLToken() string {
+	return r["x_pre_authenticated_url_token"]
+}
 
 type AuthorizationResponse map[string]string
 

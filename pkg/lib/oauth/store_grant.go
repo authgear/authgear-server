@@ -4,7 +4,10 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
+	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 )
+
+//go:generate mockgen -source=store_grant.go -destination=store_grant_mock.go -package oauth
 
 type CodeGrantStore interface {
 	GetCodeGrant(codeHash string) (*CodeGrant, error)
@@ -27,9 +30,23 @@ type OfflineGrantStore interface {
 	AccessOfflineGrantAndUpdateDeviceInfo(id string, accessEvent access.Event, deviceInfo map[string]interface{}, expireAt time.Time) (*OfflineGrant, error)
 	UpdateOfflineGrantAuthenticatedAt(id string, authenticatedAt time.Time, expireAt time.Time) (*OfflineGrant, error)
 	UpdateOfflineGrantApp2AppDeviceKey(id string, newKey string, expireAt time.Time) (*OfflineGrant, error)
+	UpdateOfflineGrantDeviceSecretHash(grantID string, newDeviceSecretHash string, expireAt time.Time) (*OfflineGrant, error)
+	RemoveOfflineGrantRefreshTokens(grantID string, tokenHashes []string, expireAt time.Time) (*OfflineGrant, error)
+	AddOfflineGrantRefreshToken(
+		grantID string,
+		expireAt time.Time,
+		tokenHash string,
+		clientID string,
+		scopes []string,
+		authorizationID string,
+	) (*OfflineGrant, error)
 
 	ListOfflineGrants(userID string) ([]*OfflineGrant, error)
 	ListClientOfflineGrants(clientID string, userID string) ([]*OfflineGrant, error)
+}
+
+type IDPSessionProvider interface {
+	Get(id string) (*idpsession.IDPSession, error)
 }
 
 type AccessGrantStore interface {
@@ -48,4 +65,9 @@ type AppSessionTokenStore interface {
 	GetAppSessionToken(tokenHash string) (*AppSessionToken, error)
 	CreateAppSessionToken(*AppSessionToken) error
 	DeleteAppSessionToken(*AppSessionToken) error
+}
+
+type PreAuthenticatedURLTokenStore interface {
+	CreatePreAuthenticatedURLToken(*PreAuthenticatedURLToken) error
+	ConsumePreAuthenticatedURLToken(tokenHash string) (*PreAuthenticatedURLToken, error)
 }

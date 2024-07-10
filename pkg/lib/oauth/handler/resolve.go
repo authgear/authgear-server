@@ -28,6 +28,7 @@ func parseRedirectURI(
 	httpProto httputil.HTTPProto,
 	httpOrigin httputil.HTTPOrigin,
 	domainWhitelist []string,
+	originWhitelist []string,
 	r oauthRequest,
 ) (*url.URL, protocol.ErrorResponse) {
 	allowedURIs := client.RedirectURIs
@@ -42,7 +43,7 @@ func parseRedirectURI(
 		return nil, protocol.NewErrorResponse("invalid_request", "invalid redirect URI")
 	}
 
-	err = validateRedirectURI(client, httpProto, httpOrigin, domainWhitelist, redirectURI)
+	err = validateRedirectURI(client, httpProto, httpOrigin, domainWhitelist, originWhitelist, redirectURI)
 	if err != nil {
 		return nil, protocol.NewErrorResponse("invalid_request", err.Error())
 	}
@@ -55,6 +56,7 @@ func validateRedirectURI(
 	httpProto httputil.HTTPProto,
 	httpOrigin httputil.HTTPOrigin,
 	domainWhitelist []string,
+	originWhitelist []string,
 	redirectURI *url.URL,
 ) error {
 	allowed := false
@@ -91,6 +93,17 @@ func validateRedirectURI(
 	for _, domain := range domainWhitelist {
 		origin := fmt.Sprintf("%s://%s", httpProto, domain)
 		if redirectURIOrigin == string(origin) {
+			allowed = true
+		}
+	}
+
+	for _, originStr := range originWhitelist {
+		originURL, parseErr := url.Parse(originStr)
+		if parseErr != nil {
+			continue
+		}
+		origin := fmt.Sprintf("%s://%s", originURL.Scheme, originURL.Host)
+		if redirectURIOrigin == origin {
 			allowed = true
 		}
 	}

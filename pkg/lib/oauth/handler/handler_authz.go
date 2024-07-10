@@ -3,10 +3,12 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -26,17 +28,30 @@ import (
 //go:generate mockgen -source=handler_authz.go -destination=handler_authz_mock_test.go -package handler_test
 
 const (
-	CodeResponseType          = "code"
-	NoneResponseType          = "none"
-	SettingsActonResponseType = "urn:authgear:params:oauth:response-type:settings-action"
+	CodeResponseTypeElement          = "code"
+	NoneResponseTypeElement          = "none"
+	TokenResponseTypeElement         = "token"
+	SettingsActonResponseTypeElement = "urn:authgear:params:oauth:response-type:settings-action"
+	// nolint:gosec
+	PreAuthenticatedURLResponseTypeElement = "urn:authgear:params:oauth:response-type:pre-authenticated-url"
+)
+
+var (
+	CodeResponseType                     = protocol.NewResponseType([]string{CodeResponseTypeElement})
+	NoneResponseType                     = protocol.NewResponseType([]string{NoneResponseTypeElement})
+	TokenResponseType                    = protocol.NewResponseType([]string{TokenResponseTypeElement})
+	SettingsActonResponseType            = protocol.NewResponseType([]string{SettingsActonResponseTypeElement})
+	PreAuthenticatedURLTokenResponseType = protocol.NewResponseType([]string{PreAuthenticatedURLResponseTypeElement, TokenResponseTypeElement})
 )
 
 // whitelistedResponseTypes is a list of response types that would be always allowed
 // to all clients.
-var whitelistedResponseTypes = []string{
+var whitelistedResponseTypes = []protocol.ResponseType{
 	CodeResponseType,
 	NoneResponseType,
+	TokenResponseType,
 	SettingsActonResponseType,
+	PreAuthenticatedURLTokenResponseType,
 }
 
 const CodeGrantValidDuration = duration.Short
@@ -104,18 +119,20 @@ type AuthorizationHandler struct {
 	AppDomains            config.AppDomains
 	Logger                AuthorizationHandlerLogger
 
-	UIURLBuilder               UIURLBuilder
-	UIInfoResolver             UIInfoResolver
-	Authorizations             AuthorizationService
-	ValidateScopes             ScopesValidator
-	AppSessionTokenService     AppSessionTokenService
-	AuthenticationInfoService  AuthenticationInfoService
-	Clock                      clock.Clock
-	Cookies                    CookieManager
-	OAuthSessionService        OAuthSessionService
-	CodeGrantService           CodeGrantService
-	SettingsActionGrantService SettingsActionGrantService
-	ClientResolver             OAuthClientResolver
+	UIURLBuilder                    UIURLBuilder
+	UIInfoResolver                  UIInfoResolver
+	Authorizations                  AuthorizationService
+	ValidateScopes                  ScopesValidator
+	AppSessionTokenService          AppSessionTokenService
+	AuthenticationInfoService       AuthenticationInfoService
+	Clock                           clock.Clock
+	Cookies                         CookieManager
+	OAuthSessionService             OAuthSessionService
+	CodeGrantService                CodeGrantService
+	SettingsActionGrantService      SettingsActionGrantService
+	ClientResolver                  OAuthClientResolver
+	PreAuthenticatedURLTokenService PreAuthenticatedURLTokenService
+	IDTokenIssuer                   IDTokenIssuer
 }
 
 func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.Result {
@@ -127,7 +144,12 @@ func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.
 		}
 	}
 
-	redirectURI, errResp := parseRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, r)
+	originWhitelist := []string{}
+	if r.ResponseType().Equal(PreAuthenticatedURLTokenResponseType) {
+		originWhitelist = client.PreAuthenticatedURLAllowedOrigins
+	}
+
+	redirectURI, errResp := parseRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, originWhitelist, r)
 	if errResp != nil {
 		return authorizationResultError{
 			ResponseMode: r.ResponseMode(),
@@ -353,7 +375,7 @@ func (h *AuthorizationHandler) prepareConsentRequest(req *http.Request) (*consen
 	// Restore uiparam into context.
 	uiparam.WithUIParam(h.Context, &uiParam)
 
-	redirectURI, errResp := parseRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, r)
+	redirectURI, errResp := parseRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, []string{}, r)
 	if errResp != nil {
 		err = protocol.NewErrorWithErrorResponse(errResp)
 		return nil, err
@@ -377,6 +399,10 @@ func (h *AuthorizationHandler) doHandle(
 		return nil, err
 	}
 
+	if r.ResponseType().Equal(PreAuthenticatedURLTokenResponseType) {
+		return h.doHandlePreAuthenticatedURL(redirectURI, client, r)
+	}
+
 	err := h.ValidateScopes(client, r.Scope())
 	if err != nil {
 		return nil, err
@@ -391,7 +417,7 @@ func (h *AuthorizationHandler) doHandle(
 		return nil, err
 	}
 
-	if r.ResponseType() == string(SettingsActonResponseType) {
+	if r.ResponseType().Equal(SettingsActonResponseType) {
 		redirectURI, err = h.UIURLBuilder.BuildSettingsActionURL(client, r, oauthSessionEntry)
 		if err != nil {
 			return nil, err
@@ -446,18 +472,25 @@ func (h *AuthorizationHandler) doHandle(
 	}
 
 	// Handle prompt=none
-	var idpSession session.Session
-	if s := session.GetSession(h.Context); s != nil && s.SessionType() == session.TypeIdentityProvider {
-		idpSession = s
+	var resolvedSession session.ResolvedSession
+	if s := session.GetSession(h.Context); s != nil {
+		resolvedSession = s
 	}
-	if idpSession == nil || (idToken != nil && idpSession.GetAuthenticationInfo().UserID != idToken.Subject()) {
+	// Ignore any session that is not allow to be used here
+	if !oauth.ContainsAllScopes(oauth.SessionScopes(resolvedSession), []string{oauth.PreAuthenticatedURLScope}) {
+		resolvedSession = nil
+	}
+	if resolvedSession == nil || (idToken != nil && resolvedSession.GetAuthenticationInfo().UserID != idToken.Subject()) {
 		return nil, protocol.NewError("login_required", "authentication required")
 	}
 
-	authenticationInfo := idpSession.GetAuthenticationInfo()
+	authenticationInfo := resolvedSession.GetAuthenticationInfo()
 	autoGrantAuthz := client.IsFirstParty()
 
-	result, err := h.finish(redirectURI, r, idpSession.SessionID(), authenticationInfo, idTokenHintSID, nil, autoGrantAuthz)
+	sessionType := resolvedSession.SessionType()
+	sessionID := resolvedSession.SessionID()
+
+	result, err := h.finish(redirectURI, r, sessionType, sessionID, authenticationInfo, idTokenHintSID, nil, autoGrantAuthz)
 	if err != nil {
 		if errors.Is(err, oauth.ErrAuthorizationNotFound) {
 			return nil, protocol.NewError("access_denied", "authorization required")
@@ -470,10 +503,70 @@ func (h *AuthorizationHandler) doHandle(
 	return result, nil
 }
 
+func (h *AuthorizationHandler) doHandlePreAuthenticatedURL(
+	redirectURI *url.URL,
+	client *config.OAuthClientConfig,
+	r protocol.AuthorizationRequest,
+) (httputil.Result, error) {
+	idTokenHint, ok := r.IDTokenHint()
+	if !ok {
+		panic("cannot get id_token_hint, the request should be validated")
+	}
+	idToken, err := h.IDTokenIssuer.VerifyIDTokenWithoutClient(idTokenHint)
+	if err != nil {
+		return nil, protocol.NewError("invalid_request", "invalid id_token_hint")
+	}
+	var sidInt interface{}
+	if sidInt, ok = idToken.Get(string(model.ClaimSID)); !ok {
+		return nil, protocol.NewError("invalid_request", "required sid in id_token_hint")
+	}
+	var sid string
+	if sid, ok = sidInt.(string); !ok {
+		return nil, protocol.NewError("invalid_request", "sid is not a string in id_token_hint")
+	}
+	_, sessionID, ok := oidc.DecodeSID(sid)
+	if !ok {
+		return nil, protocol.NewError("invalid_request", "invalid sid format id_token_hint")
+	}
+
+	accessToken, err := h.PreAuthenticatedURLTokenService.ExchangeForAccessToken(
+		client,
+		sessionID,
+		r.PreAuthenticatedURLToken(),
+	)
+	if err != nil {
+		if errors.Is(err, oauth.ErrUnmatchedClient) {
+			return nil, protocol.NewError("invalid_request", "incorrect client_id")
+		}
+		if errors.Is(err, oauth.ErrUnmatchedSession) {
+			return nil, protocol.NewError("invalid_request", "incorrect sid in id_token_hint")
+		}
+		if errors.Is(err, oauth.ErrGrantNotFound) {
+			return nil, protocol.NewError("invalid_request", "invalid x_pre_authenticated_url_token")
+		}
+		return nil, err
+	}
+	cookie := h.Cookies.ValueCookie(session.AppAccessTokenCookieDef, accessToken)
+
+	resp := protocol.AuthorizationResponse{}
+	state := r.State()
+	if state != "" {
+		resp.State(r.State())
+	}
+	return authorizationResultCode{
+		RedirectURI:  redirectURI,
+		ResponseMode: r.ResponseMode(),
+		Response:     resp,
+		Cookies:      []*http.Cookie{cookie},
+	}, nil
+
+}
+
 func (h *AuthorizationHandler) finish(
 	redirectURI *url.URL,
 	r protocol.AuthorizationRequest,
-	idpSessionID string,
+	sessionType session.Type,
+	sessionID string,
 	authenticationInfo authenticationinfo.T,
 	idTokenHintSID string,
 	cookies []*http.Cookie,
@@ -499,20 +592,25 @@ func (h *AuthorizationHandler) finish(
 	}
 
 	resp := protocol.AuthorizationResponse{}
-	switch r.ResponseType() {
-	case SettingsActonResponseType:
+	responseType := r.ResponseType()
+	switch {
+	case responseType.Equal(SettingsActonResponseType):
+		idpSessionID := ""
+		if sessionType == session.TypeIdentityProvider {
+			idpSessionID = sessionID
+		}
 		err = h.generateSettingsActionResponse(redirectURI.String(), idpSessionID, authenticationInfo, idTokenHintSID, r, authz, resp)
 		if err != nil {
 			return nil, err
 		}
 
-	case CodeResponseType:
-		err = h.generateCodeResponse(redirectURI.String(), idpSessionID, authenticationInfo, idTokenHintSID, r, authz, resp)
+	case responseType.Equal(CodeResponseType):
+		err = h.generateCodeResponse(redirectURI.String(), sessionType, sessionID, authenticationInfo, idTokenHintSID, r, authz, resp)
 		if err != nil {
 			return nil, err
 		}
 
-	case NoneResponseType:
+	case responseType.Equal(NoneResponseType):
 		break
 
 	default:
@@ -555,31 +653,50 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 	}
 	idTokenHintSID := uiInfoByProduct.IDTokenHintSID
 
-	var idpSessionID string
-	if s := session.GetSession(h.Context); s != nil && s.SessionType() == session.TypeIdentityProvider {
-		idpSessionID = s.SessionID()
+	sessionID := ""
+	var sessionType session.Type = ""
+	if s := session.GetSession(h.Context); s != nil {
+		sessionID = s.SessionID()
+		sessionType = s.SessionType()
 	}
 
-	return h.finish(redirectURI, r, idpSessionID, authenticationInfo, idTokenHintSID, []*http.Cookie{}, grantAuthz)
+	return h.finish(redirectURI, r, sessionType, sessionID, authenticationInfo, idTokenHintSID, []*http.Cookie{}, grantAuthz)
 }
 
+func (h *AuthorizationHandler) validatePreAuthenticatedURLTokenRequest(
+	client *config.OAuthClientConfig,
+	r protocol.AuthorizationRequest,
+) error {
+	if len(r.Prompt()) != 1 || r.Prompt()[0] != "none" {
+		return protocol.NewError("invalid_request", "only 'prompt=none' is supported when using pre-authenticated url")
+	}
+	if idTokenHint, ok := r.IDTokenHint(); !ok || idTokenHint == "" {
+		return protocol.NewError("invalid_request", "id_token_hint is required when using pre-authenticated url")
+	}
+	if r.PreAuthenticatedURLToken() == "" {
+		return protocol.NewError("invalid_request", "x_pre_authenticated_url_token is required when using pre-authenticated url")
+	}
+	if r.ResponseMode() != "cookie" {
+		return protocol.NewError("invalid_request", "only 'response_mode=cookie' is supported when using pre-authenticated url")
+	}
+	return nil
+}
+
+// nolint:gocognit
 func (h *AuthorizationHandler) validateRequest(
 	client *config.OAuthClientConfig,
 	r protocol.AuthorizationRequest,
 ) error {
 	ok := false
+	responseType := r.ResponseType()
 	for _, respType := range whitelistedResponseTypes {
-		if respType == r.ResponseType() {
+		if respType.Equal(responseType) {
 			ok = true
 			break
 		}
 	}
 	if !ok {
 		return protocol.NewError("unauthorized_client", "response type is not allowed for this client")
-	}
-
-	if len(r.Scope()) == 0 {
-		return protocol.NewError("invalid_request", "scope is required")
 	}
 
 	if slice.ContainsString(r.Prompt(), "none") {
@@ -591,15 +708,25 @@ func (h *AuthorizationHandler) validateRequest(
 		}
 	}
 
-	switch r.ResponseType() {
-	case SettingsActonResponseType:
+	requireScope := func() error {
+		if len(r.Scope()) == 0 {
+			return protocol.NewError("invalid_request", "scope is required")
+		}
+		return nil
+	}
+
+	switch {
+	case responseType.Equal(SettingsActonResponseType):
 		if r.SettingsAction() == "delete_account" {
 			if !h.AccountDeletionConfig.ScheduledByEndUserEnabled {
 				return protocol.NewError("invalid_request", "account deletion by end user is disabled")
 			}
 		}
 		fallthrough
-	case CodeResponseType:
+	case responseType.Equal(CodeResponseType):
+		if err := requireScope(); err != nil {
+			return err
+		}
 		if client.IsPublic() {
 			if r.CodeChallenge() == "" {
 				return protocol.NewError("invalid_request", "PKCE code challenge is required for public clients")
@@ -608,10 +735,16 @@ func (h *AuthorizationHandler) validateRequest(
 		if r.CodeChallenge() != "" && r.CodeChallengeMethod() != pkce.CodeChallengeMethodS256 {
 			return protocol.NewError("invalid_request", "only 'S256' PKCE transform is supported")
 		}
-	case NoneResponseType:
-		break
+	case responseType.Equal(NoneResponseType):
+		if err := requireScope(); err != nil {
+			return err
+		}
+	case responseType.Equal(PreAuthenticatedURLTokenResponseType):
+		if err := h.validatePreAuthenticatedURLTokenRequest(client, r); err != nil {
+			return err
+		}
 	default:
-		return protocol.NewError("unsupported_response_type", "only 'code' response type is supported")
+		return protocol.NewError("unsupported_response_type", fmt.Sprintf("response_type: %v is not supported", responseType.Raw))
 	}
 
 	if r.SSOEnabled() && client != nil && client.MaxConcurrentSession == 1 {
@@ -623,7 +756,8 @@ func (h *AuthorizationHandler) validateRequest(
 
 func (h *AuthorizationHandler) generateCodeResponse(
 	redirectURI string,
-	idpSessionID string,
+	sessionType session.Type,
+	sessionID string,
 	authenticationInfo authenticationinfo.T,
 	idTokenHintSID string,
 	r protocol.AuthorizationRequest,
@@ -632,7 +766,8 @@ func (h *AuthorizationHandler) generateCodeResponse(
 ) error {
 	code, _, err := h.CodeGrantService.CreateCodeGrant(&CreateCodeGrantOptions{
 		Authorization:        authz,
-		IDPSessionID:         idpSessionID,
+		SessionType:          sessionType,
+		SessionID:            sessionID,
 		AuthenticationInfo:   authenticationInfo,
 		IDTokenHintSID:       idTokenHintSID,
 		RedirectURI:          redirectURI,
@@ -688,7 +823,7 @@ func (h *AuthorizationHandler) prepareConsentErrInvalidOAuthResponse(req *http.R
 	if oauthError.Type() == "invalid_request" && client != nil {
 		redirectURI, err := url.Parse(req.URL.Query().Get("redirect_uri"))
 		if err == nil {
-			err = validateRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, redirectURI)
+			err = validateRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, []string{}, redirectURI)
 			if err == nil {
 				resultErr.RedirectURI = redirectURI
 			}

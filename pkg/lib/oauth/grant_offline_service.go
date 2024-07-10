@@ -19,6 +19,13 @@ type OfflineGrantService struct {
 	Clock          clock.Clock
 	IDPSessions    ServiceIDPSessionProvider
 	ClientResolver OAuthClientResolver
+
+	OfflineGrants OfflineGrantStore
+}
+
+type CreateNewRefreshTokenResult struct {
+	Token     string
+	TokenHash string
 }
 
 func (s *OfflineGrantService) IsValid(session *OfflineGrant) (bool, time.Time, error) {
@@ -54,7 +61,7 @@ func (s *OfflineGrantService) IsValid(session *OfflineGrant) (bool, time.Time, e
 }
 
 func (s *OfflineGrantService) ComputeOfflineGrantExpiry(session *OfflineGrant) (expiry time.Time, err error) {
-	clientConfig := s.ClientResolver.ResolveClient(session.ClientID)
+	clientConfig := s.ClientResolver.ResolveClient(session.InitialClientID)
 
 	if clientConfig == nil {
 		err = ErrGrantNotFound
@@ -87,4 +94,34 @@ func (s *OfflineGrantService) computeOfflineGrantExpiryWithClient(session *Offli
 		}
 	}
 	return
+}
+
+func (s *OfflineGrantService) CreateNewRefreshToken(
+	grant *OfflineGrant,
+	clientID string,
+	scopes []string,
+	authorizationID string,
+) (*CreateNewRefreshTokenResult, *OfflineGrant, error) {
+	expiry, err := s.ComputeOfflineGrantExpiry(grant)
+	if err != nil {
+		return nil, nil, err
+	}
+	newToken := GenerateToken()
+	newTokenHash := HashToken(newToken)
+	newGrant, err := s.OfflineGrants.AddOfflineGrantRefreshToken(
+		grant.ID,
+		expiry,
+		newTokenHash,
+		clientID,
+		scopes,
+		authorizationID,
+	)
+	if err != nil {
+		return nil, nil, err
+	}
+	result := &CreateNewRefreshTokenResult{
+		Token:     newToken,
+		TokenHash: newTokenHash,
+	}
+	return result, newGrant, nil
 }

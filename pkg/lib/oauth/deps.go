@@ -18,4 +18,9 @@ var DependencySet = wire.NewSet(
 
 	wire.Struct(new(AppSessionTokenService), "*"),
 	wire.Bind(new(AppSessionTokenServiceOfflineGrantService), new(*OfflineGrantService)),
+
+	wire.Struct(new(AccessGrantService), "*"),
+
+	wire.Bind(new(PreAuthenticatedURLTokenAccessGrantService), new(*AccessGrantService)),
+	wire.Bind(new(PreAuthenticatedURLTokenOfflineGrantService), new(*OfflineGrantService)),
 )

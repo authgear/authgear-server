@@ -103,6 +103,15 @@ func (s *Store) unmarshalAppSessionToken(data []byte) (*oauth.AppSessionToken, e
 	return &t, nil
 }
 
+func (s *Store) unmarshalPreAuthenticatedURLToken(data []byte) (*oauth.PreAuthenticatedURLToken, error) {
+	var t oauth.PreAuthenticatedURLToken
+	err := json.Unmarshal(data, &t)
+	if err != nil {
+		return nil, err
+	}
+	return &t, nil
+}
+
 func (s *Store) save(conn *goredis.Conn, key string, value interface{}, expireAt time.Time, ifNotExists bool) error {
 	ctx := context.Background()
 	data, err := json.Marshal(value)
@@ -385,6 +394,120 @@ func (s *Store) UpdateOfflineGrantApp2AppDeviceKey(grantID string, newKey string
 	return grant, nil
 }
 
+func (s *Store) UpdateOfflineGrantDeviceSecretHash(grantID string, newDeviceSecretHash string, expireAt time.Time) (*oauth.OfflineGrant, error) {
+	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
+	mutex := s.Redis.NewMutex(mutexName)
+	err := mutex.LockContext(s.Context)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_, _ = mutex.UnlockContext(s.Context)
+	}()
+
+	grant, err := s.GetOfflineGrant(grantID)
+	if err != nil {
+		return nil, err
+	}
+
+	grant.DeviceSecretHash = newDeviceSecretHash
+
+	err = s.updateOfflineGrant(grant, expireAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return grant, nil
+}
+
+func (s *Store) AddOfflineGrantRefreshToken(
+	grantID string,
+	expireAt time.Time,
+	tokenHash string,
+	clientID string,
+	scopes []string,
+	authorizationID string,
+) (*oauth.OfflineGrant, error) {
+	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
+	mutex := s.Redis.NewMutex(mutexName)
+	err := mutex.LockContext(s.Context)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_, _ = mutex.UnlockContext(s.Context)
+	}()
+
+	grant, err := s.GetOfflineGrant(grantID)
+	if err != nil {
+		return nil, err
+	}
+
+	now := s.Clock.NowUTC()
+	newRefreshToken := oauth.OfflineGrantRefreshToken{
+		TokenHash:       tokenHash,
+		ClientID:        clientID,
+		CreatedAt:       now,
+		Scopes:          scopes,
+		AuthorizationID: authorizationID,
+	}
+
+	grant.RefreshTokens = append(grant.RefreshTokens, newRefreshToken)
+	err = s.updateOfflineGrant(grant, expireAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return grant, nil
+}
+
+func (s *Store) RemoveOfflineGrantRefreshTokens(grantID string, tokenHashes []string, expireAt time.Time) (*oauth.OfflineGrant, error) {
+	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
+	mutex := s.Redis.NewMutex(mutexName)
+	err := mutex.LockContext(s.Context)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_, _ = mutex.UnlockContext(s.Context)
+	}()
+
+	tokenHashesSet := map[string]interface{}{}
+	for _, hash := range tokenHashes {
+		tokenHashesSet[hash] = hash
+	}
+
+	grant, err := s.GetOfflineGrant(grantID)
+	if err != nil {
+		return nil, err
+	}
+
+	newRefreshTokens := []oauth.OfflineGrantRefreshToken{}
+	for _, token := range grant.RefreshTokens {
+		token := token
+		if _, exist := tokenHashesSet[token.TokenHash]; !exist {
+			newRefreshTokens = append(newRefreshTokens, token)
+		}
+	}
+
+	grant.RefreshTokens = newRefreshTokens
+	if grant.HasValidTokens() {
+		err = s.updateOfflineGrant(grant, expireAt)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		// Remove the offline grant if it has no valid tokens
+		err = s.DeleteOfflineGrant(grant)
+		if err != nil {
+			return nil, err
+		}
+		return nil, nil
+	}
+
+	return grant, nil
+}
+
 func (s *Store) updateOfflineGrant(grant *oauth.OfflineGrant, expireAt time.Time) error {
 	ctx := context.Background()
 	expiry, err := expireAt.MarshalText()
@@ -484,10 +607,16 @@ func (s *Store) ListClientOfflineGrants(clientID string, userID string) ([]*oaut
 	}
 	result := []*oauth.OfflineGrant{}
 	for _, offlineGrant := range offlineGrants {
-		if offlineGrant.ClientID != clientID {
-			continue
+		if offlineGrant.HasClientID(clientID) {
+			result = append(result, offlineGrant)
+		} else {
+			for _, token := range offlineGrant.RefreshTokens {
+				if token.ClientID == clientID {
+					result = append(result, offlineGrant)
+					break
+				}
+			}
 		}
-		result = append(result, offlineGrant)
 	}
 	return result, nil
 }
@@ -560,4 +689,34 @@ func (s *Store) DeleteAppSession(session *oauth.AppSession) error {
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
 		return s.del(conn, appSessionKey(session.AppID, session.TokenHash))
 	})
+}
+
+func (s *Store) CreatePreAuthenticatedURLToken(token *oauth.PreAuthenticatedURLToken) error {
+	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+		return s.save(conn, preAuthenticatedURLTokenKey(token.AppID, token.TokenHash), token, token.ExpireAt, true)
+	})
+}
+
+func (s *Store) ConsumePreAuthenticatedURLToken(tokenHash string) (*oauth.PreAuthenticatedURLToken, error) {
+	t := &oauth.PreAuthenticatedURLToken{}
+
+	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+		key := preAuthenticatedURLTokenKey(string(s.AppID), tokenHash)
+		data, err := s.loadData(conn, key)
+		if err != nil {
+			return err
+		}
+
+		t, err = s.unmarshalPreAuthenticatedURLToken(data)
+		if err != nil {
+			return err
+		}
+
+		return s.del(conn, key)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return t, nil
 }

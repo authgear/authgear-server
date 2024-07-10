@@ -28,19 +28,12 @@ func newConsentPageDynamicCSPMiddleware(deps *deps.RequestProvider) httproute.Mi
 }
 
 func newAllSessionMiddleware(deps *deps.RequestProvider) httproute.Middleware {
-	return newSessionMiddleware(deps, false)
-}
-
-func newIDPSessionOnlySessionMiddleware(deps *deps.RequestProvider) httproute.Middleware {
-	return newSessionMiddleware(deps, true)
+	return newSessionMiddleware(deps)
 }
 
 func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *httproute.Router {
 
-	newSessionMiddleware := func(idpSessionOnly bool) httproute.Middleware {
-		if idpSessionOnly {
-			return p.Middleware(newIDPSessionOnlySessionMiddleware)
-		}
+	newSessionMiddleware := func() httproute.Middleware {
 		return p.Middleware(newAllSessionMiddleware)
 	}
 
@@ -83,20 +76,19 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.Middleware(newPublicOriginMiddleware),
 	)
 
-	newOAuthAPIChain := func(idpSessionOnly bool) httproute.Middleware {
+	newOAuthAPIChain := func() httproute.Middleware {
 		return httproute.Chain(
 			rootChain,
 			p.Middleware(newCORSMiddleware),
 			p.Middleware(newPublicOriginMiddleware),
-			newSessionMiddleware(idpSessionOnly),
+			newSessionMiddleware(),
 			httproute.MiddlewareFunc(httputil.NoStore),
 			p.Middleware(newWebAppWeChatRedirectURIMiddleware),
 		)
 	}
 
-	oauthAPIChain := newOAuthAPIChain(false)
-	// authz endpoint only accepts idp session
-	oauthAuthzAPIChain := newOAuthAPIChain(true)
+	oauthAPIChain := newOAuthAPIChain()
+	oauthAuthzAPIChain := newOAuthAPIChain()
 	siweAPIChain := httproute.Chain(
 		rootChain,
 		p.Middleware(newCORSMiddleware),
@@ -137,12 +129,12 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		httproute.MiddlewareFunc(oauth.RequireScope()),
 	)
 
-	newWebappChain := func(idpSessionOnly bool) httproute.Middleware {
+	newWebappChain := func() httproute.Middleware {
 		return httproute.Chain(
 			rootChain,
 			p.Middleware(newPublicOriginMiddleware),
 			p.Middleware(newPanicWebAppMiddleware),
-			newSessionMiddleware(idpSessionOnly),
+			newSessionMiddleware(),
 			httproute.MiddlewareFunc(httputil.NoStore),
 			httproute.MiddlewareFunc(webapp.IntlMiddleware),
 			p.Middleware(newWebAppSessionMiddleware),
@@ -153,7 +145,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 			p.Middleware(newImplementationSwitcherMiddleware),
 		)
 	}
-	webappChain := newWebappChain(false)
+	webappChain := newWebappChain()
 	webappSSOCallbackChain := httproute.Chain(
 		webappChain,
 	)
@@ -164,9 +156,9 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		webappChain,
 	)
 
-	newWebappPageChain := func(idpSessionOnly bool) httproute.Middleware {
+	newWebappPageChain := func() httproute.Middleware {
 		return httproute.Chain(
-			newWebappChain(idpSessionOnly),
+			newWebappChain(),
 			p.Middleware(newCSRFDebugMiddleware),
 			p.Middleware(newCSRFMiddleware),
 			// Turbo no longer requires us to tell the redirected location.
@@ -176,7 +168,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 			p.Middleware(newWebAppWeChatRedirectURIMiddleware),
 		)
 	}
-	webappPageChain := newWebappPageChain(false)
+	webappPageChain := newWebappPageChain()
 	webappSIWEChain := httproute.Chain(
 		webappChain,
 		p.Middleware(newCSRFDebugMiddleware),
@@ -201,14 +193,13 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.Middleware(newRequireAuthenticationEnabledMiddleware),
 		p.Middleware(newAuthEntryPointMiddleware),
 	)
-	// select account page only accepts idp session
 	webappSelectAccountChain := httproute.Chain(
-		newWebappPageChain(true),
+		newWebappPageChain(),
 		p.Middleware(newAuthEntryPointMiddleware),
 	)
 	// consent page only accepts idp session
 	webappConsentPageChain := httproute.Chain(
-		newWebappChain(true),
+		newWebappChain(),
 		p.Middleware(newCSRFDebugMiddleware),
 		p.Middleware(newCSRFMiddleware),
 		p.Middleware(newConsentPageDynamicCSPMiddleware),

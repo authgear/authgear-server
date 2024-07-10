@@ -138,6 +138,7 @@ type IssueIDTokenOptions struct {
 	Nonce              string
 	AuthenticationInfo authenticationinfo.T
 	ClientLike         *oauth.ClientLike
+	DeviceSecretHash   string
 }
 
 func (ti *IDTokenIssuer) IssueIDToken(opts IssueIDTokenOptions) (string, error) {
@@ -176,6 +177,9 @@ func (ti *IDTokenIssuer) IssueIDToken(opts IssueIDTokenOptions) (string, error) 
 	if amr := info.AMR; len(amr) > 0 {
 		_ = claims.Set(string(model.ClaimAMR), amr)
 	}
+	if dshash := opts.DeviceSecretHash; dshash != "" {
+		_ = claims.Set(string(model.ClaimDeviceSecretHash), dshash)
+	}
 
 	// Populate authorization flow specific claims
 	if nonce := opts.Nonce; nonce != "" {
@@ -190,19 +194,19 @@ func (ti *IDTokenIssuer) IssueIDToken(opts IssueIDTokenOptions) (string, error) 
 	return signed, nil
 }
 
-func (ti *IDTokenIssuer) VerifyIDTokenHintWithoutClient(idTokenHint string) (token jwt.Token, err error) {
+func (ti *IDTokenIssuer) VerifyIDTokenWithoutClient(idToken string) (token jwt.Token, err error) {
 	// Verify the signature.
 	jwkSet, err := ti.GetPublicKeySet()
 	if err != nil {
 		return
 	}
 
-	_, err = jws.Verify([]byte(idTokenHint), jws.WithKeySet(jwkSet))
+	_, err = jws.Verify([]byte(idToken), jws.WithKeySet(jwkSet))
 	if err != nil {
 		return
 	}
 	// Parse the JWT.
-	_, token, err = jwtutil.SplitWithoutVerify([]byte(idTokenHint))
+	_, token, err = jwtutil.SplitWithoutVerify([]byte(idToken))
 	if err != nil {
 		return
 	}
@@ -211,7 +215,7 @@ func (ti *IDTokenIssuer) VerifyIDTokenHintWithoutClient(idTokenHint string) (tok
 }
 
 func (ti *IDTokenIssuer) VerifyIDTokenHint(client *config.OAuthClientConfig, idTokenHint string) (token jwt.Token, err error) {
-	token, err = ti.VerifyIDTokenHintWithoutClient(idTokenHint)
+	token, err = ti.VerifyIDTokenWithoutClient(idTokenHint)
 	if err != nil {
 		return
 	}
@@ -341,7 +345,7 @@ type IDTokenHintResolver struct {
 	OfflineGrants oauth.OfflineGrantStore
 }
 
-func (r *IDTokenHintResolver) ResolveIDTokenHint(client *config.OAuthClientConfig, req protocol.AuthorizationRequest) (idToken jwt.Token, sidSession session.Session, err error) {
+func (r *IDTokenHintResolver) ResolveIDTokenHint(client *config.OAuthClientConfig, req protocol.AuthorizationRequest) (idToken jwt.Token, sidSession session.ListableSession, err error) {
 	idTokenHint, ok := req.IDTokenHint()
 	if !ok {
 		return

@@ -14,7 +14,7 @@ import (
 var ErrInvalidSession = errors.New("provided session is invalid")
 
 type Resolver interface {
-	Resolve(rw http.ResponseWriter, r *http.Request) (Session, error)
+	Resolve(rw http.ResponseWriter, r *http.Request) (ResolvedSession, error)
 }
 
 type IDPSessionResolver Resolver
@@ -40,7 +40,6 @@ type Middleware struct {
 	Database                   *appdb.Handle
 	Logger                     MiddlewareLogger
 	MeterService               MeterService
-	IDPSessionOnly             bool
 }
 
 func (m *Middleware) Handle(next http.Handler) http.Handler {
@@ -66,7 +65,7 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 	})
 }
 
-func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (s Session, err error) {
+func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (s ResolvedSession, err error) {
 	err = m.Database.ReadOnly(func() (err error) {
 		s, err = m.resolveSession(rw, r)
 		if err != nil {
@@ -106,19 +105,13 @@ func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (s Session
 	return
 }
 
-func (m *Middleware) resolveSession(rw http.ResponseWriter, r *http.Request) (Session, error) {
+func (m *Middleware) resolveSession(rw http.ResponseWriter, r *http.Request) (ResolvedSession, error) {
 	isInvalid := false
 
-	var resolvers []Resolver
-	if m.IDPSessionOnly {
-		// For some routes, only idp session is accepted. e.g. authz endpoint, continue screen, consent screen...
-		resolvers = []Resolver{m.IDPSessionResolver}
-	} else {
-		// Access token in header/App session token in cookie takes priority over IDP session in cookie
-		// If both the app session and IDP session exist in the cookie
-		// Middleware will read the app session first, so SDK will always open the correct settings page
-		resolvers = []Resolver{m.AccessTokenSessionResolver, m.IDPSessionResolver}
-	}
+	// Access token in header/App session token in cookie takes priority over IDP session in cookie
+	// If both the app session and IDP session exist in the cookie
+	// Middleware will read the app session first, so SDK will always open the correct settings page
+	resolvers := []Resolver{m.AccessTokenSessionResolver, m.IDPSessionResolver}
 
 	for _, resolver := range resolvers {
 		session, err := resolver.Resolve(rw, r)

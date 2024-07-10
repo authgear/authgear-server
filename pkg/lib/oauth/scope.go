@@ -7,18 +7,24 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
-	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 )
 
 const FullAccessScope = "https://authgear.com/scopes/full-access"
 const FullUserInfoScope = "https://authgear.com/scopes/full-userinfo"
+const PreAuthenticatedURLScope = "https://authgear.com/scopes/pre-authenticated-url"
+const OfflineAccess = "offline_access"
+const DeviceSSOScope = "device_sso"
 
-func SessionScopes(s session.Session) []string {
-	switch s := s.(type) {
-	case *idpsession.IDPSession:
-		return []string{FullAccessScope}
-	case *OfflineGrant:
-		return s.Scopes
+func SessionScopes(s session.ResolvedSession) []string {
+	if s == nil {
+		return []string{}
+	}
+	switch s.SessionType() {
+	case session.TypeIdentityProvider:
+		return []string{FullAccessScope, PreAuthenticatedURLScope}
+	case session.TypeOfflineGrant:
+		ss := s.(*OfflineGrantSession)
+		return ss.Scopes
 	default:
 		panic("oauth: unexpected session type")
 	}
@@ -53,7 +59,7 @@ func RequireScope(scopes ...string) func(http.Handler) http.Handler {
 	}
 }
 
-func checkAuthz(session session.Session, requiredScopes map[string]struct{}, scope string) (int, protocol.ErrorResponse) {
+func checkAuthz(session session.ResolvedSession, requiredScopes map[string]struct{}, scope string) (int, protocol.ErrorResponse) {
 	if session == nil {
 		return http.StatusUnauthorized, protocol.NewErrorResponse("invalid_grant", "invalid session")
 	}
@@ -77,4 +83,17 @@ func checkAuthz(session session.Session, requiredScopes map[string]struct{}, sco
 	}
 
 	return http.StatusOK, nil
+}
+
+func ContainsAllScopes(scopes []string, shouldContainsScopes []string) bool {
+	scopesSet := map[string]struct{}{}
+	for _, scope := range scopes {
+		scopesSet[scope] = struct{}{}
+	}
+	for _, scope := range shouldContainsScopes {
+		if _, exist := scopesSet[scope]; !exist {
+			return false
+		}
+	}
+	return true
 }

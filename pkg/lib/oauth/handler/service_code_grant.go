@@ -5,6 +5,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
@@ -18,7 +19,8 @@ type CodeGrantService struct {
 
 type CreateCodeGrantOptions struct {
 	Authorization        *oauth.Authorization
-	IDPSessionID         string
+	SessionType          session.Type
+	SessionID            string
 	AuthenticationInfo   authenticationinfo.T
 	IDTokenHintSID       string
 	RedirectURI          string
@@ -32,7 +34,8 @@ func (s *CodeGrantService) CreateCodeGrant(opts *CreateCodeGrantOptions) (code s
 	codeGrant := &oauth.CodeGrant{
 		AppID:              string(s.AppID),
 		AuthorizationID:    opts.Authorization.ID,
-		IDPSessionID:       opts.IDPSessionID,
+		SessionType:        opts.SessionType,
+		SessionID:          opts.SessionID,
 		AuthenticationInfo: opts.AuthenticationInfo,
 		IDTokenHintSID:     opts.IDTokenHintSID,
 

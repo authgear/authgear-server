@@ -10,6 +10,7 @@ const (
 	ClaimEmail                 ClaimName = "email"
 	ClaimPhoneNumber           ClaimName = "phone_number"
 	ClaimPreferredUsername     ClaimName = "preferred_username"
+	ClaimDeviceSecretHash      ClaimName = "ds_hash"
 	ClaimAuthgearRoles         ClaimName = "https://authgear.com/claims/user/roles"
 	ClaimKeyID                 ClaimName = "https://authgear.com/claims/user/key_id"
 	ClaimUserIsAnonymous       ClaimName = "https://authgear.com/claims/user/is_anonymous"

@@ -714,6 +714,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Clock:          clockClock,
 		IDPSessions:    idpsessionProvider,
 		ClientResolver: oauthclientResolver,
+		OfflineGrants:  redisStore,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,

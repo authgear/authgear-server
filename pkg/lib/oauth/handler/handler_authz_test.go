@@ -11,14 +11,17 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	sessiontest "github.com/authgear/authgear-server/pkg/lib/session/test"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
@@ -63,6 +66,8 @@ func TestAuthorizationHandler(t *testing.T) {
 		cookieManager := &mockCookieManager{}
 		oauthSessionService := &mockOAuthSessionService{}
 		clientResolver := &mockClientResolver{}
+		preAuthenticatedURLTokenService := NewMockPreAuthenticatedURLTokenService(ctrl)
+		idTokenIssuer := NewMockIDTokenIssuer(ctrl)
 
 		appID := config.AppID("app-id")
 		h := &handler.AuthorizationHandler{
@@ -85,7 +90,9 @@ func TestAuthorizationHandler(t *testing.T) {
 				CodeGenerator: func() string { return "authz-code" },
 				CodeGrants:    codeGrantStore,
 			},
-			ClientResolver: clientResolver,
+			ClientResolver:                  clientResolver,
+			PreAuthenticatedURLTokenService: preAuthenticatedURLTokenService,
+			IDTokenIssuer:                   idTokenIssuer,
 		}
 		handle := func(r protocol.AuthorizationRequest) *httptest.ResponseRecorder {
 			result := h.Handle(r)
@@ -287,7 +294,8 @@ func TestAuthorizationHandler(t *testing.T) {
 					So(codeGrantStore.grants[0], ShouldResemble, oauth.CodeGrant{
 						AppID:           "app-id",
 						AuthorizationID: authorization.ID,
-						IDPSessionID:    "session-id",
+						SessionType:     session.TypeIdentityProvider,
+						SessionID:       "session-id",
 						AuthenticationInfo: authenticationinfo.T{
 							UserID: "user-id",
 						},
@@ -339,7 +347,8 @@ func TestAuthorizationHandler(t *testing.T) {
 					So(codeGrantStore.grants[0], ShouldResemble, oauth.CodeGrant{
 						AppID:           "app-id",
 						AuthorizationID: "authz-id",
-						IDPSessionID:    "session-id",
+						SessionType:     session.TypeIdentityProvider,
+						SessionID:       "session-id",
 						AuthenticationInfo: authenticationinfo.T{
 							UserID: "user-id",
 						},
@@ -443,6 +452,69 @@ func TestAuthorizationHandler(t *testing.T) {
 
 					So(codeGrantStore.grants, ShouldBeEmpty)
 				})
+			})
+		})
+
+		Convey("pre-authenticated-url", func() {
+			mockedClient := &config.OAuthClientConfig{
+				ClientID:      "client-id",
+				RedirectURIs:  []string{"https://example.com/"},
+				ResponseTypes: []string{"none", "urn:authgear:params:oauth:response-type:pre-authenticated-url token"},
+			}
+			clientResolver.ClientConfig = mockedClient
+
+			Convey("exchange for access token in cookie", func() {
+				testOfflineGrantID := "TEST_OFFLINE_GRANT_ID"
+				testOfflineGrant := &oauth.OfflineGrant{
+					ID: testOfflineGrantID,
+				}
+				testSID := oidc.EncodeSID(testOfflineGrant)
+
+				// nolint:gosec
+				testPreAuthenticatedURLToken := "TEST_PRE_AUTHENTICATED_URL_TOKEN"
+				testIDToken := "TEST_ID_TOKEN"
+
+				testVerifiedIDToken := jwt.New()
+				_ = testVerifiedIDToken.Set(string(model.ClaimSID), testSID)
+
+				idTokenIssuer.EXPECT().VerifyIDTokenWithoutClient(testIDToken).
+					Times(1).
+					Return(testVerifiedIDToken, nil)
+
+				testAccessToken := "TEST_ACCESS_TOKEN"
+
+				preAuthenticatedURLTokenService.EXPECT().ExchangeForAccessToken(
+					mockedClient,
+					testOfflineGrantID,
+					testPreAuthenticatedURLToken,
+				).
+					Times(1).
+					Return(testAccessToken, nil)
+
+				req := protocol.AuthorizationRequest{
+					"client_id":                     "client-id",
+					"response_type":                 "urn:authgear:params:oauth:response-type:pre-authenticated-url token",
+					"x_pre_authenticated_url_token": testPreAuthenticatedURLToken,
+					"prompt":                        "none",
+					"response_mode":                 "cookie",
+					"state":                         "my-state",
+					"redirect_uri":                  "https://example.com/",
+					"id_token_hint":                 testIDToken,
+				}
+
+				resp := handle(req)
+				So(resp.Result().StatusCode, ShouldEqual, 200)
+				So(resp.Body.String(), ShouldEqual, redirectHTML(
+					"https://example.com/?state=my-state",
+				))
+				cookieSet := false
+				for _, cookie := range resp.Result().Cookies() {
+					if cookie.Name == "app_access_token" && cookie.Value == testAccessToken {
+						cookieSet = true
+					}
+				}
+				So(cookieSet, ShouldEqual, true)
+
 			})
 		})
 	})
