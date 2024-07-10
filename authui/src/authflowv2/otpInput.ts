@@ -26,10 +26,13 @@ export class OtpInputController extends Controller {
   };
 
   connect(): void {
+    this.inputTarget.classList.remove("input");
+    this.inputTarget.classList.add("with-js");
     this.inputTarget.addEventListener("input", this.handleInput);
     this.inputTarget.addEventListener("paste", this.handlePaste);
     this.inputTarget.addEventListener("focus", this.handleFocus);
     this.inputTarget.addEventListener("blur", this.handleBlur);
+    this.submitTarget.disabled = true;
     // element.selectionchange is NOT the same as document.selectionchange
     // element.selectionchange is an experimental technology.
     window.document.addEventListener(
@@ -41,6 +44,8 @@ export class OtpInputController extends Controller {
   }
 
   disconnect(): void {
+    this.inputTarget.classList.add("input");
+    this.inputTarget.classList.remove("with-js");
     this.inputTarget.removeEventListener("input", this.handleInput);
     this.inputTarget.removeEventListener("paste", this.handlePaste);
     this.inputTarget.removeEventListener("focus", this.handleFocus);
@@ -50,6 +55,7 @@ export class OtpInputController extends Controller {
       this.handleSelectionChange
     );
     document.removeEventListener("turbo:before-cache", this.beforeCache);
+    this.submitTarget.disabled = false;
   }
 
   _setValue = (value: string): void => {
@@ -59,6 +65,7 @@ export class OtpInputController extends Controller {
 
     const reachedMaxDigits = this.value.length === this.maxLength;
     if (reachedMaxDigits) {
+      this.submitTarget.disabled = false;
       this.submitTarget.click();
     }
 
@@ -111,15 +118,15 @@ export class OtpInputController extends Controller {
 
     for (let i = 0; i < this.maxLength; i++) {
       let textContent = this.value.slice(i, i + 1) || "";
-      let className = this.isSpanSelected(i)
-        ? "otp-input__digit otp-input__digit--focus"
-        : "otp-input__digit";
+      const classes = this.isSpanSelected(i)
+        ? ["otp-input__digit", "otp-input__digit--focus"]
+        : ["otp-input__digit"];
 
       const isLastDigit = i < this.value.length - 1;
       const isBlurred = this.inputTarget !== document.activeElement;
       if (textContent && (isLastDigit || isBlurred)) {
         textContent = " ";
-        className += " otp-input__digit--masked";
+        classes.push("otp-input__digit--masked");
       }
 
       this.inputTarget.style.letterSpacing = `calc(${this.inputTarget.offsetWidth}px / ${this.maxLength})`;
@@ -133,7 +140,7 @@ export class OtpInputController extends Controller {
       }
 
       span.textContent = textContent;
-      span.className = className;
+      span.className = classes.join(" ");
     }
   };
 }
