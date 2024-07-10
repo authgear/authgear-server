@@ -70,21 +70,9 @@ func (n *IntentPromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authfl
 	var inputTakeLoginID inputTakeLoginID
 	if authflow.AsInput(input, &inputTakeLoginID) {
 		var bpSpecialErr error
-		bpRequired, err := IsNodeBotProtectionRequired(ctx, deps, flows, n.JSONPointer)
+		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input)
 		if err != nil {
 			return nil, err
-		}
-		if bpRequired {
-			var inputTakeBotProtection inputTakeBotProtection
-			if !authflow.AsInput(input, &inputTakeBotProtection) {
-				return nil, authflow.ErrIncompatibleInput
-			}
-
-			token := inputTakeBotProtection.GetBotProtectionProviderResponse()
-			bpSpecialErr, err = HandleBotProtection(ctx, deps, token)
-			if err != nil {
-				return nil, err
-			}
 		}
 		loginID := inputTakeLoginID.GetLoginID()
 		specForLookup := &identity.Spec{

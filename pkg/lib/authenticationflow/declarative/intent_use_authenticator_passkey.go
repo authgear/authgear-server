@@ -68,21 +68,9 @@ func (n *IntentUseAuthenticatorPasskey) ReactTo(ctx context.Context, deps *authf
 	var inputAssertionResponse inputTakePasskeyAssertionResponse
 	if authflow.AsInput(input, &inputAssertionResponse) {
 		var bpSpecialErr error
-		bpRequired, err := IsNodeBotProtectionRequired(ctx, deps, flows, n.JSONPointer)
+		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input)
 		if err != nil {
 			return nil, err
-		}
-		if bpRequired {
-			var inputTakeBotProtection inputTakeBotProtection
-			if !authflow.AsInput(input, &inputTakeBotProtection) {
-				return nil, authflow.ErrIncompatibleInput
-			}
-
-			token := inputTakeBotProtection.GetBotProtectionProviderResponse()
-			bpSpecialErr, err = HandleBotProtection(ctx, deps, token)
-			if err != nil {
-				return nil, err
-			}
 		}
 		assertionResponse := inputAssertionResponse.GetAssertionResponse()
 		assertionResponseBytes, err := json.Marshal(assertionResponse)

@@ -16,7 +16,7 @@ func isConfigBotProtectionRequired(authflowCfg *config.AuthenticationFlowBotProt
 	return data != nil
 }
 
-func IsNodeBotProtectionRequired(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, oneOfJSONPointer jsonpointer.T) (bool, error) {
+func isNodeBotProtectionRequired(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, oneOfJSONPointer jsonpointer.T) (bool, error) {
 	flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
 	if err != nil {
 		return false, err
@@ -81,12 +81,32 @@ func ShouldExistingResultBypassBotProtectionRequirement(ctx context.Context) boo
 	}
 }
 
-func HandleBotProtection(ctx context.Context, deps *authflow.Dependencies, token string) (bpSpecialErr error, err error) {
+func HandleBotProtection(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, oneOfJSONPointer jsonpointer.T, input authflow.Input) (bpSpecialErr error, err error) {
+	bpRequired, err := isNodeBotProtectionRequired(ctx, deps, flows, oneOfJSONPointer)
+	if err != nil {
+		return nil, err
+	}
+	if !bpRequired {
+		return nil, nil
+	}
+	var inputTakeBotProtection inputTakeBotProtection
+	if !authflow.AsInput(input, &inputTakeBotProtection) {
+		return nil, authflow.ErrIncompatibleInput
+	}
+	token := inputTakeBotProtection.GetBotProtectionProviderResponse()
+	bpSpecialErr, err = verifyBotProtection(ctx, deps, token)
+	if err != nil {
+		return nil, err
+	}
+	return bpSpecialErr, nil
+}
+
+func verifyBotProtection(ctx context.Context, deps *authflow.Dependencies, token string) (bpSpecialErr error, err error) {
 	existingResult := authflow.GetBotProtectionVerificationResult(ctx)
 	if existingResult != nil {
 		bpSpecialErr, err = handleExistingBotProtectionVerificationResult(ctx, deps, token, existingResult)
 	} else {
-		bpSpecialErr, err = verifyBotProtection(ctx, deps, token)
+		bpSpecialErr, err = verifyBotProtectionToken(ctx, deps, token)
 	}
 
 	if isBotProtectionSpecialErrorSuccess(bpSpecialErr) {
@@ -103,7 +123,7 @@ func handleExistingBotProtectionVerificationResult(ctx context.Context, deps *au
 		return authflow.ErrorBotProtectionVerificationSuccess, nil
 	case authflow.BotProtectionVerificationOutcomeServiceUnavailable:
 		// retry
-		return verifyBotProtection(ctx, deps, token)
+		return verifyBotProtectionToken(ctx, deps, token)
 	case authflow.BotProtectionVerificationOutcomeFailed:
 		return authflow.ErrorBotProtectionVerificationFailed, nil
 	default:
@@ -111,7 +131,7 @@ func handleExistingBotProtectionVerificationResult(ctx context.Context, deps *au
 	}
 
 }
-func verifyBotProtection(ctx context.Context, deps *authflow.Dependencies, token string) (bpSpecialErr error, err error) {
+func verifyBotProtectionToken(ctx context.Context, deps *authflow.Dependencies, token string) (bpSpecialErr error, err error) {
 	err = deps.BotProtection.Verify(token)
 
 	switch {

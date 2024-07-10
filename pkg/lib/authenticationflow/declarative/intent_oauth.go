@@ -87,21 +87,9 @@ func (i *IntentOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, 
 		var inputOAuth inputTakeOAuthAuthorizationRequest
 		if authflow.AsInput(input, &inputOAuth) {
 			var bpSpecialErr error
-			bpRequired, err := IsNodeBotProtectionRequired(ctx, deps, flows, i.JSONPointer)
+			bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, i.JSONPointer, input)
 			if err != nil {
 				return nil, err
-			}
-			if bpRequired {
-				var inputTakeBotProtection inputTakeBotProtection
-				if !authflow.AsInput(input, &inputTakeBotProtection) {
-					return nil, authflow.ErrIncompatibleInput
-				}
-
-				token := inputTakeBotProtection.GetBotProtectionProviderResponse()
-				bpSpecialErr, err = HandleBotProtection(ctx, deps, token)
-				if err != nil {
-					return nil, err
-				}
 			}
 			alias := inputOAuth.GetOAuthAlias()
 			redirectURI := inputOAuth.GetOAuthRedirectURI()

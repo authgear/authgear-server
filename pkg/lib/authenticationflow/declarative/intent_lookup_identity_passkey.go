@@ -73,24 +73,18 @@ func (n *IntentLookupIdentityPasskey) ReactTo(ctx context.Context, deps *authflo
 	var inputAssertionResponse inputTakePasskeyAssertionResponse
 	if authflow.AsInput(input, &inputAssertionResponse) {
 		var bpSpecialErr error
-		var botProtection *InputTakeBotProtectionBody
-		bpRequired, err := IsNodeBotProtectionRequired(ctx, deps, flows, n.JSONPointer)
+		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input)
 		if err != nil {
 			return nil, err
-		}
-		if bpRequired {
-			inputBP, _ := inputAssertionResponse.(inputTakeBotProtection)
-			token := inputBP.GetBotProtectionProviderResponse()
-			botProtection = inputBP.GetBotProtectionProvider()
-			bpSpecialErr, err = HandleBotProtection(ctx, deps, token)
-			if err != nil {
-				return nil, err
-			}
 		}
 		assertionResponse := inputAssertionResponse.GetAssertionResponse()
 		assertionResponseBytes, err := json.Marshal(assertionResponse)
 		if err != nil {
 			return nil, err
+		}
+		var botProtection *InputTakeBotProtectionBody
+		if inputBP, ok := inputAssertionResponse.(inputTakeBotProtection); ok {
+			botProtection = inputBP.GetBotProtectionProvider()
 		}
 
 		syntheticInput := &SyntheticInputPasskey{

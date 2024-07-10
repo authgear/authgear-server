@@ -73,19 +73,9 @@ func (n *IntentLookupIdentityLoginID) ReactTo(ctx context.Context, deps *authflo
 
 	if authflow.AsInput(input, &inputTakeLoginID) {
 		var bpSpecialErr error
-		var botProtection *InputTakeBotProtectionBody
-		bpRequired, err := IsNodeBotProtectionRequired(ctx, deps, flows, n.JSONPointer)
+		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input)
 		if err != nil {
 			return nil, err
-		}
-		if bpRequired {
-			inputBP, _ := inputTakeLoginID.(inputTakeBotProtection)
-			token := inputBP.GetBotProtectionProviderResponse()
-			botProtection = inputBP.GetBotProtectionProvider()
-			bpSpecialErr, err = HandleBotProtection(ctx, deps, token)
-			if err != nil {
-				return nil, err
-			}
 		}
 
 		loginID := inputTakeLoginID.GetLoginID()
@@ -96,6 +86,10 @@ func (n *IntentLookupIdentityLoginID) ReactTo(ctx context.Context, deps *authflo
 			},
 		}
 
+		var botProtection *InputTakeBotProtectionBody
+		if inputBP, ok := inputTakeLoginID.(inputTakeBotProtection); ok {
+			botProtection = inputBP.GetBotProtectionProvider()
+		}
 		syntheticInput := &InputStepIdentify{
 			Identification: n.SyntheticInput.Identification,
 			LoginID:        loginID,

@@ -69,21 +69,9 @@ func (n *IntentUseAuthenticatorTOTP) ReactTo(ctx context.Context, deps *authflow
 	var inputTakeTOTP inputTakeTOTP
 	if authflow.AsInput(input, &inputTakeTOTP) {
 		var bpSpecialErr error
-		bpRequired, err := IsNodeBotProtectionRequired(ctx, deps, flows, n.JSONPointer)
+		bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input)
 		if err != nil {
 			return nil, err
-		}
-		if bpRequired {
-			var inputTakeBotProtection inputTakeBotProtection
-			if !authflow.AsInput(input, &inputTakeBotProtection) {
-				return nil, authflow.ErrIncompatibleInput
-			}
-
-			token := inputTakeBotProtection.GetBotProtectionProviderResponse()
-			bpSpecialErr, err = HandleBotProtection(ctx, deps, token)
-			if err != nil {
-				return nil, err
-			}
 		}
 		as, err := deps.Authenticators.List(
 			n.UserID,

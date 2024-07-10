@@ -69,23 +69,18 @@ func (i *IntentLookupIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.
 		var inputOAuth inputTakeOAuthAuthorizationRequest
 		if authflow.AsInput(input, &inputOAuth) {
 			var bpSpecialErr error
-			var botProtection *InputTakeBotProtectionBody
-			bpRequired, err := IsNodeBotProtectionRequired(ctx, deps, flows, i.JSONPointer)
+			bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, i.JSONPointer, input)
 			if err != nil {
 				return nil, err
 			}
-			if bpRequired {
-				inputBP, _ := inputOAuth.(inputTakeBotProtection)
-				token := inputBP.GetBotProtectionProviderResponse()
-				botProtection = inputBP.GetBotProtectionProvider()
-				bpSpecialErr, err = HandleBotProtection(ctx, deps, token)
-				if err != nil {
-					return nil, err
-				}
-			}
+
 			alias := inputOAuth.GetOAuthAlias()
 			redirectURI := inputOAuth.GetOAuthRedirectURI()
 			responseMode := inputOAuth.GetOAuthResponseMode()
+			var botProtection *InputTakeBotProtectionBody
+			if inputBP, ok := inputOAuth.(inputTakeBotProtection); ok {
+				botProtection = inputBP.GetBotProtectionProvider()
+			}
 
 			syntheticInput := &InputStepIdentify{
 				Identification: i.SyntheticInput.Identification,
