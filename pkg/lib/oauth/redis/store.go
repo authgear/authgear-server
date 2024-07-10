@@ -103,8 +103,8 @@ func (s *Store) unmarshalAppSessionToken(data []byte) (*oauth.AppSessionToken, e
 	return &t, nil
 }
 
-func (s *Store) unmarshalAppInitiatedSSOToWebToken(data []byte) (*oauth.AppInitiatedSSOToWebToken, error) {
-	var t oauth.AppInitiatedSSOToWebToken
+func (s *Store) unmarshalPreAuthenticatedURLToken(data []byte) (*oauth.PreAuthenticatedURLToken, error) {
+	var t oauth.PreAuthenticatedURLToken
 	err := json.Unmarshal(data, &t)
 	if err != nil {
 		return nil, err
@@ -691,23 +691,23 @@ func (s *Store) DeleteAppSession(session *oauth.AppSession) error {
 	})
 }
 
-func (s *Store) CreateAppInitiatedSSOToWebToken(token *oauth.AppInitiatedSSOToWebToken) error {
+func (s *Store) CreatePreAuthenticatedURLToken(token *oauth.PreAuthenticatedURLToken) error {
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
-		return s.save(conn, appInitiatedSSOToWebTokenKey(token.AppID, token.TokenHash), token, token.ExpireAt, true)
+		return s.save(conn, preAuthenticatedURLTokenKey(token.AppID, token.TokenHash), token, token.ExpireAt, true)
 	})
 }
 
-func (s *Store) ConsumeAppInitiatedSSOToWebToken(tokenHash string) (*oauth.AppInitiatedSSOToWebToken, error) {
-	t := &oauth.AppInitiatedSSOToWebToken{}
+func (s *Store) ConsumePreAuthenticatedURLToken(tokenHash string) (*oauth.PreAuthenticatedURLToken, error) {
+	t := &oauth.PreAuthenticatedURLToken{}
 
 	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
-		key := appInitiatedSSOToWebTokenKey(string(s.AppID), tokenHash)
+		key := preAuthenticatedURLTokenKey(string(s.AppID), tokenHash)
 		data, err := s.loadData(conn, key)
 		if err != nil {
 			return err
 		}
 
-		t, err = s.unmarshalAppInitiatedSSOToWebToken(data)
+		t, err = s.unmarshalPreAuthenticatedURLToken(data)
 		if err != nil {
 			return err
 		}

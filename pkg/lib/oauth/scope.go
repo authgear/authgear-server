@@ -11,7 +11,7 @@ import (
 
 const FullAccessScope = "https://authgear.com/scopes/full-access"
 const FullUserInfoScope = "https://authgear.com/scopes/full-userinfo"
-const AppInitiatedSSOToWebScope = "https://authgear.com/scopes/app-initiated-sso-to-web"
+const PreAuthenticatedURLScope = "https://authgear.com/scopes/pre-authenticated-url"
 const OfflineAccess = "offline_access"
 const DeviceSSOScope = "device_sso"
 
@@ -21,7 +21,7 @@ func SessionScopes(s session.ResolvedSession) []string {
 	}
 	switch s.SessionType() {
 	case session.TypeIdentityProvider:
-		return []string{FullAccessScope, AppInitiatedSSOToWebScope}
+		return []string{FullAccessScope, PreAuthenticatedURLScope}
 	case session.TypeOfflineGrant:
 		ss := s.(*OfflineGrantSession)
 		return ss.Scopes

@@ -33,15 +33,15 @@ const (
 	TokenResponseTypeElement         = "token"
 	SettingsActonResponseTypeElement = "urn:authgear:params:oauth:response-type:settings-action"
 	// nolint:gosec
-	AppInitiatedSSOToWebResponseTypeElement = "urn:authgear:params:oauth:response-type:app_initiated_sso_to_web"
+	PreAuthenticatedURLResponseTypeElement = "urn:authgear:params:oauth:response-type:pre-authenticated-url"
 )
 
 var (
-	CodeResponseType                      = protocol.NewResponseType([]string{CodeResponseTypeElement})
-	NoneResponseType                      = protocol.NewResponseType([]string{NoneResponseTypeElement})
-	TokenResponseType                     = protocol.NewResponseType([]string{TokenResponseTypeElement})
-	SettingsActonResponseType             = protocol.NewResponseType([]string{SettingsActonResponseTypeElement})
-	AppInitiatedSSOToWebTokenResponseType = protocol.NewResponseType([]string{AppInitiatedSSOToWebResponseTypeElement, TokenResponseTypeElement})
+	CodeResponseType                     = protocol.NewResponseType([]string{CodeResponseTypeElement})
+	NoneResponseType                     = protocol.NewResponseType([]string{NoneResponseTypeElement})
+	TokenResponseType                    = protocol.NewResponseType([]string{TokenResponseTypeElement})
+	SettingsActonResponseType            = protocol.NewResponseType([]string{SettingsActonResponseTypeElement})
+	PreAuthenticatedURLTokenResponseType = protocol.NewResponseType([]string{PreAuthenticatedURLResponseTypeElement, TokenResponseTypeElement})
 )
 
 // whitelistedResponseTypes is a list of response types that would be always allowed
@@ -51,7 +51,7 @@ var whitelistedResponseTypes = []protocol.ResponseType{
 	NoneResponseType,
 	TokenResponseType,
 	SettingsActonResponseType,
-	AppInitiatedSSOToWebTokenResponseType,
+	PreAuthenticatedURLTokenResponseType,
 }
 
 const CodeGrantValidDuration = duration.Short
@@ -119,20 +119,20 @@ type AuthorizationHandler struct {
 	AppDomains            config.AppDomains
 	Logger                AuthorizationHandlerLogger
 
-	UIURLBuilder                     UIURLBuilder
-	UIInfoResolver                   UIInfoResolver
-	Authorizations                   AuthorizationService
-	ValidateScopes                   ScopesValidator
-	AppSessionTokenService           AppSessionTokenService
-	AuthenticationInfoService        AuthenticationInfoService
-	Clock                            clock.Clock
-	Cookies                          CookieManager
-	OAuthSessionService              OAuthSessionService
-	CodeGrantService                 CodeGrantService
-	SettingsActionGrantService       SettingsActionGrantService
-	ClientResolver                   OAuthClientResolver
-	AppInitiatedSSOToWebTokenService AppInitiatedSSOToWebTokenService
-	IDTokenIssuer                    IDTokenIssuer
+	UIURLBuilder                    UIURLBuilder
+	UIInfoResolver                  UIInfoResolver
+	Authorizations                  AuthorizationService
+	ValidateScopes                  ScopesValidator
+	AppSessionTokenService          AppSessionTokenService
+	AuthenticationInfoService       AuthenticationInfoService
+	Clock                           clock.Clock
+	Cookies                         CookieManager
+	OAuthSessionService             OAuthSessionService
+	CodeGrantService                CodeGrantService
+	SettingsActionGrantService      SettingsActionGrantService
+	ClientResolver                  OAuthClientResolver
+	PreAuthenticatedURLTokenService PreAuthenticatedURLTokenService
+	IDTokenIssuer                   IDTokenIssuer
 }
 
 func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.Result {
@@ -144,7 +144,12 @@ func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.
 		}
 	}
 
-	redirectURI, errResp := parseRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, r)
+	originWhitelist := []string{}
+	if r.ResponseType().Equal(PreAuthenticatedURLTokenResponseType) {
+		originWhitelist = client.PreAuthenticatedURLAllowedOrigins
+	}
+
+	redirectURI, errResp := parseRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, originWhitelist, r)
 	if errResp != nil {
 		return authorizationResultError{
 			ResponseMode: r.ResponseMode(),
@@ -370,7 +375,7 @@ func (h *AuthorizationHandler) prepareConsentRequest(req *http.Request) (*consen
 	// Restore uiparam into context.
 	uiparam.WithUIParam(h.Context, &uiParam)
 
-	redirectURI, errResp := parseRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, r)
+	redirectURI, errResp := parseRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, []string{}, r)
 	if errResp != nil {
 		err = protocol.NewErrorWithErrorResponse(errResp)
 		return nil, err
@@ -394,8 +399,8 @@ func (h *AuthorizationHandler) doHandle(
 		return nil, err
 	}
 
-	if r.ResponseType().Equal(AppInitiatedSSOToWebTokenResponseType) {
-		return h.doHandleAppInitiatedSSOToWeb(redirectURI, client, r)
+	if r.ResponseType().Equal(PreAuthenticatedURLTokenResponseType) {
+		return h.doHandlePreAuthenticatedURL(redirectURI, client, r)
 	}
 
 	err := h.ValidateScopes(client, r.Scope())
@@ -472,7 +477,7 @@ func (h *AuthorizationHandler) doHandle(
 		resolvedSession = s
 	}
 	// Ignore any session that is not allow to be used here
-	if !oauth.ContainsAllScopes(oauth.SessionScopes(resolvedSession), []string{oauth.AppInitiatedSSOToWebScope}) {
+	if !oauth.ContainsAllScopes(oauth.SessionScopes(resolvedSession), []string{oauth.PreAuthenticatedURLScope}) {
 		resolvedSession = nil
 	}
 	if resolvedSession == nil || (idToken != nil && resolvedSession.GetAuthenticationInfo().UserID != idToken.Subject()) {
@@ -498,7 +503,7 @@ func (h *AuthorizationHandler) doHandle(
 	return result, nil
 }
 
-func (h *AuthorizationHandler) doHandleAppInitiatedSSOToWeb(
+func (h *AuthorizationHandler) doHandlePreAuthenticatedURL(
 	redirectURI *url.URL,
 	client *config.OAuthClientConfig,
 	r protocol.AuthorizationRequest,
@@ -524,10 +529,10 @@ func (h *AuthorizationHandler) doHandleAppInitiatedSSOToWeb(
 		return nil, protocol.NewError("invalid_request", "invalid sid format id_token_hint")
 	}
 
-	accessToken, err := h.AppInitiatedSSOToWebTokenService.ExchangeForAccessToken(
+	accessToken, err := h.PreAuthenticatedURLTokenService.ExchangeForAccessToken(
 		client,
 		sessionID,
-		r.AppInitiatedSSOToWebToken(),
+		r.PreAuthenticatedURLToken(),
 	)
 	if err != nil {
 		if errors.Is(err, oauth.ErrUnmatchedClient) {
@@ -537,7 +542,7 @@ func (h *AuthorizationHandler) doHandleAppInitiatedSSOToWeb(
 			return nil, protocol.NewError("invalid_request", "incorrect sid in id_token_hint")
 		}
 		if errors.Is(err, oauth.ErrGrantNotFound) {
-			return nil, protocol.NewError("invalid_request", "invalid x_app_initiated_sso_to_web_token")
+			return nil, protocol.NewError("invalid_request", "invalid x_pre_authenticated_url_token")
 		}
 		return nil, err
 	}
@@ -658,21 +663,21 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 	return h.finish(redirectURI, r, sessionType, sessionID, authenticationInfo, idTokenHintSID, []*http.Cookie{}, grantAuthz)
 }
 
-func (h *AuthorizationHandler) validateAppInitiatedSSOToWebTokenRequest(
+func (h *AuthorizationHandler) validatePreAuthenticatedURLTokenRequest(
 	client *config.OAuthClientConfig,
 	r protocol.AuthorizationRequest,
 ) error {
 	if len(r.Prompt()) != 1 || r.Prompt()[0] != "none" {
-		return protocol.NewError("invalid_request", "only 'prompt=none' is supported when using app-initiated-sso-to-web")
+		return protocol.NewError("invalid_request", "only 'prompt=none' is supported when using pre-authenticated url")
 	}
 	if idTokenHint, ok := r.IDTokenHint(); !ok || idTokenHint == "" {
-		return protocol.NewError("invalid_request", "id_token_hint is required when using app-initiated-sso-to-web")
+		return protocol.NewError("invalid_request", "id_token_hint is required when using pre-authenticated url")
 	}
-	if r.AppInitiatedSSOToWebToken() == "" {
-		return protocol.NewError("invalid_request", "x_app_initiated_sso_to_web_token is required when using app-initiated-sso-to-web")
+	if r.PreAuthenticatedURLToken() == "" {
+		return protocol.NewError("invalid_request", "x_pre_authenticated_url_token is required when using pre-authenticated url")
 	}
 	if r.ResponseMode() != "cookie" {
-		return protocol.NewError("invalid_request", "only 'response_mode=cookie' is supported when using app-initiated-sso-to-web")
+		return protocol.NewError("invalid_request", "only 'response_mode=cookie' is supported when using pre-authenticated url")
 	}
 	return nil
 }
@@ -734,8 +739,8 @@ func (h *AuthorizationHandler) validateRequest(
 		if err := requireScope(); err != nil {
 			return err
 		}
-	case responseType.Equal(AppInitiatedSSOToWebTokenResponseType):
-		if err := h.validateAppInitiatedSSOToWebTokenRequest(client, r); err != nil {
+	case responseType.Equal(PreAuthenticatedURLTokenResponseType):
+		if err := h.validatePreAuthenticatedURLTokenRequest(client, r); err != nil {
 			return err
 		}
 	default:
@@ -818,7 +823,7 @@ func (h *AuthorizationHandler) prepareConsentErrInvalidOAuthResponse(req *http.R
 	if oauthError.Type() == "invalid_request" && client != nil {
 		redirectURI, err := url.Parse(req.URL.Query().Get("redirect_uri"))
 		if err == nil {
-			err = validateRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, redirectURI)
+			err = validateRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, []string{}, redirectURI)
 			if err == nil {
 				resultErr.RedirectURI = redirectURI
 			}

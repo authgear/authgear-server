@@ -8,10 +8,10 @@ import (
 )
 
 const (
-	AppInitiatedSSOToWebTokenLifetime = duration.Short
+	PreAuthenticatedURLTokenLifetime = duration.Short
 )
 
-type AppInitiatedSSOToWebToken struct {
+type PreAuthenticatedURLToken struct {
 	AppID           string   `json:"app_id"`
 	AuthorizationID string   `json:"authorization_id"`
 	ClientID        string   `json:"client_id"`
@@ -23,7 +23,7 @@ type AppInitiatedSSOToWebToken struct {
 	TokenHash string    `json:"token_hash"`
 }
 
-type AppInitiatedSSOToWebTokenAccessGrantService interface {
+type PreAuthenticatedURLTokenAccessGrantService interface {
 	IssueAccessGrant(
 		client *config.OAuthClientConfig,
 		scopes []string,
@@ -35,7 +35,7 @@ type AppInitiatedSSOToWebTokenAccessGrantService interface {
 	) (*IssueAccessGrantResult, error)
 }
 
-type AppInitiatedSSOToWebTokenOfflineGrantService interface {
+type PreAuthenticatedURLTokenOfflineGrantService interface {
 	CreateNewRefreshToken(
 		grant *OfflineGrant,
 		clientID string,

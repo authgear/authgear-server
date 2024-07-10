@@ -66,7 +66,7 @@ func TestAuthorizationHandler(t *testing.T) {
 		cookieManager := &mockCookieManager{}
 		oauthSessionService := &mockOAuthSessionService{}
 		clientResolver := &mockClientResolver{}
-		appInitiatedSSOToWebTokenService := NewMockAppInitiatedSSOToWebTokenService(ctrl)
+		preAuthenticatedURLTokenService := NewMockPreAuthenticatedURLTokenService(ctrl)
 		idTokenIssuer := NewMockIDTokenIssuer(ctrl)
 
 		appID := config.AppID("app-id")
@@ -90,9 +90,9 @@ func TestAuthorizationHandler(t *testing.T) {
 				CodeGenerator: func() string { return "authz-code" },
 				CodeGrants:    codeGrantStore,
 			},
-			ClientResolver:                   clientResolver,
-			AppInitiatedSSOToWebTokenService: appInitiatedSSOToWebTokenService,
-			IDTokenIssuer:                    idTokenIssuer,
+			ClientResolver:                  clientResolver,
+			PreAuthenticatedURLTokenService: preAuthenticatedURLTokenService,
+			IDTokenIssuer:                   idTokenIssuer,
 		}
 		handle := func(r protocol.AuthorizationRequest) *httptest.ResponseRecorder {
 			result := h.Handle(r)
@@ -455,11 +455,11 @@ func TestAuthorizationHandler(t *testing.T) {
 			})
 		})
 
-		Convey("app-initiated-sso-to-web", func() {
+		Convey("pre-authenticated-url", func() {
 			mockedClient := &config.OAuthClientConfig{
 				ClientID:      "client-id",
 				RedirectURIs:  []string{"https://example.com/"},
-				ResponseTypes: []string{"none", "urn:authgear:params:oauth:response-type:app_initiated_sso_to_web token"},
+				ResponseTypes: []string{"none", "urn:authgear:params:oauth:response-type:pre-authenticated-url token"},
 			}
 			clientResolver.ClientConfig = mockedClient
 
@@ -471,7 +471,7 @@ func TestAuthorizationHandler(t *testing.T) {
 				testSID := oidc.EncodeSID(testOfflineGrant)
 
 				// nolint:gosec
-				testAppInititatedSSOToWebToken := "TEST_APP_INITIATED_SSO_TO_WEB_TOKEN"
+				testPreAuthenticatedURLToken := "TEST_PRE_AUTHENTICATED_URL_TOKEN"
 				testIDToken := "TEST_ID_TOKEN"
 
 				testVerifiedIDToken := jwt.New()
@@ -483,23 +483,23 @@ func TestAuthorizationHandler(t *testing.T) {
 
 				testAccessToken := "TEST_ACCESS_TOKEN"
 
-				appInitiatedSSOToWebTokenService.EXPECT().ExchangeForAccessToken(
+				preAuthenticatedURLTokenService.EXPECT().ExchangeForAccessToken(
 					mockedClient,
 					testOfflineGrantID,
-					testAppInititatedSSOToWebToken,
+					testPreAuthenticatedURLToken,
 				).
 					Times(1).
 					Return(testAccessToken, nil)
 
 				req := protocol.AuthorizationRequest{
-					"client_id":                        "client-id",
-					"response_type":                    "urn:authgear:params:oauth:response-type:app_initiated_sso_to_web token",
-					"x_app_initiated_sso_to_web_token": testAppInititatedSSOToWebToken,
-					"prompt":                           "none",
-					"response_mode":                    "cookie",
-					"state":                            "my-state",
-					"redirect_uri":                     "https://example.com/",
-					"id_token_hint":                    testIDToken,
+					"client_id":                     "client-id",
+					"response_type":                 "urn:authgear:params:oauth:response-type:pre-authenticated-url token",
+					"x_pre_authenticated_url_token": testPreAuthenticatedURLToken,
+					"prompt":                        "none",
+					"response_mode":                 "cookie",
+					"state":                         "my-state",
+					"redirect_uri":                  "https://example.com/",
+					"id_token_hint":                 testIDToken,
 				}
 
 				resp := handle(req)

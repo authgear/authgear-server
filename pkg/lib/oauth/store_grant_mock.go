@@ -582,54 +582,54 @@ func (mr *MockAppSessionTokenStoreMockRecorder) GetAppSessionToken(tokenHash int
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAppSessionToken", reflect.TypeOf((*MockAppSessionTokenStore)(nil).GetAppSessionToken), tokenHash)
 }
 
-// MockAppInitiatedSSOToWebTokenStore is a mock of AppInitiatedSSOToWebTokenStore interface.
-type MockAppInitiatedSSOToWebTokenStore struct {
+// MockPreAuthenticatedURLTokenStore is a mock of PreAuthenticatedURLTokenStore interface.
+type MockPreAuthenticatedURLTokenStore struct {
 	ctrl     *gomock.Controller
-	recorder *MockAppInitiatedSSOToWebTokenStoreMockRecorder
+	recorder *MockPreAuthenticatedURLTokenStoreMockRecorder
 }
 
-// MockAppInitiatedSSOToWebTokenStoreMockRecorder is the mock recorder for MockAppInitiatedSSOToWebTokenStore.
-type MockAppInitiatedSSOToWebTokenStoreMockRecorder struct {
-	mock *MockAppInitiatedSSOToWebTokenStore
+// MockPreAuthenticatedURLTokenStoreMockRecorder is the mock recorder for MockPreAuthenticatedURLTokenStore.
+type MockPreAuthenticatedURLTokenStoreMockRecorder struct {
+	mock *MockPreAuthenticatedURLTokenStore
 }
 
-// NewMockAppInitiatedSSOToWebTokenStore creates a new mock instance.
-func NewMockAppInitiatedSSOToWebTokenStore(ctrl *gomock.Controller) *MockAppInitiatedSSOToWebTokenStore {
-	mock := &MockAppInitiatedSSOToWebTokenStore{ctrl: ctrl}
-	mock.recorder = &MockAppInitiatedSSOToWebTokenStoreMockRecorder{mock}
+// NewMockPreAuthenticatedURLTokenStore creates a new mock instance.
+func NewMockPreAuthenticatedURLTokenStore(ctrl *gomock.Controller) *MockPreAuthenticatedURLTokenStore {
+	mock := &MockPreAuthenticatedURLTokenStore{ctrl: ctrl}
+	mock.recorder = &MockPreAuthenticatedURLTokenStoreMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockAppInitiatedSSOToWebTokenStore) EXPECT() *MockAppInitiatedSSOToWebTokenStoreMockRecorder {
+func (m *MockPreAuthenticatedURLTokenStore) EXPECT() *MockPreAuthenticatedURLTokenStoreMockRecorder {
 	return m.recorder
 }
 
-// ConsumeAppInitiatedSSOToWebToken mocks base method.
-func (m *MockAppInitiatedSSOToWebTokenStore) ConsumeAppInitiatedSSOToWebToken(tokenHash string) (*AppInitiatedSSOToWebToken, error) {
+// ConsumePreAuthenticatedURLToken mocks base method.
+func (m *MockPreAuthenticatedURLTokenStore) ConsumePreAuthenticatedURLToken(tokenHash string) (*PreAuthenticatedURLToken, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ConsumeAppInitiatedSSOToWebToken", tokenHash)
-	ret0, _ := ret[0].(*AppInitiatedSSOToWebToken)
+	ret := m.ctrl.Call(m, "ConsumePreAuthenticatedURLToken", tokenHash)
+	ret0, _ := ret[0].(*PreAuthenticatedURLToken)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ConsumeAppInitiatedSSOToWebToken indicates an expected call of ConsumeAppInitiatedSSOToWebToken.
-func (mr *MockAppInitiatedSSOToWebTokenStoreMockRecorder) ConsumeAppInitiatedSSOToWebToken(tokenHash interface{}) *gomock.Call {
+// ConsumePreAuthenticatedURLToken indicates an expected call of ConsumePreAuthenticatedURLToken.
+func (mr *MockPreAuthenticatedURLTokenStoreMockRecorder) ConsumePreAuthenticatedURLToken(tokenHash interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumeAppInitiatedSSOToWebToken", reflect.TypeOf((*MockAppInitiatedSSOToWebTokenStore)(nil).ConsumeAppInitiatedSSOToWebToken), tokenHash)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumePreAuthenticatedURLToken", reflect.TypeOf((*MockPreAuthenticatedURLTokenStore)(nil).ConsumePreAuthenticatedURLToken), tokenHash)
 }
 
-// CreateAppInitiatedSSOToWebToken mocks base method.
-func (m *MockAppInitiatedSSOToWebTokenStore) CreateAppInitiatedSSOToWebToken(arg0 *AppInitiatedSSOToWebToken) error {
+// CreatePreAuthenticatedURLToken mocks base method.
+func (m *MockPreAuthenticatedURLTokenStore) CreatePreAuthenticatedURLToken(arg0 *PreAuthenticatedURLToken) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateAppInitiatedSSOToWebToken", arg0)
+	ret := m.ctrl.Call(m, "CreatePreAuthenticatedURLToken", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// CreateAppInitiatedSSOToWebToken indicates an expected call of CreateAppInitiatedSSOToWebToken.
-func (mr *MockAppInitiatedSSOToWebTokenStoreMockRecorder) CreateAppInitiatedSSOToWebToken(arg0 interface{}) *gomock.Call {
+// CreatePreAuthenticatedURLToken indicates an expected call of CreatePreAuthenticatedURLToken.
+func (mr *MockPreAuthenticatedURLTokenStoreMockRecorder) CreatePreAuthenticatedURLToken(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAppInitiatedSSOToWebToken", reflect.TypeOf((*MockAppInitiatedSSOToWebTokenStore)(nil).CreateAppInitiatedSSOToWebToken), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePreAuthenticatedURLToken", reflect.TypeOf((*MockPreAuthenticatedURLTokenStore)(nil).CreatePreAuthenticatedURLToken), arg0)
 }

@@ -33,14 +33,14 @@ func ValidateScopes(client *config.OAuthClientConfig, scopes []string) error {
 			hasDeviceSSO = true
 		}
 		// TODO(tung): Validate if device_sso is allowed by client config
-		if s == oauth.DeviceSSOScope && !client.AppInitiatedSSOToWebEnabled {
+		if s == oauth.DeviceSSOScope && !client.PreAuthenticatedURLEnabled {
 			return protocol.NewError("invalid_scope", "device_sso is not allowed for this client")
 		}
-		if s == oauth.AppInitiatedSSOToWebScope && !hasDeviceSSO {
-			return protocol.NewError("invalid_scope", "device_sso must be requested when using app-initiated-sso-to-web")
+		if s == oauth.PreAuthenticatedURLScope && !hasDeviceSSO {
+			return protocol.NewError("invalid_scope", "device_sso must be requested when using pre-authenticated url")
 		}
-		if s == oauth.AppInitiatedSSOToWebScope && !client.AppInitiatedSSOToWebEnabled {
-			return protocol.NewError("invalid_scope", "app-initiated-sso-to-web is not allowed for this client")
+		if s == oauth.PreAuthenticatedURLScope && !client.PreAuthenticatedURLEnabled {
+			return protocol.NewError("invalid_scope", "pre-authenticated url is not allowed for this client")
 		}
 	}
 	if !hasOIDC {
@@ -54,7 +54,7 @@ var AllowedScopes = []string{
 	oauth.OfflineAccess,
 	oauth.FullAccessScope,
 	oauth.FullUserInfoScope,
-	oauth.AppInitiatedSSOToWebScope,
+	oauth.PreAuthenticatedURLScope,
 	oauth.DeviceSSOScope,
 }
 
