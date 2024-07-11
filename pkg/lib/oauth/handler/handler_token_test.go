@@ -101,7 +101,7 @@ func TestTokenHandler(t *testing.T) {
 						TokenHash: refreshTokenHash,
 					}},
 				}
-				tokenService.EXPECT().ParseRefreshToken("asdf").Return(&oauth.Authorization{}, offlineGrant, refreshTokenHash, nil)
+				tokenService.EXPECT().ParseRefreshToken(gomock.Any(), "asdf").Return(&oauth.Authorization{}, offlineGrant, refreshTokenHash, nil)
 				idTokenIssuer.EXPECT().IssueIDToken(gomock.Any()).Return("id-token", nil)
 				tokenService.EXPECT().IssueAccessGrant(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 				expireAt := time.Date(2020, 02, 01, 1, 0, 0, 0, time.UTC)

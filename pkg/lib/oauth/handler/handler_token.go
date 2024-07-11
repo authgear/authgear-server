@@ -155,7 +155,7 @@ type TokenHandlerOfflineGrantService interface {
 }
 
 type TokenHandlerTokenService interface {
-	ParseRefreshToken(token string) (authz *oauth.Authorization, offlineGrant *oauth.OfflineGrant, tokenHash string, err error)
+	ParseRefreshToken(ctx context.Context, token string) (authz *oauth.Authorization, offlineGrant *oauth.OfflineGrant, tokenHash string, err error)
 	IssueAccessGrant(
 		client *config.OAuthClientConfig,
 		scopes []string,
@@ -604,7 +604,7 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, protocol.NewError("invalid_request", err.Error())
 	}
 
-	authz, offlineGrant, refreshTokenHash, err := h.TokenService.ParseRefreshToken(r.RefreshToken())
+	authz, offlineGrant, refreshTokenHash, err := h.TokenService.ParseRefreshToken(ctx, r.RefreshToken())
 	if err != nil {
 		return nil, err
 	}
@@ -1261,7 +1261,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 		return nil, protocol.NewErrorWithErrorResponse(errResp)
 	}
 
-	_, originalOfflineGrant, refreshTokenHash, err := h.TokenService.ParseRefreshToken(r.RefreshToken())
+	_, originalOfflineGrant, refreshTokenHash, err := h.TokenService.ParseRefreshToken(req.Context(), r.RefreshToken())
 	if err != nil {
 		return nil, err
 	}
@@ -1739,8 +1739,8 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 	return resp, nil
 }
 
-func (h *TokenHandler) IssueAppSessionToken(refreshToken string) (string, *oauth.AppSessionToken, error) {
-	authz, grant, refreshTokenHash, err := h.TokenService.ParseRefreshToken(refreshToken)
+func (h *TokenHandler) IssueAppSessionToken(ctx context.Context, refreshToken string) (string, *oauth.AppSessionToken, error) {
+	authz, grant, refreshTokenHash, err := h.TokenService.ParseRefreshToken(ctx, refreshToken)
 	if err != nil {
 		return "", nil, err
 	}

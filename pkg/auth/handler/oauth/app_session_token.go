@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"time"
@@ -54,7 +55,7 @@ type AppSessionTokenResponse struct {
 }
 
 type AppSessionTokenIssuer interface {
-	IssueAppSessionToken(refreshToken string) (string, *oauth.AppSessionToken, error)
+	IssueAppSessionToken(ctx context.Context, refreshToken string) (string, *oauth.AppSessionToken, error)
 }
 
 type AppSessionTokenHandler struct {
@@ -82,7 +83,7 @@ func (h *AppSessionTokenHandler) Handle(resp http.ResponseWriter, req *http.Requ
 		return nil, err
 	}
 
-	token, sToken, err := h.AppSessionTokens.IssueAppSessionToken(payload.RefreshToken)
+	token, sToken, err := h.AppSessionTokens.IssueAppSessionToken(req.Context(), payload.RefreshToken)
 	var oauthError *protocol.OAuthProtocolError
 	if errors.Is(err, handler.ErrInvalidRefreshToken) {
 		return nil, InvalidGrant.New(err.Error())

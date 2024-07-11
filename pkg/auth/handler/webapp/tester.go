@@ -60,7 +60,7 @@ type TesterAuthTokensIssuer interface {
 		client *config.OAuthClientConfig,
 		r protocol.TokenRequest,
 	) (protocol.TokenResponse, error)
-	IssueAppSessionToken(refreshToken string) (string, *oauth.AppSessionToken, error)
+	IssueAppSessionToken(ctx context.Context, refreshToken string) (string, *oauth.AppSessionToken, error)
 }
 
 type TesterAppSessionTokenService interface {
@@ -205,7 +205,7 @@ func (h *TesterHandler) doCodeExchange(ctx context.Context, code string, stateb6
 		return fmt.Errorf("tester: refresh_token is not string")
 	}
 
-	appSessionToken, s, err := h.TesterTokenIssuer.IssueAppSessionToken(refreshToken)
+	appSessionToken, s, err := h.TesterTokenIssuer.IssueAppSessionToken(ctx, refreshToken)
 	if err != nil {
 		return err
 	}

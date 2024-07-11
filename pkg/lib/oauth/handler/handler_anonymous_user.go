@@ -139,7 +139,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 	clientID string,
 	refreshToken string,
 ) (*SignupAnonymousUserResult, error) {
-	context := req.Context()
+	ctx := req.Context()
 	client := h.OAuthClientResolver.ResolveClient(clientID)
 	if client == nil {
 		// "invalid_client"
@@ -155,7 +155,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 	scopes := []string{"openid", oauth.OfflineAccess, oauth.FullAccessScope}
 
 	if refreshToken != "" {
-		authz, grant, refreshTokenHash, err := h.TokenService.ParseRefreshToken(refreshToken)
+		authz, grant, refreshTokenHash, err := h.TokenService.ParseRefreshToken(ctx, refreshToken)
 		if errors.Is(err, ErrInvalidRefreshToken) {
 			return nil, apierrors.NewInvalid("invalid refresh token")
 		} else if err != nil {
@@ -201,7 +201,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		return nil, err
 	}
 
-	dpopProof := dpop.GetDPoPProof(context)
+	dpopProof := dpop.GetDPoPProof(ctx)
 	dpopJKT := ""
 	if dpopProof != nil {
 		dpopJKT = dpopProof.JKT
@@ -292,7 +292,7 @@ func (h *AnonymousUserHandler) IssuePromotionCode(
 			err = ErrUnauthenticated
 			return
 		}
-		authz, _, _, e := h.TokenService.ParseRefreshToken(refreshToken)
+		authz, _, _, e := h.TokenService.ParseRefreshToken(req.Context(), refreshToken)
 		var oauthError *protocol.OAuthProtocolError
 		if errors.As(e, &oauthError) {
 			err = apierrors.NewForbidden(oauthError.Error())
