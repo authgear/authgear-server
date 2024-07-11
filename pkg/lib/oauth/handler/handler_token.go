@@ -24,6 +24,7 @@ import (
 	identitybiometric "github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/dpop"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
@@ -274,7 +275,7 @@ func (h *TokenHandler) doHandle(
 
 	switch r.GrantType() {
 	case AuthorizationCodeGrantType:
-		return h.handleAuthorizationCode(client, r)
+		return h.handleAuthorizationCode(req.Context(), client, r)
 	case RefreshTokenGrantType:
 		resp, err := h.handleRefreshToken(client, r)
 		if err != nil {
@@ -284,7 +285,7 @@ func (h *TokenHandler) doHandle(
 	case TokenExchangeGrantType:
 		return h.handleTokenExchange(client, r)
 	case AnonymousRequestGrantType:
-		return h.handleAnonymousRequest(client, r)
+		return h.handleAnonymousRequest(req.Context(), client, r)
 	case BiometricRequestGrantType:
 		return h.handleBiometricRequest(rw, req, client, r)
 	case App2AppRequestGrantType:
@@ -472,10 +473,11 @@ func (h *TokenHandler) app2appUpdateDeviceKeyIfNeeded(
 }
 
 func (h *TokenHandler) handleAuthorizationCode(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
-	resp, err := h.IssueTokensForAuthorizationCode(client, r)
+	resp, err := h.IssueTokensForAuthorizationCode(ctx, client, r)
 	if err != nil {
 		return nil, err
 	}
@@ -485,6 +487,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 
 // nolint:gocognit
 func (h *TokenHandler) IssueTokensForAuthorizationCode(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (protocol.TokenResponse, error) {
@@ -561,7 +564,7 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 		return nil, err
 	}
 
-	resp, err := h.doIssueTokensForAuthorizationCode(client, codeGrant, authz, deviceInfo, r.App2AppDeviceKeyJWT())
+	resp, err := h.doIssueTokensForAuthorizationCode(ctx, client, codeGrant, authz, deviceInfo, r.App2AppDeviceKeyJWT())
 	if err != nil {
 		return nil, err
 	}
@@ -822,6 +825,7 @@ func (i *anonymousTokenInput) GetPromotionCode() string { return "" }
 var _ nodes.InputUseIdentityAnonymous = &anonymousTokenInput{}
 
 func (h *TokenHandler) handleAnonymousRequest(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
@@ -899,6 +903,12 @@ func (h *TokenHandler) handleAnonymousRequest(
 
 	issueDeviceToken := h.shouldIssueDeviceSecret(scopes)
 
+	dpopProof := dpop.GetDPoPProof(ctx)
+	dpopJKT := ""
+	if dpopProof != nil {
+		dpopJKT = dpopProof.JKT
+	}
+
 	// SSOEnabled is false for refresh tokens that are granted by anonymous login
 	opts := IssueOfflineGrantOptions{
 		Scopes:             scopes,
@@ -907,6 +917,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 		DeviceInfo:         deviceInfo,
 		SSOEnabled:         false,
 		IssueDeviceSecret:  issueDeviceToken,
+		DPoPJKT:            dpopJKT,
 	}
 	offlineGrant, tokenHash, err := h.issueOfflineGrant(
 		client,
@@ -971,7 +982,7 @@ func (h *TokenHandler) handleBiometricRequest(
 	case string(identitybiometric.RequestActionSetup):
 		return h.handleBiometricSetup(req, client, r)
 	case string(identitybiometric.RequestActionAuthenticate):
-		return h.handleBiometricAuthenticate(client, r)
+		return h.handleBiometricAuthenticate(req.Context(), client, r)
 	default:
 		return nil, protocol.NewError("invalid_request", fmt.Sprintf("invalid action: %v", actionIface))
 	}
@@ -1039,6 +1050,7 @@ func (h *TokenHandler) handleBiometricSetup(
 }
 
 func (h *TokenHandler) handleBiometricAuthenticate(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
@@ -1132,6 +1144,12 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		}
 	}
 
+	dpopProof := dpop.GetDPoPProof(ctx)
+	dpopJKT := ""
+	if dpopProof != nil {
+		dpopJKT = dpopProof.JKT
+	}
+
 	resp := protocol.TokenResponse{}
 
 	issueDeviceToken := h.shouldIssueDeviceSecret(scopes)
@@ -1144,6 +1162,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		IdentityID:         biometricIdentity.ID,
 		SSOEnabled:         false,
 		IssueDeviceSecret:  issueDeviceToken,
+		DPoPJKT:            dpopJKT,
 	}
 	offlineGrant, tokenHash, err := h.issueOfflineGrant(
 		client,
@@ -1402,6 +1421,7 @@ func (h *TokenHandler) issueOfflineGrant(
 
 // nolint: gocognit
 func (h *TokenHandler) doIssueTokensForAuthorizationCode(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	code *oauth.CodeGrant,
 	authz *oauth.Authorization,
@@ -1484,6 +1504,12 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		}
 	}
 
+	dpopProof := dpop.GetDPoPProof(ctx)
+	dpopJKT := ""
+	if dpopProof != nil {
+		dpopJKT = dpopProof.JKT
+	}
+
 	// As required by the spec, we must include access_token.
 	// If we issue refresh token, then access token is just the access token of the refresh token.
 	// Else if id_token_hint is present, use the sid.
@@ -1511,6 +1537,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		SSOEnabled:         code.AuthorizationRequest.SSOEnabled(),
 		App2AppDeviceKey:   app2appDevicePublicKey,
 		IssueDeviceSecret:  issueDeviceToken,
+		DPoPJKT:            dpopJKT,
 	}
 	if issueRefreshToken {
 		var offlineGrant *oauth.OfflineGrant
@@ -1524,6 +1551,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 				IssueOfflineGrantRefreshTokenOptions{
 					Scopes:          scopes,
 					AuthorizationID: authz.ID,
+					DPoPJKT:         dpopJKT,
 				}, resp)
 			if err != nil {
 				return nil, err

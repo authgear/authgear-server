@@ -39,6 +39,7 @@ type OfflineGrantStore interface {
 		clientID string,
 		scopes []string,
 		authorizationID string,
+		dpopJKT string,
 	) (*OfflineGrant, error)
 
 	ListOfflineGrants(userID string) ([]*OfflineGrant, error)

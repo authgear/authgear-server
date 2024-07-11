@@ -30,11 +30,13 @@ type IssueOfflineGrantOptions struct {
 	SSOEnabled         bool
 	App2AppDeviceKey   jwk.Key
 	IssueDeviceSecret  bool
+	DPoPJKT            string
 }
 
 type IssueOfflineGrantRefreshTokenOptions struct {
 	Scopes          []string
 	AuthorizationID string
+	DPoPJKT         string
 }
 
 type TokenService struct {
@@ -72,6 +74,7 @@ func (s *TokenService) IssueOfflineGrant(
 		CreatedAt:       now,
 		Scopes:          opts.Scopes,
 		AuthorizationID: opts.AuthorizationID,
+		DPoPJKT:         opts.DPoPJKT,
 	}
 
 	offlineGrant = &oauth.OfflineGrant{
@@ -144,7 +147,7 @@ func (s *TokenService) IssueRefreshTokenForOfflineGrant(
 	}
 
 	newRefreshTokenResult, newOfflineGrant, err := s.OfflineGrantService.CreateNewRefreshToken(
-		offlineGrant, client.ClientID, opts.Scopes, opts.AuthorizationID,
+		offlineGrant, client.ClientID, opts.Scopes, opts.AuthorizationID, opts.DPoPJKT,
 	)
 	if err != nil {
 		return nil, "", err

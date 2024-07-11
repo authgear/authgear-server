@@ -427,6 +427,7 @@ func (s *Store) AddOfflineGrantRefreshToken(
 	clientID string,
 	scopes []string,
 	authorizationID string,
+	dpopJKT string,
 ) (*oauth.OfflineGrant, error) {
 	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
 	mutex := s.Redis.NewMutex(mutexName)
@@ -450,6 +451,7 @@ func (s *Store) AddOfflineGrantRefreshToken(
 		CreatedAt:       now,
 		Scopes:          scopes,
 		AuthorizationID: authorizationID,
+		DPoPJKT:         dpopJKT,
 	}
 
 	grant.RefreshTokens = append(grant.RefreshTokens, newRefreshToken)

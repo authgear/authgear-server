@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/dpop"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
@@ -94,7 +95,7 @@ func (h *AnonymousUserHandler) SignupAnonymousUser(
 	case WebSessionTypeCookie:
 		return h.signupAnonymousUserWithCookieSessionType(req)
 	case WebSessionTypeRefreshToken:
-		return h.signupAnonymousUserWithRefreshTokenSessionType(clientID, refreshToken)
+		return h.signupAnonymousUserWithRefreshTokenSessionType(req, clientID, refreshToken)
 	default:
 		panic("unknown web session type")
 	}
@@ -134,9 +135,11 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithCookieSessionType(
 }
 
 func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
+	req *http.Request,
 	clientID string,
 	refreshToken string,
 ) (*SignupAnonymousUserResult, error) {
+	context := req.Context()
 	client := h.OAuthClientResolver.ResolveClient(clientID)
 	if client == nil {
 		// "invalid_client"
@@ -198,6 +201,12 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		return nil, err
 	}
 
+	dpopProof := dpop.GetDPoPProof(context)
+	dpopJKT := ""
+	if dpopProof != nil {
+		dpopJKT = dpopProof.JKT
+	}
+
 	resp := protocol.TokenResponse{}
 	// SSOEnabled is false for refresh tokens that are granted by anonymous login
 	opts := IssueOfflineGrantOptions{
@@ -206,6 +215,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		AuthenticationInfo: info,
 		DeviceInfo:         nil,
 		SSOEnabled:         false,
+		DPoPJKT:            dpopJKT,
 	}
 	offlineGrant, tokenHash, err := h.TokenService.IssueOfflineGrant(client, opts, resp)
 	if err != nil {

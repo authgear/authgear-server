@@ -18,6 +18,7 @@ type OfflineGrantRefreshToken struct {
 	CreatedAt       time.Time `json:"created_at"`
 	Scopes          []string  `json:"scopes"`
 	AuthorizationID string    `json:"authz_id"`
+	DPoPJKT         string    `json:"dpop_jkt"`
 }
 
 type OfflineGrant struct {
@@ -61,6 +62,7 @@ type OfflineGrantSession struct {
 	ClientID        string
 	Scopes          []string
 	AuthorizationID string
+	DPoPJKT         string
 }
 
 func (o *OfflineGrantSession) Session() {}
@@ -201,6 +203,7 @@ func (g *OfflineGrant) ToSession(refreshTokenHash string) (*OfflineGrantSession,
 			ClientID:        g.InitialClientID,
 			Scopes:          g.Deprecated_Scopes,
 			AuthorizationID: g.Deprecated_AuthorizationID,
+			DPoPJKT:         "",
 		}
 	}
 
@@ -214,6 +217,7 @@ func (g *OfflineGrant) ToSession(refreshTokenHash string) (*OfflineGrantSession,
 				ClientID:        token.ClientID,
 				Scopes:          token.Scopes,
 				AuthorizationID: token.AuthorizationID,
+				DPoPJKT:         token.DPoPJKT,
 			}
 		}
 	}
