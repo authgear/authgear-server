@@ -394,7 +394,11 @@ func (s *Store) UpdateOfflineGrantApp2AppDeviceKey(grantID string, newKey string
 	return grant, nil
 }
 
-func (s *Store) UpdateOfflineGrantDeviceSecretHash(grantID string, newDeviceSecretHash string, expireAt time.Time) (*oauth.OfflineGrant, error) {
+func (s *Store) UpdateOfflineGrantDeviceSecretHash(
+	grantID string,
+	newDeviceSecretHash string,
+	dpopJKT string,
+	expireAt time.Time) (*oauth.OfflineGrant, error) {
 	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
 	mutex := s.Redis.NewMutex(mutexName)
 	err := mutex.LockContext(s.Context)
@@ -411,6 +415,7 @@ func (s *Store) UpdateOfflineGrantDeviceSecretHash(grantID string, newDeviceSecr
 	}
 
 	grant.DeviceSecretHash = newDeviceSecretHash
+	grant.DeviceSecretDPoPJKT = dpopJKT
 
 	err = s.updateOfflineGrant(grant, expireAt)
 	if err != nil {

@@ -136,7 +136,11 @@ type TokenHandlerOfflineGrantStore interface {
 	AccessOfflineGrantAndUpdateDeviceInfo(id string, accessEvent access.Event, deviceInfo map[string]interface{}, expireAt time.Time) (*oauth.OfflineGrant, error)
 	UpdateOfflineGrantAuthenticatedAt(id string, authenticatedAt time.Time, expireAt time.Time) (*oauth.OfflineGrant, error)
 	UpdateOfflineGrantApp2AppDeviceKey(id string, newKey string, expireAt time.Time) (*oauth.OfflineGrant, error)
-	UpdateOfflineGrantDeviceSecretHash(grantID string, newDeviceSecretHash string, expireAt time.Time) (*oauth.OfflineGrant, error)
+	UpdateOfflineGrantDeviceSecretHash(
+		grantID string,
+		newDeviceSecretHash string,
+		dpopJKT string,
+		expireAt time.Time) (*oauth.OfflineGrant, error)
 
 	ListOfflineGrants(userID string) ([]*oauth.OfflineGrant, error)
 	ListClientOfflineGrants(clientID string, userID string) ([]*oauth.OfflineGrant, error)
@@ -277,13 +281,13 @@ func (h *TokenHandler) doHandle(
 	case AuthorizationCodeGrantType:
 		return h.handleAuthorizationCode(req.Context(), client, r)
 	case RefreshTokenGrantType:
-		resp, err := h.handleRefreshToken(client, r)
+		resp, err := h.handleRefreshToken(req.Context(), client, r)
 		if err != nil {
 			return nil, err
 		}
 		return tokenResultOK{Response: resp}, nil
 	case TokenExchangeGrantType:
-		return h.handleTokenExchange(client, r)
+		return h.handleTokenExchange(req.Context(), client, r)
 	case AnonymousRequestGrantType:
 		return h.handleAnonymousRequest(req.Context(), client, r)
 	case BiometricRequestGrantType:
@@ -390,14 +394,25 @@ func (h *TokenHandler) app2appGetDeviceKeyJWKVerified(jwt string) (jwk.Key, erro
 }
 
 func (h *TokenHandler) rotateDeviceSecret(
+	ctx context.Context,
 	offlineGrant *oauth.OfflineGrant,
 	resp protocol.TokenResponse) (*oauth.OfflineGrant, error) {
+	dpopProof := dpop.GetDPoPProof(ctx)
+	dpopJKT := ""
+	if dpopProof != nil {
+		dpopJKT = dpopProof.JKT
+	}
 	deviceSecretHash := h.TokenService.IssueDeviceSecret(resp)
 	expiry, err := h.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
 	if err != nil {
 		return nil, err
 	}
-	offlineGrant, err = h.OfflineGrants.UpdateOfflineGrantDeviceSecretHash(offlineGrant.ID, deviceSecretHash, expiry)
+	offlineGrant, err = h.OfflineGrants.UpdateOfflineGrantDeviceSecretHash(
+		offlineGrant.ID,
+		deviceSecretHash,
+		dpopJKT,
+		expiry,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -405,6 +420,7 @@ func (h *TokenHandler) rotateDeviceSecret(
 }
 
 func (h *TokenHandler) rotateDeviceSecretIfDeviceSecretIsPresentAndValid(
+	ctx context.Context,
 	deviceSecret string,
 	authorizedScopes []string,
 	offlineGrant *oauth.OfflineGrant,
@@ -420,10 +436,11 @@ func (h *TokenHandler) rotateDeviceSecretIfDeviceSecretIsPresentAndValid(
 		return offlineGrant, false, nil
 	}
 
-	return h.rotateDeviceSecretIfSufficientScope(authorizedScopes, offlineGrant, resp)
+	return h.rotateDeviceSecretIfSufficientScope(ctx, authorizedScopes, offlineGrant, resp)
 }
 
 func (h *TokenHandler) rotateDeviceSecretIfSufficientScope(
+	ctx context.Context,
 	authorizedScopes []string,
 	offlineGrant *oauth.OfflineGrant,
 	resp protocol.TokenResponse) (*oauth.OfflineGrant, bool, error) {
@@ -432,7 +449,7 @@ func (h *TokenHandler) rotateDeviceSecretIfSufficientScope(
 		return offlineGrant, false, nil
 	}
 
-	newOfflineGrant, err := h.rotateDeviceSecret(offlineGrant, resp)
+	newOfflineGrant, err := h.rotateDeviceSecret(ctx, offlineGrant, resp)
 	if err != nil {
 		return nil, false, err
 	}
@@ -578,6 +595,7 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 }
 
 func (h *TokenHandler) handleRefreshToken(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (protocol.TokenResponse, error) {
@@ -598,7 +616,7 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, ErrInvalidRefreshToken
 	}
 
-	resp, err := h.issueTokensForRefreshToken(client, offlineGrantSession, authz)
+	resp, err := h.issueTokensForRefreshToken(ctx, client, offlineGrantSession, authz)
 	if err != nil {
 		return nil, err
 	}
@@ -621,12 +639,13 @@ func (h *TokenHandler) handleRefreshToken(
 }
 
 func (h *TokenHandler) handleTokenExchange(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
 	switch r.RequestedTokenType() {
 	case PreAuthenticatedURLTokenTokenType:
-		resp, err := h.handlePreAuthenticatedURLToken(client, r)
+		resp, err := h.handlePreAuthenticatedURLToken(ctx, client, r)
 		if err != nil {
 			return nil, err
 		}
@@ -692,6 +711,7 @@ func (h *TokenHandler) verifyIDTokenDeviceSecretHash(offlineGrant *oauth.Offline
 }
 
 func (h *TokenHandler) handlePreAuthenticatedURLToken(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (protocol.TokenResponse, error) {
@@ -781,6 +801,7 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 	resp.ExpiresIn(result.ExpiresIn)
 
 	offlineGrant, err = h.rotateDeviceSecret(
+		ctx,
 		offlineGrant,
 		resp,
 	)
@@ -1355,6 +1376,7 @@ func (h *TokenHandler) handleIDToken(
 	offlineGrantSession, ok := s.(*oauth.OfflineGrantSession)
 	if ok {
 		offlineGrant, _, err := h.rotateDeviceSecretIfDeviceSecretIsPresentAndValid(
+			req.Context(),
 			r.DeviceSecret(),
 			offlineGrantSession.Scopes,
 			offlineGrantSession.OfflineGrant,
@@ -1488,7 +1510,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 				}
 
 				// Rotate device_secret
-				offlineGrant, _, err = h.rotateDeviceSecretIfSufficientScope(scopes, offlineGrant, resp)
+				offlineGrant, _, err = h.rotateDeviceSecretIfSufficientScope(ctx, scopes, offlineGrant, resp)
 				if err != nil {
 					return nil, err
 				}
@@ -1668,6 +1690,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 }
 
 func (h *TokenHandler) issueTokensForRefreshToken(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	offlineGrantSession *oauth.OfflineGrantSession,
 	authz *oauth.Authorization,
@@ -1683,6 +1706,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 	resp := protocol.TokenResponse{}
 
 	offlineGrant, _, err := h.rotateDeviceSecretIfSufficientScope(
+		ctx,
 		offlineGrantSession.Scopes,
 		offlineGrantSession.OfflineGrant,
 		resp)

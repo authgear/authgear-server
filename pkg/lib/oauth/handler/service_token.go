@@ -104,6 +104,7 @@ func (s *TokenService) IssueOfflineGrant(
 	if opts.IssueDeviceSecret {
 		deviceSecretHash := s.IssueDeviceSecret(resp)
 		offlineGrant.DeviceSecretHash = deviceSecretHash
+		offlineGrant.DeviceSecretDPoPJKT = opts.DPoPJKT
 	}
 
 	if opts.App2AppDeviceKey != nil {

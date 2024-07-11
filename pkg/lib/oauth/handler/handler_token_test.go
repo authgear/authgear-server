@@ -188,7 +188,7 @@ func TestTokenHandler(t *testing.T) {
 				AnyTimes().
 				Return(time.Now(), nil)
 
-			offlineGrants.EXPECT().UpdateOfflineGrantDeviceSecretHash(testOfflineGrantID, gomock.Any(), gomock.Any()).
+			offlineGrants.EXPECT().UpdateOfflineGrantDeviceSecretHash(testOfflineGrantID, gomock.Any(), gomock.Any(), gomock.Any()).
 				AnyTimes().
 				Return(testOfflineGrant, nil)
 

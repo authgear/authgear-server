@@ -43,6 +43,7 @@ type OfflineGrant struct {
 
 	App2AppDeviceKeyJWKJSON string `json:"app2app_device_key_jwk_json"`
 	DeviceSecretHash        string `json:"device_secret_hash"`
+	DeviceSecretDPoPJKT     string `json:"device_secret_dpop_jkt"`
 
 	RefreshTokens []OfflineGrantRefreshToken `json:"refresh_tokens,omitempty"`
 

@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -55,6 +56,7 @@ type TesterService interface {
 
 type TesterAuthTokensIssuer interface {
 	IssueTokensForAuthorizationCode(
+		ctx context.Context,
 		client *config.OAuthClientConfig,
 		r protocol.TokenRequest,
 	) (protocol.TokenResponse, error)
@@ -166,7 +168,7 @@ func (h *TesterHandler) getData(
 	return data, nil
 }
 
-func (h *TesterHandler) doCodeExchange(code string, stateb64 string, w http.ResponseWriter, r *http.Request) error {
+func (h *TesterHandler) doCodeExchange(ctx context.Context, code string, stateb64 string, w http.ResponseWriter, r *http.Request) error {
 	statejson, err := base64.RawURLEncoding.DecodeString(stateb64)
 	if err != nil {
 		return err
@@ -189,6 +191,7 @@ func (h *TesterHandler) doCodeExchange(code string, stateb64 string, w http.Resp
 	tokenRequest["redirect_uri"] = h.TesterEndpointsProvider.TesterURL().String()
 
 	tokenResp, err := h.TesterTokenIssuer.IssueTokensForAuthorizationCode(
+		ctx,
 		client,
 		tokenRequest,
 	)
@@ -279,7 +282,7 @@ func (h *TesterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		code := r.URL.Query().Get("code")
 		state := r.URL.Query().Get("state")
 		if code != "" && state != "" {
-			return h.doCodeExchange(code, state, w, r)
+			return h.doCodeExchange(r.Context(), code, state, w, r)
 		}
 
 		resultID := r.URL.Query().Get("result")
