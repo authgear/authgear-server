@@ -14,22 +14,47 @@
   {{ $has_oauth := false }}
   {{ $has_login_id := false }}
   {{ $has_alternatives := false }}
+  {{ $show_captcha := false }}
   {{ range $.IdentityCandidates }}
     {{ if eq .type "oauth" }}
       {{ $has_oauth = true }}
       {{ $has_alternatives = true }}
+      {{ if $.OauthBotProtectionRequired }}
+        {{ $show_captcha = true  }}
+      {{ end }}
     {{ end }}
     {{ if eq .type "login_id" }}
       {{ $has_login_id = true }}
       {{ if not (eq .login_id_key $.LoginIDKey) }}
         {{ $has_alternatives = true }}
       {{ end }}
+      {{ if eq .login_id_key $.LoginIDKey }}
+        {{if eq .login_id_type "phone" }}{{ if $.PhoneLoginIDBotProtectionRequired }}
+          {{ $show_captcha = true  }}
+        {{ end }}{{ end }}
+        {{if eq .login_id_type "username" }}{{ if $.UsernameLoginIDBotProtectionRequired }}
+          {{ $show_captcha = true  }}
+        {{ end }}{{ end }}
+        {{if eq .login_id_type "email" }}{{ if $.EmailLoginIDBotProtectionRequired }}
+          {{ $show_captcha = true  }}
+        {{ end }}{{ end }}
+      {{ end }}
     {{ end }}
   {{ end }}
+  <!-- For signup login flow -->
+  {{ if $.PasskeyEnabled }}{{ if $.PasskeyBotProtectionRequired }}
+    {{ $show_captcha = true  }}
+  {{ end }}{{ end }}
+
   {{ $appName := (include "app.name" nil) }}
   {{ $clientName := or $.ClientName "null" }}
 
-  <div class="flex-1-0-auto">
+  <div 
+    class="flex-1-0-auto"
+    {{ if $show_captcha }}
+      {{ template "web/authflowv2/bot_protection_controller.html" . }}
+    {{ end }}
+  >
     <div class="screen-logo-layout">
       {{ template "authflowv2/__header.html" . }}
       <div class="screen-title-description">
@@ -85,6 +110,9 @@
     data-controller="{{ $formController }}"
     data-retain-form-form-id-value="auth-form">
     {{ $.CSRFField }}
+    {{ if $show_captcha }}
+      {{ template "web/authflowv2/bot_protection_form_input.html" . }}
+    {{ end }}
     <input type="hidden" name="q_login_id_key" value="{{ $.LoginIDKey }}">
     {{ range $.IdentityCandidates }}
     {{ if eq .type "login_id" }}{{ if eq .login_id_key $.LoginIDKey }}
@@ -135,6 +163,12 @@
         <input style="position: absolute; width: 0; height: 0;" aria-hidden="true" type="password" autocomplete="current-password" name="">
       </div>
     {{ end }}{{ end }}
+    {{ end }}
+    
+    {{ if $show_captcha }}
+      <div class="mt-4">
+        {{ template "web/authflowv2/bot_protection_widget.html" . }}
+      </div>
     {{ end }}
 
     {{ if $has_login_id }}
@@ -200,6 +234,9 @@
           {{- if not $skip -}}
             <form class="block" method="post" data-turbo="false" novalidate>
               {{ $.CSRFField }}
+              {{ if $show_captcha }}
+                {{ template "web/authflowv2/bot_protection_form_input.html" $ }}
+              {{ end }}
               <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
               <button
                 class="secondary-btn w-full"
@@ -244,6 +281,9 @@
           </button>
           <form class="hidden" method="post" novalidate>
             {{ $.CSRFField }}
+            {{ if $show_captcha }}
+              {{ template "web/authflowv2/bot_protection_form_input.html" . }}
+            {{ end }}
             <input type="hidden" name="x_assertion_response" data-authflow-passkey-request-target="input">
             <button type="submit" class="hidden" name="x_action" value="passkey" data-authflow-passkey-request-target="submit"></button>
           </form>
