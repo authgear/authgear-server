@@ -72,7 +72,12 @@
   {{ $appName := (translate "app.name" nil) }}
   {{ $clientName := or $.ClientName "null" }}
 
-  <div class="flex-1-0-auto">
+  <div 
+    class="flex-1-0-auto"
+    {{ if $show_captcha }}
+      {{ template "web/authflowv2/bot_protection_controller.html" . }}
+    {{ end }}
+  >
     <div class="screen-logo-layout">
       {{ template "authflowv2/__header.html" . }}
       <div class="screen-title-description">
@@ -115,7 +120,9 @@
       data-retain-form-form-id-value="auth-form">
       {{ $.CSRFField }}
       <input type="hidden" name="x_login_id_input_type" value="{{ $.LoginIDInputType }}"/>
-
+      {{ if $show_captcha }}
+        {{ template "web/authflowv2/bot_protection_form_input.html" . }}
+      {{ end }}
       {{ if (or $show_phone_input $show_text_input)}}
         <div data-controller="text-field" class="flex flex-col gap-2">
           {{ if $show_phone_input }}
@@ -238,6 +245,9 @@
             {{- if not $skip -}}
               <form class="block" method="post" data-turbo="false" novalidate>
                 {{ $.CSRFField }}
+                {{ if $show_captcha }}
+                  {{ template "web/authflowv2/bot_protection_form_input.html" $ }}
+                {{ end }}
                 <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
                 <button
                   class="secondary-btn w-full"
@@ -281,6 +291,9 @@
             </button>
             <form class="hidden" method="post" novalidate>
               {{ $.CSRFField }}
+              {{ if $show_captcha }}
+                {{ template "web/authflowv2/bot_protection_form_input.html" . }}
+              {{ end }}
               <input type="hidden" name="x_assertion_response" data-authflow-passkey-request-target="input">
               <button type="submit" class="hidden" name="x_action" value="passkey" data-authflow-passkey-request-target="submit"></button>
             </form>

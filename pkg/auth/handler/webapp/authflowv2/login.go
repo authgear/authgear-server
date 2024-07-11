@@ -104,13 +104,18 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		RedirectURI: h.Controller.RedirectURI(r),
 	}
 
-	oauthPostAction := func(s *webapp.Session, providerAlias string) error {
+	oauthPostAction := func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, providerAlias string) error {
 		callbackURL := h.Endpoints.SSOCallbackURL(providerAlias).String()
 		input := map[string]interface{}{
 			"identification": "oauth",
 			"alias":          providerAlias,
 			"redirect_uri":   callbackURL,
 			"response_mode":  oauthrelyingparty.ResponseModeFormPost,
+		}
+
+		err := HandleIdentificationBotProtection(authflow.FlowTypeLogin, config.AuthenticationFlowIdentificationOAuth, screen.StateTokenFlowResponse, r.Form, input)
+		if err != nil {
+			return err
 		}
 
 		result, err := h.Controller.ReplaceScreen(r, s, authflow.FlowTypeSignupLogin, input)
@@ -144,7 +149,7 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		// If there is error in the ErrorCookie, the user will stay in the login
 		// page to see the error message and the redirection won't be performed
 		if !hasErr && oauthProviderAlias != "" {
-			return oauthPostAction(s, oauthProviderAlias)
+			return oauthPostAction(s, screen, oauthProviderAlias)
 		}
 
 		data, err := h.GetData(w, r, screen, allowLoginOnly)
@@ -156,9 +161,9 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		return nil
 	})
 
-	handlers.PostAction("oauth", func(s *webapp.Session, _ *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("oauth", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		providerAlias := r.Form.Get("x_provider_alias")
-		return oauthPostAction(s, providerAlias)
+		return oauthPostAction(s, screen, providerAlias)
 	})
 
 	handlers.PostAction("login_id", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
@@ -173,6 +178,11 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		input := map[string]interface{}{
 			"identification": identification,
 			"login_id":       loginID,
+		}
+
+		err = HandleIdentificationBotProtection(authflow.FlowTypeLogin, identification, screen.StateTokenFlowResponse, r.Form, input)
+		if err != nil {
+			return err
 		}
 
 		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
@@ -196,6 +206,11 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		input := map[string]interface{}{
 			"identification":     "passkey",
 			"assertion_response": assertionResponseJSON,
+		}
+
+		err = HandleIdentificationBotProtection(authflow.FlowTypeLogin, config.AuthenticationFlowIdentificationPasskey, screen.StateTokenFlowResponse, r.Form, input)
+		if err != nil {
+			return err
 		}
 
 		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
