@@ -15,6 +15,7 @@
   {{ $has_alternatives := false }}
   {{ $show_use_text_login_id_option := false }}
   {{ $show_use_phone_login_id_option := false }}
+  {{ $show_captcha := false }}
   {{ range $.IdentityCandidates }}
     {{ if eq .type "oauth" }}
       {{ $has_alternatives = true }}
@@ -48,6 +49,26 @@
     {{ $show_text_input = true }}
   {{ end }}{{ end }}{{ end }}
 
+  {{ if $show_phone_input }}{{ if $.PhoneLoginIDBotProtectionRequired }}
+    {{ $show_captcha = true  }}
+  {{ end }}{{ end }}
+
+  {{ if $show_text_input }}{{ if (or $.UsernameLoginIDBotProtectionRequired $.EmailLoginIDBotProtectionRequired )}}
+    {{ $show_captcha = true  }}
+  {{ end }}{{ end }}
+  
+  {{ if $.PasskeyEnabled }}{{ if $.PasskeyBotProtectionRequired }}
+    {{ $show_captcha = true  }}
+  {{ end }}{{ end }}
+
+  {{ range $.IdentityCandidates }}
+    {{ if eq .type "oauth" }}
+      {{ if $.OauthBotProtectionRequired }}
+        {{ $show_captcha = true  }}
+      {{ end }}
+    {{ end }}
+  {{ end }}
+  
   {{ $appName := (translate "app.name" nil) }}
   {{ $clientName := or $.ClientName "null" }}
 
@@ -144,6 +165,10 @@
           <input style="position: absolute; width: 0; height: 0;" aria-hidden="true" type="password" autocomplete="current-password" name="">
         </div>
       {{ end }}
+      
+      {{ if $show_captcha }}
+        {{ template "web/authflowv2/bot_protection_widget.html" . }}
+      {{ end}}
 
       {{ if $has_login_id }}
         <button
