@@ -1,4 +1,4 @@
-{{ if $.BotProtectionRequired }}
+{{ if $.BotProtectionEnabled }}
   {{ if (eq $.BotProtectionProviderType "cloudflare") }}
     <script nonce="{{ $.CSPNonce }}" src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
   {{ else if (eq $.BotProtectionProviderType "recaptchav2" )}}
