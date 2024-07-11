@@ -45,6 +45,8 @@ WORKDIR /usr/src/app
 COPY ./scripts/npm/package.json ./scripts/npm/package-lock.json ./scripts/npm/
 RUN cd ./scripts/npm && npm ci
 COPY ./authui/package.json ./authui/package-lock.json ./authui/
+# See /authui/README.md for the reason why we need to copy tarballs.
+COPY ./authui/tarballs/. ./authui/tarballs/.
 RUN cd ./authui && npm ci
 COPY . .
 RUN make authui GIT_HASH=$GIT_HASH
