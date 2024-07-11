@@ -17,7 +17,7 @@ export class CloudflareTurnstileController extends Controller {
   declare siteKeyValue: string;
   declare themeValue: string;
   declare widgetTarget: HTMLDivElement;
-  declare tokenInputTarget: HTMLInputElement;
+  declare tokenInputTargets: HTMLInputElement[];
 
   connect() {
     window.turnstile.ready(() => {
@@ -25,7 +25,12 @@ export class CloudflareTurnstileController extends Controller {
         sitekey: this.siteKeyValue,
         theme: this.themeValue,
         callback: (token: string) => {
-          this.tokenInputTarget.value = token;
+          for (const tokenInput of this.tokenInputTargets) {
+            tokenInput.value = token;
+          }
+        },
+        "error-callback": () => {
+          // TODO: confirm handling; maybe no need to do anything?
         },
       });
     });

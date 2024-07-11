@@ -1,0 +1,12 @@
+{{ $cloudflareTurnstileWidgetTheme := "light" }}
+{{ $recaptchav2WidgetTheme := "light" }}
+{{ if $.DarkThemeEnabled }}
+ {{ $cloudflareTurnstileWidgetTheme = "dark" }}
+ {{ $recaptchav2WidgetTheme = "dark" }}
+{{ end }}
+
+{{ if (eq $.BotProtectionProviderType "cloudflare" ) }}
+  data-controller="cloudflare-turnstile" data-cloudflare-turnstile-site-key-value="{{$.BotProtectionProviderSiteKey}}" data-cloudflare-turnstile-theme-value="{{$cloudflareTurnstileWidgetTheme}}"
+{{ else if (eq $.BotProtectionProviderType "recaptchav2" ) }}
+  data-controller="recaptcha-v2" data-recaptcha-v2-site-key-value="{{$.BotProtectionProviderSiteKey}}" data-recaptcha-v2-theme-value="{{$recaptchav2WidgetTheme}}"
+{{ end }}
