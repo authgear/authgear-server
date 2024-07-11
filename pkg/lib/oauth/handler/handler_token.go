@@ -689,7 +689,7 @@ func (h *TokenHandler) resolveIDTokenSession(idToken jwt.Token) (sidSession sess
 	return sidSession, true, nil
 }
 
-func (h *TokenHandler) verifyIDTokenDeviceSecretHash(offlineGrant *oauth.OfflineGrant, idToken jwt.Token, deviceSecret string) error {
+func (h *TokenHandler) verifyIDTokenDeviceSecretHash(ctx context.Context, offlineGrant *oauth.OfflineGrant, idToken jwt.Token, deviceSecret string) error {
 	// Always do all checks to ensure this method consumes constant time
 	var err error = nil
 	deviceSecretHash := oauth.HashToken(deviceSecret)
@@ -706,6 +706,12 @@ func (h *TokenHandler) verifyIDTokenDeviceSecretHash(offlineGrant *oauth.Offline
 	}
 	if subtle.ConstantTimeCompare([]byte(offlineGrant.DeviceSecretHash), []byte(deviceSecretHash)) != 1 {
 		err = protocol.NewError("invalid_grant", "the device_secret (actor_token) does not bind to the session")
+	}
+	dpopProof := dpop.GetDPoPProof(ctx)
+	if offlineGrant.DeviceSecretDPoPJKT != "" {
+		if dpopProof == nil || dpopProof.JKT != offlineGrant.DeviceSecretDPoPJKT {
+			err = ErrInvalidDPoPKeyBinding
+		}
 	}
 	return err
 }
@@ -759,7 +765,7 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 		return nil, protocol.NewError("insufficient_scope", "pre-authenticated url is not allowed for this session")
 	}
 
-	err = h.verifyIDTokenDeviceSecretHash(offlineGrant, idToken, deviceSecret)
+	err = h.verifyIDTokenDeviceSecretHash(ctx, offlineGrant, idToken, deviceSecret)
 	if err != nil {
 		return nil, err
 	}
