@@ -219,7 +219,7 @@ type IDTokenService interface {
 }
 
 type LoginIDService interface {
-	Normalize(typ model.LoginIDKeyType, value string) (normalized string, uniqueKey string, err error)
+	CheckAndNormalize(spec identity.LoginIDSpec) (normalized string, uniqueKey string, err error)
 }
 
 type Dependencies struct {

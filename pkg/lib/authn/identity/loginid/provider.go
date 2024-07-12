@@ -100,7 +100,30 @@ func (p *Provider) GetMany(ids []string) ([]*identity.LoginID, error) {
 	return p.Store.GetMany(ids)
 }
 
-func (p *Provider) Normalize(typ model.LoginIDKeyType, value string) (normalized string, uniqueKey string, err error) {
+func (p *Provider) CheckAndNormalize(spec identity.LoginIDSpec) (normalized string, uniqueKey string, err error) {
+	err = p.Checker.ValidateOne(spec, CheckerOptions{
+		// Bypass blocklist allowlist in checking and normalizing value.
+		EmailByPassBlocklistAllowlist: true,
+	})
+	if err != nil {
+		return
+	}
+
+	normalizer := p.NormalizerFactory.NormalizerWithLoginIDType(spec.Type)
+	normalized, err = normalizer.Normalize(spec.Value)
+	if err != nil {
+		return
+	}
+
+	uniqueKey, err = normalizer.ComputeUniqueKey(normalized)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (p *Provider) normalize(typ model.LoginIDKeyType, value string) (normalized string, uniqueKey string, err error) {
 	normalizer := p.NormalizerFactory.NormalizerWithLoginIDType(typ)
 	normalized, err = normalizer.Normalize(value)
 	if err != nil {
@@ -125,7 +148,7 @@ func (p *Provider) New(userID string, spec identity.LoginIDSpec, options Checker
 		return nil, err
 	}
 
-	normalized, uniqueKey, err := p.Normalize(spec.Type, spec.Value)
+	normalized, uniqueKey, err := p.normalize(spec.Type, spec.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +184,7 @@ func (p *Provider) WithValue(iden *identity.LoginID, value string, options Check
 		return nil, err
 	}
 
-	normalized, uniqueKey, err := p.Normalize(spec.Type, spec.Value)
+	normalized, uniqueKey, err := p.normalize(spec.Type, spec.Value)
 	if err != nil {
 		return nil, err
 	}
