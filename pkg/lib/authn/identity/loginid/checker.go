@@ -71,12 +71,3 @@ func (c *Checker) LoginIDKeyClaimName(loginIDKey string) (string, bool) {
 
 	return "", false
 }
-
-func (c *Checker) CheckType(loginIDKey string, t model.LoginIDKeyType) bool {
-	for _, keyConfig := range c.Config.Keys {
-		if keyConfig.Key == loginIDKey {
-			return keyConfig.Type == t
-		}
-	}
-	return false
-}
