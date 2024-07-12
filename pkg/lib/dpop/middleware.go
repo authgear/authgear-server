@@ -36,13 +36,13 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 			return
 		}
 
-		if err := m.DPoPProvider.CompareHTU(proof, r.URL); err != nil {
+		if err := m.DPoPProvider.CompareHTU(proof, r); err != nil {
 			m.handleError(rw, err)
 			return
 		}
 
 		WithDPoPProof(r.Context(), proof)
-
+		next.ServeHTTP(rw, r)
 	})
 }
 

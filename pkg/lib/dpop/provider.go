@@ -4,6 +4,7 @@ import (
 	"crypto"
 	"encoding/base64"
 	"encoding/json"
+	"net/http"
 	"net/url"
 	"strings"
 	"time"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 )
 
@@ -26,7 +28,9 @@ func (c jwtClock) Now() time.Time {
 }
 
 type Provider struct {
-	Clock clock.Clock
+	Clock     clock.Clock
+	HTTPHost  httputil.HTTPHost
+	HTTPProto httputil.HTTPProto
 }
 
 const (
@@ -78,10 +82,7 @@ func (p *Provider) ParseProof(jwtStr string) (*DPoPProof, error) {
 		return nil, ErrInvalidJwtNoJwkProvided
 	}
 
-	// Verify the signature
-	set := jwk.NewSet()
-	_ = set.AddKey(key)
-	_, err = jws.Verify(jwtBytes, jws.WithKeySet(set))
+	_, err = jws.Verify(jwtBytes, jws.WithKey(hdr.Algorithm(), key))
 	if err != nil {
 		return nil, ErrInvalidJwtSignature
 	}
@@ -137,17 +138,15 @@ func (p *Provider) ParseProof(jwtStr string) (*DPoPProof, error) {
 	}, nil
 }
 
-func (p *Provider) CompareHTU(proof *DPoPProof, requestURI *url.URL) error {
-	if proof.HTU.Scheme != requestURI.Scheme {
+func (p *Provider) CompareHTU(proof *DPoPProof, req *http.Request) error {
+	// req.URL does not have scheme and host, compare using HTTPProto and HTTPHost
+	if proof.HTU.Scheme != string(p.HTTPProto) {
 		return ErrUnmatchedURI
 	}
-	if proof.HTU.Opaque != requestURI.Opaque {
+	if proof.HTU.Host != string(p.HTTPHost) {
 		return ErrUnmatchedURI
 	}
-	if proof.HTU.Host != requestURI.Host {
-		return ErrUnmatchedURI
-	}
-	if proof.HTU.Path != requestURI.Path {
+	if proof.HTU.Path != req.URL.Path {
 		return ErrUnmatchedURI
 	}
 	return nil
