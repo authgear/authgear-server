@@ -25,8 +25,17 @@ func TestLegalParser(t *testing.T) {
 			tooShort := "+85222"
 			So(parser.CheckE164(tooShort), ShouldBeNil)
 
+			plus := "+"
+			So(parser.CheckE164(plus), ShouldBeError, "not in E.164 format")
+
+			plusCountryCode := "+852"
+			So(parser.CheckE164(plusCountryCode), ShouldBeError, "not in E.164 format")
+
 			nonsense := "a"
-			So(parser.CheckE164(nonsense), ShouldNotBeNil)
+			So(parser.CheckE164(nonsense), ShouldBeError, "not in E.164 format")
+
+			empty := ""
+			So(parser.CheckE164(empty), ShouldBeError, "not in E.164 format")
 		})
 	})
 }

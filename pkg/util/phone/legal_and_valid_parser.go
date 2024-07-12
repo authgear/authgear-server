@@ -18,6 +18,7 @@ func (p *legalAndValidParser) ParseInputPhoneNumber(phone string) (e164 string, 
 	}
 	num, err := phonenumbers.Parse(phone, "")
 	if err != nil {
+		err = ErrNotInE164Format
 		return
 	}
 	isPhoneValid := phonenumbers.IsValidNumber(num)
