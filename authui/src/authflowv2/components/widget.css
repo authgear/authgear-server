@@ -38,7 +38,7 @@
   .widget-content {
     @apply relative;
     @apply h-full w-full;
-    @apply px-6 pt-6 pb-10;
+    @apply px-6 pt-8 pb-10;
     @apply flex flex-col;
     @apply self-center;
     max-width: var(--widget__max-width);
