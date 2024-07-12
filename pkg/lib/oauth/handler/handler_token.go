@@ -1355,6 +1355,9 @@ func (h *TokenHandler) handleApp2AppRequest(
 		IDTokenHintSID:       "",
 		RedirectURI:          redirectURI.String(),
 		AuthorizationRequest: artificialAuthorizationRequest,
+		// App2app does not support DPoP
+		// because the app which uses the code may not share the same storage with the app which issues the code
+		DPoPJKT: "",
 	})
 	if err != nil {
 		return nil, err
