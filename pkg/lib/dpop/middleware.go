@@ -1,7 +1,7 @@
 package dpop
 
 import (
-	"fmt"
+	"encoding/json"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -49,7 +49,15 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 func (m *Middleware) handleError(rw http.ResponseWriter, err error) {
 	if apierrors.IsAPIError(err) {
 		apierr := apierrors.AsAPIError(err)
-		http.Error(rw, fmt.Sprintf("%s:%s", apierr.Reason, apierr.Message), apierr.Name.HTTPStatus())
+		rw.Header().Set("Content-Type", "application/json")
+		rw.Header().Set("Cache-Control", "no-store")
+		rw.Header().Set("Pragma", "no-cache")
+		errJson := map[string]string{
+			"error":             "invalid_token",
+			"error_description": apierr.Message,
+		}
+		errJsonStr, _ := json.Marshal(errJson)
+		http.Error(rw, string(errJsonStr), apierr.Name.HTTPStatus())
 		return
 	} else {
 		panic(err)
