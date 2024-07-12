@@ -666,10 +666,16 @@ const DesignScreen: React.VFC = function DesignScreen() {
           "min-h-0",
           "flex-1",
           "flex",
-          "tablet:flex-col-reverse",
+          "flex-row-reverse",
+          "tablet:flex-col",
           "tablet:overflow-auto"
         )}
       >
+        <div className={cn("p-6", "pt-4", "desktop:overflow-auto")}>
+          <div className={cn("desktop:w-80")}>
+            <ConfigurationPanel appID={appID} designForm={form} />
+          </div>
+        </div>
         <div className={cn("desktop:flex-1", "h-full", "p-6", "pt-4")}>
           <div
             className={cn(
@@ -687,11 +693,6 @@ const DesignScreen: React.VFC = function DesignScreen() {
               effectiveAppConfig={effectiveAppConfig}
               designForm={form}
             />
-          </div>
-        </div>
-        <div className={cn("p-6", "pt-4", "desktop:overflow-auto")}>
-          <div className={cn("desktop:w-80")}>
-            <ConfigurationPanel appID={appID} designForm={form} />
           </div>
         </div>
       </div>
