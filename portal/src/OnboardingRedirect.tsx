@@ -30,11 +30,17 @@ const OnboardingRedirect: React.VFC = function OnboardingRedirect() {
     if (viewer === undefined || viewer === null) {
       return;
     }
-    if (
-      (apps === null || apps.length === 0) &&
-      !viewer.isOnboardingSurveyCompleted
-    ) {
-      navigate("/onboarding-survey");
+    // NOTE(onboarding-survey): disabled
+    //if (
+    //  (apps === null || apps.length === 0) &&
+    //  !viewer.isOnboardingSurveyCompleted
+    //) {
+    //  navigate("/onboarding-survey");
+    //} else {
+    //  navigate("/");
+    //}
+    if (apps === null || apps.length === 0) {
+      navigate("/projects/create");
     } else {
       navigate("/");
     }
