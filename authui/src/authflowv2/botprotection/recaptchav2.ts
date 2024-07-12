@@ -34,6 +34,10 @@ export class RecaptchaV2Controller extends Controller {
           // TODO: confirm handling; maybe no need to do anything?
         },
       });
+      for (let i = 0; i < this.widgetTarget.children.length; i++) {
+        const widget = this.widgetTarget.children[i];
+        widget.classList.add("flex");
+      }
     };
   }
 }
