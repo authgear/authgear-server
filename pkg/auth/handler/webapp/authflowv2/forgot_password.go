@@ -260,19 +260,8 @@ func (h *AuthflowV2ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		return nil
 	})
 
-	identification := r.URL.Query().Get("q_login_id_input_type")
-	loginID := r.URL.Query().Get("q_login_id")
 
-	var input interface{} = nil
-
-	if identification != "" && loginID != "" {
-		input = map[string]interface{}{
-			"identification": identification,
-			"login_id":       loginID,
-		}
-	}
-
-	h.Controller.HandleStartOfFlow(w, r, webapp.SessionOptions{}, authflow.FlowTypeAccountRecovery, &handlers, input)
+	h.Controller.HandleStartOfFlow(w, r, webapp.SessionOptions{}, authflow.FlowTypeAccountRecovery, &handlers, nil)
 }
 
 func (h *AuthflowV2ForgotPasswordHandler) fallbackToSMS(
