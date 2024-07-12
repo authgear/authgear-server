@@ -75,7 +75,6 @@ type AuthFlowV2ForgotPasswordViewModel struct {
 	PhoneLoginIDEnabled  bool
 	EmailLoginIDEnabled  bool
 	LoginIDDisabled      bool
-	OTPForm              string
 	RequiresLoginIDInput bool
 	Alternatives         []*AuthFlowV2ForgotPasswordAlternative
 }
@@ -156,14 +155,8 @@ func NewAuthFlowV2ForgotPasswordViewModel(
 
 	loginIDDisabled := !phoneLoginIDEnabled && !emailLoginIDEnabled
 
-	otpForm := ""
 	if selectDestinationScreen != nil {
 		requiresLoginIDInput = false
-		data2, ok := selectDestinationScreen.StateTokenFlowResponse.Action.
-			Data.(declarative.IntentAccountRecoveryFlowStepSelectDestinationData)
-		if ok && len(data2.Options) > 0 {
-			otpForm = string(data2.Options[0].OTPForm)
-		}
 	}
 
 	alternatives := deriveForgotPasswordAlternatives(
@@ -179,7 +172,6 @@ func NewAuthFlowV2ForgotPasswordViewModel(
 		PhoneLoginIDEnabled:  phoneLoginIDEnabled,
 		EmailLoginIDEnabled:  emailLoginIDEnabled,
 		LoginIDDisabled:      loginIDDisabled,
-		OTPForm:              otpForm,
 		RequiresLoginIDInput: requiresLoginIDInput,
 		Alternatives:         alternatives,
 	}
