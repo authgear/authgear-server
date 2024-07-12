@@ -131,8 +131,8 @@ func (p *Provider) New(userID string, spec identity.LoginIDSpec, options Checker
 	}
 
 	claims := make(map[string]interface{})
-	if claimName, ok := p.Checker.LoginIDKeyClaimName(spec.Key); ok {
-		claims[claimName] = normalized
+	if claimName, ok := model.GetLoginIDKeyTypeClaim(spec.Type); ok {
+		claims[string(claimName)] = normalized
 	}
 
 	iden := &identity.LoginID{
@@ -167,8 +167,8 @@ func (p *Provider) WithValue(iden *identity.LoginID, value string, options Check
 	}
 
 	claims := make(map[string]interface{})
-	if claimName, ok := p.Checker.LoginIDKeyClaimName(spec.Key); ok {
-		claims[claimName] = normalized
+	if claimName, ok := model.GetLoginIDKeyTypeClaim(spec.Type); ok {
+		claims[string(claimName)] = normalized
 	}
 
 	newIden := *iden
