@@ -41,7 +41,7 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 			return
 		}
 
-		WithDPoPProof(r.Context(), proof)
+		r = r.WithContext(WithDPoPProof(r.Context(), proof))
 		next.ServeHTTP(rw, r)
 	})
 }
