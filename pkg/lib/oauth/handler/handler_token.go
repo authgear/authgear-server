@@ -521,6 +521,13 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 		return nil, err
 	}
 
+	if codeGrant.DPoPJKT != "" {
+		dpopProof := dpop.GetDPoPProof(ctx)
+		if dpopProof == nil || dpopProof.JKT != codeGrant.DPoPJKT {
+			return nil, ErrInvalidDPoPKeyBinding
+		}
+	}
+
 	// Restore uiparam
 	uiInfo, _, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(client, codeGrant.AuthorizationRequest)
 	if err != nil {
