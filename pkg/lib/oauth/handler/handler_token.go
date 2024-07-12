@@ -397,11 +397,8 @@ func (h *TokenHandler) rotateDeviceSecret(
 	ctx context.Context,
 	offlineGrant *oauth.OfflineGrant,
 	resp protocol.TokenResponse) (*oauth.OfflineGrant, error) {
-	dpopProof := dpop.GetDPoPProof(ctx)
-	dpopJKT := ""
-	if dpopProof != nil {
-		dpopJKT = dpopProof.JKT
-	}
+	dpopJKT, _ := dpop.GetDPoPProofJKT(ctx)
+
 	deviceSecretHash := h.TokenService.IssueDeviceSecret(resp)
 	expiry, err := h.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
 	if err != nil {
@@ -937,11 +934,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 
 	issueDeviceToken := h.shouldIssueDeviceSecret(scopes)
 
-	dpopProof := dpop.GetDPoPProof(ctx)
-	dpopJKT := ""
-	if dpopProof != nil {
-		dpopJKT = dpopProof.JKT
-	}
+	dpopJKT, _ := dpop.GetDPoPProofJKT(ctx)
 
 	// SSOEnabled is false for refresh tokens that are granted by anonymous login
 	opts := IssueOfflineGrantOptions{
@@ -1178,11 +1171,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		}
 	}
 
-	dpopProof := dpop.GetDPoPProof(ctx)
-	dpopJKT := ""
-	if dpopProof != nil {
-		dpopJKT = dpopProof.JKT
-	}
+	dpopJKT, _ := dpop.GetDPoPProofJKT(ctx)
 
 	resp := protocol.TokenResponse{}
 
@@ -1542,11 +1531,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		}
 	}
 
-	dpopProof := dpop.GetDPoPProof(ctx)
-	dpopJKT := ""
-	if dpopProof != nil {
-		dpopJKT = dpopProof.JKT
-	}
+	dpopJKT, _ := dpop.GetDPoPProofJKT(ctx)
 
 	// As required by the spec, we must include access_token.
 	// If we issue refresh token, then access token is just the access token of the refresh token.

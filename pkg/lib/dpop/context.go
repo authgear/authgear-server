@@ -31,3 +31,11 @@ func GetDPoPProof(ctx context.Context) *DPoPProof {
 	}
 	return actx.DPoPProof
 }
+
+func GetDPoPProofJKT(ctx context.Context) (string, bool) {
+	actx := getContext(ctx)
+	if actx == nil || actx.DPoPProof == nil {
+		return "", false
+	}
+	return actx.DPoPProof.JKT, true
+}
