@@ -1,7 +1,6 @@
 package loginid
 
 import (
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -51,32 +50,4 @@ func (c *Checker) validateOne(ctx *validation.Context, loginID identity.LoginIDS
 	}
 
 	c.TypeCheckerFactory.NewChecker(loginID.Type, options).Validate(originCtx, loginID.Value)
-}
-
-func (c *Checker) LoginIDKeyClaimName(loginIDKey string) (string, bool) {
-	for _, keyConfig := range c.Config.Keys {
-		if keyConfig.Key == loginIDKey {
-			switch keyConfig.Type {
-			case model.LoginIDKeyTypeEmail:
-				return identity.StandardClaimEmail, true
-			case model.LoginIDKeyTypePhone:
-				return identity.StandardClaimPhoneNumber, true
-			case model.LoginIDKeyTypeUsername:
-				return identity.StandardClaimPreferredUsername, true
-			default:
-				return "", false
-			}
-		}
-	}
-
-	return "", false
-}
-
-func (c *Checker) CheckType(loginIDKey string, t model.LoginIDKeyType) bool {
-	for _, keyConfig := range c.Config.Keys {
-		if keyConfig.Key == loginIDKey {
-			return keyConfig.Type == t
-		}
-	}
-	return false
 }

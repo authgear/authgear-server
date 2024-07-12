@@ -182,13 +182,13 @@ func (i *Info) DisplayID() string {
 	case model.IdentityTypeLoginID:
 		return i.LoginID.OriginalLoginID
 	case model.IdentityTypeOAuth:
-		if email, ok := i.OAuth.Claims[StandardClaimEmail].(string); ok {
+		if email, ok := i.OAuth.Claims[string(model.ClaimEmail)].(string); ok {
 			return email
 		}
-		if phoneNumber, ok := i.OAuth.Claims[StandardClaimPhoneNumber].(string); ok {
+		if phoneNumber, ok := i.OAuth.Claims[string(model.ClaimPhoneNumber)].(string); ok {
 			return phoneNumber
 		}
-		if preferredUsername, ok := i.OAuth.Claims[StandardClaimPreferredUsername].(string); ok {
+		if preferredUsername, ok := i.OAuth.Claims[string(model.ClaimPreferredUsername)].(string); ok {
 			return preferredUsername
 		}
 		return ""
@@ -219,7 +219,7 @@ func (i *Info) IdentityAwareStandardClaims() map[model.ClaimName]string {
 			claims[claimName] = loginIDValue
 		}
 	case model.IdentityTypeOAuth:
-		if email, ok := i.OAuth.Claims[StandardClaimEmail].(string); ok {
+		if email, ok := i.OAuth.Claims[string(model.ClaimEmail)].(string); ok {
 			claims[model.ClaimEmail] = email
 		}
 	case model.IdentityTypeAnonymous:
