@@ -29,6 +29,10 @@ type Provider struct {
 	Clock clock.Clock
 }
 
+const (
+	DPoPJWTTyp = "dpop+jwt"
+)
+
 func (p *Provider) ParseProof(jwtStr string) (*DPoPProof, error) {
 	jwtBytes := []byte(jwtStr)
 	now := p.Clock.NowUTC()
@@ -92,6 +96,10 @@ func (p *Provider) ParseProof(jwtStr string) (*DPoPProof, error) {
 			return "", false
 		}
 		return valStr, true
+	}
+
+	if hdr.Type() != DPoPJWTTyp {
+		return nil, ErrInvalidJwtType
 	}
 
 	jti, ok := getPayloadAsString("jti")

@@ -6,6 +6,7 @@ var InvalidDPoPProof = apierrors.BadRequest.WithReason("InvalidDPoPProof")
 
 var ErrMalformedJwt = InvalidDPoPProof.New("malformed jwt")
 var ErrInvalidJwt = InvalidDPoPProof.New("invalid jwt")
+var ErrInvalidJwtType = InvalidDPoPProof.New("invalid jwt typ")
 var ErrInvalidJwtPayload = InvalidDPoPProof.New("invalid jwt payload")
 var ErrInvalidJwtSignature = InvalidDPoPProof.New("invalid jwt signature")
 var ErrInvalidJwtNoJwkProvided = InvalidDPoPProof.New("jwk not provided in jwt")
