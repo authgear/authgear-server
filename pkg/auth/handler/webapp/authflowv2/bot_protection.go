@@ -50,3 +50,19 @@ func HandleIdentificationBotProtection(flowType authflow.FlowType, identificatio
 	}
 	return
 }
+
+func HandleAccountRecoveryIdentificationBotProtection(identification config.AuthenticationFlowAccountRecoveryIdentification, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
+	bpRequired, err := webapp.IsAccountRecoveryIdentifyStepBotProtectionRequired(identification, flowResp)
+	// TODO: confirm what err to return here (identification type not found)
+	if err != nil {
+		return err
+	}
+	if bpRequired {
+		err = validateBotProtectionInput(formData)
+		if err != nil {
+			return err
+		}
+		insertBotProtection(formData, input)
+	}
+	return
+}

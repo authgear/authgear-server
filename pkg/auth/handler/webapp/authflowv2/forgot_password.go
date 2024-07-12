@@ -245,6 +245,13 @@ func (h *AuthflowV2ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *ht
 
 		inputs := h.makeInputs(screen, identification, loginID, 0)
 
+		for _, input := range inputs {
+			err = HandleAccountRecoveryIdentificationBotProtection(config.AuthenticationFlowAccountRecoveryIdentification(identification), screen.StateTokenFlowResponse, r.Form, input)
+			if err != nil {
+				return err
+			}
+		}
+
 		result, err := h.Controller.AdvanceWithInputs(r, s, screen, inputs, nil)
 		if errors.Is(err, otp.ErrInvalidWhatsappUser) {
 			// The code failed to send because it is not a valid whatsapp user
