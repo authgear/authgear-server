@@ -12,6 +12,7 @@
     + [Set up HTTPS to develop some specific features](#set-up-https-to-develop-some-specific-features)
     + [Create release tag for a deployment](#create-release-tag-for-a-deployment)
     + [Keep dependencies up-to-date](#keep-dependencies-up-to-date)
+    + [Generate Translation](#generate-translation)
 
 # Contributing guide
 
@@ -331,3 +332,42 @@ Various files in this project have versioned dependencies.
   - Download the latest versions from https://github.com/13rac1/twemoji-color-font and https://github.com/mozilla/twemoji-colr
   - Also need to update `.ttf` and `.gitcommit`
   - Run `make generate-twemoji-icons` again after update
+
+## Generate translation
+
+Scripts are located at `scripts/python/generate_translations.py`.
+
+1. Add translation to your `base_language` `translation.json` file. `base_language` is defaulted as `en`
+
+```diff
+# resources/authgear/templates/en/translation.json
+     "v2-error-phone-number-format": "Incorrect phone number format.",
++++  "v2-error-new-error": "Translate me"
+```
+
+2. Obtain your Anthropic api key. The translation is performed via `claude-3-sonnet-20240229` model
+
+   If you are located in regions blocked by Anthropic, please make use of a VPN to access the holy Anthropic API.
+
+3. Generate translations
+
+```bash
+make -C scripts/python generate-translations ANTHROPIC_API_KEY=<REPLACE_ME>
+```
+
+4. You should see
+
+```log
+python -m venv venv
+...
+2024-07-12 16:34:45,060 - INFO - ja | Translation result: {
+  "v2-error-new-error": "私を翻訳する",
+}
+2024-07-12 16:34:45,060 - INFO - ja | Finished translation of chunk 1/1
+2024-07-12 16:34:45,068 - INFO - ja | Updated ../../resources/authgear/templates/ja/translation.json with latest keys.
+2024-07-12 16:34:45,068 - INFO - ja | Updating ../../resources/authgear/templates/ja/messages/translation.json with latest keys.
+2024-07-12 16:34:45,069 - INFO - ja | Found 0 missing keys in ../../resources/authgear/templates/ja/messages/translation.json.
+2024-07-12 16:34:45,071 - INFO - ja | Updated ../../resources/authgear/templates/ja/messages/translation.json with latest keys.
+2024-07-12 16:34:45,071 - INFO - ja | Finished translation for ja (Japanese)
+... 
+```
