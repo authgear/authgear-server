@@ -773,6 +773,7 @@ func (h *AuthorizationHandler) generateCodeResponse(
 		IDTokenHintSID:       idTokenHintSID,
 		RedirectURI:          redirectURI,
 		AuthorizationRequest: r,
+		DPoPJKT:              r.DPoPJKT(),
 	})
 	if err != nil {
 		return err

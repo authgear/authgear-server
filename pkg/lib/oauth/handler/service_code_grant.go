@@ -25,6 +25,7 @@ type CreateCodeGrantOptions struct {
 	IDTokenHintSID       string
 	RedirectURI          string
 	AuthorizationRequest protocol.AuthorizationRequest
+	DPoPJKT              string
 }
 
 func (s *CodeGrantService) CreateCodeGrant(opts *CreateCodeGrantOptions) (code string, grant *oauth.CodeGrant, err error) {
@@ -40,6 +41,7 @@ func (s *CodeGrantService) CreateCodeGrant(opts *CreateCodeGrantOptions) (code s
 		CreatedAt: s.Clock.NowUTC(),
 		ExpireAt:  s.Clock.NowUTC().Add(CodeGrantValidDuration),
 		CodeHash:  codeHash,
+		DPoPJKT:   opts.DPoPJKT,
 
 		RedirectURI:          opts.RedirectURI,
 		AuthorizationRequest: opts.AuthorizationRequest,

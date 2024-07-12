@@ -16,6 +16,7 @@ type CodeGrant struct {
 	CreatedAt time.Time `json:"created_at"`
 	ExpireAt  time.Time `json:"expire_at"`
 	CodeHash  string    `json:"code_hash"`
+	DPoPJKT   string    `json:"dpop_jkt"`
 
 	RedirectURI          string                        `json:"redirect_uri"`
 	AuthorizationRequest protocol.AuthorizationRequest `json:"authorization_request"`
