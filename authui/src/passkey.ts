@@ -423,7 +423,6 @@ export class AuthflowPasskeyRequestController extends Controller {
   declare hasButtonTarget: boolean;
 
   connect() {
-    this.buttonTarget.disabled = false;
     // Disable the button if PublicKeyCredential is unavailable.
     if (!passkeyIsAvailable()) {
       if (this.hasButtonTarget) {
@@ -491,7 +490,6 @@ export class AuthflowPasskeyCreationController extends Controller {
   declare optionsValue: string;
 
   connect() {
-    this.buttonTarget.disabled = false;
     // Disable the button if PublicKeyCredential is unavailable.
     if (!passkeyIsAvailable()) {
       if (this.hasButtonTarget) {
