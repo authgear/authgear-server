@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useEffect } from "react";
+import React, { useCallback, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { DefaultEffects, Text } from "@fluentui/react";
@@ -92,14 +92,15 @@ const AppList: React.VFC<AppListProps> = function AppList(props: AppListProps) {
   const projectQuotaReached = isProjectQuotaReached(viewer);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (
-      (apps === null || apps.length === 0) &&
-      !viewer?.isOnboardingSurveyCompleted
-    ) {
-      navigate("/onboarding-survey");
-    }
-  }, [apps, viewer, navigate]);
+  // NOTE(onboarding-survey): disabled
+  //useEffect(() => {
+  //  if (
+  //    (apps === null || apps.length === 0) &&
+  //    !viewer?.isOnboardingSurveyCompleted
+  //  ) {
+  //    navigate("/onboarding-survey");
+  //  }
+  //}, [apps, viewer, navigate]);
 
   const onCreateClick = useCallback(
     (e) => {
