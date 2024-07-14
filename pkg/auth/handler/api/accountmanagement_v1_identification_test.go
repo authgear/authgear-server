@@ -6,15 +6,24 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
+	sessiontest "github.com/authgear/authgear-server/pkg/lib/session/test"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func TestAccountManagementV1IdentificationHandlerRequestValidation(t *testing.T) {
 	Convey("AccountManagementV1IdentificationHandler request validation", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
 		jsonResponseWriter := httputil.JSONResponseWriter{}
+		svc := NewMockAccountManagementV1IdentificationHandlerService(ctrl)
 		h := AccountManagementV1IdentificationHandler{
-			JSON: &jsonResponseWriter,
+			JSON:    &jsonResponseWriter,
+			Service: svc,
 		}
 
 		Convey("empty object", func() {
@@ -66,10 +75,22 @@ func TestAccountManagementV1IdentificationHandlerRequestValidation(t *testing.T)
 }
 			`))
 			r.Header.Set("Content-Type", "application/json")
+			mockSession := sessiontest.NewMockSession()
+			r = mockSession.ToRequest(r)
 			w := httptest.NewRecorder()
 
+			svc.EXPECT().StartAdding(gomock.Any()).Times(1).Return(&accountmanagement.StartAddingOutput{
+				Token:            "token",
+				AuthorizationURL: "https://google.com",
+			}, nil)
 			h.ServeHTTP(w, r)
 			So(w.Result().StatusCode, ShouldEqual, 200)
+			So(w.Body.String(), ShouldEqualJSON, `{
+				"result": {
+					"token": "token",
+					"authorization_url": "https://google.com"
+				}
+			}`)
 		})
 	})
 }

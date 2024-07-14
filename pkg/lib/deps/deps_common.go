@@ -299,6 +299,7 @@ var CommonDependencySet = wire.NewSet(
 		sso.DependencySet,
 		wire.Bind(new(interaction.OAuthProviderFactory), new(*sso.OAuthProviderFactory)),
 		wire.Bind(new(authenticationflow.OAuthProviderFactory), new(*sso.OAuthProviderFactory)),
+		wire.Bind(new(accountmanagement.OAuthProvider), new(*sso.OAuthProviderFactory)),
 	),
 
 	wire.NewSet(
