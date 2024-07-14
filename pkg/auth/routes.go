@@ -458,6 +458,8 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(apihandler.ConfigureAuthenticationFlowV1GetRoute(authenticationFlowRoute), p.Handler(newAPIAuthenticationFlowV1GetHandler))
 	router.Add(apihandler.ConfigureAuthenticationFlowV1WebsocketRoute(authenticationFlowRoute), p.Handler(newAPIAuthenticationFlowV1WebsocketHandler))
 
+	router.Add(apihandler.ConfigureAccountManagementV1IdentificationRoute(apiAuthenticatedRoute), p.Handler(newAPIAccountManagementV1IdentificationHandler))
+
 	router.NotFound(webappPageRoute, &webapphandler.ImplementationSwitcherHandler{
 		Interaction: p.Handler(newWebAppNotFoundHandler),
 		Authflow:    p.Handler(newWebAppNotFoundHandler),
