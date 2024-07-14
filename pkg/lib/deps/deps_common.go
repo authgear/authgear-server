@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	handlerwebappauthflowv2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2"
+	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	"github.com/authgear/authgear-server/pkg/lib/accountmigration"
 	"github.com/authgear/authgear-server/pkg/lib/app2app"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
@@ -420,6 +421,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(interaction.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(workflow.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(authenticationflow.RateLimiter), new(*ratelimit.Limiter)),
+		wire.Bind(new(accountmanagement.RateLimitMiddlewareRateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(authenticatorservice.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(otp.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(messaging.RateLimiter), new(*ratelimit.Limiter)),
@@ -499,6 +501,10 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		authenticationflow.DependencySet,
+	),
+
+	wire.NewSet(
+		accountmanagement.DependencySet,
 	),
 
 	wire.NewSet(

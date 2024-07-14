@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/api"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
@@ -213,6 +214,13 @@ func newAuthenticationFlowRateLimitMiddleware(p *deps.RequestProvider) httproute
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*authenticationflow.RateLimitMiddleware)),
+	))
+}
+
+func newAccountManagementRateLimitMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*accountmanagement.RateLimitMiddleware)),
 	))
 }
 

@@ -119,6 +119,12 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.Middleware(newAPIRRequireAuthenticatedMiddlewareMiddleware),
 	)
 
+	accountManagementChain := httproute.Chain(
+		apiChain,
+		p.Middleware(newAccountManagementRateLimitMiddleware),
+		p.Middleware(newAPIRRequireAuthenticatedMiddlewareMiddleware),
+	)
+
 	oauthAPIScopedChain := httproute.Chain(
 		rootChain,
 		p.Middleware(newCORSMiddleware),
@@ -247,6 +253,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	workflowRoute := httproute.Route{Middleware: workflowChain}
 	authenticationFlowRoute := httproute.Route{Middleware: authenticationFlowChain}
 	apiAuthenticatedRoute := httproute.Route{Middleware: apiAuthenticatedChain}
+	accountManagementRoute := httproute.Route{Middleware: accountManagementChain}
 	oauthAPIScopedRoute := httproute.Route{Middleware: oauthAPIScopedChain}
 	webappPageRoute := httproute.Route{Middleware: webappPageChain}
 	webappPromoteRoute := httproute.Route{Middleware: webappPromoteChain}
@@ -458,7 +465,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(apihandler.ConfigureAuthenticationFlowV1GetRoute(authenticationFlowRoute), p.Handler(newAPIAuthenticationFlowV1GetHandler))
 	router.Add(apihandler.ConfigureAuthenticationFlowV1WebsocketRoute(authenticationFlowRoute), p.Handler(newAPIAuthenticationFlowV1WebsocketHandler))
 
-	router.Add(apihandler.ConfigureAccountManagementV1IdentificationRoute(apiAuthenticatedRoute), p.Handler(newAPIAccountManagementV1IdentificationHandler))
+	router.Add(apihandler.ConfigureAccountManagementV1IdentificationRoute(accountManagementRoute), p.Handler(newAPIAccountManagementV1IdentificationHandler))
 
 	router.NotFound(webappPageRoute, &webapphandler.ImplementationSwitcherHandler{
 		Interaction: p.Handler(newWebAppNotFoundHandler),
