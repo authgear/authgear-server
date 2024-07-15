@@ -10,7 +10,6 @@ import {
 import iconContact from "../../images/subscription-contact.svg";
 import iconDoc from "../../images/subscription-doc.svg";
 import { formatDatetime } from "../../util/formatDatetime";
-import { DateTime } from "luxon";
 import LinkButton from "../../LinkButton";
 
 function FooterRow({
@@ -66,7 +65,7 @@ export const SubscriptionScreenFooter: React.VFC<SubscriptionScreenFooterProps> 
 
     const formattedSubscriptionEndedAt = useMemo(() => {
       return subscriptionEndedAt != null
-        ? formatDatetime(locale, subscriptionEndedAt, DateTime.DATETIME_SHORT)
+        ? formatDatetime(locale, subscriptionEndedAt)
         : null;
     }, [subscriptionEndedAt, locale]);
 
