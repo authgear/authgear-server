@@ -153,11 +153,17 @@ async function compileCountryList(
 }
 
 export class PhoneInputController extends Controller {
-  static targets = ["countrySelect", "input", "phoneInput"];
+  static targets = [
+    "countrySelect",
+    "input",
+    "phoneInput",
+    "countrySelectInput",
+  ];
 
   declare readonly countrySelectTarget: HTMLElement;
   declare readonly inputTarget: HTMLInputElement;
   declare readonly phoneInputTarget: HTMLInputElement;
+  declare readonly countrySelectInputTarget: HTMLInputElement;
 
   get countrySelect(): CustomSelectController | null {
     const ctr = this.application.getControllerForElementAndIdentifier(
@@ -312,6 +318,9 @@ export class PhoneInputController extends Controller {
   connect() {
     void this.initPhoneCode();
     this.phoneInputTarget.addEventListener("blur", this.handleInputBlur);
+    this.phoneInputTarget.parentElement?.classList.remove("hidden");
+    this.countrySelectInputTarget.parentElement?.classList.remove("hidden");
+    this.inputTarget.classList.add("hidden");
 
     window.addEventListener("pageshow", this.handlePageShow);
   }
