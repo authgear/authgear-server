@@ -698,6 +698,13 @@ func newAPIAccountManagementV1IdentificationHandler(p *deps.RequestProvider) htt
 	))
 }
 
+func newAPIAccountManagementV1IdentificationOAuthHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerapi.AccountManagementV1IdentificationOAuthHandler)),
+	))
+}
+
 func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
