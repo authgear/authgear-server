@@ -865,6 +865,7 @@
   "v2-or-label": "或",
   "v2-placeholder-login-id": "{variant, select, email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}}",
   "v2-placeholder-phone": "電話號碼",
+  "v2-placeholder-phone--with-example": "電話號碼 (例如 +11234567890)",
   "v2-placeholder-email": "電郵地址",
   "v2-placeholder-password": "目前密碼",
   "v2-placeholder-new-password": "新密碼",
