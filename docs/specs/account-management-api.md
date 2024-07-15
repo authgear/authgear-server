@@ -149,23 +149,13 @@ If successful, then the OAuth provider account is added.
 }
 ```
 
-If the OAuth provider account is already taken by another account, then you will receive the following error.
+Error response
 
-```json
-{
-  "error": {
-    "name": "Invalid",
-    "reason": "InvariantViolated",
-    "message": "identity already exists",
-    "code": 400,
-    "info": {
-      "cause": {
-        "kind": "DuplicatedIdentity"
-      }
-    }
-  }
-}
-```
+|Description|Name|Reason|Info|
+|---|---|---|---|
+|If the OAuth provider account is already taken by another account|Invalid|InvariantViolated|`{"cause": { "kind": "DuplicatedIdentity" } }`|
+|If `token` is invalid|Invalid|AccountManagementOAuthTokenInvalid||
+|If `exclude_state_in_authorization_url` is false, and `state` in `query` is not equal to the one bound to `token`|Invalid|AccountManagementOAuthStateNotBoundToToken||
 
 Here is some pseudo code that you should do
 
