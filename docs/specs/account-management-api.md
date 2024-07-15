@@ -67,7 +67,7 @@ Request
 
 - `identification`: Required. It must be the value `oauth`.
 - `alias`: Required. The alias of the OAuth provider you want the current account to associate with.
-- `redirect_uri`: The settings page of Authgear uses `<origin>/sso/oauth2/callback/{alias}` to receive the OAuth callback. You have to specify your own redirect URI to your app or your website.
+- `redirect_uri`: Required. You have to specify your own redirect URI to your app or your website to receive the OAuth callback.
 
 Response
 
