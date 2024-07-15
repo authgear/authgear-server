@@ -101,6 +101,9 @@
 
     /* background */
     --color-bg-base: #1c1c1e;
+
+    /* text */
+    --color-text-base: #ffffff;
   }
 
   /* Border Radius */

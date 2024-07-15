@@ -35,7 +35,7 @@
   }
 
   :root.dark {
-    --primary-btn__text-color: var(--color-neutral-700);
+    --primary-btn__text-color: var(--color-text-base);
     --primary-btn__bg-color--disabled: var(--color-neutral-400);
     --primary-btn__text-color--disabled: var(--color-neutral-100);
 
