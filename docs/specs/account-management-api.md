@@ -88,6 +88,12 @@ Response
 - `token`: You store this token. You need to supply it after the end-user returns to your app.
 - `authorization_url`: You MUST redirect the end-user to this URL to continue the authorization code flow. If `exclude_state_in_authorization_url` is false, it has `state` parameter included.
 
+Error response
+
+|Description|Name|Reason|Info|
+|---|---|---|---|
+|If the request is not authenticated|Unauthorized|Unauthorized||
+
 The OAuth provider ultimately will call your redirect URI with query parameters added. You continue the flow with [Finish adding an OAuth provider account, with authorization code flow](#finish-adding-an-oauth-provider-account-with-authorization-code-flow).
 
 Here is some pseudo code that you should do
@@ -153,6 +159,7 @@ Error response
 
 |Description|Name|Reason|Info|
 |---|---|---|---|
+|If the request is not authenticated|Unauthorized|Unauthorized||
 |If the OAuth provider account is already taken by another account|Invalid|InvariantViolated|`{"cause": { "kind": "DuplicatedIdentity" } }`|
 |If `token` is invalid|Invalid|AccountManagementOAuthTokenInvalid||
 |If `exclude_state_in_authorization_url` is false, and `state` in `query` is not equal to the one bound to `token`|Invalid|AccountManagementOAuthStateNotBoundToToken||
