@@ -20,6 +20,7 @@
     {{ if eq $.Type "error" }}error{{ end }}
   </span>
   <span class="alert-message__text" data-alert-message-target="message">
+    {{ $message }}
   </span>
 </div>
 {{ end }}

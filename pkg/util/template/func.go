@@ -151,13 +151,13 @@ func makeTranslate(t tpl) func(tranlsationKey string, data any) (template.HTML, 
 	}
 }
 
-func trimHTML(input interface{}) string {
+func trimHTML(input interface{}) (interface{}) {
 	switch input := input.(type) {
 	case string:
 		return strings.TrimSpace(input)
 	case template.HTML:
 		// `Masterminds/sprig`'s `trimAll` cannot handle html type, so we need to convert it to string first
-		return strings.TrimSpace(string(input))
+		return template.HTML(strings.TrimSpace(string(input)))
 	default:
 		return ""
 	}
