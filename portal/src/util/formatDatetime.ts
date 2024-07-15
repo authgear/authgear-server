@@ -3,7 +3,7 @@ import { DateTime, DateTimeFormatOptions } from "luxon";
 export function formatDatetime(
   locale: string,
   date: Date | string | null,
-  format: DateTimeFormatOptions = DateTime.DATETIME_SHORT
+  format: DateTimeFormatOptions = DateTime.DATETIME_MED_WITH_SECONDS
 ): string | null {
   let datetime;
 
