@@ -61,13 +61,18 @@ Request
 {
   "identification": "oauth",
   "alias": "google",
-  "redirect_uri": "https://myapp.authgear.cloud/sso/oauth2/callback/google"
+  "redirect_uri": "https://myapp.authgear.cloud/sso/oauth2/callback/google",
+  "exclude_state_in_authorization_url": true
 }
 ```
 
 - `identification`: Required. It must be the value `oauth`.
 - `alias`: Required. The alias of the OAuth provider you want the current account to associate with.
 - `redirect_uri`: Required. You have to specify your own redirect URI to your app or your website to receive the OAuth callback.
+- `exclude_state_in_authorization_url`: Optional. The default is false.
+  - When it is false, the `authorization_url` has a `state` parameter included, the `token` is bound to this `state` parameter.
+  - When is is true, the `authorization_url` has no `state` parameter included, the `token` is NOT bound to `state`.
+  - If you wish to use your own state, you must specify `true` for this field.
 
 Response
 
@@ -81,7 +86,7 @@ Response
 ```
 
 - `token`: You store this token. You need to supply it after the end-user returns to your app.
-- `authorization_url`: You MUST redirect the end-user to this URL to continue the authorization code flow. You can add `state` to the URL to help you maintain state and do CSRF protection.
+- `authorization_url`: You MUST redirect the end-user to this URL to continue the authorization code flow. If `exclude_state_in_authorization_url` is false, it has `state` parameter included.
 
 The OAuth provider ultimately will call your redirect URI with query parameters added. You continue the flow with [Finish adding an OAuth provider account, with authorization code flow](#finish-adding-an-oauth-provider-account-with-authorization-code-flow).
 
@@ -98,6 +103,7 @@ const response = fetch("https://myapp.authgear.cloud/api/v1/account/identificati
     "identification": "oauth",
     "alias": "google",
     "redirect_uri": "com.myapp://host/path",
+    "exclude_state_in_authorization_url": true,
   }),
 });
 const responseJSON = await response.json();
