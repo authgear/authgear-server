@@ -10,10 +10,9 @@ import {
   IDialogContentProps,
   IButtonProps,
 } from "@fluentui/react";
-import { DateTime } from "luxon";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import styles from "./SubscriptionPlanCard.module.css";
-import { formatDatetime } from "../../util/formatDatetime";
+import { formatDateOnly } from "../../util/formatDateOnly";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useLoading, useIsLoading } from "../../hook/loading";
 import { usePreviewUpdateSubscriptionMutation } from "./mutations/previewUpdateSubscriptionMutation";
@@ -227,11 +226,7 @@ function CTA_(props: CTAProps): React.ReactElement {
     themes: { destructive },
   } = useSystemConfig();
 
-  const formattedDate = formatDatetime(
-    locale,
-    nextBillingDate ?? null,
-    DateTime.DATE_SHORT
-  );
+  const formattedDate = formatDateOnly(locale, nextBillingDate ?? null);
 
   const [previewUpdateSubscription, { data, loading }] =
     usePreviewUpdateSubscriptionMutation();

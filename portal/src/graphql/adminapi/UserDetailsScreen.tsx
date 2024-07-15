@@ -1,5 +1,4 @@
 import React, { useMemo, useState, useCallback, useContext } from "react";
-import { DateTime } from "luxon";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Pivot,
@@ -47,7 +46,7 @@ import {
   OAuthClientConfig,
 } from "../../types";
 import { jsonPointerToString, parseJSONPointer } from "../../util/jsonpointer";
-import { formatDatetime } from "../../util/formatDatetime";
+import { formatDateOnly } from "../../util/formatDateOnly";
 import { extractRawID } from "../../util/graphql";
 
 import styles from "./UserDetailsScreen.module.css";
@@ -588,8 +587,7 @@ function WarnScheduledDeletion(props: WarnScheduledDeletionProps) {
       <FormattedMessage
         id="UserDetailsScreen.scheduled-deletion"
         values={{
-          date:
-            formatDatetime(locale, user.deleteAt, DateTime.DATE_SHORT) ?? "",
+          date: formatDateOnly(locale, user.deleteAt) ?? "",
         }}
       />
     </MessageBar>
@@ -612,8 +610,7 @@ function WarnScheduledAnonymization(props: WarnScheduledAnonymizationProps) {
       <FormattedMessage
         id="UserDetailsScreen.scheduled-anonymization"
         values={{
-          date:
-            formatDatetime(locale, user.anonymizeAt, DateTime.DATE_SHORT) ?? "",
+          date: formatDateOnly(locale, user.anonymizeAt) ?? "",
         }}
       />
     </MessageBar>
