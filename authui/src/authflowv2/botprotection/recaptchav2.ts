@@ -14,7 +14,7 @@ export class RecaptchaV2Controller extends Controller {
   declare tokenInputTargets: HTMLInputElement[];
 
   connect() {
-    window.onLoadRecaptchaV2Callback = () => {
+    window.grecaptcha.ready(() => {
       window.grecaptcha.render(this.widgetTarget, {
         sitekey: this.siteKeyValue,
         theme: this.themeValue,
@@ -31,6 +31,6 @@ export class RecaptchaV2Controller extends Controller {
         const widget = this.widgetTarget.children[i];
         widget.classList.add("flex");
       }
-    };
+    });
   }
 }
