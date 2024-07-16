@@ -2,10 +2,10 @@ import { DateTime, DateTimeFormatOptions } from "luxon";
 
 export function formatDatetime(
   locale: string,
-  date: Date | string | null,
-  format: DateTimeFormatOptions = DateTime.DATETIME_MED_WITH_SECONDS
+  date: Date | string | null
 ): string | null {
   let datetime;
+  let format: DateTimeFormatOptions = DateTime.DATETIME_MED_WITH_SECONDS;
 
   if (date instanceof Date) {
     datetime = DateTime.fromJSDate(date);
