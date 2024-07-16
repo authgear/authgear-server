@@ -111,7 +111,10 @@
   </div>
   <!-- NOTE: Use class="hidden" here for noscript,
     this will be reverted during connect() in phoneInput.ts -->
-  <div class="flex-1 hidden">
+  <div
+    class="flex-1 hidden"
+    data-phone-input-target="phoneInputContainer"
+  >
     <input
       class="input w-full {{ if $.IsError }}input--error{{ end }}"
       placeholder="{{ $.Placeholder }}"

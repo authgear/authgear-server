@@ -157,12 +157,14 @@ export class PhoneInputController extends Controller {
     "countrySelect",
     "input",
     "phoneInput",
+    "phoneInputContainer",
     "countrySelectInput",
   ];
 
   declare readonly countrySelectTarget: HTMLElement;
   declare readonly inputTarget: HTMLInputElement;
   declare readonly phoneInputTarget: HTMLInputElement;
+  declare readonly phoneInputContainerTarget: HTMLElement;
   declare readonly countrySelectInputTarget: HTMLInputElement;
 
   get countrySelect(): CustomSelectController | null {
@@ -318,8 +320,8 @@ export class PhoneInputController extends Controller {
   connect() {
     void this.initPhoneCode();
     this.phoneInputTarget.addEventListener("blur", this.handleInputBlur);
-    this.phoneInputTarget.parentElement?.classList.remove("hidden");
-    this.countrySelectInputTarget.parentElement?.classList.remove("hidden");
+    this.phoneInputContainerTarget.classList.remove("hidden");
+    this.countrySelectTarget.classList.remove("hidden");
     this.inputTarget.classList.add("hidden");
 
     window.addEventListener("pageshow", this.handlePageShow);
