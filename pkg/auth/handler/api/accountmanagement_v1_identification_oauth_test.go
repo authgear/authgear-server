@@ -6,17 +6,24 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	sessiontest "github.com/authgear/authgear-server/pkg/lib/session/test"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func TestAccountManagementV1IdentificationOAuthHandlerRequestValidation(t *testing.T) {
 	Convey("AccountManagementV1IdentificationOAuthHandler request validation", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
 		jsonResponseWriter := httputil.JSONResponseWriter{}
+		svc := NewMockAccountManagementV1IdentificationOAuthHandlerService(ctrl)
 		h := AccountManagementV1IdentificationOAuthHandler{
-			JSON: &jsonResponseWriter,
+			JSON:    &jsonResponseWriter,
+			Service: svc,
 		}
 
 		Convey("empty object", func() {
@@ -69,6 +76,7 @@ func TestAccountManagementV1IdentificationOAuthHandlerRequestValidation(t *testi
 			r = mockSession.ToRequest(r)
 			w := httptest.NewRecorder()
 
+			svc.EXPECT().FinishAdding(gomock.Any()).Times(1).Return(&accountmanagement.FinishAddingOutput{}, nil)
 			h.ServeHTTP(w, r)
 			So(w.Result().StatusCode, ShouldEqual, 200)
 		})

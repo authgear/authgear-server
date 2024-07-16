@@ -2,9 +2,6 @@ package accountmanagement
 
 import (
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
-
-	"github.com/authgear/authgear-server/pkg/util/base32"
-	"github.com/authgear/authgear-server/pkg/util/rand"
 )
 
 type StartAddingInput struct {
@@ -19,8 +16,19 @@ type StartAddingOutput struct {
 	AuthorizationURL string `json:"authorization_url,omitempty"`
 }
 
+type FinishAddingInput struct {
+	UserID string
+	Token  string
+	Query  string
+}
+
+type FinishAddingOutput struct {
+	// It is intentionally empty.
+}
+
 type Store interface {
 	GenerateToken(userID string, maybeState string) (string, error)
+	ConsumeToken(tokenStr string) (*Token, error)
 }
 
 type OAuthProvider interface {
@@ -36,9 +44,7 @@ type Service struct {
 func (s *Service) StartAdding(input *StartAddingInput) (*StartAddingOutput, error) {
 	state := ""
 	if input.IncludeStateAuthorizationURLAndBindStateToToken {
-		// Some provider has a hard-limit on the length of the state.
-		// Here we use 32 which is observed to be short enough.
-		state = rand.StringWithAlphabet(32, base32.Alphabet, rand.SecureRand)
+		state = GenerateRandomState()
 	}
 
 	token, err := s.Store.GenerateToken(input.UserID, state)
@@ -60,4 +66,29 @@ func (s *Service) StartAdding(input *StartAddingInput) (*StartAddingOutput, erro
 		Token:            token,
 		AuthorizationURL: authorizationURL,
 	}, nil
+}
+
+func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, error) {
+	token, err := s.Store.ConsumeToken(input.Token)
+	if err != nil {
+		return nil, err
+	}
+
+	err = token.CheckUser(input.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	state, err := ExtractStateFromQuery(input.Query)
+	if err != nil {
+		return nil, err
+	}
+
+	err = token.CheckState(state)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: Do remaining things.
+	return &FinishAddingOutput{}, nil
 }

@@ -61,6 +61,36 @@ func (s *RedisStore) GenerateToken(userID string, maybeState string) (string, er
 	return tokenString, nil
 }
 
+func (s *RedisStore) ConsumeToken(tokenStr string) (*Token, error) {
+	tokenHash := HashToken(tokenStr)
+
+	tokenKey := tokenKey(string(s.AppID), tokenHash)
+
+	var tokenBytes []byte
+	err := s.Redis.WithConnContext(s.Context, func(conn *goredis.Conn) error {
+		var err error
+		tokenBytes, err = conn.GetDel(s.Context, tokenKey).Bytes()
+		if errors.Is(err, goredis.Nil) {
+			// Token Invalid
+			return ErrOAuthTokenInvalid
+		} else if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var token Token
+	err = json.Unmarshal(tokenBytes, &token)
+	if err != nil {
+		return nil, err
+	}
+
+	return &token, nil
+}
+
 func tokenKey(appID string, tokenHash string) string {
 	return fmt.Sprintf("app:%s:account-management-token:%s", appID, tokenHash)
 }

@@ -162,6 +162,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerapi.AuthenticationFlowV1WebsocketEventStore), new(*authenticationflow.WebsocketEventStore)),
 	wire.Bind(new(handlerapi.AuthenticationFlowV1WebsocketOriginMatcher), new(*middleware.CORSMatcher)),
 	wire.Bind(new(handlerapi.AccountManagementV1IdentificationHandlerService), new(*accountmanagement.Service)),
+	wire.Bind(new(handlerapi.AccountManagementV1IdentificationOAuthHandlerService), new(*accountmanagement.Service)),
 
 	viewmodelswebapp.DependencySet,
 	wire.Bind(new(viewmodelswebapp.StaticAssetResolver), new(*web.StaticAssetResolver)),
