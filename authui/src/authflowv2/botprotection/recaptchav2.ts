@@ -1,12 +1,5 @@
 import { Controller } from "@hotwired/stimulus";
 
-declare global {
-  interface Window {
-    grecaptcha: any;
-    onLoadRecaptchaV2Callback: any;
-  }
-}
-
 export class RecaptchaV2Controller extends Controller {
   static values = {
     siteKey: { type: String },

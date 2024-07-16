@@ -1,11 +1,5 @@
 import { Controller } from "@hotwired/stimulus";
 
-declare global {
-  interface Window {
-    turnstile: any;
-  }
-}
-
 export class CloudflareTurnstileController extends Controller {
   static values = {
     siteKey: { type: String },
