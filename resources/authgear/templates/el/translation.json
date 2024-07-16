@@ -865,6 +865,7 @@
   "v2-or-label": "ή",
   "v2-placeholder-login-id": "{variant, select, email {Διεύθυνση email} username {Όνομα χρήστη} other {Διεύθυνση email ή όνομα χρήστη}}",
   "v2-placeholder-phone": "Αριθμός τηλεφώνου",
+  "v2-placeholder-phone--with-example": "Αριθμός τηλεφώνου (π.χ. +11234567890)",
   "v2-placeholder-email": "Διεύθυνση email",
   "v2-placeholder-password": "Τρέχων Κωδικός Πρόσβασης",
   "v2-placeholder-new-password": "Νέος Κωδικός Πρόσβασης",

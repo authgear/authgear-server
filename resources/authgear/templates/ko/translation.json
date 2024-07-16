@@ -865,6 +865,7 @@
   "v2-or-label": "또는",
   "v2-placeholder-login-id": "{variant, select, email {이메일 주소} username {사용자이름} other {이메일 주소 또는 사용자이름}}",
   "v2-placeholder-phone": "전화번호",
+  "v2-placeholder-phone--with-example": "전화번호 (예: +11234567890)",
   "v2-placeholder-email": "이메일 주소",
   "v2-placeholder-password": "현재 비밀번호",
   "v2-placeholder-new-password": "새 비밀번호",

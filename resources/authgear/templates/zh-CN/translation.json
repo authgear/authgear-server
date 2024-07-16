@@ -865,6 +865,7 @@
   "v2-or-label": "或",
   "v2-placeholder-login-id": "{variant, select, email {电子邮箱地址} username {用户名} other {电子邮箱地址或用户名}}",
   "v2-placeholder-phone": "手机号码",
+  "v2-placeholder-phone--with-example": "电话号码（例如 +11234567890）",
   "v2-placeholder-email": "电子邮箱地址",
   "v2-placeholder-password": "当前密码",
   "v2-placeholder-new-password": "新密码",

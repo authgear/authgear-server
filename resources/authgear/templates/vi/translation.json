@@ -865,6 +865,7 @@
   "v2-or-label": "hoặc",
   "v2-placeholder-login-id": "{variant, select, email {Địa chỉ email} username {Tên người dùng} other {Địa chỉ email hoặc tên người dùng}}",
   "v2-placeholder-phone": "Số điện thoại",
+  "v2-placeholder-phone--with-example": "Số điện thoại (ví dụ +11234567890)",
   "v2-placeholder-email": "Địa chỉ email",
   "v2-placeholder-password": "Mật khẩu hiện tại",
   "v2-placeholder-new-password": "Mật khẩu mới",
