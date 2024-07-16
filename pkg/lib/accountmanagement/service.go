@@ -3,6 +3,8 @@ package accountmanagement
 import (
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
+	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -47,11 +49,16 @@ type IdentityService interface {
 	Create(info *identity.Info) error
 }
 
+type EventService interface {
+	DispatchEventOnCommit(payload event.Payload) error
+}
+
 type Service struct {
 	Database      *appdb.Handle
 	Store         Store
 	OAuthProvider OAuthProvider
 	Identities    IdentityService
+	Events        EventService
 }
 
 func (s *Service) StartAdding(input *StartAddingInput) (*StartAddingOutput, error) {
@@ -154,12 +161,26 @@ func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, e
 			return err
 		}
 
+		evt := &nonblocking.IdentityOAuthConnectedEventPayload{
+			UserRef: model.UserRef{
+				Meta: model.Meta{
+					ID: info.UserID,
+				},
+			},
+			Identity: info.ToModel(),
+			AdminAPI: false,
+		}
+
+		err = s.Events.DispatchEventOnCommit(evt)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO(accountmanagement): fire event.
 	return &FinishAddingOutput{}, nil
 }
