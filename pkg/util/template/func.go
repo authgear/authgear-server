@@ -151,13 +151,15 @@ func makeTranslate(t tpl) func(tranlsationKey string, data any) (template.HTML, 
 	}
 }
 
-func trimHTML(input interface{}) (interface{}) {
+func trimHTML(input interface{}) interface{} {
 	switch input := input.(type) {
 	case string:
 		return strings.TrimSpace(input)
 	case template.HTML:
 		// `Masterminds/sprig`'s `trimAll` cannot handle html type, so we need to convert it to string first
-		return template.HTML(strings.TrimSpace(string(input)))
+		// Ignore gosec error because this function is intended to be used with trusted input (__alert_message.html)
+		// and the output is intended to be used as HTML
+		return template.HTML(strings.TrimSpace(string(input))) // nolint:gosec
 	default:
 		return ""
 	}
