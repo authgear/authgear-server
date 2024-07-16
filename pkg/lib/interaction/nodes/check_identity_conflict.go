@@ -1,8 +1,6 @@
 package nodes
 
 import (
-	"errors"
-
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -18,7 +16,7 @@ type EdgeCheckIdentityConflict struct {
 
 func (e *EdgeCheckIdentityConflict) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	dupeIdentity, err := ctx.Identities.CheckDuplicated(e.NewIdentity)
-	if err != nil && !errors.Is(err, identity.ErrIdentityAlreadyExists) {
+	if err != nil && !identity.IsErrDuplicatedIdentity(err) {
 		return nil, err
 	}
 

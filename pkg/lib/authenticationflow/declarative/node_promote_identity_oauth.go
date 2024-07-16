@@ -77,7 +77,7 @@ func (n *NodePromoteIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.D
 						s := c.Identity.ToSpec()
 						return &s
 					})
-					return nil, identityFillDetailsMany(api.ErrDuplicatedIdentity, spec, conflictSpecs)
+					return nil, identity.NewErrDuplicatedIdentityMany(spec, conflictSpecs)
 				}
 
 				// promote

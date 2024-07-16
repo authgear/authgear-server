@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -357,7 +356,7 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			loginIDProvider.EXPECT().GetByUniqueKey(incoming.LoginID.UniqueKey).AnyTimes().Return(existing.LoginID, nil)
 
 			actual, err := p.CheckDuplicated(incoming)
-			So(errors.Is(err, identity.ErrIdentityAlreadyExists), ShouldBeTrue)
+			So(identity.IsErrDuplicatedIdentity(err), ShouldBeTrue)
 			So(actual, ShouldResemble, existing)
 		})
 
@@ -382,7 +381,7 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			oauthProvider.EXPECT().GetByProviderSubject(incoming.OAuth.ProviderID, incoming.OAuth.ProviderSubjectID).AnyTimes().Return(existing.OAuth, nil)
 
 			actual, err := p.CheckDuplicated(incoming)
-			So(errors.Is(err, identity.ErrIdentityAlreadyExists), ShouldBeTrue)
+			So(identity.IsErrDuplicatedIdentity(err), ShouldBeTrue)
 			So(actual, ShouldResemble, existing)
 		})
 
@@ -408,7 +407,7 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			loginIDProvider.EXPECT().GetByUniqueKey(incoming.LoginID.UniqueKey).AnyTimes().Return(nil, api.ErrIdentityNotFound)
 
 			actual, err := p.CheckDuplicated(incoming)
-			So(errors.Is(err, identity.ErrIdentityAlreadyExists), ShouldBeTrue)
+			So(identity.IsErrDuplicatedIdentity(err), ShouldBeTrue)
 			So(actual, ShouldResemble, existing)
 		})
 
@@ -434,7 +433,7 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			oauthProvider.EXPECT().GetByProviderSubject(incoming.OAuth.ProviderID, incoming.OAuth.ProviderSubjectID).AnyTimes().Return(nil, api.ErrIdentityNotFound)
 
 			actual, err := p.CheckDuplicated(incoming)
-			So(errors.Is(err, identity.ErrIdentityAlreadyExists), ShouldBeTrue)
+			So(identity.IsErrDuplicatedIdentity(err), ShouldBeTrue)
 			So(actual, ShouldResemble, existing)
 		})
 	})

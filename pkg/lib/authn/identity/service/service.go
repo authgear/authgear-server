@@ -748,7 +748,10 @@ func (s *Service) CheckDuplicated(info *identity.Info) (dupeIdentity *identity.I
 				continue
 			}
 			dupeIdentity = i.ToInfo()
-			err = identity.ErrIdentityAlreadyExists
+
+			incoming := info.ToSpec()
+			existing := dupeIdentity.ToSpec()
+			err = identity.NewErrDuplicatedIdentity(&incoming, &existing)
 			return
 		}
 
@@ -763,7 +766,10 @@ func (s *Service) CheckDuplicated(info *identity.Info) (dupeIdentity *identity.I
 				continue
 			}
 			dupeIdentity = i.ToInfo()
-			err = identity.ErrIdentityAlreadyExists
+
+			incoming := info.ToSpec()
+			existing := dupeIdentity.ToSpec()
+			err = identity.NewErrDuplicatedIdentity(&incoming, &existing)
 			return
 		}
 	}
@@ -785,7 +791,10 @@ func (s *Service) CheckDuplicatedByUniqueKey(info *identity.Info) (dupeIdentity 
 			err = nil
 		} else if i.UserID != info.UserID {
 			dupeIdentity = i.ToInfo()
-			err = identity.ErrIdentityAlreadyExists
+
+			incoming := info.ToSpec()
+			existing := dupeIdentity.ToSpec()
+			err = identity.NewErrDuplicatedIdentity(&incoming, &existing)
 		}
 	case model.IdentityTypeOAuth:
 		var o *identity.OAuth
@@ -797,7 +806,10 @@ func (s *Service) CheckDuplicatedByUniqueKey(info *identity.Info) (dupeIdentity 
 			err = nil
 		} else if o.UserID != info.UserID {
 			dupeIdentity = o.ToInfo()
-			err = identity.ErrIdentityAlreadyExists
+
+			incoming := info.ToSpec()
+			existing := dupeIdentity.ToSpec()
+			err = identity.NewErrDuplicatedIdentity(&incoming, &existing)
 		}
 	}
 

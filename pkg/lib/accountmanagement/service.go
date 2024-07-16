@@ -141,7 +141,6 @@ func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, e
 		return nil, err
 	}
 
-	// FIXME(accountmanagement): Update identity service to return api error.
 	_, err = s.Identities.CheckDuplicated(info)
 	if err != nil {
 		return nil, err

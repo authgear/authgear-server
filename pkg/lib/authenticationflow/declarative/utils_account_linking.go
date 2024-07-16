@@ -6,7 +6,6 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
-	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -217,7 +216,7 @@ func linkByIncomingOAuthSpec(
 			// The identity is identical, throw error directly
 			spec := request.Spec
 			otherSpec := conflict.Identity.ToSpec()
-			return nil, identityFillDetails(api.ErrDuplicatedIdentity, spec, &otherSpec)
+			return nil, identity.NewErrDuplicatedIdentity(spec, &otherSpec)
 		}
 	}
 
@@ -301,7 +300,7 @@ func linkByIncomingLoginIDSpec(
 			// The identity is identical, throw error directly.
 			spec := request.Spec
 			otherSpec := conflict.Identity.ToSpec()
-			return nil, identityFillDetails(api.ErrDuplicatedIdentity, spec, &otherSpec)
+			return nil, identity.NewErrDuplicatedIdentity(spec, &otherSpec)
 		}
 	}
 
