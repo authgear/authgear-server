@@ -1,11 +1,11 @@
 import { DateTime, DateTimeFormatOptions } from "luxon";
 
-export function formatDatetime(
+export function formatDateOnly(
   locale: string,
   date: Date | string | null
 ): string | null {
   let datetime;
-  const format: DateTimeFormatOptions = DateTime.DATETIME_MED_WITH_SECONDS;
+  const format: DateTimeFormatOptions = DateTime.DATE_MED;
 
   if (date instanceof Date) {
     datetime = DateTime.fromJSDate(date);

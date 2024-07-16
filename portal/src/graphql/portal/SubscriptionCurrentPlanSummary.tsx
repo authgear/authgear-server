@@ -15,12 +15,11 @@ import {
   Icon,
 } from "@fluentui/react";
 import { useId } from "@fluentui/react-hooks";
-import { DateTime } from "luxon";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { formatDatetime } from "../../util/formatDatetime";
 import LinkButton from "../../LinkButton";
 import BlueMessageBar from "../../BlueMessageBar";
 import styles from "./SubscriptionCurrentPlanSummary.module.css";
+import { formatDateOnly } from "../../util/formatDateOnly";
 
 export interface SubscriptionCurrentPlanSummaryProps {
   className?: string;
@@ -53,11 +52,7 @@ function Title(props: TitleProps) {
   const planDisplayName = isCustomPlan
     ? planName
     : renderToString("SubscriptionScreen.plan-name." + planName);
-  const formattedDate = formatDatetime(
-    locale,
-    subscriptionEndedAt ?? null,
-    DateTime.DATE_SHORT
-  );
+  const formattedDate = formatDateOnly(locale, subscriptionEndedAt ?? null);
   return (
     <Text block={true} variant="xLarge">
       {isCustomPlan ? (
@@ -254,11 +249,7 @@ function SubscriptionManagement(props: SubscriptionManagementProps) {
     manageSubscriptionLoading,
     manageSubscriptionDisabled,
   } = props;
-  const formattedDate = formatDatetime(
-    locale,
-    nextBillingDate ?? null,
-    DateTime.DATE_SHORT
-  );
+  const formattedDate = formatDateOnly(locale, nextBillingDate ?? null);
   return (
     <div className={styles.subscriptionManagement}>
       {formattedDate != null ? (
