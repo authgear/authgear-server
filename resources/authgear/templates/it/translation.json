@@ -865,6 +865,7 @@
   "v2-or-label": "oppure",
   "v2-placeholder-login-id": "{variant, select, email {Indirizzo email} username {Nome utente} other {Indirizzo email o nome utente}}",
   "v2-placeholder-phone": "Numero di telefono",
+  "v2-placeholder-phone--with-example": "Numero di telefono (es. +11234567890)",
   "v2-placeholder-email": "Indirizzo email",
   "v2-placeholder-password": "Password attuale",
   "v2-placeholder-new-password": "Nuova password",

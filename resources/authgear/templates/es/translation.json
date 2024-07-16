@@ -865,6 +865,7 @@
   "v2-or-label": "o",
   "v2-placeholder-login-id": "{variant, select, email {Dirección de correo electrónico} username {Nombre de usuario} other {Dirección de correo electrónico o nombre de usuario}}",
   "v2-placeholder-phone": "Número de teléfono",
+  "v2-placeholder-phone--with-example": "Número de teléfono (p. ej. +11234567890)",
   "v2-placeholder-email": "Dirección de correo electrónico",
   "v2-placeholder-password": "Contraseña actual",
   "v2-placeholder-new-password": "Nueva Contraseña",

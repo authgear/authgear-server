@@ -103,6 +103,7 @@
             {{ template "authflowv2/__phone_input.html"
               (dict
                 "Placeholder" (include "v2-placeholder-phone" nil)
+                "PlaceholderWithExample" (include "v2-placeholder-phone--with-example" nil)
                 "IsError" $display_input_error
                 "AutoFocus" $.ShouldFocusInput
                 "PhoneInputAttrs" `
@@ -245,7 +246,9 @@
             <button class="secondary-btn w-full"
               type="button"
               data-action="click->authflow-passkey-request#use"
-              data-authgear-event="authgear.button.use_passkey">
+              data-authgear-event="authgear.button.use_passkey"
+              data-authflow-passkey-request-target="button"
+              disabled>
               <div class="flex gap-2">
                 <i class="alternative-icon material-icons">
                   passkey

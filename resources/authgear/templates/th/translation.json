@@ -865,6 +865,7 @@
   "v2-or-label": "หรือ",
   "v2-placeholder-login-id": "{variant, select, email {ที่อยู่อีเมล} username {ชื่อผู้ใช้} other {ที่อยู่อีเมลหรือชื่อผู้ใช้}}",
   "v2-placeholder-phone": "หมายเลขโทรศัพท์",
+  "v2-placeholder-phone--with-example": "หมายเลขโทรศัพท์ (เช่น +11234567890)",
   "v2-placeholder-email": "ที่อยู่อีเมล",
   "v2-placeholder-password": "รหัสผ่านปัจจุบัน",
   "v2-placeholder-new-password": "รหัสผ่านใหม่",

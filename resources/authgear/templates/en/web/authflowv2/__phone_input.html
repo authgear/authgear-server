@@ -13,10 +13,13 @@
 
 {{ define "authflowv2/__phone_input.html" }}
 <div class="phone-input" data-controller="phone-input">
+  <!-- NOTE: Use class="hidden" here for noscript,
+    this will be reverted during connect() in phoneInput.ts -->
   <div
     data-controller="custom-select body-scroll-lock"
     data-phone-input-target="countrySelect"
     data-action="custom-select:initialized->phone-input#handleCountrySelectInitialized custom-select:open->body-scroll-lock#lock custom-select:close->body-scroll-lock#unlock"
+    class="hidden"
   >
     <!-- NOTE(tung): Use type="text" here,
       because browser will not restore value of input with type="hidden" on back -->
@@ -106,7 +109,12 @@
       </template>
     </div>
   </div>
-  <div class="flex-1">
+  <!-- NOTE: Use class="hidden" here for noscript,
+    this will be reverted during connect() in phoneInput.ts -->
+  <div
+    class="flex-1 hidden"
+    data-phone-input-target="phoneInputContainer"
+  >
     <input
       class="input w-full {{ if $.IsError }}input--error{{ end }}"
       placeholder="{{ $.Placeholder }}"
@@ -122,12 +130,14 @@
     />
   </div>
   <!-- NOTE(tung): Use type="text" here,
-    because browser will not restore value of input with type="hidden" on back -->
+    because browser will not restore value of input with type="hidden" on back.
+    Late apply class="hidden" during connect() in phoneInput.ts for noscript -->
   <input
     type="text"
-    class="hidden"
+    class="input w-full"
     name="{{ $.InputName }}"
     data-phone-input-target="input"
+    placeholder="{{ $.PlaceholderWithExample }}"
     {{ if $.InputAttrs }}{{ htmlattr $.InputAttrs }}{{ end }}
   />
 </div>

@@ -865,6 +865,7 @@
   "v2-or-label": "atau",
   "v2-placeholder-login-id": "{variant, select, email {Alamat email} username {Nama Pengguna} other {Alamat email atau nama pengguna}}",
   "v2-placeholder-phone": "Nombor telefon",
+  "v2-placeholder-phone--with-example": "Nombor telefon (cth +11234567890)",
   "v2-placeholder-email": "Alamat email",
   "v2-placeholder-password": "Kata Laluan Semasa",
   "v2-placeholder-new-password": "Kata Laluan Baru",

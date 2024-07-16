@@ -865,6 +865,7 @@
   "v2-or-label": "of",
   "v2-placeholder-login-id": "{variant, select, email {E-mailadres} username {Gebruikersnaam} other {E-mailadres of gebruikersnaam}}",
   "v2-placeholder-phone": "Telefoonnummer",
+  "v2-placeholder-phone--with-example": "Telefoonnummer (bijv. +31612345678)",
   "v2-placeholder-email": "E-mailadres",
   "v2-placeholder-password": "Huidig wachtwoord",
   "v2-placeholder-new-password": "Nieuw wachtwoord",

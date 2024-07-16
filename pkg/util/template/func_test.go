@@ -185,7 +185,7 @@ func TestFuncs(t *testing.T) {
 		})
 
 		Convey("With HTML", func() {
-			So(trimHTML(template.HTML("  A  B ")), ShouldEqual, "A  B")
+			So(trimHTML(template.HTML(" <span>A B</span> ")), ShouldEqual, template.HTML("<span>A B</span>"))
 		})
 	})
 }
