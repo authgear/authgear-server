@@ -37,9 +37,8 @@ func insertBotProtection(formData url.Values, input map[string]interface{}) {
 
 func HandleIdentificationBotProtection(identification config.AuthenticationFlowIdentification, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
 	bpRequired, err := webapp.IsIdentifyStepBotProtectionRequired(identification, flowResp)
-	// TODO: confirm what err to return here (identification type not found)
 	if err != nil {
-		return err
+		panic(err)
 	}
 	if bpRequired {
 		err = validateBotProtectionInput(formData)
@@ -53,9 +52,8 @@ func HandleIdentificationBotProtection(identification config.AuthenticationFlowI
 
 func HandleAccountRecoveryIdentificationBotProtection(identification config.AuthenticationFlowAccountRecoveryIdentification, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
 	bpRequired, err := webapp.IsAccountRecoveryIdentifyStepBotProtectionRequired(identification, flowResp)
-	// TODO: confirm what err to return here (identification type not found)
 	if err != nil {
-		return err
+		panic(err)
 	}
 	if bpRequired {
 		err = validateBotProtectionInput(formData)
