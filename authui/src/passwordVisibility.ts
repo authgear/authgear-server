@@ -8,11 +8,9 @@ export class PasswordVisibilityToggleController extends Controller {
   declare hideButtonTarget: HTMLButtonElement;
 
   connect() {
-    if (this.inputTarget.type === "password") {
-      this.showButtonTarget.classList.remove("hidden");
-    } else {
-      this.hideButtonTarget.classList.remove("hidden");
-    }
+    this.inputTarget.type = "password";
+    this.showButtonTarget.classList.remove("hidden");
+    this.hideButtonTarget.classList.add("hidden");
   }
 
   show(e: Event) {
