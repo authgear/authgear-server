@@ -4,12 +4,27 @@
 
 	{{ $has_oauth := false }}
 	{{ $has_login_id := false }}
+	{{ $show_captcha := false }}
 	{{ range $.IdentityCandidates }}
 		{{ if eq .type "oauth" }}
-		{{ $has_oauth = true }}
+			{{ $has_oauth = true }}
+			{{ if $.OauthBotProtectionRequired }}
+        {{ $show_captcha = true  }}
+      {{ end }}
 		{{ end }}
 		{{ if eq .type "login_id" }}
-		{{ $has_login_id = true }}
+			{{ $has_login_id = true }}
+			{{ if eq .login_id_key $.LoginIDKey }}
+				{{ if eq .login_id_type "phone" }}{{ if $.PhoneLoginIDBotProtectionRequired }}
+          {{ $show_captcha = true  }}
+        {{ end }}{{ end }}
+        {{ if eq .login_id_type "username" }}{{ if $.UsernameLoginIDBotProtectionRequired }}
+          {{ $show_captcha = true  }}
+        {{ end }}{{ end }}
+        {{ if eq .login_id_type "email" }}{{ if $.EmailLoginIDBotProtectionRequired }}
+          {{ $show_captcha = true  }}
+        {{ end }}{{ end }}
+			{{ end }}
 		{{ end }}
 	{{ end }}
 	{{ if $.PublicSignupDisabled }}
@@ -20,9 +35,17 @@
 	</div>
 	{{ else }}
 
-	<div class="pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
+	<div 
+		class="pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8"
+		{{ if $show_captcha }}
+			{{ template "web/authflowv2/__bot_protection_controller.html" . }}
+		{{ end }}
+	>
 			<form class="twc-container-vertical" method="post" novalidate>
 				{{ $.CSRFField }}
+				{{ if $show_captcha }}
+					{{ template "web/authflowv2/bot_protection_form_input.html" . }}
+				{{ end }}
 
 				<h1 class="m-0 primary-txt text-center text-xl font-bold">
 					{{ if $.ClientName }}
@@ -89,6 +112,10 @@
 				{{ end }}
 			</form>
 
+			{{ if $show_captcha }}
+				{{ template "web/authflowv2/bot_protection_widget.html" . }}
+			{{ end }}
+
 			{{ if $has_oauth }}{{ if $has_login_id }}
 			<div class="alternative-separator flex flex-row items-center">
 				<span class="primary-txt mx-1.5 text-sm">{{ template "sso-login-id-separator-both-present" }}</span>
@@ -101,6 +128,9 @@
 				{{ if eq .type "oauth" }}
 				<form class="flex flex-col" method="post" data-turbo="false" novalidate>
 				{{ $.CSRFField }}
+				{{ if $show_captcha }}
+					{{ template "web/authflowv2/bot_protection_form_input.html" $ }}
+				{{ end }}
 				{{ $skip := false }}
 				{{- if (and (eq .provider_type "wechat") (eq .provider_app_type "mobile") (not $.IsNativePlatform)) -}}
 				{{ $skip = true }}

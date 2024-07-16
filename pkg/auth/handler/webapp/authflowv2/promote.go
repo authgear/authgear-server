@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -87,6 +88,11 @@ func (h *AuthflowV2PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 			"response_mode":  oauthrelyingparty.ResponseModeFormPost,
 		}
 
+		err := HandleIdentificationBotProtection(config.AuthenticationFlowIdentificationOAuth, screen.StateTokenFlowResponse, r.Form, input)
+		if err != nil {
+			return err
+		}
+
 		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
 		if err != nil {
 			return err
@@ -108,6 +114,11 @@ func (h *AuthflowV2PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		input := map[string]interface{}{
 			"identification": identification,
 			"login_id":       loginID,
+		}
+
+		err = HandleIdentificationBotProtection(config.AuthenticationFlowIdentification(identification), screen.StateTokenFlowResponse, r.Form, input)
+		if err != nil {
+			return err
 		}
 
 		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
