@@ -1,7 +1,16 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
 
-  <div class="screen-icon-layout screen-icon-layout--compact flex-1-0-auto">
+{{ $show_captcha := false }}
+{{ if $.IsBotProtectionRequired }}
+  {{ $show_captcha = true }}
+{{ end }}
+  <div 
+    class="screen-icon-layout screen-icon-layout--compact flex-1-0-auto"
+    {{ if $show_captcha }}
+      {{ template "web/authflowv2/__bot_protection_controller.html" . }}
+    {{ end }}
+  >
     <i class="screen-icon material-icons">passkey</i>
     <header class="screen-title-description">
       <h1 class="screen-title">
@@ -30,6 +39,9 @@
         data-authflow-passkey-request-auto-value="{{ $.AutoExecute }}"
       {{ end }}
       >
+      {{ if $show_captcha }}
+        {{ template "web/authflowv2/bot_protection_widget.html" . }}
+      {{ end }}
       <button
         class="primary-btn w-full"
         type="button"
@@ -40,6 +52,9 @@
       </button>
       <form class="hidden" method="post" novalidate>
         {{ $.CSRFField }}
+        {{ if $show_captcha }}
+          {{ template "web/authflowv2/bot_protection_form_input.html" . }}
+        {{ end }}
         <input type="hidden" name="x_assertion_response" data-authflow-passkey-request-target="input">
         <button type="submit" class="hidden" name="x_action" value="" data-authflow-passkey-request-target="submit"></button>
       </form>
