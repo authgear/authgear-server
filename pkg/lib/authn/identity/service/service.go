@@ -587,6 +587,19 @@ func (s *Service) New(userID string, spec *identity.Spec, options identity.NewId
 }
 
 func (s *Service) Create(info *identity.Info) error {
+	incoming := info.ToSpec()
+	exactMatch, err := s.getBySpec(&incoming)
+	if errors.Is(err, api.ErrIdentityNotFound) {
+		// nolint: ineffassign
+		err = nil
+	} else if err != nil {
+		return err
+	} else {
+		existing := exactMatch.ToSpec()
+		err = identity.NewErrDuplicatedIdentity(&incoming, &existing)
+		return err
+	}
+
 	// TODO(verification): make OAuth verified according to config.
 	switch info.Type {
 	case model.IdentityTypeLoginID:
