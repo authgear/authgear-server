@@ -29,7 +29,14 @@ func (*NodeDoCreateUser) Milestone()                   {}
 func (n *NodeDoCreateUser) MilestoneDoUseUser() string { return n.UserID }
 func (n *NodeDoCreateUser) MilestoneDoCreateUser() (string, bool) {
 	if n.SkipCreation {
-		return "", false
+		// We have to return userID here.
+		// It is because we still need to write authentication info.
+		// If we return an empty string here, the authentication info will have an empty user ID,
+		// which is never expected.
+		// An empty user ID will be propagated, causing very weird cases like failed to
+		// get OAuth authorization for an empty user ID, and attempt to write a authorization for an empty user ID,
+		// which will trigger invalid foreign key constraint error.
+		return n.UserID, false
 	}
 	return n.UserID, true
 }
