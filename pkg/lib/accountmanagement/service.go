@@ -2,6 +2,9 @@ package accountmanagement
 
 import (
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
+
+	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
 
 type StartAddingInput struct {
@@ -27,13 +30,14 @@ type FinishAddingOutput struct {
 }
 
 type Store interface {
-	GenerateToken(userID string, maybeState string) (string, error)
+	GenerateToken(options GenerateTokenOptions) (string, error)
 	ConsumeToken(tokenStr string) (*Token, error)
 }
 
 type OAuthProvider interface {
 	GetProviderConfig(alias string) (oauthrelyingparty.ProviderConfig, error)
 	GetAuthorizationURL(alias string, options oauthrelyingparty.GetAuthorizationURLOptions) (string, error)
+	GetUserProfile(alias string, options oauthrelyingparty.GetUserProfileOptions) (oauthrelyingparty.UserProfile, error)
 }
 
 type Service struct {
@@ -47,17 +51,22 @@ func (s *Service) StartAdding(input *StartAddingInput) (*StartAddingOutput, erro
 		state = GenerateRandomState()
 	}
 
-	token, err := s.Store.GenerateToken(input.UserID, state)
-	if err != nil {
-		return nil, err
-	}
-
 	param := oauthrelyingparty.GetAuthorizationURLOptions{
 		RedirectURI: input.RedirectURI,
 		State:       state,
 	}
 
 	authorizationURL, err := s.OAuthProvider.GetAuthorizationURL(input.Alias, param)
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := s.Store.GenerateToken(GenerateTokenOptions{
+		UserID:      input.UserID,
+		Alias:       input.Alias,
+		RedirectURI: input.RedirectURI,
+		MaybeState:  state,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -89,6 +98,32 @@ func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, e
 		return nil, err
 	}
 
-	// TODO: Do remaining things.
+	providerConfig, err := s.OAuthProvider.GetProviderConfig(token.Alias)
+	if err != nil {
+		return nil, err
+	}
+
+	emptyNonce := ""
+	userProfile, err := s.OAuthProvider.GetUserProfile(token.Alias, oauthrelyingparty.GetUserProfileOptions{
+		Query:       input.Query,
+		RedirectURI: token.RedirectURI,
+		Nonce:       emptyNonce,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	providerID := providerConfig.ProviderID()
+	_ = &identity.Spec{
+		Type: model.IdentityTypeOAuth,
+		OAuth: &identity.OAuthSpec{
+			ProviderID:     providerID,
+			SubjectID:      userProfile.ProviderUserID,
+			RawProfile:     userProfile.ProviderRawProfile,
+			StandardClaims: userProfile.StandardAttributes,
+		},
+	}
+
+	// TODO(accountmanagement): Try to add the identity spec to the user, and fire event.
 	return &FinishAddingOutput{}, nil
 }

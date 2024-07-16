@@ -21,7 +21,14 @@ type RedisStore struct {
 	Clock   clock.Clock
 }
 
-func (s *RedisStore) GenerateToken(userID string, maybeState string) (string, error) {
+type GenerateTokenOptions struct {
+	UserID      string
+	Alias       string
+	MaybeState  string
+	RedirectURI string
+}
+
+func (s *RedisStore) GenerateToken(options GenerateTokenOptions) (string, error) {
 	tokenString := GenerateToken()
 	tokenHash := HashToken(tokenString)
 
@@ -30,12 +37,14 @@ func (s *RedisStore) GenerateToken(userID string, maybeState string) (string, er
 	expireAt := now.Add(ttl)
 
 	token := &Token{
-		AppID:     string(s.AppID),
-		UserID:    userID,
-		State:     maybeState,
-		TokenHash: tokenHash,
-		CreatedAt: &now,
-		ExpireAt:  &expireAt,
+		AppID:       string(s.AppID),
+		UserID:      options.UserID,
+		Alias:       options.Alias,
+		State:       options.MaybeState,
+		RedirectURI: options.RedirectURI,
+		TokenHash:   tokenHash,
+		CreatedAt:   &now,
+		ExpireAt:    &expireAt,
 	}
 
 	tokenBytes, err := json.Marshal(token)

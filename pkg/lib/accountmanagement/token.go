@@ -9,12 +9,14 @@ import (
 )
 
 type Token struct {
-	AppID     string     `json:"app_id,omitempty"`
-	UserID    string     `json:"user_id,omitempty"`
-	State     string     `json:"state,omitempty"`
-	TokenHash string     `json:"token_hash,omitempty"`
-	CreatedAt *time.Time `json:"created_at,omitempty"`
-	ExpireAt  *time.Time `json:"expire_at,omitempty"`
+	AppID       string     `json:"app_id,omitempty"`
+	UserID      string     `json:"user_id,omitempty"`
+	Alias       string     `json:"alias,omitempty"`
+	RedirectURI string     `json:"redirect_uri,omitempty"`
+	State       string     `json:"state,omitempty"`
+	TokenHash   string     `json:"token_hash,omitempty"`
+	CreatedAt   *time.Time `json:"created_at,omitempty"`
+	ExpireAt    *time.Time `json:"expire_at,omitempty"`
 }
 
 func (t *Token) CheckUser(userID string) error {
