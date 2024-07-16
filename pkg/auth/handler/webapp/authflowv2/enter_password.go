@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -40,6 +41,7 @@ type AuthflowEnterPasswordViewModel struct {
 	PasswordManagerUsername string
 	ForgotPasswordInputType string
 	ForgotPasswordLoginID   string
+	IsBotProtectionRequired bool
 }
 
 type AuthflowV2EnterPasswordHandler struct {
@@ -75,11 +77,15 @@ func NewAuthflowEnterPasswordViewModel(s *webapp.Session, screen *webapp.Authflo
 		}
 	}
 
+	// Ignore error, bpRequire would be false
+	bpRequired, _ := webapp.IsAuthenticateStepBotProtectionRequired(config.AuthenticationFlowAuthenticationPrimaryPassword, screen.StateTokenFlowResponse)
+
 	return AuthflowEnterPasswordViewModel{
 		AuthenticationStage:     string(authenticationStage),
 		PasswordManagerUsername: passwordManagerUsername,
 		ForgotPasswordInputType: forgotPasswordInputType,
 		ForgotPasswordLoginID:   forgotPasswordLoginID,
+		IsBotProtectionRequired: bpRequired,
 	}
 }
 
@@ -157,6 +163,11 @@ func (h *AuthflowV2EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *htt
 			"authentication":       option.Authentication,
 			"password":             plainPassword,
 			"request_device_token": requestDeviceToken,
+		}
+
+		err = HandleAuthenticationBotProtection(config.AuthenticationFlowAuthenticationPrimaryPassword, screen.StateTokenFlowResponse, r.Form, input)
+		if err != nil {
+			return err
 		}
 
 		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
