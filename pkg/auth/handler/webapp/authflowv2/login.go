@@ -113,7 +113,7 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 			"response_mode":  oauthrelyingparty.ResponseModeFormPost,
 		}
 
-		err := HandleIdentificationBotProtection(authflow.FlowTypeLogin, config.AuthenticationFlowIdentificationOAuth, screen.StateTokenFlowResponse, r.Form, input)
+		err := HandleIdentificationBotProtection(config.AuthenticationFlowIdentificationOAuth, screen.StateTokenFlowResponse, r.Form, input)
 		if err != nil {
 			return err
 		}
@@ -180,7 +180,7 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 			"login_id":       loginID,
 		}
 
-		err = HandleIdentificationBotProtection(authflow.FlowTypeLogin, identification, screen.StateTokenFlowResponse, r.Form, input)
+		err = HandleIdentificationBotProtection(identification, screen.StateTokenFlowResponse, r.Form, input)
 		if err != nil {
 			return err
 		}
@@ -208,7 +208,7 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 			"assertion_response": assertionResponseJSON,
 		}
 
-		err = HandleIdentificationBotProtection(authflow.FlowTypeLogin, config.AuthenticationFlowIdentificationPasskey, screen.StateTokenFlowResponse, r.Form, input)
+		err = HandleIdentificationBotProtection(config.AuthenticationFlowIdentificationPasskey, screen.StateTokenFlowResponse, r.Form, input)
 		if err != nil {
 			return err
 		}

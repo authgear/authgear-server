@@ -35,8 +35,8 @@ func insertBotProtection(formData url.Values, input map[string]interface{}) {
 	input["bot_protection"] = bot_protection
 }
 
-func HandleIdentificationBotProtection(flowType authflow.FlowType, identification config.AuthenticationFlowIdentification, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
-	bpRequired, err := webapp.IsIdentifyStepBotProtectionRequired(flowType, identification, flowResp)
+func HandleIdentificationBotProtection(identification config.AuthenticationFlowIdentification, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
+	bpRequired, err := webapp.IsIdentifyStepBotProtectionRequired(identification, flowResp)
 	// TODO: confirm what err to return here (identification type not found)
 	if err != nil {
 		return err

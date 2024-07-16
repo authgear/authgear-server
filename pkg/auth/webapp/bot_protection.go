@@ -7,10 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-func IsIdentifyStepBotProtectionRequired(flowType authflow.FlowType, identificationType config.AuthenticationFlowIdentification, f *authflow.FlowResponse) (bool, error) {
-	if flowType == authflow.FlowTypeAccountRecovery {
-		panic("IsIdentifyStepBotProtectionRequired should not be called for account recovery flow. Please call IsAccountRecoveryIdentifyStepBotProtectionRequired instead")
-	}
+func IsIdentifyStepBotProtectionRequired(identificationType config.AuthenticationFlowIdentification, f *authflow.FlowResponse) (bool, error) {
 	options := GetIdentificationOptions(f)
 
 	for _, option := range options {
