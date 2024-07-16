@@ -22,6 +22,7 @@ export class RecaptchaV2Controller extends Controller {
           for (const tokenInput of this.tokenInputTargets) {
             tokenInput.value = token;
           }
+          removeDefaultGRecaptchaField();
         },
         "error-callback": () => {
           // TODO: confirm handling; maybe no need to do anything?
@@ -32,5 +33,22 @@ export class RecaptchaV2Controller extends Controller {
         widget.classList.add("flex");
       }
     });
+  }
+}
+
+/**
+ * This method is a workaround for Google reCaptcha v2.
+ *
+ * Google reCaptcha v2 inject a textarea#g-recaptcha-response field by default.
+ * We do not want this field in our form, so we set it as empty string.
+ *
+ * Note that removing the textarea would cause error in gRecaptcha callback of
+ * on solving challenge, so we opt for empty string here.
+ */
+function removeDefaultGRecaptchaField() {
+  const gRecaptchaResponseTextArea: HTMLTextAreaElement | null =
+    document.querySelector("#g-recaptcha-response");
+  if (gRecaptchaResponseTextArea != null) {
+    gRecaptchaResponseTextArea.value = "";
   }
 }
