@@ -5,7 +5,7 @@ export function formatDateOnly(
   date: Date | string | null
 ): string | null {
   let datetime;
-  let format: DateTimeFormatOptions = DateTime.DATE_MED;
+  const format: DateTimeFormatOptions = DateTime.DATE_MED;
 
   if (date instanceof Date) {
     datetime = DateTime.fromJSDate(date);

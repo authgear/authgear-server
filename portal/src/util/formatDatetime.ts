@@ -5,7 +5,7 @@ export function formatDatetime(
   date: Date | string | null
 ): string | null {
   let datetime;
-  let format: DateTimeFormatOptions = DateTime.DATETIME_MED_WITH_SECONDS;
+  const format: DateTimeFormatOptions = DateTime.DATETIME_MED_WITH_SECONDS;
 
   if (date instanceof Date) {
     datetime = DateTime.fromJSDate(date);
