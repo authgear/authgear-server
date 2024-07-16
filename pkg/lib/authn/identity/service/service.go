@@ -600,7 +600,6 @@ func (s *Service) Create(info *identity.Info) error {
 		return err
 	}
 
-	// TODO(verification): make OAuth verified according to config.
 	switch info.Type {
 	case model.IdentityTypeLoginID:
 		i := info.LoginID
