@@ -40,9 +40,16 @@ type OAuthProvider interface {
 	GetUserProfile(alias string, options oauthrelyingparty.GetUserProfileOptions) (oauthrelyingparty.UserProfile, error)
 }
 
+type IdentityService interface {
+	New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
+	CheckDuplicated(info *identity.Info) (dupe *identity.Info, err error)
+	Create(info *identity.Info) error
+}
+
 type Service struct {
 	Store         Store
 	OAuthProvider OAuthProvider
+	Identities    IdentityService
 }
 
 func (s *Service) StartAdding(input *StartAddingInput) (*StartAddingOutput, error) {
@@ -114,7 +121,7 @@ func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, e
 	}
 
 	providerID := providerConfig.ProviderID()
-	_ = &identity.Spec{
+	spec := &identity.Spec{
 		Type: model.IdentityTypeOAuth,
 		OAuth: &identity.OAuthSpec{
 			ProviderID:     providerID,
@@ -124,6 +131,27 @@ func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, e
 		},
 	}
 
-	// TODO(accountmanagement): Try to add the identity spec to the user, and fire event.
+	info, err := s.Identities.New(
+		token.UserID,
+		spec,
+		// We are not adding Login ID here so the options is irrelevant.
+		identity.NewIdentityOptions{},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// FIXME(accountmanagement): Update identity service to return api error.
+	_, err = s.Identities.CheckDuplicated(info)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.Identities.Create(info)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO(accountmanagement): fire event.
 	return &FinishAddingOutput{}, nil
 }
