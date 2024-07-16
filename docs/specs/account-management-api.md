@@ -163,6 +163,7 @@ Error response
 |If the OAuth provider account is already taken by another account|Invalid|InvariantViolated|`{"cause": { "kind": "DuplicatedIdentity" } }`|
 |If `token` is invalid|Invalid|AccountManagementOAuthTokenInvalid||
 |If `exclude_state_in_authorization_url` is false, and `state` in `query` is not equal to the one bound to `token`|Invalid|AccountManagementOAuthStateNotBoundToToken||
+|If `token` is not bound to the current user|Invalid|AccountManagementOAuthTokenNotBoundToUser||
 
 Here is some pseudo code that you should do
 
