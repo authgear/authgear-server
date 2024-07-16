@@ -1,23 +1,23 @@
 import { Controller } from "@hotwired/stimulus";
+import { getColorScheme } from "../../getColorScheme";
 
 export class CloudflareTurnstileController extends Controller {
   static values = {
     siteKey: { type: String },
-    theme: { type: String },
   };
 
   static targets = ["widget", "tokenInput"];
 
   declare siteKeyValue: string;
-  declare themeValue: string;
   declare widgetTarget: HTMLDivElement;
   declare tokenInputTargets: HTMLInputElement[];
 
   connect() {
     window.turnstile.ready(() => {
+      const colorScheme = getColorScheme();
       window.turnstile.render(this.widgetTarget, {
         sitekey: this.siteKeyValue,
-        theme: this.themeValue,
+        theme: colorScheme,
         callback: (token: string) => {
           for (const tokenInput of this.tokenInputTargets) {
             tokenInput.value = token;
