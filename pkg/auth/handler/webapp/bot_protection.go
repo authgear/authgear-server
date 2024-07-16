@@ -1,9 +1,8 @@
-package authflowv2
+package webapp
 
 import (
 	"net/url"
 
-	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -22,7 +21,7 @@ var AuthflowBotProtectionSchema = validation.NewSimpleSchema(`
 `)
 
 func validateBotProtectionInput(formData url.Values) error {
-	return AuthflowBotProtectionSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(formData))
+	return AuthflowBotProtectionSchema.Validator().ValidateValue(FormToJSON(formData))
 }
 
 func insertBotProtection(formData url.Values, input map[string]interface{}) {

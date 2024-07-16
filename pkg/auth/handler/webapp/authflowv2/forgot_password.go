@@ -251,7 +251,7 @@ func (h *AuthflowV2ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		inputs := h.makeInputs(screen, identification, loginID, 0)
 
 		for _, input := range inputs {
-			err = HandleAccountRecoveryIdentificationBotProtection(config.AuthenticationFlowAccountRecoveryIdentification(identification), screen.StateTokenFlowResponse, r.Form, input)
+			err = handlerwebapp.HandleAccountRecoveryIdentificationBotProtection(config.AuthenticationFlowAccountRecoveryIdentification(identification), screen.StateTokenFlowResponse, r.Form, input)
 			if err != nil {
 				return err
 			}

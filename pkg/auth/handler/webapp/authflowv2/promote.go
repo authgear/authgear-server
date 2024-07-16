@@ -88,7 +88,7 @@ func (h *AuthflowV2PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 			"response_mode":  oauthrelyingparty.ResponseModeFormPost,
 		}
 
-		err := HandleIdentificationBotProtection(config.AuthenticationFlowIdentificationOAuth, screen.StateTokenFlowResponse, r.Form, input)
+		err := handlerwebapp.HandleIdentificationBotProtection(config.AuthenticationFlowIdentificationOAuth, screen.StateTokenFlowResponse, r.Form, input)
 		if err != nil {
 			return err
 		}
@@ -116,7 +116,7 @@ func (h *AuthflowV2PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 			"login_id":       loginID,
 		}
 
-		err = HandleIdentificationBotProtection(config.AuthenticationFlowIdentification(identification), screen.StateTokenFlowResponse, r.Form, input)
+		err = handlerwebapp.HandleIdentificationBotProtection(config.AuthenticationFlowIdentification(identification), screen.StateTokenFlowResponse, r.Form, input)
 		if err != nil {
 			return err
 		}

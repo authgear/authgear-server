@@ -124,7 +124,7 @@ func (h *AuthflowV2UsePasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 			"assertion_response": assertionResponseJSON,
 		}
 
-		err = HandleAuthenticationBotProtection(config.AuthenticationFlowAuthenticationPrimaryPassword, screen.StateTokenFlowResponse, r.Form, input)
+		err = handlerwebapp.HandleAuthenticationBotProtection(config.AuthenticationFlowAuthenticationPrimaryPassword, screen.StateTokenFlowResponse, r.Form, input)
 		if err != nil {
 			return err
 		}

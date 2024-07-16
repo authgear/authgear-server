@@ -165,7 +165,7 @@ func (h *AuthflowV2EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *htt
 			"request_device_token": requestDeviceToken,
 		}
 
-		err = HandleAuthenticationBotProtection(config.AuthenticationFlowAuthenticationPrimaryPassword, screen.StateTokenFlowResponse, r.Form, input)
+		err = handlerwebapp.HandleAuthenticationBotProtection(config.AuthenticationFlowAuthenticationPrimaryPassword, screen.StateTokenFlowResponse, r.Form, input)
 		if err != nil {
 			return err
 		}
