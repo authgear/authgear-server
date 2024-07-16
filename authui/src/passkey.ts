@@ -423,13 +423,13 @@ export class AuthflowPasskeyRequestController extends Controller {
   declare hasButtonTarget: boolean;
 
   connect() {
-    this.buttonTarget.disabled = false;
-    // Disable the button if PublicKeyCredential is unavailable.
-    if (!passkeyIsAvailable()) {
-      if (this.hasButtonTarget) {
+    if (this.hasButtonTarget) {
+      this.buttonTarget.disabled = false;
+      // Disable the button if PublicKeyCredential is unavailable.
+      if (!passkeyIsAvailable()) {
         this.buttonTarget.disabled = true;
+        return;
       }
-      return;
     }
 
     if (this.autoValue === "true") {
@@ -491,13 +491,13 @@ export class AuthflowPasskeyCreationController extends Controller {
   declare optionsValue: string;
 
   connect() {
-    this.buttonTarget.disabled = false;
-    // Disable the button if PublicKeyCredential is unavailable.
-    if (!passkeyIsAvailable()) {
-      if (this.hasButtonTarget) {
+    if (this.hasButtonTarget) {
+      this.buttonTarget.disabled = false;
+      // Disable the button if PublicKeyCredential is unavailable.
+      if (!passkeyIsAvailable()) {
         this.buttonTarget.disabled = true;
+        return;
       }
-      return;
     }
   }
 
