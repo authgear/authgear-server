@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 )
 
 type StartAddingInput struct {
@@ -47,6 +48,7 @@ type IdentityService interface {
 }
 
 type Service struct {
+	Database      *appdb.Handle
 	Store         Store
 	OAuthProvider OAuthProvider
 	Identities    IdentityService
@@ -141,12 +143,19 @@ func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, e
 		return nil, err
 	}
 
-	_, err = s.Identities.CheckDuplicated(info)
-	if err != nil {
-		return nil, err
-	}
+	err = s.Database.WithTx(func() error {
+		_, err = s.Identities.CheckDuplicated(info)
+		if err != nil {
+			return err
+		}
 
-	err = s.Identities.Create(info)
+		err = s.Identities.Create(info)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
