@@ -11,6 +11,7 @@ import (
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -59,7 +60,7 @@ func (s *Store) scan(scn db.Scanner) (*identity.OAuth, error) {
 		&claims,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, identity.ErrIdentityNotFound
+		return nil, api.ErrIdentityNotFound
 	} else if err != nil {
 		return nil, err
 	}
@@ -308,7 +309,7 @@ func (s *Store) Update(i *identity.OAuth) error {
 	}
 
 	if rowsAffected == 0 {
-		return identity.ErrIdentityNotFound
+		return api.ErrIdentityNotFound
 	} else if rowsAffected > 1 {
 		panic(fmt.Sprintf("identity_oauth: want 1 row updated, got %v", rowsAffected))
 	}

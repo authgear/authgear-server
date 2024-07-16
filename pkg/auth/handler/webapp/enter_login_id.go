@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -111,7 +112,7 @@ func (h *EnterLoginIDHandler) GetData(userID string, r *http.Request, rw http.Re
 	var enterLoginIDViewModel EnterLoginIDViewModel
 	if identityID != "" {
 		idnInfo, err := h.Identities.Get(identityID)
-		if errors.Is(err, identity.ErrIdentityNotFound) {
+		if errors.Is(err, api.ErrIdentityNotFound) {
 			return nil, webapp.ErrInvalidSession
 		} else if err != nil {
 			return nil, err

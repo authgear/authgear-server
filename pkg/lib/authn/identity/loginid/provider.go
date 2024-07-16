@@ -6,6 +6,7 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -80,7 +81,7 @@ func (p *Provider) GetByValue(value string) ([]*identity.LoginID, error) {
 		}
 
 		i, err := p.Store.GetByLoginID(config.Key, normalizedloginID)
-		if errors.Is(err, identity.ErrIdentityNotFound) {
+		if errors.Is(err, api.ErrIdentityNotFound) {
 			continue
 		} else if err != nil {
 			return nil, err

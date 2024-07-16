@@ -6,6 +6,7 @@ import (
 
 	"github.com/lib/pq"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -46,7 +47,7 @@ func (s *Store) scan(scn db.Scanner) (*identity.Anonymous, error) {
 		&key,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, identity.ErrIdentityNotFound
+		return nil, api.ErrIdentityNotFound
 	} else if err != nil {
 		return nil, err
 	}
@@ -101,7 +102,7 @@ func (s *Store) List(userID string) ([]*identity.Anonymous, error) {
 
 func (s *Store) Get(userID, id string) (*identity.Anonymous, error) {
 	if userID == "" || id == "" {
-		return nil, identity.ErrIdentityNotFound
+		return nil, api.ErrIdentityNotFound
 	}
 	q := s.selectQuery().Where("p.user_id = ? AND p.id = ?", userID, id)
 	rows, err := s.SQLExecutor.QueryRowWith(q)
@@ -114,7 +115,7 @@ func (s *Store) Get(userID, id string) (*identity.Anonymous, error) {
 
 func (s *Store) GetByKeyID(keyID string) (*identity.Anonymous, error) {
 	if keyID == "" {
-		return nil, identity.ErrIdentityNotFound
+		return nil, api.ErrIdentityNotFound
 	}
 
 	q := s.selectQuery().Where("a.key_id = ?", keyID)

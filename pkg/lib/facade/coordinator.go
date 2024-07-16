@@ -1010,7 +1010,7 @@ func (c *Coordinator) MarkClaimVerifiedByAdmin(claim *verification.Claim) error 
 		}
 	}
 	if userIdentity == nil {
-		return identity.ErrIdentityNotFound
+		return api.ErrIdentityNotFound
 	}
 
 	if err := c.Verification.MarkClaimVerified(claim); err != nil {
@@ -1051,7 +1051,7 @@ func (c *Coordinator) DeleteVerifiedClaimByAdmin(claim *verification.Claim) erro
 		}
 	}
 	if userIdentity == nil {
-		return identity.ErrIdentityNotFound
+		return api.ErrIdentityNotFound
 	}
 
 	if err := c.Verification.DeleteClaim(claim); err != nil {
