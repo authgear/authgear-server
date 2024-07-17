@@ -64,7 +64,7 @@ func (f FormatPhone) CheckFormat(value interface{}) error {
 	if !ok {
 		return nil
 	}
-	return phone.LegalAndValidParser.CheckE164(str)
+	return phone.LegalParser.CheckE164(str)
 }
 
 // FormatEmail checks if input is an email address.

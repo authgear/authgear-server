@@ -93,7 +93,7 @@ func RawToSource(raw *model.ElasticsearchUserRaw) *model.ElasticsearchUserSource
 	var phoneNumberCountryCode []string
 	var phoneNumberNationalNumber []string
 	for _, phoneNumber := range raw.PhoneNumber {
-		nationalNumber, callingCode, err := phone.LegalAndValidParser.SplitE164(phoneNumber)
+		nationalNumber, callingCode, err := phone.LegalParser.SplitE164(phoneNumber)
 		if err == nil {
 			phoneNumberCountryCode = append(phoneNumberCountryCode, callingCode)
 			phoneNumberNationalNumber = append(phoneNumberNationalNumber, nationalNumber)

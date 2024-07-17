@@ -301,7 +301,7 @@ func (c *CountCollector) querySMSCount(appID string, rangeFrom *time.Time, range
 
 			e164 := payload.Recipient
 
-			isNorthAmericaNumber, err := phoneutil.LegalAndValidParser.IsNorthAmericaNumber(e164)
+			isNorthAmericaNumber, err := phoneutil.LegalParser.IsNorthAmericaNumber(e164)
 			if err != nil {
 				return nil, fmt.Errorf("usage: failed to parse sms recipient %w", err)
 			}
@@ -346,7 +346,7 @@ func (c *CountCollector) queryWhatsappCount(appID string, rangeFrom *time.Time, 
 
 			e164 := payload.Recipient
 
-			isNorthAmericaNumber, err := phoneutil.LegalAndValidParser.IsNorthAmericaNumber(e164)
+			isNorthAmericaNumber, err := phoneutil.LegalParser.IsNorthAmericaNumber(e164)
 			if err != nil {
 				return nil, fmt.Errorf("usage: failed to parse whatsapp recipient %w", err)
 			}

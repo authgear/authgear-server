@@ -262,7 +262,7 @@ var _ = registerMutationField(
 			gqlCtx := GQLContext(p.Context)
 
 			var channel apimodel.AuthenticatorOOBChannel
-			if err := phone.LegalAndValidParser.CheckE164(target); err == nil {
+			if err := phone.LegalParser.CheckE164(target); err == nil {
 				channel = apimodel.AuthenticatorOOBChannelSMS
 			} else {
 				channel = apimodel.AuthenticatorOOBChannelEmail
