@@ -1,7 +1,7 @@
 @layer components {
   :root {
     --tertiary-btn__bg-color: var(--color-neutral-700);
-    --tertiary-btn__text-color: var(--color-neutral-700);
+    --tertiary-btn__text-color: var(--color-white);
     --tertiary-btn__border-radius: var(--border-radius-full);
     --tertiary-btn__font-family: var(--typography-label-medium__font-family);
     --tertiary-btn__font-size: var(--typography-label-medium__font-size);

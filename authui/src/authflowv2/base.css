@@ -104,7 +104,7 @@
     --color-neutral-700: #1c1c1e;
 
     /* background */
-    --color-surface-primary: #1c1c1e;
+    --color-surface-primary: var(--color-neutral-700);
   }
 
   /* Border Radius */
