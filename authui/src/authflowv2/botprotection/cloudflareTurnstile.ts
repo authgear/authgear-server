@@ -4,11 +4,13 @@ import { getColorScheme } from "../../getColorScheme";
 export class CloudflareTurnstileController extends Controller {
   static values = {
     siteKey: { type: String },
+    lang: { type: String },
   };
 
   static targets = ["widget", "tokenInput"];
 
   declare siteKeyValue: string;
+  declare langValue: string;
   declare widgetTarget: HTMLDivElement;
   declare tokenInputTargets: HTMLInputElement[];
 
@@ -18,6 +20,7 @@ export class CloudflareTurnstileController extends Controller {
       window.turnstile.render(this.widgetTarget, {
         sitekey: this.siteKeyValue,
         theme: colorScheme,
+        language: this.langValue,
         callback: (token: string) => {
           for (const tokenInput of this.tokenInputTargets) {
             tokenInput.value = token;
