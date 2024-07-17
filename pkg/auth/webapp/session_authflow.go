@@ -298,10 +298,29 @@ func newAuthflowScreenAccountRecovery(flowResponse *authflow.FlowResponse, previ
 	return screen
 }
 
+func newBotProtectionVerificationScreen(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreenWithFlowResponse {
+	screen := &AuthflowScreenWithFlowResponse{
+		Screen: &AuthflowScreen{
+			PreviousXStep: previousXStep,
+			PreviousInput: previousInput,
+			StateToken: &AuthflowStateToken{
+				XStep:      newXStep(),
+				StateToken: flowResponse.StateToken, // state unchanged, no need to create a new state token
+			},
+		},
+		StateTokenFlowResponse:       nil,
+		BranchStateTokenFlowResponse: nil,
+		IsVerifyBotProtectionScreen:  true,
+	}
+	return screen
+}
+
 type AuthflowScreenWithFlowResponse struct {
 	Screen                       *AuthflowScreen
 	StateTokenFlowResponse       *authflow.FlowResponse
 	BranchStateTokenFlowResponse *authflow.FlowResponse
+
+	IsVerifyBotProtectionScreen bool // true if the screen is to verify bot protection
 }
 
 func NewAuthflowScreenWithResult(previousXStep string, targetResult *Result) *AuthflowScreen {
@@ -367,8 +386,17 @@ type TakeBranchResultInput struct {
 
 func (TakeBranchResultInput) takeBranchResult() {}
 
+type TakeBranchResultInputBotProtectionRequired struct {
+	BotProtectionVerificationScreen *AuthflowScreenWithFlowResponse
+	TakeBranchResultInput           *TakeBranchResultInput
+}
+
+func (TakeBranchResultInputBotProtectionRequired) takeBranchResult() {}
+
 type TakeBranchOptions struct {
-	DisableFallbackToSMS bool
+	DisableFallbackToSMS          bool
+	BotProtectionProviderType     config.BotProtectionProviderType
+	BotProtectionProviderResponse string
 }
 
 func (s *AuthflowScreenWithFlowResponse) InheritTakenBranchState(from *AuthflowScreenWithFlowResponse) {
@@ -570,7 +598,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(index int, channel mode
 				options.DisableFallbackToSMS,
 			)
 
-			return TakeBranchResultInput{
+			takeBranchResultInput := &TakeBranchResultInput{
 				Input: input,
 				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse, retriedForError error) *AuthflowScreenWithFlowResponse {
 					isContinuation := func(flowResponse *authflow.FlowResponse) bool {
@@ -589,6 +617,12 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(index int, channel mode
 				},
 				OnRetry: &onFailureHandler,
 			}
+
+			if option.BotProtection.IsRequired() {
+				return s.takeBranchResultInputBotProtectionRequired(takeBranchResultInput)
+			}
+
+			return *takeBranchResultInput
 		default:
 			panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
 		}
@@ -700,6 +734,16 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchResultSimple(index int, chann
 	screen.Screen.TakenChannel = channel
 	return TakeBranchResultSimple{
 		Screen: screen,
+	}
+}
+
+func (s *AuthflowScreenWithFlowResponse) takeBranchResultInputBotProtectionRequired(tbri *TakeBranchResultInput) TakeBranchResultInputBotProtectionRequired {
+	xStep := s.Screen.StateToken.XStep
+	screen := newBotProtectionVerificationScreen(s.StateTokenFlowResponse, xStep, nil)
+
+	return TakeBranchResultInputBotProtectionRequired{
+		TakeBranchResultInput:           tbri,
+		BotProtectionVerificationScreen: screen,
 	}
 }
 

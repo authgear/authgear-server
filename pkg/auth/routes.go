@@ -197,6 +197,10 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		newWebappPageChain(),
 		p.Middleware(newAuthEntryPointMiddleware),
 	)
+	webappVerifyBotProtectionChain := httproute.Chain(
+		newWebappPageChain(),
+		p.Middleware(newVerifyBotProtectionMiddleware),
+	)
 	// consent page only accepts idp session
 	webappConsentPageChain := httproute.Chain(
 		newWebappChain(),
@@ -254,6 +258,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	webappAuthEntrypointRoute := httproute.Route{Middleware: webappAuthEntrypointChain}
 	webappRequireAuthEnabledAuthEntrypointRoute := httproute.Route{Middleware: webappRequireAuthEnabledAuthEntrypointChain}
 	webappSelectAccountRoute := httproute.Route{Middleware: webappSelectAccountChain}
+	webappVerifyBotProtectionRoute := httproute.Route{Middleware: webappVerifyBotProtectionChain}
 	webappConsentPageRoute := httproute.Route{Middleware: webappConsentPageChain}
 	webappAuthenticatedRoute := httproute.Route{Middleware: webappAuthenticatedChain}
 	webappSuccessPageRoute := httproute.Route{Middleware: webappSuccessPageChain}
@@ -296,6 +301,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	router.Add(webapphandler.ConfigureSelectAccountRoute(webappSelectAccountRoute), p.Handler(newWebAppSelectAccountHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SelectAccountRoute(webappSelectAccountRoute), p.Handler(newWebAppAuthflowV2SelectAccountHandler))
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2VerifyBotProtectionRoute(webappVerifyBotProtectionRoute), p.Handler(newWebAppAuthflowV2VerifyBotProtectionHandler))
 
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2EnterPasswordRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2EnterPasswordHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2EnterOOBOTPRoute(webappPageRoute), p.Handler(newWebAppAuthflowV2EnterOOBOTPHandler))

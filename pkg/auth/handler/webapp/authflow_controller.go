@@ -92,6 +92,7 @@ type AuthflowNavigator interface {
 	NavigateNonRecoverableError(r *http.Request, u *url.URL, e error)
 	NavigateSelectAccount(result *webapp.Result)
 	NavigateResetPasswordSuccessPage() string
+	NavigateVerifyBotProtection(result *webapp.Result)
 }
 
 type AuthflowControllerLogger struct{ *log.Logger }
@@ -612,6 +613,12 @@ func (c *AuthflowController) AdvanceWithInputs(
 		if err != nil {
 			return nil, err
 		}
+
+		if screen2.IsVerifyBotProtectionScreen {
+			c.Navigator.NavigateVerifyBotProtection(result)
+			return result, nil
+		}
+
 		currentScreen = screen2
 
 		if output2 != nil {
@@ -628,6 +635,25 @@ func (c *AuthflowController) AdvanceWithInputs(
 	}
 
 	currentScreen.Navigate(c.Navigator, r, s.ID, result)
+
+	return result, nil
+}
+
+type AdvanceWithBotProtectionOptions struct {
+	BotProtectionProviderType     config.BotProtectionProviderType
+	BotProtectionProviderResponse string
+}
+
+func (c *AuthflowController) AdvanceWithBotProtection(
+	r *http.Request,
+	s *webapp.Session,
+	screen0 *webapp.AuthflowScreenWithFlowResponse,
+	options *AdvanceWithBotProtectionOptions,
+) (*webapp.Result, error) {
+	if options == nil {
+		options = &AdvanceWithBotProtectionOptions{}
+	}
+	result := &webapp.Result{}
 
 	return result, nil
 }
@@ -759,6 +785,8 @@ func (c *AuthflowController) takeBranchRecursively(s *webapp.Session, screen *we
 			if err != nil {
 				return
 			}
+		case webapp.TakeBranchResultInputBotProtectionRequired:
+			screen = takeBranchResult.BotProtectionVerificationScreen
 		}
 	}
 
@@ -955,6 +983,8 @@ func (c *AuthflowController) takeBranch(w http.ResponseWriter, r *http.Request, 
 			return err
 		}
 		result.Cookies = append(result.Cookies, output.Cookies...)
+	case webapp.TakeBranchResultInputBotProtectionRequired:
+		newScreen = takeBranchResult.BotProtectionVerificationScreen
 	}
 
 	output2, newScreen, err := c.takeBranchRecursively(s, newScreen)

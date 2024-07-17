@@ -188,6 +188,13 @@ func newAPIRRequireAuthenticatedMiddlewareMiddleware(p *deps.RequestProvider) ht
 	))
 }
 
+func newVerifyBotProtectionMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*webapp.VerifyBotProtectionMiddleware)),
+	))
+}
+
 func newTutorialMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,
