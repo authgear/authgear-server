@@ -62,8 +62,12 @@
     --color-neutral-600: #303135;
     --color-neutral-700: #131315;
 
+    /* color */
+    --color-white: #ffffff;
+    --color-black: #000000;
+
     /* background */
-    --color-bg-base: #ffffff;
+    --color-surface-primary: var(--color-white);
   }
 
   :root.dark {
@@ -100,7 +104,7 @@
     --color-neutral-700: #1c1c1e;
 
     /* background */
-    --color-bg-base: #1c1c1e;
+    --color-surface-primary: var(--color-neutral-700);
   }
 
   /* Border Radius */

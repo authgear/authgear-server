@@ -1,6 +1,6 @@
 @layer components {
   :root {
-    --secondary-btn__bg-color: var(--color-bg-base);
+    --secondary-btn__bg-color: var(--color-surface-primary);
     --secondary-btn__text-color: var(--color-neutral-700);
     --secondary-btn__border-radius: var(--border-radius-rounded-square);
     --secondary-btn__font-family: var(--typography-label-large__font-family);

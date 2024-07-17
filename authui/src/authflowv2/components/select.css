@@ -9,7 +9,7 @@
 
     --select__dropdown-width: 100%;
     --select__dropdown-border-radius: var(--border-radius-rounded-square);
-    --select__dropdown-background-color: var(--color-bg-base);
+    --select__dropdown-background-color: var(--color-surface-primary);
     --select__dropdown-shadow: 0 9px 21px 0 rgba(0, 0, 0, 0.1),
       0 38px 38px 0 rgba(0, 0, 0, 0.09), 0 85px 51px 0 rgba(0, 0, 0, 0.05),
       0 152px 61px 0 rgba(0, 0, 0, 0.01), 0 237px 66px 0 rgba(0, 0, 0, 0);

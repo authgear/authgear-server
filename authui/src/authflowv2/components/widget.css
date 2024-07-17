@@ -1,6 +1,6 @@
 @layer components {
   :root {
-    --widget__bg-color: var(--color-bg-base);
+    --widget__bg-color: var(--color-surface-primary);
     --widget__width: 100%;
     --widget__max-width: 400px;
     --widget__border-radius: 0;
@@ -18,7 +18,7 @@
   }
 
   :root.dark {
-    --widget__bg-color: var(--color-bg-base);
+    --widget__bg-color: var(--color-surface-primary);
     --widget__bg-image: ;
   }
 

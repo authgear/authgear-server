@@ -5,10 +5,10 @@
     --checkbox__ring-width: 1.5px;
     --checkbox__ring-color: var(--color-neutral-200);
     --checkbox__ring-color-checked: var(--color-primary-theme-primary);
-    --checkbox__background-color: var(--color-bg-base);
+    --checkbox__background-color: var(--color-surface-primary);
     --checkbox__background-color--checked: var(--color-primary-theme-primary);
 
-    --checkbox__icon-color: var(--color-bg-base);
+    --checkbox__icon-color: var(--color-surface-primary);
   }
 
   :root.dark {

@@ -1,7 +1,7 @@
 @layer components {
   :root {
     --primary-btn__bg-color: var(--color-primary-theme-primary);
-    --primary-btn__text-color: var(--color-bg-base);
+    --primary-btn__text-color: var(--color-white);
     --primary-btn__border-radius: var(--border-radius-rounded-square);
     --primary-btn__font-family: var(--typography-label-large__font-family);
     --primary-btn__font-size: var(--typography-label-large__font-size);
@@ -35,7 +35,6 @@
   }
 
   :root.dark {
-    --primary-btn__text-color: var(--color-neutral-700);
     --primary-btn__bg-color--disabled: var(--color-neutral-400);
     --primary-btn__text-color--disabled: var(--color-neutral-100);
 

@@ -1,6 +1,6 @@
 @layer components {
   :root {
-    --modal__bg-color: var(--color-bg-base);
+    --modal__bg-color: var(--color-surface-primary);
   }
 
   .modal {

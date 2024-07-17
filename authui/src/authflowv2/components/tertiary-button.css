@@ -1,7 +1,7 @@
 @layer components {
   :root {
     --tertiary-btn__bg-color: var(--color-neutral-700);
-    --tertiary-btn__text-color: var(--color-bg-base);
+    --tertiary-btn__text-color: var(--color-white);
     --tertiary-btn__border-radius: var(--border-radius-full);
     --tertiary-btn__font-family: var(--typography-label-medium__font-family);
     --tertiary-btn__font-size: var(--typography-label-medium__font-size);
@@ -56,7 +56,7 @@
     line-height: var(--tertiary-btn__line-height);
     letter-spacing: var(--tertiary-btn__letter-spacing);
     font-weight: var(--tertiary-btn__font-weight);
-    @apply ring-inset	
+    @apply ring-inset
       ring-[length:var(--tertiary-btn\_\_ring-width)]
       ring-[color:var(--tertiary-btn\_\_ring-color)];
     padding: var(--tertiary-btn__py) var(--tertiary-btn__px);

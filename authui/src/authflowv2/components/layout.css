@@ -1,13 +1,13 @@
 @layer components {
   :root {
-    --layout__bg-color: var(--color-bg-base);
+    --layout__bg-color: var(--color-surface-primary);
     --layout__bg_position: center;
     --layout__bg_repeat: no-repeat;
     --layout__bg_size: cover;
   }
 
   :root.dark {
-    --layout__bg-color: var(--color-bg-base);
+    --layout__bg-color: var(--color-surface-primary);
     --layout__bg-image: ;
   }
 
