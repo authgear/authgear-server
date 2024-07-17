@@ -655,7 +655,7 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 
 	sessionID := ""
 	var sessionType session.Type = ""
-	if s := session.GetSession(h.Context); s != nil {
+	if s := session.GetSession(h.Context); s != nil && s.GetAuthenticationInfo().UserID == authenticationInfo.UserID {
 		sessionID = s.SessionID()
 		sessionType = s.SessionType()
 	}
