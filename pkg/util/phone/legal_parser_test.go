@@ -31,17 +31,17 @@ func TestLegalParserCheckE164(t *testing.T) {
 
 		Convey("Emergency phone number", func() {
 			emergency := "+852999"
-			So(parser.CheckE164(emergency), ShouldBeNil)
+			So(parser.CheckE164(emergency), ShouldBeError, "invalid phone number")
 		})
 
 		Convey("1823", func() {
 			one_eight_two_three := "+8521823"
-			So(parser.CheckE164(one_eight_two_three), ShouldBeNil)
+			So(parser.CheckE164(one_eight_two_three), ShouldBeError, "invalid phone number")
 		})
 
 		Convey("too short", func() {
 			tooShort := "+85222"
-			So(parser.CheckE164(tooShort), ShouldBeNil)
+			So(parser.CheckE164(tooShort), ShouldBeError, "invalid phone number")
 		})
 
 		Convey("+", func() {
