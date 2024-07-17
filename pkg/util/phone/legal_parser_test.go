@@ -39,6 +39,11 @@ func TestLegalParserCheckE164(t *testing.T) {
 			So(parser.CheckE164(one_eight_two_three), ShouldBeError, "invalid phone number")
 		})
 
+		Convey("phone number that are relatively new", func() {
+			relativelyNew := "+85253580001"
+			So(parser.CheckE164(relativelyNew), ShouldBeNil)
+		})
+
 		Convey("too short", func() {
 			tooShort := "+85222"
 			So(parser.CheckE164(tooShort), ShouldBeError, "invalid phone number")
