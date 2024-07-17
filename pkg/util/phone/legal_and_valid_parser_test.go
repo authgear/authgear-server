@@ -6,41 +6,59 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+func TestLegalAndValidParserCheckE164(t *testing.T) {
+	parser := &legalAndValidParser{}
+	Convey("LegalAndValidParser.CheckE164", t, func() {
+		Convey("good", func() {
+			good := "+85223456789"
+			So(parser.CheckE164(good), ShouldBeNil)
+		})
+
+		Convey("bad", func() {
+			bad := " +85223456789 "
+			So(parser.CheckE164(bad), ShouldBeError, "not in E.164 format")
+		})
+
+		Convey("with letter", func() {
+			withLetter := "+85222a"
+			So(parser.CheckE164(withLetter), ShouldBeError, "not in E.164 format")
+		})
+
+		Convey("Hong Kong phone number does not start with 1", func() {
+			invalid := "+85212345678"
+			So(parser.CheckE164(invalid), ShouldBeError, "invalid phone number")
+		})
+
+		Convey("too short", func() {
+			tooShort := "+85222"
+			So(parser.CheckE164(tooShort), ShouldBeError, "invalid phone number")
+		})
+
+		Convey("+", func() {
+			plus := "+"
+			So(parser.CheckE164(plus), ShouldBeError, "not in E.164 format")
+		})
+
+		Convey("+country calling code", func() {
+			plusCountryCode := "+852"
+			So(parser.CheckE164(plusCountryCode), ShouldBeError, "not in E.164 format")
+		})
+
+		Convey("letters only", func() {
+			nonsense := "a"
+			So(parser.CheckE164(nonsense), ShouldBeError, "not in E.164 format")
+		})
+
+		Convey("empty", func() {
+			empty := ""
+			So(parser.CheckE164(empty), ShouldBeError, "not in E.164 format")
+		})
+	})
+}
+
 func TestLegalAndValidParser(t *testing.T) {
 	parser := &legalAndValidParser{}
 	Convey("Phone", t, func() {
-		Convey("checkE164", func() {
-			good := "+85223456789"
-			So(parser.CheckE164(good), ShouldBeNil)
-
-			bad := " +85223456789 "
-			So(parser.CheckE164(bad), ShouldBeError, "not in E.164 format")
-
-			withLetter := "+85222a"
-			So(parser.CheckE164(withLetter), ShouldBeError, "not in E.164 format")
-
-			invalid := "+85212345678"
-			So(parser.CheckE164(invalid), ShouldBeError, "invalid phone number")
-
-			tooShort := "+85222"
-			So(parser.CheckE164(tooShort), ShouldBeError, "invalid phone number")
-
-			plus := "+"
-			So(parser.CheckE164(plus), ShouldBeError, "not in E.164 format")
-
-			plusCountryCode := "+852"
-			So(parser.CheckE164(plusCountryCode), ShouldBeError, "not in E.164 format")
-
-			nonsense := "a"
-			So(parser.CheckE164(nonsense), ShouldBeError, "not in E.164 format")
-
-			empty := ""
-			So(parser.CheckE164(empty), ShouldBeError, "not in E.164 format")
-
-			// Hong Kong number starting with 7
-			So(parser.CheckE164("+85270123456"), ShouldBeNil)
-		})
-
 		Convey("ParseCountryCallingCodeAndNationalNumber", func() {
 			Convey("valid cases", func() {
 				check := func(nationalNumber, callingCode, e164 string) {
