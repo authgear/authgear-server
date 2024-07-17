@@ -62,12 +62,12 @@
     --color-neutral-600: #303135;
     --color-neutral-700: #131315;
 
-    /* background */
-    --color-surface-primary: #ffffff;
-
     /* color */
     --color-white: #ffffff;
     --color-black: #000000;
+
+    /* background */
+    --color-surface-primary: var(--color-white);
   }
 
   :root.dark {
