@@ -29,6 +29,16 @@ func TestLegalAndValidParserCheckE164(t *testing.T) {
 			So(parser.CheckE164(invalid), ShouldBeError, "invalid phone number")
 		})
 
+		Convey("Emergency phone number", func() {
+			emergency := "+852999"
+			So(parser.CheckE164(emergency), ShouldBeError, "invalid phone number")
+		})
+
+		Convey("1823", func() {
+			one_eight_two_three := "+8521823"
+			So(parser.CheckE164(one_eight_two_three), ShouldBeError, "invalid phone number")
+		})
+
 		Convey("too short", func() {
 			tooShort := "+85222"
 			So(parser.CheckE164(tooShort), ShouldBeError, "invalid phone number")
