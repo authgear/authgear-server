@@ -34,6 +34,9 @@ var TemplateWebAuthflowV2HTMLHeadHTML = template.RegisterHTML("web/authflowv2/__
 var TemplateWebAuthflowV2LoadBotProtectionHTML = template.RegisterHTML("web/authflowv2/__load_bot_protection.html")
 var TemplateWebAuthflowV2GeneratedAssetHTML = template.RegisterHTML("web/authflowv2/__generated_asset.html")
 var TemplateWebAuthflowV2PageFrameHTML = template.RegisterHTML("web/authflowv2/__page_frame.html")
+var TemplateWebAuthflowV2BotProtectionWidgetHTML = template.RegisterHTML("web/authflowv2/__bot_protection_widget.html")
+var TemplateWebAuthflowV2BotProtectionFormInputHTML = template.RegisterHTML("web/authflowv2/__bot_protection_form_input.html")
+var TemplateWebAuthflowV2BotProtectionControllerHTML = template.RegisterHTML("web/authflowv2/__bot_protection_controller.html")
 var TemplateWebAuthflowV2HeaderHTML = template.RegisterHTML("web/authflowv2/__header.html")
 var TemplateWebAuthflowV2DividerHTML = template.RegisterHTML("web/authflowv2/__divider.html")
 var TemplateWebAuthflowV2AlertMessageHTML = template.RegisterHTML("web/authflowv2/__alert_message.html")
@@ -82,6 +85,9 @@ var ComponentsHTML = []*template.HTML{
 	TemplateWebAuthflowV2LoadBotProtectionHTML,
 	TemplateWebAuthflowV2GeneratedAssetHTML,
 	TemplateWebAuthflowV2PageFrameHTML,
+	TemplateWebAuthflowV2BotProtectionWidgetHTML,
+	TemplateWebAuthflowV2BotProtectionFormInputHTML,
+	TemplateWebAuthflowV2BotProtectionControllerHTML,
 	TemplateWebAuthflowV2HeaderHTML,
 	TemplateWebAuthflowV2DividerHTML,
 	TemplateWebAuthflowV2AlertMessageHTML,

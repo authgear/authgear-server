@@ -1,0 +1,5 @@
+{{ if (eq $.BotProtectionProviderType "cloudflare" ) }}
+  data-controller="cloudflare-turnstile" data-cloudflare-turnstile-site-key-value="{{$.BotProtectionProviderSiteKey}}"
+{{ else if (eq $.BotProtectionProviderType "recaptchav2" ) }}
+  data-controller="recaptcha-v2" data-recaptcha-v2-site-key-value="{{$.BotProtectionProviderSiteKey}}"
+{{ end }}
