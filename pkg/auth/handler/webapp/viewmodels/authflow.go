@@ -231,6 +231,26 @@ func (m *AuthflowViewModeler) NewWithAuthflow(f *authflow.FlowResponse, r *http.
 	}
 }
 
+func (m *AuthflowViewModeler) NewWithAccountRecoveryAuthflow(f *authflow.FlowResponse, r *http.Request) AuthflowViewModel {
+	options := webapp.GetAccountRecoveryIdentificationOptions(f)
+	bpRequiredEmail := false
+	bpRequiredPhone := false
+
+	for _, opt := range options {
+		switch opt.Identification {
+		case config.AuthenticationFlowAccountRecoveryIdentificationEmail:
+			bpRequiredEmail = opt.BotProtection.IsRequired()
+		case config.AuthenticationFlowAccountRecoveryIdentificationPhone:
+			bpRequiredPhone = opt.BotProtection.IsRequired()
+		}
+	}
+
+	return AuthflowViewModel{
+		EmailLoginIDBotProtectionRequired: bpRequiredEmail,
+		PhoneLoginIDBotProtectionRequired: bpRequiredPhone,
+	}
+}
+
 // nolint: gocognit
 func (m *AuthflowViewModeler) NewWithConfig() AuthflowViewModel {
 	var firstLoginIDIdentification config.AuthenticationFlowIdentification
