@@ -871,6 +871,8 @@
   "v2-placeholder-password": "Mật khẩu hiện tại",
   "v2-placeholder-new-password": "Mật khẩu mới",
   "v2-placeholder-confirm-password": "Nhập lại mật khẩu",
+  "v2-verify-bot-protection-header": "Đang kiểm tra hệ thống của bạn...",
+  "v2-verify-bot-protection-label": "Bạn sẽ được chuyển hướng ngay sau khi hoàn thành thử thách",
   "v2-button-label-continue": "Tiếp tục",
   "v2-button-label-login": "Đăng nhập",
   "v2-button-label-send": "Gửi",

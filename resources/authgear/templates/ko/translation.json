@@ -871,6 +871,8 @@
   "v2-placeholder-password": "현재 비밀번호",
   "v2-placeholder-new-password": "새 비밀번호",
   "v2-placeholder-confirm-password": "비밀번호 다시 입력",
+  "v2-verify-bot-protection-header": "시스템 확인 중...",
+  "v2-verify-bot-protection-label": "챌린지를 완료한 후 곧 리디렉션됩니다.",
   "v2-button-label-continue": "계속",
   "v2-button-label-login": "로그인",
   "v2-button-label-send": "보내기",

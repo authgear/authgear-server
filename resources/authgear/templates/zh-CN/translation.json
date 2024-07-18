@@ -871,6 +871,8 @@
   "v2-placeholder-password": "当前密码",
   "v2-placeholder-new-password": "新密码",
   "v2-placeholder-confirm-password": "重新输入密码",
+  "v2-verify-bot-protection-header": "正在检查您的系统...",
+  "v2-verify-bot-protection-label": "您完成挑战后将很快被重定向",
   "v2-button-label-continue": "继续",
   "v2-button-label-login": "登录",
   "v2-button-label-send": "发送",
