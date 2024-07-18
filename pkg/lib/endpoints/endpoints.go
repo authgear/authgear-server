@@ -93,6 +93,15 @@ func (e *Endpoints) SelectAccountEndpointURL(uiImpl config.UIImplementation) *ur
 		panic(fmt.Errorf("unexpected ui implementation %s", uiImpl))
 	}
 }
+func (e *Endpoints) VerifyBotProtectionEndpointURL(uiImpl config.UIImplementation) *url.URL {
+	uiImpl = uiImpl.WithDefault()
+	switch uiImpl {
+	case config.UIImplementationAuthflowV2:
+		return e.urlOf("/authflow/v2/verify_bot_protection")
+	default:
+		panic(fmt.Errorf("unexpected ui implementation %s", uiImpl))
+	}
+}
 func (e *Endpoints) SSOCallbackEndpointURL() *url.URL { return e.urlOf("sso/oauth2/callback") }
 
 func (e *Endpoints) WeChatAuthorizeEndpointURL() *url.URL { return e.urlOf("sso/wechat/auth") }
